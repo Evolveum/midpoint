@@ -9,15 +9,12 @@
 <head/>
 <body>
 <wicket:panel>
-    <!-- todo replace style attribute to css class -->
     <div class="search-item"  wicket:id="searchItemContainer">
-        <div class="col-sm-3" style="margin-top: 5px; width: fit-content" wicket:id="searchItemLabel" />
-        <div wicket:id="searchItemField" />
-        <div class="col-sm-1">
-            <a wicket:id="removeButton" class="btn btn-xs btn-default" style="margin-top: 5px; border: none !important;">
-                <i class="fa fa-times-circle fa-lg" />
-            </a>
-        </div>
+        <div class="col-sm-3 search-item-label" wicket:id="searchItemLabel" style="width: auto !important;" />
+        <div class="search-item-field" wicket:id="searchItemField" />
+        <a wicket:id="removeButton" class="btn btn-xs btn-default search-item-remove-button pull-right">
+            <i class="fa fa-remove"/>
+        </a>
     </div>
 </wicket:panel>
 </body>

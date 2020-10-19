@@ -12,12 +12,14 @@ import java.util.List;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class SearchItemDefinition implements Serializable {
 
     private ItemPath path;
     private ItemDefinition def;
     private SearchItemType predefinedFilter;
+    private PolyStringType displayName;
     private List<?> allowedValues;
 
     public SearchItemDefinition(ItemPath path, ItemDefinition def, List<?> allowedValues) {
@@ -48,5 +50,13 @@ public class SearchItemDefinition implements Serializable {
 
     public void setPredefinedFilter(SearchItemType predefinedFilter) {
         this.predefinedFilter = predefinedFilter;
+    }
+
+    public PolyStringType getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(PolyStringType displayName) {
+        this.displayName = displayName;
     }
 }

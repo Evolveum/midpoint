@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,16 +28,11 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
@@ -158,7 +155,7 @@ public class ContextFactory {
             PrismObject<O> object, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Class<O> typeClass = object.getCompileTimeClass();
         LensContext<F> context;
-        if (isFocalClass(typeClass)) {
+        if (AssignmentHolderType.class.isAssignableFrom(typeClass)) {
             context = createRecomputeFocusContext((Class<F>)typeClass, (PrismObject<F>) object, options, task, result);
         } else if (ShadowType.class.isAssignableFrom(typeClass)) {
             context =  createRecomputeProjectionContext((PrismObject<ShadowType>) object, options, task, result);
@@ -172,34 +169,32 @@ public class ContextFactory {
 
     public <F extends ObjectType> LensContext<F> createRecomputeFocusContext(
             Class<F> focusType, PrismObject<F> focus, ModelExecuteOptions options, Task task, OperationResult result) {
-        LensContext<F> syncContext = new LensContext<>(focusType,
+        LensContext<F> lensContext = new LensContext<>(focusType,
             prismContext, provisioningService);
-        LensFocusContext<F> focusContext = syncContext.createFocusContext();
+        LensFocusContext<F> focusContext = lensContext.createFocusContext();
         focusContext.setLoadedObject(focus);
         focusContext.setOid(focus.getOid());
-        syncContext.setChannel(SchemaConstants.CHANGE_CHANNEL_RECOMPUTE_URI);
-        syncContext.setDoReconciliationForAllProjections(ModelExecuteOptions.isReconcile(options));
-        return syncContext;
+        lensContext.setChannel(SchemaConstants.CHANNEL_RECOMPUTE_URI);
+        lensContext.setDoReconciliationForAllProjections(ModelExecuteOptions.isReconcile(options));
+        return lensContext;
     }
 
     public <F extends ObjectType> LensContext<F> createRecomputeProjectionContext(
             PrismObject<ShadowType> shadow, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         provisioningService.applyDefinition(shadow, task, result);
-        LensContext<F> syncContext = new LensContext<>(null,
-            prismContext, provisioningService);
-        LensProjectionContext projectionContext = syncContext.createProjectionContext();
+        LensContext<F> lensContext = new LensContext<>(null, prismContext, provisioningService);
+        LensProjectionContext projectionContext = lensContext.createProjectionContext();
         projectionContext.setLoadedObject(shadow);
         projectionContext.setOid(shadow.getOid());
         projectionContext.setDoReconciliation(ModelExecuteOptions.isReconcile(options));
-        syncContext.setChannel(SchemaConstants.CHANGE_CHANNEL_RECOMPUTE_URI);
-        return syncContext;
+        lensContext.setChannel(SchemaConstants.CHANNEL_RECOMPUTE_URI);
+        return lensContext;
     }
 
      /**
      * Creates empty lens context for synchronization purposes, filling in only the very basic metadata (such as channel).
      */
     public <F extends ObjectType> LensContext<F> createSyncContext(Class<F> focusClass, ResourceObjectShadowChangeDescription change) {
-
         LensContext<F> context = new LensContext<>(focusClass, prismContext, provisioningService);
         context.setChannel(change.getSourceChannel());
         return context;

@@ -173,4 +173,5 @@ public class ShadowAssociationWrapperImpl extends PrismContainerWrapperImpl<Shad
     public void setRefinedAssociationDefinitions(Collection<RefinedAssociationDefinition> refinedAssociationDefinitions) {
         this.refinedAssociationDefinitions = refinedAssociationDefinitions;
     }
+
 }

@@ -414,7 +414,7 @@
 
     <mapping>
         <strength>weak</strength>
-        <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel>
+        <channel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#import</channel>
         <expression>
             <value>Imported user</value>
         </expression>
@@ -438,7 +438,7 @@
                 <code>midpoint.hasLinkedAccount('10000000-0000-0000-0000-000000000004')</code>
             </script>
         </condition>
-        <evaluationPhase>afterAssignments</evaluationPhase>
+        <evaluationPhase>afterProjections</evaluationPhase>
     </mapping>
 
     <mapping>

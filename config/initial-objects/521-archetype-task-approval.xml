@@ -11,7 +11,12 @@
     <archetypePolicy>
         <display>
             <label>Approval-related task</label>
-            <pluralLabel>Approval-related tasks</pluralLabel>
+            <pluralLabel>
+                <orig>Approval-related tasks</orig>
+                <translation>
+                    <key>ApprovalRelatedTask.title</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fe fe-case-object</cssClass>
                 <color>green</color>

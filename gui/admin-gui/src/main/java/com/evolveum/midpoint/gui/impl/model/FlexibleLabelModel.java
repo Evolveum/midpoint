@@ -1,11 +1,16 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.gui.impl.model;
+
+import java.util.Collection;
+
+import org.apache.commons.lang3.Validate;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.*;
@@ -22,25 +27,13 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiFlexibleLabelType;
-
-import org.apache.commons.lang.Validate;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.model.IModel;
-
-import java.util.Collection;
 
 /**
  * Model that returns string value for a flexible label. The label value defaults to
@@ -55,10 +48,10 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
 
     private static final Trace LOGGER = TraceManager.getTrace(FlexibleLabelModel.class);
 
-    private IModel<C> model;
-    private ItemPath path;
-    private GuiFlexibleLabelType configuration;
-    private ModelServiceLocator serviceLocator;
+    private final IModel<C> model;
+    private final ItemPath path;
+    private final GuiFlexibleLabelType configuration;
+    private final ModelServiceLocator serviceLocator;
 
     public FlexibleLabelModel(IModel<C> model, ItemPath path, ModelServiceLocator serviceLocator, GuiFlexibleLabelType configuration) {
         Validate.notNull(model, "Containerable model must not be null.");
@@ -81,7 +74,7 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
             } else {
                 Task task = serviceLocator.getPageTask();
                 OperationResult result = task.getResult();
-                String contextDesc = "flexible label "+path+" expression";
+                String contextDesc = "flexible label " + path + " expression";
                 try {
                     return getExpressionValue(expressionType, contextDesc, task, result);
                 } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
@@ -99,7 +92,7 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
 
     private String getDefaultValue() {
         C object = model.getObject();
-        if (object == null){
+        if (object == null) {
             return "";
         }
         PrismProperty<?> property;
@@ -111,14 +104,14 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
             throw new RestartResponseException(PageError.class);
         }
 
-        if (property == null || property.getRealValue() == null){
+        if (property == null || property.getRealValue() == null) {
             return "";
         }
-        if (property.getRealValue() instanceof PolyString){
-            return serviceLocator.getLocalizationService().translate((PolyString)property.getRealValue(),
-                    serviceLocator.getLocale(),true);
+        if (property.getRealValue() instanceof PolyString) {
+            return serviceLocator.getLocalizationService().translate((PolyString) property.getRealValue(),
+                    serviceLocator.getLocale(), true);
         }
-        return ((Object) property.getRealValue()).toString();
+        return property.getRealValue().toString();
     }
 
     private String getExpressionValue(ExpressionType expressionType, String contextDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -128,7 +121,7 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
         PrismContext prismContext = object.asPrismContainerValue().getPrismContext();
         PrismPropertyDefinition<String> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME,
                 DOMUtil.XSD_STRING);
-        Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, outputDefinition, MiscSchemaUtil.getExpressionProfile(), contextDesc, task, result);
+        Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, outputDefinition, MiscSchemaUtil.getExpressionProfile(), contextDesc, task, result);
         ExpressionVariables variables = new ExpressionVariables();
         variables.put(ExpressionConstants.VAR_OBJECT, object, object.asPrismContainerValue().getDefinition());
         addAdditionalExpressionVariables(variables);
@@ -142,7 +135,7 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
             return "";
         }
         if (outputValues.size() > 1) {
-            throw new SchemaException("Expression "+contextDesc+" produced more than one value");
+            throw new SchemaException("Expression " + contextDesc + " produced more than one value");
         }
         return outputValues.iterator().next().getRealValue();
     }

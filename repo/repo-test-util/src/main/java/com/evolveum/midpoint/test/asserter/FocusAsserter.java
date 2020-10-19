@@ -139,6 +139,24 @@ public class FocusAsserter<F extends FocusType,RA> extends AssignmentHolderAsser
         return this;
     }
 
+    @Override
+    public FocusAsserter<F,RA> assertIndestructible(Boolean expected) {
+        super.assertIndestructible(expected);
+        return this;
+    }
+
+    @Override
+    public FocusAsserter<F,RA> assertIndestructible() {
+        super.assertIndestructible();
+        return this;
+    }
+
+    @Override
+    public FocusAsserter<F,RA> assertDestructible() {
+        super.assertDestructible();
+        return this;
+    }
+
     public ActivationAsserter<? extends FocusAsserter<F,RA>> activation() {
         ActivationAsserter<FocusAsserter<F,RA>> asserter = new ActivationAsserter<>(getObject().asObjectable().getActivation(), this, getDetails());
         copySetupTo(asserter);

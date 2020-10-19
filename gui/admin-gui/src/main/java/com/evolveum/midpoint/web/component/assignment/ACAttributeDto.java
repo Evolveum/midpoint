@@ -1,11 +1,18 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.assignment;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.bind.JAXBElement;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 
 import com.evolveum.midpoint.common.StaticExpressionUtil;
 import com.evolveum.midpoint.prism.*;
@@ -13,13 +20,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-
-import javax.xml.bind.JAXBElement;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author lazyman
@@ -30,8 +30,8 @@ public class ACAttributeDto implements Serializable {
     public static final String F_VALUES = "values";
 
     // construction.getRef should point to the same attribute as definition
-    private PrismPropertyDefinition definition;
-    private ResourceAttributeDefinitionType construction;
+    private final PrismPropertyDefinition definition;
+    private final ResourceAttributeDefinitionType construction;
     private List<ACValueConstructionDto> values;
 
     private ACAttributeDto(PrismPropertyDefinition definition, ResourceAttributeDefinitionType construction) {
@@ -43,7 +43,7 @@ public class ACAttributeDto implements Serializable {
     }
 
     public static ACAttributeDto createACAttributeDto(PrismPropertyDefinition definition, ResourceAttributeDefinitionType construction,
-                                                      PrismContext context) throws SchemaException {
+            PrismContext context) throws SchemaException {
         ACAttributeDto dto = new ACAttributeDto(definition, construction);
         dto.values = dto.createValues(context);
 
@@ -83,7 +83,7 @@ public class ACAttributeDto implements Serializable {
             return null;
         }
 
-        Item item = StaticExpressionUtil.parseValueElements(elements, definition, "gui");
+        Item<PrismValue, ?> item = StaticExpressionUtil.parseValueElements(elements, definition, "gui");
         return item.getValues();
     }
 

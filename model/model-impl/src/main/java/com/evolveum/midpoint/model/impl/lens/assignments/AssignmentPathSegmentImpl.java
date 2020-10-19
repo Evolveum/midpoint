@@ -215,9 +215,6 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
      */
     private final Integer lastEqualOrderSegmentIndex;
 
-    // TODO Reconsider this.
-    final ObjectType varThisObject;
-
     //endregion
 
     private AssignmentPathSegmentImpl(Builder builder) {
@@ -246,7 +243,6 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         isMatchingOrderForTarget = builder.isMatchingOrderForTarget != null ?
                 builder.isMatchingOrderForTarget : computeMatchingOrder(evaluationOrderForTarget, assignment);
         lastEqualOrderSegmentIndex = builder.lastEqualOrderSegmentIndex;
-        varThisObject = builder.varThisObject;
         archetypeHierarchy = builder.archetypeHierarchy;
     }
 
@@ -277,7 +273,6 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         this.evaluationOrderForTarget = origin.evaluationOrderForTarget;
         this.isMatchingOrderForTarget = origin.isMatchingOrderForTarget;
         this.lastEqualOrderSegmentIndex = origin.lastEqualOrderSegmentIndex;
-        this.varThisObject = origin.varThisObject;
     }
 
     @Override
@@ -403,10 +398,6 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
 
     EvaluationOrder getEvaluationOrderForTarget() {
         return evaluationOrderForTarget;
-    }
-
-    ObjectType getOrderOneObject() {
-        return varThisObject;
     }
 
     @Override
@@ -553,7 +544,6 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         DebugUtil.debugDumpWithLabelLn(sb, "assignmentConditionState", String.valueOf(assignmentConditionState), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "overallConditionState", String.valueOf(overallConditionState), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "lastEqualOrderSegmentIndex", lastEqualOrderSegmentIndex, indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "varThisObject", varThisObject==null?"null":varThisObject.toString(), indent + 1);
         return sb.toString();
     }
 
@@ -616,6 +606,11 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         immutable = true;
     }
 
+    public Long getAssignmentId() {
+        AssignmentType assignment = getAssignmentAny();
+        return assignment != null ? assignment.getId() : null;
+    }
+
     public static final class Builder {
         private RelationRegistry relationRegistry;
         private PrismContext prismContext;
@@ -634,7 +629,6 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         private EvaluationOrder evaluationOrder;
         private Boolean isMatchingOrderForTarget;
         private EvaluationOrder evaluationOrderForTarget;
-        private ObjectType varThisObject;
 
         public Builder() {
         }
@@ -734,11 +728,6 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
 
         public Builder evaluationOrderForTarget(EvaluationOrder val) {
             evaluationOrderForTarget = val;
-            return this;
-        }
-
-        Builder varThisObject(ObjectType val) {
-            varThisObject = val;
             return this;
         }
 

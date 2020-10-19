@@ -17,12 +17,12 @@ import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
-import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.search.DateSearchItem;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
@@ -31,9 +31,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.AuditLogStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -45,15 +43,12 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.Channel;
-import com.evolveum.midpoint.gui.impl.component.ContainerListPanel;
+import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogDetails;
@@ -82,7 +77,7 @@ public class AuditLogViewerPanelNew extends BasePanel {
     }
 
     private void initLayout() {
-        ContainerListPanel auditLogViewerTable = new ContainerListPanel(ID_AUDIT_LOG_VIEWER_TABLE, AuditEventRecordType.class) {
+        ContainerableListPanel auditLogViewerTable = new ContainerableListPanel(ID_AUDIT_LOG_VIEWER_TABLE, AuditEventRecordType.class) {
 
             @Override
             protected List<IColumn<SelectableBean<AuditEventRecordType>, String>> createDefaultColumns() {
@@ -181,7 +176,7 @@ public class AuditLogViewerPanelNew extends BasePanel {
                     }
 
                     @Override
-                    public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AuditEventRecordType>> rowModel) {
+                    public void onClick(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
                         AuditEventRecordType auditEventRecordType = unwrapModel(rowModel);
                         dispatchToObjectDetailsPage(auditEventRecordType.getInitiatorRef(), getPageBase(), false);
                     }
@@ -229,7 +224,7 @@ public class AuditLogViewerPanelNew extends BasePanel {
                         }
 
                         @Override
-                        public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AuditEventRecordType>> rowModel) {
+                        public void onClick(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
                             AuditEventRecordType auditEventRecordType = unwrapModel(rowModel);
                             dispatchToObjectDetailsPage(auditEventRecordType.getTargetRef(), getPageBase(), false);
                         }
@@ -250,7 +245,7 @@ public class AuditLogViewerPanelNew extends BasePanel {
                         }
 
                         @Override
-                        public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AuditEventRecordType>> rowModel) {
+                        public void onClick(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
                             AuditEventRecordType auditEventRecordType = unwrapModel(rowModel);
                             dispatchToObjectDetailsPage(auditEventRecordType.getTargetOwnerRef(), getPageBase(), false);
                         }
@@ -270,11 +265,9 @@ public class AuditLogViewerPanelNew extends BasePanel {
                         String channel = auditEventRecordType.getChannel();
                         Channel channelValue = null;
                         for (Channel chan : Channel.values()) {
-                            if (chan.getChannel().equals(channel)) {
+                            if (chan.getUri().equals(channel)) {
                                 channelValue = chan;
                                 break;
-                            } else if (SchemaConstants.CHANGE_CHANNEL_IMPORT_URI.equals(channel)) {
-                                channelValue = Channel.IMPORT;
                             }
                         }
                         if (channelValue != null) {
@@ -319,7 +312,7 @@ public class AuditLogViewerPanelNew extends BasePanel {
             }
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AuditEventRecordType>> rowModel) {
+            public void onClick(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
                 AuditEventRecordType record = unwrapModel(rowModel);
                 try {
                     AuditEventRecord.adopt(record, getPageBase().getPrismContext());

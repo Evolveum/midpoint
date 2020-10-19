@@ -31,6 +31,16 @@ import java.util.Objects;
 
 /**
  * A class used to hold raw XNodes until the definition for such an object is known.
+ *
+ * This class should be thread-safe because it is used in shared objects, like cached resources or roles. (See MID-6506.)
+ * But by default it is not, as it contains internal state (xnode/parsed) that can lead to race conditions when parsing.
+ *
+ * In midPoint 4.2 it was made roughly thread-safe by including explicit synchronization at appropriate places.
+ * But there is much more to be done:
+ *  (1) we need to support freezing the content (embedded xnode/prism value),
+ *  (2) we should consider avoiding explicit synchronization for performance reasons
+ *
+ * See MID-6542.
  */
 public class RawType implements Serializable, Cloneable, Equals, Revivable, ShortDumpable, JaxbVisitable, PrismContextSensitive {
     private static final long serialVersionUID = 4430291958902286779L;
@@ -109,7 +119,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
      * Extracts a "real value" from RawType object without expecting any specific type beforehand.
      * If no explicit type is present, assumes xsd:string (and fails if the content is structured).
      */
-    public Object getValue(boolean store) throws SchemaException {
+    public synchronized Object getValue(boolean store) throws SchemaException {
         if (parsed != null) {
             return parsed.getRealValue();
         }
@@ -157,17 +167,21 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
      * TEMPORARY. EXPERIMENTAL. DO NOT USE.
      */
     @Experimental
-    public String extractString() {
+    public synchronized String extractString() {
         if (xnode instanceof PrimitiveXNode) {
             return ((PrimitiveXNode<?>) xnode).getStringValue();
+        } else if (parsed != null) {
+            return String.valueOf((Object) parsed.getRealValue());
         } else {
             return toString();
         }
     }
 
-    public String extractString(String defaultValue) {
+    public synchronized String extractString(String defaultValue) {
         if (xnode instanceof PrimitiveXNode) {
             return ((PrimitiveXNode<?>) xnode).getStringValue();
+        } else if (parsed != null) {
+            return String.valueOf((Object) parsed.getRealValue());
         } else {
             return defaultValue;
         }
@@ -206,7 +220,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
 
     //region Parsing and serialization
     // itemDefinition may be null; in that case we do the best what we can
-    public <IV extends PrismValue,ID extends ItemDefinition> IV getParsedValue(@Nullable ItemDefinition itemDefinition, @Nullable QName itemName) throws SchemaException {
+    public synchronized <IV extends PrismValue,ID extends ItemDefinition> IV getParsedValue(@Nullable ItemDefinition itemDefinition, @Nullable QName itemName) throws SchemaException {
         if (parsed != null) {
 //            Check too intense for normal operation?
 //            if (!itemDefinition.canBeDefinitionOf(parsed)) {
@@ -245,7 +259,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
         }
     }
 
-    public <V,ID extends ItemDefinition> V getParsedRealValue(ID itemDefinition, ItemPath itemPath) throws SchemaException {
+    public synchronized <V,ID extends ItemDefinition> V getParsedRealValue(ID itemDefinition, ItemPath itemPath) throws SchemaException {
         if (parsed == null && xnode != null) {
             if (itemDefinition == null) {
                 return prismContext.parserFor(xnode.toRootXNode()).parseRealValue();        // TODO what will be the result without definition?
@@ -263,7 +277,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
         return parsed;
     }
 
-    public <T> T getParsedRealValue(@NotNull Class<T> clazz) throws SchemaException {
+    public synchronized <T> T getParsedRealValue(@NotNull Class<T> clazz) throws SchemaException {
         if (parsed != null) {
             Object realValue = parsed.getRealValue();
             if (realValue != null) {
@@ -299,28 +313,8 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
         return item;
     }
 
-//    // Returns either an item or a real value.
-//    // VERY EXPERIMENTAL.
-//    public Object getParsedItemOrRealValue() throws SchemaException {
-//        if (parsed != null) {
-//            return
-//        } else if (xnode != null) {
-//            return prismContext.parserFor(xnode.toRootXNode()).parseItemOrRealValue();
-//        } else {
-//            return null;
-//        }
-//    }
-
-
-    public XNode serializeToXNode() throws SchemaException {
+    public synchronized XNode serializeToXNode() throws SchemaException {
         if (xnode != null) {
-//            QName type = xnode.getTypeQName();
-//            if (xnode instanceof PrimitiveXNode && type != null){
-//                if (!((PrimitiveXNode)xnode).isParsed()){
-//                    Object realValue = PrismUtil.getXnodeProcessor(prismContext).parseAnyValue(xnode, ParsingContext.createDefault());
-//                    ((PrimitiveXNode)xnode).setValue(realValue, type);
-//                }
-//            }
             return xnode;
         } else if (parsed != null) {
             checkPrismContext();
@@ -334,7 +328,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
     //endregion
 
     //region Cloning, comparing, dumping (TODO)
-    public RawType clone() {
+    public synchronized RawType clone() {
         RawType clone = new RawType(prismContext);
         if (xnode != null) {
             clone.xnode = xnode.clone();
@@ -347,7 +341,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
     }
 
     @Override
-    public int hashCode() {
+    public synchronized int hashCode() {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((xnode == null) ? 0 : xnode.hashCode());
@@ -356,7 +350,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public synchronized boolean equals(Object obj) {
         if (this == obj)
             return true;
         if (obj == null)
@@ -406,7 +400,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
     }
 
     @Override
-    public String toString() {
+    public synchronized String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("RawType: ");
         if (xnode != null) {
@@ -438,7 +432,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
     }
 
     @Override
-    public void shortDump(StringBuilder sb) {
+    public synchronized void shortDump(StringBuilder sb) {
         if (xnode != null) {
             sb.append("(raw");
             sb.append("):").append(xnode);
@@ -463,7 +457,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
     }
 
     // avoid if possible
-    public String guessFormattedValue() throws SchemaException {
+    public synchronized String guessFormattedValue() throws SchemaException {
         if (parsed != null) {
             return parsed.getRealValue().toString();    // todo reconsider this
         } else if (xnode instanceof PrimitiveXNode) {

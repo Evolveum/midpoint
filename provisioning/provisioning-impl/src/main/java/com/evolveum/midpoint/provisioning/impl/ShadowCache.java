@@ -39,10 +39,7 @@ import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -188,6 +185,17 @@ public class ShadowCache {
             UnsupportedOperationException e = new UnsupportedOperationException("Resource does not support 'read' operation");
             parentResult.recordFatalError(e);
             throw e;
+        }
+
+        if (ResourceTypeUtil.isInMaintenance(resource)) {
+            try {
+                MaintenanceException ex = new MaintenanceException("Resource " + resource + " is in the maintenance");
+                PrismObject<ShadowType> handledShadow = handleGetError(ctx, repositoryShadow, rootOptions, ex, task, parentResult);
+                validateShadow(handledShadow, true);
+                return handledShadow;
+            } catch (GenericFrameworkException | ObjectAlreadyExistsException | PolicyViolationException e) {
+                throw new SystemException(e.getMessage(), e);
+            }
         }
 
         if (shouldRefreshOnRead(resource, rootOptions)) {
@@ -548,6 +556,9 @@ public class ShadowCache {
             LOGGER.trace("ADD {}: resource operation, execution starting", shadowToAdd);
 
             try {
+                if (ResourceTypeUtil.isInMaintenance(ctx.getResource())) {
+                    throw new MaintenanceException("Resource " + ctx.getResource() + " is in the maintenance"); // this tells mp to create pending delta
+                }
 
                 // RESOURCE OPERATION: add
                 AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncReturnValue =
@@ -606,6 +617,12 @@ public class ShadowCache {
                     finalOperationStatus = handleAddError(ctx, shadowToAdd, options, opState, e, failedOperationResult, task, parentResult);
                 }
 
+            } catch (MaintenanceException e) {
+                finalOperationStatus = handleAddError(ctx, shadowToAdd, options, opState, e, parentResult.getLastSubresult(), task, parentResult);
+                if (opState.getRepoShadow() != null) {
+                    setParentOperationStatus(parentResult, opState, finalOperationStatus);
+                    return opState.getRepoShadow().getOid();
+                }
             } catch (Exception e) {
                 finalOperationStatus = handleAddError(ctx, shadowToAdd, options, opState, e, parentResult.getLastSubresult(), task, parentResult);
             }
@@ -737,6 +754,7 @@ public class ShadowCache {
         }
         ResourceOperationDescription operationDescription = ProvisioningUtil.createResourceFailureDescription(shadow, ctx.getResource(), delta, parentResult);
         operationListener.notifyFailure(operationDescription, task, parentResult);
+        parentResult.computeStatusIfUnknown();
     }
 
     private OperationResultStatus handleModifyError(ProvisioningContext ctx,
@@ -885,9 +903,7 @@ public class ShadowCache {
         ResourceOperationDescription operationDescription = new ResourceOperationDescription();
         operationDescription.setCurrentShadow(shadowType);
         operationDescription.setResource(ctx.getResource().asPrismObject());
-        if (ctx.getTask() != null) {
-            operationDescription.setSourceChannel(ctx.getTask().getChannel());
-        }
+        operationDescription.setSourceChannel(ctx.getChannel());
         operationDescription.setObjectDelta(delta);
         operationDescription.setResult(parentResult);
         return operationDescription;
@@ -988,7 +1004,9 @@ public class ShadowCache {
                 ConnectorOperationOptions connOptions = createConnectorOperationOptions(ctx, options, parentResult);
 
                 try {
-
+                    if (ResourceTypeUtil.isInMaintenance(ctx.getResource())) {
+                        throw new MaintenanceException("Resource " + ctx.getResource() + " is in the maintenance");
+                    }
 
                     if (!shouldExecuteModify(refreshShadowOperation)) {
                         ProvisioningUtil.postponeModify(ctx, repoShadow, modifications, opState, refreshShadowOperation.getRefreshResult(), parentResult);
@@ -1189,10 +1207,10 @@ public class ShadowCache {
             }
         }
 
-        repoShadow = cancelAllPendingOperations(ctx, repoShadow, task, parentResult);
+        PrismObject<ShadowType> updatedRepoShadow = cancelAllPendingOperations(ctx, repoShadow, task, parentResult);
 
         ProvisioningOperationState<AsynchronousOperationResult> opState = new ProvisioningOperationState<>();
-        opState.setRepoShadow(repoShadow);
+        opState.setRepoShadow(updatedRepoShadow);
 
         return deleteShadowAttempt(ctx, options, scripts, opState, task, parentResult);
     }
@@ -1207,7 +1225,7 @@ public class ShadowCache {
                     throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
                     SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
-        PrismObject<ShadowType> repoShadow = opState.getRepoShadow();
+        final PrismObject<ShadowType> repoShadow = opState.getRepoShadow();
         shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
 
         PendingOperationType duplicateOperation = shadowManager.checkAndRecordPendingDeleteOperationBeforeExecution(ctx, repoShadow, opState, task, parentResult);
@@ -1242,6 +1260,9 @@ public class ShadowCache {
                 LOGGER.trace("DELETE {}: resource deletion, execution starting", repoShadow);
 
                 try {
+                    if (ResourceTypeUtil.isInMaintenance(ctx.getResource())) {
+                        throw new MaintenanceException("Resource " + ctx.getResource() + " is in the maintenance");
+                    }
 
                     AsynchronousOperationResult asyncReturnValue = resourceObjectConverter
                             .deleteResourceObject(ctx, repoShadow, scripts, connOptions, parentResult);
@@ -1374,6 +1395,13 @@ public class ShadowCache {
             return rso;
         }
 
+        if (ResourceTypeUtil.isInMaintenance(ctx.getResource())) {
+            LOGGER.trace("Skipping refresh of {} pending operations because resource shadow is in the maintenance.", repoShadow);
+            RefreshShadowOperation rso = new RefreshShadowOperation();
+            rso.setRefreshedShadow(repoShadow);
+            return rso;
+        }
+
         LOGGER.trace("Pending operations refresh of {}, dead={}, {} pending operations", repoShadow, isDead, pendingOperations.size());
 
         ctx.assertDefinition();
@@ -1408,7 +1436,7 @@ public class ShadowCache {
 
     /**
      * Refresh status of asynchronous operation, e.g. status of manual connector ticket.
-     * This method will get new status from resouceObjectConverter and it will process the
+     * This method will get new status from resourceObjectConverter and it will process the
      * status in case that it has changed.
      */
     private PrismObject<ShadowType> refreshShadowAsyncStatus(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow, List<PendingOperationType> sortedOperations, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
@@ -1417,6 +1445,7 @@ public class ShadowCache {
         List<ObjectDelta<ShadowType>> notificationDeltas = new ArrayList<>();
 
         boolean shadowInception = false;
+        OperationResultStatusType shadowInceptionOutcome = null;
         ObjectDelta<ShadowType> shadowDelta = repoShadow.createModifyDelta();
         for (PendingOperationType pendingOperation: sortedOperations) {
 
@@ -1461,6 +1490,7 @@ public class ShadowCache {
 
                 if (pendingDelta.isAdd()) {
                     shadowInception = true;
+                    shadowInceptionOutcome = newStatusType;
                 }
 
                 if (pendingDelta.isDelete()) {
@@ -1491,6 +1521,7 @@ public class ShadowCache {
 
                 if (pendingDelta.isAdd()) {
                     shadowInception = true;
+                    shadowInceptionOutcome = newStatusType;
                 }
 
                 if (pendingDelta.isModify()) {
@@ -1549,7 +1580,11 @@ public class ShadowCache {
             // attributes. We need this to "allocate" the identifiers, so iteration mechanism in the
             // model can find unique values while taking pending create operations into consideration.
             PropertyDelta<Boolean> existsDelta = shadowDelta.createPropertyModification(ShadowType.F_EXISTS);
-            existsDelta.setRealValuesToReplace(true);
+            if (OperationResultUtil.isSuccessful(shadowInceptionOutcome)) {
+                existsDelta.setRealValuesToReplace(true);
+            } else {
+                existsDelta.setRealValuesToReplace(false);
+            }
             shadowDelta.addModification(existsDelta);
         }
 
@@ -1802,7 +1837,9 @@ public class ShadowCache {
             }
         }
 
-        if (ProvisioningUtil.isOverPeriod(now, expirationPeriod, lastActivityTimestamp)) {
+        // Explicitly check for zero deadRetentionPeriod to avoid some split-millisecond issues with dead shadow deletion.
+        // If we have zero deadRetentionPeriod, we should get rid of all dead shadows immediately.
+        if (XmlTypeConverter.isZero(deadRetentionPeriod) || ProvisioningUtil.isOverPeriod(now, expirationPeriod, lastActivityTimestamp)) {
             // Perish you stinking corpse!
             LOGGER.debug("Deleting dead {} because it is expired", repoShadow);
             shadowManager.deleteShadow(ctx, repoShadow, parentResult);
@@ -1811,7 +1848,7 @@ public class ShadowCache {
             change.setOldShadow(repoShadow);
             change.setResource(ctx.getResource().asPrismObject());
             change.setObjectDelta(repoShadow.createDeleteDelta());
-            change.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_DISCOVERY_URI);
+            change.setSourceChannel(SchemaConstants.CHANNEL_DISCOVERY_URI);
             changeNotificationDispatcher.notifyChange(change, task, parentResult);
             applyDefinition(repoShadow, parentResult);
             ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, repoShadow,
@@ -2439,7 +2476,7 @@ public class ShadowCache {
         shadowChangeDescription.setResource(resource);
         shadowChangeDescription.setOldShadow(newShadow ? null : resourceShadow);
         shadowChangeDescription.setCurrentShadow(resourceShadow);
-        shadowChangeDescription.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_DISCOVERY_URI);
+        shadowChangeDescription.setSourceChannel(SchemaConstants.CHANNEL_DISCOVERY_URI);
         shadowChangeDescription.setUnrelatedChange(true);
 
         Task task = taskManager.createTaskInstance();

@@ -20,6 +20,8 @@ import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 
+import com.evolveum.midpoint.repo.common.expression.ConsolidationValueMetadataComputer;
+
 import org.apache.commons.collections4.CollectionUtils;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
@@ -28,7 +30,6 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.common.expression.ValueMetadataComputer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
@@ -53,13 +54,13 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
 
     /**
      * Target object, for which deltas are to be produced.
-     * It contains the _current_ (latest) state of the object (in the light of previous computations),
+     * It contains the newest state of the object (in the light of previous computations),
      * i.e. object with targetAPrioriDelta already applied.
      */
     private final PrismObject<T> targetObject;
 
     /**
-     * Delta that lead to the current state of the target object.
+     * Delta that has led to the current state of the target object.
      */
     private final ObjectDelta<T> targetAPrioriDelta;
 
@@ -157,7 +158,7 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
                 ItemDelta aprioriItemDelta = LensUtil.getAprioriItemDelta(targetAPrioriDelta, itemPath);
                 DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>> deltaSetTriple = entry.getValue();
 
-                ValueMetadataComputer valueMetadataComputer = LensMetadataUtil.createValueMetadataConsolidationComputer(
+                ConsolidationValueMetadataComputer valueMetadataComputer = LensMetadataUtil.createValueMetadataConsolidationComputer(
                         itemPath, lensContext, beans, env, result);
 
                 //noinspection unchecked
@@ -208,12 +209,12 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
         /**
          * Metadata computer to be used during consolidation.
          */
-        private final ValueMetadataComputer valueMetadataComputer;
+        private final ConsolidationValueMetadataComputer valueMetadataComputer;
 
         private ItemDelta<V, D> itemDelta;
 
         private DeltaSetTripleConsolidation(ItemPath itemPath, DeltaSetTriple<I> deltaSetTriple, ItemDelta<V, D> aprioriItemDelta,
-                ValueMetadataComputer valueMetadataComputer) {
+                ConsolidationValueMetadataComputer valueMetadataComputer) {
             this.itemPath = itemPath;
             this.deltaSetTriple = deltaSetTriple;
             this.aprioriItemDelta = aprioriItemDelta;
@@ -251,6 +252,7 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
                     .valueMetadataComputer(valueMetadataComputer)
                     .result(result)
                     .customize(consolidatorBuilderCustomizer)
+                    .prismContext(beans.prismContext)
                     .build()) {
                 itemDelta = consolidator.consolidateTriples();
             }

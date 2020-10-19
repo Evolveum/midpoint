@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.component.wizard;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.resource.*;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.WizardIssuesDto;
@@ -51,7 +52,7 @@ public class Wizard extends BasePanel<IWizardModel> implements IWizardModelListe
     }
 
     protected void initLayout() {
-        Form form = new com.evolveum.midpoint.web.component.form.Form(ID_FORM);
+        Form form = new MidpointForm(ID_FORM);
         add(form);
 
         IModel<List<WizardStepDto>> stepsModel = new LoadableModel<List<WizardStepDto>>() {

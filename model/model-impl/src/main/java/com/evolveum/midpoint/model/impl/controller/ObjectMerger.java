@@ -13,6 +13,7 @@ import java.util.List;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -601,7 +602,7 @@ public class ObjectMerger {
                             SIDE_RIGHT, itemRight, rightStrategy, valueExpression, task, result);
 
                     for (PrismValue rightValueToTake: rightValuesToTake) {
-                        if (!PrismValueCollectionsUtil.collectionContainsEquivalentValue(leftValuesToLeave, rightValueToTake)) {
+                        if (!PrismValueCollectionsUtil.collectionContainsEquivalentValue(leftValuesToLeave, rightValueToTake, EquivalenceStrategy.IGNORE_METADATA)) {
                             //noinspection unchecked
                             itemDelta.addValueToAdd(rightValueToTake);
                         }
@@ -611,7 +612,7 @@ public class ObjectMerger {
                     List<PrismValue> currentLeftValues = itemLeft.getValues();
                     Collection<PrismValue> leftValuesToRemove = diffValues(currentLeftValues, leftValuesToLeave);
 
-                    if (leftValuesToRemove != null && !leftValuesToRemove.isEmpty()) {
+                    if (!leftValuesToRemove.isEmpty()) {
                         //noinspection unchecked
                         itemDelta.addValuesToDelete(leftValuesToRemove);
                     }
@@ -632,7 +633,7 @@ public class ObjectMerger {
         }
         Collection<PrismValue> diff = new ArrayList<>();
         for (PrismValue currentValue: currentValues) {
-            if (!PrismValueCollectionsUtil.collectionContainsEquivalentValue(valuesToLeave, currentValue)) {
+            if (!PrismValueCollectionsUtil.collectionContainsEquivalentValue(valuesToLeave, currentValue, EquivalenceStrategy.IGNORE_METADATA)) {
                 diff.add(currentValue.clone());
             }
         }

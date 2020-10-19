@@ -693,10 +693,6 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
         return (ContainerDelta<C>) super.diff(other, strategy);
     }
 
-    public List<? extends ItemDelta> diffModifications(PrismContainer<C> other) {
-        return diffModifications(other, EquivalenceStrategy.IGNORE_METADATA);
-    }
-
     public List<? extends ItemDelta> diffModifications(PrismContainer<C> other, ParameterizedEquivalenceStrategy strategy) {
         List<? extends ItemDelta> itemDeltas = new ArrayList<>();
         diffInternal(other, itemDeltas, false, strategy);

@@ -74,7 +74,6 @@
             <xsd:element ref="tns:kind" minOccurs="0"/>
             <xsd:element ref="tns:intent" minOccurs="0"/>
             <xsd:element ref="tns:filename" minOccurs="0"/>
-            <xsd:element ref="tns:endpoint" minOccurs="0"/>
             <xsd:element ref="tns:optionRaw" minOccurs="0"/>
             <xsd:element ref="tns:diagnose" minOccurs="0"/>
             <xsd:element ref="tns:fix" minOccurs="0"/>
@@ -222,6 +221,7 @@
                 <a:displayOrder>120</a:displayOrder>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
+                <a:indexed>false</a:indexed>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -236,6 +236,7 @@
                 <!--<a:displayOrder>120</a:displayOrder>-->
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
+                <a:indexed>false</a:indexed>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -259,6 +260,7 @@
                 <a:displayName>TaskExtension.notUpdatedShadowsDuration</a:displayName>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
+                <a:indexed>false</a:indexed>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -273,6 +275,7 @@
                 <a:displayOrder>110</a:displayOrder>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
+                <a:indexed>false</a:indexed>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -298,6 +301,7 @@
             <xsd:appinfo>
                 <a:displayName>TaskExtension.objectDelta</a:displayName>
                 <a:maxOccurs>1</a:maxOccurs>
+                <a:indexed>false</a:indexed>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -310,6 +314,7 @@
             <xsd:appinfo>
                 <a:displayName>TaskExtension.objectDeltas</a:displayName>
                 <a:maxOccurs>unbounded</a:maxOccurs>
+                <a:indexed>false</a:indexed>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -323,6 +328,7 @@
                 <a:displayName>TaskExtension.executeOptions</a:displayName>
                 <a:maxOccurs>1</a:maxOccurs>
                 <a:since>3.6</a:since>
+                <a:indexed>false</a:indexed>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -335,6 +341,7 @@
             <xsd:appinfo>
                 <a:displayName>TaskExtension.modelExecuteOptions</a:displayName>
                 <a:maxOccurs>1</a:maxOccurs>
+                <a:indexed>false</a:indexed>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -365,6 +372,7 @@
             <xsd:appinfo>
                 <a:displayName>TaskExtension.objectclass</a:displayName>
                 <a:maxOccurs>1</a:maxOccurs>
+                <a:indexed>false</a:indexed>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -395,30 +403,6 @@
             <xsd:appinfo>
                 <a:displayName>TaskExtension.filename</a:displayName>
                 <a:maxOccurs>1</a:maxOccurs>
-            </xsd:appinfo>
-        </xsd:annotation>
-    </xsd:element>
-
-    <xsd:element name="endpoint" type="xsd:string">
-        <xsd:annotation>
-            <xsd:documentation>
-                Name of Camel endpoint to process messages from.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:maxOccurs>1</a:maxOccurs>
-                <a:ignore>true</a:ignore>
-            </xsd:appinfo>
-        </xsd:annotation>
-    </xsd:element>
-
-    <xsd:element name="route" type="xsd:string">
-        <xsd:annotation>
-            <xsd:documentation>
-                Name of Camel route used to process messages.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:maxOccurs>-1</a:maxOccurs>
-                <a:ignore>true</a:ignore>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -504,6 +488,7 @@
                 <a:displayName>TaskExtension.cleanupPolicies</a:displayName>
                 <a:displayOrder>100</a:displayOrder>
                 <a:maxOccurs>1</a:maxOccurs>
+                <a:indexed>false</a:indexed>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -515,6 +500,7 @@
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
                 <a:since>3.6</a:since>
+                <a:indexed>false</a:indexed>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -525,6 +511,7 @@
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
                 <a:since>3.6</a:since>
+                <a:indexed>false</a:indexed>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -545,6 +532,7 @@
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
                 <a:since>3.6</a:since>
+                <a:indexed>false</a:indexed>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -594,6 +582,7 @@
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
                 <a:experimental>true</a:experimental>
+                <a:indexed>false</a:indexed>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -610,6 +599,7 @@
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>unbounded</a:maxOccurs>
                 <a:experimental>true</a:experimental>
+                <a:indexed>false</a:indexed>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -624,7 +614,8 @@
                 <a:displayName>TaskExtension.tracing</a:displayName>
                 <a:displayOrder>854</a:displayOrder>
                 <a:minOccurs>0</a:minOccurs>
-                <a:maxOccurs>1</a:maxOccurs>        <!-- will be unbounded, eventually -->
+                <a:maxOccurs>1</a:maxOccurs> <!-- will be unbounded, eventually -->
+                <a:indexed>false</a:indexed>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>

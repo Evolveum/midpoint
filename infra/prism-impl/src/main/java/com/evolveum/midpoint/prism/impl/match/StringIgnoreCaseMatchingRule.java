@@ -35,9 +35,6 @@ public class StringIgnoreCaseMatchingRule implements MatchingRule<String> {
         return (DOMUtil.XSD_STRING.equals(xsdType));
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.model.match.MatchingRule#match(java.lang.Object, java.lang.Object)
-     */
     @Override
     public boolean match(String a, String b) {
         if (a == null && b == null) {
@@ -49,9 +46,6 @@ public class StringIgnoreCaseMatchingRule implements MatchingRule<String> {
         return StringUtils.equalsIgnoreCase(a, b);
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.prism.match.MatchingRule#normalize(java.lang.Object)
-     */
     @Override
     public String normalize(String original) {
         return StringUtils.lowerCase(original);
@@ -68,4 +62,8 @@ public class StringIgnoreCaseMatchingRule implements MatchingRule<String> {
         return matcher.matches();
     }
 
+    @Override
+    public String toString() {
+        return "StringIgnoreCaseMatchingRule{}";
+    }
 }

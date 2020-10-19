@@ -75,6 +75,11 @@ public class ExpressionEvaluationContext {
     private final String contextDescription;
 
     /**
+     * Description of a local context (should be short).
+     */
+    private String localContextDescription;
+
+    /**
      * Task under which the evaluation is being carried out.
      */
     private final Task task;
@@ -112,7 +117,7 @@ public class ExpressionEvaluationContext {
     /**
      * Computes value metadata in given situation.
      */
-    private ValueMetadataComputer valueMetadataComputer;
+    private TransformationValueMetadataComputer valueMetadataComputer;
 
     public ExpressionEvaluationContext(Collection<Source<?,?>> sources,
             ExpressionVariables variables, String contextDescription, Task task) {
@@ -200,6 +205,14 @@ public class ExpressionEvaluationContext {
         this.mappingQName = mappingQName;
     }
 
+    public String getLocalContextDescription() {
+        return localContextDescription;
+    }
+
+    public void setLocalContextDescription(String localContextDescription) {
+        this.localContextDescription = localContextDescription;
+    }
+
     public String getContextDescription() {
         return contextDescription;
     }
@@ -224,11 +237,11 @@ public class ExpressionEvaluationContext {
         this.variableProducer = variableProducer;
     }
 
-    public ValueMetadataComputer getValueMetadataComputer() {
+    public TransformationValueMetadataComputer getValueMetadataComputer() {
         return valueMetadataComputer;
     }
 
-    public void setValueMetadataComputer(ValueMetadataComputer valueMetadataComputer) {
+    public void setValueMetadataComputer(TransformationValueMetadataComputer valueMetadataComputer) {
         this.valueMetadataComputer = valueMetadataComputer;
     }
 
@@ -257,6 +270,7 @@ public class ExpressionEvaluationContext {
         clone.additionalConvertor = this.additionalConvertor;
         clone.variableProducer = this.variableProducer;
         clone.valueMetadataComputer = this.valueMetadataComputer;
+        clone.localContextDescription = this.localContextDescription;
         return clone;
     }
 }

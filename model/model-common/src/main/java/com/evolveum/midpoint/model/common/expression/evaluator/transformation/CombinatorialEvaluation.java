@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.common.expression.evaluator.transformation;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -17,6 +18,10 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionEvaluatorType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueTransformationEvaluationModeType;
+
+import com.evolveum.prism.xml.ns._public.types_3.DeltaSetTripleType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -44,10 +49,16 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition, E 
     @NotNull final List<SourceTriple<?,?>> sourceTripleList;
 
     /**
-     * Merged all values from individual sources (adding null when there are no values for a given source).
-     * Ordered according to the order of sources.
+     * Which triples do have which sets? (Looking for plus and zero sets.)
+     * Special value of null in the set means that the respective source is empty.
      */
-    @NotNull private final List<SourceValues> sourceValuesList;
+    @NotNull private final List<Set<PlusMinusZero>> setsOccupiedPlusZero = new ArrayList<>();
+
+    /**
+     * Which triples do have which sets? (Looking for minus and zero sets.)
+     * Special value of null in the set means that the respective source is empty.
+     */
+    @NotNull private final List<Set<PlusMinusZero>> setsOccupiedMinusZero = new ArrayList<>();
 
     /**
      * Pre-compiled condition expression, to be evaluated for individual value combinations.
@@ -64,28 +75,149 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition, E 
         super(context, parentResult, evaluator);
         this.evaluatorBean = evaluator.getExpressionEvaluatorBean();
         this.sourceTripleList = createSourceTriplesList();
-        this.sourceValuesList = SourceValues.fromSourceTripleList(sourceTripleList);
         this.conditionExpression = createConditionExpression();
         this.outputTriple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
+        computeSetsOccupied();
     }
 
     PrismValueDeltaSetTriple<V> evaluate() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 
+        recordEvaluationStart();
         try {
-            MiscUtil.carthesian(sourceValuesList, valuesTuple -> {
-                // This lambda will be called for all combinations of all values in the sources
-                // The pvalues parameter is a list of values; each values comes from a difference source.
-                try (ValueTupleTransformation<V> valueTupleTransformation = new ValueTupleTransformation<>(valuesTuple, this, parentResult)) {
-                    valueTupleTransformation.evaluate();
-                }
-            });
+            transformValues();
         } catch (TunnelException e) {
             unwrapTunnelException(e);
         }
 
         cleanUpOutputTriple();
+        recordEvaluationEnd(outputTriple);
         return outputTriple;
+    }
+
+    /**
+     * Going through combinations of all non-negative and non-positive values and transform each tuple found.
+     * It is done in two steps:
+     *
+     * 1) Specific plus-minus-zero sets are selected for each source, combining non-negative to PLUS (except for all zeros
+     * that go into ZERO), and then combining non-positive to MINUS (except for all zeros that are skipped because they are
+     * already computed).
+     *
+     * 2) All values from selected sets are combined together.
+     */
+    private void transformValues() {
+        // The skipEvaluationPlus is evaluated within.
+        transformToPlusAndZeroSets();
+
+        // But for minus we can prune this branch even here.
+        if (!context.isSkipEvaluationMinus()) {
+            transformToMinusSets();
+        }
+    }
+
+    private void transformToPlusAndZeroSets() {
+        MiscUtil.carthesian(setsOccupiedPlusZero, sets -> {
+            if (isAllZeros(sets)) {
+                transform(sets, PlusMinusZero.ZERO);
+            } else {
+                if (!context.isSkipEvaluationPlus()) {
+                    transform(sets, PlusMinusZero.PLUS);
+                }
+            }
+        });
+    }
+
+    private void transformToMinusSets() {
+        MiscUtil.carthesian(setsOccupiedMinusZero, sets -> {
+            if (isAllZeros(sets)) {
+                // already done
+            } else {
+                transform(sets, PlusMinusZero.MINUS);
+            }
+        });
+    }
+
+    private boolean isAllZeros(List<PlusMinusZero> sets) {
+        return sets.stream().allMatch(set -> set == null || set == PlusMinusZero.ZERO);
+    }
+
+    private void transform(List<PlusMinusZero> sets, PlusMinusZero outputSet) {
+        List<Collection<PrismValue>> domains = createDomainsForSets(sets);
+        logDomainsForSets(domains, sets, outputSet);
+        MiscUtil.carthesian(domains, valuesTuple -> {
+            try (ValueTupleTransformation<V> valueTupleTransformation =
+                    new ValueTupleTransformation<>(sets, valuesTuple, outputSet, this, parentResult)) {
+                valueTupleTransformation.evaluate();
+            }
+        });
+    }
+
+    private void logDomainsForSets(List<Collection<PrismValue>> domains, List<PlusMinusZero> sets, PlusMinusZero outputSet) {
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Domains for sets, targeting {}:", outputSet);
+            Iterator<PlusMinusZero> setsIterator = sets.iterator();
+            for (Collection<PrismValue> domain : domains) {
+                LOGGER.trace(" - set: {}, domain: {}", setsIterator.next(), domain);
+            }
+        }
+    }
+
+    private List<Collection<PrismValue>> createDomainsForSets(List<PlusMinusZero> sets) {
+        List<Collection<PrismValue>> domains = new ArrayList<>();
+        Iterator<PlusMinusZero> setsIterator = sets.iterator();
+        for (SourceTriple<?, ?> sourceTriple : sourceTripleList) {
+            PlusMinusZero set = setsIterator.next();
+            Collection<PrismValue> domain;
+            if (set != null) {
+                //noinspection unchecked
+                domain = (Collection<PrismValue>) sourceTriple.getSet(set);
+            } else {
+                // This is a special value ensuring that the tuple computation will run at least once
+                // even for empty sources.
+                domain = Collections.singleton(null);
+            }
+            domains.add(domain);
+        }
+        return domains;
+    }
+
+    private void computeSetsOccupied() {
+        for (SourceTriple<?, ?> sourceTriple : sourceTripleList) {
+            Set<PlusMinusZero> setOccupiedPlusZero = new HashSet<>();
+            Set<PlusMinusZero> setOccupiedMinusZero = new HashSet<>();
+            if (sourceTriple.isEmpty()) {
+                setOccupiedPlusZero.add(null);
+                setOccupiedMinusZero.add(null);
+            } else {
+                if (sourceTriple.hasPlusSet()) {
+                    setOccupiedPlusZero.add(PlusMinusZero.PLUS);
+                }
+                if (sourceTriple.hasMinusSet()) {
+                    setOccupiedMinusZero.add(PlusMinusZero.MINUS);
+                }
+                if (sourceTriple.hasZeroSet()) {
+                    setOccupiedPlusZero.add(PlusMinusZero.ZERO);
+                    setOccupiedMinusZero.add(PlusMinusZero.ZERO);
+                }
+            }
+            setsOccupiedPlusZero.add(setOccupiedPlusZero);
+            setsOccupiedMinusZero.add(setOccupiedMinusZero);
+            LOGGER.trace("Adding setsOccupiedPlusZero: {}, setOccupiedMinusZero: {} for source {}",
+                    setOccupiedPlusZero, setOccupiedMinusZero, sourceTriple.getName());
+        }
+    }
+
+    private void recordEvaluationStart() throws SchemaException {
+        if (trace != null) {
+            super.recordEvaluationStart(ValueTransformationEvaluationModeType.COMBINATORIAL);
+            int i = 0;
+            for (SourceTriple<?, ?> sourceTriple : sourceTripleList) {
+                trace.getSource().get(i)
+                        .setDeltaSetTriple(
+                                DeltaSetTripleType.fromDeltaSetTriple(sourceTriple, prismContext));
+                i++;
+            }
+        }
     }
 
     private Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> createConditionExpression()
@@ -99,7 +231,7 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition, E 
         }
     }
 
-    private List<SourceTriple<?,?>> createSourceTriplesList() {
+    private List<SourceTriple<?,?>> createSourceTriplesList() throws SchemaException {
         Collection<Source<?, ?>> sources = context.getSources();
         List<SourceTriple<?,?>> sourceTriples = new ArrayList<>(sources.size());
         for (Source<?,?> source: sources) {
@@ -110,7 +242,7 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition, E 
         return sourceTriples;
     }
 
-    private SourceTriple<V, D> createSourceTriple(Source<V, D> source) {
+    private SourceTriple<V, D> createSourceTriple(Source<V, D> source) throws SchemaException {
         SourceTriple<V, D> sourceTriple = new SourceTriple<>(source, prismContext);
         ItemDelta<V, D> delta = source.getDelta();
         if (delta != null) {
@@ -127,34 +259,32 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition, E 
         return sourceTriple;
     }
 
+    /**
+     * We have to ensure that no source would block computation of neither "non-positive"
+     * nor "non-negative" values by not providing any inputs in respective sets.
+     *
+     * TODO Verify the correctness of this algorithm.
+     */
     private void addFakeNullValues(SourceTriple<V, D> sourceTriple, Source<V, D> source) {
-        // Make sure that we properly handle the "null" states, i.e. the states when we enter
-        // "empty" value and exit "empty" value for a property
-        // We need this to properly handle "negative" expressions, i.e. expressions that return non-null
-        // value for null input. We need to make sure such expressions receive the null input when needed
-        boolean oldEmpty = Item.hasNoValues(source.getItemOld());
-        boolean newEmpty = Item.hasNoValues(source.getItemNew());
+        if (sourceTriple.hasZeroSet()) {
+            // This is good. Because we have zero set, it will be applied both for non-positive
+            // and non-negative computations. Nothing has to be done.
+            return;
+        }
 
-        if (oldEmpty) {
-            if (newEmpty) {
-                if (sourceTriple.hasMinusSet()) {
-                    // special case: change empty -> empty, but there is still a delete delta
-                    // so it seems something was deleted. This is strange case, but we prefer the delta over
-                    // the absolute states (which may be out of date).
-                    // Similar case than that of non-empty -> empty (see below)
-                    sourceTriple.addToPlusSet(null);
-                }
-            } else {
-                // change empty -> non-empty: we are removing "null" value
-                sourceTriple.addToMinusSet(null);
-            }
-        } else {
-            if (newEmpty) {
-                // change non-empty -> empty: we are adding "null" value
-                sourceTriple.addToPlusSet(null);
-            } else {
-                // non-empty -> non-empty: nothing to do here
-            }
+        boolean hasPlus = sourceTriple.hasPlusSet();
+        boolean hasMinus = sourceTriple.hasMinusSet();
+
+        if (!hasPlus && !hasMinus) {
+            // We have nothing in plus nor minus sets. Both non-positive/non-negative cases can
+            // be treated by including null into zero set.
+            sourceTriple.addToZeroSet(null);
+        } else if (!hasPlus) {
+            // Only plus set is empty. So let's treat that one.
+            sourceTriple.addToPlusSet(null);
+        } else if (!hasMinus) {
+            // Only minus set is empty. Do the same.
+            sourceTriple.addToMinusSet(null);
         }
     }
 

@@ -52,7 +52,7 @@ public class RestApiIndex extends AbstractRestController {
                 .map(entry -> new OperationInfo(entry.getKey(), entry.getValue()));
     }
 
-    @GetMapping()
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public List<OperationJson> index(HttpServletRequest request) {
         String uri = request.getRequestURI();
         return uiRestInfo.stream()
@@ -61,7 +61,7 @@ public class RestApiIndex extends AbstractRestController {
                 .collect(Collectors.toList());
     }
 
-    @GetMapping(produces = "text/html")
+    @GetMapping(produces = MediaType.TEXT_PLAIN_VALUE)
     public String indexHtml(HttpServletRequest request) {
         StringBuilder html = new StringBuilder("<!DOCTYPE html><html>"
                 + "<head><meta charset='UTF-8'><title>REST-ish API</title>"
@@ -131,6 +131,14 @@ public class RestApiIndex extends AbstractRestController {
     }
 
     // Fallback for all unmapped resources under /ws
+    // TODO this currently causes 404 instead of 406 when the path is right but Accept is not.
+    // Currently I don't know how to make it right. Without this method 404 show Wicket error.
+    // Not sure what is worse, really.
+    // 404 does not produce any exception, regardless of spring.mvc.throw-exception-if-no-handler-found setting,
+    // so it's not possible to handle it with RestExceptionHandler either.
+    // The reason is that ResourceHandlerRegistry takes over / and 404 comes from there.
+    // It is not much "handler not found" because the resource handler is found,
+    // even for paths under /api (/ws, /rest) that are not otherwise mapped.
     @RequestMapping(value = "/**")
     public void notFoundFallback() {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND);

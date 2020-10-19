@@ -15,6 +15,7 @@ import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.sql.ColumnMetadata;
+import com.querydsl.sql.Configuration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -219,7 +220,8 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
     /**
      * Creates {@link SqlTransformer} of row bean to schema type, override if provided.
      */
-    public SqlTransformer<S, Q, R> createTransformer(PrismContext prismContext) {
+    public SqlTransformer<S, Q, R> createTransformer(
+            PrismContext prismContext, Configuration querydslConfiguration) {
         throw new UnsupportedOperationException("Bean transformer not supported for " + queryType);
     }
 
@@ -240,8 +242,11 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
     /**
      * Registers extension columns. At this moment all are treated as strings.
      */
-    public void addExtensionColumn(String propertyName, ColumnMetadata columnMetadata) {
+    public synchronized void addExtensionColumn(
+            String propertyName, ColumnMetadata columnMetadata) {
         extensionColumns.put(propertyName, columnMetadata);
+        // to assure that the next defaultAlias() provides it with current extension columns
+        defaultAlias = null;
     }
 
     public Map<String, ColumnMetadata> getExtensionColumns() {

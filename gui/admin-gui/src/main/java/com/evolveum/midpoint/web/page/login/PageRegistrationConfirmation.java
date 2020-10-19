@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,14 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -28,8 +22,12 @@ import org.springframework.security.core.AuthenticationException;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.context.NonceAuthenticationContext;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -37,15 +35,17 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 //CONFIRMATION_LINK = "http://localhost:8080/midpoint/confirm/registration/";
-@PageDescriptor(urls = {@Url(mountUrl = SchemaConstants.REGISTRATION_CONFIRAMTION_PREFIX)}, permitAll = true)
+@PageDescriptor(urls = { @Url(mountUrl = SchemaConstants.REGISTRATION_CONFIRMATION_PREFIX) }, permitAll = true)
 public class PageRegistrationConfirmation extends PageRegistrationBase {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfirmation.class);
@@ -77,7 +77,6 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
     }
 
     private void init(final PageParameters pageParameters) {
-
         PageParameters params = pageParameters;
         if (params == null) {
             params = getPageParameters();
@@ -113,7 +112,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
                 result.computeStatus();
             }
             initLayout(result);
-        } catch (CommonException|AuthenticationException e) {
+        } catch (CommonException | AuthenticationException e) {
             result.computeStatus();
             initLayout(result);
         }
@@ -122,7 +121,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
     private UserType checkUserCredentials(String username, String nonce, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(OPERATION_CHECK_CREDENTIALS);
         try {
-            ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
+            ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI);
             return (UserType) getAuthenticationEvaluator().checkCredentials(connEnv, new NonceAuthenticationContext(username, UserType.class,
                     nonce, getSelfRegistrationConfiguration().getNoncePolicy()));
         } catch (AuthenticationException ex) {
@@ -160,7 +159,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
                 WebModelServiceUtils.save(delta, result, task, PageRegistrationConfirmation.this);
                 return null;
             }, administrator);
-        } catch (CommonException|RuntimeException e) {
+        } catch (CommonException | RuntimeException e) {
             result.recordFatalError(getString("PageRegistrationConfirmation.message.assignDefaultRoles.fatalError"), e);
             throw e;
         } finally {
@@ -176,13 +175,13 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
                 Task task = createSimpleTask(OPERATION_REMOVE_NONCE_AND_SET_LIFECYCLE_STATE);
                 ObjectDelta<UserType> delta = getPrismContext().deltaFactory().object()
                         .createModificationDeleteContainer(UserType.class, userOid,
-                        ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_NONCE),
+                                ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_NONCE),
                                 nonce);
                 delta.addModificationReplaceProperty(UserType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
                 WebModelServiceUtils.save(delta, result, task, PageRegistrationConfirmation.this);
                 return null;
             }, administrator);
-        } catch (CommonException|RuntimeException e) {
+        } catch (CommonException | RuntimeException e) {
             result.recordFatalError(getString("PageRegistrationConfirmation.message.removeNonceAndSetLifecycleState.fatalError"), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't remove nonce and set lifecycle state", e);
             throw e;
@@ -213,7 +212,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
                 WebModelServiceUtils.save(assignRoleDelta, result, task, PageRegistrationConfirmation.this);
                 return null;
             }, administrator);
-        } catch (CommonException|RuntimeException e) {
+        } catch (CommonException | RuntimeException e) {
             result.recordFatalError(getString("PageRegistrationConfirmation.message.assignAdditionalRoleIfPresent.fatalError"), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't assign additional role", e);
             throw e;

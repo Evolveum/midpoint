@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.api.component;
 import java.util.*;
 import java.util.function.Supplier;
 
-import com.evolveum.midpoint.gui.impl.component.ContainerListPanel;
+import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -18,13 +18,19 @@ import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import static java.util.Collections.singleton;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -36,16 +42,10 @@ import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.session.PageStorage;
 
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
-import org.jetbrains.annotations.NotNull;
-
-import static java.util.Collections.singleton;
-
 /**
  * @author katkav
  */
-public abstract class ObjectListPanel<O extends ObjectType> extends ContainerListPanel<O> {
+public abstract class ObjectListPanel<O extends ObjectType> extends ContainerableListPanel<O> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectListPanel.class);
@@ -98,7 +98,13 @@ public abstract class ObjectListPanel<O extends ObjectType> extends ContainerLis
 
     protected Search createSearch() {
         return SearchFactory.createSearch(type.getClassDefinition(), isCollectionViewPanelForCompiledView() ? getCollectionNameParameterValue().toString() : null,
-                null, getPageBase(), true);
+                getFixedSearchItems(), null, getPageBase(), true);
+    }
+
+    protected List<ItemPath> getFixedSearchItems() {
+        List<ItemPath> fixedSearchItems = new ArrayList<>();
+        fixedSearchItems.add(ObjectType.F_NAME);
+        return fixedSearchItems;
     }
 
     protected ISelectableDataProvider createProvider() {
@@ -135,7 +141,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends ContainerLis
             @NotNull
             @Override
             protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
-                List<ObjectOrdering> customOrdering =  createCustomOrdering(sortParam);
+                List<ObjectOrdering> customOrdering = createCustomOrdering(sortParam);
                 if (customOrdering != null) {
                     return customOrdering;
                 }
@@ -148,7 +154,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends ContainerLis
             }
 
             @Override
-            public boolean isUseObjectCounting(){
+            public boolean isUseObjectCounting() {
                 return isCountingEnabled();
             }
         };
@@ -161,14 +167,14 @@ public abstract class ObjectListPanel<O extends ObjectType> extends ContainerLis
 
     protected boolean isCountingEnabled(){
         CompiledObjectCollectionView guiObjectListViewType = getObjectCollectionView();
-        if (isAdditionalPanel()){
+        if (isAdditionalPanel()) {
             if (guiObjectListViewType != null && guiObjectListViewType.getAdditionalPanels() != null &&
                     guiObjectListViewType.getAdditionalPanels().getMemberPanel() != null &&
-                    guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableCounting() != null){
+                    guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableCounting() != null) {
                 return !guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableCounting();
             }
         } else {
-            if (guiObjectListViewType != null && guiObjectListViewType.isDisableCounting() != null){
+            if (guiObjectListViewType != null && guiObjectListViewType.isDisableCounting() != null) {
                 return !guiObjectListViewType.isDisableCounting();
             }
         }
@@ -191,12 +197,12 @@ public abstract class ObjectListPanel<O extends ObjectType> extends ContainerLis
         return query;
     }
 
-    private ObjectQuery addArchetypeFilter(ObjectQuery query){
-        if (!isCollectionViewPanel()){
+    private ObjectQuery addArchetypeFilter(ObjectQuery query) {
+        if (!isCollectionViewPanel()) {
             return query;
         }
         CompiledObjectCollectionView view = getObjectCollectionView();
-        if (view == null){
+        if (view == null) {
             getFeedbackMessages().add(ObjectListPanel.this, "Unable to load collection view list", 0);
             return query;
         }

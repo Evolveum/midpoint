@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.ninja.impl;
 
 import com.evolveum.midpoint.ninja.action.*;
+import com.evolveum.midpoint.ninja.action.trace.EditTraceAction;
 import com.evolveum.midpoint.ninja.opts.*;
 
 /**
@@ -30,7 +31,9 @@ public enum Command {
 //
 //    TEST("test", TestResourceOptions.class, null, TestResourceRestAction.class),
 //
-    KEYS("keys", ListKeysOptions.class, ListKeysRepositoryAction.class, null);
+    KEYS("keys", ListKeysOptions.class, ListKeysRepositoryAction.class, null),
+
+    TRACE("trace", EditTraceOptions.class, EditTraceAction.class, null);
 //
 //    TRANSFORM("transform", TransformOptions.class, TransformRepositoryAction.class, null),
 //

@@ -244,6 +244,8 @@
                     <xsd:appinfo>
                         <a:displayName>ObjectType.subtype</a:displayName>
                         <a:displayOrder>15</a:displayOrder>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.2</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -474,6 +476,19 @@
                     <xsd:appinfo>
                         <a:since>4.0</a:since>
                         <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="indestructible" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Protection againts accidental deletion.
+                        If set to true then this object cannot be deleted.
+                        If the object needs to be deleted then it has to be modified first to reset this flag.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.2</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -5273,6 +5288,9 @@
                                 and so on. Simply speaking the name is used to distinguish
                                 credentials that have the same type but different purpose.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>AbstractCredentialType.name</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="metadata" type="tns:MetadataType" minOccurs="0">
@@ -6378,6 +6396,7 @@
         <xsd:complexContent>
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
+                    <xsd:element name="administrativeOperationalState" type="tns:AdministrativeOperationalStateType" minOccurs="0"/>
                     <xsd:element name="operationalState" type="tns:OperationalStateType" minOccurs="0"/>
                     <xsd:element name="operationalStateHistory" type="tns:OperationalStateType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
@@ -6490,6 +6509,28 @@
     </xsd:complexType>
     <xsd:element name="resource" type="tns:ResourceType" substitutionGroup="c:object"/>
 
+    <xsd:complexType name="AdministrativeOperationalStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Structure containing metadata about administrative operational state of the resource.
+                Administrative operational state is set manually by midPoint users (e.g. administrator).
+                This is in contrast with OperationalStateType setting, which is set automatically by the midPoint.
+                It signalizes whether resource is up and OPERATIONAL to receive provisioning requests or is down in MAINTENANCE and midPoint should not contact it during the provisioning.
+                This setting is useful when resource is e.g. undergoing planned maintenance to save computing time and error messages.
+
+                EXPERIMENTAL FEATURE! Contributed by the community.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="administrativeAvailabilityStatus" type="tns:AdministrativeAvailabilityStatusType" minOccurs="0"/>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
     <xsd:complexType name="OperationalStateType">
         <xsd:annotation>
             <xsd:documentation>
@@ -6536,6 +6577,33 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+
+    <xsd:simpleType name="AdministrativeAvailabilityStatusType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The enum describes the administrative availability of the resource, if it is operational or undergoing maintenance.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="maintenance">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MAINTENANCE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="operational">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OPERATIONAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:simpleType name="AvailabilityStatusType">
         <xsd:annotation>
@@ -6961,19 +7029,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
              </xsd:element>
-            <xsd:element name="originRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            TODO
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:experimental>true</a:experimental>
-                        <!--<a:objectReferenceTargetType>tns:AbstractRoleRef</a:objectReferenceTargetType>-->
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -7635,8 +7690,8 @@
                         <a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
                     </xsd:appinfo>
                 </xsd:annotation>
-               </xsd:element>
-               <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0" default="account"/>
+            </xsd:element>
+            <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0" default="account"/>
             <xsd:element name="intent" type="xsd:string" minOccurs="0" default="default">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -7651,6 +7706,39 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.0</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="objectClassName" type="xsd:QName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO exact meaning
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.2</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="tombstone" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether the projection is a remnant of a deleted/dead resource object.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.2</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="discriminatorOrder" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO resolve conflict with ResourceObjectTypeDependencyType
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.2</a:since>
+                        <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -7965,7 +8053,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="persistence" type="tns:PersistenceType" minOccurs="0">
+            <xsd:element name="persistence" type="tns:ItemPersistenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Whether values of this item should be persisted.
@@ -7981,7 +8069,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:simpleType name="PersistenceType">
+    <xsd:simpleType name="ItemPersistenceType">
         <xsd:annotation>
             <xsd:documentation>
                 Whether or how data should be persisted.
@@ -8012,7 +8100,7 @@
                      2. in XML but not in the index tables
                      3. in index tables but not in XML
 
-                     I think it's preferrable to specify exact storage method separately from the fact that given
+                     I think it's preferable to specify exact storage method separately from the fact that given
                      item should or should not be stored persistently.
                     -->
                 </xsd:annotation>
@@ -8032,6 +8120,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Data are held only during computation. They are not provided to the client.
+                        (Not implemented yet.)
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="INTERNAL"/>
@@ -8924,10 +9013,13 @@
         <xsd:annotation>
             <xsd:documentation>
                 Specifies data provenance properties for a particular data feed (source), such as resource.
+                TODO actually it's more powerful as it allows to specify other metadata items as well;
+                consider renaming
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -8942,10 +9034,35 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <!-- Expression that dynamically determines the origin may be here later.
-                 Or maybe we can use expression in the originRef instead. -->
-            <!-- Provenance metadata mappings/transformations might be here, maybe?
-                 E.g. we may be able to determine provenance timestamp from some kind of resoruce data/metadata? -->
+            <xsd:element name="acquisitionItemPopulator" type="c:PopulateItemType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Custom population of acquisition items.
+                        Path in the populator is rooted at provenance/acquisition container in the metadata.
+                        (In the future the path will be allowed to be empty i.e. the populator can provide a value for the whole acquisition.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- Or maybe we can use expression in the originRef instead? -->
+            <xsd:element name="metadataItemPopulator" type="c:PopulateItemType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Custom population of metadata items.
+                        Path in the populator is rooted at metadata container value.
+                        (In the future the path will be allowed to be empty i.e. the populator can provide a value for the whole metadata.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="useBuiltinPopulators" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Should we use built-in populators for originRef, resourceRef, actorRef, and timestamp?
+                        true = always, false = never, null = only if populator returns no value
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- A flag that determines that we want to provide different values for different attributes (to speed up processing)?
+                 Currently we use the same metadata for all values in given resource object. -->
         </xsd:sequence>
     </xsd:complexType>
 
@@ -9961,6 +10078,18 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="ignoreMetadataProcessing" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                When set, processing of given metadata item (specified by path prefix) is completely
+                                ignored for this mapping. VERY EXPERIMENTAL
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:experimental>true</a:experimental>
+                                <a:since>4.2</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -10132,6 +10261,21 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="yieldCondition" type="c:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                          Expression that is evaluated to check whether specific value yield belongs to the set.
+                          If the condition returns true then the value yield belongs to the set. Otherwise
+                          it does not. VERY EXPERIMENTAL.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.0</a:since>
+                        <a:experimental/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <!-- TODO: other set definition types:
                        * reference to lookup table
                        * reference to schema enumeration -->
@@ -10166,6 +10310,20 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="matchingProvenance">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Values of matching provenance (i.e. provided by the current mapping) will be
+                        part of the set. Limited to target set definition for mappings.
+                        Provenance metadata processing must be enabled for this to work.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MATCHING_PROVENANCE"/>
+                        <a:experimental>true</a:experimental>
+                        <a:since>4.2</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -10830,6 +10988,17 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="valueVariableMode" type="tns:ValueVariableModeType" minOccurs="0" default="realValue">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Type of variables that appear in the script.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                                <a:experimental/>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -10925,7 +11094,7 @@
             <xsd:enumeration value="prismReference">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The varialble will be presented as a Prism reference value (PrismReferenceValue).
+                        The variable will be presented as a Prism reference value (PrismReferenceValue).
                         The reference value will contain all the information from the original reference
                         or object (OID, type, name). If the object is available or if it could be resolved
                         then the object itself will be also present in the reference value (in "object" property).
@@ -10938,6 +11107,46 @@
             </xsd:enumeration>
             <!-- TODO: "prismObject" that will present the variables as PrismObject<O> -->
             <!-- TODO: maybe "reference" that will present the variables as ObjectReferenceType -->
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ValueVariableModeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Type of variables that appear in the script.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.2</a:since>
+                <a:experimental/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="realValue">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The variables will be presented as real values, e.g. String, XMLGregorianCalendar, UserType,
+                        AssignmentType, etc.
+
+                        This is how it was done in midPoint from its beginnings. However, for simple types (like String)
+                        the metadata are lost when the real value is presented.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REAL_VALUE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="prismValue">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The variables will be presented as prism values, e.g. PrismPropertyValue&lt;String&gt;,
+                        so the metadata can be accessed by the script. This is an experimental feature.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PRISM_VALUE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 
@@ -12426,6 +12635,15 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
+
+    <xsd:element name="attributes" type="tns:ShadowAttributesType">
+       <!--  Necessary to find item definition for attributes -->
+       <xsd:annotation>
+           <xsd:appinfo>
+               <a:displayName>ShadowType.attributes</a:displayName>
+           </xsd:appinfo>
+       </xsd:annotation>
+    </xsd:element>
 
     <xsd:complexType name="ShadowAssociationType">
         <xsd:annotation>
@@ -14862,6 +15080,17 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="meta" type="tns:MetadataHandlingType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Definition of handling of a metadata items for this particular item.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:experimental>true</a:experimental>
+                                <a:since>4.2</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
           </xsd:extension>
        </xsd:complexContent>
@@ -14887,6 +15116,10 @@
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="beforeAssignments">
                 <xsd:annotation>
+                    <xsd:documentation>
+                        Evaluation of template mappings before assignments are evaluated.
+                        This is the most common phase for template mappings.
+                    </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="BEFORE_ASSIGNMENTS"/>
                     </xsd:appinfo>
@@ -14894,8 +15127,27 @@
             </xsd:enumeration>
             <xsd:enumeration value="afterAssignments">
                 <xsd:annotation>
+                    <xsd:documentation>
+                        Evaluation of template mappings after assignments are evaluated
+                        but before uniqueness check is done and before projections are considered.
+                    </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="AFTER_ASSIGNMENTS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="afterProjections">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Evaluation of template mappings after activation and values of projections
+                        are processed. So, it is possible to use e.g. hasLinkedAccount function call
+                        here to determine the new state of a projection. On the other hand, results of
+                        these mappings are not reflected in projection outbound mappings.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:experimental>true</a:experimental>
+                        <a:since>4.2</a:since>
+                        <jaxb:typesafeEnumMember name="AFTER_PROJECTIONS"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -15318,22 +15570,22 @@
                     <xsd:documentation>
                         <p>
                             Configures overall assignmentRelation approach for archetyped objects (assignment holders).
-                            This essentially means that is allows or disables the use of "generic" assignments for archetyped objects.
+                            This essentially means that it allows or disables the use of "generic" assignments for archetyped objects.
                             If the generic assignments are allowed (open approach), the archetyped object can be a holder
-                            of any assignment that targets any assignable type with any relation
-                            (Note: this is still subject to authorizations).
-                            Which essentially means that if this property is set to "open" then GUI will show
-                            "assign" button that can be used at add any assignment type.
-                            If this property is set to "closed" then GUI will not render that button. In that case
+                            of any assignment that targets any assignable type with any relation.
+                            (Note: this is still subject to authorizations.)
+                            This essentially means that if this property is set to "open" then the GUI will show
+                            "assign" button that can be used to add any assignment type.
+                            If this property is set to "closed" then the GUI will not render that button. In that case
                             only those assignments that are explicitly allowed by assignmentRelation statements are possible.
                         </p>
                         <p>
                             This setting controls behavior of midPoint user interface.
-                            E.g. setting the approach to "closed" will hide the button that controls generic assignment in user's the "Assignments" tab.
+                            E.g. setting the approach to "closed" will hide the button that controls generic assignment in user's "Assignments" tab.
                             But it will not disable similar button in the "Members" tab of the role.
                             This setting is only about controlling uni-directional behavior of GUI.
                             It does not constraint the entire assignment model.
-                            That will be too complex to implement (at least for now).
+                            That would be too complex to implement (at least for now).
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -16824,12 +17076,20 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
-                  <xsd:annotation>
-                      <xsd:documentation>
-                          Expression that produces value of the property.
-                      </xsd:documentation>
-                  </xsd:annotation>
-              </xsd:element>
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expression that produces value of the property.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="targetSelector" type="tns:ObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Selector(s) for target objects to which this property derivation applies.
+                        If multiple selectors are defined, at least one of them has to match.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -17355,7 +17615,6 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.2</a:since>
-                                <a:experimental>true</a:experimental>
                                 <a:displayName>ObjectCollectionType.getOptions</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -17377,6 +17636,7 @@
                             <xsd:appinfo>
                                 <a:displayName>ObjectCollectionType.auditSearch</a:displayName>
                                 <a:experimental>true</a:experimental>
+                                <a:deprecated>true</a:deprecated>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -17431,16 +17691,9 @@
                                 <p>
                                     Specifies a default view of an object collection.
                                 </p>
-                                <p>
-                                    This part of collection definition is EXPERIMENTAL. It works only for some case,
-                                    some parts are hardcoded, untested or do not even work at all.
-                                    Use at your own risk. But it is perhaps best not to use this at all
-                                    until the code stabilizes.
-                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.0</a:since>
-                                <a:experimental>true</a:experimental>
                                 <a:displayName>ObjectCollectionType.defaultView</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -17793,6 +18046,7 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
+                <a:deprecated>true</a:deprecated>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -17995,9 +18249,59 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="memoryDiagnostics" type="tns:MemoryDiagnosticsConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Configuration of memory diagnostics features.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.2</a:since>
+                        <a:experimental>true</a:experimental>
+                        <a:displayName>InternalsConfigurationType.memoryDiagnostics</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="internalsConfiguration" type="tns:InternalsConfigurationType"/>
+
+    <xsd:complexType name="MemoryDiagnosticsConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration of memory diagnostics features.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="heapInfoCommand" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Command that provides heap information. Can use $jhsdb, $jmap, and $pid variables.
+                        Default value is "${jhsdb} jmap --heap --pid ${pid}".
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MemoryDiagnosticsConfigurationType.heapInfoCommand</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="heapObjectsHistogramCommand" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Command that provides heap objects' histogram. Can use $jhsdb, $jmap, and $pid variables.
+                        Default value is "${jmap} -histo:live ${pid}".
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MemoryDiagnosticsConfigurationType.heapObjectsHistogramCommand</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="memoryDiagnosticsConfiguration" type="tns:MemoryDiagnosticsConfigurationType"/>
 
     <xsd:complexType name="OperationResultHandlingStrategyType">
         <xsd:annotation>
@@ -21701,6 +22005,14 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="orphaned">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ORPHANED"/>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="assignmentState">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -22078,6 +22390,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000600">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ORIGIN_INTERNAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 
@@ -22148,6 +22467,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:displayName>CleanupPoliciesType.closedTasks</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="closedCases" type="tns:CleanupPolicyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>CleanupPoliciesType.closedCases</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -22692,6 +23018,19 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="pushChanges" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        "Pushes" changes even if they are phantom. For example, when disabling already disabled user with this
+                        option, all related administrativeStatus-sourced mappings are evaluated even if they would be normally
+                        skipped. This restores behavior of midPoint before 4.2.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.2</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="raw" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -22896,6 +23235,7 @@
             <xsd:element name="projectionCredentials" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="projectionReconciliation" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="projectionLifecycle" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="objectTemplateAfterProjections" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="approvals" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="execution" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="notification" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
@@ -28109,4 +28449,3 @@
     <xsd:element name="triggerCreation" type="tns:TriggerCreationType" />
 
 </xsd:schema>
-

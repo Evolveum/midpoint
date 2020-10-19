@@ -12,6 +12,8 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingOutputType;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -23,25 +25,37 @@ public class OpNodeTreeBuilder {
 
     @NotNull private final PrismContext prismContext;
 
-    private IdentityHashMap<OperationResultType, OpResultInfo> infoMap = new IdentityHashMap<>();
+    private final IdentityHashMap<OperationResultType, OpResultInfo> infoMap = new IdentityHashMap<>();
 
-    public OpNodeTreeBuilder(PrismContext prismContext) {
+    public OpNodeTreeBuilder(@NotNull PrismContext prismContext) {
         this.prismContext = prismContext;
     }
 
     public List<OpNode> build(TracingOutputType tracingOutput) {
-        List<OpNode> rv = new ArrayList<>();
-        addNode(null, rv, tracingOutput.getResult(), new TraceInfo(tracingOutput));
-        return rv;
-
+        return build(tracingOutput, null);
     }
 
-    private void addNode(OpNode parent, List<OpNode> rv, OperationResultType result, TraceInfo traceInfo) {
+    public List<OpNode> build(TracingOutputType tracingOutput, NameResolver nameResolver) {
+        List<OpNode> rv = new ArrayList<>();
+        addNode(null, rv, tracingOutput.getResult(), new TraceInfo(tracingOutput), nameResolver);
+
+        rv.forEach(OpNode::postProcessRecursive);
+        return rv;
+    }
+
+    private void addNode(OpNode parent, List<OpNode> rv, OperationResultType result, TraceInfo traceInfo, NameResolver nameResolver) {
         OpResultInfo info = OpResultInfo.create(result, infoMap);
-        OpNode newNode = new OpNode(prismContext, result, info, parent, traceInfo);
+        OpNode newNode = OpNodeFactory.createOpNode(prismContext, result, info, parent, traceInfo);
+        if (nameResolver != null) {
+            newNode.resolveReferenceTargetNames(nameResolver);
+        }
         rv.add(newNode);
         for (OperationResultType child : result.getPartialResults()) {
-            addNode(newNode, newNode.getChildren(), child, traceInfo);
+            addNode(newNode, newNode.getChildren(), child, traceInfo, nameResolver);
         }
+    }
+
+    public interface NameResolver {
+        PolyStringType getName(String oid);
     }
 }

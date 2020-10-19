@@ -14,9 +14,11 @@
             <wicket:enclosure child="arrow">
                 <i wicket:id="arrow" class="fa fa-angle-left pull-right"></i>
             </wicket:enclosure>
-            <span class="pull-right-container">
-                <span class="label label-primary pull-right" wicket:id="bubble"/>
-            </span>
+            <wicket:enclosure child="bubble">
+                <span class="pull-right-container">
+                    <span class="label label-primary pull-right" wicket:id="bubble"/>
+                </span>
+            </wicket:enclosure>
         </a>
         <ul wicket:id="submenu" class="treeview-menu">
             <li wicket:id="subItem">

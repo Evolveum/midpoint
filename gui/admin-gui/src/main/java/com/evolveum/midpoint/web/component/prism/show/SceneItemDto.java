@@ -107,6 +107,10 @@ public class SceneItemDto implements Serializable {
         return sceneItem.isOperational();
     }
 
+    public boolean isDescriptive() {
+        return sceneItem.isDescriptive();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -1,11 +1,16 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.model.operationStatus;
+
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -19,15 +24,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.web.component.prism.show.WrapperScene;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
+import com.evolveum.midpoint.web.component.prism.show.WrapperScene;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.apache.commons.collections.CollectionUtils.addIgnoreNull;
 
 /**
  * @author mederly
@@ -39,7 +38,8 @@ public class ModelOperationStatusDto implements Serializable {
     public static final String F_FOCUS_NAME = "focusName";
     public static final String F_PRIMARY_DELTA = "primaryDelta";
 
-    private ModelState state;
+    private final ModelState state;
+
     private String focusType;
     private String focusName;
     private SceneDto primarySceneDto;
@@ -81,7 +81,6 @@ public class ModelOperationStatusDto implements Serializable {
             primarySceneDto = new SceneDto(primaryWrapperScene);
         }
     }
-
 
     public ModelState getState() {
         return state;

@@ -261,7 +261,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         loadPrismSchemaDescription(input, sourceDescription);
     }
 
-    private void loadPrismSchemaFileDescription(File file) throws SchemaException, IOException {
+    protected void loadPrismSchemaFileDescription(File file) throws SchemaException, IOException {
         if (!(file.getName().matches(".*\\.xsd$"))) {
             LOGGER.trace("Skipping registering {}, because it is not schema definition.", file.getAbsolutePath());
         } else {
@@ -521,14 +521,14 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
     private void detectExtensionSchema(PrismSchema schema) {
         for (ComplexTypeDefinition def : schema.getDefinitions(ComplexTypeDefinition.class)) {
-            QName extType = def.getExtensionForType();
-            if (extType != null) {
-                LOGGER.trace("Processing {} as an extension for {}", def, extType);
-                if (extensionSchemas.containsKey(extType)) {
-                    ComplexTypeDefinition existingExtension = extensionSchemas.get(extType);
+            QName typeBeingExtended = def.getExtensionForType(); // e.g. c:UserType
+            if (typeBeingExtended != null) {
+                LOGGER.trace("Processing {} as an extension for {}", def, typeBeingExtended);
+                if (extensionSchemas.containsKey(typeBeingExtended)) {
+                    ComplexTypeDefinition existingExtension = extensionSchemas.get(typeBeingExtended);
                     existingExtension.merge(def);
                 } else {
-                    extensionSchemas.put(extType, def.clone());
+                    extensionSchemas.put(typeBeingExtended, def.clone());
                 }
             }
         }
@@ -1319,6 +1319,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
      * <p>
      * By suitable we mean such that can be used to determine specific object type.
      */
+    @Override
     public boolean hasImplicitTypeDefinition(@NotNull QName itemName, @NotNull QName typeName) {
         List<ItemDefinition> definitions = findItemDefinitionsByElementName(itemName, ItemDefinition.class);
         if (definitions.size() != 1) {
@@ -1540,7 +1541,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
     }
 
     @Override
-    public boolean isContainer(QName typeName) {
+    public boolean isContainerable(QName typeName) {
         Class<?> clazz = determineClassForType(typeName);
         return clazz != null && Containerable.class.isAssignableFrom(clazz);
     }

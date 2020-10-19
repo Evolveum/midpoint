@@ -8,22 +8,19 @@
 package com.evolveum.midpoint.model.common.mapping.metadata.builtin;
 
 import javax.annotation.PostConstruct;
-import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.*;
-
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.prism.PrismValue;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * TODO
@@ -33,14 +30,14 @@ abstract class BaseBuiltinMetadataMapping implements BuiltinMetadataMapping {
     @NotNull private final ItemPath targetPath;
 
     @Autowired PrismContext prismContext;
-    @Autowired private BuiltinMetadataMappingsRegistry registry;
+    @Autowired BuiltinMetadataMappingsRegistry registry;
 
     BaseBuiltinMetadataMapping(@NotNull ItemPath targetItem) {
         this.targetPath = targetItem;
     }
 
     @PostConstruct
-    void register() {
+    public void register() {
         registry.registerBuiltinMapping(this);
     }
 
@@ -58,18 +55,18 @@ abstract class BaseBuiltinMetadataMapping implements BuiltinMetadataMapping {
         }
     }
 
-    XMLGregorianCalendar earliestTimestamp(List<PrismValue> values, ItemPath path) {
-        Set<XMLGregorianCalendar> realValues = getRealValues(values, path);
-        return MiscUtil.getEarliestTimeIgnoringNull(realValues);
-    }
-
-    private <T> Set<T> getRealValues(List<PrismValue> values, ItemPath path) {
-        //noinspection unchecked
-        return (Set<T>) values.stream()
-                .map(PrismValue::getValueMetadata)
-                .map(v -> v.findItem(path))
-                .filter(Objects::nonNull)
-                .map(Item::getRealValue)
-                .collect(Collectors.toSet());
+    String dumpInput(List<PrismValue> inputValues) {
+        if (inputValues.isEmpty()) {
+            return "  (no values)";
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for (PrismValue inputValue : inputValues) {
+                if (inputValue != null) {
+                    sb.append("  - ").append(inputValue.toString()).append(" with metadata:\n");
+                    sb.append(inputValue.getValueMetadata().debugDump(2)).append("\n");
+                }
+            }
+            return sb.toString();
+        }
     }
 }

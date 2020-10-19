@@ -15,15 +15,18 @@ import com.evolveum.midpoint.prism.impl.util.PrismUtilInternal;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.MetadataAware;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import com.evolveum.prism.xml.ns._public.types_3.ReferentialIntegrityType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -168,21 +171,37 @@ public class PrismMarshaller {
      */
     @NotNull
     private XNodeImpl marshalItemContent(@NotNull Item<?, ?> item,
-            ItemDefinition itemDefinition, SerializationContext context,
+            ItemDefinition itemDefinition, SerializationContext ctx,
             Collection<? extends QName> itemsToSkip) throws SchemaException {
-        if (item.isEmpty() && item.isIncomplete()) {
+
+        List<? extends PrismValue> valuesToMarshal = getValuesToMarshal(item, ctx);
+        if (valuesToMarshal.isEmpty() && item.isIncomplete()) {
             return new IncompleteMarkerXNodeImpl();
-        } else if (item.size() == 1 && !item.isIncomplete()) {
-            return marshalItemValue(item.getAnyValue(), itemDefinition, null, context, itemsToSkip);
+        } else if (valuesToMarshal.size() == 1 && !item.isIncomplete()) {
+            return marshalItemValue(valuesToMarshal.get(0), itemDefinition, null, ctx, itemsToSkip);
         } else {
             ListXNodeImpl xlist = new ListXNodeImpl();
-            for (PrismValue val : item.getValues()) {
-                xlist.add(marshalItemValue(val, itemDefinition, null, context, itemsToSkip));
+            for (PrismValue val : valuesToMarshal) {
+                xlist.add(marshalItemValue(val, itemDefinition, null, ctx, itemsToSkip));
             }
             if (item.isIncomplete()) {
                 xlist.add(new IncompleteMarkerXNodeImpl());
             }
             return xlist;
+        }
+    }
+
+    private List<? extends PrismValue> getValuesToMarshal(Item<?, ?> item, SerializationContext ctx) {
+        if (ctx == null || ctx.getOptions() == null || !ctx.getOptions().isSkipTransient()) {
+            return item.getValues();
+        } else {
+            List<PrismValue> valuesToMarshal = new ArrayList<>();
+            for (PrismValue value : item.getValues()) {
+                if (value == null || !value.isTransient()) {
+                    valuesToMarshal.add(value);
+                }
+            }
+            return valuesToMarshal;
         }
     }
 
@@ -225,12 +244,14 @@ public class PrismMarshaller {
     }
 
     private void marshalValueMetadata(PrismValue itemValue, XNodeImpl xnode, SerializationContext ctx) throws SchemaException {
-        PrismContainerValue<?> valueMetadata = itemValue.getValueMetadata();
-        if (!valueMetadata.isEmpty()) {
+        PrismContainer<?> valueMetadataContainer = itemValue.getValueMetadata();
+        if (!valueMetadataContainer.isEmpty()) {
             if (xnode instanceof MetadataAware) {
-                MapXNode metadataNode = marshalContainerValue(valueMetadata,
-                        getSchemaRegistry().getValueMetadataDefinition(), ctx, emptySet());
-                ((MetadataAware) xnode).setMetadataNode(metadataNode);
+                for (PrismContainerValue<?> valueMetadataValue : valueMetadataContainer.getValues()) {
+                    MapXNode metadataNode = marshalContainerValue(valueMetadataValue,
+                            getSchemaRegistry().getValueMetadataDefinition(), ctx, emptySet());
+                    ((MetadataAware) xnode).addMetadataNode(metadataNode);
+                }
             } else {
                 throw new IllegalStateException("Couldn't marshal value metadata of " + itemValue + " to non-metadata-aware XNode: " + xnode);
             }
@@ -294,7 +315,9 @@ public class PrismMarshaller {
             Collection<? extends QName> itemsToSkip) throws SchemaException {
         Long id = containerVal.getId();
         if (id != null) {
-            xmap.put(XNodeImpl.KEY_CONTAINER_ID, createPrimitiveXNodeAttr(id, DOMUtil.XSD_LONG));
+            PrimitiveXNodeImpl<Long> infraId = createPrimitiveXNodeAttr(id, DOMUtil.XSD_LONG);
+            infraId.setInfra(true);
+            xmap.put(XNodeImpl.KEY_CONTAINER_ID, infraId);
         }
         if (containerVal instanceof PrismObjectValue) {
             PrismObjectValue<?> objectVal = (PrismObjectValue<?>) containerVal;
@@ -323,7 +346,7 @@ public class PrismMarshaller {
             for (ItemDefinition itemDef: containerDefinition.getDefinitions()) {
                 ItemName elementName = itemDef.getItemName();
                 Item<?,?> item = containerVal.findItem(elementName);
-                if (item != null) {
+                if (item != null && !skipBecauseTransient(item, ctx)) {
                     XNodeImpl xsubnode;
                     if (shouldSkipItem(itemsToSkip, elementName, itemDef, ctx) && !item.hasNoValues()) {
                         xsubnode = new IncompleteMarkerXNodeImpl();
@@ -339,7 +362,7 @@ public class PrismMarshaller {
         // E.g. in run-time schema. Therefore we must also iterate over items and not just item definitions.
         for (Item<?,?> item : containerVal.getItems()) {
             QName elementName = item.getElementName();
-            if (!marshaledItems.contains(elementName)) {
+            if (!marshaledItems.contains(elementName) && !skipBecauseTransient(item, ctx)) {
                 XNodeImpl xsubnode;
                 if (shouldSkipItem(itemsToSkip, elementName, item.getDefinition(), ctx) && !item.hasNoValues()) {
                     xsubnode = new IncompleteMarkerXNodeImpl();
@@ -349,6 +372,26 @@ public class PrismMarshaller {
                 xmap.put(elementName, xsubnode);
             }
         }
+    }
+
+    @Experimental
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private boolean skipBecauseTransient(Item<?, ?> item, SerializationContext ctx) {
+        if (ctx == null || ctx.getOptions() == null || !ctx.getOptions().isSkipTransient()) {
+            return false;
+        }
+        if (item.isIncomplete()) {
+            return false; // we need to store the "incomplete" flag
+        }
+        if (item.hasNoValues()) {
+            return false; // backwards compatibility (rather questionable)
+        }
+        for (PrismValue value : item.getValues()) {
+            if (!value.isTransient()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private boolean shouldSkipItem(Collection<? extends QName> itemsToSkip, QName elementName, ItemDefinition<?> itemDef,
@@ -474,7 +517,16 @@ public class PrismMarshaller {
             return createExpressionXNode(expression);
         }
         T realValue = value.getValue();
-        if (realValue instanceof PolyString) {
+        if (realValue instanceof RawType) {
+            RawType rawValue = (RawType) realValue;
+            if (rawValue.isParsed()) {
+                return marshalItemValue(rawValue.getAlreadyParsedValue(), definition, typeNameIfNoDefinition, ctx, emptySet());
+            } else if (rawValue.getXnode() != null) {
+                return (XNodeImpl) ((RawType) realValue).getXnode();
+            } else {
+                throw new SchemaException("Cannot marshall empty RawType: " + value);
+            }
+        } else if (realValue instanceof PolyString) {
             return beanMarshaller.marshalPolyString((PolyString) realValue);
         } else if (realValue instanceof PolyStringType) {   // should not occur ...
             return beanMarshaller.marshalPolyString(((PolyStringType) realValue).toPolyString());
@@ -520,6 +572,12 @@ public class PrismMarshaller {
         }
         T realValue = value.getValue();
         if (realValue != null) {
+            if (realValue instanceof RawType) {
+                XNode xnode = ((RawType) realValue).getXnode();
+                if (xnode != null) {
+                    return (XNodeImpl) xnode;
+                }
+            }
             return createPrimitiveXNode(realValue, null);
         } else {
             throw new IllegalStateException("Neither real nor raw value present in " + value);

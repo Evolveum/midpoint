@@ -9,18 +9,13 @@ package com.evolveum.midpoint.web.component.prism.show;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.visualizer.SceneItemValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.ImagePanel;
-import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -77,7 +72,7 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
         label.add(visibleIfNotReference);
         add(label);
 
-        final LinkPanel link = new LinkPanel(ID_LINK, new LabelModel()) {
+        final AjaxLinkPanel link = new AjaxLinkPanel(ID_LINK, new LabelModel()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 if (!(getModelObject().getSourceValue() instanceof PrismReferenceValue)) {

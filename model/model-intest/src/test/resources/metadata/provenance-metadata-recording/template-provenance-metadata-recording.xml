@@ -34,6 +34,58 @@
         </condition>
     </mapping>
 
+    <!-- We want to maintain a list of aliases. A person's full name should be part of it.
+         There can be other aliases defined typically by user himself. -->
+    <item>
+        <ref>extension/alias</ref>
+        <mapping>
+            <name>fullName to alias</name>
+            <strength>strong</strength>
+            <source>
+                <path>fullName</path>
+            </source>
+            <target>
+                <set>
+                    <predefined>matchingProvenance</predefined>
+                </set>
+            </target>
+        </mapping>
+
+        <meta>
+            <item>
+                <ref>transformation</ref>
+                <limitations>
+                    <processing>full</processing>
+                </limitations>
+                <persistence>persistent</persistence>
+            </item>
+        </meta>
+
+    </item>
+
+    <!-- We want to maintain a list of assured organizations i.e. organizations with LoA at least 3 -->
+    <mapping>
+        <strength>strong</strength>
+        <source>
+            <path>organization</path>
+            <set>
+                <yieldCondition>
+                    <script>
+                        <code>
+                            basic.getExtensionPropertyValue(metadata, 'loa') &gt;= 3
+                        </code>
+                    </script>
+                </yieldCondition>
+            </set>
+        </source>
+        <target>
+            <path>extension/assuredOrganization</path>
+            <set>
+                <predefined>all</predefined>
+            </set>
+        </target>
+    </mapping>
+
     <mapping>
         <strength>strong</strength>
         <expression>
@@ -41,6 +93,33 @@
         </expression>
         <target>
             <path>locality</path>
+        </target>
+        <!-- So we skip computation of LoA for this mapping. Other mappings that (hypothetically)
+             provide values for locality have LoA processing enabled. -->
+        <ignoreMetadataProcessing>extension/loa</ignoreMetadataProcessing>
+    </mapping>
+
+    <!-- to test metadata exclusion -->
+    <mapping>
+        <strength>strong</strength>
+        <expression>
+            <value>CC000</value>
+        </expression>
+        <target>
+            <path>costCenter</path>
+        </target>
+    </mapping>
+
+    <!-- to test origin for generated values -->
+    <mapping>
+        <strength>weak</strength>
+        <expression>
+            <generate>
+                <mode>uuid</mode>
+            </generate>
+        </expression>
+        <target>
+            <path>title</path>
         </target>
     </mapping>
 
@@ -51,5 +130,74 @@
                 <processing>full</processing>
             </limitations>
         </item>
+
+        <item>
+            <ref>transformation</ref>
+            <limitations>
+                <processing>full</processing>
+            </limitations>
+            <persistence>transient</persistence>
+        </item>
+
+        <item>
+            <ref>extension/loa</ref>
+            <mapping>
+                <scope>transformation</scope>
+                <source>
+                    <path>extension/loa</path>
+                </source>
+                <expression>
+                    <script>
+                        <relativityMode>absolute</relativityMode>
+                        <code>
+                            log.info('metadata computation input:\n{}', metadataComputationInput?.debugDump(1))
+
+                            // LoA for the transformation output is computed as the lowest one of LoA values for individual inputs.
+                            // LoA of each input value is computed as the highest one of LoA values of its yields (or 0 if no LoA is known).
+                            // If there is no input value, it is ignored during this computation.
+
+                            rv = metadataComputationInput.inputDataValues.collect {
+                                it.prismValue != null ?
+                                        (it.metadataValues.max() ?: 0)
+                                        : null
+                            }.min()
+                            log.info("### resulting loa = $rv")
+                            rv
+                        </code>
+                    </script>
+                </expression>
+            </mapping>
+            <mapping>
+                <scope>consolidation</scope>
+                <source>
+                    <path>extension/loa</path>
+                </source>
+                <expression>
+                    <script>
+                        <relativityMode>absolute</relativityMode>
+                        <code>
+                            // LoA is computed as the highest one of LoA values for individual yields.
+                            rv = loa.collect { it ?: 0 }.max()
+                            log.info("### loa = $loa -> $rv")
+                            rv
+                        </code>
+                    </script>
+                </expression>
+            </mapping>
+            <applicability>
+                <exclude>
+                    <!-- All assignments will have LoA processing disabled. -->
+                    <path>assignment</path>
+                </exclude>
+            </applicability>
+        </item>
+
+        <applicability>
+            <exclude>
+                <!-- Cost center will have no metadata processing.
+                     This is just to test the exclusion feature at the level of metadata handling -->
+                <path>costCenter</path>
+            </exclude>
+        </applicability>
     </meta>
 </objectTemplate>

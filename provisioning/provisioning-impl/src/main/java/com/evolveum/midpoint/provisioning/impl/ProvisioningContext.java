@@ -264,23 +264,15 @@ public class ProvisioningContext extends StateReporter {
         return ctx;
     }
 
-//    /**
-//     * Creates a context for a different object class on the same resource.
-//     */
-//    public ProvisioningContext spawn(RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
-//        ProvisioningContext ctx = spawnSameResource();
-//        ctx.setObjectClassDefinition(objectClassDefinition);
-//        return ctx;
-//    }
-
     private ProvisioningContext spawnSameResource() {
         ProvisioningContext ctx = new ProvisioningContext(resourceManager, parentResult);
         ctx.setTask(this.getTask());
         ctx.setResourceOid(getResourceOid());
         ctx.resource = this.resource;
-        ctx.updateResourceName();                    // TODO eliminate this mess - check if we need StateReporter any more
+        ctx.updateResourceName(); // TODO eliminate this mess - check if we need StateReporter any more
         ctx.connectorMap = this.connectorMap;
         ctx.refinedSchema = this.refinedSchema;
+        ctx.channelOverride = this.channelOverride;
         return ctx;
     }
 

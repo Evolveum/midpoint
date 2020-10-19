@@ -13,6 +13,7 @@ import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.report.api.ReportManager;
+import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -22,13 +23,13 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -40,6 +41,8 @@ public class CleanUpTaskHandler implements TaskHandler {
     @Autowired private TaskManager taskManager;
     @Autowired private RepositoryService repositoryService;
     @Autowired private AuditService auditService;
+    @Autowired(required = false)
+    private WorkflowManager workflowManager;
     @Autowired private AccessCertificationService certificationService;
 
     @Autowired(required = false)
@@ -131,6 +134,21 @@ public class CleanUpTaskHandler implements TaskHandler {
         }
 
         if (task.canRun()) {
+            CleanupPolicyType closedCasesPolicy = cleanupPolicies.getClosedCases();
+            if (closedCasesPolicy != null) {
+                try {
+                    workflowManager.cleanupCases(closedCasesPolicy, task, opResult);
+                } catch (Exception ex) {
+                    LOGGER.error("Cases cleanup: {}", ex.getMessage(), ex);
+                    opResult.recordFatalError(ex.getMessage(), ex);
+                    runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+                }
+            } else {
+                LOGGER.trace("Cleanup: No clean up policy for closed cases specified. Finishing clean up task.");
+            }
+        }
+
+        if (task.canRun()) {
             DeadNodeCleanupPolicyType deadNodesPolicy = cleanupPolicies.getDeadNodes();
             if (deadNodesPolicy != null) {
                 try {
@@ -202,5 +220,10 @@ public class CleanUpTaskHandler implements TaskHandler {
     @Override
     public String getArchetypeOid() {
         return SystemObjectsType.ARCHETYPE_CLEANUP_TASK.value();
+    }
+
+    @Override
+    public String getDefaultChannel() {
+        return Channel.CLEANUP.getUri();
     }
 }

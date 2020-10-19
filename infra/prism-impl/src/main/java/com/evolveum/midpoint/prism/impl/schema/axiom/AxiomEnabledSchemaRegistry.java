@@ -1,9 +1,11 @@
 package com.evolveum.midpoint.prism.impl.schema.axiom;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Consumer;
 import java.util.Optional;
 
 import javax.xml.namespace.QName;
@@ -19,11 +21,11 @@ import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.MutableComplexTypeDefinition;
 import com.evolveum.midpoint.prism.MutableItemDefinition;
 import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
-import com.evolveum.midpoint.prism.MutableTypeDefinition;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.TypeDefinition;
 import com.evolveum.midpoint.prism.impl.ComplexTypeDefinitionImpl;
@@ -31,6 +33,7 @@ import com.evolveum.midpoint.prism.impl.PrismContainerDefinitionImpl;
 import com.evolveum.midpoint.prism.impl.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.impl.PrismReferenceDefinitionImpl;
 import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
@@ -46,6 +49,7 @@ public class AxiomEnabledSchemaRegistry extends SchemaRegistryImpl {
     private static final String PRISM_TYPES = "http://prism.evolveum.com/xml/ns/public/types-3";
 
     private static final QName OBJECT_REFERENCE_TYPE = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "ObjectReferenceType");
+
     private static final AxiomName PROPERTY_ITEM = AxiomName.from(PRISM_NAMESPACE, "PropertyItemDefinition");
     private static final AxiomName CONTAINER_ITEM = AxiomName.from(PRISM_NAMESPACE, "ContainerItemDefinition");
     private static final AxiomName REFERENCE_ITEM = AxiomName.from(PRISM_NAMESPACE, "ReferenceItemDefinition");
@@ -54,12 +58,17 @@ public class AxiomEnabledSchemaRegistry extends SchemaRegistryImpl {
 
 
     private static final BiMap<AxiomName, QName> AXIOM_XSD_TYPES = ImmutableBiMap.<AxiomName, QName>builder()
-            .put(AxiomName.builtIn("String"), new QName(XSD,"string"))
-            .put(AxiomName.builtIn("DateTime"), new QName(XSD,"dateTime"))
-            .put(AxiomName.builtIn("Uri"), new QName(XSD,"anyURI"))
+            .put(AxiomName.builtIn("String"), DOMUtil.XSD_STRING)
+            .put(AxiomName.builtIn("Boolean"), DOMUtil.XSD_BOOLEAN)
+            .put(AxiomName.builtIn("DateTime"), DOMUtil.XSD_DATETIME)
+            .put(AxiomName.builtIn("Uri"), DOMUtil.XSD_ANYURI)
+            .put(AxiomName.builtIn("Binary"), DOMUtil.XSD_BASE64BINARY)
+            .put(AxiomName.builtIn("Integer"), DOMUtil.XSD_INT)
+            .put(AxiomName.builtIn("AnyType"), DOMUtil.XSD_ANYTYPE)
             .put(AxiomName.from(PRISM_NAMESPACE, "ItemPath"), new QName(PRISM_TYPES,"ItemPathType"))
             .build();
     private static final AxiomName DISPLAY_NAME = PROPERTY_ITEM.localName("displayName");
+    private static final String AXIOM_SUFFIX = ".axiom";
 
     AxiomSchemaContext currentContext;
     Collection<AxiomModelStatementSource> sources = new HashSet<>();
@@ -70,6 +79,7 @@ public class AxiomEnabledSchemaRegistry extends SchemaRegistryImpl {
         super();
     }
 
+    @Override
     protected void parseAdditionalSchemas() throws SchemaException {
         parseAxiomSchemas();
         enhanceMetadata();
@@ -106,12 +116,26 @@ public class AxiomEnabledSchemaRegistry extends SchemaRegistryImpl {
         for (Entry<AxiomName, AxiomItemDefinition> entry : source.itemDefinitions().entrySet()) {
             MutableItemDefinition<?> prismified = prismify(entry.getValue());
             QName name = qName(entry.getValue().name());
-            if(target.containsItemDefinition(name)) {
-                target.replaceDefinition(name , prismified);
+            MutableComplexTypeDefinition realTarget = primaryOrExtension(target, entry.getValue());
+            if(realTarget.containsItemDefinition(name)) {
+                realTarget.replaceDefinition(name , prismified);
             } else {
-                target.add(prismified);
+                realTarget.add(prismified);
             }
         }
+    }
+
+    private MutableComplexTypeDefinition primaryOrExtension(MutableComplexTypeDefinition target,
+            AxiomItemDefinition value) {
+        if (value.name().namespace().equals(target.getTypeName().getNamespaceURI())) {
+            return target;
+        }
+        return extensionFor(target, value.name().namespace());
+    }
+
+    private MutableComplexTypeDefinition extensionFor(MutableComplexTypeDefinition target, String namespace) {
+        PrismContainerDefinition<Containerable> extContainer = target.findContainerDefinition(PrismConstants.EXTENSION_LOCAL_NAME);
+        return asMutable(extContainer.getComplexTypeDefinition());
     }
 
     private MutableItemDefinition<?> prismify(AxiomItemDefinition value) {
@@ -149,16 +173,25 @@ public class AxiomEnabledSchemaRegistry extends SchemaRegistryImpl {
     }
 
     private MutableItemDefinition<?> fillDetails(MutableItemDefinition<?> target, AxiomItemDefinition source) {
-        target.setDisplayName(displayName(source));
+        set(target::setDisplayName, source, DISPLAY_NAME);
         target.setMinOccurs(source.minOccurs());
         target.setMaxOccurs(source.maxOccurs());
         target.setDocumentation(source.documentation());
+
+
         return target;
     }
 
 
     private String displayName(AxiomItemDefinition source) {
         return source.asComplex().flatMap(v -> v.item(DISPLAY_NAME)).map(v -> v.onlyValue().value().toString()).orElse("");
+    }
+
+    private void set(Consumer<String> target, AxiomItemDefinition source, AxiomName itemName) {
+        Optional<String> value = source.asComplex().flatMap(v -> v.item(DISPLAY_NAME)).map(v -> v.onlyValue().value().toString());
+        if(value.isPresent()) {
+            target.accept(value.get());
+        }
     }
 
     private MutablePrismPropertyDefinition<?> prismifyProperty(AxiomItemDefinition value) {
@@ -234,6 +267,16 @@ public class AxiomEnabledSchemaRegistry extends SchemaRegistryImpl {
 
     public void addAxiomSource(AxiomModelStatementSource source) {
         sources.add(source);
+    }
+
+
+    @Override
+    protected void loadPrismSchemaFileDescription(File file) throws SchemaException, IOException {
+        if(file.getName().endsWith(AXIOM_SUFFIX)) {
+            addAxiomSource(AxiomModelStatementSource.from(file));
+        } else {
+            super.loadPrismSchemaFileDescription(file);
+        }
     }
 
 }

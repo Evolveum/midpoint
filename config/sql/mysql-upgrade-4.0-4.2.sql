@@ -45,4 +45,20 @@ ALTER TABLE m_case CHANGE targetRef_type targetRef_targetType INTEGER;
 ALTER TABLE m_focus ADD COLUMN passwordCreateTimestamp DATETIME(6);
 ALTER TABLE m_focus ADD COLUMN passwordModifyTimestamp DATETIME(6);
 
+-- MID-6037
+ALTER TABLE m_service ADD CONSTRAINT uc_service_name UNIQUE (name_norm);
+
+-- MID-6232
+CREATE INDEX iAuditEventRecordEStageTOid
+  ON m_audit_event (eventStage, targetOid);
+
+-- policySituation belong to M_OBJECT
+ALTER TABLE m_focus_policy_situation DROP FOREIGN KEY fk_focus_policy_situation;
+ALTER TABLE m_focus_policy_situation RENAME TO m_object_policy_situation;
+ALTER TABLE m_object_policy_situation CHANGE COLUMN focus_oid object_oid VARCHAR(36) NOT NULL;
+-- If there are problems with these statements (e.g. Foreign key constraint is incorrectly formed),
+-- try dropping the table m_object_policy_situation and recreating it, then add this FK again.
+ALTER TABLE m_object_policy_situation
+  ADD CONSTRAINT fk_object_policy_situation FOREIGN KEY (object_oid) REFERENCES m_object (oid);
+
 COMMIT;

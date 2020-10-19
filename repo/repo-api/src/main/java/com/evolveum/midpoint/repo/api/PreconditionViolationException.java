@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.repo.api;
 
-/**
- * @author mederly
- */
 public class PreconditionViolationException extends Exception {
 
     public PreconditionViolationException(String message) {

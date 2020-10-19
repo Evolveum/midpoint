@@ -8,16 +8,12 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.model.impl.lens.projector.ValueMatcher;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.common.expression.ValueMetadataComputer;
+import com.evolveum.midpoint.repo.common.expression.ConsolidationValueMetadataComputer;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 import java.util.Comparator;
 import java.util.function.Consumer;
@@ -39,10 +35,11 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
     boolean isExclusiveStrong;
     boolean deleteExistingValues;
     boolean skipNormalMappingAPrioriDeltaCheck;
-    ValueMetadataComputer valueMetadataComputer;
+    ConsolidationValueMetadataComputer valueMetadataComputer;
     String contextDescription;
     OperationResult result;
     StrengthSelector strengthSelector;
+    PrismContext prismContext;
 
     public IvwoConsolidatorBuilder<V, D, I> itemPath(ItemPath val) {
         itemPath = val;
@@ -129,7 +126,7 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
         return this;
     }
 
-    public IvwoConsolidatorBuilder<V, D, I> valueMetadataComputer(ValueMetadataComputer val) {
+    public IvwoConsolidatorBuilder<V, D, I> valueMetadataComputer(ConsolidationValueMetadataComputer val) {
         valueMetadataComputer = val;
         return this;
     }
@@ -146,6 +143,11 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
 
     public IvwoConsolidatorBuilder<V, D, I> strengthSelector(StrengthSelector val) {
         strengthSelector = val;
+        return this;
+    }
+
+    public IvwoConsolidatorBuilder<V, D, I> prismContext(PrismContext val) {
+        prismContext = val;
         return this;
     }
 

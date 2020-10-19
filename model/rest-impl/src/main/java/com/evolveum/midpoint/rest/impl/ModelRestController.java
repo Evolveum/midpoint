@@ -72,19 +72,19 @@ public class ModelRestController extends AbstractRestController {
             @RequestBody PolicyItemsDefinitionType policyItemsDefinition) {
 
         Task task = initRequest();
-        OperationResult parentResult = createSubresult(task, "generateValue");
+        OperationResult result = createSubresult(task, "generateValue");
 
         Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
         ResponseEntity<?> response;
         try {
-            PrismObject<? extends ObjectType> object = model.getObject(clazz, oid, null, task, parentResult);
-            response = generateValue(object, policyItemsDefinition, task, parentResult);
+            PrismObject<? extends ObjectType> object = model.getObject(clazz, oid, null, task, result);
+            response = generateValue(object, policyItemsDefinition, task, result);
         } catch (Exception ex) {
-            parentResult.computeStatus();
-            response = handleException(parentResult, ex);
+            result.computeStatus();
+            response = handleException(result, ex);
         }
 
-        finishRequest();
+        finishRequest(task, result);
         return response;
     }
 
@@ -92,10 +92,10 @@ public class ModelRestController extends AbstractRestController {
     public ResponseEntity<?> generateValueRpc(
             @RequestBody PolicyItemsDefinitionType policyItemsDefinition) {
         Task task = initRequest();
-        OperationResult parentResult = task.getResult().createSubresult("generateValueRpc");
+        OperationResult result = task.getResult().createSubresult("generateValueRpc");
 
-        ResponseEntity<?> response = generateValue(null, policyItemsDefinition, task, parentResult);
-        finishRequest();
+        ResponseEntity<?> response = generateValue(null, policyItemsDefinition, task, result);
+        finishRequest(task, result);
 
         return response;
     }
@@ -132,19 +132,19 @@ public class ModelRestController extends AbstractRestController {
             @RequestBody PolicyItemsDefinitionType policyItemsDefinition) {
 
         Task task = initRequest();
-        OperationResult parentResult = task.getResult().createSubresult("validateValue");
+        OperationResult result = task.getResult().createSubresult("validateValue");
 
         Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
         ResponseEntity<?> response;
         try {
-            PrismObject<? extends ObjectType> object = model.getObject(clazz, oid, null, task, parentResult);
-            response = validateValue(object, policyItemsDefinition, task, parentResult);
+            PrismObject<? extends ObjectType> object = model.getObject(clazz, oid, null, task, result);
+            response = validateValue(object, policyItemsDefinition, task, result);
         } catch (Exception ex) {
-            parentResult.computeStatus();
-            response = handleException(parentResult, ex);
+            result.computeStatus();
+            response = handleException(result, ex);
         }
 
-        finishRequest();
+        finishRequest(task, result);
         return response;
     }
 
@@ -152,42 +152,42 @@ public class ModelRestController extends AbstractRestController {
     public ResponseEntity<?> validateValue(
             @RequestBody PolicyItemsDefinitionType policyItemsDefinition) {
         Task task = initRequest();
-        OperationResult parentResult = task.getResult().createSubresult("validateValue");
+        OperationResult result = task.getResult().createSubresult("validateValue");
 
-        ResponseEntity<?> response = validateValue(null, policyItemsDefinition, task, parentResult);
-        finishRequest();
+        ResponseEntity<?> response = validateValue(null, policyItemsDefinition, task, result);
+        finishRequest(task, result);
         return response;
     }
 
     private <O extends ObjectType> ResponseEntity<?> validateValue(
             PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition,
-            Task task, OperationResult parentResult) {
+            Task task, OperationResult result) {
         ResponseEntity<?> response;
         if (policyItemsDefinition == null) {
-            response = createBadPolicyItemsDefinitionResponse("Policy items definition must not be null", parentResult);
-            finishRequest();
+            response = createBadPolicyItemsDefinitionResponse("Policy items definition must not be null", result);
+            finishRequest(task, result);
             return response;
         }
 
         if (CollectionUtils.isEmpty(policyItemsDefinition.getPolicyItemDefinition())) {
-            response = createBadPolicyItemsDefinitionResponse("No definitions for items", parentResult);
-            finishRequest();
+            response = createBadPolicyItemsDefinitionResponse("No definitions for items", result);
+            finishRequest(task, result);
             return response;
         }
 
         try {
-            modelInteraction.validateValue(object, policyItemsDefinition, task, parentResult);
+            modelInteraction.validateValue(object, policyItemsDefinition, task, result);
 
-            parentResult.computeStatusIfUnknown();
-            if (parentResult.isAcceptable()) {
-                response = createResponse(HttpStatus.OK, policyItemsDefinition, parentResult, true);
+            result.computeStatusIfUnknown();
+            if (result.isAcceptable()) {
+                response = createResponse(HttpStatus.OK, policyItemsDefinition, result, true);
             } else {
-                response = ResponseEntity.status(HttpStatus.CONFLICT).body(parentResult);
+                response = ResponseEntity.status(HttpStatus.CONFLICT).body(result);
             }
 
         } catch (Exception ex) {
-            parentResult.computeStatus();
-            response = handleException(parentResult, ex);
+            result.computeStatus();
+            response = handleException(result, ex);
         }
 
         return response;
@@ -206,23 +206,23 @@ public class ModelRestController extends AbstractRestController {
         logger.debug("getValuePolicyForUser start");
 
         Task task = initRequest();
-        OperationResult parentResult = task.getResult().createSubresult("getValuePolicyForUser");
+        OperationResult result = task.getResult().createSubresult("getValuePolicyForUser");
 
         ResponseEntity<?> response;
         try {
             Collection<SelectorOptions<GetOperationOptions>> options =
                     SelectorOptions.createCollection(GetOperationOptions.createRaw());
-            PrismObject<UserType> user = model.getObject(UserType.class, oid, options, task, parentResult);
+            PrismObject<UserType> user = model.getObject(UserType.class, oid, options, task, result);
 
-            CredentialsPolicyType policy = modelInteraction.getCredentialsPolicy(user, task, parentResult);
+            CredentialsPolicyType policy = modelInteraction.getCredentialsPolicy(user, task, result);
 
-            response = createResponse(HttpStatus.OK, policy, parentResult);
+            response = createResponse(HttpStatus.OK, policy, result);
         } catch (Exception ex) {
-            response = handleException(parentResult, ex);
+            response = handleException(result, ex);
         }
 
-        parentResult.computeStatus();
-        finishRequest();
+        result.computeStatus();
+        finishRequest(task, result);
 
         logger.debug("getValuePolicyForUser finish");
         return response;
@@ -239,7 +239,7 @@ public class ModelRestController extends AbstractRestController {
         logger.debug("model rest service for get operation start");
 
         Task task = initRequest();
-        OperationResult parentResult = createSubresult(task, "getObject");
+        OperationResult result = createSubresult(task, "getObject");
 
         Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
         Collection<SelectorOptions<GetOperationOptions>> getOptions =
@@ -254,7 +254,7 @@ public class ModelRestController extends AbstractRestController {
                 ObjectQuery query = prismContext.queryFor(NodeType.class)
                         .item(NodeType.F_NODE_IDENTIFIER).eq(nodeId)
                         .build();
-                List<PrismObject<NodeType>> objects = model.searchObjects(NodeType.class, query, getOptions, task, parentResult);
+                List<PrismObject<NodeType>> objects = model.searchObjects(NodeType.class, query, getOptions, task, result);
                 if (objects.isEmpty()) {
                     throw new ObjectNotFoundException("Current node (id " + nodeId + ") couldn't be found.");
                 } else if (objects.size() > 1) {
@@ -263,17 +263,17 @@ public class ModelRestController extends AbstractRestController {
                     object = objects.get(0);
                 }
             } else {
-                object = model.getObject(clazz, id, getOptions, task, parentResult);
+                object = model.getObject(clazz, id, getOptions, task, result);
             }
             removeExcludes(object, exclude);        // temporary measure until fixed in repo
 
-            response = createResponse(HttpStatus.OK, object, parentResult);
+            response = createResponse(HttpStatus.OK, object, result);
         } catch (Exception ex) {
-            response = handleException(parentResult, ex);
+            response = handleException(result, ex);
         }
 
-        parentResult.computeStatus();
-        finishRequest();
+        result.computeStatus();
+        finishRequest(task, result);
         return response;
     }
 
@@ -281,22 +281,21 @@ public class ModelRestController extends AbstractRestController {
     public ResponseEntity<?> getSelf() {
         logger.debug("model rest service for get operation start");
         Task task = initRequest();
-        OperationResult parentResult = createSubresult(task, "self");
+        OperationResult result = createSubresult(task, "self");
         ResponseEntity<?> response;
 
         try {
-            FocusType loggedInUser = SecurityUtil.getPrincipal().getFocus();
-            System.out.println("loggedInUser = " + loggedInUser);
-            PrismObject<UserType> user = model.getObject(UserType.class, loggedInUser.getOid(), null, task, parentResult);
-            response = createResponse(HttpStatus.OK, user, parentResult, true);
-            parentResult.recordSuccessIfUnknown();
+            String loggedInUserOid = SecurityUtil.getPrincipalOidIfAuthenticated();
+            PrismObject<UserType> user = model.getObject(UserType.class, loggedInUserOid, null, task, result);
+            response = createResponse(HttpStatus.OK, user, result, true);
+            result.recordSuccessIfUnknown();
         } catch (SecurityViolationException | ObjectNotFoundException | SchemaException |
                 CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-            e.printStackTrace();
+            LoggingUtils.logUnexpectedException(logger, e);
             response = status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
 
-        finishRequest();
+        finishRequest(task, result);
         return response;
     }
 
@@ -308,14 +307,14 @@ public class ModelRestController extends AbstractRestController {
         logger.debug("model rest service for add operation start");
 
         Task task = initRequest();
-        OperationResult parentResult = task.getResult().createSubresult("addObject");
+        OperationResult result = task.getResult().createSubresult("addObject");
 
         Class<?> clazz = ObjectTypes.getClassFromRestType(type);
-        if (!object.getCompileTimeClass().equals(clazz)) {
-            finishRequest();
-            parentResult.recordFatalError("Request to add object of type "
-                    + object.getCompileTimeClass().getSimpleName() + " to the collection of " + type);
-            return createErrorResponseBuilder(HttpStatus.BAD_REQUEST, parentResult);
+        if (object.getCompileTimeClass() == null || !object.getCompileTimeClass().equals(clazz)) {
+            String simpleName = object.getCompileTimeClass() != null ? object.getCompileTimeClass().getSimpleName() : null;
+            result.recordFatalError("Request to add object of type " + simpleName + " to the collection of " + type);
+            finishRequest(task, result);
+            return createErrorResponseBuilder(HttpStatus.BAD_REQUEST, result);
         }
 
         ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options, prismContext);
@@ -323,24 +322,24 @@ public class ModelRestController extends AbstractRestController {
         String oid;
         ResponseEntity<?> response;
         try {
-            oid = model.addObject(object, modelExecuteOptions, task, parentResult);
+            oid = model.addObject(object, modelExecuteOptions, task, result);
             logger.debug("returned oid: {}", oid);
 
             if (oid != null) {
                 response = createResponseWithLocation(
                         clazz.isAssignableFrom(TaskType.class) ? HttpStatus.ACCEPTED : HttpStatus.CREATED,
                         uriGetObject(type, oid),
-                        parentResult);
+                        result);
             } else {
                 // OID might be null e.g. if the object creation is a subject of workflow approval
-                response = createResponse(HttpStatus.ACCEPTED, parentResult);
+                response = createResponse(HttpStatus.ACCEPTED, result);
             }
         } catch (Exception ex) {
-            response = handleException(parentResult, ex);
+            response = handleException(result, ex);
         }
 
-        parentResult.computeStatus();
-        finishRequest();
+        result.computeStatus();
+        finishRequest(task, result);
         return response;
     }
 
@@ -359,7 +358,7 @@ public class ModelRestController extends AbstractRestController {
             @RequestParam(value = "exclude", required = false) List<String> exclude,
             @RequestParam(value = "resolveNames", required = false) List<String> resolveNames) {
         Task task = initRequest();
-        OperationResult parentResult = task.getResult().createSubresult("searchObjectsByType");
+        OperationResult result = task.getResult().createSubresult("searchObjectsByType");
 
         //noinspection unchecked
         Class<T> clazz = (Class<T>) ObjectTypes.getClassFromRestType(type);
@@ -369,65 +368,67 @@ public class ModelRestController extends AbstractRestController {
             Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include,
                     exclude, resolveNames, DefinitionProcessingOption.ONLY_IF_EXISTS, prismContext);
 
-            List<PrismObject<T>> objects = modelService.searchObjects(clazz, null, searchOptions, task, parentResult);
+            List<PrismObject<T>> objects = modelService.searchObjects(clazz, null, searchOptions, task, result);
             ObjectListType listType = new ObjectListType();
             for (PrismObject<T> object : objects) {
                 listType.getObject().add(object.asObjectable());
             }
 
-            response = createResponse(HttpStatus.OK, listType, parentResult, true);
+            response = createResponse(HttpStatus.OK, listType, result, true);
         } catch (Exception ex) {
-            response = handleException(parentResult, ex);
+            response = handleException(result, ex);
         }
 
-        parentResult.computeStatus();
-        finishRequest();
+        result.computeStatus();
+        finishRequest(task, result);
         return response;
     }
 
     @PutMapping("/{type}/{id}")
     public <T extends ObjectType> ResponseEntity<?> addObject(
             @PathVariable("type") String type,
-            @PathVariable("id") String id, // TODO is it OK that this is not used or at least asserted?
+            // TODO is it OK that this is not used or at least asserted?
+            @SuppressWarnings("unused") @PathVariable("id") String id,
             @RequestParam(value = "options", required = false) List<String> options,
             @RequestBody @NotNull PrismObject<T> object) {
         logger.debug("model rest service for add operation start");
 
         Task task = initRequest();
-        OperationResult parentResult = task.getResult().createSubresult("addObject");
+        OperationResult result = task.getResult().createSubresult("addObject");
 
         Class<?> clazz = ObjectTypes.getClassFromRestType(type);
         if (!object.getCompileTimeClass().equals(clazz)) {
-            finishRequest();
-            parentResult.recordFatalError("Request to add object of type "
+            finishRequest(task, result);
+            result.recordFatalError("Request to add object of type "
                     + object.getCompileTimeClass().getSimpleName()
                     + " to the collection of " + type);
-            return createErrorResponseBuilder(HttpStatus.BAD_REQUEST, parentResult);
+            return createErrorResponseBuilder(HttpStatus.BAD_REQUEST, result);
         }
 
         ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options, prismContext);
         if (modelExecuteOptions == null) {
-            modelExecuteOptions = ModelExecuteOptions.create(prismContext).overwrite();
-        } else if (!ModelExecuteOptions.isOverwrite(modelExecuteOptions)) {
-            modelExecuteOptions.overwrite(Boolean.TRUE);
+            modelExecuteOptions = ModelExecuteOptions.create(prismContext);
         }
+        // TODO: Do we want to overwrite in any case? Because of PUT?
+        //  This was original logic... and then there's that ignored ID.
+        modelExecuteOptions.overwrite();
 
         String oid;
         ResponseEntity<?> response;
         try {
-            oid = model.addObject(object, modelExecuteOptions, task, parentResult);
+            oid = model.addObject(object, modelExecuteOptions, task, result);
             logger.debug("returned oid : {}", oid);
 
             response = createResponseWithLocation(
                     clazz.isAssignableFrom(TaskType.class) ? HttpStatus.ACCEPTED : HttpStatus.CREATED,
                     uriGetObject(type, oid),
-                    parentResult);
+                    result);
         } catch (Exception ex) {
-            response = handleException(parentResult, ex);
+            response = handleException(result, ex);
         }
-        parentResult.computeStatus();
+        result.computeStatus();
 
-        finishRequest();
+        finishRequest(task, result);
         return response;
     }
 
@@ -440,32 +441,32 @@ public class ModelRestController extends AbstractRestController {
         logger.debug("model rest service for delete operation start");
 
         Task task = initRequest();
-        OperationResult parentResult = task.getResult().createSubresult("deleteObject");
+        OperationResult result = task.getResult().createSubresult("deleteObject");
 
         Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
         ResponseEntity<?> response;
         try {
             if (clazz.isAssignableFrom(TaskType.class)) {
-                taskService.suspendAndDeleteTask(id, WAIT_FOR_TASK_STOP, true, task, parentResult);
-                parentResult.computeStatus();
-                finishRequest();
-                if (parentResult.isSuccess()) {
+                taskService.suspendAndDeleteTask(id, WAIT_FOR_TASK_STOP, true, task, result);
+                result.computeStatus();
+                finishRequest(task, result);
+                if (result.isSuccess()) {
                     return ResponseEntity.noContent().build();
                 }
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(parentResult.getMessage());
+                        .body(result.getMessage());
             }
 
             ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options, prismContext);
 
-            model.deleteObject(clazz, id, modelExecuteOptions, task, parentResult);
-            response = createResponse(HttpStatus.NO_CONTENT, parentResult);
+            model.deleteObject(clazz, id, modelExecuteOptions, task, result);
+            response = createResponse(HttpStatus.NO_CONTENT, result);
         } catch (Exception ex) {
-            response = handleException(parentResult, ex);
+            response = handleException(result, ex);
         }
 
-        parentResult.computeStatus();
-        finishRequest();
+        result.computeStatus();
+        finishRequest(task, result);
         return response;
     }
 
@@ -488,22 +489,22 @@ public class ModelRestController extends AbstractRestController {
         logger.debug("model rest service for modify operation start");
 
         Task task = initRequest();
-        OperationResult parentResult = task.getResult().createSubresult("modifyObjectPatch");
+        OperationResult result = task.getResult().createSubresult("modifyObjectPatch");
 
         Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
         ResponseEntity<?> response;
         try {
             ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options, prismContext);
-            Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(modificationType, clazz, prismContext);
-            model.modifyObject(clazz, oid, modifications, modelExecuteOptions, task, parentResult);
-            response = createResponse(HttpStatus.NO_CONTENT, parentResult);
+            Collection<? extends ItemDelta<?, ?>> modifications = DeltaConvertor.toModifications(modificationType, clazz, prismContext);
+            model.modifyObject(clazz, oid, modifications, modelExecuteOptions, task, result);
+            response = createResponse(HttpStatus.NO_CONTENT, result);
         } catch (Exception ex) {
-            parentResult.recordFatalError("Could not modify object. " + ex.getMessage(), ex);
-            response = handleException(parentResult, ex);
+            result.recordFatalError("Could not modify object. " + ex.getMessage(), ex);
+            response = handleException(result, ex);
         }
 
-        parentResult.computeStatus();
-        finishRequest();
+        result.computeStatus();
+        finishRequest(task, result);
         return response;
     }
 
@@ -514,18 +515,18 @@ public class ModelRestController extends AbstractRestController {
         Validate.notNull(changeDescription, "Chnage description must not be null");
 
         Task task = initRequest();
-        OperationResult parentResult = task.getResult().createSubresult("notifyChange");
+        OperationResult result = task.getResult().createSubresult("notifyChange");
 
         ResponseEntity<?> response;
         try {
-            modelService.notifyChange(changeDescription, task, parentResult);
-            response = createResponse(HttpStatus.OK, parentResult);
+            modelService.notifyChange(changeDescription, task, result);
+            response = createResponse(HttpStatus.OK, result);
         } catch (Exception ex) {
-            response = handleException(parentResult, ex);
+            response = handleException(result, ex);
         }
 
-        parentResult.computeStatus();
-        finishRequest();
+        result.computeStatus();
+        finishRequest(task, result);
         return response;
     }
 
@@ -534,18 +535,18 @@ public class ModelRestController extends AbstractRestController {
             @PathVariable("oid") String shadowOid) {
 
         Task task = initRequest();
-        OperationResult parentResult = task.getResult().createSubresult("findShadowOwner");
+        OperationResult result = task.getResult().createSubresult("findShadowOwner");
 
         ResponseEntity<?> response;
         try {
-            PrismObject<? extends FocusType> focus = modelService.searchShadowOwner(shadowOid, null, task, parentResult);
-            response = createResponse(HttpStatus.OK, focus, parentResult);
+            PrismObject<? extends FocusType> focus = modelService.searchShadowOwner(shadowOid, null, task, result);
+            response = createResponse(HttpStatus.OK, focus, result);
         } catch (Exception ex) {
-            response = handleException(parentResult, ex);
+            response = handleException(result, ex);
         }
 
-        parentResult.computeStatus();
-        finishRequest();
+        result.computeStatus();
+        finishRequest(task, result);
         return response;
     }
 
@@ -555,19 +556,19 @@ public class ModelRestController extends AbstractRestController {
         logger.debug("model rest service for import shadow from resource operation start");
 
         Task task = initRequest();
-        OperationResult parentResult = task.getResult().createSubresult("importShadow");
+        OperationResult result = task.getResult().createSubresult("importShadow");
 
         ResponseEntity<?> response;
         try {
-            modelService.importFromResource(shadowOid, task, parentResult);
+            modelService.importFromResource(shadowOid, task, result);
 
-            response = createResponse(HttpStatus.OK, parentResult, parentResult);
+            response = createResponse(HttpStatus.OK, result, result);
         } catch (Exception ex) {
-            response = handleException(parentResult, ex);
+            response = handleException(result, ex);
         }
 
-        parentResult.computeStatus();
-        finishRequest();
+        result.computeStatus();
+        finishRequest(task, result);
         return response;
     }
 
@@ -581,7 +582,7 @@ public class ModelRestController extends AbstractRestController {
             @RequestBody QueryType queryType) {
 
         Task task = initRequest();
-        OperationResult parentResult = task.getResult().createSubresult("searchObjects");
+        OperationResult result = task.getResult().createSubresult("searchObjects");
 
         Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
         ResponseEntity<?> response;
@@ -590,7 +591,7 @@ public class ModelRestController extends AbstractRestController {
             Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include,
                     exclude, resolveNames, DefinitionProcessingOption.ONLY_IF_EXISTS, prismContext);
             List<? extends PrismObject<? extends ObjectType>> objects =
-                    model.searchObjects(clazz, query, searchOptions, task, parentResult);
+                    model.searchObjects(clazz, query, searchOptions, task, result);
 
             ObjectListType listType = new ObjectListType();
             for (PrismObject<? extends ObjectType> o : objects) {
@@ -598,13 +599,13 @@ public class ModelRestController extends AbstractRestController {
                 listType.getObject().add(o.asObjectable());
             }
 
-            response = createResponse(HttpStatus.OK, listType, parentResult, true);
+            response = createResponse(HttpStatus.OK, listType, result, true);
         } catch (Exception ex) {
-            response = handleException(parentResult, ex);
+            response = handleException(result, ex);
         }
 
-        parentResult.computeStatus();
-        finishRequest();
+        result.computeStatus();
+        finishRequest(task, result);
         return response;
     }
 
@@ -621,22 +622,22 @@ public class ModelRestController extends AbstractRestController {
         logger.debug("model rest service for import from resource operation start");
 
         Task task = initRequest();
-        OperationResult parentResult = task.getResult().createSubresult("importFromResource");
+        OperationResult result = task.getResult().createSubresult("importFromResource");
 
         QName objClass = new QName(MidPointConstants.NS_RI, objectClass);
         ResponseEntity<?> response;
         try {
-            modelService.importFromResource(resourceOid, objClass, task, parentResult);
+            modelService.importFromResource(resourceOid, objClass, task, result);
             response = createResponseWithLocation(
                     HttpStatus.SEE_OTHER,
                     uriGetObject(ObjectTypes.TASK.getRestType(), task.getOid()),
-                    parentResult);
+                    result);
         } catch (Exception ex) {
-            response = handleException(parentResult, ex);
+            response = handleException(result, ex);
         }
 
-        parentResult.computeStatus();
-        finishRequest();
+        result.computeStatus();
+        finishRequest(task, result);
         return response;
     }
 
@@ -646,22 +647,22 @@ public class ModelRestController extends AbstractRestController {
         logger.debug("model rest service for test resource operation start");
 
         Task task = initRequest();
-        OperationResult parentResult = task.getResult().createSubresult("testResource");
+        OperationResult result = task.getResult().createSubresult("testResource");
 
         ResponseEntity<?> response;
         OperationResult testResult = null;
         try {
             testResult = modelService.testResource(resourceOid, task);
-            response = createResponse(HttpStatus.OK, testResult, parentResult);
+            response = createResponse(HttpStatus.OK, testResult, result);
         } catch (Exception ex) {
-            response = handleException(parentResult, ex);
+            response = handleException(result, ex);
         }
 
         if (testResult != null) {
-            parentResult.getSubresults().add(testResult);
+            result.getSubresults().add(testResult);
         }
 
-        finishRequest();
+        finishRequest(task, result);
         return response;
     }
 
@@ -670,18 +671,18 @@ public class ModelRestController extends AbstractRestController {
             @PathVariable("oid") String taskOid) {
 
         Task task = initRequest();
-        OperationResult parentResult = task.getResult().createSubresult("suspendTask");
+        OperationResult result = task.getResult().createSubresult("suspendTask");
 
         ResponseEntity<?> response;
         try {
-            taskService.suspendTask(taskOid, WAIT_FOR_TASK_STOP, task, parentResult);
-            parentResult.computeStatus();
-            response = createResponse(HttpStatus.NO_CONTENT, task, parentResult);
+            taskService.suspendTask(taskOid, WAIT_FOR_TASK_STOP, task, result);
+            result.computeStatus();
+            response = createResponse(HttpStatus.NO_CONTENT, task, result);
         } catch (Exception ex) {
-            response = handleException(parentResult, ex);
+            response = handleException(result, ex);
         }
 
-        finishRequest();
+        finishRequest(task, result);
         return response;
     }
 
@@ -690,18 +691,18 @@ public class ModelRestController extends AbstractRestController {
             @PathVariable("oid") String taskOid) {
 
         Task task = initRequest();
-        OperationResult parentResult = task.getResult().createSubresult("resumeTask");
+        OperationResult result = task.getResult().createSubresult("resumeTask");
 
         ResponseEntity<?> response;
         try {
-            taskService.resumeTask(taskOid, task, parentResult);
-            parentResult.computeStatus();
-            response = createResponse(HttpStatus.ACCEPTED, parentResult);
+            taskService.resumeTask(taskOid, task, result);
+            result.computeStatus();
+            response = createResponse(HttpStatus.ACCEPTED, result);
         } catch (Exception ex) {
-            response = handleException(parentResult, ex);
+            response = handleException(result, ex);
         }
 
-        finishRequest();
+        finishRequest(task, result);
         return response;
     }
 
@@ -709,18 +710,18 @@ public class ModelRestController extends AbstractRestController {
     public ResponseEntity<?> scheduleTaskNow(
             @PathVariable("oid") String taskOid) {
         Task task = initRequest();
-        OperationResult parentResult = task.getResult().createSubresult("scheduleTaskNow");
+        OperationResult result = task.getResult().createSubresult("scheduleTaskNow");
 
         ResponseEntity<?> response;
         try {
-            taskService.scheduleTaskNow(taskOid, task, parentResult);
-            parentResult.computeStatus();
-            response = createResponse(HttpStatus.NO_CONTENT, parentResult);
+            taskService.scheduleTaskNow(taskOid, task, result);
+            result.computeStatus();
+            response = createResponse(HttpStatus.NO_CONTENT, result);
         } catch (Exception ex) {
-            response = handleException(parentResult, ex);
+            response = handleException(result, ex);
         }
 
-        finishRequest();
+        finishRequest(task, result);
         return response;
     }
 
@@ -754,7 +755,7 @@ public class ModelRestController extends AbstractRestController {
             response = handleExceptionNoLog(result, ex);
         }
         result.computeStatus();
-        finishRequest();
+        finishRequest(task, result);
         return response;
     }
 
@@ -784,7 +785,7 @@ public class ModelRestController extends AbstractRestController {
         }
 
         result.computeStatus();
-        finishRequest();
+        finishRequest(task, result);
         return response;
     }
 
@@ -803,7 +804,7 @@ public class ModelRestController extends AbstractRestController {
         }
 
         result.computeStatus();
-        finishRequest();
+        finishRequest(task, result);
         return response;
     }
 
@@ -830,7 +831,7 @@ public class ModelRestController extends AbstractRestController {
         }
 
         result.computeStatus();
-        finishRequest();
+        finishRequest(task, result);
         return response;
     }
 
@@ -852,7 +853,7 @@ public class ModelRestController extends AbstractRestController {
         }
 
         result.computeStatus();
-        finishRequest();
+        finishRequest(task, result);
         return response;
 
     }
@@ -871,7 +872,7 @@ public class ModelRestController extends AbstractRestController {
             response = handleExceptionNoLog(result, ex);
         }
         result.computeStatus();
-        finishRequest();
+        finishRequest(task, result);
         return response;
     }
 
@@ -890,7 +891,7 @@ public class ModelRestController extends AbstractRestController {
             response = handleExceptionNoLog(result, ex);
         }
         result.computeStatus();
-        finishRequest();
+        finishRequest(task, result);
         return response;
     }
 
@@ -909,7 +910,7 @@ public class ModelRestController extends AbstractRestController {
             response = handleExceptionNoLog(result, ex);
         }
         result.computeStatus();
-        finishRequest();
+        finishRequest(task, result);
         return response;
     }
 }

@@ -1,23 +1,14 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
- *    This work is dual-licensed under the Apache License 2.0
- *    and European Union Public License. See LICENSE file for details.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.dialog;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-
-import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.input.TextPanel;
-import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -36,9 +27,15 @@ import org.apache.wicket.model.StringResourceModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.input.TextPanel;
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -46,7 +43,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 /**
  * @author lskublik
  */
-public class ExportingPanel extends BasePanel implements Popupable {
+public class ExportingPanel extends BasePanel<ExportingPanel> implements Popupable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExportingPanel.class);
 
@@ -59,9 +56,9 @@ public class ExportingPanel extends BasePanel implements Popupable {
     private static final String ID_TABLE = "table";
     private static final String ID_NAME = "name";
 
-    private DataTable<?,?> dataTable;
-    private List<Integer> exportedColumnsIndex;
-    private Long exportSizeLimit;
+    private final DataTable<?, ?> dataTable;
+    private final List<Integer> exportedColumnsIndex;
+    private final Long exportSizeLimit;
     private final IModel<String> nameModel;
 
     public ExportingPanel(String id, DataTable<?, ?> dataTable, List<Integer> exportedColumnsIndex,
@@ -81,7 +78,7 @@ public class ExportingPanel extends BasePanel implements Popupable {
     }
 
     private void initLayout() {
-        Form form = new Form<>(ID_MAIN_FORM, true);
+        MidpointForm form = new MidpointForm<>(ID_MAIN_FORM, true);
 
         MessagePanel warningMessage = new MessagePanel(ID_WARNING_MESSAGE, MessagePanel.MessagePanelType.WARN, getWarningMessageModel());
         warningMessage.setOutputMarkupId(true);
@@ -93,14 +90,8 @@ public class ExportingPanel extends BasePanel implements Popupable {
         feedbackList.setOutputMarkupPlaceholderTag(true);
         form.add(feedbackList);
 
-        TextPanel<String> nameField = new TextPanel<String>(ID_NAME, nameModel);
+        TextPanel<String> nameField = new TextPanel<>(ID_NAME, nameModel);
         form.add(nameField);
-//        nameField.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
-//
-//            @Override
-//            protected void onUpdate(AjaxRequestTarget target) {
-//            }
-//        });
 
         BoxedTablePanel<SelectableBean<Integer>> table = createTable(ID_TABLE, dataTable);
         form.add(table);
@@ -161,7 +152,7 @@ public class ExportingPanel extends BasePanel implements Popupable {
         ((PageBase) getPage()).hideMainPopup(target);
     }
 
-    private BoxedTablePanel<SelectableBean<Integer>> createTable(String id, DataTable<?,?> dataTable) {
+    private BoxedTablePanel<SelectableBean<Integer>> createTable(String id, DataTable<?, ?> dataTable) {
 
         List<? extends IColumn<?, ?>> allColumns = dataTable.getColumns();
         List<Integer> exportableColumnIndex = getExportableColumns(dataTable);
@@ -178,14 +169,14 @@ public class ExportingPanel extends BasePanel implements Popupable {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<Integer>>> cellItem, String componentId,
                     IModel<SelectableBean<Integer>> rowModel) {
-                IModel stringModel = ((IExportableColumn)allColumns.get(rowModel.getObject().getValue())).getDisplayModel();
+                IModel stringModel = ((IExportableColumn) allColumns.get(rowModel.getObject().getValue())).getDisplayModel();
                 cellItem.add(new Label(componentId, stringModel));
             }
         };
         columns.add(nameColumn);
 
         SelectableListDataProvider<SelectableBean<Integer>, Integer> provider =
-                new SelectableListDataProvider<SelectableBean<Integer>, Integer>(getPageBase(), Model.ofList(exportableColumnIndex)){
+                new SelectableListDataProvider<SelectableBean<Integer>, Integer>(getPageBase(), Model.ofList(exportableColumnIndex)) {
 
                     @Override
                     public Iterator<SelectableBean<Integer>> internalIterator(long first, long count) {
@@ -200,38 +191,38 @@ public class ExportingPanel extends BasePanel implements Popupable {
 
         BoxedTablePanel<SelectableBean<Integer>> table =
                 new BoxedTablePanel<SelectableBean<Integer>>(id, provider, columns, 20) {
-            private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
-            @Override
-            protected WebMarkupContainer createHeader(String headerId) {
-                return new WebMarkupContainer(headerId);
-            }
+                    @Override
+                    protected WebMarkupContainer createHeader(String headerId) {
+                        return new WebMarkupContainer(headerId);
+                    }
 
-            @Override
-            public String getAdditionalBoxCssClasses() {
-                return null;
-            }
+                    @Override
+                    public String getAdditionalBoxCssClasses() {
+                        return null;
+                    }
 
-            @Override
-            protected WebMarkupContainer createButtonToolbar(String id) {
-                return new WebMarkupContainer(id);
-            }
+                    @Override
+                    protected WebMarkupContainer createButtonToolbar(String id) {
+                        return new WebMarkupContainer(id);
+                    }
 
-            @Override
-            protected boolean hideFooterIfSinglePage(){
-                return true;
-            }
+                    @Override
+                    protected boolean hideFooterIfSinglePage() {
+                        return true;
+                    }
 
-            @Override
-            public int getAutoRefreshInterval() {
-                return 0;
-            }
+                    @Override
+                    public int getAutoRefreshInterval() {
+                        return 0;
+                    }
 
-            @Override
-            public boolean isAutoRefreshEnabled() {
-                return false;
-            }
-        };
+                    @Override
+                    public boolean isAutoRefreshEnabled() {
+                        return false;
+                    }
+                };
         table.setOutputMarkupId(true);
 
         return table;
@@ -259,12 +250,12 @@ public class ExportingPanel extends BasePanel implements Popupable {
     }
 
     @Override
-    public String getWidthUnit(){
+    public String getWidthUnit() {
         return "px";
     }
 
     @Override
-    public String getHeightUnit(){
+    public String getHeightUnit() {
         return "px";
     }
 

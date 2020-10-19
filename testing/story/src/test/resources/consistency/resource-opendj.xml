@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-
-<!-- Resource definition for an embedded OpenDJ instance.
-     It is used in internal midPoint tests, mostly in "integration"
-     tests. -->
 
 <resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -646,7 +642,7 @@
         <shadowConstraintsCheck>light</shadowConstraintsCheck>
         <pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
         <pendingOperationRetentionPeriod>PT30M</pendingOperationRetentionPeriod>
-        <deadShadowRetentionPeriod>PT0H</deadShadowRetentionPeriod>
+        <deadShadowRetentionPeriod>PT5M</deadShadowRetentionPeriod>
         <reshreshOnRead>false</reshreshOnRead>
     </consistency>
 

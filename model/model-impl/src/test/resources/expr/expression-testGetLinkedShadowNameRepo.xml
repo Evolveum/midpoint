@@ -10,6 +10,6 @@
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
     <code>
         // resource dummy
-        midpoint.getLinkedShadow(user, '10000000-0000-0000-0000-000000000004', true).getName()
+        midpoint.getLinkedShadows(user, '10000000-0000-0000-0000-000000000004', true).get(0).getName() // MID-6075
     </code>
 </script>

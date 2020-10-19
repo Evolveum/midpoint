@@ -24,9 +24,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
-/**
- * @author mederly
- */
 public interface SchemaRegistry extends PrismContextSensitive, DebugDumpable, GlobalDefinitionsStore {
 
     DynamicNamespacePrefixMapper getNamespacePrefixMapper();
@@ -163,7 +160,12 @@ public interface SchemaRegistry extends PrismContextSensitive, DebugDumpable, Gl
 
     QName selectMoreSpecific(QName type1, QName type2) throws SchemaException;
 
-    boolean isContainer(QName typeName);
+    /**
+     * @return true if the typeName corresponds to statically-typed class that is Containerable.
+     *
+     * TODO The utility of this method is questionable. Reconsider its removal/update.
+     */
+    boolean isContainerable(QName typeName);
 
     // TODO move to GlobalSchemaRegistry
     @NotNull
@@ -184,11 +186,11 @@ public interface SchemaRegistry extends PrismContextSensitive, DebugDumpable, Gl
     IsList isList(@Nullable QName xsiType, @NotNull QName elementName);
 
     enum ComparisonResult {
-        EQUAL,                    // types are equal
-        NO_STATIC_CLASS,        // static class cannot be determined
-        FIRST_IS_CHILD,            // first definition is a child (strict subtype) of the second
-        SECOND_IS_CHILD,        // second definition is a child (strict subtype) of the first
-        INCOMPATIBLE            // first and second are incompatible
+        EQUAL, // types are equal
+        NO_STATIC_CLASS, // static class cannot be determined
+        FIRST_IS_CHILD, // first definition is a child (strict subtype) of the second
+        SECOND_IS_CHILD, // second definition is a child (strict subtype) of the first
+        INCOMPATIBLE // first and second are incompatible
     }
     /**
      * @return null means we cannot decide (types are different, and no compile time class for def1 and/or def2)
@@ -196,8 +198,14 @@ public interface SchemaRegistry extends PrismContextSensitive, DebugDumpable, Gl
     <ID extends ItemDefinition> ComparisonResult compareDefinitions(@NotNull ID def1, @NotNull ID def2)
             throws SchemaException;
 
+    /**
+     * BEWARE: works only with statically-defined types!
+     */
     boolean isAssignableFrom(@NotNull Class<?> superType, @NotNull QName subType);
 
+    /**
+     * BEWARE: works only with statically-defined types!
+     */
     boolean isAssignableFrom(@NotNull QName superType, @NotNull QName subType);
 
     /**

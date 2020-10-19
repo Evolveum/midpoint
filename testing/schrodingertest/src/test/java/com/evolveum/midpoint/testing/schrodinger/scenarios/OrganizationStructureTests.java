@@ -7,11 +7,14 @@
 package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
 import com.evolveum.midpoint.schrodinger.page.configuration.ImportObjectPage;
+import com.evolveum.midpoint.schrodinger.page.org.OrgTreePage;
 import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.ConstantsUtil;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
+import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
+
 import org.apache.commons.io.FileUtils;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -67,7 +70,7 @@ public class OrganizationStructureTests extends AbstractSchrodingerTest {
         );
     }
 
-    @Test (dependsOnMethods ={IMPORT_ORG_STRUCT_DEPENDENCY})
+//    @Test (dependsOnMethods ={IMPORT_ORG_STRUCT_DEPENDENCY})
     public void assignOrgUnit(){
          ListUsersPage users = basicPage.listUsers();
          UserPage userPage = users
@@ -98,7 +101,7 @@ public class OrganizationStructureTests extends AbstractSchrodingerTest {
         ;
     }
 
-    @Test (dependsOnMethods ={ORG_UNIT_ACCOUNT_INDUCEMENT_DEPENDENCY})
+//    @Test (dependsOnMethods ={ORG_UNIT_ACCOUNT_INDUCEMENT_DEPENDENCY})
     public void unassignOrgUnit(){
         ListUsersPage users = basicPage.listUsers();
         UserPage userPage = users
@@ -120,7 +123,7 @@ public class OrganizationStructureTests extends AbstractSchrodingerTest {
                     .isSuccess();
     }
 
-    @Test (dependsOnMethods ={ASSIGN_ORG_UNIT_DEPENDENCY})
+//    @Test (dependsOnMethods ={ASSIGN_ORG_UNIT_DEPENDENCY})
     public void orgUnitAccountInducement(){
         importObject(CSV_RESOURCE_ADVANCED_SYNC,true);
         importObject(ORG_ACCOUNT_INDUCEMENT_FILE);
@@ -158,6 +161,22 @@ public class OrganizationStructureTests extends AbstractSchrodingerTest {
                     .feedback()
                     .isSuccess();
    }
+
+    @Test (dependsOnMethods ={IMPORT_ORG_STRUCT_DEPENDENCY})
+    public void expandCollapseAllTests(){
+        OrgTreePage orgPage = basicPage.orgStructure();
+        Assert.assertTrue(orgPage.selectTabWithRootOrg("Governor Office")
+                .getOrgHierarchyPanel()
+                    .showTreeNodeDropDownMenu("Ministry of Offense")
+                        .expandAll()
+                    .containsChildOrg("Swashbuckler Section", "Ministry of Health"));
+
+        Assert.assertFalse(orgPage.selectTabWithRootOrg("Governor Office")
+                .getOrgHierarchyPanel()
+                    .showTreeNodeDropDownMenu("Ministry of Offense")
+                        .collapseAll()
+                    .containsChildOrg("Swashbuckler Section", false, "Ministry of Health"));
+    }
 
     public void changeResourceFilePath(){
         ListResourcesPage listResourcesPage = basicPage.listResources();

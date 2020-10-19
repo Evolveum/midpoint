@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,8 +9,8 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -30,8 +30,6 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -48,11 +46,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
                 description = "PageAdminCases.auth.casesAll.description"),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CASE_URL,
                 label = "PageCase.auth.case.label",
-                description = "PageCase.auth.case.description")})
-public class PageCase  extends PageAdminObjectDetails<CaseType> {
+                description = "PageCase.auth.case.description") })
+public class PageCase extends PageAdminObjectDetails<CaseType> {
     private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageCase.class);
     private static final String DOT_CLASS = PageCase.class.getName() + ".";
     private static final String OPERATION_LOAD_CONNECTED_TASK = DOT_CLASS + "loadConnectedTask";
 
@@ -62,7 +59,7 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
         this(null, true);
     }
 
-    public PageCase(PrismObject<CaseType> unitToEdit, boolean isNewObject)  {
+    public PageCase(PrismObject<CaseType> unitToEdit, boolean isNewObject) {
         initialize(unitToEdit, isNewObject, true);
     }
 
@@ -70,7 +67,6 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
         getPageParameters().overwriteWith(parameters);
         initialize(null, false, true);
     }
-
 
     @Override
     protected AbstractObjectMainPanel<CaseType> createMainPanel(String id) {
@@ -141,7 +137,7 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
                                 }
                             });
                 }
-                if (WebComponentUtil.hasArchetypeAssignment(getCase(), SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value())){
+                if (WebComponentUtil.hasArchetypeAssignment(getCase(), SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value())) {
                     tabs.add(
                             new CountablePanelTab(parentPage.createStringResource("PageCase.childCasesTab"),
                                     getTabVisibility(ComponentConstants.UI_CASE_TAB_CHILD_CASES_URL, false, parentPage)) {
@@ -186,7 +182,7 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
             }
 
             @Override
-            protected boolean isReadonly(){
+            protected boolean isReadonly() {
                 return true;
             }
         };
@@ -202,7 +198,7 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
         return new CaseSummaryPanel(ID_SUMMARY_PANEL, CaseType.class, summaryModel, this);
     }
 
-    protected void initOperationalButtons(RepeatingView repeatingView){
+    protected void initOperationalButtons(RepeatingView repeatingView) {
         OperationResult result = new OperationResult(OPERATION_LOAD_CONNECTED_TASK);
         ObjectQuery query = getPrismContext().queryFor(TaskType.class)
                 .item(TaskType.F_OBJECT_REF)
@@ -241,31 +237,26 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
     }
 
     @Override
-    protected CaseType createNewObject(){
+    protected CaseType createNewObject() {
         return new CaseType();
     }
 
     @Override
-    protected Class getRestartResponsePage() {
+    protected Class<PageCases> getRestartResponsePage() {
         return PageCases.class;
     }
 
-   private int countWorkItems(){
+    private int countWorkItems() {
         List<CaseWorkItemType> workItemsList = getObjectModel().getObject().getObject().asObjectable().getWorkItem();
         return workItemsList == null ? 0 : workItemsList.size();
     }
 
-    private int countChildrenCases(){
+    private int countChildrenCases() {
         CaseType currentCase = getObjectModel().getObject().getObject().asObjectable();
         ObjectQuery childrenCasesQuery = getPrismContext().queryFor(CaseType.class)
                 .item(CaseType.F_PARENT_REF).ref(currentCase.getOid())
                 .build();
         return WebModelServiceUtils.countObjects(CaseType.class, childrenCasesQuery, PageCase.this);
-    }
-
-    private int countEvents(){
-        List<CaseEventType> eventsList = getObjectModel().getObject().getObject().asObjectable().getEvent();
-        return eventsList == null ? 0 : eventsList.size();
     }
 
     private CaseType getCase() {

@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import java.io.Serializable;
@@ -51,29 +50,29 @@ public class ResourceAttributeRefPanelFactory
     @Override
     protected InputPanel getPanel(PrismPropertyPanelContext<ItemPathType> panelCtx) {
 
-        AutoCompleteQNamePanel<ItemName> autoCompleteTextPanel = new AutoCompleteQNamePanel(panelCtx.getComponentId(), new AttributeRefModel(panelCtx.getRealValueModel())) {
+        AutoCompleteQNamePanel<ItemName> autoCompleteTextPanel = new AutoCompleteQNamePanel<ItemName>(
+                panelCtx.getComponentId(), new AttributeRefModel(panelCtx.getRealValueModel())) {
 
             @Override
             public Collection<ItemName> loadChoices() {
                 return getChoicesList(panelCtx);
             }
-
         };
 
         return autoCompleteTextPanel;
     }
 
     @Override
-    public <IW extends ItemWrapper> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
         ItemPath wrapperPath = wrapper.getPath().removeIds();
         return isAssignmentAttributeOrAssociation(wrapperPath) || isInducementAttributeOrAssociation(wrapperPath);
     }
 
     private boolean isAssignmentAttributeOrAssociation(ItemPath wrapperPath) {
         ItemPath assignmentAttributePath = ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE, ResourceAttributeDefinitionType.F_REF);
-        ItemPath assignmetnAssociationPath = ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION, ResourceAttributeDefinitionType.F_REF);
+        ItemPath assignmentAssociationPath = ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION, ResourceAttributeDefinitionType.F_REF);
 
-        return assignmentAttributePath.equivalent(wrapperPath) || assignmetnAssociationPath.equivalent(wrapperPath);
+        return assignmentAttributePath.equivalent(wrapperPath) || assignmentAssociationPath.equivalent(wrapperPath);
     }
 
     private boolean isInducementAttributeOrAssociation(ItemPath wrapperPath) {
@@ -85,7 +84,7 @@ public class ResourceAttributeRefPanelFactory
 
     private List<ItemName> getChoicesList(PrismPropertyPanelContext<ItemPathType> ctx) {
 
-        PrismPropertyWrapper wrapper = ctx.unwrapWrapperModel();
+        PrismPropertyWrapper<?> wrapper = ctx.unwrapWrapperModel();
         //attribute/ref
         if (wrapper == null) {
             return Collections.emptyList();
@@ -97,12 +96,12 @@ public class ResourceAttributeRefPanelFactory
         }
 
         //attribute
-        ItemWrapper attributeWrapper = wrapper.getParent().getParent();
+        ItemWrapper<?, ?> attributeWrapper = wrapper.getParent().getParent();
         if (attributeWrapper == null) {
             return Collections.emptyList();
         }
 
-        PrismContainerValueWrapper itemWrapper = attributeWrapper.getParent();
+        PrismContainerValueWrapper<?> itemWrapper = attributeWrapper.getParent();
 
         if (itemWrapper == null) {
             return Collections.emptyList();
@@ -129,7 +128,7 @@ public class ResourceAttributeRefPanelFactory
                 return associationDefs.stream().map(association -> association.getName()).collect(Collectors.toList());
             }
 
-            Collection<? extends ResourceAttributeDefinition> attrDefs = rOcd.getAttributeDefinitions();
+            Collection<? extends ResourceAttributeDefinition<?>> attrDefs = rOcd.getAttributeDefinitions();
             return attrDefs.stream().map(a -> a.getItemName()).collect(Collectors.toList());
 
         } catch (SchemaException e) {
@@ -145,9 +144,9 @@ public class ResourceAttributeRefPanelFactory
         return 9999;
     }
 
-    class AttributeRefModel implements IModel<ItemName> {
+    static class AttributeRefModel implements IModel<ItemName> {
 
-        private IModel<ItemPathType> itemPath;
+        private final IModel<ItemPathType> itemPath;
 
         public AttributeRefModel(IModel<ItemPathType> itemPath) {
             this.itemPath = itemPath;
@@ -176,5 +175,4 @@ public class ResourceAttributeRefPanelFactory
             itemPath.setObject(new ItemPathType(object));
         }
     }
-
 }

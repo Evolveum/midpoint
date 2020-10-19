@@ -17,7 +17,7 @@ import com.evolveum.midpoint.util.DebugUtil;
  * @author semancik
  *
  */
-public class EvaluatedConstructionPack<EC extends EvaluatedConstructible> implements DebugDumpable {
+public class EvaluatedConstructionPack<EC extends EvaluatedAbstractConstruction> implements DebugDumpable {
 
     private final Collection<EC> evaluatedConstructions = new ArrayList<>();
     private boolean forceRecon;

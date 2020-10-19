@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.wicket.Component;
@@ -31,13 +30,10 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.model.JasperTemplateModel;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
-import com.evolveum.midpoint.web.component.data.column.EditableLinkColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportFieldDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.JasperReportParameterDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
@@ -60,15 +56,14 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
         initLayout();
     }
 
-
     protected void initLayout() {
         AceEditorPanel queryPanel = new AceEditorPanel(ID_QUERY,
                 createStringResource("JasperReportConfigurationPanel.reportQuery"),
-            new PropertyModel<>(getModel(), "jasperReportDto.query"));
+                new PropertyModel<>(getModel(), "jasperReportDto.query"));
         add(queryPanel);
 
         initParametersTable();
-        initFiledsTable();
+        initFieldsTable();
 
         IModel<String> data = new JasperTemplateModel(new PropertyModel<>(getModel(), "jasperReportDto.jasperReportXml"));
         AceEditorPanel templateEditor = new AceEditorPanel(ID_TEMPLATE,
@@ -78,9 +73,8 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
 
     private void initParametersTable() {
         ISortableDataProvider<JasperReportParameterDto, String> provider = new ListDataProvider<>(this,
-            new PropertyModel<>(getModel(), "jasperReportDto.parameters"));
+                new PropertyModel<>(getModel(), "jasperReportDto.parameters"));
         BoxedTablePanel<JasperReportParameterDto> table = new BoxedTablePanel<>(ID_PARAMETERS_TABLE, provider, initParameterColumns(), 10);
-//        table.setShowPaging(false);
         table.setOutputMarkupId(true);
         add(table);
 
@@ -88,6 +82,7 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
                 createStringResource("JasperReportConfigurationPanel.addParameter")) {
 
             private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 addParameterPerformed(target);
@@ -99,6 +94,7 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
                 createStringResource("JasperReportConfigurationPanel.deleteParameter")) {
 
             private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 deleteParameterPerformed(target);
@@ -108,9 +104,9 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
 
     }
 
-    private void initFiledsTable() {
+    private void initFieldsTable() {
         ISortableDataProvider<JasperReportFieldDto, String> provider = new ListDataProvider<>(this,
-            new PropertyModel<>(getModel(), "jasperReportDto.fields"));
+                new PropertyModel<>(getModel(), "jasperReportDto.fields"));
         BoxedTablePanel<JasperReportFieldDto> table = new BoxedTablePanel<>(ID_FIELDS_TABLE, provider, initFieldColumns(), 10);
 //        table.setShowPaging(false);
         table.setOutputMarkupId(true);
@@ -120,6 +116,7 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
                 createStringResource("JasperReportConfigurationPanel.addField")) {
 
             private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 addFieldPerformed(target);
@@ -131,6 +128,7 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
                 createStringResource("JasperReportConfigurationPanel.deleteField")) {
 
             private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 deleteFieldPerformed(target);
@@ -151,13 +149,7 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
     }
 
     private void deleteParameterPerformed(AjaxRequestTarget target) {
-        Iterator<JasperReportParameterDto> iterator = getModelObject().getJasperReportDto().getParameters().iterator();
-        while (iterator.hasNext()) {
-            JasperReportParameterDto item = iterator.next();
-            if (item.isSelected()) {
-                iterator.remove();
-            }
-        }
+        getModelObject().getJasperReportDto().getParameters().removeIf(Selectable::isSelected);
         target.add(getParametersTable());
     }
 
@@ -173,13 +165,7 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
     }
 
     private void deleteFieldPerformed(AjaxRequestTarget target) {
-        Iterator<JasperReportFieldDto> iterator = getModelObject().getJasperReportDto().getFields().iterator();
-        while (iterator.hasNext()) {
-            JasperReportFieldDto item = iterator.next();
-            if (item.isSelected()) {
-                iterator.remove();
-            }
-        }
+        getModelObject().getJasperReportDto().getFields().removeIf(Selectable::isSelected);
         target.add(getFieldsTable());
     }
 
@@ -190,7 +176,7 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
             DataTable<JasperReportParameterDto, String> table = parametersTable.getDataTable();
 
             if (table != null) {
-                table.setCurrentPage((long) (dto.getJasperReportDto().getParameters().size() / 10));
+                table.setCurrentPage(dto.getJasperReportDto().getParameters().size() / 10);
             }
         }
     }
@@ -202,7 +188,7 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
             DataTable<JasperReportFieldDto, String> table = parametersTable.getDataTable();
 
             if (table != null) {
-                table.setCurrentPage((long) (dto.getJasperReportDto().getFields().size() / 10));
+                table.setCurrentPage(dto.getJasperReportDto().getFields().size() / 10);
             }
         }
     }
@@ -221,9 +207,10 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
         columns.add(
                 buildEditableLinkColumn("JasperReportConfigurationPanel.nestedClass", null, "nestedTypeAsString", true));
 
-        columns.add(new LinkColumn<JasperReportParameterDto>(createStringResource("JasperReportConfigurationPanel.properties")) {
+        columns.add(new AjaxLinkColumn<JasperReportParameterDto>(createStringResource("JasperReportConfigurationPanel.properties")) {
 
             private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget target,
                     IModel<JasperReportParameterDto> rowModel) {
@@ -237,16 +224,16 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
 
         });
 
-
         CheckBoxColumn<JasperReportParameterDto> forPrompting = new CheckBoxColumn<JasperReportParameterDto>(
                 createStringResource("JasperReportConfigurationPanel.forPrompting"), "forPrompting") {
 
             private static final long serialVersionUID = 1L;
+
             @Override
             public void populateItem(Item<ICellPopulator<JasperReportParameterDto>> cellItem, String componentId,
                     IModel<JasperReportParameterDto> rowModel) {
                 IsolatedCheckBoxPanel checkBox = new IsolatedCheckBoxPanel(componentId,
-                    new PropertyModel<>(rowModel, getPropertyExpression()), new Model<>(true));
+                        new PropertyModel<>(rowModel, getPropertyExpression()), new Model<>(true));
                 cellItem.add(checkBox);
             }
         };
@@ -263,12 +250,14 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
         getPageBase().showMainPopup(propertiesPopup, target);
 
     }
-    private EditableLinkColumn<JasperReportParameterDto> buildEditableLinkColumn(String resource, String resourceParam,
-            String property, final Boolean mandatory) {
-        return new EditableLinkColumn<JasperReportParameterDto>(createStringResource(resource, resourceParam),
+
+    private EditableAjaxLinkColumn<JasperReportParameterDto> buildEditableLinkColumn(
+            String resource, String resourceParam, String property, final Boolean mandatory) {
+        return new EditableAjaxLinkColumn<JasperReportParameterDto>(createStringResource(resource, resourceParam),
                 property) {
 
             private static final long serialVersionUID = 1L;
+
             @Override
             protected Component createInputPanel(String componentId, final IModel<JasperReportParameterDto> model) {
                 return createTextPanel(componentId, model, getPropertyExpression(), mandatory);
@@ -299,10 +288,11 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
         columns.add(column);
 
         // name editing column
-        columns.add(new EditableLinkColumn<JasperReportFieldDto>(
+        columns.add(new EditableAjaxLinkColumn<JasperReportFieldDto>(
                 createStringResource("JasperReportConfigurationPanel.fieldName"), "name") {
 
             private static final long serialVersionUID = 1L;
+
             @Override
             protected Component createInputPanel(String componentId, final IModel<JasperReportFieldDto> model) {
                 return createTextPanel(componentId, model, getPropertyExpression(), true);
@@ -316,10 +306,11 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
         });
 
         // class editing column
-        columns.add(new EditableLinkColumn<JasperReportFieldDto>(
+        columns.add(new EditableAjaxLinkColumn<JasperReportFieldDto>(
                 createStringResource("JasperReportConfigurationPanel.fieldClass"), "typeAsString") {
 
             private static final long serialVersionUID = 1L;
+
             @Override
             protected Component createInputPanel(String componentId, IModel<JasperReportFieldDto> model) {
                 return createTextPanel(componentId, model, getPropertyExpression(), true);
@@ -355,6 +346,7 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
         input.add(new IValidator() {
 
             private static final long serialVersionUID = 1L;
+
             @Override
             public void validate(IValidatable validatable) {
                 if (!mandatory) {
@@ -372,6 +364,7 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
     private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
 
         private static final long serialVersionUID = 1L;
+
         public EmptyOnBlurAjaxFormUpdatingBehaviour() {
             super("blur");
         }

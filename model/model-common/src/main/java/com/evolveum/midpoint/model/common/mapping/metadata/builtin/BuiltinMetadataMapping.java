@@ -9,7 +9,8 @@ package com.evolveum.midpoint.model.common.mapping.metadata.builtin;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.common.mapping.metadata.ValueMetadataComputation;
+import com.evolveum.midpoint.model.common.mapping.metadata.ConsolidationMetadataComputation;
+import com.evolveum.midpoint.model.common.mapping.metadata.TransformationalMetadataComputation;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -18,7 +19,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public interface BuiltinMetadataMapping {
 
-    void apply(@NotNull ValueMetadataComputation computation) throws SchemaException;
+    void applyForTransformation(@NotNull TransformationalMetadataComputation computation) throws SchemaException;
+
+    void applyForConsolidation(@NotNull ConsolidationMetadataComputation computation) throws SchemaException;
 
     @NotNull
     ItemPath getTargetPath();

@@ -32,7 +32,7 @@ public class QAuditResource extends FlexibleRelationalPathBase<MAuditResource> {
     public static final ColumnMetadata RECORD_ID =
             ColumnMetadata.named("record_id").ofType(Types.BIGINT).withSize(19).notNull();
     public static final ColumnMetadata RESOURCE_OID =
-            ColumnMetadata.named("resourceOid").ofType(Types.NVARCHAR).withSize(255).notNull();
+            ColumnMetadata.named("resourceOid").ofType(Types.VARCHAR).withSize(255).notNull();
 
     public final NumberPath<Long> recordId = createLong("recordId", RECORD_ID);
     public final StringPath resourceOid = createString("resourceOid", RESOURCE_OID);

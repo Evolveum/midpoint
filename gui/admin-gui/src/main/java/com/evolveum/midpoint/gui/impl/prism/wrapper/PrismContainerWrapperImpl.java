@@ -13,6 +13,9 @@ import java.util.Iterator;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -209,78 +212,6 @@ public class PrismContainerWrapperImpl<C extends Containerable>
         return super.debugDump(indent);
     }
 
-    protected void cleanupEmptyContainers(PrismContainer<C> container) {
-        List<PrismContainerValue<C>> values = container.getValues();
-        Iterator<PrismContainerValue<C>> valueIterator = values.iterator();
-        while (valueIterator.hasNext()) {
-            PrismContainerValue<C> value = valueIterator.next();
-
-            PrismContainerValue<C> valueAfter = cleanupEmptyContainerValue(value);
-            if (valueAfter == null || valueAfter.isIdOnly() || valueAfter.isEmpty()) {
-                valueIterator.remove();
-            }
-        }
-    }
-
-    protected PrismContainerValue<C> cleanupEmptyContainerValue(PrismContainerValue<C> value) {
-        Collection<Item<?, ?>> items = value.getItems();
-
-        if (items != null) {
-            Iterator<Item<?, ?>> iterator = items.iterator();
-            while (iterator.hasNext()) {
-                Item<?, ?> item = iterator.next();
-
-                cleanupEmptyValues(item);
-                if (item.isEmpty()) {
-                    iterator.remove();
-                }
-            }
-        }
-
-        if (value.getItems() == null || value.getItems().isEmpty()) {
-            return null;
-        }
-
-        return value;
-    }
-
-    private <T> void cleanupEmptyValues(Item item) {
-        if (item instanceof PrismContainer) {
-            cleanupEmptyContainers((PrismContainer) item);
-        }
-
-        if (item instanceof PrismProperty) {
-            PrismProperty<T> property = (PrismProperty) item;
-            List<PrismPropertyValue<T>> pVals = property.getValues();
-            if (pVals == null || pVals.isEmpty()) {
-                return;
-            }
-
-            Iterator<PrismPropertyValue<T>> iterator = pVals.iterator();
-            while (iterator.hasNext()) {
-                PrismPropertyValue<T> pVal = iterator.next();
-                if (pVal == null || pVal.isEmpty() || pVal.getRealValue() == null) {
-                    iterator.remove();
-                }
-            }
-        }
-
-        if (item instanceof PrismReference) {
-            PrismReference ref = (PrismReference) item;
-            List<PrismReferenceValue> values = ref.getValues();
-            if (values == null || values.isEmpty()) {
-                return;
-            }
-
-            Iterator<PrismReferenceValue> iterator = values.iterator();
-            while (iterator.hasNext()) {
-                PrismReferenceValue rVal = iterator.next();
-                if (rVal == null || rVal.isEmpty()) {
-                    iterator.remove();
-                }
-            }
-        }
-    }
 
     @Override
     public <D extends ItemDelta<? extends PrismValue, ? extends ItemDefinition>> Collection<D> getDelta() throws SchemaException {
@@ -301,7 +232,7 @@ public class PrismContainerWrapperImpl<C extends Containerable>
                         break;
                     }
 
-                    valueToAdd = cleanupEmptyContainerValue(valueToAdd);
+                    valueToAdd = WebPrismUtil.cleanupEmptyContainerValue(valueToAdd);
                     if (valueToAdd == null || valueToAdd.isEmpty() || valueToAdd.isIdOnly()) {
                         LOGGER.trace("Value is empty, skipping delta creation.");
                         break;
@@ -397,5 +328,25 @@ public class PrismContainerWrapperImpl<C extends Containerable>
     @Override
     protected PrismContainerValue<C> createNewEmptyValue(ModelServiceLocator locator) {
         return createValue();
+    }
+
+    @Override
+    public PrismContainerWrapper<? extends Containerable> getSelectedChild() {
+        if (isShowMetadataDetails()) {
+            return this;
+        }
+        List<PrismContainerValueWrapper<C>> values = getValues();
+        if (CollectionUtils.isEmpty(values)) {
+            return null;
+        }
+
+        for (PrismContainerValueWrapper<C> metadataValue : values) {
+            PrismContainerWrapper<? extends Containerable> selected = metadataValue.getSelectedChild();
+            if (selected != null) {
+                return selected;
+            }
+        }
+
+        return null;
     }
 }

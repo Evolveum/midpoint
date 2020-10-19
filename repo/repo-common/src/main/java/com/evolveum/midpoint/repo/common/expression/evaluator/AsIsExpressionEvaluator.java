@@ -17,10 +17,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AsIsExpressionEvaluatorType;
 
 /**
@@ -37,7 +34,8 @@ public class AsIsExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
 
     @Override
     public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
+            CommunicationException, ConfigurationException {
 
         checkEvaluatorProfile(context);
 
@@ -58,14 +56,11 @@ public class AsIsExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
             //noinspection unchecked
             source = (Source<V,D>) context.getSources().iterator().next();
         }
-        PrismValueDeltaSetTriple<V> sourceTriple = ItemDeltaUtil.toDeltaSetTriple(source.getItemOld(), source.getDelta(),
+        PrismValueDeltaSetTriple<V> outputTriple = ItemDeltaUtil.toDeltaSetTriple(source.getItemOld(), source.getDelta(),
                 prismContext);
 
-        if (sourceTriple == null) {
-            return null;
-        }
-        return ExpressionEvaluatorUtil.toOutputTriple(sourceTriple, outputDefinition, context.getAdditionalConvertor(),
-                source.getResidualPath(), protector, prismContext);
+        applyValueMetadata(outputTriple, context, result);
+        return finishOutputTriple(outputTriple, context.getAdditionalConvertor(), source.getResidualPath());
     }
 
     @Override

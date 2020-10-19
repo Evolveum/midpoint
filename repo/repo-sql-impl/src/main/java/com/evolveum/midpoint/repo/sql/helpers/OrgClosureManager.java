@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -95,7 +95,6 @@ public class OrgClosureManager {
      * @param oid OID of the object.
      * @param type Type of the object.
      * @param operation Operation that is carried out.
-     * @param closureContext
      */
     public <T extends ObjectType> void updateOrgClosure(PrismObject<? extends ObjectType> originalObject,
             Collection<? extends ItemDelta> modifications, Session session, String oid, Class<T> type, Operation operation,
@@ -594,6 +593,7 @@ public class OrgClosureManager {
 
                 long startUpdate = System.currentTimeMillis();
                 String updateInClosureQueryText;
+                // Can/must be unified with PG after H2 > 1.4.200 if no other issues emerge.
                 if (isH2()) {
                     updateInClosureQueryText = "update " + CLOSURE_TABLE_NAME + " " +
                             "set val = val + (select val from " + deltaTempTableName + " td " +
@@ -622,6 +622,7 @@ public class OrgClosureManager {
                         "insert into " + CLOSURE_TABLE_NAME + " (descendant_oid, ancestor_oid, val) " +
                                 "select descendant_oid, ancestor_oid, val from " + deltaTempTableName + " delta ";
                 if (countUpdate > 0) {
+                    // Can/must be unified with PG after H2 > 1.4.200 if no other issues emerge.
                     if (isH2()) {
                         addQuery += " where (descendant_oid, ancestor_oid) not in (select (descendant_oid, ancestor_oid) from " + CLOSURE_TABLE_NAME + ")";
                     } else if (isPostgreSQL()) {
@@ -807,6 +808,7 @@ public class OrgClosureManager {
             int count;
 
             String deleteFromClosureQueryText, updateInClosureQueryText;
+            // Can/must be unified with PG after H2 > 1.4.200 if no other issues emerge.
             if (isH2()) {
                 // delete with join is not supported by H2
                 // and the "postgresql/oracle version" does not work for some reasons
@@ -908,17 +910,16 @@ public class OrgClosureManager {
         long start = System.currentTimeMillis();
         LOGGER.trace("Locking closure table");
         if (isH2()) {
-            NativeQuery q = session.createNativeQuery("SELECT * FROM " + CLOSURE_TABLE_NAME + " WHERE 1=0 FOR UPDATE");
+            NativeQuery<?> q = session.createNativeQuery(
+                    "SELECT * FROM " + CLOSURE_TABLE_NAME + " WHERE 1=0 FOR UPDATE");
             q.list();
         } else if (isOracle()) {
-            NativeQuery q = session.createNativeQuery("LOCK TABLE " + CLOSURE_TABLE_NAME + " IN EXCLUSIVE MODE");
+            NativeQuery<?> q = session.createNativeQuery(
+                    "LOCK TABLE " + CLOSURE_TABLE_NAME + " IN EXCLUSIVE MODE");
             q.executeUpdate();
-//        } else if (isPostgreSQL()) {
-//            // currently not used
-//            NativeQuery q = session.createNativeQuery("LOCK TABLE " + CLOSURE_TABLE_NAME + " IN EXCLUSIVE MODE");
-//            q.executeUpdate();
         } else if (isSQLServer()) {
-            NativeQuery q = session.createNativeQuery("SELECT count(*) FROM " + CLOSURE_TABLE_NAME + " WITH (TABLOCK, XLOCK)");
+            NativeQuery<?> q = session.createNativeQuery(
+                    "SELECT count(*) FROM " + CLOSURE_TABLE_NAME + " WITH (TABLOCK, XLOCK)");
             q.list();
         } else {
             throw new AssertionError("Neither H2 nor Oracle nor SQL Server");
@@ -1056,7 +1057,8 @@ public class OrgClosureManager {
     }
 
     private void dumpOrgClosureTypeTable(Session session, String tableName) {
-        NativeQuery q = session.createNativeQuery("select descendant_oid, ancestor_oid, val from " + tableName)
+        NativeQuery<Object[]> q = session.createNativeQuery(
+                "select descendant_oid, ancestor_oid, val from " + tableName, Object[].class)
                 .addScalar("descendant_oid", StringType.INSTANCE)
                 .addScalar("ancestor_oid", StringType.INSTANCE)
                 .addScalar("val", IntegerType.INSTANCE);
@@ -1069,16 +1071,19 @@ public class OrgClosureManager {
 
     private void initializeOracleTemporaryTable() {
         Session session = baseHelper.getSessionFactory().openSession();
-        NativeQuery qCheck = session.createNativeQuery("select table_name from user_tables where table_name = upper('" + TEMP_DELTA_TABLE_NAME_FOR_ORACLE + "')");
+        NativeQuery<?> qCheck = session.createNativeQuery(
+                "select table_name from user_tables"
+                        + " where table_name = upper('" + TEMP_DELTA_TABLE_NAME_FOR_ORACLE + "')");
         if (qCheck.list().isEmpty()) {
             LOGGER.info("Creating temporary table {}", TEMP_DELTA_TABLE_NAME_FOR_ORACLE);
             session.beginTransaction();
-            NativeQuery qCreate = session.createNativeQuery("CREATE GLOBAL TEMPORARY TABLE " + TEMP_DELTA_TABLE_NAME_FOR_ORACLE +
-                    "    (descendant_oid VARCHAR2(36 CHAR), " +
-                    "     ancestor_oid VARCHAR2(36 CHAR), " +
-                    "     val NUMBER (10, 0), " +
-                    "     PRIMARY KEY (descendant_oid, ancestor_oid)) " +
-                    "  ON COMMIT DELETE ROWS");
+            NativeQuery<?> qCreate = session.createNativeQuery(
+                    "CREATE GLOBAL TEMPORARY TABLE " + TEMP_DELTA_TABLE_NAME_FOR_ORACLE
+                            + "    (descendant_oid VARCHAR2(36 CHAR), "
+                            + "     ancestor_oid VARCHAR2(36 CHAR), "
+                            + "     val NUMBER (10, 0), "
+                            + "     PRIMARY KEY (descendant_oid, ancestor_oid)) "
+                            + "  ON COMMIT DELETE ROWS");
             try {
                 qCreate.executeUpdate();
                 session.getTransaction().commit();
@@ -1199,10 +1204,6 @@ public class OrgClosureManager {
             for (ObjectReferenceType ort : originalObject.asObjectable().getParentOrgRef()) {
                 retval.add(ort.getOid());
             }
-//            // is this really necessary?  (no, and actually, it is harmful)
-//            for (OrgType org : originalObject.asObjectable().getParentOrg()) {
-//                retval.add(org.getOid());
-//            }
         }
         return retval;
     }
@@ -1266,8 +1267,8 @@ public class OrgClosureManager {
     //region Helper classes
 
     public static class Edge {
-        private String descendant;              // i.e. child, or technically, edge tail
-        private String ancestor;                // i.e. parent, or technically, edge head
+        private final String descendant; // i.e. child, or technically, edge tail
+        private final String ancestor; // i.e. parent, or technically, edge head
 
         public Edge(String descendant, String ancestor) {
             this.descendant = descendant;
@@ -1302,9 +1303,7 @@ public class OrgClosureManager {
             Edge edge = (Edge) o;
 
             if (!ancestor.equals(edge.ancestor)) { return false; }
-            if (!descendant.equals(edge.descendant)) { return false; }
-
-            return true;
+            return descendant.equals(edge.descendant);
         }
 
         @Override
@@ -1321,7 +1320,7 @@ public class OrgClosureManager {
 
         NONE("none"), CHECK("check"), REBUILD_IF_NEEDED("rebuildIfNeeded"), ALWAYS_REBUILD("alwaysRebuild");
 
-        private String value;
+        private final String value;
 
         StartupAction(String value) {
             this.value = value;
@@ -1346,21 +1345,4 @@ public class OrgClosureManager {
         String temporaryTableName;
     }
     //endregion
-
-//    private void lockClosureTableIfNeeded(Session session) {
-//        if (!getConfiguration().isUsingH2()) {
-//            return;
-//        }
-//
-//        long start = System.currentTimeMillis();
-//        LOGGER.info("Locking closure table");
-//        if (getConfiguration().isUsingH2()) {
-//            //NativeQuery q = session.createNativeQuery("SELECT * FROM " + OrgClosureManager.CLOSURE_TABLE_NAME + " WHERE 1=0 FOR UPDATE");
-//            NativeQuery q = session.createNativeQuery("SELECT * FROM m_connector_host WHERE 1=0 FOR UPDATE");
-//            q.list();
-//        }
-//        LOGGER.info("...locked in {} ms", System.currentTimeMillis()-start);
-//
-//    }
-
 }

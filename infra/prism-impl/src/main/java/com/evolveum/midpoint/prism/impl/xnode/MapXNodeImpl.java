@@ -49,7 +49,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
 
     private boolean hasDefaultNamespaceMarkers;
 
-    private MapXNode metadata;
+    @NotNull private List<MapXNode> metadataNodes = new ArrayList<>();
 
     public int size() {
         return subnodes.size();
@@ -185,6 +185,17 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
     }
 
 
+    public <T> PrimitiveXNodeImpl<T> getPrimitive(QName key) throws SchemaException {
+        XNodeImpl xnode = get(key);
+        if (xnode == null) {
+            return null;
+        }
+        if (!(xnode instanceof PrimitiveXNodeImpl<?>)) {
+            throw new SchemaException("Expected that field "+key+" will be primitive, but it is "+xnode.getDesc());
+        }
+        return (PrimitiveXNodeImpl<T>) xnode;
+    }
+
     public <T> T getParsedPrimitiveValue(QName key, QName typeName) throws SchemaException {
         XNodeImpl xnode = get(key);
         if (xnode == null) {
@@ -241,6 +252,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
                 //throw new IllegalStateException("null value of key " + subentry.key + " in map: " + debugDump());
             }
         }
+        MetadataAware.visitMetadata(this, visitor);
     }
 
     public boolean equals(Object o) {
@@ -249,7 +261,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
         }
         MapXNodeImpl other = (MapXNodeImpl) o;
         return MiscUtil.unorderedCollectionEquals(this.subnodes.entrySet(), other.subnodes.entrySet()) &&
-                metadataEquals(this.metadata, other.metadata);
+                metadataEquals(this.metadataNodes, other.metadataNodes);
     }
 
     public int hashCode() {
@@ -266,7 +278,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.debugDumpMapMultiLine(sb, this.toMap(), indent, true, dumpSuffix());
-        appendMetadata(sb, indent, metadata);
+        appendMetadata(sb, indent, metadataNodes);
         return sb.toString();
     }
 
@@ -376,12 +388,12 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
 
 
     @Override
-    public MapXNode getMetadataNode() {
-        return metadata;
+    public @NotNull List<MapXNode> getMetadataNodes() {
+        return metadataNodes;
     }
 
     @Override
-    public void setMetadataNode(MapXNode metadata) {
-        this.metadata = metadata;
+    public void setMetadataNodes(@NotNull List<MapXNode> metadataNodes) {
+        this.metadataNodes = metadataNodes;
     }
 }

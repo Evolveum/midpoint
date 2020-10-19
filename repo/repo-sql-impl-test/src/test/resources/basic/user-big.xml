@@ -24,7 +24,7 @@
     <metadata>
         <createTimestamp>2013-09-03T14:07:56.385+02:00</createTimestamp>
         <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
-        <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
+        <createChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</createChannel>
     </metadata>
     <linkRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="00000000-0000-0000-0000-000a1123" type="c:ShadowType"/>
     <linkRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="00000000-0000-0000-0000-000a2123" type="c:ShadowType"/>
@@ -35,7 +35,7 @@
         <metadata>
             <createTimestamp>2013-09-03T14:07:56.385+02:00</createTimestamp>
             <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
-            <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
+            <createChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</createChannel>
         </metadata>
         <extension>
             <my:shipName>assignment ship name extension</my:shipName>
@@ -57,7 +57,7 @@
         <metadata>
             <createTimestamp>2013-09-03T14:07:56.385+02:00</createTimestamp>
             <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
-            <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
+            <createChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</createChannel>
         </metadata>
         <construction>
             <resourceRef oid="00000000-0000-0000-0000-0000000000e2"/>
@@ -70,7 +70,7 @@
         <metadata>
             <createTimestamp>2013-09-03T14:07:56.385+02:00</createTimestamp>
             <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
-            <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
+            <createChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</createChannel>
         </metadata>
         <construction>
             <resourceRef oid="00000000-0000-0000-0000-0000000000e3"/>
@@ -80,7 +80,7 @@
         <metadata>
             <createTimestamp>2013-09-03T14:07:56.385+02:00</createTimestamp>
             <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
-            <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
+            <createChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</createChannel>
         </metadata>
         <construction>
             <resourceRef oid="00000000-0000-0000-0000-0000000000e4"/>
@@ -90,7 +90,7 @@
         <metadata>
             <createTimestamp>2013-09-03T14:07:56.385+02:00</createTimestamp>
             <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
-            <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
+            <createChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</createChannel>
         </metadata>
         <construction>
             <resourceRef oid="00000000-0000-0000-0000-0000000000e5"/>

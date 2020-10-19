@@ -1,13 +1,14 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.search;
 
 import java.io.Serializable;
+
+import com.evolveum.midpoint.gui.api.page.PageBase;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -20,7 +21,7 @@ public abstract class SearchItem implements Serializable {
         TEXT, BOOLEAN, ENUM, BROWSER, REFERENCE, FILTER, DATE
     }
 
-    private Search search;
+    private final Search search;
 
     private boolean fixed;
     private boolean editWhenVisible;
@@ -33,7 +34,7 @@ public abstract class SearchItem implements Serializable {
 
     public abstract Type getType();
 
-    protected String getTitle(){
+    protected String getTitle(PageBase pageBase) {
         return "";
     }
 
@@ -56,5 +57,4 @@ public abstract class SearchItem implements Serializable {
     public void setEditWhenVisible(boolean editWhenVisible) {
         this.editWhenVisible = editWhenVisible;
     }
-
 }

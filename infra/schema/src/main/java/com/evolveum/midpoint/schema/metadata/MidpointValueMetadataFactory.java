@@ -7,13 +7,13 @@
 
 package com.evolveum.midpoint.schema.metadata;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.ValueMetadata;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.metadata.ValueMetadataAdapter;
 import com.evolveum.midpoint.prism.metadata.ValueMetadataFactory;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 import org.jetbrains.annotations.NotNull;
@@ -28,14 +28,17 @@ public class MidpointValueMetadataFactory implements ValueMetadataFactory {
     }
 
     @Override
-    @NotNull
-    public ValueMetadata createEmpty() {
-        return createFrom(
-                new ValueMetadataType(prismContext)
-                        .asPrismContainerValue());
+    public @NotNull ValueMetadata createEmpty() {
+        try {
+            return ValueMetadataAdapter.holding(
+                    prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(ValueMetadataType.class)
+                            .instantiate(PrismConstants.VALUE_METADATA_CONTAINER_NAME));
+        } catch (SchemaException e) {
+            throw new SystemException("Unexpected schema exception while creating value metadata container: " + e.getMessage(), e);
+        }
     }
 
-    public static ValueMetadata createFrom(@NotNull PrismContainerValue<?> pcv) {
-        return ValueMetadataAdapter.holding(pcv);
+    public static ValueMetadata createFrom(@NotNull PrismContainer<?> container) {
+        return ValueMetadataAdapter.holding(container);
     }
 }

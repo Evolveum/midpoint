@@ -10,7 +10,7 @@
       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-      xmlns:m="http://midpoint.evolveum.com/xml/ns/public/common/extension-metadata-3"
+      xmlns:m="http://midpoint.evolveum.com/xml/ns/samples/metadata"
       oid="9fc389be-5b47-4e9d-90b5-33fffd87b3ca">
     <_metadata>
         <process>
@@ -21,47 +21,46 @@
         <_value>alice</_value>
         <_metadata>
             <transformation>
-                <source>
-                    <kind>http://midpoint.evolveum.com/data-provenance/source#resource</kind>
-                    <name>Dummy Resource</name>
-                    <objectRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType" />
-                    <!--<specificInformation>alice</specificInformation> &lt;!&ndash; account name &ndash;&gt;-->
-                    <storage>name</storage>
-                </source>
+                <mappingTransformation>
+                    <mappingSpecification>
+                        <mappingName>inbound name mapping</mappingName>
+                    </mappingSpecification>
+                    <source>
+                        <name>name</name>
+                        <!--<resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType" />-->
+                        <value xsi:type="xsd:string">alice</value>
+                    </source>
+                </mappingTransformation>
             </transformation>
             <c:extension>
-                <m:assurance>
-                    <m:levelOfAssurance>http://example.com/identity/loa#official</m:levelOfAssurance>
-                </m:assurance>
+                <m:loa>10</m:loa>
             </c:extension>
         </_metadata>
     </name>
     <assignment id="111">
         <_metadata>
             <c:extension>
-                <m:assurance>
-                    <m:levelOfAssurance>http://example.com/identity/loa#none</m:levelOfAssurance>
-                </m:assurance>
+                <m:loa>5</m:loa>
             </c:extension>
             <transformation>
-                <source>
-                    <kind>http://midpoint.evolveum.com/data-provenance/source#userAction</kind>
-                    <name>willTurner</name>
-                    <objectRef oid="c0c010c0-d34d-b33f-f00d-111111145118" type="UserType" /> <!-- willTurner -->
-                </source>
+                <mappingTransformation>
+                    <mappingSpecification>
+                        <mappingName>fullName mapping</mappingName>
+                    </mappingSpecification>
+                    <source>
+                        <name>title</name>
+                        <value xsi:type="xsd:string">pirate</value>
+                    </source>
+                </mappingTransformation>
             </transformation>
         </_metadata>
         <subtype>experimental</subtype>
         <subtype>
             <_value>manual</_value>
             <_metadata>
-                <transformation>
-                    <source>
-                        <kind>http://midpoint.evolveum.com/data-provenance/source#userAction</kind>
-                        <name>willTurner</name>
-                        <objectRef oid="c0c010c0-d34d-b33f-f00d-111111145118" type="UserType" /> <!-- willTurner -->
-                    </source>
-                </transformation>
+                <extension>
+                    <m:loa>3</m:loa>
+                </extension>
             </_metadata>
         </subtype>
         <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/> <!-- pirate -->
@@ -88,18 +87,19 @@
         <_value>Alice</_value>
         <_metadata>
             <transformation>
-                <source>
-                    <kind>http://midpoint.evolveum.com/data-provenance/source#resource</kind>
-                    <name>Dummy Resource</name>
-                    <objectRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType" />
-                    <!--<specificInformation>alice</specificInformation> &lt;!&ndash; account name &ndash;&gt;-->
-                    <storage>givenName</storage>
-                </source>
+                <mappingTransformation>
+                    <mappingSpecification>
+                        <mappingName>inbound givenName mapping</mappingName>
+                    </mappingSpecification>
+                    <source>
+                        <name>firstname</name>
+                        <!--<resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType" />-->
+                        <value xsi:type="t:PolyStringType">Alice</value>
+                    </source>
+                </mappingTransformation>
             </transformation>
             <c:extension>
-                <m:assurance>
-                    <m:levelOfAssurance>http://example.com/identity/loa#official</m:levelOfAssurance>
-                </m:assurance>
+                <m:loa>7</m:loa>
             </c:extension>
         </_metadata>
     </givenName>
@@ -107,18 +107,19 @@
         <_value>Green</_value>
         <_metadata>
             <transformation>
-                <source>
-                    <kind>http://midpoint.evolveum.com/data-provenance/source#resource</kind>
-                    <name>Dummy Resource</name>
-                    <objectRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType" />
-                    <!--<specificInformation>alice</specificInformation> &lt;!&ndash; account name &ndash;&gt;-->
-                    <storage>familyName</storage>
-                </source>
+                <mappingTransformation>
+                    <mappingSpecification>
+                        <mappingName>inbound familyName mapping</mappingName>
+                    </mappingSpecification>
+                    <source>
+                        <name>lastname</name>
+                        <!--<resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType" />-->
+                        <value xsi:type="t:PolyStringType">Green</value>
+                    </source>
+                </mappingTransformation>
             </transformation>
             <c:extension>
-                <m:assurance>
-                    <m:levelOfAssurance>http://example.com/identity/loa#official</m:levelOfAssurance>
-                </m:assurance>
+                <m:loa>7</m:loa>
             </c:extension>
         </_metadata>
     </familyName>
@@ -126,18 +127,19 @@
         <_value>Ph.D.</_value>
         <_metadata>
             <transformation>
-                <source>
-                    <kind>http://midpoint.evolveum.com/data-provenance/source#resource</kind>
-                    <name>Dummy Resource</name>
-                    <objectRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType" />
-                    <!--<specificInformation>alice</specificInformation> &lt;!&ndash; account name &ndash;&gt;-->
-                    <storage>honorificSuffix</storage>
-                </source>
+                <mappingTransformation>
+                    <mappingSpecification>
+                        <mappingName>inbound honorificSuffix mapping</mappingName>
+                    </mappingSpecification>
+                    <source>
+                        <name>aftertitle</name>
+                        <!--<resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType" />-->
+                        <value xsi:type="t:PolyStringType">Ph.D.</value>
+                    </source>
+                </mappingTransformation>
             </transformation>
             <c:extension>
-                <m:assurance>
-                    <m:levelOfAssurance>http://example.com/identity/loa#official</m:levelOfAssurance>
-                </m:assurance>
+                <m:loa>5</m:loa>
             </c:extension>
         </_metadata>
     </honorificSuffix>
@@ -145,37 +147,84 @@
         <_value>Alice Green, Ph.D.</_value>
         <_metadata>
             <transformation>
-                <source>
-                    <kind>http://midpoint.evolveum.com/data-provenance/source#resource</kind>
-                    <name>Dummy Resource</name>
-                    <objectRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType" />
-                    <!--<specificInformation>alice</specificInformation> &lt;!&ndash; account name &ndash;&gt;-->
-                    <storage>givenName</storage>
-                </source>
-                <source>
-                    <kind>http://midpoint.evolveum.com/data-provenance/source#resource</kind>
-                    <name>Dummy Resource</name>
-                    <objectRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType" />
-                    <!--<specificInformation>alice</specificInformation> &lt;!&ndash; account name &ndash;&gt;-->
-                    <storage>familyName</storage>
-                </source>
-                <source>
-                    <kind>http://midpoint.evolveum.com/data-provenance/source#resource</kind>
-                    <name>Dummy Resource</name>
-                    <objectRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType" />
-                    <!--<specificInformation>alice</specificInformation> &lt;!&ndash; account name &ndash;&gt;-->
-                    <storage>honorificSuffix</storage>
-                </source>
-                <transformer>
-                    <kind>http://midpoint.evolveum.com/data-provenance/transformer#mapping</kind>
-                    <name>mapping-fullname</name>
-                    <objectRef oid="10000000-0000-0000-0000-000000000002" type="ObjectTemplateType" /> <!-- Default User Template -->
-                </transformer>
+                <mappingTransformation>
+                    <mappingSpecification>
+                        <mappingName>fullName mapping</mappingName>
+                        <definitionObjectRef oid="10000000-0000-0000-0000-000000000002" type="ObjectTemplateType" /> <!-- Default User Template -->
+                    </mappingSpecification>
+                    <source>
+                        <name>givenName</name>
+                        <value xsi:type="t:PolyStringType">
+                            <_value>Alice</_value>
+                            <_metadata>
+                                <transformation>
+                                    <mappingTransformation>
+                                        <mappingSpecification>
+                                            <mappingName>inbound givenName mapping</mappingName>
+                                        </mappingSpecification>
+                                        <source>
+                                            <name>firstname</name>
+                                            <!--<resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType" />-->
+                                            <value xsi:type="t:PolyStringType">Alice</value>
+                                        </source>
+                                    </mappingTransformation>
+                                </transformation>
+                                <c:extension>
+                                    <m:loa>7</m:loa>
+                                </c:extension>
+                            </_metadata>
+                        </value>
+                    </source>
+                    <source>
+                        <name>familyName</name>
+                        <value xsi:type="t:PolyStringType">
+                            <_value>Green</_value>
+                            <_metadata>
+                                <transformation>
+                                    <mappingTransformation>
+                                        <mappingSpecification>
+                                            <mappingName>inbound familyName mapping</mappingName>
+                                        </mappingSpecification>
+                                        <source>
+                                            <name>lastname</name>
+                                            <!--<resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType" />-->
+                                            <value xsi:type="t:PolyStringType">Green</value>
+                                        </source>
+                                    </mappingTransformation>
+                                </transformation>
+                                <c:extension>
+                                    <m:loa>7</m:loa>
+                                </c:extension>
+                            </_metadata>
+                        </value>
+                    </source>
+                    <source>
+                        <name>honorificSuffix</name>
+                        <value xsi:type="t:PolyStringType">
+                            <_value>Ph.D.</_value>
+                            <_metadata>
+                                <transformation>
+                                    <mappingTransformation>
+                                        <mappingSpecification>
+                                            <mappingName>inbound honorificSuffix mapping</mappingName>
+                                        </mappingSpecification>
+                                        <source>
+                                            <name>aftertitle</name>
+                                            <!--<resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType" />-->
+                                            <value xsi:type="t:PolyStringType">Ph.D.</value>
+                                        </source>
+                                    </mappingTransformation>
+                                </transformation>
+                                <c:extension>
+                                    <m:loa>5</m:loa>
+                                </c:extension>
+                            </_metadata>
+                        </value>
+                    </source>
+                </mappingTransformation>
             </transformation>
             <c:extension>
-                <m:assurance>
-                    <m:levelOfAssurance>http://example.com/identity/loa#official</m:levelOfAssurance>
-                </m:assurance>
+                <m:loa>5</m:loa>
             </c:extension>
         </_metadata>
     </fullName>
@@ -183,18 +232,8 @@
     <organizationalUnit>
         <_value>Development</_value>
         <_metadata>
-            <transformation>
-                <source>
-                    <kind>http://midpoint.evolveum.com/data-provenance/source#userAction</kind>
-                    <name>jack</name>
-                    <objectRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType" /> <!-- jack -->
-                    <storage>organizationalUnit</storage>
-                </source>
-            </transformation>
             <c:extension>
-                <m:assurance>
-                    <m:levelOfAssurance>http://example.com/identity/loa#absolute</m:levelOfAssurance>
-                </m:assurance>
+                <m:loa>7</m:loa>
             </c:extension>
         </_metadata>
     </organizationalUnit>

@@ -1,13 +1,15 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.breadcrumbs;
 
-import org.apache.commons.lang.Validate;
+import java.util.Arrays;
+import java.util.Objects;
+
+import org.apache.commons.lang3.Validate;
 import org.apache.wicket.IPageFactory;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.Session;
@@ -16,8 +18,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.util.DebugUtil;
-
-import java.util.Arrays;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -80,30 +80,27 @@ public class BreadcrumbPageClass extends Breadcrumb {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
+        if (!super.equals(o)) { return false; }
 
         BreadcrumbPageClass that = (BreadcrumbPageClass) o;
 
-        if (page != null ? !page.equals(that.page) : that.page != null) return false;
-        return parameters != null ? parameters.equals(that.parameters) : that.parameters == null;
+        return Objects.equals(page, that.page)
+                && Objects.equals(parameters, that.parameters);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{page, parameters});
+        return Arrays.hashCode(new Object[] { page, parameters });
     }
 
     @Override
     protected void extendsDebugDump(StringBuilder sb, int indent) {
         super.extendsDebugDump(sb, indent);
         sb.append("\n");
-        DebugUtil.debugDumpWithLabelLn(sb, "page", page, indent+1);
-        DebugUtil.debugDumpWithLabel(sb, "parameters", parameters==null?null:parameters.toString(), indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "page", page, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "parameters", parameters == null ? null : parameters.toString(), indent + 1);
     }
-
-
-
 
 }

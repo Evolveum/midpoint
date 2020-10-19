@@ -7,30 +7,25 @@
 package com.evolveum.midpoint.repo.common.expression.evaluator;
 
 import java.util.Collection;
-
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.task.api.Task;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.StaticExpressionUtil;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.common.expression.AbstractAutowiredExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -42,6 +37,7 @@ public class LiteralExpressionEvaluatorFactory extends AbstractAutowiredExpressi
     private static final QName ELEMENT_NAME = SchemaConstantsGenerated.C_VALUE;
 
     @Autowired private PrismContext prismContext;
+    @Autowired private Protector protector;
 
     @SuppressWarnings("unused") // Used by Spring
     public LiteralExpressionEvaluatorFactory() {
@@ -64,10 +60,6 @@ public class LiteralExpressionEvaluatorFactory extends AbstractAutowiredExpressi
 
         Validate.notNull(outputDefinition, "output definition must be specified for literal expression evaluator");
 
-        Item<V,D> output = StaticExpressionUtil.parseValueElements(evaluatorElements, outputDefinition, contextDescription);
-
-        PrismValueDeltaSetTriple<V> deltaSetTriple = ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
-
-        return new LiteralExpressionEvaluator<>(ELEMENT_NAME, deltaSetTriple);
+        return new LiteralExpressionEvaluator<>(ELEMENT_NAME, evaluatorElements, outputDefinition, protector, prismContext);
     }
 }

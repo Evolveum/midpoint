@@ -85,7 +85,7 @@ resource:
           - path: "$user/locality"
         inbound:
         - channel:
-          - "http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import"
+          - "http://midpoint.evolveum.com/xml/ns/public/common/channels-3#import"
           expression:
             allowEmptyValues: false
             script:

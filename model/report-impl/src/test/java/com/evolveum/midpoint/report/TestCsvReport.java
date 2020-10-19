@@ -71,6 +71,13 @@ public class TestCsvReport extends BasicNewReportTest {
     }
 
     @Override
+    public void test004CreateDashboardReportEmpty() throws Exception {
+        expectedColumns = 3;
+        expectedRow = 3;
+        super.test004CreateDashboardReportEmpty();
+    }
+
+    @Override
     public void test101CreateAuditCollectionReportWithDefaultColumn() throws Exception {
         expectedColumns = 8;
         expectedRow = -1;
@@ -96,6 +103,13 @@ public class TestCsvReport extends BasicNewReportTest {
         expectedColumns = 8;
         expectedRow = 2;
         super.test104CreateAuditCollectionReportWithCondition();
+    }
+
+    @Override
+    public void test105CreateAuditCollectionReportEmpty() throws Exception {
+        expectedColumns = 8;
+        expectedRow = 1;
+        super.test105CreateAuditCollectionReportEmpty();
     }
 
     @Override
@@ -141,6 +155,20 @@ public class TestCsvReport extends BasicNewReportTest {
     }
 
     @Test
+    public void test116CreateObjectCollectionEmptyReport() throws Exception {
+        expectedColumns = 6;
+        expectedRow = 1;
+        super.test116CreateObjectCollectionEmptyReport();
+    }
+
+    @Test
+    public void test117CreateObjectCollectionReportWithFilterAndBasicCollectionWithoutView() throws Exception {
+        expectedColumns = 1;
+        expectedRow = 2;
+        super.test117CreateObjectCollectionReportWithFilterAndBasicCollectionWithoutView();
+    }
+
+    @Test
     public void test200ImportReportForUser() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_IMPORT_OBJECT_COLLECTION_WITH_CONDITION_OID);
         importReport(report, IMPORT_USERS_FILE_PATH, false);
@@ -178,7 +206,7 @@ public class TestCsvReport extends BasicNewReportTest {
         importOptions.setOverwrite(true);
         behavior.setImportOptions(importOptions);
         report.asObjectable().setBehavior(behavior);
-        ObjectDelta<ReportType> diffDelta = reportBefore.diff(report, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
+        ObjectDelta<ReportType> diffDelta = reportBefore.diff(report, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
         executeChanges(diffDelta, ModelExecuteOptions.createRaw(), task, result);
 
         PrismObject<UserType> oldWill = searchObjectByName(UserType.class, "will");
@@ -242,7 +270,7 @@ public class TestCsvReport extends BasicNewReportTest {
 
     private void setExpectedValueForDashboardReport() {
         expectedColumns = 3;
-        expectedRow = 7;
+        expectedRow = 8;
     }
 
     @Override

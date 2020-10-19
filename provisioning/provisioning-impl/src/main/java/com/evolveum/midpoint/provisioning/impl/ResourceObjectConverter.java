@@ -1861,6 +1861,7 @@ public class ResourceObjectConverter {
                     OperationResultBuilder resultBuilder = parentResult.subresult(OPERATION_HANDLE_CHANGE)
                             .setMinor()
                             .addParam("number", changeNumber)
+                            .addParam("localSequenceNumber", change.getLocalSequenceNumber())
                             .addArbitraryObjectAsParam("primaryIdentifier", change.getPrimaryIdentifierRealValue())
                             .addArbitraryObjectAsParam("token", change.getToken());
 

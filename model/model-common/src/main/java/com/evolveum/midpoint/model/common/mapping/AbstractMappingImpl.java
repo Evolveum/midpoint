@@ -6,19 +6,28 @@
  */
 package com.evolveum.midpoint.model.common.mapping;
 
+import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.REAL_VALUE;
+import static com.evolveum.midpoint.schema.util.ProvenanceMetadataUtil.hasMappingSpec;
+
 import static org.apache.commons.lang3.BooleanUtils.isNotFalse;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 import java.util.Objects;
 import java.util.*;
+import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.common.ModelCommonBeans;
-import com.evolveum.midpoint.model.common.mapping.metadata.MetadataMappingEvaluator;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+
+import com.evolveum.midpoint.prism.util.CloneUtil;
+
+import com.evolveum.midpoint.schema.util.ProvenanceMetadataUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.context.Mapping;
+import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -31,7 +40,6 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -229,6 +237,16 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      * TODO clarify, maybe rename
      */
     private final QName mappingQName;
+
+    /**
+     * Mapping specification: name, containing object OID, assignment path.
+     */
+    @NotNull private final MappingSpecificationType mappingSpecification;
+
+    /**
+     * Definition of ValueMetadataType.
+     */
+    @NotNull final PrismContainerDefinition<ValueMetadataType> valueMetadataDefinition;
     //endregion
 
     /**
@@ -248,7 +266,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      * These are created during mapping parsing.
      * (In rare cases, extra pre-parsed sources can be provided using builder.)
      */
-    final Collection<Source<?, ?>> sources = new ArrayList<>();
+    @NotNull final List<Source<?, ?>> sources = new ArrayList<>();
 
     /**
      * State of the mapping evaluation.
@@ -265,6 +283,23 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      * (This is relative to the whole mapping and/or its assignment being added, deleted, or kept.)
      */
     private PrismValueDeltaSetTriple<V> outputTriple;
+
+    /**
+     * Whether we were requested to "push" (phantom) changes: source items that have a delta but their
+     * real value has not changed.
+     *
+     * TODO move to "configuration" options and provide via builder.
+     *  (Current way of determining via lens context is more a hack than real solution.)
+     */
+    @Experimental
+    private boolean pushChangesRequested;
+
+    /**
+     * Whether the conditions for pushing the changes at output were fulfilled,
+     * so we instruct the consolidator (or analogous component) to do that.
+     */
+    @Experimental
+    private boolean pushChanges;
 
     /**
      * Result of the condition evaluation in old vs. new state.
@@ -317,6 +352,11 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      * Task stored during the evaluation, removed afterwards.
      */
     Task task;
+
+    /**
+     * Value metadata computer to be used when expression is evaluated.
+     */
+    private TransformationValueMetadataComputer valueMetadataComputer;
     //endregion
 
     //region Constructors and (relatively) simple getters
@@ -344,9 +384,22 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         profiling = builder.isProfiling();
         contextDescription = builder.getContextDescription();
         mappingQName = builder.getMappingQName();
+        mappingSpecification = builder.getMappingSpecification() != null ?
+                builder.getMappingSpecification() : createDefaultSpecification();
         now = builder.getNow();
         sources.addAll(builder.getAdditionalSources());
         parser = new MappingParser<>(this);
+        valueMetadataDefinition = beans.prismContext.getSchemaRegistry()
+                .findContainerDefinitionByCompileTimeClass(ValueMetadataType.class);
+    }
+
+    private MappingSpecificationType createDefaultSpecification() {
+        MappingSpecificationType specification = new MappingSpecificationType(beans.prismContext);
+        specification.setMappingName(mappingBean.getName());
+        if (originObject != null) {
+            specification.setDefinitionObjectRef(ObjectTypeUtil.createObjectRef(originObject, beans.prismContext));
+        }
+        return specification;
     }
 
     @SuppressWarnings("CopyConstructorMissesField") // TODO what about the other fields
@@ -376,11 +429,13 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         this.mappingPreExpression = prototype.mappingPreExpression;
         this.conditionMaskOld = prototype.conditionMaskOld;
         this.conditionMaskNew = prototype.conditionMaskNew;
+
+        this.mappingQName = prototype.mappingQName;
+        this.mappingSpecification = prototype.mappingSpecification;
+
         this.now = prototype.now;
         this.profiling = prototype.profiling;
         this.variableProducer = prototype.variableProducer;
-
-        this.mappingQName = prototype.mappingQName;
 
         this.contextDescription = prototype.contextDescription;
 
@@ -391,6 +446,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             this.conditionOutputTriple = prototype.conditionOutputTriple.clone();
         }
         this.parser = prototype.parser;
+        this.valueMetadataDefinition = prototype.valueMetadataDefinition;
     }
 
     public ObjectResolver getObjectResolver() {
@@ -539,23 +595,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     public void evaluate(Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
         this.task = task;
-        OperationResult result = parentResult.subresult(OP_EVALUATE)
-                .addArbitraryObjectAsContext("mapping", this)
-                .addArbitraryObjectAsContext("context", getContextDescription())
-                .addArbitraryObjectAsContext("task", task)
-                .setMinor()
-                .build();
-        if (result.isTracingNormal(MappingEvaluationTraceType.class)) {
-            trace = new MappingEvaluationTraceType(beans.prismContext)
-                    .mapping(mappingBean.clone())
-                    .mappingKind(mappingKind)
-                    .implicitSourcePath(implicitSourcePath != null ? new ItemPathType(implicitSourcePath) : null)
-                    .implicitTargetPath(implicitTargetPath != null ? new ItemPathType(implicitTargetPath) : null)
-                    .containingObjectRef(ObjectTypeUtil.createObjectRef(originObject, beans.prismContext));
-            result.addTrace(trace);
-        } else {
-            trace = null;
-        }
+        OperationResult result = createOpResultAndRecordStart(OP_EVALUATE, task, parentResult);
         try {
             assertUninitializedOrPrepared();
             prepare(result);
@@ -575,15 +615,13 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     public void evaluateTimeValidity(Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
         this.task = task;
-        OperationResult result = parentResult.subresult(OP_EVALUATE_TIME_VALIDITY)
-                .addArbitraryObjectAsContext("mapping", this)
-                .addArbitraryObjectAsContext("context", getContextDescription())
-                .addArbitraryObjectAsContext("task", task)
-                .setMinor()
-                .build();
+        OperationResult result = createOpResultAndRecordStart(OP_EVALUATE_TIME_VALIDITY, task, parentResult);
         try {
             assertUninitializedOrPrepared();
+
             prepare(result);
+            recordSources();
+
             evaluateTimeConstraint(result);
         } catch (Throwable t) {
             result.recordFatalError(t);
@@ -592,6 +630,28 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             result.computeStatusIfUnknown();
             this.task = null;
         }
+    }
+
+    @NotNull
+    private OperationResult createOpResultAndRecordStart(String opName, Task task, OperationResult parentResult) {
+        OperationResult result = parentResult.subresult(opName)
+                .addArbitraryObjectAsContext("mapping", this)
+                .addArbitraryObjectAsContext("context", getContextDescription())
+                .addArbitraryObjectAsContext("task", task)
+                .setMinor()
+                .build();
+        if (result.isTracingNormal(MappingEvaluationTraceType.class)) {
+            trace = new MappingEvaluationTraceType(beans.prismContext)
+                    .mapping(mappingBean.clone())
+                    .mappingKind(mappingKind)
+                    .implicitSourcePath(implicitSourcePath != null ? new ItemPathType(implicitSourcePath) : null)
+                    .implicitTargetPath(implicitTargetPath != null ? new ItemPathType(implicitTargetPath) : null)
+                    .containingObjectRef(ObjectTypeUtil.createObjectRef(originObject, beans.prismContext));
+            result.addTrace(trace);
+        } else {
+            trace = null;
+        }
+        return result;
     }
 
     private void assertUninitializedOrPrepared() {
@@ -647,10 +707,10 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                 .setMinor()
                 .build();
 
-        recordEvaluationStart();
+        noteEvaluationStart();
 
         try {
-            traceSources();
+            recordSources();
 
             // We may need to re-parse the sources here
 
@@ -661,6 +721,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             evaluateCondition(result);
 
             if (isTimeConstraintValid()) {
+                setupValueMetadataComputer(result);
+
                 if (isConditionSatisfied()) {
                     evaluateExpression(result);
                     applyDefinitionToOutputTriple();
@@ -670,7 +732,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                 } else {
                     outputTriple = null;
                 }
-                checkRange(result); // we check the range even for not-applicable mappings (MID-5953)
+                checkExistingTargetValues(result); // we check the range even for not-applicable mappings (MID-5953)
                 transitionState(MappingEvaluationState.EVALUATED);
 
                 if (isConditionSatisfied()) {
@@ -680,7 +742,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                     result.recordNotApplicableIfUnknown();
                     traceNotApplicable("condition is false");
                 }
-                traceOutput();
+                recordOutput();
             } else {
                 outputTriple = null;
                 result.recordNotApplicableIfUnknown();
@@ -691,18 +753,18 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             traceFailure(e);
             throw e;
         } finally {
-            recordEvaluationEnd();
+            noteEvaluationEnd();
         }
     }
 
-    private void traceTimeConstraintValidity() {
+    private void recordTimeConstraintValidity() {
         if (trace != null) {
             trace.setNextRecomputeTime(getNextRecomputeTime());
             trace.setTimeConstraintValid(isTimeConstraintValid());
         }
     }
 
-    private void traceSources() throws SchemaException {
+    private void recordSources() throws SchemaException {
         if (trace != null) {
             for (Source<?, ?> source : sources) {
                 trace.beginSource()
@@ -712,9 +774,13 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         }
     }
 
-    private void traceOutput() {
-        if (trace != null && outputTriple != null) {
-            trace.setOutput(DeltaSetTripleType.fromDeltaSetTriple(outputTriple, beans.prismContext));
+    private void recordOutput() {
+        if (trace != null) {
+            if (outputTriple != null) {
+                trace.setOutput(DeltaSetTripleType.fromDeltaSetTriple(outputTriple, beans.prismContext));
+            }
+            trace.setPushChangesRequested(pushChangesRequested);
+            trace.setPushChanges(pushChanges);
         }
     }
 
@@ -733,10 +799,39 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         outputTriple.clearMinusSet();
     }
 
-    private void checkRange(OperationResult result)
+    /**
+     * Checks existing values. There are more reasons to do this:
+     * <ol>
+     *   <li>Range checking. We want to delete values that are in the range of this mapping but were not produced by it.</li>
+     *   <li>Provenance handling.</li>
+     * </ol>
+     *
+     * <p/>
+     * The provenance handling is a bit more complex. It has three parts:
+     * <ol>
+     *    <li>For all negative values, we have to restrict deletion to our yield (only). This functionality can
+     *        be provided by us or by the consolidator. Let us do it ourselves.</li>
+     *    <li>For all non-negative values, We have to delete our own yield, except for cases where the metadata for
+     *        the yield remained the same. This is to avoid accumulation of obsolete yields (although the
+     *        consolidation could presumably treat this somehow). See {@link #deleteOwnYieldFromNonNegativeValues()} method.</li>
+     *    <li>If the range is specified as "matchingProvenance", we remove our yield from all existing values.</li>
+     * </ol>
+     */
+    private void checkExistingTargetValues(OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         VariableBindingDefinitionType target = mappingBean.getTarget();
-        if (target == null || target.getSet() == null) {
+        if (target == null) {
+            return;
+        }
+
+        if (valueMetadataComputer != null && valueMetadataComputer.supportsProvenance()) {
+            restrictNegativeValuesToOwnYield();
+            // Must come after the above method because this method creates some values in minus set.
+            // We don't want these newly-added minus values to be processed by the above method.
+            deleteOwnYieldFromNonNegativeValues();
+        }
+
+        if (target.getSet() == null) {
             return;
         }
 
@@ -750,19 +845,133 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         if (originalTargetValues == null) {
             throw new IllegalStateException("Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
         }
+
         ValueSetDefinitionType rangeSetDefBean = target.getSet();
-        ValueSetDefinition<V, D> rangeSetDef = new ValueSetDefinition<>(rangeSetDefBean, getOutputDefinition(), expressionProfile, name, "range of " + name + " in " + getMappingContextDescription(), task, result);
+        ValueSetDefinition<V, D> rangeSetDef = new ValueSetDefinition<>(rangeSetDefBean, getOutputDefinition(), valueMetadataDefinition,
+                expressionProfile, name, mappingSpecification, "range",
+                "range of " + name + " in " + getMappingContextDescription(), task, result);
         rangeSetDef.init(beans.expressionFactory);
         rangeSetDef.setAdditionalVariables(variables);
         for (V originalValue : originalTargetValues) {
             if (rangeSetDef.contains(originalValue)) {
-                addToMinusIfNecessary(originalValue);
+                addToMinusIfNecessary(originalValue, rangeSetDef);
             }
         }
     }
 
+    /**
+     * Special treatment of values present in both original item and zero/plus sets: values that were previously computed by this
+     * mapping (and are computed also now) are removed.
+     */
+    private void deleteOwnYieldFromNonNegativeValues() throws SchemaException {
+        if (outputTriple == null || originalTargetValues == null) {
+            return;
+        }
+
+        for (V nonNegativeValue : outputTriple.getNonNegativeValues()) {
+            if (nonNegativeValue != null) {
+                List<V> matchingOriginalValues = originalTargetValues.stream()
+                        .filter(originalValue -> nonNegativeValue.equals(originalValue, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS))
+                        .collect(Collectors.toList());
+                for (V matchingOriginalValue : matchingOriginalValues) {
+
+                    // Looking for metadata with the same mapping spec but not present in "new" value.
+                    // What about the equivalence strategy?
+                    //
+                    // - One option is DATA: This will remove all values that are not exactly the same as the newly
+                    //   computed one. It will provide "clean slate" to reflect even some minor non-real-value affecting changes.
+                    //   The cost is that phantom adds could be generated.
+                    //
+                    // - Another option is REAL_VALUE. This is currently a little bit complicated because some of the metadata
+                    //   that are important is now marked as operational. But we will gradually fix that.
+                    List<PrismContainerValue<ValueMetadataType>> matchingMetadata =
+                            matchingOriginalValue.<ValueMetadataType>getValueMetadataAsContainer().getValues().stream()
+                                    .filter(md ->
+                                            hasMappingSpec(md.asContainerable(), mappingSpecification)
+                                                    && !nonNegativeValue.<ValueMetadataType>getValueMetadataAsContainer().contains(md, REAL_VALUE))
+                                    .collect(Collectors.toList());
+
+                    if (!matchingMetadata.isEmpty()) {
+                        PrismValue valueToDelete = matchingOriginalValue.clone();
+                        valueToDelete.getValueMetadataAsContainer().clear();
+                        valueToDelete.<ValueMetadataType>getValueMetadataAsContainer().addAll(CloneUtil.cloneCollectionMembers(matchingMetadata));
+                        LOGGER.trace("Found an existing value with the metadata indicating it was created by this mapping: putting into minus set:\n{}\nMetadata:\n{}",
+                                DebugUtil.debugDumpLazily(valueToDelete, 1),
+                                DebugUtil.debugDumpLazily(valueToDelete.getValueMetadata(), 1));
+                        //noinspection unchecked
+                        outputTriple.addToMinusSet((V) valueToDelete);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * For negative (minus) values we want to delete our yield only.
+     */
+    private void restrictNegativeValuesToOwnYield() throws SchemaException {
+        if (outputTriple == null || originalTargetValues == null) {
+            LOGGER.trace("restrictNegativeValuesToOwnYield: No output triple or no original target values, exiting.");
+            return;
+        }
+
+        List<V> negativeValuesToKill = new ArrayList<>();
+
+        for (V negativeValue : outputTriple.getMinusSet()) {
+            LOGGER.trace("restrictNegativeValuesToOwnYield processing negative value of {}", negativeValue);
+            if (negativeValue != null) {
+                assert !negativeValue.hasValueMetadata();
+                List<V> matchingOriginalValues = originalTargetValues.stream()
+                        .filter(originalValue -> negativeValue.equals(originalValue, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS))
+                        .collect(Collectors.toList());
+
+                if (matchingOriginalValues.isEmpty()) {
+                    // Huh? There's no original value corresponding to the one being deleted.
+                    // We should maybe skip this negative value. But let's keep this dirty work to the consolidator instead.
+                    LOGGER.trace("No original value corresponding to value in minus set. "
+                            + "Keeping for consolidator to resolve. Value in minus set: {}", negativeValue);
+                } else {
+                    // We collect matching metadata from all equivalent existing values.
+                    List<PrismContainerValue<ValueMetadataType>> matchingMetadataValues = new ArrayList<>();
+                    boolean nakedValuePresent = false;
+                    for (V matchingOriginalValue : matchingOriginalValues) {
+                        List<PrismContainerValue<ValueMetadataType>> metadataValues =
+                                matchingOriginalValue.<ValueMetadataType>getValueMetadataAsContainer().getValues();
+                        if (metadataValues.isEmpty()) {
+                            nakedValuePresent = true;
+                        }
+                        metadataValues.stream()
+                                .filter(md -> hasMappingSpec(md.asContainerable(), mappingSpecification))
+                                .forEach(matchingMetadataValues::add);
+                    }
+
+                    if (nakedValuePresent) {
+                        // No metadata found. This is a kind of transitional state, because if we work with metadata,
+                        // each value should have some metadata. But OK, let us simply remove this value altogether.
+                        LOGGER.trace("No metadata found for existing value(s), which is strange. "
+                                + "Let us simply remove this value altogether.");
+                    } else {
+                        // Let us remove only own metadata.
+                        if (matchingMetadataValues.isEmpty()) {
+                            LOGGER.trace("Matching metadata not found for existing value(s). Preventing removal of this negative value.");
+                            negativeValuesToKill.add(negativeValue);
+                        } else {
+                            LOGGER.trace("Restricting negative value to the following metadata values:\n{}",
+                                    DebugUtil.debugDumpLazily(matchingMetadataValues, 1));
+                            negativeValue.<ValueMetadataType>getValueMetadataAsContainer().addAll(CloneUtil.cloneCollectionMembers(matchingMetadataValues));
+                        }
+                    }
+                }
+            }
+        }
+
+        for (V negativeValueToKill : negativeValuesToKill) {
+            outputTriple.getMinusSet().removeIf(value -> value == negativeValueToKill); // using == on purpose
+        }
+    }
+
     @SuppressWarnings("unchecked")
-    private void addToMinusIfNecessary(V originalValue) {
+    private void addToMinusIfNecessary(V originalValue, ValueSetDefinition<V, D> rangeSetDef) {
         if (outputTriple != null && (outputTriple.presentInPlusSet(originalValue) || outputTriple.presentInZeroSet(originalValue))) {
             return;
         }
@@ -770,8 +979,17 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         if (outputTriple == null) {
             outputTriple = beans.prismContext.deltaFactory().createPrismValueDeltaSetTriple();
         }
-        LOGGER.trace("Original value is in the mapping range (while not in mapping result), adding it to minus set: {}", originalValue);
-        outputTriple.addToMinusSet((V) originalValue.clone());
+
+        V valueToDelete = (V) originalValue.clone();
+        if (rangeSetDef.isYieldSpecific()) {
+            LOGGER.trace("A yield of original value is in the mapping range (while not in mapping result), adding it to minus set: {}", originalValue);
+            valueToDelete.<ValueMetadataType>getValueMetadataAsContainer()
+                    .removeIf(md -> !ProvenanceMetadataUtil.hasMappingSpec(md.asContainerable(), mappingSpecification));
+            // TODO we could check if the minus set already contains the value we are going to remove
+        } else {
+            LOGGER.trace("Original value is in the mapping range (while not in mapping result), adding it to minus set: {}", originalValue);
+        }
+        outputTriple.addToMinusSet(valueToDelete);
     }
 
     public boolean isConditionSatisfied() {
@@ -782,13 +1000,13 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         return conditionOutputTriple;
     }
 
-    private void recordEvaluationStart() {
+    private void noteEvaluationStart() {
         if (profiling) {
             evaluationStartTime = System.currentTimeMillis();
         }
     }
 
-    private void recordEvaluationEnd() {
+    private void noteEvaluationEnd() {
         if (profiling) {
             evaluationEndTime = System.currentTimeMillis();
         }
@@ -947,9 +1165,9 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         if (timeConstraintsEvaluation == null) {
             timeConstraintsEvaluation = new TimeConstraintsEvaluation(this);
             timeConstraintsEvaluation.evaluate(result);
-            traceTimeConstraintValidity();
         }
         timeConstraintsEvaluation.isTimeConstraintValid();
+        recordTimeConstraintValidity();
     }
 
     private boolean sourcesChanged() {
@@ -1044,6 +1262,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             context.setDefaultSource(defaultSource);
             context.setMappingQName(mappingQName);
             context.setVariableProducer(variableProducer);
+            context.setLocalContextDescription("condition");
             conditionOutputTriple = expression.evaluate(context, result);
         }
     }
@@ -1062,13 +1281,17 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         context.setExpressionFactory(beans.expressionFactory);
         context.setMappingQName(mappingQName);
         context.setVariableProducer(variableProducer);
-        context.setValueMetadataComputer(createValueMetadataComputer(result));
+        context.setValueMetadataComputer(valueMetadataComputer);
+        context.setLocalContextDescription("expression");
 
         if (mappingPreExpression != null) {
             mappingPreExpression.mappingPreExpression(context, result);
         }
 
         outputTriple = expression.evaluate(context, result);
+
+        pushChangesRequested = determinePushChangesRequested();
+        pushChanges = pushChangesRequested && sourcesChanged();
 
         if (outputTriple == null) {
 
@@ -1099,9 +1322,16 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         }
     }
 
-    protected abstract ValueMetadataComputer createValueMetadataComputer(OperationResult result) throws CommunicationException,
+    private void setupValueMetadataComputer(OperationResult result) throws CommunicationException,
+            ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        valueMetadataComputer = createValueMetadataComputer(result);
+    }
+
+    protected abstract TransformationValueMetadataComputer createValueMetadataComputer(OperationResult result) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException;
+
+    protected abstract boolean determinePushChangesRequested();
 
     @Override
     public PrismValueDeltaSetTriple<V> getOutputTriple() {
@@ -1272,26 +1502,36 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         return task;
     }
 
-    void traceTimeFrom(XMLGregorianCalendar timeFrom) {
+    void recordTimeFrom(XMLGregorianCalendar timeFrom) {
         if (trace != null) {
             trace.setTimeFrom(timeFrom);
         }
     }
 
-    void traceTimeTo(XMLGregorianCalendar timeTo) {
+    void recordTimeTo(XMLGregorianCalendar timeTo) {
         if (trace != null) {
             trace.setTimeTo(timeTo);
         }
     }
 
-    // TEMPORARY
-    List<MetadataMappingType> getMetadataMappings() {
-        return mappingBean instanceof MappingType ?
-                ((MappingType) mappingBean).getMetadataMapping() : null;
-    }
-
     @NotNull
     public ModelCommonBeans getBeans() {
         return beans;
+    }
+
+    public @NotNull MappingSpecificationType getMappingSpecification() {
+        return mappingSpecification;
+    }
+
+    public List<QName> getSourceNames() {
+        return sources.stream()
+                .map(Source::getName)
+                .collect(Collectors.toList());
+    }
+
+    @Experimental
+    @Override
+    public boolean isPushChanges() {
+        return pushChanges;
     }
 }

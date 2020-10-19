@@ -157,7 +157,7 @@ body .treeview-menu > li > span:hover {
 }
 
 .userpanel-icon-helper {
-  display: inline-block;
+  //display: inline-block;
   height: 100%;
   vertical-align: middle;
 }
@@ -220,6 +220,10 @@ body .treeview-menu > li > span:hover {
 
 .icon-style-broken {
 	color: #f39c12;
+}
+
+.icon-style-maintenance {
+	color: #828282;
 }
 
 // Classes that can be added to color icons, info boxes and other widgets for particular object types
@@ -703,7 +707,6 @@ body .treeview-menu > li > span:hover {
 }
 
 .summary-panel-identifier {
-	white-space: pre-wrap;
 	color: @text-dimmed-color;
 	font-weight: normal;
 }
@@ -855,11 +858,11 @@ body .treeview-menu > li > span:hover {
 
         .prism-container {
           padding-left: 40px;
-          border-top: 0px solid @table-divider-color;
+          border-top: none;
         }
         .prism-container.multivalue-container {
           padding-left: 40px;
-          border-top: 0px solid @table-divider-color;
+          border-top: none;
         }
 
       }
@@ -870,22 +873,30 @@ body .treeview-menu > li > span:hover {
 
         .prism-container.multivalue-container {
           padding-left: 40px;
-          border-top: 0px solid @table-divider-color;
+          border-top: none;
 
           .container-wrapper {
             padding-left: 40px;
-            border-top: 0px solid @table-divider-color;
+            border-top: none;
           }
         }
 
         .container-wrapper {
           padding-left: 40px;
-          border-top: 0px solid @table-divider-color;
+          border-top: none;
 
           .container-wrapper {
             padding-left: 0px;
-            border-top: 0px solid @table-divider-color;
+            border-top: none;
           }
+        }
+      }
+    }
+
+    .metadata {
+      .prism-properties {
+        .prism-container {
+          border-top: none;
         }
       }
     }
@@ -920,22 +931,15 @@ body .treeview-menu > li > span:hover {
   .prism-property {
     padding-left: 40px;
 
-    &.stripe {
-      background-color: @table-stripe-bg-color;
-    }
+    //&.stripe {
+    //  background-color: @table-stripe-bg-color;
+    //}
   }
 
 }
 
-.metadata-properties {
-  .metadata-property {
-    padding-left: 20px;
-
-    &.stripe {
-      background-color: @table-stripe-bg-color;
-    }
-  }
-
+.property-stripe:nth-of-type(odd) {
+  background-color: @table-stripe-bg-color;
 }
 
 .prism-header {
@@ -950,6 +954,7 @@ body .treeview-menu > li > span:hover {
 	margin-right: 15px;
 	float: left;
 	padding-top: 3px;
+    cursor: pointer;
 }
 
 .prism-property {
@@ -1528,10 +1533,6 @@ th.countLabel{
 	padding-bottom: 5px;
 }
 
-.labelContainer > .text-info { // aligning i button to one row with title of container
-	float: left;
-}
-
 // This will make the tooltip respect new lines.
 // Lines will still wrap if they are longer than the default max-width of the container.
 .tooltip-inner {
@@ -1654,29 +1655,159 @@ th.composited-icon {
 	width: 38px;
 }
 
+.ace-editor-left-aligning {
+  margin-left: -15px;
+}
+
 .search-item {
-display: inline-block;
+  display: inline-block;
+  //min-width: 270px;
   border-color: #ddd;
   border-radius: 3px;
   background-color: #f4f4f4;
   vertical-align: middle;
   font-size: 12px;
+  padding-left: 3px;
+  margin-left: 3px;
+
+  .search-item-label {
+    margin-top: 5px;
+    width: fit-content;
+    padding-right: 5px !important;
+    padding-left: 5px !important;
+  }
+
+  .search-item-field {
+    padding-right: 3px !important;
+    padding-left: 3px !important;
+  }
+
+  .search-item-remove-button {
+    margin-top: 5px;
+    border: none !important;
+    margin-right: 3px;
+  }
 }
 
-.panel-default {
-    .panel-default {
-        border-color: #ffffff;
+.metadata {
+
+    border-radius: 0px;
+    border-left: 1px solid #f4f4f4;
+    border-right: 1px solid #f4f4f4;
+    border-bottom: none;
+    border-top: none;
+
+  .panel-default {
+      border-color: #ffffff;
+  }
+
+  .panel {
+      margin-bottom: 0px;
+      box-shadow: none;
+  }
+
+  .panel-body {
+      padding: 5px;
+  }
+
+  .info-box {
+      min-height: 50px;
+  }
+
+  .info-box-icon {
+      height: 50px;
+      line-height: normal;
+  }
+
+  .info-box-icon-ethereal-image {
+      font-size: 40px;
+  }
+}
+
+.metadata div.prism-container {
+  // Removing the "top horizontal line" above metadata label and icon.
+  // HACK We should rather re-structure the code and provide custom css class.
+  // But there is not enough time for that now
+  border-top: 0px !important;
+}
+
+.metadata-block {
+     padding-top: 5px;
+}
+
+.metadata-properties {
+  padding-left: 40px;
+
+  .metadata-property {
+    padding-left: 0px;
+    padding-bottom: 5px;
+
+    &.stripe {
+      background-color: @table-stripe-bg-color;
     }
+  }
+
+  .label {
+    display: block;
+    color: #000;
+    font-size: 100%;
+    background-color: transparent;
+    margin-top: 12px;
+    margin-top: 8px;
+    padding-left: 0em;
+    text-align: left;
+  }
+
 }
 
-.metadata-nav > li > a {
-    border-radius: 10px;
-    padding: 5px 10px;
-    float: left;
+// Tag icon in metadata "tab"
+.metadata-nav > li > a::before {
+  font-family: "FontAwesome";
+  padding-right: 0.5em;
+  content: "\f02b";
+}
+
+.contains-active-tab {
+  border-bottom: 1px solid #eeeeee;
+}
+
+.contains-active-tab > ul > li > a.metadata-tab {
+  margin-top: 0px;
+  border-top: 3px solid transparent;
+  border-radius: 0px;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  background-color: transparent;
+}
+
+.metadata-tab {
+  margin-top: 2px;
+  border: 1px solid #dddddd;
+  border-radius: 3px;
+  padding: 3px 10px !important;
+  float: left;
+  padding-bottom: 5px !important;
+  background-color: #f7f7f7;
+
+  font-size: 75%;
+  color: #000;
+  text-align: center;
+  white-space: nowrap;
+
+}
+
+.metadata-tab-active {
+  border-top: 3px solid #3c8dbc !important;
+  border-right: 1px solid #f4f4f4 !important;
+  border-left: 1px solid #f4f4f4 !important;
+  background-color: #ffffff !important;
+  border-bottom: 1px solid transparent !important;
 }
 
 .acquisition {
-
+    margin-top: 5px;
+    margin-bottom: 5px;
 }
 
 .acquisition > li {
@@ -1698,12 +1829,20 @@ display: inline-block;
 }
 
 .yield {
-  margin-bottom: 2px;
-  border-radius: 3px;
+  margin-top: 2px;
 }
 
 .yield-heading {
   padding: 5px 5px;
   border-top: 1px solid #dddddd;
+//   font-weight: 700;
+  font-size: 16px;
 }
 
+.yield-description {
+  clear: both; // Fix floats in yield header
+  padding-top: 10px;
+  padding-left: 50px;
+  margin-top: 0px;
+  margin-bottom: -10px;
+}

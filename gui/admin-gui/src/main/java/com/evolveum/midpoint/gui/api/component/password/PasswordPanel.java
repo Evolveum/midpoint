@@ -1,25 +1,16 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.gui.api.component.password;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.page.self.*;
-import com.evolveum.midpoint.web.security.MidPointApplication;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Application;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -35,13 +26,21 @@ import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
+import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
+import com.evolveum.midpoint.web.page.self.PageOrgSelfProfile;
+import com.evolveum.midpoint.web.page.self.PageRoleSelfProfile;
+import com.evolveum.midpoint.web.page.self.PageServiceSelfProfile;
+import com.evolveum.midpoint.web.page.self.PageUserSelfProfile;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lazyman
@@ -59,9 +58,7 @@ public class PasswordPanel extends InputPanel {
     private static final String ID_PASSWORD_ONE = "password1";
     private static final String ID_PASSWORD_TWO = "password2";
 
-    private static final Trace LOGGER = TraceManager.getTrace(PasswordPanel.class);
-
-    private boolean passwordInputVisble;
+    private boolean passwordInputVisible;
     private static boolean clearPasswordInput = false;
 
     public PasswordPanel(String id, IModel<ProtectedStringType> model) {
@@ -70,7 +67,7 @@ public class PasswordPanel extends InputPanel {
 
     public PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly, boolean isInputVisible) {
         super(id);
-        this.passwordInputVisble = isInputVisible;
+        this.passwordInputVisible = isInputVisible;
         initLayout(model, isReadOnly);
     }
 
@@ -81,13 +78,13 @@ public class PasswordPanel extends InputPanel {
 
             @Override
             public boolean isVisible() {
-                return passwordInputVisble;
+                return passwordInputVisible;
             }
         };
         inputContainer.setOutputMarkupId(true);
         add(inputContainer);
 
-        final PasswordTextField password1 = new SecureModelPasswordTextField(ID_PASSWORD_ONE, new PasswordModel(model)){
+        final PasswordTextField password1 = new SecureModelPasswordTextField(ID_PASSWORD_ONE, new PasswordModel(model)) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -130,7 +127,7 @@ public class PasswordPanel extends InputPanel {
 
             @Override
             public boolean isVisible() {
-                return !passwordInputVisble;
+                return !passwordInputVisible;
             }
         };
         inputContainer.setOutputMarkupId(true);
@@ -155,7 +152,7 @@ public class PasswordPanel extends InputPanel {
 
             @Override
             public boolean isVisible() {
-                return !passwordInputVisble && model != null && model.getObject() != null;
+                return !passwordInputVisible && model != null && model.getObject() != null;
             }
         };
         link.add(new VisibleEnableBehaviour() {
@@ -186,16 +183,16 @@ public class PasswordPanel extends InputPanel {
 
             @Override
             public boolean isVisible() {
-                PageBase pageBase = (PageBase)getPage();
-                if (pageBase == null){
+                PageBase pageBase = (PageBase) getPage();
+                if (pageBase == null) {
                     return false;
                 }
                 if (pageBase instanceof PageUserSelfProfile || pageBase instanceof PageOrgSelfProfile
-                    || pageBase instanceof PageRoleSelfProfile || pageBase instanceof PageServiceSelfProfile) {
+                        || pageBase instanceof PageRoleSelfProfile || pageBase instanceof PageServiceSelfProfile) {
                     return false;
                 }
                 if (pageBase instanceof PageAdminFocus && !((PageAdminFocus) pageBase).isLoggedInFocusPage()
-                        && model.getObject() != null){
+                        && model.getObject() != null) {
                     return true;
                 }
                 return false;
@@ -208,14 +205,14 @@ public class PasswordPanel extends InputPanel {
     }
 
     private void onLinkClick(AjaxRequestTarget target) {
-        passwordInputVisble = true;
+        passwordInputVisible = true;
         target.add(this);
     }
 
     private void onRemovePassword(IModel<ProtectedStringType> model, AjaxRequestTarget target) {
         get(ID_LINK_CONTAINER).get(ID_PASSWORD_SET).setVisible(false);
         get(ID_LINK_CONTAINER).get(ID_PASSWORD_REMOVE).setVisible(true);
-        passwordInputVisble = false;
+        passwordInputVisible = false;
         model.setObject(null);
         target.add(this);
     }
@@ -235,7 +232,7 @@ public class PasswordPanel extends InputPanel {
 
     private static class PasswordValidator implements IValidator<String> {
 
-        private PasswordTextField p1;
+        private final PasswordTextField p1;
 
         private PasswordValidator(@NotNull PasswordTextField p1) {
             this.p1 = p1;
@@ -305,7 +302,7 @@ public class PasswordPanel extends InputPanel {
 
         @Override
         public void setObject(String object) {
-            if (clearPasswordInput){
+            if (clearPasswordInput) {
                 clearPasswordInput = false;
                 return;
             }
@@ -327,5 +324,6 @@ public class PasswordPanel extends InputPanel {
         }
     }
 
-    protected void changePasswordPerformed(){}
+    protected void changePasswordPerformed() {
+    }
 }

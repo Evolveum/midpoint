@@ -1,11 +1,16 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.page.admin.home.component;
+
+import java.util.Date;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -17,13 +22,6 @@ import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.IModel;
-
-import java.util.Date;
 
 /**
  * @author lazyman
@@ -36,9 +34,8 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
     private static final String ID_LAST_FAIL_FROM = "lastFailFrom";
     private static final String ID_PASSWORD_EXP = "passwordExp";
 
-
     public PersonalInfoPanel(String id) {
-        super(id, (IModel<PersonalInfoDto>) null);
+        super(id, null);
     }
 
     @Override
@@ -51,7 +48,7 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
     public IModel<PersonalInfoDto> createModel() {
         return new LoadableModel<PersonalInfoDto>(false) {
 
-           private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected PersonalInfoDto load() {
@@ -89,10 +86,11 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
         DateLabelComponent lastLoginDate = new DateLabelComponent(ID_LAST_LOGIN_DATE, new IModel<Date>() {
 
             private static final long serialVersionUID = 1L;
+
             @Override
             public Date getObject() {
 
-                if(getModel() ==  null) {
+                if (getModel() == null) {
                     return null;
                 }
                 PersonalInfoDto dto = getModel().getObject();
@@ -108,7 +106,7 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
 
             @Override
             public String getObject() {
-                if(getModel() ==  null) {
+                if (getModel() == null) {
                     return PersonalInfoPanel.this.getString("PersonalInfoPanel.undefined");
                 }
                 PersonalInfoDto dto = getModel().getObject();
@@ -125,7 +123,7 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
 
             @Override
             public Date getObject() {
-                if(getModel() ==  null) {
+                if (getModel() == null) {
                     return null;
                 }
                 PersonalInfoDto dto = getModel().getObject();
@@ -141,7 +139,7 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
 
             @Override
             public String getObject() {
-                if(getModel() ==  null) {
+                if (getModel() == null) {
                     return PersonalInfoPanel.this.getString("PersonalInfoPanel.undefined");
                 }
                 PersonalInfoDto dto = getModel().getObject();
@@ -158,7 +156,7 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
 
             @Override
             public String getObject() {
-                if(getModel() ==  null) {
+                if (getModel() == null) {
                     return PersonalInfoPanel.this.getString("PersonalInfoPanel.undefined");
                 }
                 PersonalInfoDto dto = getModel().getObject();

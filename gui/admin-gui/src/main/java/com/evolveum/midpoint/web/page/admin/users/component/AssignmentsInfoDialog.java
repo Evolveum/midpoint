@@ -12,11 +12,11 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.GenericColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -37,7 +37,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -73,7 +72,7 @@ public abstract class AssignmentsInfoDialog extends BasePanel<List<AssignmentInf
         content.setOutputMarkupId(true);
         add(content);
 
-        TablePanel<AssignmentInfoDto> table = new TablePanel<>(ID_TABLE, provider, columns);
+        BoxedTablePanel<AssignmentInfoDto> table = new BoxedTablePanel<AssignmentInfoDto>(ID_TABLE, provider, columns);
         table.setOutputMarkupId(true);
         content.add(table);
 
@@ -106,7 +105,7 @@ public abstract class AssignmentsInfoDialog extends BasePanel<List<AssignmentInf
         if (enableMultiSelect()) {
             columns.add(new CheckBoxHeaderColumn<>());
         }
-        columns.add(new LinkColumn<AssignmentInfoDto>(createStringResource("AssignmentPreviewDialog.column.name"), AssignmentInfoDto.F_TARGET_NAME) {
+        columns.add(new AjaxLinkColumn<AssignmentInfoDto>(createStringResource("AssignmentPreviewDialog.column.name"), AssignmentInfoDto.F_TARGET_NAME) {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<AssignmentInfoDto> rowModel){

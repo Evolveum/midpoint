@@ -38,7 +38,7 @@ import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
 import com.evolveum.midpoint.web.application.AsyncWebProcessModel;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -131,7 +131,7 @@ public class ProgressPanel extends BasePanel {
     }
 
     private void initLayout() {
-        Form progressForm = new Form<>(ID_PROGRESS_FORM, true);
+        MidpointForm progressForm = new MidpointForm<>(ID_PROGRESS_FORM, true);
         add(progressForm);
 
         contentsPanel = new WebMarkupContainer(ID_CONTENTS_PANEL);
@@ -289,7 +289,7 @@ public class ProgressPanel extends BasePanel {
         btn.setOutputMarkupPlaceholderTag(true);
     }
 
-    private void initButtons(final Form progressForm) {
+    private void initButtons(final MidpointForm progressForm) {
         abortButton = new AjaxSubmitButton(ID_ABORT,
                 createStringResource("pageAdminFocus.button.abort")) {
 
@@ -452,7 +452,7 @@ public class ProgressPanel extends BasePanel {
                 optionsContainer.setRealValue(options.toModelExecutionOptionsType());
                 task.setExtensionContainer(optionsContainer);
             }
-            task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+            task.setChannel(SchemaConstants.CHANNEL_USER_URI);
             task.setHandlerUri(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI);
             task.setName("Execute changes");
             task.setInitialExecutionStatus(TaskExecutionStatus.RUNNABLE);

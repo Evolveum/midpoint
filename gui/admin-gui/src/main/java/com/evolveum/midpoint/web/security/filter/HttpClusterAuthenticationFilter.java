@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.web.security.filter;
 
 import com.evolveum.midpoint.model.api.authentication.AuthenticationModuleNameConstants;
+import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.BasicMidPointAuthenticationSuccessHandler;
@@ -15,6 +17,7 @@ import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.NullRememberMeServices;
@@ -28,6 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.List;
 
 /**
  * @author skublik
@@ -89,7 +93,13 @@ public class HttpClusterAuthenticationFilter extends HttpAuthenticationFilter {
 
             this.rememberMeServices.loginFail(request, response);
 
-            this.getAuthenticationEntryPoint().commence(request, response, failed);
+            StringBuilder sb = new StringBuilder();
+            sb.append(AuthenticationModuleNameConstants.CLUSTER).append(" realm=\"midpoint\"");
+            response.setHeader("WWW-Authenticate",sb.toString());
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write(" test error ");
+            response.getWriter().flush();
+            response.getWriter().close();
 
             return;
         }

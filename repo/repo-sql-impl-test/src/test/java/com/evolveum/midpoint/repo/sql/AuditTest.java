@@ -8,12 +8,6 @@ package com.evolveum.midpoint.repo.sql;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hibernate.Session;
-import org.hibernate.query.Query;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -23,25 +17,26 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.sql.data.audit.*;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.helpers.JdbcSession;
+import com.evolveum.midpoint.repo.sql.pure.PageOf;
+import com.evolveum.midpoint.repo.sql.pure.SqlQueryContext;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditEventRecord;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditRefValue;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class AuditTest extends BaseSQLRepoTest {
 
     @Test
-    public void test100AuditSimple() {
+    public void test100AuditSimple() throws QueryException {
         when();
         AuditEventRecord record = new AuditEventRecord();
         record.addPropertyValue("prop1", "val1.1");
@@ -64,31 +59,29 @@ public class AuditTest extends BaseSQLRepoTest {
         then();
         System.out.println("Record written:\n" + record.debugDump());
         System.out.println("Repo ID: " + record.getRepoId());
-        AuditEventRecord loaded = getAuditEventRecord(1, 0);
-        System.out.println("Record loaded:\n" + loaded.debugDump());
-        System.out.println("Repo ID: " + loaded.getRepoId());
-        assertThat(loaded.getProperties()).withFailMessage("Wrong # of properties").hasSize(3);
-        assertThat(loaded.getPropertyValues("prop1")).withFailMessage("Wrong prop1 values")
+        MAuditEventRecord loaded = getAuditEventRecord(1, 0);
+        System.out.println("Record loaded:\n" + loaded);
+        assertThat(loaded.properties).withFailMessage("Wrong # of properties").hasSize(3);
+        assertThat(loaded.properties.get("prop1")).describedAs("prop1 values")
                 .containsExactlyInAnyOrder("val1.1", "val1.2");
-        assertThat(loaded.getPropertyValues("prop2")).withFailMessage("Wrong prop2 values")
+        assertThat(loaded.properties.get("prop2")).describedAs("prop2 values")
                 .containsExactlyInAnyOrder("val2");
-        assertThat(loaded.getPropertyValues("prop3")).withFailMessage("Wrong prop3 values")
+        assertThat(loaded.properties.get("prop3")).describedAs("prop3 values")
                 .containsExactlyInAnyOrder((String) null);
-        assertThat(loaded.getReferences()).withFailMessage("Wrong # of references").hasSize(3);
-        assertThat(loaded.getReferenceValues("ref1")).withFailMessage("Wrong ref1 values")
+        assertThat(loaded.refValues).withFailMessage("Wrong # of references").hasSize(3);
+        assertThat(loaded.refValues.get("ref1")).describedAs("ref1 values")
+                .flatExtracting(this::toAuditReferenceValue)
                 .containsExactlyInAnyOrder(refVal1_1, refVal1_2);
-        assertThat(loaded.getReferenceValues("ref2")).withFailMessage("Wrong ref2 values")
+        assertThat(loaded.refValues.get("ref2")).describedAs("ref2 values")
+                .flatExtracting(this::toAuditReferenceValue)
                 .containsExactlyInAnyOrder(refVal2);
-        assertThat(loaded.getReferenceValues("ref3")).withFailMessage("Wrong ref3 values")
+        assertThat(loaded.refValues.get("ref3")).describedAs("ref3 values")
+                .flatExtracting(this::toAuditReferenceValue)
                 .containsExactlyInAnyOrder(refVal3);
     }
 
-    private PolyString poly(String orig) {
-        return new PolyString(orig, prismContext.getDefaultPolyStringNormalizer().normalize(orig));
-    }
-
     @Test
-    public void test110AuditSecond() {
+    public void test110AuditSecond() throws QueryException {
         when();
         AuditEventRecord record = new AuditEventRecord();
         record.addPropertyValue("prop", "val");
@@ -98,20 +91,20 @@ public class AuditTest extends BaseSQLRepoTest {
         then();
         System.out.println("Record written:\n" + record.debugDump());
         System.out.println("Repo ID: " + record.getRepoId());
-        AuditEventRecord loaded = getAuditEventRecord(2, 1);
-        System.out.println("Record loaded:\n" + loaded.debugDump());
-        System.out.println("Repo ID: " + loaded.getRepoId());
-        assertThat(loaded.getProperties()).withFailMessage("Wrong # of properties").hasSize(1);
-        assertThat(loaded.getPropertyValues("prop"))
+        MAuditEventRecord loaded = getAuditEventRecord(2, 1);
+        System.out.println("Record loaded:\n" + loaded);
+        assertThat(loaded.properties).describedAs("# of properties").hasSize(1);
+        assertThat(loaded.properties.get("prop"))
                 .withFailMessage("Wrong prop values")
                 .containsExactlyInAnyOrder("val");
-        assertThat(loaded.getReferences()).withFailMessage("Wrong # of references").isEmpty();
+        // not initialized if nothing is there, so it's null (meaning empty)
+        assertThat(loaded.refValues).describedAs("# of references").isNullOrEmpty();
     }
 
     @Test
-    public void testAudit() {
+    public void test200AuditDelta() {
         AuditEventRecord record = new AuditEventRecord();
-        record.setChannel("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import");
+        record.setChannel("http://midpoint.evolveum.com/xml/ns/public/common/channels-3#import");
         record.setEventIdentifier("1511974895961-0-1");
         record.setEventStage(AuditEventStage.EXECUTION);
         record.setEventType(AuditEventType.ADD_OBJECT);
@@ -131,117 +124,37 @@ public class AuditTest extends BaseSQLRepoTest {
         auditService.audit(record, new NullTaskImpl());
     }
 
-    // TODO MID-6318 migrate to other types, perhaps QAuditEventRecord or utilize searchObject or SqlQueryExecutor at least
-    private AuditEventRecord getAuditEventRecord(int expectedCount, int index) {
-        try (Session session = getFactory().openSession()) {
-            session.beginTransaction();
-            Query<RAuditEventRecord> query = session.createQuery(
-                    "from " + RAuditEventRecord.class.getSimpleName() + " order by id",
-                    RAuditEventRecord.class);
-            List<RAuditEventRecord> records = query.list();
-            assertThat(records).hasSize(expectedCount);
-            AuditEventRecord eventRecord = fromRepo(records.get(index));
-            session.getTransaction().commit();
-            return eventRecord;
-        }
+    private PolyString poly(String orig) {
+        return new PolyString(orig, prismContext.getDefaultPolyStringNormalizer().normalize(orig));
     }
 
-    // TODO MID-6318 both fromRepo methods moved and changed from R* classes, this was the only usage, migrate to non-R types
-    private AuditEventRecord fromRepo(RAuditEventRecord repo) {
-        AuditEventRecord audit = new AuditEventRecord();
-        audit.setChannel(repo.getChannel());
-        audit.setEventIdentifier(repo.getEventIdentifier());
-        if (repo.getEventStage() != null) {
-            audit.setEventStage(repo.getEventStage().getStage());
+    /**
+     * Creates {@link AuditReferenceValue} equivalent of {@link MAuditRefValue} for comparison.
+     */
+    private AuditReferenceValue toAuditReferenceValue(MAuditRefValue refValue) {
+        AuditReferenceValue arv = new AuditReferenceValue();
+        arv.setOid(refValue.oid);
+        arv.setType(RUtil.stringToQName(refValue.type));
+        if (refValue.targetNameOrig != null || refValue.targetNameNorm != null) {
+            arv.setTargetName(new PolyString(refValue.targetNameOrig, refValue.targetNameNorm));
         }
-        if (repo.getEventType() != null) {
-            audit.setEventType(repo.getEventType().getType());
-        }
-        audit.setHostIdentifier(repo.getHostIdentifier());
-        audit.setRemoteHostAddress(repo.getRemoteHostAddress());
-        audit.setNodeIdentifier(repo.getNodeIdentifier());
-        audit.setMessage(repo.getMessage());
-
-        if (repo.getOutcome() != null) {
-            audit.setOutcome(repo.getOutcome().getStatus());
-        }
-        audit.setParameter(repo.getParameter());
-        audit.setResult(repo.getResult());
-        audit.setSessionIdentifier(repo.getSessionIdentifier());
-        audit.setRequestIdentifier(repo.getRequestIdentifier());
-        audit.setTaskIdentifier(repo.getTaskIdentifier());
-        audit.setTaskOid(repo.getTaskOID());
-        if (repo.getTimestamp() != null) {
-            audit.setTimestamp(repo.getTimestamp().getTime());
-        }
-
-        for (RTargetResourceOid resourceOID : repo.getResourceOids()) {
-            audit.getResourceOids().add(resourceOID.getResourceOid());
-        }
-
-        List<ObjectDeltaOperation<?>> odos = new ArrayList<>();
-        for (RObjectDeltaOperation rodo : repo.getDeltas()) {
-            try {
-                ObjectDeltaOperation<?> odo = fromRepo(rodo);
-                odos.add(odo);
-            } catch (Exception ex) {
-                // TODO: for now this is OK, if we cannot parse delta, just skip it...
-                // Have to be resolved later.
-            }
-        }
-
-        audit.addDeltas(odos);
-
-        for (RAuditPropertyValue rPropertyValue : repo.getPropertyValues()) {
-            audit.addPropertyValue(rPropertyValue.getName(), rPropertyValue.getValue());
-        }
-        for (RAuditReferenceValue rRefValue : repo.getReferenceValues()) {
-            audit.addReferenceValue(rRefValue.getName(), fromRepo(rRefValue));
-        }
-
-        audit.setRepoId(repo.getId());
-
-        return audit;
-        // initiator, attorney, target, targetOwner
+        return arv;
     }
 
-    private AuditReferenceValue fromRepo(RAuditReferenceValue refValue) {
-        return new AuditReferenceValue(refValue.getOid(),
-                RUtil.stringToQName(refValue.getType()),
-                RPolyString.fromRepo(refValue.getTargetName(), prismContext));
-    }
+    private MAuditEventRecord getAuditEventRecord(int expectedCount, int index)
+            throws QueryException {
+        SqlQueryContext<AuditEventRecordType, QAuditEventRecord, MAuditEventRecord> context =
+                SqlQueryContext.from(AuditEventRecordType.class,
+                        prismContext, baseHelper.querydslConfiguration());
+        QAuditEventRecord aer = context.root();
+        context.sqlQuery().orderBy(aer.id.asc());
 
-    @NotNull
-    private ObjectDeltaOperation<?> fromRepo(RObjectDeltaOperation operation)
-            throws DtoTranslationException {
+        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startReadOnlyTransaction()) {
+            PageOf<MAuditEventRecord> result = context.executeQuery(jdbcSession.connection())
+                    .map(t -> t.get(aer));
 
-        ObjectDeltaOperation<?> odo = new ObjectDeltaOperation<>();
-        try {
-            if (operation.getDelta() != null) {
-                byte[] data = operation.getDelta();
-                String serializedDelta = RUtil.getSerializedFormFromBytes(data,
-                        baseHelper.getConfiguration().isUsingSQLServer());
-
-                ObjectDeltaType delta = prismContext.parserFor(serializedDelta)
-                        .parseRealValue(ObjectDeltaType.class);
-                odo.setObjectDelta(DeltaConvertor.createObjectDelta(delta, prismContext));
-            }
-            if (operation.getFullResult() != null) {
-                byte[] data = operation.getFullResult();
-                String serializedResult = RUtil.getSerializedFormFromBytes(data,
-                        baseHelper.getConfiguration().isUsingSQLServer());
-
-                OperationResultType resultType = prismContext.parserFor(serializedResult)
-                        .parseRealValue(OperationResultType.class);
-                odo.setExecutionResult(OperationResult.createOperationResult(resultType));
-            }
-            odo.setObjectName(RPolyString.fromRepo(operation.getObjectName(), prismContext));
-            odo.setResourceOid(operation.getResourceOid());
-            odo.setResourceName(RPolyString.fromRepo(operation.getResourceName(), prismContext));
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
+            assertThat(result).hasSize(expectedCount);
+            return result.get(index);
         }
-
-        return odo;
     }
 }

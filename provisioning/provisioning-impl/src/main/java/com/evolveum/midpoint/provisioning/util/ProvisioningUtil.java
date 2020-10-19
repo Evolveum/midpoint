@@ -706,7 +706,7 @@ public class ProvisioningUtil {
         failureDesc.setObjectDelta(delta);
         failureDesc.setResource(resource.asPrismObject());
         failureDesc.setResult(parentResult);
-        failureDesc.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
+        failureDesc.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_DISCOVERY));
 
         return failureDesc;
     }

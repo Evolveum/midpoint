@@ -19,34 +19,33 @@ import net.sf.jasperreports.engine.design.JRDesignParameter;
 import net.sf.jasperreports.engine.design.JRDesignQuery;
 import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.xml.JRXmlWriter;
-
 import org.apache.commons.codec.binary.Base64;
 
 import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class JasperReportDto implements Serializable{
+public class JasperReportDto implements Serializable {
 
     private static final long serialVersionUID = 1L;
+
+    private final byte[] jasperReportXml;
+
     private String query;
     private List<JasperReportParameterDto> parameters;
     private List<JasperReportFieldDto> fields;
-    private String detail;
     private JasperDesign design;
 
-    private byte[] jasperReportXml;
-
-    public JasperReportDto(byte[] jasperReportxml, boolean onlyForPromptingParams) {
-        this.jasperReportXml = jasperReportxml;
-        initFileds(onlyForPromptingParams);
+    public JasperReportDto(byte[] jasperReportXml, boolean onlyForPromptingParams) {
+        this.jasperReportXml = jasperReportXml;
+        initFields(onlyForPromptingParams);
     }
 
-    public JasperReportDto(byte[] jasperReportxml) {
-        this(jasperReportxml, false);
+    public JasperReportDto(byte[] jasperReportXml) {
+        this(jasperReportXml, false);
     }
 
-    private void initFileds(boolean onlyForPromptingParams){
-        if (jasperReportXml == null){
+    private void initFields(boolean onlyForPromptingParams) {
+        if (jasperReportXml == null) {
             return;
         }
 
@@ -55,20 +54,20 @@ public class JasperReportDto implements Serializable{
             query = design.getQuery().getText();
 
             fields = new ArrayList<>();
-            for (JRField field : design.getFieldsList()){
+            for (JRField field : design.getFieldsList()) {
                 fields.add(new JasperReportFieldDto(field.getName(), field.getValueClass(), field.getValueClassName()));
             }
 
-            for (JasperReportFieldDto field : fields){
+            for (JasperReportFieldDto field : fields) {
                 design.removeField(field.getName());
             }
 
             parameters = new ArrayList<>();
-            for (JRParameter parameter : design.getParametersList()){
-                if (parameter.isSystemDefined()){
+            for (JRParameter parameter : design.getParametersList()) {
+                if (parameter.isSystemDefined()) {
                     continue;
                 }
-                if (onlyForPromptingParams && !parameter.isForPrompting()){
+                if (onlyForPromptingParams && !parameter.isForPrompting()) {
                     continue;
 
                 }
@@ -76,49 +75,45 @@ public class JasperReportDto implements Serializable{
                 parameters.add(p);
             }
 
-            for (JasperReportParameterDto param : parameters){
+            for (JasperReportParameterDto param : parameters) {
                 design.removeParameter(param.getName());
             }
 
-            detail = new String(Base64.isBase64(jasperReportXml) ? Base64.decodeBase64(jasperReportXml) :jasperReportXml);
-
-
+            String detail = new String(Base64.isBase64(jasperReportXml) ? Base64.decodeBase64(jasperReportXml) : jasperReportXml);
+            // TODO and what to do with the detail?
         } catch (SchemaException e) {
             // TODO Auto-generated catch block
             throw new IllegalArgumentException(e);
         }
-
-
     }
 
     public List<JasperReportParameterDto> getParameters() {
-        if (parameters == null){
+        if (parameters == null) {
             parameters = new ArrayList<>();
         }
         return parameters;
     }
 
     public List<JasperReportFieldDto> getFields() {
-        if (fields == null){
+        if (fields == null) {
             fields = new ArrayList<>();
         }
         return fields;
     }
 
-
     public String getQuery() {
         return query;
     }
 
-    public byte[] getTemplate(){
-        try{
+    public byte[] getTemplate() {
+        try {
 //            design.remadgetFields().
             design.getFieldsList().clear();
             design.getParametersList().clear();
             design.getFieldsMap().clear();
             design.getParametersMap().clear();
             for (JasperReportFieldDto field : fields) {
-                if (field.isEmpty()){
+                if (field.isEmpty()) {
                     continue;
                 }
                 JRDesignField f = new JRDesignField();
@@ -165,6 +160,5 @@ public class JasperReportDto implements Serializable{
         }
 
     }
-
 
 }

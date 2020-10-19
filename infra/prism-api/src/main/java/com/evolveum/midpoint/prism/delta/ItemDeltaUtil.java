@@ -9,6 +9,7 @@ package com.evolveum.midpoint.prism.delta;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 
@@ -29,16 +30,16 @@ public class ItemDeltaUtil {
 
     public static <IV extends PrismValue,ID extends ItemDefinition> PrismValueDeltaSetTriple<IV> toDeltaSetTriple(
             Item<IV, ID> item,
-            ItemDelta<IV, ID> delta, PrismContext prismContext) {
+            ItemDelta<IV, ID> delta, PrismContext prismContext) throws SchemaException {
         if (item == null && delta == null) {
             return null;
-        }
-        if (delta == null) {
+        } else if (delta == null) {
             PrismValueDeltaSetTriple<IV> triple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
             triple.addAllToZeroSet(PrismValueCollectionsUtil.cloneCollection(item.getValues()));
             return triple;
+        } else {
+            return delta.toDeltaSetTriple(item);
         }
-        return delta.toDeltaSetTriple(item);
     }
 
     // TODO move to Item

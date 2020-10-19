@@ -13,14 +13,14 @@ package com.evolveum.midpoint.model.api;
  */
 public class CollectionStats {
 
-    private int objectCount;
+    private Integer objectCount;
     private Integer domainCount;
 
-    public int getObjectCount() {
+    public Integer getObjectCount() {
         return objectCount;
     }
 
-    public void setObjectCount(int objectCount) {
+    public void setObjectCount(Integer objectCount) {
         this.objectCount = objectCount;
     }
 

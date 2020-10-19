@@ -1,28 +1,29 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.breadcrumbs;
 
-import com.evolveum.midpoint.web.util.NewWindowNotifyingBehavior;
-import org.apache.commons.lang.Validate;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+
+import org.apache.commons.lang3.Validate;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import java.util.Arrays;
-import java.util.List;
+import com.evolveum.midpoint.web.util.NewWindowNotifyingBehavior;
 
 /**
  * @author Viliam Repan (lazyman)
  */
 public class BreadcrumbPageInstance extends Breadcrumb {
 
-    private WebPage page;
+    private final WebPage page;
 
     public BreadcrumbPageInstance(IModel<String> label, WebPage page) {
         super(label);
@@ -50,7 +51,6 @@ public class BreadcrumbPageInstance extends Breadcrumb {
 
         page.add(new NewWindowNotifyingBehavior());
 
-
         return page;
     }
 
@@ -61,18 +61,17 @@ public class BreadcrumbPageInstance extends Breadcrumb {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
+        if (!super.equals(o)) { return false; }
 
         BreadcrumbPageInstance that = (BreadcrumbPageInstance) o;
 
-        return page != null ? page.equals(that.page) : that.page == null;
-
+        return Objects.equals(page, that.page);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{page});
+        return Arrays.hashCode(new Object[] { page });
     }
 }

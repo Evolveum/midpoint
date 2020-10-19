@@ -13,7 +13,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
@@ -129,11 +129,20 @@ public class AssignmentAsserter<R> extends AbstractAsserter<R> {
     }
 
     public ValueMetadataAsserter<AssignmentAsserter<R>> valueMetadata() {
-        //noinspection unchecked
-        PrismContainerValue<ValueMetadataType> valueMetadata = (PrismContainerValue<ValueMetadataType>)
-                (PrismContainerValue<?>) assignment.asPrismContainerValue().getValueMetadata();
+        PrismContainer<ValueMetadataType> valueMetadata = assignment.asPrismContainerValue().getValueMetadataAsContainer();
         ValueMetadataAsserter<AssignmentAsserter<R>> asserter =
                 new ValueMetadataAsserter<>(valueMetadata, this, "."); // TODO details
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    public ValueMetadataValueAsserter<AssignmentAsserter<R>> valueMetadataSingle() {
+        PrismContainer<ValueMetadataType> valueMetadata = assignment.asPrismContainerValue().getValueMetadataAsContainer();
+        if (valueMetadata.size() != 1) {
+            fail("Value metadata container has none or multiple values: " + valueMetadata);
+        }
+        ValueMetadataValueAsserter<AssignmentAsserter<R>> asserter =
+                new ValueMetadataValueAsserter<>(valueMetadata.getValue(), this, getDetails());
         copySetupTo(asserter);
         return asserter;
     }

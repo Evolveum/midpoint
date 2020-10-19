@@ -1,33 +1,30 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.google.common.annotations.VisibleForTesting;
-
-import org.apache.commons.lang.Validate;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
+
+import com.google.common.annotations.VisibleForTesting;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author semancik
- *
  */
 public interface PrismContainerValue<C extends Containerable> extends PrismValue, ParentVisitable {
 
@@ -50,7 +47,7 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
      */
     @NotNull
     @Contract(pure = true)
-    Collection<Item<?,?>> getItems();
+    Collection<Item<?, ?>> getItems();
 
     int size();
 
@@ -58,10 +55,11 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
      * Returns a set of properties that the property container contains.
      * <p>
      * Returned set is immutable! Any change to it will be ignored.
+     * <p>
+     * This method costs a bit, as the set of properties needs to be created.
+     * Consider using other methods if possible.
      *
      * @return set of properties that the property container contains.
-     *
-     * This method costs a bit, as the set of properties needs to be created. Consider using other methods if possible.
      */
     @NotNull
     Set<PrismProperty<?>> getProperties();
@@ -90,38 +88,37 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
     @NotNull
     Collection<QName> getItemNames();
 
-    <IV extends PrismValue,ID extends ItemDefinition> void add(Item<IV, ID> item) throws SchemaException;
+    <IV extends PrismValue, ID extends ItemDefinition> void add(Item<IV, ID> item) throws SchemaException;
 
     /**
      * Adds an item to a property container.
      *
      * @param item item to add.
-     * @throws SchemaException
      * @throws IllegalArgumentException an attempt to add value that already exists
      */
-    <IV extends PrismValue,ID extends ItemDefinition> void add(Item<IV, ID> item, boolean checkUniqueness) throws SchemaException;
+    <IV extends PrismValue, ID extends ItemDefinition> void add(Item<IV, ID> item, boolean checkUniqueness) throws SchemaException;
 
     /**
      * Merges the provided item into this item. The values are joined together.
      * Returns true if new item or value was added.
      */
-    <IV extends PrismValue,ID extends ItemDefinition> boolean merge(Item<IV, ID> item) throws SchemaException;
+    <IV extends PrismValue, ID extends ItemDefinition> boolean merge(Item<IV, ID> item) throws SchemaException;
 
     /**
      * Subtract the provided item from this item. The values of the provided item are deleted
      * from this item.
      * Returns true if this item was changed.
      */
-    <IV extends PrismValue,ID extends ItemDefinition> boolean subtract(Item<IV, ID> item) throws SchemaException;
+    <IV extends PrismValue, ID extends ItemDefinition> boolean subtract(Item<IV, ID> item) throws SchemaException;
 
     /**
      * Adds an item to a property container. Existing value will be replaced.
      *
      * @param item item to add.
      */
-    <IV extends PrismValue,ID extends ItemDefinition> void addReplaceExisting(Item<IV, ID> item) throws SchemaException;
+    <IV extends PrismValue, ID extends ItemDefinition> void addReplaceExisting(Item<IV, ID> item) throws SchemaException;
 
-    <IV extends PrismValue,ID extends ItemDefinition> void remove(Item<IV, ID> item);
+    <IV extends PrismValue, ID extends ItemDefinition> void remove(Item<IV, ID> item);
 
     void removeAll();
 
@@ -140,7 +137,7 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
      */
     void addAllReplaceExisting(Collection<? extends Item<?, ?>> itemsToAdd) throws SchemaException;
 
-    <IV extends PrismValue,ID extends ItemDefinition> void replace(Item<IV, ID> oldItem, Item<IV, ID> newItem) throws SchemaException;
+    <IV extends PrismValue, ID extends ItemDefinition> void replace(Item<IV, ID> oldItem, Item<IV, ID> newItem) throws SchemaException;
 
     void clear();
 
@@ -152,7 +149,7 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 
     static <C extends Containerable> boolean containsRealValue(Collection<PrismContainerValue<C>> cvalCollection,
             PrismContainerValue<C> cval) {
-        for (PrismContainerValue<C> colVal: cvalCollection) {
+        for (PrismContainerValue<C> colVal : cvalCollection) {
             if (colVal.equals(cval, EquivalenceStrategy.REAL_VALUE)) {
                 return true;
             }
@@ -160,8 +157,7 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
         return false;
     }
 
-
-    <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path);
+    <IV extends PrismValue, ID extends ItemDefinition> PartiallyResolvedItem<IV, ID> findPartial(ItemPath path);
 
     <X> PrismProperty<X> findProperty(ItemPath propertyPath);
 
@@ -181,36 +177,35 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 
     PrismReference findReferenceByCompositeObjectElementName(QName elementName);
 
-    <IV extends PrismValue,ID extends ItemDefinition, I extends Item<IV,ID>> I findItem(ItemPath itemName, Class<I> type);
+    <IV extends PrismValue, ID extends ItemDefinition, I extends Item<IV, ID>> I findItem(ItemPath itemName, Class<I> type);
 
 //    <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> findItem(String itemName);
 
-    default <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> findItem(ItemPath itemPath) {
+    default <IV extends PrismValue, ID extends ItemDefinition> Item<IV, ID> findItem(ItemPath itemPath) {
         //noinspection unchecked
-        return (Item<IV,ID>) findItem(itemPath, Item.class);
+        return (Item<IV, ID>) findItem(itemPath, Item.class);
     }
 
-    <IV extends PrismValue,ID extends ItemDefinition, I extends Item<IV,ID>> I findItem(ItemDefinition itemDefinition,
+    <IV extends PrismValue, ID extends ItemDefinition, I extends Item<IV, ID>> I findItem(ItemDefinition itemDefinition,
             Class<I> type);
 
     boolean containsItem(ItemPath propPath, boolean acceptEmptyItem) throws SchemaException;
 
-    <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I createDetachedSubItem(QName name,
+    <IV extends PrismValue, ID extends ItemDefinition, I extends Item<IV, ID>> I createDetachedSubItem(QName name,
             Class<I> type, ID itemDefinition, boolean immutable) throws SchemaException;
-
 
     <T extends Containerable> PrismContainer<T> findOrCreateContainer(QName containerName) throws SchemaException;
 
     PrismReference findOrCreateReference(QName referenceName) throws SchemaException;
 
-    <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> findOrCreateItem(QName containerName) throws SchemaException;
+    <IV extends PrismValue, ID extends ItemDefinition> Item<IV, ID> findOrCreateItem(QName containerName) throws SchemaException;
 
-    <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findOrCreateItem(QName containerName, Class<I> type) throws SchemaException;
+    <IV extends PrismValue, ID extends ItemDefinition, I extends Item<IV, ID>> I findOrCreateItem(QName containerName, Class<I> type) throws SchemaException;
 
-    <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findOrCreateItem(ItemPath path, Class<I> type,
+    <IV extends PrismValue, ID extends ItemDefinition, I extends Item<IV, ID>> I findOrCreateItem(ItemPath path, Class<I> type,
             ID definition) throws SchemaException;
 
-//    <X> PrismProperty<X> findOrCreateProperty(QName propertyQName) throws SchemaException;
+    //    <X> PrismProperty<X> findOrCreateProperty(QName propertyQName) throws SchemaException;
 //
     <X> PrismProperty<X> findOrCreateProperty(ItemPath propertyPath) throws SchemaException;
 
@@ -252,6 +247,20 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 
     boolean isIdOnly();
 
+    static boolean isIdOnly(PrismValue value) {
+        return value instanceof PrismContainerValue && ((PrismContainerValue<?>) value).isIdOnly();
+    }
+
+    static Long getId(PrismValue value) {
+        return value instanceof PrismContainerValue ? ((PrismContainerValue<?>) value).getId() : null;
+    }
+
+    static boolean idsMatch(PrismValue v1, PrismValue v2) {
+        Long id1 = getId(v1);
+        Long id2 = getId(v2);
+        return id1 != null && id1.equals(id2);
+    }
+
     void assertDefinitions(String sourceDescription) throws SchemaException;
 
     void assertDefinitions(boolean tolerateRaw, String sourceDescription) throws SchemaException;
@@ -273,6 +282,7 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
     static <T extends Containerable> List<PrismContainerValue<T>> toPcvList(List<T> beans) {
         List<PrismContainerValue<T>> rv = new ArrayList<>(beans.size());
         for (T bean : beans) {
+            //noinspection unchecked
             rv.add(bean.asPrismContainerValue());
         }
         return rv;
@@ -280,21 +290,23 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 
     /**
      * Returns a single-valued container (with a single-valued definition) holding just this value.
+     *
      * @param itemName Item name for newly-created container.
-     * @return
      */
     PrismContainer<C> asSingleValuedContainer(@NotNull QName itemName) throws SchemaException;
 
     // EXPERIMENTAL. TODO write some tests
     // BEWARE, it expects that definitions for items are present. Otherwise definition-less single valued items will get overwritten.
-    @SuppressWarnings("unchecked")
     void mergeContent(@NotNull PrismContainerValue<?> other, @NotNull List<QName> overwrite) throws SchemaException;
 
     @Override
     PrismContainerValue<?> getRootValue();
 
     static <C extends Containerable> List<PrismContainerValue<C>> asPrismContainerValues(List<C> containerables) {
-        return containerables.stream().map(c -> (PrismContainerValue<C>) c.asPrismContainerValue()).collect(Collectors.toList());
+        //noinspection unchecked
+        return containerables.stream()
+                .map(c -> (PrismContainerValue<C>) c.asPrismContainerValue())
+                .collect(Collectors.toList());
     }
 
     static <C extends Containerable> List<C> asContainerables(List<PrismContainerValue<C>> pcvs) {

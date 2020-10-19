@@ -42,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * <p>
  * TODO decide on which style of setters to keep (setters vs builder-style).
  */
-@SuppressWarnings({ "unused", "BooleanMethodIsAlwaysInverted", "UnusedReturnValue", "WeakerAccess" })
+@SuppressWarnings({ "unused", "UnusedReturnValue" })
 public abstract class AbstractMappingBuilder<V extends PrismValue, D extends ItemDefinition, MBT extends AbstractMappingType, RT extends AbstractMappingBuilder<V, D, MBT, RT>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(MappingImpl.class);
@@ -67,6 +67,7 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
     private MappingPreExpression mappingPreExpression;
     private boolean conditionMaskOld = true;
     private boolean conditionMaskNew = true;
+    private MappingSpecificationType mappingSpecification;
     private XMLGregorianCalendar now;
     private XMLGregorianCalendar defaultReferenceTime;
     private boolean profiling;
@@ -173,6 +174,11 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
 
     public RT conditionMaskNew(boolean val) {
         conditionMaskNew = val;
+        return typedThis();
+    }
+
+    public RT mappingSpecification(MappingSpecificationType val) {
+        mappingSpecification = val;
         return typedThis();
     }
 
@@ -284,11 +290,15 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
     }
 
     public RT addVariableDefinition(String name, ObjectDeltaObject<?> value) {
-        PrismObjectDefinition<?> definition = value.getDefinition();
-        if (definition == null) {
-            throw new IllegalArgumentException("Attempt to set variable '" + name + "' as ODO without a definition: " + value);
+        if (value != null) {
+            PrismObjectDefinition<?> definition = value.getDefinition();
+            if (definition == null) {
+                throw new IllegalArgumentException("Attempt to set variable '" + name + "' as ODO without a definition: " + value);
+            }
+            return addVariableDefinition(name, value, definition);
+        } else {
+            return addVariableDefinition(name, null, ObjectDeltaObject.class); // todo ok?
         }
-        return addVariableDefinition(name, value, definition);
     }
 
     // mainVariable of "null" means the default source
@@ -412,6 +422,10 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
 
     public boolean isConditionMaskNew() {
         return conditionMaskNew;
+    }
+
+    public MappingSpecificationType getMappingSpecification() {
+        return mappingSpecification;
     }
 
     public XMLGregorianCalendar getNow() {

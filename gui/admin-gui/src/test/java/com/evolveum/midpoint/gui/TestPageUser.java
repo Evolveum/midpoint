@@ -151,15 +151,6 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     }
 
     @Test
-    public void test013renderTasksTab() {
-        renderPage();
-
-        clickOnTab(3);
-        String panel = "mainPanel:mainForm:tabPanel:panel";
-        tester.assertComponent(panel, AssignmentHolderTypeDetailsTabPanel.class);
-    }
-
-    @Test
     public void test014renderPersonasTab() {
         renderPage();
 

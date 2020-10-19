@@ -1,10 +1,27 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
+
+import java.util.*;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -22,22 +39,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChang
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import java.util.*;
 
 /**
  * Created by honchar
@@ -66,13 +67,15 @@ public class PolyStringEditorPanel extends InputPanel {
     private static final String ID_ADD_LANGUAGE_VALUE_BUTTON = "addLanguageValue";
     private static final String ID_REMOVE_LANGUAGE_BUTTON = "removeLanguageButton";
 
-    private boolean showFullData = false;
     private final StringBuilder currentlySelectedLang = new StringBuilder();
-    IModel<PolyString> model;
-    private LookupTableType predefinedValuesLookupTable;
-    private boolean hasValueEnumerationRef;
+    private final IModel<PolyString> model;
+    private final LookupTableType predefinedValuesLookupTable;
+    private final boolean hasValueEnumerationRef;
 
-    public PolyStringEditorPanel(String id, IModel<PolyString> model, LookupTableType predefinedValuesLookupTable, boolean hasValueEnumerationRef){
+    private boolean showFullData = false;
+
+    public PolyStringEditorPanel(String id, IModel<PolyString> model,
+            LookupTableType predefinedValuesLookupTable, boolean hasValueEnumerationRef) {
         super(id);
         this.model = model;
         this.predefinedValuesLookupTable = predefinedValuesLookupTable;
@@ -80,12 +83,12 @@ public class PolyStringEditorPanel extends InputPanel {
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         initLayout();
     }
 
-    private void initLayout(){
+    private void initLayout() {
         setOutputMarkupId(true);
 
         String localizedValue = getLocalizedPolyStringValue();
@@ -96,7 +99,7 @@ public class PolyStringEditorPanel extends InputPanel {
         localizedValueContainer.add(new VisibleBehaviour(() -> showFullData || StringUtils.isNotEmpty(localizedValue)));
         add(localizedValueContainer);
 
-        Label localizedValueLabel = new Label(ID_LOCALIZED_VALUE_LABEL, ((PageBase)getPage()).createStringResource("PolyStringEditorPanel.localizedValue"));
+        Label localizedValueLabel = new Label(ID_LOCALIZED_VALUE_LABEL, ((PageBase) getPage()).createStringResource("PolyStringEditorPanel.localizedValue"));
         localizedValueLabel.setOutputMarkupId(true);
         localizedValueLabel.add(new VisibleBehaviour(() -> showFullData));
         localizedValueContainer.add(localizedValueLabel);
@@ -106,7 +109,7 @@ public class PolyStringEditorPanel extends InputPanel {
         localizedValueWithButton.add(getInputFieldClassAppender());
         localizedValueContainer.add(localizedValueWithButton);
 
-        TextPanel<String> localizedValuePanel = new TextPanel<String>(ID_LOCALIZED_VALUE_PANEL, Model.of(localizedValue));
+        TextPanel<String> localizedValuePanel = new TextPanel<>(ID_LOCALIZED_VALUE_PANEL, Model.of(localizedValue));
         localizedValuePanel.setOutputMarkupId(true);
         localizedValuePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         localizedValuePanel.add(new EnableBehaviour(() -> false));
@@ -168,7 +171,7 @@ public class PolyStringEditorPanel extends InputPanel {
             }
         };
         if (predefinedValuesLookupTable == null) {
-            origValuePanel = new TextPanel<String>(ID_ORIG_VALUE, origValueModel, String.class, false);
+            origValuePanel = new TextPanel<>(ID_ORIG_VALUE, origValueModel, String.class, false);
         } else {
             origValuePanel = new AutoCompleteTextPanel<String>(ID_ORIG_VALUE, origValueModel, String.class,
                     hasValueEnumerationRef, predefinedValuesLookupTable) {
@@ -190,7 +193,7 @@ public class PolyStringEditorPanel extends InputPanel {
         fullDataContainer.add(new VisibleBehaviour(() -> showFullData));
         add(fullDataContainer);
 
-        TextPanel<String> keyValue = new TextPanel<String>(ID_KEY_VALUE, new IModel<String>() {
+        TextPanel<String> keyValue = new TextPanel<>(ID_KEY_VALUE, new IModel<String>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -200,10 +203,10 @@ public class PolyStringEditorPanel extends InputPanel {
 
             @Override
             public void setObject(String object) {
-                if (getModelObject() == null){
+                if (getModelObject() == null) {
                     getModel().setObject(new PolyString(""));
                 }
-                if (getModelObject().getTranslation() == null){
+                if (getModelObject().getTranslation() == null) {
                     getModelObject().setTranslation(new PolyStringTranslationType());
                 }
                 getModelObject().getTranslation().setKey(object);
@@ -221,11 +224,12 @@ public class PolyStringEditorPanel extends InputPanel {
         IModel<String> langChoiceModel = Model.of();
         WebMarkupContainer languageEditorContainer = new WebMarkupContainer(ID_LANGUAGE_EDITOR);
         languageEditorContainer.setOutputMarkupId(true);
-        languageEditorContainer.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(getLanguageChoicesModel().getObject())));
+        languageEditorContainer.add(new VisibleBehaviour(() ->
+                CollectionUtils.isNotEmpty(getLanguageChoicesModel().getObject())));
         fullDataContainer.add(languageEditorContainer);
 
-        final DropDownChoicePanel<String> languageChoicePanel = new DropDownChoicePanel<String>(ID_LANGUAGES_LIST, langChoiceModel,
-                getLanguageChoicesModel(), true);
+        final DropDownChoicePanel<String> languageChoicePanel = new DropDownChoicePanel<>(
+                ID_LANGUAGES_LIST, langChoiceModel, getLanguageChoicesModel(), true);
         languageChoicePanel.setOutputMarkupId(true);
         languageChoicePanel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         languageChoicePanel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
@@ -235,13 +239,14 @@ public class PolyStringEditorPanel extends InputPanel {
             protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
                 removeLanguageValue(currentlySelectedLang.toString());
                 clearSelectedLanguageValue();
-                currentlySelectedLang.append(getLanguagesChoicePanel().getBaseFormComponent().getModelObject());
+                currentlySelectedLang.append(
+                        getLanguagesChoicePanel().getBaseFormComponent().getModelObject());
             }
         });
         languageEditorContainer.add(languageChoicePanel);
 
-        final TextPanel<String> newLanguageValue = new TextPanel<String>(ID_VALUE_TO_ADD, Model.of());
-        newLanguageValue.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour(){
+        final TextPanel<String> newLanguageValue = new TextPanel<>(ID_VALUE_TO_ADD, Model.of());
+        newLanguageValue.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -249,7 +254,7 @@ public class PolyStringEditorPanel extends InputPanel {
                 updateLanguageValue(languageChoicePanel.getBaseFormComponent().getModelObject(), newLanguageValue.getBaseFormComponent().getValue());
             }
         });
-        languageChoicePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour(){
+        languageChoicePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -285,7 +290,6 @@ public class PolyStringEditorPanel extends InputPanel {
         addLanguageButton.setOutputMarkupId(true);
         languageEditorContainer.add(addLanguageButton);
 
-        Map<String, String> languagesMap = getModelObject() != null && getModelObject().getLang() != null ? getModelObject().getLang() : new HashMap<>();
         ListView<String> languagesContainer =
                 new ListView<String>(ID_LANGUAGES_REPEATER, getLanguagesListModel()) {
                     private static final long serialVersionUID = 1L;
@@ -293,13 +297,13 @@ public class PolyStringEditorPanel extends InputPanel {
                     @Override
                     protected void populateItem(ListItem<String> listItem) {
 
-                        TextPanel<String> languageName = new TextPanel<String>(ID_LANGUAGE_NAME, listItem.getModel());
+                        TextPanel<String> languageName = new TextPanel<>(ID_LANGUAGE_NAME, listItem.getModel());
                         languageName.add(new EnableBehaviour(() -> false));
                         languageName.setOutputMarkupId(true);
                         listItem.add(languageName);
 
-                        TextPanel<String> translation = new TextPanel<String>(ID_TRANSLATION, Model.of(getLanguageValueByKey(listItem.getModelObject())));
-                        translation.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour(){
+                        TextPanel<String> translation = new TextPanel<>(ID_TRANSLATION, Model.of(getLanguageValueByKey(listItem.getModelObject())));
+                        translation.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour() {
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -329,8 +333,8 @@ public class PolyStringEditorPanel extends InputPanel {
                         };
                         removeButton.setOutputMarkupId(true);
                         listItem.add(removeButton);
-            }
-        };
+                    }
+                };
         languagesContainer.setOutputMarkupId(true);
         fullDataContainer.add(languagesContainer);
 
@@ -349,30 +353,27 @@ public class PolyStringEditorPanel extends InputPanel {
 
     }
 
-    private String getLocalizedPolyStringValue(){
+    private String getLocalizedPolyStringValue() {
         return ((PageBase) getPage()).getLocalizationService().translate(getModelObject(), WebComponentUtil.getCurrentLocale(), false);
     }
 
-    private IModel<List<String>> getLanguageChoicesModel(){
-        return new IModel<List<String>>() {
-            @Override
-            public List<String> getObject() {
-                List<String> allLanguagesList =  new ArrayList<>();
-                String currentlySelectedLang = getLanguagesChoicePanel().getBaseFormComponent().getModel().getObject();
-                MidPointApplication.AVAILABLE_LOCALES.forEach(locale -> {
-                    String localeValue = locale.getLocale().getLanguage();
-                    if (!isPolyStringLangNotNull()) {
-                        allLanguagesList.add(localeValue);
-                    } else if (!languageExists(localeValue) || localeValue.equals(currentlySelectedLang)){
-                        allLanguagesList.add(locale.getLocale().getLanguage());
-                    }
-                });
-                return allLanguagesList;
-            }
+    private IModel<List<String>> getLanguageChoicesModel() {
+        return (IModel<List<String>>) () -> {
+            List<String> allLanguagesList = new ArrayList<>();
+            String currentlySelectedLang = getLanguagesChoicePanel().getBaseFormComponent().getModel().getObject();
+            MidPointApplication.AVAILABLE_LOCALES.forEach(locale -> {
+                String localeValue = locale.getLocale().getLanguage();
+                if (!isPolyStringLangNotNull()) {
+                    allLanguagesList.add(localeValue);
+                } else if (!languageExists(localeValue) || localeValue.equals(currentlySelectedLang)) {
+                    allLanguagesList.add(locale.getLocale().getLanguage());
+                }
+            });
+            return allLanguagesList;
         };
     }
 
-    private IModel<List<String>> getLanguagesListModel(){
+    private IModel<List<String>> getLanguagesListModel() {
         return new IModel<List<String>>() {
             private static final long serialVersionUID = 1L;
 
@@ -390,26 +391,12 @@ public class PolyStringEditorPanel extends InputPanel {
         };
     }
 
-    private void addNewLanguagePerformed(AjaxRequestTarget target){
-        if (getModelObject() == null){
-            Map<String, String> languagesMap = new HashMap<>();
-            languagesMap.put("", "");
-            getModel().setObject(new PolyString(null, null, null, languagesMap));
-        } else {
-            if (getModelObject().getLang() == null) {
-                getModelObject().setLang(new HashMap<String, String>());
-            }
-            getModelObject().getLang().put("", "");
-        }
-        target.add(PolyStringEditorPanel.this);
-    }
-
-    private void showHideLanguagesPerformed(AjaxRequestTarget target){
+    private void showHideLanguagesPerformed(AjaxRequestTarget target) {
         showFullData = !showFullData;
         target.add(PolyStringEditorPanel.this);
     }
 
-    private AttributeAppender getInputFieldClassAppenderForContainer(){
+    private AttributeAppender getInputFieldClassAppenderForContainer() {
         return AttributeModifier.append("class", new LoadableModel<String>() {
             @Override
             protected String load() {
@@ -418,7 +405,7 @@ public class PolyStringEditorPanel extends InputPanel {
         });
     }
 
-    private AttributeAppender getInputFieldClassAppender(){
+    private AttributeAppender getInputFieldClassAppender() {
         return AttributeModifier.append("class", new LoadableModel<String>() {
             @Override
             protected String load() {
@@ -427,58 +414,58 @@ public class PolyStringEditorPanel extends InputPanel {
         });
     }
 
-    private InputPanel getOrigValuePanel(){
+    private InputPanel getOrigValuePanel() {
         return (InputPanel) get(ID_ORIGIN_VALUE_CONTAINER).get(ID_ORIG_VALUE_WITH_BUTTON).get(ID_ORIG_VALUE);
     }
 
     //todo refactor with PolyStringWrapper
-    private void updateLanguageValue(String language, String value){
-        if (StringUtils.isEmpty(language)){
+    private void updateLanguageValue(String language, String value) {
+        if (StringUtils.isEmpty(language)) {
             return;
         }
-        if (getModelObject() == null){
+        if (getModelObject() == null) {
             Map<String, String> languagesMap = new HashMap<>();
             languagesMap.put("", "");
             getModel().setObject(new PolyString(null, null, null, languagesMap));
             return;
         }
-        if (getModelObject().getLang() == null){
+        if (getModelObject().getLang() == null) {
             getModelObject().setLang(new HashMap<>());
         }
-        if (getModelObject().getLang().containsKey(language)){
+        if (getModelObject().getLang().containsKey(language)) {
             getModelObject().getLang().replace(language, value);
         } else {
             getModelObject().getLang().put(language, value);
         }
     }
 
-    private void removeLanguageValue(String language){
-        if (!isPolyStringLangNotNull()){
+    private void removeLanguageValue(String language) {
+        if (!isPolyStringLangNotNull()) {
             return;
         }
         getModelObject().getLang().remove(language);
     }
 
-    private boolean isPolyStringLangNotNull(){
+    private boolean isPolyStringLangNotNull() {
         return getModelObject() != null && getModelObject().getLang() != null;
     }
 
-    private boolean languageExists(String value){
+    private boolean languageExists(String value) {
         return isPolyStringLangNotNull() && getModelObject().getLang().containsKey(value);
     }
 
-    private String getLanguageValueByKey(String key){
-        if (!isPolyStringLangNotNull()){
+    private String getLanguageValueByKey(String key) {
+        if (!isPolyStringLangNotNull()) {
             return null;
         }
         return getModelObject().getLang().get(key);
     }
 
-    private DropDownChoicePanel<String> getLanguagesChoicePanel(){
-        return (DropDownChoicePanel<String>)get(ID_FULL_DATA_CONTAINER).get(ID_LANGUAGE_EDITOR).get(ID_LANGUAGES_LIST);
+    private DropDownChoicePanel<String> getLanguagesChoicePanel() {
+        return (DropDownChoicePanel<String>) get(ID_FULL_DATA_CONTAINER).get(ID_LANGUAGE_EDITOR).get(ID_LANGUAGES_LIST);
     }
 
-    private void clearSelectedLanguageValue(){
+    private void clearSelectedLanguageValue() {
         currentlySelectedLang.delete(0, currentlySelectedLang.length());
     }
 
@@ -492,16 +479,16 @@ public class PolyStringEditorPanel extends InputPanel {
         return getOrigValuePanel().getBaseFormComponent();
     }
 
-    private IModel<PolyString> getModel(){
+    private IModel<PolyString> getModel() {
         return model;
     }
 
-    private PolyString getModelObject(){
+    private PolyString getModelObject() {
         return model == null ? null : model.getObject();
     }
 
     private List<String> getPredefinedValuesIterator(String input) {
         return WebComponentUtil.prepareAutoCompleteList(predefinedValuesLookupTable, input,
-                ((PageBase)getPage()).getLocalizationService());
+                ((PageBase) getPage()).getLocalizationService());
     }
 }

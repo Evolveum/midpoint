@@ -11,7 +11,7 @@ prism:model common-metadata {
 
     metadata CommonMetadata {
       prism:container storage {
-        type StorageMetadata;
+        type StorageMetadataType;
         documentation """
           The details when data were stored in midPoint repository. It is about the creation
           (timestamp, originator user, channel, taskRef) and the last modification (the same).
@@ -19,24 +19,24 @@ prism:model common-metadata {
         //operational true;
       }
       prism:container process {
-        type ProcessMetadata;
+        type ProcessMetadataType;
         documentation """
           The details how the data were processed by midPoint processes/tasks.
           Only present if it was approved or otherwise processed by a "process".
         """;
       }
       prism:container provisioning {
-        type ProvisioningMetadata;
+        type ProvisioningMetadataType;
       }
       prism:container transformation {
-        type TransformationMetadata;
+        type TransformationMetadataType;
       }
       prism:container provenance {
-        type ProvenanceMetadata;
+        type ProvenanceMetadataType;
       }
     }
 
-    container StorageMetadata {
+    container StorageMetadataType {
       operational true;
       displayName "Storage Metadata";
 
@@ -110,7 +110,7 @@ prism:model common-metadata {
       }
     }
 
-    prism:container ProcessMetadata {
+    prism:container ProcessMetadataType {
       property requestTimestamp {
         type DateTime;
         documentation """
@@ -139,7 +139,7 @@ prism:model common-metadata {
 
     }
     // FIXME: Convert additional metadata
-    container ProvisioningMetadata {
+    container ProvisioningMetadataType {
       operational true;
       displayName "Provisioning metadata";
       property lastProvisioningTimestamp {
@@ -161,67 +161,53 @@ prism:model common-metadata {
       }
     }
 
-    container TransformationMetadata {
+    container TransformationMetadataType {
       displayName "Transformation Metadata";
       operational true;
+      container mappingTransformation {
+        type MappingTransformationType;
+        documentation "Mapping transformation that led to the current value.";
+        maxOccurs "unbounded";
+      }
+    }
+
+    container MappingTransformationType {
+      documentation "Informs that the value was provided by a mapping (and how exactly).";
+      displayName "Transformation Metadata";
+      operational true;
+      container mappingSpecification {
+        type MappingSpecificationType;
+        documentation "Specification of the mapping.";
+      }
       container source {
-        type ValueSource;
-        documentation "Source(s) of the value";
-        maxOccurs "unbounded";
-      }
-      container transformer {
-        type ValueTransformer;
-        documentation "Transformer(s) that acted upon the value.";
+        type MappingSourceType;
+        documentation "Sources for the mapping.";
         maxOccurs "unbounded";
       }
     }
 
-    container ValueSource {
-      property kind {
-        type Uri;
-      }
+    container MappingSourceType {
       property name {
         type String;
+        documentation "Name of the mapping source.";
       }
-      reference objectRef {
-        documentation """
-          A midPoint object representing the source of the value (resource object,
-          object template, assignment holder, user, ...)
-        """;
-      }
-      property storage {
-        type prism:ItemPath;
-        documentation "Where was the original value stored.";
+      property value {
+        type AnyType;
+        documentation "Source value itself. (Along with its own metadata.)";
       }
     }
 
-    container ValueTransformer {
-      property kind {
-        type Uri;
-      }
-      property name {
-        type String;
-      }
-      reference objectRef {
-        documentation "A midPoint object holding the transformer";
-      }
-    }
-
-    container ProvenanceMetadata {
-      container yield {
-        type ProvenanceYield;
-        maxOccurs "unbounded";
-      }
-    }
-
-    container ProvenanceYield {
+    container ProvenanceMetadataType {
       container acquisition {
-        type ProvenanceAcquisition;
+        type ProvenanceAcquisitionType;
         maxOccurs "unbounded";
+      }
+      container mappingSpec {
+        type MappingSpecificationType;
       }
     }
 
-    container ProvenanceAcquisition {
+    container ProvenanceAcquisitionType {
       documentation """
         Ultimate origin of the data.
         This metadata structure represents the way how the data (or their components) entered the system.
@@ -230,20 +216,54 @@ prism:model common-metadata {
       """;
       property timestamp {
         type DateTime;
+        operational true;
       }
       property channel {
         type String;
+        operational true;
       }
       reference resourceRef {
         targetType ResourceType;
       }
       reference actorRef {
-
+        operational true;
       }
       reference originRef {
 
       }
     }
 
+    container MappingSpecificationType {
+        property assignmentId {
+            type String;
+            // Temporary, should be replaced by assignment path later
+        }
+//        We cannot really have path now. We cannot express ordered lists.
+//        container assignmentPath {
+//            documentation "Assignment identifiers that specify the path that was used to evaluate the mapping."
+//            type AssignmentIdentifierPath;
+//        }
+        reference definitionObjectRef {
+            documentation "Object where the mapping is defined";
+        }
+        property mappingName {
+            type String;
+            documentation "Name of the mapping";
+            minOccurs 1;
+        }
+    }
+
+    container AssignmentIdentifierPathType {
+        documentation """
+            Path formed by assignment identifiers.
+            It is often used to point to specific abstract role by referencing the identifiers (ids) of assignments/inducement that were traversed to evaluate the role.
+        """;
+        property id {
+            // This needs to be ordered!
+            type String;
+            minOccurs "1";
+            maxOccurs "unbounded";
+        }
+    }
 
 }

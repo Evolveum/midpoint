@@ -1,21 +1,20 @@
-/* Copyright (c) 2010-2020 Evolveum and contributors
- *
+/*
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.page.admin.configuration.component.DebugSearchFragment;
-
-import org.apache.commons.collections.IteratorUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -37,7 +36,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -63,17 +61,19 @@ import com.evolveum.midpoint.web.component.data.RepositoryObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.TwoValueLinkPanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.DeleteAllDto;
 import com.evolveum.midpoint.web.component.dialog.DeleteAllPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.page.admin.configuration.component.DebugButtonPanel;
+import com.evolveum.midpoint.web.page.admin.configuration.component.DebugSearchFragment;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.configuration.component.PageDebugDownloadBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugConfDialogDto;
@@ -93,10 +93,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/config/debugs", matchUrlForSecurity = "/admin/config/debugs")},
+                @Url(mountUrl = "/admin/config/debugs", matchUrlForSecurity = "/admin/config/debugs") },
         action = {
-        @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL, label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUGS_URL, label = "PageDebugList.auth.debugs.label", description = "PageDebugList.auth.debugs.description") })
+                @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL, label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUGS_URL, label = "PageDebugList.auth.debugs.label", description = "PageDebugList.auth.debugs.description") })
 public class PageDebugList extends PageAdminConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageDebugList.class);
@@ -114,17 +114,16 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private static final String ID_TABLE = "table";
 
-
     private static final String ID_TABLE_HEADER = "tableHeader";
 
-
     // search form model;
-    private IModel<DebugSearchDto> searchModel;
-    private IModel<Boolean> showAllItemsModel = Model.of(true);         // todo make this persistent (in user session)
+    private final IModel<DebugSearchDto> searchModel;
+    // todo make this persistent (in user session)
+    private final IModel<Boolean> showAllItemsModel = Model.of(true);
     // confirmation dialog model
-    private IModel<DebugConfDialogDto> confDialogModel;
-    private IModel<List<ObjectViewDto<ResourceType>>> resourcesModel;
-    private IModel<List<QName>> objectClassListModel;
+    private final IModel<DebugConfDialogDto> confDialogModel;
+    private final IModel<List<ObjectViewDto<ResourceType>>> resourcesModel;
+    private final IModel<List<QName>> objectClassListModel;
 
     public PageDebugList() {
         searchModel = new LoadableModel<DebugSearchDto>(false) {
@@ -167,12 +166,12 @@ public class PageDebugList extends PageAdminConfiguration {
 
             @Override
             protected List<QName> load() {
-                if (searchModel != null && searchModel.getObject() != null && searchModel.getObject().getResource() != null){
+                if (searchModel.getObject() != null && searchModel.getObject().getResource() != null) {
                     ObjectViewDto objectViewDto = searchModel.getObject().getResource();
                     OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCE_OBJECT);
-                    PrismObject<ResourceType> resource =  WebModelServiceUtils.loadObject(ResourceType.class, objectViewDto.getOid(), PageDebugList.this,
+                    PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(ResourceType.class, objectViewDto.getOid(), PageDebugList.this,
                             createSimpleTask(OPERATION_LOAD_RESOURCE_OBJECT), result);
-                    if (resource != null){
+                    if (resource != null) {
                         return WebComponentUtil.loadResourceObjectClassValues(resource.asObjectable(), PageDebugList.this);
                     }
                 }
@@ -198,13 +197,23 @@ public class PageDebugList extends PageAdminConfiguration {
             LOGGER.error("Failed to load resources {}", ex.getMessage(), ex);
         }
 
+        objects.sort((r1, r2) -> {
+
+            if (r1 == null || r2 == null) {
+                return 0;
+            }
+
+            Collator collator = WebComponentUtil.getCollator();
+            return collator.compare(r1.getName(), r2.getName());
+
+        });
         result.computeStatusIfUnknown();
         showResult(result, false);
         return objects;
     }
 
     private void initLayout() {
-        Form main = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
+        Form main = new MidpointForm(ID_MAIN_FORM);
         add(main);
 
         DebugSearchDto dto = searchModel.getObject();
@@ -243,20 +252,25 @@ public class PageDebugList extends PageAdminConfiguration {
     private void create(RepositoryObjectDataProvider provider) {
         Form mainForm = (Form) get(ID_MAIN_FORM);
 
-        BoxedTablePanel<DebugObjectItem> table = new BoxedTablePanel<DebugObjectItem>(ID_TABLE, provider, initColumns(),
+        BoxedTablePanel<DebugObjectItem> table = new BoxedTablePanel<DebugObjectItem>(ID_TABLE, provider, createColumns(),
                 UserProfileStorage.TableId.CONF_DEBUG_LIST_PANEL,
                 (int) getItemsPerPage(UserProfileStorage.TableId.CONF_DEBUG_LIST_PANEL)) {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected WebMarkupContainer createHeader(String headerId) {
-                return new DebugSearchFragment(headerId, ID_TABLE_HEADER, PageDebugList.this, searchModel,
+                DebugSearchFragment headerFragment = new DebugSearchFragment(headerId, ID_TABLE_HEADER, PageDebugList.this, searchModel,
                         resourcesModel, objectClassListModel, showAllItemsModel) {
+
+                    private static final long serialVersionUID = 1L;
+
                     @Override
                     protected void searchPerformed(AjaxRequestTarget target, boolean oidFilter) {
                         listObjectsPerformed(target, oidFilter);
                     }
                 };
+                headerFragment.setOutputMarkupId(true);
+                return headerFragment;
             }
 
         };
@@ -268,13 +282,13 @@ public class PageDebugList extends PageAdminConfiguration {
         mainForm.addOrReplace(table);
     }
 
-    private List<IColumn<DebugObjectItem, String>> initColumns() {
+    private List<IColumn<DebugObjectItem, String>> createColumns() {
         List<IColumn<DebugObjectItem, String>> columns = new ArrayList<>();
 
         IColumn<DebugObjectItem, String> column = new CheckBoxHeaderColumn<>();
         columns.add(column);
 
-        column = new LinkColumn<DebugObjectItem>(createStringResource("pageDebugList.name"),
+        column = new AjaxLinkColumn<DebugObjectItem>(createStringResource("pageDebugList.name"),
                 DebugObjectItem.F_NAME, DebugObjectItem.F_NAME) {
             private static final long serialVersionUID = 1L;
 
@@ -335,7 +349,7 @@ public class PageDebugList extends PageAdminConfiguration {
                     DebugObjectItem.F_RESOURCE_TYPE));
         }
 
-        column = new AbstractColumn<DebugObjectItem, String>(new Model(), null) {
+        column = new AbstractColumn<DebugObjectItem, String>(new Model<>(), null) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -435,7 +449,7 @@ public class PageDebugList extends PageAdminConfiguration {
                         return Model.of(ObjectTypes.SHADOW.equals(dto.getType()));
                     }
 
-                    });
+                });
 
         headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportAll"), true) {
             private static final long serialVersionUID = 1L;
@@ -543,12 +557,12 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private void listObjectsPerformed(AjaxRequestTarget target, boolean isOidSearch) {
         DebugSearchDto dto = searchModel.getObject();
-        if (isOidSearch && StringUtils.isNotEmpty(dto.getOidFilter())){
+        if (isOidSearch && StringUtils.isNotEmpty(dto.getOidFilter())) {
             OperationResult result = new OperationResult(OPERATION_LOAD_OBJECT_BY_OID);
             Task task = createSimpleTask(OPERATION_LOAD_OBJECT_BY_OID);
             PrismObject<ObjectType> objectToDisplay = WebModelServiceUtils.loadObject(ObjectType.class, dto.getOidFilter(), PageDebugList.this,
                     task, result);
-            if (objectToDisplay != null && objectToDisplay.getCompileTimeClass() != null){
+            if (objectToDisplay != null && objectToDisplay.getCompileTimeClass() != null) {
                 dto.setType(ObjectTypes.getObjectType(objectToDisplay.getCompileTimeClass()));
             }
         }
@@ -573,7 +587,7 @@ public class PageDebugList extends PageAdminConfiguration {
     private void listObjectsPerformed(ObjectQuery query, boolean isOidSearch, AjaxRequestTarget target) {
         DebugSearchDto dto = searchModel.getObject();
 
-        if (!isOidSearch){
+        if (!isOidSearch) {
             searchModel.getObject().setOidFilter(null);
         }
 
@@ -590,6 +604,8 @@ public class PageDebugList extends PageAdminConfiguration {
         storage.setDebugSearchDto(dto);
 
         Table table = getListTable();
+        table.getDataTable().getColumns().clear();
+        table.getDataTable().getColumns().addAll(createColumns());
         target.add((Component) table);
         target.add(getFeedbackPanel());
     }
@@ -603,7 +619,7 @@ public class PageDebugList extends PageAdminConfiguration {
             ObjectFilter inOidFilter = getPrismContext().queryFor(ObjectType.class).id(oidFilterValue).buildFilter();
             filters.add(inOidFilter);
 
-            if (searchQuery == null){
+            if (searchQuery == null) {
                 ObjectQuery query = getPrismContext().queryFor(ObjectType.class)
                         .build();
                 query.addFilter(inOidFilter);
@@ -617,7 +633,7 @@ public class PageDebugList extends PageAdminConfiguration {
             String oid = dto.getResource().getOid();
             QName objectClass = dto.getObjectClass();
             ObjectFilter objectFilter;
-            if (objectClass != null){
+            if (objectClass != null) {
                 objectFilter = getPrismContext().queryFor(ShadowType.class)
                         .item(ShadowType.F_RESOURCE_REF).ref(oid)
                         .and()
@@ -823,8 +839,9 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private void deleteAllIdentities(AjaxRequestTarget target) {
-        DeleteAllPanel dialog = new DeleteAllPanel(getMainPopupBodyId()){
+        DeleteAllPanel dialog = new DeleteAllPanel(getMainPopupBodyId()) {
             private static final long serialVersionUID = 1L;
+
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 hideMainPopup(target);
@@ -975,6 +992,5 @@ public class PageDebugList extends PageAdminConfiguration {
         }
         target.add(getFeedbackPanel());
     }
-
 
 }

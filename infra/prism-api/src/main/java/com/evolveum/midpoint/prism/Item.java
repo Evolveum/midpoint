@@ -9,12 +9,17 @@ package com.evolveum.midpoint.prism;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.MiscUtil;
 
+import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -203,6 +208,10 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     @NotNull
     List<V> getValues();
 
+    default Stream<V> valuesStream() {
+        return getValues().stream();
+    }
+
     /**
      * Returns the number of values for this item.
      */
@@ -273,13 +282,15 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     @NotNull
     Collection<?> getRealValues();
 
-    @Experimental
+    @Experimental // Do NOT use !!!!
     @NotNull
     default Collection<Object> getRealValuesOrRawTypes(PrismContext prismContext) {
         List<Object> rv = new ArrayList<>();
         for (V value : getValues()) {
             if (value != null) {
                 rv.add(value.getRealValueOrRawType(prismContext));
+            } else {
+                rv.add("null"); // fixme
             }
         }
         return rv;
@@ -299,12 +310,17 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
         return getValues().size() <= 1;
     }
 
+    default boolean isSingleValueByDefinition() {
+        D definition = getDefinition();
+        return definition != null && definition.isSingleValue();
+    }
+
     //region Add and remove
 
     /**
      * Adds a given value, overwriting existing one.
      *
-     * It compares values using DEFAULT_FOR_EQUALS (NOT_LITERAL) strategy, so it e.g. takes value metadata differences into account.
+     * It compares values using DEFAULT_FOR_EQUALS (DATA) strategy, so it e.g. takes value metadata differences into account.
      * It is because this method is used during parsing, internal computations (typically using generated beans),
      * and similar situations where we expect little sophistication when it comes to value comparison.
      * The less surprises the better.
@@ -318,7 +334,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      *
      * @return true if this item changed as a result of the call. This is either during real value addition
      * or during overwriting existing value with a different one. The "difference" is taken using the
-     * DEFAULT_FOR_EQUALS (NOT_LITERAL) equivalence strategy.
+     * DEFAULT_FOR_EQUALS (DATA) equivalence strategy.
      */
     boolean add(@NotNull V newValue, @NotNull EquivalenceStrategy strategy) throws SchemaException;
 
@@ -365,6 +381,31 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      */
     boolean remove(V value, @NotNull EquivalenceStrategy strategy);
 
+    default void removeIf(Predicate<V> predicate) {
+        List<V> valuesToDelete = getValues().stream().filter(predicate).collect(Collectors.toList());
+        for (V valueToDelete : valuesToDelete) {
+            // We selected values directly from the item. So we can use rather strict equivalence strategy when deleting.
+            remove(valueToDelete, EquivalenceStrategy.DATA);
+        }
+    }
+
+    /**
+     * Adds a value, respecting the metadata. I.e. if equivalent value exists, the metadata are merged.
+     * (Replacing metadata of colliding provenance, adding all the others.)
+     *
+     * If a value is to be added as a whole, it is cloned.
+     */
+    void addRespectingMetadataAndCloning(V value, @NotNull EquivalenceStrategy strategy, EquivalenceStrategy metadataEquivalenceStrategy) throws SchemaException;
+
+    /**
+     * Removes values equivalent to given value from the item; under specified equivalence strategy
+     * OR when values represent the same value via "representsSameValue(.., lax=false)" method.
+     *
+     * Respects metadata, i.e. if value to be removed has metadata specified, this method removes
+     * only particular metadata. Only if this means that all metadata are gone, then the value is deleted.
+     */
+    void removeRespectingMetadata(V value, @NotNull EquivalenceStrategy strategy, EquivalenceStrategy metadataEquivalenceStrategy);
+
     /**
      * Removes all given values from the item. It is basically a shortcut for repeated
      * {@link #remove(PrismValue, EquivalenceStrategy)} call.
@@ -393,7 +434,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     //region Finding and comparing values
 
     /**
-     * Compares this item to the specified object under DEFAULT_FOR_EQUALS (NOT_LITERAL) strategy.
+     * Compares this item to the specified object under DEFAULT_FOR_EQUALS (DATA) strategy.
      */
     @Override
     boolean equals(Object obj);
@@ -409,7 +450,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     boolean equals(Object obj, @NotNull ParameterizedEquivalenceStrategy equivalenceStrategy);
 
     /**
-     * Computes hash code to be used under DEFAULT_FOR_EQUALS (currently NOT_LITERAL) equivalence strategy.
+     * Computes hash code to be used under DEFAULT_FOR_EQUALS (currently DATA) equivalence strategy.
      */
     @Override
     int hashCode();
@@ -426,7 +467,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
     /**
      * @return true if the item contains a given value (by default using DEFAULT_FOR_EQUALS
-     * i.e. NOT_LITERAL strategy)
+     * i.e. DATA strategy)
      *
      * Note that the "sameness" (ID-only value matching) is NOT considered here.
      */
@@ -461,7 +502,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
     /**
      * Computes a difference (delta) with the specified item using DEFAULT_FOR_DELTA_APPLICATION
-     * (IGNORE_METADATA_CONSIDER_DIFFERENT_IDS) equivalence strategy.
+     * (REAL_VALUE_CONSIDER_DIFFERENT_IDS) equivalence strategy.
      *
      * Compares item values only -- does NOT dive into lower levels.
      */
@@ -527,6 +568,26 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
             Boolean keep = function.apply(iterator.next());
             if (keep == null || !keep) {
                 iterator.remove();
+            }
+        }
+    }
+
+    default void filterYields(BiFunction<V, PrismContainerValue, Boolean> function) {
+        Iterator<V> iterator = getValues().iterator();
+        while (iterator.hasNext()) {
+            V value = iterator.next();
+            PrismContainer<Containerable> valueMetadata = value.getValueMetadataAsContainer();
+            if (valueMetadata.hasNoValues()) {
+                Boolean keep = function.apply(value, null);
+                if (BooleanUtils.isNotTrue(keep)) {
+                    iterator.remove();
+                }
+            } else {
+                valueMetadata.getValues().removeIf(
+                        md -> BooleanUtils.isNotTrue(function.apply(value, md)));
+                if (valueMetadata.getValues().isEmpty()) {
+                    iterator.remove();
+                }
             }
         }
     }
@@ -622,6 +683,10 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
     default boolean hasNoValues() {
         return getValues().isEmpty();
+    }
+
+    default boolean hasAnyValue() {
+        return !getValues().isEmpty();
     }
 
     @SuppressWarnings("unused")

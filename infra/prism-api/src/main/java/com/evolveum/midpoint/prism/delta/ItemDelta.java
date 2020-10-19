@@ -21,6 +21,7 @@ import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -131,15 +132,9 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
 
     boolean isValueToAdd(V value);
 
-    boolean isValueToAdd(V value, boolean ignoreMetadata);
-
     boolean isValueToDelete(V value);
 
-    boolean isValueToDelete(V value, boolean ignoreMetadata);
-
     boolean isValueToReplace(V value);
-
-    boolean isValueToReplace(V value, boolean ignoreMetadata);
 
     V getAnyValue();
 
@@ -300,13 +295,13 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
 
     void filterValues(Function<V, Boolean> function);
 
+    void filterYields(BiFunction<V, PrismContainerValue, Boolean> function);
+
     ItemDelta<V,D> clone();
 
     ItemDelta<V,D> cloneWithChangedParentPath(ItemPath newParentPath);
 
-    PrismValueDeltaSetTriple<V> toDeltaSetTriple();
-
-    PrismValueDeltaSetTriple<V> toDeltaSetTriple(Item<V, D> itemOld);
+    PrismValueDeltaSetTriple<V> toDeltaSetTriple(Item<V, D> itemOld) throws SchemaException;
 
     void assertDefinitions(String sourceDescription) throws SchemaException;
 

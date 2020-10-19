@@ -1,18 +1,12 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.form;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -20,10 +14,14 @@ import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+
 /**
  * @author lazyman
  */
-//@Deprecated
 public class CheckFormGroup extends BasePanel<Boolean> {
 
     private static final String ID_CHECK = "check";
@@ -37,7 +35,7 @@ public class CheckFormGroup extends BasePanel<Boolean> {
     }
 
     public CheckFormGroup(String id, IModel<Boolean> value, IModel<String> label, String tooltipKey,
-                          boolean isTooltipInModal, String labelSize, String textSize) {
+            boolean isTooltipInModal, String labelSize, String textSize) {
         super(id, value);
 
         initLayout(label, tooltipKey, isTooltipInModal, labelSize, textSize);
@@ -56,15 +54,10 @@ public class CheckFormGroup extends BasePanel<Boolean> {
         labelContainer.add(l);
 
         Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
-        tooltipLabel.add(new AttributeAppender("data-original-title", new IModel<String>() {
-
-            @Override
-            public String getObject() {
-                return getString(tooltipKey);
-            }
-        }));
+        tooltipLabel.add(new AttributeAppender("data-original-title",
+                (IModel<String>) () -> getString(tooltipKey)));
         tooltipLabel.add(new InfoTooltipBehavior(isTooltipInModal));
-        tooltipLabel.add(new VisibleEnableBehaviour(){
+        tooltipLabel.add(new VisibleEnableBehaviour() {
 
             @Override
             public boolean isVisible() {
@@ -74,7 +67,8 @@ public class CheckFormGroup extends BasePanel<Boolean> {
         tooltipLabel.setOutputMarkupId(true);
         tooltipLabel.setOutputMarkupPlaceholderTag(true);
         labelContainer.add(tooltipLabel);
-        labelContainer.add(new VisibleBehaviour(() -> getLabelVisible()) {});
+        labelContainer.add(new VisibleBehaviour(() -> getLabelVisible()) {
+        });
 
         WebMarkupContainer checkWrapper = new WebMarkupContainer(ID_CHECK_WRAPPER);
         if (StringUtils.isNotEmpty(textSize)) {
@@ -94,7 +88,7 @@ public class CheckFormGroup extends BasePanel<Boolean> {
         return true;
     }
 
-    public CheckBox getCheck(){
+    public CheckBox getCheck() {
         return (CheckBox) get(ID_CHECK_WRAPPER + ":" + ID_CHECK);
     }
 

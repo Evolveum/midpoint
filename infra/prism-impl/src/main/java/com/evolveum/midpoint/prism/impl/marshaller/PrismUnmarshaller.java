@@ -18,7 +18,6 @@ import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.impl.metadata.ValueMetadataAdapter;
 import com.evolveum.midpoint.prism.xnode.*;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -137,22 +136,27 @@ public class PrismUnmarshaller {
                 typeClass, ItemDefinition.class, pc, schemaRegistry);
         ItemDefinition<?> realDefinition;
         if (itemInfo.getItemDefinition() == null && itemInfo.getComplexTypeDefinition() != null) {
-            // let's create container definition dynamically
-            QName actualTypeName = itemInfo.getComplexTypeDefinition().getTypeName();
-            if (((SchemaRegistry) schemaRegistry).isContainer(actualTypeName)) {      // TODO what about objects?
-                PrismContainerDefinitionImpl<?> def = new PrismContainerDefinitionImpl<>(itemInfo.getItemName(),
-                        itemInfo.getComplexTypeDefinition(), prismContext);
-                def.setDynamic(true);
-                realDefinition = def;
-            } else {
-                PrismPropertyDefinitionImpl<?> def = new PrismPropertyDefinitionImpl<>(itemInfo.getItemName(), actualTypeName, prismContext);
-                def.setDynamic(true);
-                realDefinition = def;
-            }
+            // Why we do not try to create dynamic definition from other (non-complex) type definitions?
+            // (Most probably because we simply don't need it. Null is acceptable in that cases.)
+            realDefinition = createDynamicDefinitionFromCtd(itemInfo.getItemName(), itemInfo.getComplexTypeDefinition());
         } else {
             realDefinition = itemInfo.getItemDefinition();
         }
         return parseItemInternal(root.getSubnode(), itemInfo.getItemName(), realDefinition, pc);
+    }
+
+    @NotNull
+    private ItemDefinition<?> createDynamicDefinitionFromCtd(QName itemName, ComplexTypeDefinition typeDefinition) {
+        QName typeName = typeDefinition.getTypeName();
+        MutableItemDefinition<?> def;
+        if (typeDefinition.isContainerMarker()) {
+            // TODO what about objects?
+            def = new PrismContainerDefinitionImpl<>(itemName, typeDefinition, prismContext);
+        } else {
+            def = new PrismPropertyDefinitionImpl<>(itemName, typeName, prismContext);
+        }
+        def.setDynamic(true);
+        return def;
     }
 
     Object parseItemOrRealValue(@NotNull RootXNodeImpl root, ParsingContext pc) throws SchemaException {
@@ -250,8 +254,40 @@ public class PrismUnmarshaller {
         return xmap.getParsedPrimitiveValue(XNodeImpl.KEY_VERSION, DOMUtil.XSD_STRING);
     }
 
-    private Long getContainerId(MapXNodeImpl xmap) throws SchemaException {
-        return xmap.getParsedPrimitiveValue(XNodeImpl.KEY_CONTAINER_ID, DOMUtil.XSD_LONG);
+    private Long getContainerId(MapXNodeImpl xmap, PrismContainerDefinition<?> containerDef) throws SchemaException {
+        PrimitiveXNodeImpl<Object> maybeId = xmap.getPrimitive(XNodeImpl.KEY_CONTAINER_ID);
+        if(isContainerId(XNodeImpl.KEY_CONTAINER_ID, maybeId, containerDef)) {
+            return maybeId.getParsedValue(DOMUtil.XSD_LONG, Long.class);
+        }
+        return null;
+    }
+
+    private boolean isContainerId(QName itemName, XNodeImpl node, PrismContainerDefinition<?> parentDef) {
+        if(node instanceof PrimitiveXNodeImpl<?> && QNameUtil.match(itemName, XNodeImpl.KEY_CONTAINER_ID)) {
+            if(((PrimitiveXNodeImpl<?>)node).isAttribute()) {
+                return true;
+            }
+            if(parentDef.isRuntimeSchema() && itemName.getNamespaceURI() != null) {
+                return false;
+            }
+            if(idDef(parentDef) == null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns an item with name "id".
+     *
+     * @param containerDef
+     * @return
+     */
+    private ItemDefinition<?> idDef(PrismContainerDefinition<?> containerDef) {
+        if (containerDef == null) {
+            return null;
+        }
+        return containerDef.findLocalItemDefinition(XNodeImpl.KEY_CONTAINER_ID);
     }
 
     private <C extends Containerable> PrismContainerValue<C> parseContainerValue(@NotNull XNodeImpl node,
@@ -278,27 +314,38 @@ public class PrismUnmarshaller {
     @NotNull
     private <C extends Containerable> PrismContainerValue<C> parseContainerValueFromMap(@NotNull MapXNodeImpl map,
             @NotNull PrismContainerDefinition<C> containerDef, @NotNull ParsingContext pc) throws SchemaException {
-        Long id = getContainerId(map);
 
-        ComplexTypeDefinition complexTypeDefinition = containerDef.getComplexTypeDefinition();
+        ComplexTypeDefinition containerTypeDef = containerDef.getComplexTypeDefinition();
+
 
         PrismContainerValue<C> cval;
         if (containerDef instanceof PrismObjectDefinition) {
             //noinspection unchecked
             cval = ((PrismObjectDefinition) containerDef).createValue();
         } else {
+            Long id = getContainerId(map, containerDef);
             // override container definition, if explicit type is specified
             if (map.getTypeQName() != null) {
-                ComplexTypeDefinition specificDef = schemaRegistry.findComplexTypeDefinitionByType(map.getTypeQName());
-                if (specificDef != null) {
-                    complexTypeDefinition = specificDef;
+                ComplexTypeDefinition explicitTypeDef = schemaRegistry.findComplexTypeDefinitionByType(map.getTypeQName());
+                if (explicitTypeDef != null) {
+                    if (containerTypeDef != null && explicitTypeDef.isAssignableFrom(containerTypeDef, schemaRegistry)) {
+                        // Existing definition (CTD for PCD) is equal or more specific than the explicitly provided one.
+                        // Let's then keep using the existing definition. It is not quite clean solution
+                        // but there seem to exist serialized objects with generic xsi:type="c:ExtensionType" (MID-6474)
+                        // or xsi:type="c:ShadowAttributesType" (MID-6394). Such abstract definitions could lead to
+                        // parsing failures because of undefined items.
+                        LOGGER.trace("Ignoring explicit type definition {} because equal or even more specific one is present: {}",
+                                explicitTypeDef, containerTypeDef);
+                    } else {
+                        containerTypeDef = explicitTypeDef;
+                    }
                 } else {
                     pc.warnOrThrow(LOGGER, "Unknown type " + map.getTypeQName() + " in " + map);
                 }
             }
-            cval = new PrismContainerValueImpl<>(null, null, null, id, complexTypeDefinition, prismContext);
+            cval = new PrismContainerValueImpl<>(null, null, null, id, containerTypeDef, prismContext);
         }
-        parseContainerChildren(cval, map, containerDef, complexTypeDefinition, pc);
+        parseContainerChildren(cval, map, containerDef, containerTypeDef, pc);
         return cval;
     }
 
@@ -306,7 +353,8 @@ public class PrismUnmarshaller {
         for (Entry<QName, XNodeImpl> entry : map.entrySet()) {
             final QName itemName = entry.getKey();
             checkArgument(itemName != null, "Null item name while parsing %s", map.debugDumpLazily());
-            if (QNameUtil.match(itemName, XNodeImpl.KEY_CONTAINER_ID)) {
+
+            if (isContainerId(itemName, entry.getValue(), containerDef)) {
                 continue;
             }
             if (containerDef instanceof PrismObjectDefinition &&
@@ -315,7 +363,8 @@ public class PrismUnmarshaller {
             }
 
             ItemDefinition<?> itemDef = locateItemDefinition(itemName, complexTypeDefinition, entry.getValue());
-            if(itemDef == null) {
+
+            if (itemDef == null) {
                 boolean shouldContinue = handleMissingDefinition(itemName, containerDef, complexTypeDefinition, pc, map);
                 if(shouldContinue) {
                     continue;
@@ -489,17 +538,17 @@ public class PrismUnmarshaller {
 
     private void addMetadataIfPresent(PrismValue prismValue, XNode node, @NotNull ParsingContext pc) throws SchemaException {
         if (prismValue != null && node instanceof MetadataAware) {
-            MapXNode metadata = ((MetadataAware) node).getMetadataNode();
-            if (metadata != null) {
-                prismValue.setValueMetadata(parseMetadata(metadata, pc));
-            }
+            parseMetadataNodes(prismValue, ((MetadataAware) node).getMetadataNodes(), pc);
         }
     }
 
-    private ValueMetadata parseMetadata(MapXNode metadata, ParsingContext pc) throws SchemaException {
-        PrismContainerValue<?> pcv =
-                parseContainerValueFromMap((MapXNodeImpl) metadata, schemaRegistry.getValueMetadataDefinition(), pc);
-        return ValueMetadataAdapter.holding(pcv);
+    private void parseMetadataNodes(PrismValue prismValue, List<MapXNode> metadataNodes, ParsingContext pc) throws SchemaException {
+        for (MapXNode metadataNode : metadataNodes) {
+            PrismContainerValue pcv =
+                    parseContainerValueFromMap((MapXNodeImpl) metadataNode, schemaRegistry.getValueMetadataDefinition(), pc);
+            //noinspection unchecked
+            prismValue.getValueMetadata().add(pcv);
+        }
     }
 
     @Nullable

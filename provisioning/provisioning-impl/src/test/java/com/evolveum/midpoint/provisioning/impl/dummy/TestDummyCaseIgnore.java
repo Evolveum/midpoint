@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -89,14 +89,14 @@ public class TestDummyCaseIgnore extends TestDummy {
 
     @Test
     public void test175SearchUidCase() throws Exception {
-        testSeachIterativeSingleAttrFilter(
+        testSearchIterativeSingleAttrFilter(
                 SchemaConstants.ICFS_UID, "wIlL", null, true,
                 transformNameFromResource("Will"));
     }
 
     @Test
     public void test176SearchUidCaseNoFetch() throws Exception {
-        testSeachIterativeSingleAttrFilter(
+        testSearchIterativeSingleAttrFilter(
                 SchemaConstants.ICFS_UID, "wIlL", GetOperationOptions.createNoFetch(), false,
                 transformNameFromResource("Will"));
     }
@@ -133,7 +133,7 @@ public class TestDummyCaseIgnore extends TestDummy {
         DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
         assertMember(group, getWillRepoIcfName());
 
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
 
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
         display("Shadow after", shadow);
@@ -172,7 +172,7 @@ public class TestDummyCaseIgnore extends TestDummy {
         DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
         assertNotNull("Account will is gone!", dummyAccount);
 
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
         assertSteadyResource();
     }
 
@@ -208,7 +208,7 @@ public class TestDummyCaseIgnore extends TestDummy {
         DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
         IntegrationTestTools.assertGroupMember(group, getWillRepoIcfName(),true);
 
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
 
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
         display("Shadow after", shadow);
@@ -249,7 +249,7 @@ public class TestDummyCaseIgnore extends TestDummy {
         DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
         assertNotNull("Account will is gone!", dummyAccount);
 
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
         assertSteadyResource();
     }
 

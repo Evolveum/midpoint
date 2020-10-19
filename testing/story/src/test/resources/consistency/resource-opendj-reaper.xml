@@ -1,0 +1,775 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!-- This version of the resorce reaps dead shadows immediately (deadShadowRetentionPeriod=0) -->
+
+<resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+          xmlns:my="http://whatever.com/my">
+
+    <!-- Resource printable name -->
+    <name>Embedded Test OpenDJ: Reaper</name>
+
+    <!-- Reference to the ICF LDAP connector. This is dynamic reference, it will be translated to
+          OID during import. -->
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:equal>
+            <q:path>c:connectorType</q:path>
+                <q:value>com.evolveum.polygon.connector.ldap.LdapConnector</q:value>
+            </q:equal>
+        </filter>
+    </connectorRef>
+
+    <connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector">
+
+        <icfc:configurationProperties>
+            <icfcldap:port>10389</icfcldap:port>
+            <icfcldap:host>localhost</icfcldap:host>
+            <icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
+            <icfcldap:bindDn>cn=directory manager</icfcldap:bindDn>
+            <icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
+            <icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
+            <icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
+             <icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
+             <icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
+        </icfc:configurationProperties>
+
+        <icfc:resultsHandlerConfiguration>
+            <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+            <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+            <icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+        </icfc:resultsHandlerConfiguration>
+
+    </connectorConfiguration>
+
+
+    <!-- Resource namespace -->
+<!--     <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</namespace> -->
+
+    <!-- No schema. It will be generated from the resource. -->
+
+    <schemaHandling>
+
+        <objectType>
+            <kind>account</kind>
+            <intent>internal</intent>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:inetOrgPerson</objectClass>
+
+            <attribute>
+                <ref>ri:dn</ref>
+                <displayName>Distinguished Name</displayName>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-3";$user/name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                'uid=' + name + iterationToken + ',ou=people,dc=example,dc=com'
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+
+            <attribute>
+                <ref>ri:entryUUID</ref>
+                <displayName>Entry UUID</displayName>
+            </attribute>
+
+            <attribute>
+                <ref>ri:cn</ref>
+                <displayName>Common Name</displayName>
+                <limitations>
+                    <maxOccurs>1</maxOccurs>
+                </limitations>
+                <outbound>
+                    <strength>strong</strength> <!-- MID-3093 -->
+                    <source>
+                        <path>$user/fullName</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <target>
+                        <path>$user/fullName</path>
+                    </target>
+                </inbound>
+            </attribute>
+
+            <attribute>
+                <ref>ri:sn</ref>
+                <displayName>Surname</displayName>
+                <limitations>
+                    <maxOccurs>1</maxOccurs>
+                </limitations>
+                <outbound>
+                    <source>
+                        <path>familyName</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <target>
+                        <path>familyName</path>
+                    </target>
+                </inbound>
+            </attribute>
+
+            <attribute>
+                <ref>ri:givenName</ref>
+                <displayName>Given Name</displayName>
+                <limitations>
+                    <maxOccurs>1</maxOccurs>
+                </limitations>
+                <outbound>
+                    <source>
+                        <path>givenName</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <target>
+                        <path>givenName</path>
+                    </target>
+                </inbound>
+            </attribute>
+
+            <attribute>
+                <ref>ri:uid</ref>
+                <displayName>Login Name</displayName>
+                <limitations>
+                    <minOccurs>1</minOccurs>
+                    <maxOccurs>1</maxOccurs>
+                </limitations>
+                <secondaryIdentifier>true</secondaryIdentifier>
+                <outbound>
+                    <description>
+                        It is mapped from (and also to) "name" property of user. It is essentially a login name.
+                        This outbound construction is using a Groovy expression.
+                    </description>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$c:user/c:name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                name + iterationToken
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+                <inbound>
+                    <description>
+                        It is mapped to (and also from) "name" property of user. It is essentially a login name
+                    </description>
+                    <strength>weak</strength>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+
+            </attribute>
+
+
+            <attribute>
+                <ref>ri:carLicense</ref>
+
+                <description>
+                    This attibute definition is used to test tolerance of empty values.
+                </description>
+
+                <outbound>
+                    <description>
+                        The expression will produce empty value. OpenDJ will die if empty value
+                        is provided for an attribute. midPoint should filter out the empty value
+                        and do not sent it to OpenDJ.
+                    </description>
+                    <strength>weak</strength>
+                    <expression>
+                        <script>
+                            <code>return ""</code>
+                        </script>
+                    </expression>
+                </outbound>
+
+                <inbound>
+                    <target>
+                        <path>
+                            extension/description
+                        </path>
+                    </target>
+                </inbound>
+            </attribute>
+
+            <attribute>
+                <ref>ri:l</ref>
+                <c:tolerant>false</c:tolerant>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>locality</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                if (locality == null) return "middle of nowhere"
+
+                                return locality
+                            </code>
+                        </script>
+                    </expression>
+
+                </outbound>
+            </attribute>
+
+            <attribute>
+                <ref>ri:employeeType</ref>
+                <displayName>Employee Type</displayName>
+
+                <outbound>
+                <strength>weak</strength>
+                    <source>
+                        <path>employeeType</path>
+                    </source>
+                </outbound>
+            </attribute>
+
+             <association>
+                <ref>ri:group</ref>
+                <displayName>LDAP Group Membership</displayName>
+                <kind>entitlement</kind>
+                <intent>ldapGroup</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:uniqueMember</associationAttribute>
+                <valueAttribute>ri:dn</valueAttribute>
+            </association>
+
+            <iteration>
+                <maxIterations>5</maxIterations>
+            </iteration>
+
+            <activation>
+                <administrativeStatus>
+                    <outbound/>
+                    <inbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <asIs/>
+                        </expression>
+                    </inbound>
+                </administrativeStatus>
+            </activation>
+
+<!--             <activation> -->
+<!--                 <enabled> -->
+<!--                     <outbound> -->
+<!--                         <expression> -->
+<!--                             <asIs/> -->
+<!--                         </expression> -->
+<!--                     </outbound> -->
+<!--                     <inbound> -->
+<!--                         <expression> -->
+<!--                             <asIs/> -->
+<!--                         </expression> -->
+<!--                     </inbound> -->
+<!--                 </enabled> -->
+<!--             </activation> -->
+
+           <credentials>
+                <password>
+                    <outbound>
+                        <expression>
+                            <asIs/>
+                        </expression>
+                    </outbound>
+                    <inbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <generate/>
+                        </expression>
+                    </inbound>
+                </password>
+            </credentials>
+
+        </objectType>
+
+
+        <objectType>
+
+            <kind>account</kind>
+            <intent>contractor</intent>
+            <!-- Readable name for the account type -->
+            <displayName>Default Account</displayName>
+
+            <default>false</default>
+            <!-- Reference to the Resource Schema specifying
+      object class for this account type -->
+
+            <objectClass>ri:inetOrgPerson</objectClass>
+
+            <attribute>
+                <ref>ri:dn</ref>
+                <displayName>Distinguished Name</displayName>
+                <description>The DN will be constructed as
+                    follows: uid=flastname,ou=people,dc=example,dc=ck</description>
+                <limitations>
+                    <minOccurs>0</minOccurs>
+                    <access>
+                        <add>true</add>
+                        <read>true</read>
+                        <modify>true</modify>
+                    </access>
+                </limitations>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                    <source>
+                        <name>tmpGivenName</name>
+                        <path>$user/givenName</path>
+                    </source>
+                    <source>
+                        <name>tmpFamilyName</name>
+                        <path>$user/familyName</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                tmpGivenNameInitial = basic.stringify(tmpGivenName)?.size() &gt; 0 ? (basic.stringify(tmpGivenName)).substring(0,1) : ''
+
+                                if (iteration == 0) {
+                                'uid=' + basic.norm(basic.stringify(tmpGivenNameInitial + tmpFamilyName)) + ',OU=people,DC=example,DC=com'
+                                }
+                                else {
+                                'uid=' + basic.norm(basic.stringify(tmpGivenNameInitial + tmpFamilyName)) + iterationToken + ',OU=people,DC=example,DC=com'
+                                }
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+
+
+            <!-- Definition of __UID__ attribute handling.
+           ICF will put entry UUID into __UID__ attribute in case it
+           is connecting to OpenDJ/OpenDS. It may be different for
+           other directory servers and it also dependes on connector
+           configuration. Please see connector documentation for
+           more details.-->
+            <attribute>
+                <ref>ri:entryUUID</ref>
+
+                <!-- Readable name for the attribute. This will be used in GUI -->
+                <displayName>Entry UUID</displayName>
+                <!-- There is no "outbound" expression, so midPoint will not
+           do anything with this attribute. -->
+
+                <!-- No inbound expression here. Does not make sense to sync UUID as it is supposed to be immutable -->
+
+            </attribute>
+
+            <!-- Definition of cn attribute handling. -->
+            <attribute>
+
+                <ref>ri:cn</ref>
+                <displayName>Common Name</displayName>
+
+                <limitations>
+                    <maxOccurs>1</maxOccurs>
+                </limitations>
+
+                <outbound>
+                    <source>
+                        <path>$user/fullName</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <target>
+                        <path>$user/fullName</path>
+                    </target>
+                </inbound>
+
+            </attribute>
+
+            <!-- Definition of sn attribute handling. -->
+            <attribute>
+                <ref>ri:sn</ref>
+                <displayName>Surname</displayName>
+                <limitations>
+                    <maxOccurs>1</maxOccurs>
+                </limitations>
+                <outbound>
+                    <source>
+                        <path>$c:user/c:familyName</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <target>
+                        <path>$c:user/c:familyName</path>
+                    </target>
+                </inbound>
+            </attribute>
+
+            <!-- Definition of givenName attribute handling. -->
+            <attribute>
+                <ref>ri:givenName</ref>
+                <displayName>Given Name</displayName>
+                <limitations>
+                    <maxOccurs>1</maxOccurs>
+                </limitations>
+                <outbound>
+                    <source>
+                        <path>c:givenName</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <target>
+                        <path>$c:user/c:givenName</path>
+                    </target>
+                </inbound>
+            </attribute>
+
+            <!-- Definition of uid attribute handling.
+       Do not confuse with __UID__! -->
+            <attribute>
+                <ref>ri:uid</ref>
+                <displayName>Login Name</displayName>
+                <limitations>
+                    <minOccurs>1</minOccurs>
+                    <maxOccurs>1</maxOccurs>
+                </limitations>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <name>tmpGivenName</name>
+                        <path>$user/givenName</path>
+                    </source>
+                    <source>
+                        <name>tmpFamilyName</name>
+                        <path>$user/familyName</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                tmpGivenNameInitial = basic.stringify(tmpGivenName)?.size() &gt; 0 ? (basic.stringify(tmpGivenName)).substring(0,1) : ''
+
+                                if (iteration == 0) {
+                                basic.norm(basic.stringify(tmpGivenNameInitial + tmpFamilyName))
+                                }
+                                else {
+                                basic.norm(basic.stringify(tmpGivenNameInitial + tmpFamilyName)) + iterationToken
+                                }
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+
+            <attribute>
+                <ref>ri:carLicense</ref>
+
+                <description>
+                    This attibute definition is used to test tolerance of empty values.
+                </description>
+
+                <outbound>
+                    <description>
+                        The expression will produce empty value. OpenDJ will die if empty value
+                        is provided for an attribute. midPoint should filter out the empty value
+                        and do not sent it to OpenDJ.
+                    </description>
+                    <strength>weak</strength>
+                    <expression>
+                        <script>
+                            <language>http://www.w3.org/TR/xpath/</language>
+                            <returnType>scalar</returnType>
+                            <c:code>
+                                concat('','')
+                            </c:code>
+                        </script>
+                    </expression>
+                </outbound>
+
+                <inbound>
+                    <target>
+                        <path>
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                            declare namespace my="http://whatever.com/my";
+                            $i:user/i:extension/my:description
+                        </path>
+                    </target>
+                </inbound>
+                <!-- No inbound expression for description. We don't want to synchronize that -->
+            </attribute>
+
+
+            <!-- Definition of description attribute handling. -->
+            <!-- This attribute is using a lookup table to translate the values
+ valid for user to a values valid for the resource account. -->
+            <attribute>
+                <ref>ri:l</ref>
+                <c:tolerant>false</c:tolerant>
+
+                <!-- Outbound expression definition. This expression is using
+              a configuration object (set into an XPath variable) to
+              translate values. -->
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";$c:user/c:locality</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <c:language>http://www.w3.org/TR/xpath/</c:language>
+                            <c:returnType>scalar</c:returnType>
+                            <code>
+                                declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                                if (empty($c:user/c:locality)) then
+                                "middle of nowhere"
+                                else
+                                $c:user/c:locality
+                            </code>
+                        </script>
+                    </expression>
+
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:employeeType</ref>
+                <displayName>Employee Type</displayName>
+
+                <outbound>
+                    <!--                 <strength>weak</strength> -->
+                    <source>
+                        <path>$user/employeeType</path>
+                    </source>
+                </outbound>
+            </attribute>
+
+            <attribute>
+                <ref>ri:employeeNumber</ref>
+                <displayName>Employee Number</displayName>
+                <outbound>
+                    <source>
+                        <path>$user/employeeNumber</path>
+                    </source>
+                </outbound>
+            </attribute>
+
+            <association>
+                <ref>ri:group</ref>
+                <displayName>LDAP Group Membership</displayName>
+                <kind>entitlement</kind>
+                <intent>ldapGroup</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:uniqueMember</associationAttribute>
+                <valueAttribute>ri:dn</valueAttribute>
+            </association>
+
+            <iteration>
+                <maxIterations>5</maxIterations>
+            </iteration>
+
+            <activation>
+                <administrativeStatus>
+                    <outbound/>
+                    <inbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <asIs/>
+                        </expression>
+                    </inbound>
+                </administrativeStatus>
+            </activation>
+
+            <credentials>
+                <password>
+                    <outbound>
+                        <expression>
+                            <asIs/>
+                        </expression>
+                    </outbound>
+                    <inbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <generate/>
+                        </expression>
+                    </inbound>
+                </password>
+            </credentials>
+
+        </objectType>
+
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>ldapGroup</intent>
+            <displayName>LDAP Group</displayName>
+            <objectClass>ri:groupOfUniqueNames</objectClass>
+        </objectType>
+
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>ldapGroup</intent>
+            <displayName>LDAP Group</displayName>
+            <objectClass>ri:groupOfUniqueNames</objectClass>
+        </objectType>
+    </schemaHandling>
+
+    <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+        <configured>
+            <cap:activation>
+                <cap:status>
+                    <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
+                    <cap:enableValue/>
+                    <cap:disableValue>true</cap:disableValue>
+                </cap:status>
+            </cap:activation>
+        </configured>
+    </capabilities>
+
+    <consistency>
+        <shadowConstraintsCheck>light</shadowConstraintsCheck>
+        <pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
+        <pendingOperationRetentionPeriod>PT30M</pendingOperationRetentionPeriod>
+        <deadShadowRetentionPeriod>PT0H</deadShadowRetentionPeriod>
+        <reshreshOnRead>false</reshreshOnRead>
+    </consistency>
+
+    <!--
+        Synchronization section describes the synchronization policy, timing,
+        reactions and similar synchronization settings.
+    -->
+    <c:synchronization>
+    <objectSynchronization>
+        <!--
+    The synchronization for this resource is enabled.
+    It means that the synchronization will poll for changes once
+    per interval specified below. -->
+        <kind>account</kind>
+        <intent>internal</intent>
+        <c:enabled>true</c:enabled>
+
+        <!-- Correlation expression.
+           It will be used to find appropriate user entry for an account.
+        -->
+        <c:correlation> <!-- Correlation rule is a search query -->
+
+                <!-- The clause <c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-3#UserType"/> is implicit in correlation rules -->
+                <!-- Following search query will look for users that have "name"
+    equal to the "uid" attribute of the account. Simply speaking,
+    it will look for match in usernames in the IDM and the resource. -->
+                <q:equal>
+                    <q:path>name</q:path>
+                    <expression>
+                        <path>$shadow/attributes/ri:uid</path>
+                    </expression>
+                </q:equal>
+            </c:correlation>
+
+        <!-- Confirmation rule may be here, but as the search above will
+always return at most one match, the confirmation rule is not needed. -->
+
+        <objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
+
+        <!-- Following section describes reactions to a situations.
+            The setting here assumes that this resource is authoritative,
+            therefore all accounts created on the resource should be
+            reflected as new users in IDM.
+            See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
+        -->
+        <c:reaction>
+            <c:situation>linked</c:situation>
+            <synchronize>true</synchronize>
+        </c:reaction>
+        <c:reaction>
+            <c:situation>deleted</c:situation>
+            <synchronize>true</synchronize>
+            <action>
+                <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+            </action>
+        </c:reaction>
+        <c:reaction>
+            <c:situation>unlinked</c:situation>
+            <synchronize>true</synchronize>
+            <action>
+                <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+            </action>
+        </c:reaction>
+        <c:reaction>
+            <c:situation>unmatched</c:situation>
+            <synchronize>true</synchronize>
+            <action>
+                <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+            </action>
+        </c:reaction>
+</objectSynchronization>
+        <objectSynchronization>
+            <kind>account</kind>
+            <intent>contractor</intent>
+            <c:enabled>true</c:enabled>
+
+            <correlation>
+                <q:description>
+                    Correlation expression is a search query.
+                    Following search query will look for users that have "employeeNumber"
+                    equal to the "enumber" attribute of the account.
+                    The condition will ensure that "enumber" is not
+                    empty, otherwise it would match any midPoint user
+                    with empty "employeeNumber" attribute, such as "administrator".
+                    The correlation rule always looks for users, so it will not match
+                    any other object type.
+                </q:description>
+                <condition>
+                    <script>
+                        <code>
+                            basic.getAttributeValue(account, 'employeeNumber') != null
+                        </code>
+                    </script>
+                </condition>
+                <q:equal>
+                    <q:path>c:employeeNumber</q:path>
+                    <expression>
+                        <path>$shadow/attributes/ri:employeeNumber</path>
+                    </expression>
+                </q:equal>
+            </correlation>
+
+            <c:reaction>
+                <c:situation>linked</c:situation>
+                <synchronize>false</synchronize>
+            </c:reaction>
+            <c:reaction>
+                <c:situation>deleted</c:situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                </action>
+            </c:reaction>
+            <c:reaction>
+                <c:situation>unlinked</c:situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </c:reaction>
+            <c:reaction>
+                <c:situation>unmatched</c:situation>
+                <synchronize>false</synchronize>
+            </c:reaction>
+        </objectSynchronization>
+    </c:synchronization>
+
+</resource>

@@ -10,7 +10,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.DatePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 
@@ -49,7 +49,7 @@ public class DateIntervalSearchPopupPanel extends BasePanel {
     private void initLayout() {
         setOutputMarkupId(true);
 
-        Form dateForm = new Form(ID_DATE_FORM);
+        MidpointForm dateForm = new MidpointForm(ID_DATE_FORM);
         dateForm.setOutputMarkupId(true);
         add(dateForm);
 

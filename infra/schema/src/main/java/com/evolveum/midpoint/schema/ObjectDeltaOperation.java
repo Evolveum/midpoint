@@ -14,11 +14,13 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -89,22 +91,10 @@ public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable
         this.resourceName = resourceName;
     }
 
-    public boolean containsDelta(ObjectDelta<O> delta) {
+    public boolean containsDelta(ObjectDelta<O> delta, ParameterizedEquivalenceStrategy equivalenceStrategy) {
         return objectDelta.equals(delta) ||
-                objectDelta.isModify() && delta.isModify() && objectDelta.containsAllModifications(delta.getModifications(), EquivalenceStrategy.IGNORE_METADATA);
+                objectDelta.isModify() && delta.isModify() && objectDelta.containsAllModifications(delta.getModifications(), equivalenceStrategy);
     }
-
-//    public static <T extends ObjectType> boolean containsDelta(Collection<? extends ObjectDeltaOperation<T>> deltaOps, ObjectDelta<T> delta) {
-//        if (deltaOps == null) {
-//            return false;
-//        }
-//        for (ObjectDeltaOperation<T> deltaOp: deltaOps) {
-//            if (deltaOp.containsDelta(delta)) {
-//                return true;
-//            }
-//        }
-//        return false;
-//    }
 
     public ObjectDeltaOperation<O> clone() {
         ObjectDeltaOperation<O> clone = new ObjectDeltaOperation<>();
@@ -292,4 +282,20 @@ public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable
         return sb.toString();
     }
 
+    public OperationResultStatus getStatus() {
+        return executionResult != null ? executionResult.getStatus() : null;
+    }
+
+    /**
+     * An approximate information if the delta was "really" executed i.e. if there's a real chance
+     * that the delta was - at least partially - applied.
+     *
+     * Any solution based on operation result status will never be 100% accurate, e.g. because
+     * a network timeout could occur just before returning a status value. So please use with care.
+     */
+    @Experimental
+    public boolean wasReallyExecuted() {
+        OperationResultStatus status = getStatus();
+        return status != null && status != OperationResultStatus.FATAL_ERROR && status != OperationResultStatus.NOT_APPLICABLE;
+    }
 }

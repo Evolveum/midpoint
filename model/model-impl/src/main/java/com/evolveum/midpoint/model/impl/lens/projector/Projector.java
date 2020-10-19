@@ -12,6 +12,8 @@ import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.impl.lens.projector.focus.ObjectTemplateProcessor;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,7 +73,7 @@ public class Projector {
     @Autowired private ProjectionCredentialsProcessor projectionCredentialsProcessor;
     @Autowired private ActivationProcessor activationProcessor;
     @Autowired private DependencyProcessor dependencyProcessor;
-    @Autowired private ConsolidationProcessor consolidationProcessor;
+    @Autowired private ObjectTemplateProcessor objectTemplateProcessor;
     @Autowired private Clock clock;
     @Autowired private ClockworkMedic medic;
 
@@ -171,7 +173,7 @@ public class Projector {
                         Projector.class, context, activityDescription, now, task, result);
             }
 
-            consolidationProcessor.consolidateFocusPrimaryDelta(context, now, task, result);
+            //consolidationProcessor.consolidateFocusPrimaryDelta(context, now, task, result);
 
             LOGGER.trace("WAVE {} (executionWave={})", context.getProjectionWave(), context.getExecutionWave());
 
@@ -187,12 +189,11 @@ public class Projector {
                     Projector.class, context, activityDescription, now, task, result);
 
             if (partialProcessingOptions.getProjection() != PartialProcessingTypeType.SKIP) {
-                // Process activation of all resources, regardless of the waves. This is needed to properly
-                // sort projections to waves as deprovisioning will reverse the dependencies. And we know whether
-                // a projection is provisioned or deprovisioned only after the activation is processed.
-                if (fromStart) {
-                    activationProcessor.processActivationForAllResources(context, activityDescription, now, task, result);
-                }
+                // Process activation for all eligible projections: such that their wave is either not determined
+                // or such that their wave is current. The first case is needed to properly sort projections to waves
+                // as deprovisioning will reverse the dependencies. And we know whether a projection is provisioned or
+                // deprovisioned only after the activation is processed.
+                activationProcessor.processProjectionsActivation(context, activityDescription, now, task, result);
 
                 dependencyProcessor.sortProjectionsToWaves(context, result);
 
@@ -211,6 +212,12 @@ public class Projector {
             }
 
             context.checkConsistenceIfNeeded();
+
+            medic.partialExecute(Components.OBJECT_TEMPLATE_AFTER_PROJECTIONS, objectTemplateProcessor,
+                    objectTemplateProcessor::processTemplateAfterProjections,
+                    partialProcessingOptions::getObjectTemplateAfterAssignments,
+                    Projector.class, context, now, task, result);
+
             context.incrementProjectionWave();
 
             dependencyProcessor.checkDependenciesFinal(context, result);
@@ -254,6 +261,13 @@ public class Projector {
         if (projectionContext.getWave() != context.getProjectionWave()) {
             LOGGER.trace("Skipping projection of {} because its wave ({}) is different from current projection wave ({})",
                     projectionContext, projectionContext.getWave(), context.getProjectionWave());
+            parentResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Wave of the projection context differs from current projector wave");
+            return;
+        }
+
+        if (projectionContext.isCompleted()) {
+            LOGGER.trace("Skipping projection of {} because it's already completed", projectionContext);
+            parentResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Projection context is already completed");
             return;
         }
 
@@ -279,7 +293,6 @@ public class Projector {
                 result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipping projection because it is a tombstone");
                 return;
             }
-
 
             LOGGER.trace("WAVE {} PROJECTION {}", context.getProjectionWave(), projectionDesc);
 
@@ -358,6 +371,7 @@ public class Projector {
         boolean hasProjectionError = false;
         OperationResultStatus finalStatus = OperationResultStatus.SUCCESS;
         String message = null;
+        LocalizableMessage userFriendlyMessage = null;
         for (OperationResult subresult: result.getSubresults()) {
             if (subresult.isNotApplicable() || subresult.isSuccess()) {
                 continue;
@@ -370,6 +384,7 @@ public class Projector {
             }
             if (subresult.isError()) {
                 message = subresult.getMessage();
+                userFriendlyMessage = subresult.getUserFriendlyMessage();
                 if (OPERATION_PROJECT_PROJECTION.equals(subresult.getOperation())) {
                     hasProjectionError = true;
                 } else {
@@ -384,6 +399,7 @@ public class Projector {
         }
         result.setStatus(finalStatus);
         result.setMessage(message);
+        result.setUserFriendlyMessage(userFriendlyMessage);
         result.cleanupResult();
         if (LOGGER.isDebugEnabled()) {
             long projectorStartTimestamp = XmlTypeConverter.toMillis(projectorStartTimestampCal);

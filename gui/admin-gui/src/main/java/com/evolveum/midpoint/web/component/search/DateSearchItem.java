@@ -23,7 +23,7 @@ public class DateSearchItem<T extends Serializable> extends PropertySearchItem<T
     private XMLGregorianCalendar toDate;
 
     public DateSearchItem(Search search, ItemPath path, ItemDefinition definition) {
-        super(search, path, definition, null);
+        super(search, path, definition, null, null);
     }
 
     public XMLGregorianCalendar getFromDate() {

@@ -11,7 +11,7 @@
     <name>SystemConfiguration</name>
     <defaultObjectPolicyConfiguration>
         <type>UserType</type>
-        <subtype>regular</subtype>
-        <objectTemplateRef oid="b1005d3d-6ef4-4347-b235-313666824ed8"/> <!-- template-regular-user -->
+        <subtype>loa</subtype>
+        <objectTemplateRef oid="b1005d3d-6ef4-4347-b235-313666824ed8"/> <!-- template-loa-user -->
     </defaultObjectPolicyConfiguration>
 </systemConfiguration>

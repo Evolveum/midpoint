@@ -1,19 +1,21 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.page.admin.server;
 
 import java.util.*;
-import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 
-import org.apache.commons.collections.CollectionUtils;
+import com.evolveum.midpoint.web.util.TaskOperationUtils;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -33,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -54,9 +57,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -77,7 +78,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
                         description = PageAdminTasks.AUTH_TASKS_ALL_DESCRIPTION),
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TASKS_URL,
                         label = "PageTasks.auth.tasks.label",
-                        description = "PageTasks.auth.tasks.description")})
+                        description = "PageTasks.auth.tasks.description") })
 public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskTablePanel.class);
@@ -100,7 +101,6 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
     public TaskTablePanel(String id, Collection<SelectorOptions<GetOperationOptions>> options) {
         super(id, TaskType.class, options);
     }
-
 
     @Override
     protected void objectDetailsPerformed(AjaxRequestTarget target, TaskType object) {
@@ -196,7 +196,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
     private List<IColumn<SelectableBean<TaskType>, String>> initTaskColumns() {
         List<IColumn<SelectableBean<TaskType>, String>> columns = new ArrayList<>();
 
-        if (!isCollectionViewPanelForCompiledView()){
+        if (!isCollectionViewPanelForCompiledView()) {
             columns.add(createTaskCategoryColumn());
         }
         columns.addAll(initCustomTaskColumns());
@@ -209,7 +209,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> item, String componentId,
-                                     final IModel<SelectableBean<TaskType>> rowModel) {
+                    final IModel<SelectableBean<TaskType>> rowModel) {
                 item.add(new Label(componentId,
                         WebComponentUtil.createCategoryNameModel(TaskTablePanel.this, new PropertyModel<>(rowModel, SelectableBeanImpl.F_VALUE + "." + TaskType.F_CATEGORY.getLocalPart()))));
             }
@@ -224,7 +224,6 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
     protected List<IColumn<SelectableBean<TaskType>, String>> initCustomTaskColumns() {
         List<IColumn<SelectableBean<TaskType>, String>> columns = new ArrayList<>();
-
 
         columns.add(createTaskExecutionStatusColumn());
 
@@ -258,12 +257,24 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
     }
 
-    private EnumPropertyColumn<SelectableBean<TaskType>> createTaskExecutionStatusColumn() {
-        return new EnumPropertyColumn<SelectableBean<TaskType>>(createStringResource("pageTasks.task.execution"), TaskType.F_EXECUTION_STATUS.getLocalPart(), SelectableBeanImpl.F_VALUE + ".executionStatus") {
+    private AbstractExportableColumn<SelectableBean<TaskType>, String> createTaskExecutionStatusColumn() {
+        return new AbstractExportableColumn<SelectableBean<TaskType>, String>(createStringResource("pageTasks.task.execution")) {
 
             @Override
-            protected String translate(Enum en) {
-                return TaskTablePanel.this.createStringResource(en).getString();
+            public IModel<String> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
+                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getValue() != null) {
+                    TaskType task = rowModel.getObject().getValue();
+                    if (task.getOid() == null) {
+                        if (TaskExecutionStatusType.RUNNABLE == task.getExecutionStatus()) {
+                            return getPageBase().createStringResource(TaskDtoExecutionStatus.RUNNING);
+                        }
+                    }
+                    TaskDtoExecutionStatus status = TaskDtoExecutionStatus.fromTaskExecutionStatus(task.getExecutionStatus(), task.getNodeAsObserved() != null);
+                    if (status != null) {
+                        return getPageBase().createStringResource(status);
+                    }
+                }
+                return Model.of("");
             }
         };
     }
@@ -277,7 +288,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
                     cellItem.add(new Label(componentId,
                             (IModel<Object>) () -> getProgressDescription(rowModel.getObject())));
                 } else {
-                    cellItem.add(new LinkPanel(componentId, createStringResource("PageTasks.show.child.progress")) {
+                    cellItem.add(new AjaxLinkPanel(componentId, createStringResource("PageTasks.show.child.progress")) {
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
@@ -331,7 +342,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         if (expectedBuckets == null) {
             return String.valueOf(completeBuckets);
         } else {
-            return (completeBuckets*100/expectedBuckets) + "%";
+            return (completeBuckets * 100 / expectedBuckets) + "%";
         }
     }
 
@@ -343,14 +354,13 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         return TaskWorkStateTypeUtil.getCompleteBucketsNumber(taskType);
     }
 
-
     private String getPlainTaskProgressDescription(TaskType taskType) {
         Long currentProgress = taskType.getProgress();
         if (currentProgress == null && taskType.getExpectedTotal() == null) {
             return "";      // the task handler probably does not report progress at all
         } else {
             StringBuilder sb = new StringBuilder();
-            if (currentProgress != null){
+            if (currentProgress != null) {
                 sb.append(currentProgress);
             } else {
                 sb.append("0");
@@ -382,13 +392,13 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                            suspendTasksPerformed(target, getRowModel());
+                        suspendTasksPerformed(target, getRowModel());
                     }
                 };
             }
 
             @Override
-            public CompositedIconBuilder getIconCompositedBuilder(){
+            public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_SUSPEND_MENU_ITEM);
             }
 
@@ -401,7 +411,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
             @Override
             public IModel<Boolean> getVisible() {
                 IModel<SelectableBean<TaskType>> rowModel = ((ColumnMenuAction) getAction()).getRowModel();
-                if (rowModel == null){
+                if (rowModel == null) {
                     return Model.of(Boolean.TRUE);
                 }
                 SelectableBean<TaskType> rowModelObj = rowModel.getObject();
@@ -419,13 +429,13 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                            resumeTasksPerformed(target, getRowModel());
+                        resumeTasksPerformed(target, getRowModel());
                     }
                 };
             }
 
             @Override
-            public CompositedIconBuilder getIconCompositedBuilder(){
+            public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_RESUME_MENU_ITEM);
             }
 
@@ -438,7 +448,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
             @Override
             public IModel<Boolean> getVisible() {
                 IModel<SelectableBean<TaskType>> rowModel = ((ColumnMenuAction) getAction()).getRowModel();
-                if (rowModel == null){
+                if (rowModel == null) {
                     return Model.of(Boolean.TRUE);
                 }
                 SelectableBean<TaskType> rowModelObj = rowModel.getObject();
@@ -457,13 +467,13 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                            scheduleTasksPerformed(target, getRowModel());
+                        scheduleTasksPerformed(target, getRowModel());
                     }
                 };
             }
 
             @Override
-            public CompositedIconBuilder getIconCompositedBuilder(){
+            public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_START_MENU_ITEM);
             }
 
@@ -476,7 +486,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
             @Override
             public IModel<Boolean> getVisible() {
                 IModel<SelectableBean<TaskType>> rowModel = ((ColumnMenuAction) getAction()).getRowModel();
-                if (rowModel == null){
+                if (rowModel == null) {
                     return Model.of(Boolean.TRUE);
                 }
                 SelectableBean<TaskType> rowModelObj = rowModel.getObject();
@@ -521,6 +531,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
                     }
                 };
             }
+
             @Override
             public IModel<String> getConfirmationMessageModel() {
                 String actionName = createStringResource("pageTasks.message.reconcileWorkersAction").getString();
@@ -632,7 +643,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                       deleteWorkStatePerformed(target, getRowModel());
+                        deleteWorkStatePerformed(target, getRowModel());
                     }
                 };
             }
@@ -646,7 +657,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
             @Override
             public IModel<Boolean> getVisible() {
                 IModel<SelectableBean<TaskType>> rowModel = ((ColumnMenuAction) getAction()).getRowModel();
-                if (rowModel == null){
+                if (rowModel == null) {
                     return Model.of(Boolean.TRUE);
                 }
                 SelectableBean<TaskType> rowModelObj = rowModel.getObject();
@@ -690,36 +701,17 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     //region Task-level actions
-    //TODO unify with TaskOperationUtils
     private void suspendTasksPerformed(AjaxRequestTarget target, IModel<SelectableBean<TaskType>> selectedTask) {
         List<TaskType> selectedTasks = getSelectedTasks(target, selectedTask);
         if (selectedTasks == null) {
             return;
         }
-        Task opTask = createSimpleTask(OPERATION_SUSPEND_TASKS);
-        OperationResult result = opTask.getResult();
-        try {
-            List<TaskType> plainTasks = selectedTasks.stream().filter(dto -> !isManageableTreeRoot(dto)).collect(Collectors.toList());
-            List<TaskType> trees = selectedTasks.stream().filter(TaskTablePanel::isManageableTreeRoot).collect(Collectors.toList());
-            boolean suspendedPlain = suspendPlainTasks(plainTasks, result, opTask);
-            boolean suspendedTrees = suspendTrees(trees, result, opTask);
-            result.computeStatus();
-            if (result.isSuccess()) {
-                if (suspendedPlain && suspendedTrees) {
-                    result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.suspendTasksPerformed.success").getString());
-                } else {
-                    result.recordWarning( createStringResource("pageTasks.message.suspendTasksPerformed.warning").getString());
-                }
-            }
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError(createStringResource("pageTasks.message.suspendTasksPerformed.fatalError").getString(), e);
-        }
+        OperationResult result = TaskOperationUtils.suspendTasks(selectedTasks, getPageBase());
         showResult(result);
 
         //refresh feedback and table
         refreshTable(TaskType.class, target);
         clearCache();
-
     }
 
     private void resumeTasksPerformed(AjaxRequestTarget target, IModel<SelectableBean<TaskType>> selectedTask) {
@@ -727,51 +719,13 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         if (selectedTasks == null) {
             return;
         }
-        Task opTask = createSimpleTask(OPERATION_RESUME_TASKS);
-        OperationResult result = opTask.getResult();
-        try {
-            List<TaskType> plainTasks = selectedTasks.stream().filter(dto -> !isManageableTreeRoot(dto)).collect(Collectors.toList());
-            List<TaskType> trees = selectedTasks.stream().filter(TaskTablePanel::isManageableTreeRoot).collect(Collectors.toList());
-            getTaskService().resumeTasks(getOids(plainTasks), opTask, result);
-            for (TaskType tree : trees) {
-                getTaskService().resumeTaskTree(tree.getOid(), opTask, result);
-            }
-            result.computeStatus();
-            if (result.isSuccess()) {
-                result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.resumeTasksPerformed.success").getString());
-            }
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError(createStringResource("pageTasks.message.resumeTasksPerformed.fatalError").getString(), e);
-        }
+        OperationResult result = TaskOperationUtils.resumeTasks(selectedTasks, getPageBase());
         showResult(result);
 
         //refresh feedback and table
         refreshTable(TaskType.class, target);
         clearCache();
 
-    }
-
-    private boolean suspendPlainTasks(List<TaskType> plainTasks, OperationResult result, Task opTask)
-            throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
-        if (!plainTasks.isEmpty()) {
-            return getTaskService().suspendTasks(getOids(plainTasks), PageTasks.WAIT_FOR_TASK_STOP, opTask, result);
-        } else {
-            return true;
-        }
-    }
-
-    private boolean suspendTrees(List<TaskType> roots, OperationResult result, Task opTask)
-            throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
-        boolean suspended = true;
-        if (!roots.isEmpty()) {
-            for (TaskType root : roots) {
-                boolean s = getTaskService().suspendTaskTree(root.getOid(), PageTasks.WAIT_FOR_TASK_STOP, opTask, result);
-                suspended = suspended && s;
-            }
-        }
-        return suspended;
     }
 
     private List<TaskType> getSelectedTasks(AjaxRequestTarget target, IModel<SelectableBean<TaskType>> selectedTask) {
@@ -788,7 +742,6 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         }
 
         return selectedTasks;
-
     }
 
     private void scheduleTasksPerformed(AjaxRequestTarget target, IModel<SelectableBean<TaskType>> selectedTask) {
@@ -800,7 +753,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         Task opTask = createSimpleTask(OPERATION_SCHEDULE_TASKS);
         OperationResult result = opTask.getResult();
         try {
-            getTaskService().scheduleTasksNow(getOids(selectedTasks), opTask, result);
+            getTaskService().scheduleTasksNow(ObjectTypeUtil.getOids(selectedTasks), opTask, result);
             result.computeStatus();
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.scheduleTasksPerformed.success").getString());
@@ -825,7 +778,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         Task opTask = createSimpleTask(OPERATION_DELETE_TASKS);
         OperationResult result = opTask.getResult();
         try {
-            getTaskService().suspendAndDeleteTasks(getOids(selectedTasks), WAIT_FOR_TASK_STOP, true, opTask, result);
+            getTaskService().suspendAndDeleteTasks(ObjectTypeUtil.getOids(selectedTasks), WAIT_FOR_TASK_STOP, true, opTask, result);
             result.computeStatus();
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS,
@@ -959,6 +912,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
             throw new IllegalStateException("Error dealing with schema", e);
         }
 
+        task.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_CLEANUP_TASK.value());
         getTaskManager().switchToBackground(task, launchResult);
         launchResult.setBackgroundTaskOid(task.getOid());
 
@@ -983,33 +937,26 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
     // must be static, otherwise JVM crashes (probably because of some wicket serialization issues)
     @SuppressWarnings("unchecked")
     private static boolean isCoordinator(IModel<?> rowModel, boolean isHeader) {
-        if (isNotTaskModel(rowModel)) {
+        if (!isTaskModel(rowModel)) {
             return false;
         }
         TaskType task = getTask((IModel<SelectableBean<TaskType>>) rowModel, isHeader);
         return task != null && TaskTypeUtil.isCoordinator(task);
     }
 
-
     // must be static, otherwise JVM crashes (probably because of some wicket serialization issues)
     @SuppressWarnings("unchecked")
     private static boolean isManageableTreeRoot(IModel<?> rowModel, boolean isHeader) {
-        if (isNotTaskModel(rowModel)) {
+        if (!isTaskModel(rowModel)) {
             return false;
         }
         TaskType task = getTask((IModel<SelectableBean<TaskType>>) rowModel, isHeader);
-        return task != null && isManageableTreeRoot(task);
+        return task != null && TaskTypeUtil.isManageableTreeRoot(task);
     }
 
-    private static boolean isNotTaskModel(IModel<?> rowModel) {
-        if (rowModel == null) {
-            return false;
-        }
-        return rowModel.getObject() instanceof SelectableBean;
-    }
-
-    private static boolean isManageableTreeRoot(TaskType taskType) {
-        return TaskTypeUtil.isCoordinator(taskType) || TaskTypeUtil.isPartitionedMaster(taskType);
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private static boolean isTaskModel(IModel<?> rowModel) {
+        return rowModel != null && rowModel.getObject() instanceof SelectableBean;
     }
 
     private static TaskType getTask(IModel<SelectableBean<TaskType>> rowModel, boolean isHeader) {
@@ -1024,11 +971,4 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         return null;
     }
 
-    public static List<String> getOids(List<TaskType> taskDtoList) {
-        List<String> retval = new ArrayList<>();
-        for (TaskType taskDto : taskDtoList) {
-            retval.add(taskDto.getOid());
-        }
-        return retval;
-    }
 }

@@ -1,26 +1,25 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.util;
-
-import org.apache.commons.lang.Validate;
-import org.springframework.core.env.PropertyResolver;
-import org.springframework.util.PropertyPlaceholderHelper;
-import ro.isdc.wro.model.resource.locator.UrlUriLocator;
 
 import java.io.IOException;
 import java.io.InputStream;
+
+import org.apache.commons.lang3.Validate;
+import org.springframework.core.env.PropertyResolver;
+import org.springframework.util.PropertyPlaceholderHelper;
+import ro.isdc.wro.model.resource.locator.UrlUriLocator;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class PropertyUrlUriLocator extends UrlUriLocator {
 
-    private PropertyResolver propertyResolver;
+    private final PropertyResolver propertyResolver;
 
     public PropertyUrlUriLocator(PropertyResolver propertyResolver) {
         Validate.notNull(propertyResolver, "Property resolver must not be null");
@@ -48,12 +47,7 @@ public class PropertyUrlUriLocator extends UrlUriLocator {
         }
 
         PropertyPlaceholderHelper helper = new PropertyPlaceholderHelper("${", "}", ":", true);
-        return helper.replacePlaceholders(uri, new PropertyPlaceholderHelper.PlaceholderResolver() {
-
-            @Override
-            public String resolvePlaceholder(String placeholderName) {
-                return propertyResolver.getProperty(placeholderName);
-            }
-        });
+        return helper.replacePlaceholders(uri,
+                placeholderName -> propertyResolver.getProperty(placeholderName));
     }
 }

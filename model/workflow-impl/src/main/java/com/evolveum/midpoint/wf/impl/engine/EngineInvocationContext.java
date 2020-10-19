@@ -151,7 +151,7 @@ public class EngineInvocationContext implements DebugDumpable {
                 originalCase.setOid(newOid);
             } else {
                 ObjectDelta<CaseType> diff = originalCase.asPrismObject()
-                        .diff(currentCase.asPrismObject(), ParameterizedEquivalenceStrategy.LITERAL);
+                        .diff(currentCase.asPrismObject(), ParameterizedEquivalenceStrategy.DATA);
                 assert diff.isModify();
                 Collection<? extends ItemDelta<?, ?>> modifications = diff.getModifications();
 

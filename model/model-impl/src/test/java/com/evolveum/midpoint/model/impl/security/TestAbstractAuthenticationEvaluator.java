@@ -788,7 +788,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         display("user after", userAfter);
 
 //        assertEncryptedUserPassword(userAfter, USER_GUYBRUSH_PASSWORD);
-        assertPasswordMetadata(userAfter, getCredentialType(), false, startTs, endTs, null, SchemaConstants.CHANNEL_GUI_USER_URI);
+        assertPasswordMetadata(userAfter, getCredentialType(), false, startTs, endTs, null, SchemaConstants.CHANNEL_USER_URI);
 
         assertFailedLoginsForCredentials(userAfter, 0);
         assertFailedLoginsForBehavior(userAfter, 0);

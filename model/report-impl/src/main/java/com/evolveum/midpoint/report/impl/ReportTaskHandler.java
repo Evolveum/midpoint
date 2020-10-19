@@ -275,4 +275,9 @@ public class ReportTaskHandler implements TaskHandler {
             LOGGER.error("An exception has occurred during post report script execution {}", e.getLocalizedMessage(), e);
         }
     }
+
+    @Override
+    public String getDefaultChannel() {
+        return null; // The channel URI should be provided by the task creator.
+    }
 }

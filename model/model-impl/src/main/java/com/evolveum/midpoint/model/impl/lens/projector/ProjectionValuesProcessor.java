@@ -153,7 +153,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             // These are normally null. But there may be leftover from the previous iteration.
             // While that should not affect the algorithm (it should overwrite it) it may confuse
             // people during debugging and unnecessarily clutter the debug output.
-            projContext.setOutboundConstruction(null);
+            projContext.setEvaluatedPlainConstruction(null);
             projContext.setSqueezedAttributes(null);
             projContext.setSqueezedAssociations(null);
 

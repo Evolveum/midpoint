@@ -12,7 +12,12 @@
     <archetypePolicy>
         <display>
             <label>Dashboard report</label>
-            <pluralLabel>Dashboard reports</pluralLabel>
+            <pluralLabel>
+                <orig>Dashboard reports</orig>
+                <translation>
+                    <key>DashboardReports.title</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fa fa-dashboard</cssClass>
                 <color>#001F3F</color>

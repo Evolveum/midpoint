@@ -148,6 +148,10 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
         this.preserveStatistics = preserveStatistics;
     }
 
+    public void setCountObjectsOnStart(boolean countObjectsOnStart) {
+        this.countObjectsOnStart = countObjectsOnStart;
+    }
+
     public void setLogFinishInfo(boolean logFinishInfo) {
         this.logFinishInfo = logFinishInfo;
     }
@@ -208,13 +212,6 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
         runResult.setOperationResult(new OperationResult(taskOperationPrefix + ".run"));
         OperationResult opResult = runResult.getOperationResult();
         opResult.setStatus(OperationResultStatus.IN_PROGRESS);
-
-        if (localCoordinatorTask.getChannel() == null) {
-            String channel = getDefaultChannel();
-            if (channel != null) {
-                localCoordinatorTask.setChannel(channel);
-            }
-        }
 
         try {
             H resultHandler = setupHandler(partition, runResult, localCoordinatorTask, opResult);
@@ -357,10 +354,6 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
         // nothing to do here as we are in repo-common
-    }
-
-    protected String getDefaultChannel() {
-        return null;
     }
 
     private Collection<SelectorOptions<GetOperationOptions>> updateSearchOptionsWithIterationMethod(

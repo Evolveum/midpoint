@@ -1,42 +1,29 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.data;
 
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-
-import static com.evolveum.midpoint.schema.DefinitionProcessingOption.FULL;
-import static com.evolveum.midpoint.schema.DefinitionProcessingOption.ONLY_IF_EXISTS;
-
-import java.io.Serializable;
 import java.util.*;
 
 import com.evolveum.midpoint.util.exception.*;
 
-import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author lazyman
@@ -65,6 +52,10 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
         }
 
         return data;
+    }
+
+    protected SelectableBean<O> getNewSelectableBean() {
+        return new SelectableBeanImpl<>();
     }
 
     public SelectableBean<O> createDataObjectWrapper(O obj) {

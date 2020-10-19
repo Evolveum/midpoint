@@ -1,17 +1,14 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.home;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.application.Url;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -20,15 +17,18 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.string.StringValue;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.box.SmallInfoBoxPanel;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
 
 /**
  * @author skublik
@@ -49,16 +49,14 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 public class PageDashboardConfigurable extends PageDashboard {
     private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageDashboardConfigurable.class);
-
     private IModel<DashboardType> dashboardModel;
 
     private static final String ID_WIDGETS = "widgets";
     private static final String ID_WIDGET = "widget";
 
     @Override
-    protected void onInitialize(){
-        if (dashboardModel == null){
+    protected void onInitialize() {
+        if (dashboardModel == null) {
             dashboardModel = initDashboardObject();
         }
         super.onInitialize();
@@ -66,12 +64,12 @@ public class PageDashboardConfigurable extends PageDashboard {
 
     @Override
     protected IModel<String> createPageTitleModel() {
-        return new IModel<String>() {
+        return new LoadableModel<String>(false) {
 
             @Override
-            public String getObject() {
+            public String load() {
 
-                if(dashboardModel.getObject().getDisplay() != null && dashboardModel.getObject().getDisplay().getLabel() != null) {
+                if (dashboardModel.getObject().getDisplay() != null && dashboardModel.getObject().getDisplay().getLabel() != null) {
                     return dashboardModel.getObject().getDisplay().getLabel().getOrig();
                 } else {
                     return dashboardModel.getObject().getName().getOrig();
@@ -81,10 +79,10 @@ public class PageDashboardConfigurable extends PageDashboard {
     }
 
     private IModel<DashboardType> initDashboardObject() {
-        return new IModel<DashboardType>() {
+        return new LoadableModel<DashboardType>(false) {
 
             @Override
-            public DashboardType getObject() {
+            public DashboardType load() {
                 StringValue dashboardOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
                 if (dashboardOid == null || StringUtils.isEmpty(dashboardOid.toString())) {
                     getSession().error(getString("PageDashboardConfigurable.message.oidNotDefined"));
@@ -104,10 +102,9 @@ public class PageDashboardConfigurable extends PageDashboard {
 
     private void initInfoBoxes() {
 
-        add(new ListView<DashboardWidgetType>(ID_WIDGETS, new PropertyModel(dashboardModel, "widget")) {
+        add(new ListView<DashboardWidgetType>(ID_WIDGETS, new PropertyModel<>(dashboardModel, "widget")) {
             @Override
             protected void populateItem(ListItem<DashboardWidgetType> item) {
-                boolean visible = WebComponentUtil.getElementVisibility(item.getModelObject().getVisibility());
                 SmallInfoBoxPanel box = new SmallInfoBoxPanel(ID_WIDGET, item.getModel(),
                         PageDashboardConfigurable.this) {
                     @Override
@@ -115,15 +112,13 @@ public class PageDashboardConfigurable extends PageDashboard {
                         return dashboardModel.getObject().getOid();
                     }
                 };
-                box.add(new VisibleEnableBehaviour(){
+                box.add(new VisibleEnableBehaviour() {
                     @Override
                     public boolean isVisible() {
-                        return visible;
+                        return WebComponentUtil.getElementVisibility(item.getModelObject().getVisibility());
                     }
                 });
-                if (visible) {
-                    item.add(AttributeAppender.append("class", "col-lg-3 col-md-4 col-xs-6"));
-                }
+                item.add(AttributeAppender.append("class", "col-lg-3 col-md-4 col-xs-6"));
                 item.add(box);
             }
         });

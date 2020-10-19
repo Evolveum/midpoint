@@ -38,6 +38,7 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ExecuteMappingDto;
 import com.evolveum.midpoint.web.util.StringResourceChoiceRenderer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingEvaluationRequestType;
@@ -81,7 +82,7 @@ public class PageEvaluateMapping extends PageAdminConfiguration {
     }
 
     private void initLayout() {
-        Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
+        Form mainForm = new MidpointForm(ID_MAIN_FORM);
         add(mainForm);
 
         AceEditor editorMapping = new AceEditor(

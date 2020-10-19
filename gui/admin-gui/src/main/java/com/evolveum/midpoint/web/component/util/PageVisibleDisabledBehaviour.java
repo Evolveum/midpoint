@@ -1,13 +1,12 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.util;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.apache.wicket.markup.html.WebPage;
 
 /**
@@ -18,8 +17,8 @@ import org.apache.wicket.markup.html.WebPage;
  */
 public class PageVisibleDisabledBehaviour extends VisibleEnableBehaviour {
 
-    private WebPage page;
-    private Class<? extends WebPage> defaultPage;
+    private final WebPage page;
+    private final Class<? extends WebPage> defaultPage;
 
     public PageVisibleDisabledBehaviour(WebPage page, Class<? extends WebPage> defaultPage) {
         Validate.notNull(page, "Page must not be null.");
@@ -36,9 +35,6 @@ public class PageVisibleDisabledBehaviour extends VisibleEnableBehaviour {
 
     @Override
     public boolean isVisible() {
-        if (defaultPage.equals(page.getClass())) {
-            return true;
-        }
-        return false;
+        return defaultPage.equals(page.getClass());
     }
 }

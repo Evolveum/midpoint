@@ -34,12 +34,13 @@ public class AssignedFocusMappingEvaluationRequest extends FocalMappingEvaluatio
      */
     @NotNull private final PlusMinusZero relativeMode;
 
-    private final AssignmentPathVariables assignmentPathVariables;
+    @NotNull private final AssignmentPathVariables assignmentPathVariables;
+
     private final String sourceDescription;
 
     public AssignedFocusMappingEvaluationRequest(@NotNull MappingType mapping, @NotNull ObjectType originObject,
             @NotNull EvaluatedAssignmentImpl<?> evaluatedAssignment,
-            @NotNull PlusMinusZero relativeMode, AssignmentPathVariables assignmentPathVariables,
+            @NotNull PlusMinusZero relativeMode, @NotNull AssignmentPathVariables assignmentPathVariables,
             String sourceDescription) {
         super(mapping, MappingKindType.ASSIGNED, originObject);
         this.evaluatedAssignment = evaluatedAssignment;
@@ -59,7 +60,7 @@ public class AssignedFocusMappingEvaluationRequest extends FocalMappingEvaluatio
     }
 
     @Override
-    public AssignmentPathVariables getAssignmentPathVariables() {
+    public @NotNull AssignmentPathVariables getAssignmentPathVariables() {
         return assignmentPathVariables;
     }
 

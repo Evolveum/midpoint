@@ -102,21 +102,6 @@ public class PrismObjectValueImpl<O extends Objectable> extends PrismContainerVa
         return clone;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof PrismObjectValueImpl)) return false;
-        if (!super.equals(o)) return false;
-        PrismObjectValueImpl<?> that = (PrismObjectValueImpl<?>) o;
-        return Objects.equals(oid, that.oid);
-    }
-
-    // Just to make checkstyle happy
-    @Override
-    public int hashCode() {
-        return super.hashCode();
-    }
-
     // TODO consider the strategy
     @Override
     public int hashCode(@NotNull ParameterizedEquivalenceStrategy strategy) {
@@ -130,6 +115,13 @@ public class PrismObjectValueImpl<O extends Objectable> extends PrismContainerVa
         }
         PrismObjectValueImpl otherPov = (PrismObjectValueImpl) other;
         return StringUtils.equals(oid, otherPov.oid) && super.equivalent(other);
+    }
+
+    @Override
+    public boolean equals(PrismValue other, @NotNull ParameterizedEquivalenceStrategy strategy) {
+        return other instanceof PrismObjectValue &&
+                Objects.equals(oid, ((PrismObjectValue<?>) other).getOid()) &&
+                super.equals(other, strategy);
     }
 
     @Override
@@ -166,11 +158,16 @@ public class PrismObjectValueImpl<O extends Objectable> extends PrismContainerVa
     }
 
     @Override
-    public PrismContainer<O> asSingleValuedContainer(@NotNull QName itemName) throws SchemaException {
+    public PrismContainer<O> asSingleValuedContainer(@NotNull QName itemName) {
         throw new UnsupportedOperationException("Not supported for PrismObjectValue yet.");
     }
 
     public static <T extends Objectable> T asObjectable(PrismObject<T> object) {
         return object != null ? object.asObjectable() : null;
+    }
+
+    @Override
+    public Object getIdentifier() {
+        return oid;
     }
 }

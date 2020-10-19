@@ -11,6 +11,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.web.session.PageStorage;
 
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -30,8 +31,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
@@ -47,7 +47,7 @@ public class CaseEventsTabPanel extends AbstractObjectTabPanel<CaseType> {
 
     private static final String ID_EVENTS_PANEL = "caseEventsPanel";
 
-    public CaseEventsTabPanel(String id, Form<PrismObjectWrapper<CaseType>> mainForm, LoadableModel<PrismObjectWrapper<CaseType>> objectWrapperModel, PageBase pageBase) {
+    public CaseEventsTabPanel(String id, MidpointForm<PrismObjectWrapper<CaseType>> mainForm, LoadableModel<PrismObjectWrapper<CaseType>> objectWrapperModel, PageBase pageBase) {
         super(id, mainForm, objectWrapperModel);
     }
 
@@ -129,7 +129,7 @@ public class CaseEventsTabPanel extends AbstractObjectTabPanel<CaseType> {
 
     private List<IColumn<PrismContainerValueWrapper<CaseEventType>, String>> createCaseEventsColumns(){
         List<IColumn<PrismContainerValueWrapper<CaseEventType>, String>> columns = new ArrayList<>();
-        columns.add(new LinkColumn<PrismContainerValueWrapper<CaseEventType>>(createStringResource("CaseEventsTabPanel.initiatorRefColumn")){
+        columns.add(new AjaxLinkColumn<PrismContainerValueWrapper<CaseEventType>>(createStringResource("CaseEventsTabPanel.initiatorRefColumn")){
             private static final long serialVersionUID = 1L;
 
             @Override

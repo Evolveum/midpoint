@@ -11,6 +11,7 @@ import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -22,38 +23,37 @@ import java.util.Collection;
 public class AssignmentPolicyRuleEvaluationContext<AH extends AssignmentHolderType> extends PolicyRuleEvaluationContext<AH> {
 
     @NotNull public final EvaluatedAssignmentImpl<AH> evaluatedAssignment;
-    public final boolean inPlus;
-    public final boolean inZero;
-    public final boolean inMinus;
+    public final boolean isAdded;
+    public final boolean isKept;
+    public final boolean isDeleted;
     public final boolean isDirect;
     public final DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple;
 
     AssignmentPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule,
-            @NotNull EvaluatedAssignmentImpl<AH> evaluatedAssignment, boolean inPlus, boolean inZero,
-            boolean inMinus, boolean isDirect, LensContext<AH> context,
+            @NotNull EvaluatedAssignmentImpl<AH> evaluatedAssignment, boolean isDirect, LensContext<AH> context,
             DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple, Task task,
             RulesEvaluationContext globalCtx) {
-        this(policyRule, evaluatedAssignment, inPlus, inZero, inMinus, isDirect, context, evaluatedAssignmentTriple,
+        this(policyRule, evaluatedAssignment, isDirect, context, evaluatedAssignmentTriple,
                 task, ObjectState.AFTER, globalCtx);
     }
 
     private AssignmentPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule,
-            @NotNull EvaluatedAssignmentImpl<AH> evaluatedAssignment, boolean inPlus, boolean inZero,
-            boolean inMinus, boolean isDirect, LensContext<AH> context,
+            @NotNull EvaluatedAssignmentImpl<AH> evaluatedAssignment, boolean isDirect, LensContext<AH> context,
             DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple, Task task, ObjectState state,
             RulesEvaluationContext globalCtx) {
         super(policyRule, context, task, globalCtx, state);
         this.evaluatedAssignment = evaluatedAssignment;
-        this.inPlus = inPlus;
-        this.inZero = inZero;
-        this.inMinus = inMinus;
+        AssignmentOrigin origin = evaluatedAssignment.getOrigin();
+        this.isAdded = origin.isBeingAdded();
+        this.isKept = origin.isBeingKept();
+        this.isDeleted = origin.isBeingDeleted();
         this.isDirect = isDirect;
         this.evaluatedAssignmentTriple = evaluatedAssignmentTriple;
     }
 
     @Override
     public AssignmentPolicyRuleEvaluationContext<AH> cloneWithStateConstraints(ObjectState state) {
-        return new AssignmentPolicyRuleEvaluationContext<>(policyRule, evaluatedAssignment, inPlus, inZero, inMinus, isDirect, lensContext, evaluatedAssignmentTriple, task, state,
+        return new AssignmentPolicyRuleEvaluationContext<>(policyRule, evaluatedAssignment, isDirect, lensContext, evaluatedAssignmentTriple, task, state,
                 globalCtx);
     }
 
@@ -69,18 +69,18 @@ public class AssignmentPolicyRuleEvaluationContext<AH extends AssignmentHolderTy
 
     private boolean isAssignmentApplicable() {
         if (state == ObjectState.BEFORE) {
-            return inMinus || inZero;
+            return isDeleted || isKept;
         } else {
-            return inZero || inPlus;
+            return isKept || isAdded;
         }
     }
 
     @Override
     public String getShortDescription() {
         return evaluatedAssignment.getTarget() + " (" +
-                (inPlus ? "+":"") +
-                (inMinus ? "-":"") +
-                (inZero ? "0":"") +
+                (isAdded ? "+":"") +
+                (isDeleted ? "-":"") +
+                (isKept ? "0":"") +
                 ") " +
                 (isDirect ? "directly":"indirectly") +
                 " in " + ObjectTypeUtil.toShortString(focusContext.getObjectAny()) + " / " + state;
@@ -89,7 +89,7 @@ public class AssignmentPolicyRuleEvaluationContext<AH extends AssignmentHolderTy
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public AssignmentPolicyRuleEvaluationContext<AH> clone() {
-        return new AssignmentPolicyRuleEvaluationContext<>(policyRule, evaluatedAssignment, inPlus, inZero, inMinus,
+        return new AssignmentPolicyRuleEvaluationContext<>(policyRule, evaluatedAssignment,
                 isDirect, lensContext, evaluatedAssignmentTriple, task, globalCtx);
     }
 

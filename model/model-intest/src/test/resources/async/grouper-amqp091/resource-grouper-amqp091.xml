@@ -210,8 +210,12 @@
             <attribute>
                 <ref>ri:group</ref>
                 <inbound>
+                    <strength>strong</strength>
                     <target>
                         <path>organizationalUnit</path>
+                        <set>
+                            <predefined>all</predefined>
+                        </set>
                     </target>
                 </inbound>
             </attribute>

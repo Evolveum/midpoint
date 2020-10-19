@@ -188,13 +188,11 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     }
 
     private void assertAcquisitionChannel(PrismPropertyValue<PolyString> newGivenName) {
-        ValueMetadataType metadata = (ValueMetadataType) newGivenName.getValueMetadata().asContainerable();
+        ValueMetadataType metadata = newGivenName.getValueMetadata().getRealValue(ValueMetadataType.class);
         assertThat(metadata).isNotNull();
         assertThat(metadata.getProvenance()).isNotNull();
-        assertThat(metadata.getProvenance().getYield()).hasSize(1);
-        assertThat(metadata.getProvenance().getYield().get(0)).isNotNull();
-        assertThat(metadata.getProvenance().getYield().get(0).getAcquisition()).hasSize(1);
-        assertThat(metadata.getProvenance().getYield().get(0).getAcquisition().get(0).getChannel()).isEqualTo("import");
+        assertThat(metadata.getProvenance().getAcquisition()).hasSize(1);
+        assertThat(metadata.getProvenance().getAcquisition().get(0).getChannel()).isEqualTo("import");
     }
 
     @Test
@@ -386,7 +384,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
         PrismObject newTask = PrismTestUtil.parseObject(
                 new File(TEST_DIR, "task-new.xml"));
 
-        ObjectDelta<TaskType> delta = oldTask.diff(newTask, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
+        ObjectDelta<TaskType> delta = oldTask.diff(newTask, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
         System.out.println("Delta:");
         System.out.println(delta.debugDump());
 
@@ -575,6 +573,18 @@ public class TestDeltaConverter extends AbstractSchemaTest {
                 .item(UserType.F_NAME).replace(PolyString.fromOrig("jack"))
                 .asObjectDelta("123456");
         roundTrip(delta);
+    }
+
+    @Test
+    public void test130ExtensionChange() throws Exception {
+        System.out.println("===[ test130ExtensionChange ]====");
+
+        ObjectDeltaType deltaBean =
+                getPrismContext().parserFor(new File(TEST_DIR, "user-modify-extension.xml"))
+                        .parseRealValue(ObjectDeltaType.class);
+
+        ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(deltaBean, getPrismContext());
+        roundTrip(objectDelta);
     }
 
     private void roundTrip(ObjectDelta delta) throws Exception {

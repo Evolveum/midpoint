@@ -14,8 +14,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.test.asserter.prism.PrismContainerValueAsserter;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceAcquisitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceYieldType;
+
+import org.jetbrains.annotations.NotNull;
 
 public class ProvenanceMetadataAsserter<RA extends AbstractAsserter> extends PrismContainerValueAsserter<ProvenanceMetadataType, RA> {
 
@@ -24,27 +27,54 @@ public class ProvenanceMetadataAsserter<RA extends AbstractAsserter> extends Pri
         super(metadata.asPrismContainerValue(), returnAsserter, detail);
     }
 
-    public YieldMetadataAsserter<ProvenanceMetadataAsserter<RA>> singleYield() {
-        return new YieldMetadataAsserter<>(getSingleYield(), this, "yield in " + getDetails());
+    public AcquisitionMetadataAsserter<ProvenanceMetadataAsserter<RA>> singleAcquisition() {
+        return new AcquisitionMetadataAsserter<>(getSingleAcquisition(), this, "acquisition in " + getDetails());
     }
 
-    public YieldMetadataAsserter<ProvenanceMetadataAsserter<RA>> singleYield(String originOid) {
-        return new YieldMetadataAsserter<>(getSingleYield(originOid), this, "yield in " + getDetails());
+    public AcquisitionMetadataAsserter<ProvenanceMetadataAsserter<RA>> singleAcquisition(String originOid) {
+        return new AcquisitionMetadataAsserter<>(getSingleAcquisition(originOid), this, "acquisition in " + getDetails());
     }
 
-    private ProvenanceYieldType getSingleYield() {
-        List<ProvenanceYieldType> yields = getPrismValue().asContainerable().getYield();
-        assertThat(yields.size()).as("# of yields in " + getDetails())
+    private ProvenanceAcquisitionType getSingleAcquisition() {
+        List<ProvenanceAcquisitionType> acquisitions = getProvenance().getAcquisition();
+        assertThat(acquisitions.size()).as("# of acquisitions in " + getDetails())
                 .isEqualTo(1);
-        return yields.get(0);
+        return acquisitions.get(0);
     }
 
-    private ProvenanceYieldType getSingleYield(String originOid) {
-        List<ProvenanceYieldType> yields = getPrismValue().asContainerable().getYield().stream()
-                .filter(yield -> hasOrigin(yield, originOid))
+    @NotNull
+    private ProvenanceMetadataType getProvenance() {
+        return getPrismValue().asContainerable();
+    }
+
+    private ProvenanceAcquisitionType getSingleAcquisition(String originOid) {
+        List<ProvenanceAcquisitionType> acquisitions = getProvenance().getAcquisition().stream()
+                .filter(acquisition -> hasOrigin(acquisition, originOid))
                 .collect(Collectors.toList());
-        assertThat(yields.size()).as("# of yields with origin " + originOid + " in " + getDetails())
+        assertThat(acquisitions.size()).as("# of acquisitions with origin " + originOid + " in " + getDetails())
                 .isEqualTo(1);
-        return yields.get(0);
+        return acquisitions.get(0);
+    }
+
+    public ProvenanceMetadataAsserter<RA> assertAcquisitions(int number) {
+        assertThat(getProvenance().getAcquisition().size()).as("# of acquisitions").isEqualTo(number);
+        return this;
+    }
+
+    public ProvenanceMetadataAsserter<RA> assertNoMappingSpec() {
+        assertThat(getProvenance().getMappingSpec()).as("mapping spec").isNull();
+        return this;
+    }
+
+    public ProvenanceMetadataAsserter<RA> assertMappingSpec(String definitionObjectOid) {
+        MappingSpecificationType mappingSpec = getMappingSpec();
+        assertThat(mappingSpec).as("mapping spec").isNotNull();
+        assertThat(mappingSpec.getDefinitionObjectRef()).as("mapping spec definition object ref").isNotNull();
+        assertThat(mappingSpec.getDefinitionObjectRef().getOid()).as("mapping spec definition object ref OID").isEqualTo(definitionObjectOid);
+        return this;
+    }
+
+    private MappingSpecificationType getMappingSpec() {
+        return getProvenance().getMappingSpec();
     }
 }

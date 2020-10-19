@@ -631,4 +631,9 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
     public String getArchetypeOid() {
         return SystemObjectsType.ARCHETYPE_REPORT_TASK.value();
     }
+
+    @Override
+    public String getDefaultChannel() {
+        return null; // The channel URI should be provided by the task creator.
+    }
 }

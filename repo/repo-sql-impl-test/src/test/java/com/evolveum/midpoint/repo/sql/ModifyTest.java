@@ -990,7 +990,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         ItemDeltaCollectionsUtil.applyTo(deltas1, collection.asPrismObject());
         PrismObject<ObjectCollectionType> afterChange1 = repositoryService
                 .getObject(ObjectCollectionType.class, collection.getOid(), null, result);
-        assertTrue("Objects differ after change 1", collection.asPrismObject().equals(afterChange1, EquivalenceStrategy.NOT_LITERAL));
+        assertTrue("Objects differ after change 1", collection.asPrismObject().equals(afterChange1, EquivalenceStrategy.DATA));
 
         ObjectFilter filter = prismContext.queryFor(UserType.class)
                 .item(UserType.F_COST_CENTER).eq("100")
@@ -1012,7 +1012,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         fromRepoWithoutFilter.asObjectable().setFilter(null);
         PrismObject<ObjectCollectionType> expectedWithoutFilter = collection.asPrismObject().clone();
         expectedWithoutFilter.asObjectable().setFilter(null);
-        assertTrue("Objects (without filter) differ after change 2", expectedWithoutFilter.equals(fromRepoWithoutFilter, EquivalenceStrategy.NOT_LITERAL));
+        assertTrue("Objects (without filter) differ after change 2", expectedWithoutFilter.equals(fromRepoWithoutFilter, EquivalenceStrategy.DATA));
 
         SearchFilterType filterFromRepo = afterChange2.asObjectable().getFilter();
         SearchFilterType filterExpected = collection.getFilter();
@@ -1672,13 +1672,13 @@ public class ModifyTest extends BaseSQLRepoTest {
         Item<PrismValue, ItemDefinition> item = object.findItem(itemName);
         assertThat(item).isNotNull();
         assertThat(item.size()).isEqualTo(1);
-        ValueMetadataType metadata = (ValueMetadataType) item.getValue().getValueMetadata().asContainerable();
+        ValueMetadataType metadata = item.getValue().getValueMetadata().getRealValue(ValueMetadataType.class);
         assertThat(metadata).isNotNull();
         assertThat(metadata.getStorage()).isNotNull();
         assertThat(metadata.getStorage().getCreateChannel()).isEqualTo(expectedValue);
     }
 
-    private PrismValue createCloneWithMetadata(ItemName itemName, String channel) {
+    private PrismValue createCloneWithMetadata(ItemName itemName, String channel) throws SchemaException {
         ValueMetadataType metadata = new ValueMetadataType(prismContext)
                 .beginStorage()
                     .createChannel(channel)

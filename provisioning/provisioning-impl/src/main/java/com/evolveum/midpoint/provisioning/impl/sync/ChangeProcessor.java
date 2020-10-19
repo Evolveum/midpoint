@@ -41,6 +41,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
+
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +74,15 @@ public class ChangeProcessor {
     @Autowired private SchemaHelper schemaHelper;
 
     /**
+     * Local sequence number of a change that is being processed in the current thread.
+     * Actually, it is a hack to enable testing: The code in mappings can obtain this
+     * information and do some asserts on it. When the information will be propagated into
+     * e.g. lensContext, we should remove this hack.
+     */
+    @VisibleForTesting
+    public static final ThreadLocal<Integer> CHANGE_BEING_PROCESSED = new ThreadLocal<>();
+
+    /**
      * Executes the request.
      *
      * @param workerTask Task in context of which the worker task is executing.
@@ -88,6 +99,7 @@ public class ChangeProcessor {
         String objectDisplayName = null;
         String objectOid = null;
 
+        CHANGE_BEING_PROCESSED.set(change.getLocalSequenceNumber());
         OperationResult result = parentResult.createMinorSubresult(OP_PROCESS_SYNCHRONIZATION);
         try {
 
@@ -103,8 +115,8 @@ public class ChangeProcessor {
             // that is used to execute the request. On the other hand, the task in globalCtx is the original
             // one that was used to start listening for changes. TODO This is to be cleaned up.
             // But for the time being let's forward with this hack.
-            if (SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI.equals(workerTask.getChannel())) {
-                ctx.setChannelOverride(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
+            if (SchemaConstants.CHANNEL_ASYNC_UPDATE_URI.equals(workerTask.getChannel())) {
+                ctx.setChannelOverride(SchemaConstants.CHANNEL_ASYNC_UPDATE_URI);
             }
 
             if (change.getObjectDelta() != null) {
@@ -217,6 +229,7 @@ public class ChangeProcessor {
             result.computeStatusIfUnknown();
             result.cleanupResult();
             request.onCompletion(workerTask, coordinatorTask, result);
+            CHANGE_BEING_PROCESSED.remove();
         }
     }
 
@@ -376,7 +389,7 @@ public class ChangeProcessor {
         shadowChangeDescription.setResource(resourceType.asPrismObject());
         shadowChangeDescription.setOldShadow(change.getOldRepoShadow());
         shadowChangeDescription.setCurrentShadow(change.getCurrentResourceObject());
-        shadowChangeDescription.setSourceChannel(channel != null ? channel : SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
+        shadowChangeDescription.setSourceChannel(channel != null ? channel : SchemaConstants.CHANNEL_LIVE_SYNC_URI);
         return shadowChangeDescription;
     }
 

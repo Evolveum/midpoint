@@ -7,7 +7,7 @@ GO
 -- Create date: 15.01.2013
 -- Description:    used for db cleanup during testing, used by bamboo build system
 -- =============================================
-CREATE PROCEDURE cleanupTestDatabaseProc
+CREATE OR ALTER PROCEDURE cleanupTestDatabaseProc
 AS
   BEGIN
     SET NOCOUNT ON;
@@ -59,7 +59,7 @@ AS
     DELETE FROM m_user_organization;
     DELETE FROM m_user_organizational_unit;
     DELETE FROM m_focus_photo;
-    DELETE FROM m_focus_policy_situation;
+    DELETE FROM m_object_policy_situation;
     DELETE FROM m_user;
     DELETE FROM m_report;
     DELETE FROM m_report_output;

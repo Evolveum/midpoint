@@ -26,11 +26,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.error.PageError;
-import com.evolveum.midpoint.web.page.forgetpassword.PageForgotPassword;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.module.authentication.MailNonceModuleAuthentication;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
@@ -80,7 +78,7 @@ public class PageEmailNonse extends PageAuthenticationBase {
     }
 
     protected void initCustomLayer() {
-        Form form = new Form(ID_MAIN_FORM);
+        MidpointForm form = new MidpointForm(ID_MAIN_FORM);
         form.add(new VisibleEnableBehaviour() {
 
             private static final long serialVersionUID = 1L;
@@ -120,7 +118,7 @@ public class PageEmailNonse extends PageAuthenticationBase {
 
     }
 
-    private void initButtons(Form form) {
+    private void initButtons(MidpointForm form) {
 
         AjaxSubmitButton submit = new AjaxSubmitButton(ID_SUBMIT, createStringResource("PageForgetPassword.resetPassword")) {
 
@@ -234,7 +232,7 @@ public class PageEmailNonse extends PageAuthenticationBase {
         return credentialByName;
     }
 
-    private void initStaticLayout(Form form) {
+    private void initStaticLayout(MidpointForm form) {
 
         WebMarkupContainer staticLayout = new WebMarkupContainer(ID_STATIC_LAYOUT);
         staticLayout.setOutputMarkupId(true);
@@ -269,8 +267,8 @@ public class PageEmailNonse extends PageAuthenticationBase {
 
     }
 
-    private Form getMainForm() {
-        return (Form) get(ID_MAIN_FORM);
+    private MidpointForm getMainForm() {
+        return (MidpointForm) get(ID_MAIN_FORM);
     }
 
     protected DynamicFormPanel getDynamicForm(){
@@ -333,7 +331,7 @@ public class PageEmailNonse extends PageAuthenticationBase {
             @Override
             public OperationResult run() {
                 Task task = createAnonymousTask("generateUserNonce");
-                task.setChannel(SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI);
+                task.setChannel(SchemaConstants.CHANNEL_RESET_PASSWORD_URI);
                 task.setOwner(user.asPrismObject());
                 OperationResult result = new OperationResult("generateUserNonce");
                 ProtectedStringType nonceCredentials = new ProtectedStringType();

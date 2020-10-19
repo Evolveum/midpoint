@@ -10,7 +10,6 @@ package com.evolveum.midpoint.web.page.self;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -22,7 +21,6 @@ import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.string.StringValue;
@@ -48,6 +46,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.login.PageLogin;
@@ -148,7 +147,7 @@ public class PageAccountActivation extends PageBase {
 
         });
 
-        Form<?> form = new com.evolveum.midpoint.web.component.form.Form<>(ID_MAIN_FORM);
+        Form<?> form = new MidpointForm<>(ID_MAIN_FORM);
         activationContainer.add(form);
 
         Label usernamePanel = new Label(ID_NAME, createStringResource("PageAccountActivation.activate.accounts.label",
@@ -252,7 +251,7 @@ public class PageAccountActivation extends PageBase {
         PasswordTextField passwordPanel = (PasswordTextField) form.get(createComponentPath(ID_PASSWORD));
         String value = passwordPanel.getModelObject();
 
-        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI);
+        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_USER_URI);
         UsernamePasswordAuthenticationToken token;
         try {
             token = authenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(userModel.getObject().getName().getOrig(), value,

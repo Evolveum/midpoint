@@ -29,8 +29,6 @@ import java.util.stream.Stream;
 /**
  * Describes a resource object class.
  * Basically, it is a collection of resource attributes. No other items should be there.
- *
- * @author mederly
  */
 public interface ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 

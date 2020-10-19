@@ -1,37 +1,33 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.data;
 
 import java.io.Serializable;
 import java.util.*;
 
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.web.page.error.PageError;
-
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
+import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
 
 /**
  * @author lazyman
@@ -44,7 +40,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
     private static final String OPERATION_COUNT_OBJECTS = DOT_CLASS + "countObjects";
 
-    private Set<T> selected = new HashSet<>();
+    private final Set<T> selected = new HashSet<>();
 
     private Class<T> type;
     private Collection<SelectorOptions<GetOperationOptions>> options;
@@ -57,7 +53,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
     }
 
     public List<T> getSelectedData() {
-        for (Serializable s : super.getAvailableData()){
+        for (Serializable s : super.getAvailableData()) {
             if (s instanceof SelectableBeanImpl) {
                 SelectableBeanImpl<T> selectable = (SelectableBeanImpl<T>) s;
                 if (selectable.isSelected() && selectable.getValue() != null) {
@@ -65,8 +61,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
                 }
             }
         }
-        List<T> allSelected = new ArrayList<>();
-        allSelected.addAll(selected);
+        List<T> allSelected = new ArrayList<>(selected);
         return allSelected;
     }
 
@@ -76,13 +71,12 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
         return GetOperationOptions.merge(getPrismContext(), options, getDistinctRelatedOptions());
     }
 
-
     @Override
     public Iterator<W> internalIterator(long first, long count) {
-        LOGGER.trace("begin::iterator() from {} count {}.", new Object[]{first, count});
+        LOGGER.trace("begin::iterator() from {} count {}.", first, count);
 
-        for (W available : getAvailableData()){
-            if (available instanceof SelectableBeanImpl){
+        for (W available : getAvailableData()) {
+            if (available instanceof SelectableBeanImpl) {
                 SelectableBeanImpl<T> selectableBean = (SelectableBeanImpl<T>) available;
                 if (selectableBean.isSelected() && selectableBean.getValue() != null) {
                     selected.add(selectableBean.getValue());
@@ -94,9 +88,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
             if (available instanceof SelectableBeanImpl) {
                 SelectableBeanImpl<T> selectableBean = (SelectableBeanImpl<T>) available;
                 if (!selectableBean.isSelected()) {
-                    if (selected.contains(selectableBean.getValue())) {
-                        selected.remove(selectableBean.getValue());
-                    }
+                    selected.remove(selectableBean.getValue());
                 }
             }
         }
@@ -109,7 +101,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
             Task task = getPage().createSimpleTask(OPERATION_SEARCH_OBJECTS);
 
             ObjectQuery query = getQuery();
-            if (query == null){
+            if (query == null) {
                 query = getPrismContext().queryFactory().createQuery();
             }
             query.setPaging(paging);
@@ -147,17 +139,17 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
         return true;
     }
 
-    protected void handleNotSuccessOrHandledErrorInIterator(OperationResult result){
+    protected void handleNotSuccessOrHandledErrorInIterator(OperationResult result) {
         getPage().showResult(result);
         throw new RestartResponseException(PageError.class);
     }
 
     public W createDataObjectWrapper(PrismObject<T> obj) {
         SelectableBeanImpl<T> selectable = new SelectableBeanImpl<>(obj.asObjectable());
-        if (selected.contains(obj.asObjectable())){
+        if (selected.contains(obj.asObjectable())) {
             selectable.setSelected(true);
         }
-        return (W) selectable ;
+        return (W) selectable;
     }
 
     @Override

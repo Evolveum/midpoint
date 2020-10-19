@@ -564,6 +564,21 @@ public class ResourceTypeUtil {
 
     }
 
+    public static AdministrativeAvailabilityStatusType getAdministrativeAvailabilityStatus(ResourceType resource) {
+        if (resource == null)
+            return null;
+
+        if (resource.getAdministrativeOperationalState() == null) {
+            return null;
+        }
+
+        if (resource.getAdministrativeOperationalState().getAdministrativeAvailabilityStatus() == null) {
+            return null;
+        }
+
+        return resource.getAdministrativeOperationalState().getAdministrativeAvailabilityStatus();
+    }
+
     public static boolean isAvoidDuplicateValues(ResourceType resource) {
         if (resource.getConsistency() == null) {
             return false;
@@ -735,5 +750,23 @@ public class ResourceTypeUtil {
             return null;
         }
         return consistency.getConnectorErrorCriticality();
+    }
+
+    public static boolean isInMaintenance(ResourceType resource) {
+        if (resource == null)
+            return false;
+
+        AdministrativeOperationalStateType administrativeOperationalState = resource.getAdministrativeOperationalState();
+        if (administrativeOperationalState == null)
+            return false;
+
+        AdministrativeAvailabilityStatusType administrativeAvailabilityStatus = administrativeOperationalState.getAdministrativeAvailabilityStatus();
+        if (administrativeAvailabilityStatus == null)
+            return false;
+
+        if (AdministrativeAvailabilityStatusType.MAINTENANCE == administrativeAvailabilityStatus)
+            return true;
+
+        return false;
     }
 }

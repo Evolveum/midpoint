@@ -460,21 +460,6 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) { return true; }
-        if (!super.equals(obj)) { return false; }
-        if (getClass() != obj.getClass()) { return false; }
-        PrismPropertyValue other = (PrismPropertyValue) obj;
-        return equals(other, getEqualsHashCodeStrategy());
-    }
-
-    // Just to make checkstyle happy
-    @Override
-    public int hashCode() {
-        return super.hashCode();
-    }
-
-    @Override
     public int hashCode(@NotNull ParameterizedEquivalenceStrategy strategy) {
         final int prime = 31;
         int result = super.hashCode(strategy);
@@ -580,6 +565,9 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl
             builder.append(", expression: ");
             builder.append(getExpression());
         }
+        if (isTransient()) {
+            builder.append(", transient");
+        }
     }
 
     @Override
@@ -667,9 +655,9 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl
 
     @Override
     public @Nullable Object getRealValueOrRawType(PrismContext prismContext) {
-        if (value != null) {
+        if (value != null && !hasValueMetadata()) {
             return value;
-        } else if (rawElement != null) {
+        } else if (rawElement != null || hasValueMetadata()) {
             return new RawType(this, getTypeName(), prismContext);
         } else {
             return null;

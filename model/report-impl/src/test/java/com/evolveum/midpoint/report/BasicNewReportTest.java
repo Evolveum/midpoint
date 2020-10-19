@@ -53,43 +53,54 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
     public static final File COLLECTION_TASK_WITH_VIEW_FILE = new File(COMMON_DIR, "object-collection-all-task-with-view.xml");
     public static final File COLLECTION_USER_WITH_VIEW_FILE = new File(COMMON_DIR, "object-collection-all-user-with-view.xml");
     public static final File COLLECTION_AUDIT_WITH_VIEW_FILE = new File(COMMON_DIR, "object-collection-all-audit-records-with-view.xml");
+    public static final File COLLECTION_AUDIT_EMPTY_FILE = new File(COMMON_DIR, "object-collection-audit-empty.xml");
+    public static final File COLLECTION_EMPTY_FILE = new File(COMMON_DIR, "object-collection-empty.xml");
     public static final File COLLECTION_ASSIGNMENT_HOLDER_WITH_VIEW_FILE = new File(COMMON_DIR, "object-collection-all-assignment-holder-with-view.xml");
     public static final File COLLECTION_SHADOW_WITH_VIEW_FILE = new File(COMMON_DIR, "object-collection-shadow-of-resource-with-view.xml");
     public static final File DASHBOARD_TRIPLE_VIEW_FILE = new File(COMMON_DIR, "dashboard-with-triple-view.xml");
+    public static final File DASHBOARD_EMPTY_FILE = new File(COMMON_DIR, "dashboard-empty.xml");
     public static final File COLLECTION_BASIC = new File(COMMON_DIR, "object-collection-basic-filter.xml");
 
     public static final File REPORT_DASHBOARD_WITH_DEFAULT_COLUMN_FILE = new File(TEST_REPORTS_DIR, "report-dashboard-with-default-column.xml");
     public static final File REPORT_DASHBOARD_WITH_VIEW_FILE = new File(TEST_REPORTS_DIR, "report-dashboard-with-view.xml");
     public static final File REPORT_DASHBOARD_WITH_TRIPLE_VIEW_FILE = new File(TEST_REPORTS_DIR, "report-dashboard-with-triple-view.xml");
+    public static final File REPORT_DASHBOARD_EMPTY_FILE = new File(TEST_REPORTS_DIR, "report-dashboard-empty.xml");
 
     public static final File REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN_FILE = new File(TEST_REPORTS_DIR, "report-audit-collection-with-default-column.xml");
     public static final File REPORT_AUDIT_COLLECTION_WITH_VIEW_FILE = new File(TEST_REPORTS_DIR, "report-audit-collection-with-view.xml");
     public static final File REPORT_AUDIT_COLLECTION_WITH_DOUBLE_VIEW_FILE = new File(TEST_REPORTS_DIR, "report-audit-collection-with-double-view.xml");
     public static final File REPORT_AUDIT_COLLECTION_WITH_CONDITION_FILE = new File(TEST_REPORTS_DIR, "report-audit-collection-with-condition.xml");
+    public static final File REPORT_AUDIT_COLLECTION_EMPTY_FILE = new File(TEST_REPORTS_DIR, "report-audit-collection-empty.xml");
 
     public static final File REPORT_OBJECT_COLLECTION_WITH_DEFAULT_COLUMN_FILE = new File(TEST_REPORTS_DIR, "report-object-collection-with-default-column.xml");
     public static final File REPORT_OBJECT_COLLECTION_WITH_VIEW_FILE = new File(TEST_REPORTS_DIR, "report-object-collection-with-view.xml");
     public static final File REPORT_OBJECT_COLLECTION_WITH_DOUBLE_VIEW_FILE = new File(TEST_REPORTS_DIR, "report-object-collection-with-double-view.xml");
     public static final File REPORT_OBJECT_COLLECTION_WITH_FILTER_FILE = new File(TEST_REPORTS_DIR, "report-object-collection-with-filter.xml");
     public static final File REPORT_OBJECT_COLLECTION_WITH_FILTER_AND_BASIC_COLLECTION_FILE = new File(TEST_REPORTS_DIR, "report-object-collection-with-filter-and-basic-collection.xml");
+    public static final File REPORT_OBJECT_COLLECTION_FILTER_BASIC_COLLECTION_WITHOUT_VIEW_FILE = new File(TEST_REPORTS_DIR, "report-object-collection-filter-and-basic-collection-without-view.xml");
     public static final File REPORT_OBJECT_COLLECTION_WITH_CONDITION_FILE = new File(TEST_REPORTS_DIR, "report-object-collection-with-condition.xml");
+    public static final File REPORT_OBJECT_COLLECTION_EMPTY_FILE = new File(TEST_REPORTS_DIR, "report-object-collection-empty.xml");
     public static final File REPORT_WITH_IMPORT_SCRIPT = new File(TEST_REPORTS_DIR, "report-with-import-script.xml");
 
     public static final String REPORT_DASHBOARD_WITH_DEFAULT_COLUMN_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a8582";
     public static final String REPORT_DASHBOARD_WITH_VIEW_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a8533";
     public static final String REPORT_DASHBOARD_WITH_TRIPLE_VIEW_OID = "2b87aa2e-dd86-4842-bcf5-76200a9a8533";
+    public static final String REPORT_DASHBOARD_EMPTY_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a8eq2";
 
     public static final String REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85bc";
     public static final String REPORT_AUDIT_COLLECTION_WITH_VIEW_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85cd";
     public static final String REPORT_AUDIT_COLLECTION_WITH_DOUBLE_VIEW_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85fg";
     public static final String REPORT_AUDIT_COLLECTION_WITH_CONDITION_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85rr";
+    public static final String REPORT_AUDIT_COLLECTION_EMPTY_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85qf";
 
     public static final String REPORT_OBJECT_COLLECTION_WITH_DEFAULT_COLUMN_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85ab";
     public static final String REPORT_OBJECT_COLLECTION_WITH_VIEW_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85de";
     public static final String REPORT_OBJECT_COLLECTION_WITH_DOUBLE_VIEW_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85ef";
     public static final String REPORT_OBJECT_COLLECTION_WITH_FILTER_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85gh";
     public static final String REPORT_OBJECT_COLLECTION_WITH_FILTER_AND_BASIC_COLLECTION_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85hi";
+    public static final String REPORT_OBJECT_COLLECTION_FILTER_BASIC_COLLECTION_WITHOUT_VIEW_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85r7";
     public static final String REPORT_OBJECT_COLLECTION_WITH_CONDITION_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a851a";
+    public static final String REPORT_OBJECT_COLLECTION_EMPTY_LIST_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85sq";
     public static final String REPORT_WITH_IMPORT_SCRIPT_OID = "2b44aa2e-dd86-4842-bcf5-762c8c4a851a";
 
     public static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
@@ -123,13 +134,17 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
         importObjectFromFile(COLLECTION_RESOURCE_WITH_VIEW_FILE, initResult);
         importObjectFromFile(COLLECTION_TASK_WITH_VIEW_FILE, initResult);
         importObjectFromFile(COLLECTION_AUDIT_WITH_VIEW_FILE, initResult);
+        importObjectFromFile(COLLECTION_AUDIT_EMPTY_FILE, initResult);
         importObjectFromFile(COLLECTION_ASSIGNMENT_HOLDER_WITH_VIEW_FILE, initResult);
         importObjectFromFile(COLLECTION_SHADOW_WITH_VIEW_FILE, initResult);
+        importObjectFromFile(COLLECTION_EMPTY_FILE, initResult);
         importObjectFromFile(DASHBOARD_TRIPLE_VIEW_FILE, initResult);
+        importObjectFromFile(DASHBOARD_EMPTY_FILE, initResult);
 
         importObjectFromFile(REPORT_DASHBOARD_WITH_DEFAULT_COLUMN_FILE, initResult);
         importObjectFromFile(REPORT_DASHBOARD_WITH_VIEW_FILE, initResult);
         importObjectFromFile(REPORT_DASHBOARD_WITH_TRIPLE_VIEW_FILE, initResult);
+        importObjectFromFile(REPORT_DASHBOARD_EMPTY_FILE, initResult);
         importObjectFromFile(REPORT_OBJECT_COLLECTION_WITH_DEFAULT_COLUMN_FILE, initResult);
         importObjectFromFile(REPORT_OBJECT_COLLECTION_WITH_VIEW_FILE, initResult);
         importObjectFromFile(REPORT_OBJECT_COLLECTION_WITH_DOUBLE_VIEW_FILE, initResult);
@@ -137,9 +152,12 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
         importObjectFromFile(REPORT_AUDIT_COLLECTION_WITH_VIEW_FILE, initResult);
         importObjectFromFile(REPORT_AUDIT_COLLECTION_WITH_DOUBLE_VIEW_FILE, initResult);
         importObjectFromFile(REPORT_AUDIT_COLLECTION_WITH_CONDITION_FILE, initResult);
+        importObjectFromFile(REPORT_AUDIT_COLLECTION_EMPTY_FILE, initResult);
         importObjectFromFile(REPORT_OBJECT_COLLECTION_WITH_FILTER_FILE, initResult);
         importObjectFromFile(REPORT_OBJECT_COLLECTION_WITH_FILTER_AND_BASIC_COLLECTION_FILE, initResult);
+        importObjectFromFile(REPORT_OBJECT_COLLECTION_FILTER_BASIC_COLLECTION_WITHOUT_VIEW_FILE, initResult);
         importObjectFromFile(REPORT_OBJECT_COLLECTION_WITH_CONDITION_FILE, initResult);
+        importObjectFromFile(REPORT_OBJECT_COLLECTION_EMPTY_FILE, initResult);
         importObjectFromFile(REPORT_WITH_IMPORT_SCRIPT, initResult);
     }
 
@@ -160,6 +178,13 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
     @Test
     public void test003CreateDashboardReportWithTripleView() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_DASHBOARD_WITH_TRIPLE_VIEW_OID);
+        runReport(report, false);
+        basicCheckOutputFile(report);
+    }
+
+    @Test
+    public void test004CreateDashboardReportEmpty() throws Exception {
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_DASHBOARD_EMPTY_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
@@ -188,6 +213,13 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
     @Test
     public void test104CreateAuditCollectionReportWithCondition() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_CONDITION_OID);
+        runReport(report, false);
+        basicCheckOutputFile(report);
+    }
+
+    @Test
+    public void test105CreateAuditCollectionReportEmpty() throws Exception {
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_EMPTY_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
@@ -234,12 +266,26 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
         basicCheckOutputFile(report);
     }
 
+    @Test
+    public void test116CreateObjectCollectionEmptyReport() throws Exception {
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_EMPTY_LIST_OID);
+        runReport(report, false);
+        basicCheckOutputFile(report);
+    }
+
+    @Test
+    public void test117CreateObjectCollectionReportWithFilterAndBasicCollectionWithoutView() throws Exception {
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_FILTER_BASIC_COLLECTION_WITHOUT_VIEW_OID);
+        runReport(report, false);
+        basicCheckOutputFile(report);
+    }
+
     protected PrismObject<TaskType> runReport(PrismObject<ReportType> report, boolean errorOk) throws Exception {
         Task task = createTask(OP_CREATE_REPORT);
         OperationResult result = task.getResult();
         PrismObject<ReportType> reportBefore = report.clone();
         report.asObjectable().setFileFormat(getFileFormatConfiguration());
-        ObjectDelta<ReportType> diffDelta = reportBefore.diff(report, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
+        ObjectDelta<ReportType> diffDelta = reportBefore.diff(report, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
         executeChanges(diffDelta, ModelExecuteOptions.createRaw(), task, result);
 
         // WHEN
@@ -265,7 +311,7 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
         OperationResult result = task.getResult();
         PrismObject<ReportType> reportBefore = report.clone();
         report.asObjectable().setFileFormat(getFileFormatConfiguration());
-        ObjectDelta<ReportType> diffDelta = reportBefore.diff(report, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
+        ObjectDelta<ReportType> diffDelta = reportBefore.diff(report, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
         executeChanges(diffDelta, ModelExecuteOptions.createRaw(), task, result);
 
         PrismObject<ReportDataType> reportData = prismContext.getSchemaRegistry()

@@ -30,15 +30,6 @@
         </appender>
     </logging>
     <notificationConfiguration>
-<!--        <handler>-->
-<!--            <simpleCaseManagementNotifier>-->
-<!--                <recipientExpression>-->
-<!--                    <value>recipient@evolveum.com</value>-->
-<!--                </recipientExpression>-->
-<!--                <showTechnicalInformation>true</showTechnicalInformation>-->
-<!--                <transport>dummy:caseNotifier</transport>-->
-<!--            </simpleCaseManagementNotifier>-->
-<!--        </handler>-->
         <handler>
             <simplePolicyRuleNotifier>
                 <recipientExpression>
@@ -613,6 +604,15 @@
                         <code> return "test"</code>
                     </script>
                 </expression>
+            </property>
+            <property>
+                <name>ship</name>
+                <expression>
+                    <path>$target/extension/ship</path>
+                </expression>
+                <targetSelector>
+                    <type>UserType</type>
+                </targetSelector>
             </property>
         </eventRecording>
     </audit>

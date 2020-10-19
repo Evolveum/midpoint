@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2016 Evolveum and contributors
+ * Copyright (C) 2015-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,10 +8,7 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import java.util.List;
 import java.util.Map;
-
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -33,6 +30,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ShadowWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -53,18 +51,10 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingCart;
 import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author semancik
- *
  */
 public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends FocusMainPanel<R> {
     private static final long serialVersionUID = 1L;
@@ -89,16 +79,16 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
         initShoppingCartPanel(parentPage);
     }
 
-    private void initShoppingCartPanel(PageAdminObjectDetails<R> parentPage){
+    private void initShoppingCartPanel(PageAdminObjectDetails<R> parentPage) {
         RoleCatalogStorage storage = parentPage.getSessionStorage().getRoleCatalog();
 
         WebMarkupContainer shoppingCartButtonsPanel = new WebMarkupContainer(ID_SHOPPING_CART_BUTTONS_PANEL);
         shoppingCartButtonsPanel.setOutputMarkupId(true);
-        shoppingCartButtonsPanel.add(new VisibleEnableBehaviour(){
+        shoppingCartButtonsPanel.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 //show panel only in case if user came to object details from
                 // Role Catalog page
                 return PageAssignmentShoppingCart.class.equals(WebComponentUtil.getPreviousPageClass(parentPage));
@@ -130,17 +120,18 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
             }
         }));
         addToCartButton.setOutputMarkupId(true);
-        addToCartButton.add(new VisibleEnableBehaviour(){
+        addToCartButton.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isEnabled(){
+            public boolean isEnabled() {
                 int assignmentsLimit = AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT),
-                                                parentPage);
-                                AssignmentEditorDto dto = AssignmentEditorDto.createDtoFromObject(AbstractRoleMainPanel.this.getObject().asObjectable(),
-                                                UserDtoStatus.ADD, parentPage);
-                                return !AssignmentsUtil.isShoppingCartAssignmentsLimitReached(assignmentsLimit, parentPage)
-                                                && (storage.isMultiUserRequest() || dto.isAssignable());            }
+                        parentPage);
+                AssignmentEditorDto dto = AssignmentEditorDto.createDtoFromObject(AbstractRoleMainPanel.this.getObject().asObjectable(),
+                        UserDtoStatus.ADD, parentPage);
+                return !AssignmentsUtil.isShoppingCartAssignmentsLimitReached(assignmentsLimit, parentPage)
+                        && (storage.isMultiUserRequest() || dto.isAssignable());
+            }
         });
         addToCartButton.add(AttributeAppender.append("title",
                 AssignmentsUtil.getShoppingCartAssignmentsLimitReachedTitleModel(parentPage)));
@@ -153,7 +144,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
         tabs.add(
                 new PanelTab(parentPage.createStringResource("pageAdminFocus.applicablePolicies"),
-                        getTabVisibility( ComponentConstants.UI_FOCUS_TAB_APPLICABLE_POLICIES_URL, false, parentPage)) {
+                        getTabVisibility(ComponentConstants.UI_FOCUS_TAB_APPLICABLE_POLICIES_URL, false, parentPage)) {
 
                     private static final long serialVersionUID = 1L;
 
@@ -164,18 +155,18 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
                 });
 
         tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.inducement"),
-                getTabVisibility( ComponentConstants.UI_FOCUS_TAB_INDUCEMENTS_URL, false, parentPage)) {
+                getTabVisibility(ComponentConstants.UI_FOCUS_TAB_INDUCEMENTS_URL, false, parentPage)) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
                 SwitchAssignmentTypePanel panel = new SwitchAssignmentTypePanel(panelId,
-                        PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), AbstractRoleType.F_INDUCEMENT)){
+                        PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), AbstractRoleType.F_INDUCEMENT)) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected boolean isInducement(){
+                    protected boolean isInducement() {
                         return true;
                     }
                 };
@@ -183,14 +174,14 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
             }
 
             @Override
-            public String getCount(){
+            public String getCount() {
                 return getInducementsCount();
             }
 
         });
 
         tabs.add(new PanelTab(parentPage.createStringResource("pageRole.members"),
-                getTabVisibility( ComponentConstants.UI_FOCUS_TAB_MEMBERS_URL, false, parentPage)) {
+                getTabVisibility(ComponentConstants.UI_FOCUS_TAB_MEMBERS_URL, false, parentPage)) {
 
             private static final long serialVersionUID = 1L;
 
@@ -208,7 +199,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
         });
 
         tabs.add(new PanelTab(parentPage.createStringResource("pageRole.governance"),
-                getTabVisibility( ComponentConstants.UI_FOCUS_TAB_GOVERNANCE_URL, false, parentPage)) {
+                getTabVisibility(ComponentConstants.UI_FOCUS_TAB_GOVERNANCE_URL, false, parentPage)) {
 
             private static final long serialVersionUID = 1L;
 
@@ -226,7 +217,6 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
         return tabs;
     }
 
-
     public AbstractRoleMemberPanel<R> createMemberPanel(String panelId) {
 
         return new AbstractRoleMemberPanel<R>(panelId, new Model<>(getObject().asObjectable())) {
@@ -240,7 +230,6 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
         };
     }
-
 
     public AbstractRoleMemberPanel<R> createGovernancePanel(String panelId) {
 
@@ -263,29 +252,29 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
         };
     }
 
-    protected AvailableRelationDto getSupportedMembersTabRelations(){
-        List<QName> relations =  WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getDetailsPage());
+    protected AvailableRelationDto getSupportedMembersTabRelations() {
+        List<QName> relations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getDetailsPage());
         List<QName> governance = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage());
         governance.forEach(r -> relations.remove(r));
         return new AvailableRelationDto(relations);
     }
 
-    protected AvailableRelationDto getSupportedGovernanceTabRelations(){
+    protected AvailableRelationDto getSupportedGovernanceTabRelations() {
         return new AvailableRelationDto(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage()), SchemaConstants.ORG_APPROVER);
     }
 
-    protected Map<String, String> getGovernanceTabAuthorizations(){
+    protected Map<String, String> getGovernanceTabAuthorizations() {
         return GuiAuthorizationConstants.GOVERNANCE_MEMBERS_AUTHORIZATIONS;
     }
 
-    private boolean isAllowedToReadRoleMembership(String abstractRoleOid, PageBase parentPage){
+    private boolean isAllowedToReadRoleMembership(String abstractRoleOid, PageBase parentPage) {
         return isAllowedToReadRoleMembershipItemForType(abstractRoleOid, UserType.class, parentPage)
                 || isAllowedToReadRoleMembershipItemForType(abstractRoleOid, RoleType.class, parentPage)
                 || isAllowedToReadRoleMembershipItemForType(abstractRoleOid, OrgType.class, parentPage)
                 || isAllowedToReadRoleMembershipItemForType(abstractRoleOid, ServiceType.class, parentPage);
     }
 
-    private <F extends FocusType> boolean isAllowedToReadRoleMembershipItemForType(String abstractRoleOid, Class<F> type, PageBase parentPage){
+    private <F extends FocusType> boolean isAllowedToReadRoleMembershipItemForType(String abstractRoleOid, Class<F> type, PageBase parentPage) {
         ObjectQuery query = parentPage.getPrismContext().queryFor(type)
                 .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(abstractRoleOid).build();
         Task task = parentPage.createSimpleTask(OPERATION_CAN_SEARCH_ROLE_MEMBERSHIP_ITEM);
@@ -294,25 +283,24 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
         try {
             isAllowed = parentPage.getModelInteractionService()
                     .canSearch(type, null, null, false, query, task, result);
-        } catch (Exception ex){
+        } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check if user is allowed to search for roleMembershipRef item", ex);
         }
         return isAllowed;
     }
 
-    private String getInducementsCount(){
-            PrismObject<R> focus = getObjectModel().getObject().getObject();
-            List<AssignmentType> inducements = focus.asObjectable().getInducement();
-            if (inducements == null){
-                return "";
-            }
-            return Integer.toString(inducements.size());
+    private String getInducementsCount() {
+        PrismObject<R> focus = getObjectModel().getObject().getObject();
+        List<AssignmentType> inducements = focus.asObjectable().getInducement();
+        if (inducements == null) {
+            return "";
+        }
+        return Integer.toString(inducements.size());
     }
-
 
     //TODO what? why? when?
     @Override
-    protected boolean areSavePreviewButtonsEnabled(){
+    protected boolean areSavePreviewButtonsEnabled() {
         PrismObjectWrapper<R> focusWrapper = getObjectModel().getObject();
         PrismContainerWrapper<AssignmentType> assignmentsWrapper;
         try {
@@ -320,6 +308,6 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
         } catch (SchemaException e) {
             return false;
         }
-        return super.areSavePreviewButtonsEnabled()  || isAssignmentsModelChanged(assignmentsWrapper);
+        return super.areSavePreviewButtonsEnabled() || isAssignmentsModelChanged(assignmentsWrapper);
     }
 }

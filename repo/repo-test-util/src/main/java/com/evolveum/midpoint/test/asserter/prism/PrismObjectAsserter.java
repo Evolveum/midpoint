@@ -14,6 +14,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -174,6 +175,23 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         return this;
     }
 
+    public PrismObjectAsserter<O,RA> assertIndestructible(Boolean expected) {
+        assertEquals("Wrong 'indestructible' in "+desc(), expected, getObject().asObjectable().isIndestructible());
+        return this;
+    }
+
+    public PrismObjectAsserter<O,RA> assertIndestructible() {
+        assertEquals("Wrong 'indestructible' in "+desc(), Boolean.TRUE, getObject().asObjectable().isIndestructible());
+        return this;
+    }
+
+    public PrismObjectAsserter<O,RA> assertDestructible() {
+        if (Boolean.TRUE.equals(getObject().asObjectable().isIndestructible())) {
+            fail("Unexpected indestructible=TRUE in "+desc());
+        }
+        return this;
+    }
+
     public UserAsserter<PrismObjectAsserter<O,RA>> asUser() {
         UserAsserter<PrismObjectAsserter<O,RA>> asserter = new UserAsserter<>((PrismObject<UserType>) getObject(), this, getDetails());
         copySetupTo(asserter);
@@ -228,6 +246,23 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         Item extensionItem = getObject().findExtensionItem(localName);
         assertNotNull("No extension item " + localName, extensionItem);
         assertTrue("Real value " + realValue + " not in " + extensionItem, extensionItem.getRealValues().contains(realValue));
+        return this;
+    }
+
+    // TODO move/copy? to PCV asserter
+    public PrismObjectAsserter<O,RA> assertValues(ItemPath path, Object... expectedRealValues) {
+        Item extensionItem = getObject().findItem(path);
+        if (expectedRealValues.length == 0) {
+            if (extensionItem != null && !extensionItem.isEmpty()) {
+                fail("Extension item exists when not expected: " + extensionItem);
+            }
+        } else {
+            assertNotNull("No item " + path, extensionItem);
+            Collection actualRealValues = extensionItem.getRealValues();
+            //noinspection unchecked
+            assertThat(actualRealValues).as("actual real values for item " + path)
+                    .containsExactlyInAnyOrder(expectedRealValues);
+        }
         return this;
     }
 
@@ -348,24 +383,72 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
     }
 
     public ValueMetadataAsserter<? extends PrismObjectAsserter<O, RA>> valueMetadata(ItemPath path) throws SchemaException {
-        PrismContainerValue<ValueMetadataType> valueMetadata = getValueMetadata(path);
+        return createValueMetadataAsserter(path, getValueMetadata(path, null));
+    }
+
+    public ValueMetadataAsserter<? extends PrismObjectAsserter<O, RA>> valueMetadata(ItemPath path, ValueSelector<?> valueSelector)
+            throws SchemaException {
+        return createValueMetadataAsserter(path, getValueMetadata(path, valueSelector));
+    }
+
+    public ValueMetadataValueAsserter<? extends PrismObjectAsserter<O, RA>> valueMetadataSingle(ItemPath path) throws SchemaException {
+        return createValueMetadataValueAsserter(path, getValueMetadata(path, null));
+    }
+
+    public ValueMetadataValueAsserter<? extends PrismObjectAsserter<O, RA>> valueMetadataSingle(ItemPath path, ValueSelector<?> valueSelector)
+            throws SchemaException {
+        return createValueMetadataValueAsserter(path, getValueMetadata(path, valueSelector));
+    }
+
+    @NotNull
+    private ValueMetadataAsserter<? extends PrismObjectAsserter<O, RA>> createValueMetadataAsserter(ItemPath path,
+            PrismContainer<ValueMetadataType> valueMetadata) {
         ValueMetadataAsserter<? extends PrismObjectAsserter<O, RA>> asserter =
                 new ValueMetadataAsserter<>(valueMetadata, this, String.valueOf(path)); // TODO details
         copySetupTo(asserter);
         return asserter;
     }
 
-    private PrismContainerValue<ValueMetadataType> getValueMetadata(ItemPath path) throws SchemaException {
-        Item<?, ?> item = getObject().findItem(path);
-        if (item == null) {
-            throw new AssertionError("Item '" + path + "' not found in " + getObject());
+    @NotNull
+    private ValueMetadataValueAsserter<? extends PrismObjectAsserter<O, RA>> createValueMetadataValueAsserter(ItemPath path,
+            PrismContainer<ValueMetadataType> valueMetadata) {
+        if (valueMetadata.size() != 1) {
+            fail("Value metadata container has none or multiple values: " + valueMetadata);
         }
-        if (item.size() == 1) {
-            //noinspection unchecked
-            return (PrismContainerValue<ValueMetadataType>) (PrismContainerValue<?>) item.getValue().getValueMetadata();
+        ValueMetadataValueAsserter<? extends PrismObjectAsserter<O, RA>> asserter =
+                new ValueMetadataValueAsserter<>(valueMetadata.getValue(), this, String.valueOf(path)); // TODO details
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    private PrismContainer<ValueMetadataType> getValueMetadata(ItemPath path, ValueSelector<? extends PrismValue> valueSelector) throws SchemaException {
+        Object o = getObject().find(path);
+        if (o instanceof PrismValue) {
+            return ((PrismValue) o).getValueMetadataAsContainer();
+        } else if (o instanceof Item) {
+            Item<?, ?> item = (Item<?, ?>) o;
+            if (valueSelector == null) {
+                if (item.size() == 1) {
+                    return item.getValue().getValueMetadataAsContainer();
+                } else {
+                    throw new AssertionError("Item '" + path + "' has not a single value in " + getObject() +
+                            ": " + item.size() + " values: " + item);
+                }
+            } else {
+                //noinspection unchecked
+                PrismValue anyValue = item.getAnyValue((ValueSelector) valueSelector);
+                if (anyValue != null) {
+                    return anyValue.getValueMetadataAsContainer();
+                } else {
+                    throw new AssertionError("Item '" + path + "' has no value matching given selector in " + getObject() +
+                            ": " + item.size() + " values: " + item);
+                }
+            }
+        } else if (o != null) {
+            throw new AssertionError("Object '" + path + "' has no unexpected value matching given selector in " +
+                    getObject() + ": " + o);
         } else {
-            throw new AssertionError("Item '" + path + "' has not a single value in " + getObject() +
-                    ": " + item.size() + " values: " + item);
+            throw new AssertionError("Item '" + path + "' not found in " + getObject());
         }
     }
 
@@ -399,6 +482,20 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         if (!archetypeRefs.isEmpty()) {
             fail("Found archetypeRefs while not expected any: "+archetypeRefs);
         }
+        return this;
+    }
+
+    public PrismObjectAsserter<O,RA> assertPolicySituation(String uri) {
+        assertThat(getObject().asObjectable().getPolicySituation())
+                .as("Policy situations")
+                .contains(uri);
+        return this;
+    }
+
+    public PrismObjectAsserter<O,RA> assertNoPolicySituation(String uri) {
+        assertThat(getObject().asObjectable().getPolicySituation())
+                .as("Policy situations")
+                .doesNotContain(uri);
         return this;
     }
 }

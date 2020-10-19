@@ -6,15 +6,19 @@
  */
 package com.evolveum.midpoint.repo.common.expression;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.*;
+
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
@@ -27,9 +31,6 @@ import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
@@ -41,6 +42,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInfo
  */
 public class ExpressionFactory implements Cacheable {
 
+    private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
+
     private final PrismContext prismContext;
     private final SecurityContextManager securityContextManager;
     private final LocalizationService localizationService;
@@ -48,7 +51,7 @@ public class ExpressionFactory implements Cacheable {
 
     @Autowired private CacheRegistry cacheRegistry;
 
-    @NotNull private Map<ExpressionIdentifier, Expression<?, ?>> cache = new HashMap<>();
+    @NotNull private final Map<ExpressionIdentifier, Expression<?, ?>> cache = new ConcurrentHashMap<>();
 
     // These are set from XML as properties, I'm not sure whether they can be autowired,
     // as there are various subclasses for both of them:
@@ -88,14 +91,25 @@ public class ExpressionFactory implements Cacheable {
             ExpressionType expressionType, D outputDefinition, ExpressionProfile expressionProfile,
             String shortDesc, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException {
-        ExpressionIdentifier eid = new ExpressionIdentifier(expressionType, outputDefinition);
-        //noinspection unchecked
-        Expression<V, D> expression = (Expression<V, D>) cache.get(eid);
-        if (expression == null) {
-            expression = createExpression(expressionType, outputDefinition, expressionProfile, shortDesc, task, result);
-            cache.put(eid, expression);
+        ExpressionIdentifier eid = new ExpressionIdentifier(expressionType, outputDefinition, expressionProfile);
+        try {
+            //noinspection unchecked
+            return (Expression<V, D>) cache.computeIfAbsent(eid, expressionIdentifier ->
+                    createExpression(expressionType, outputDefinition, expressionProfile, shortDesc, task, result));
+        } catch (TunnelException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof SchemaException) {
+                throw (SchemaException) cause;
+            } else if (cause instanceof ObjectNotFoundException) {
+                throw (ObjectNotFoundException) cause;
+            } else if (cause instanceof SecurityViolationException) {
+                throw (SecurityViolationException) cause;
+            } else if (cause instanceof RuntimeException) {
+                throw (RuntimeException) cause;
+            } else {
+                throw new SystemException(cause);
+            }
         }
-        return expression;
     }
 
     public <T> Expression<PrismPropertyValue<T>, PrismPropertyDefinition<T>> makePropertyExpression(
@@ -107,12 +121,16 @@ public class ExpressionFactory implements Cacheable {
         return makeExpression(expressionType, outputDefinition, expressionProfile, shortDesc, task, result);
     }
 
+    @NotNull
     private <V extends PrismValue, D extends ItemDefinition> Expression<V, D> createExpression(ExpressionType expressionType,
-            D outputDefinition, ExpressionProfile expressionProfile, String shortDesc, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException {
-        Expression<V, D> expression = new Expression<>(expressionType, outputDefinition, expressionProfile, objectResolver, securityContextManager, prismContext);
-        expression.parse(this, shortDesc, task, result);
-        return expression;
+            D outputDefinition, ExpressionProfile expressionProfile, String shortDesc, Task task, OperationResult result) {
+        try {
+            Expression<V, D> expression = new Expression<>(expressionType, outputDefinition, expressionProfile, objectResolver, securityContextManager, prismContext);
+            expression.parse(this, shortDesc, task, result);
+            return expression;
+        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException e) {
+            throw new TunnelException(e);
+        }
     }
 
     public ExpressionEvaluatorFactory getEvaluatorFactory(QName elementName) {
@@ -131,74 +149,63 @@ public class ExpressionFactory implements Cacheable {
         this.defaultEvaluatorFactory = defaultEvaluatorFactory;
     }
 
-    class ExpressionIdentifier {
-        private ExpressionType expressionType;
-        private ItemDefinition outputDefinition;
+    static class ExpressionIdentifier {
+        private final ExpressionType expressionBean;
+        private final ItemDefinition outputDefinition;
+        private final String expressionProfileIdentifier;
+        private final int hashCode;
 
-        ExpressionIdentifier(ExpressionType expressionType, ItemDefinition outputDefinition) {
-            super();
-            this.expressionType = expressionType;
-            this.outputDefinition = outputDefinition;
+        private ExpressionIdentifier(ExpressionType expressionBean, ItemDefinition outputDefinition,
+                ExpressionProfile expressionProfile) {
+
+            this.expressionBean = expressionBean != null ? expressionBean.clone() : null;
+            this.outputDefinition = cloneDefinitionIfNeeded(outputDefinition);
+            this.expressionProfileIdentifier = expressionProfile != null ? expressionProfile.getIdentifier() : null;
+
+            this.hashCode = computeHashCode();
         }
 
-        public ExpressionType getExpressionType() {
-            return expressionType;
+        @Nullable
+        private ItemDefinition cloneDefinitionIfNeeded(ItemDefinition outputDefinition) {
+            if (outputDefinition != null) {
+                if (outputDefinition.isImmutable()) {
+                    return outputDefinition;
+                } else {
+                    // We assume that majority of the cases will be that definition is immutable,
+                    // so cloning will not be necessary.
+                    if (outputDefinition instanceof PrismContainerDefinition) {
+                        PERFORMANCE_ADVISOR.info("Deep clone of container definition: {}. This can harm performance.", outputDefinition);
+                    }
+                    ItemDefinition clone = outputDefinition.deepClone(false, null);
+                    clone.freeze();
+                    return clone;
+                }
+            } else {
+                return null;
+            }
         }
 
-        public void setExpressionType(ExpressionType expressionType) {
-            this.expressionType = expressionType;
-        }
-
-        public ItemDefinition getOutputDefinition() {
-            return outputDefinition;
-        }
-
-        public void setOutputDefinition(ItemDefinition outputDefinition) {
-            this.outputDefinition = outputDefinition;
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof ExpressionIdentifier)) {
+                return false;
+            }
+            ExpressionIdentifier that = (ExpressionIdentifier) o;
+            return Objects.equals(expressionBean, that.expressionBean) &&
+                    Objects.equals(outputDefinition, that.outputDefinition) &&
+                    Objects.equals(expressionProfileIdentifier, that.expressionProfileIdentifier);
         }
 
         @Override
         public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + getOuterType().hashCode();
-            result = prime * result + ((expressionType == null) ? 0 : expressionType.hashCode());
-            result = prime * result + ((outputDefinition == null) ? 0 : outputDefinition.hashCode());
-            return result;
+            return hashCode;
         }
 
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj == null || getClass() != obj.getClass()) {
-                return false;
-            }
-
-            ExpressionIdentifier other = (ExpressionIdentifier) obj;
-            if (!getOuterType().equals(other.getOuterType())) {
-                return false;
-            }
-            if (expressionType == null) {
-                if (other.expressionType != null) {
-                    return false;
-                }
-            } else if (!expressionType.equals(other.expressionType)) {
-                return false;
-            }
-            if (outputDefinition == null) {
-                if (other.outputDefinition != null) {
-                    return false;
-                }
-            } else if (!outputDefinition.equals(other.outputDefinition)) {
-                return false;
-            }
-            return true;
-        }
-
-        private ExpressionFactory getOuterType() {
-            return ExpressionFactory.this;
+        public int computeHashCode() {
+            return Objects.hash(expressionBean, outputDefinition, expressionProfileIdentifier);
         }
     }
 
@@ -206,7 +213,7 @@ public class ExpressionFactory implements Cacheable {
     public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
         if (type == null || type.isAssignableFrom(FunctionLibraryType.class)) {
             // Currently we don't attempt to select entries to be cleared based on function library OID
-            cache = new HashMap<>();
+            cache.clear();
         }
     }
 

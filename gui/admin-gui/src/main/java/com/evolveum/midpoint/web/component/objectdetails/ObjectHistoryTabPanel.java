@@ -41,7 +41,7 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.admin.users.PageXmlDataReview;
 import com.evolveum.midpoint.web.session.AuditLogStorage;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -60,7 +60,7 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
     private static final String DOT_CLASS = ObjectHistoryTabPanel.class.getName() + ".";
     private static final String OPERATION_RESTRUCT_OBJECT = DOT_CLASS + "restructObject";
 
-    public ObjectHistoryTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel) {
+    public ObjectHistoryTabPanel(String id, MidpointForm mainForm, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel) {
         super(id, mainForm, focusWrapperModel);
 
     }

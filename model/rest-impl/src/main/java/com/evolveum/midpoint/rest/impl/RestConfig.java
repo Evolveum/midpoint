@@ -28,7 +28,7 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.PrismContext;
 
 /**
- * Spring configuration for MVC-based REST service. TODO: experimental as of early 2020
+ * Spring configuration for MVC-based REST service.
  * This prepares needed XML/JSON/YAML message converters.
  * It also drives the package scan for REST controllers under this package.
  */
@@ -50,7 +50,7 @@ public class RestConfig
         for (MediaType mediaType : MidpointYamlHttpMessageConverter.MEDIA_TYPES) {
             configurer.mediaType(mediaType.getSubtype(), mediaType);
         }
-        configurer.defaultContentType(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML);
+        configurer.defaultContentType(MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON);
     }
 
     @Bean

@@ -35,8 +35,6 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.*;
 /**
  * Resolves definitions and old values.
  * Currently NOT references.
- *
- * @author mederly
  */
 @Component
 public class Resolver {
@@ -98,11 +96,11 @@ public class Resolver {
             if (objectDefinition == null) {
                 warn(result, "Definition for " + clazz + " couldn't be found");
             } else {
-                if (managedByProvisioning) {
+                if (managedByProvisioning && canApplyDefinition(objectDelta)) {
                     try {
                         provisioningService.applyDefinition(objectDelta, task, result);
-                    } catch (ObjectNotFoundException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply definition on {} -- continuing with no definition", e, objectDelta);
+                    } catch (Throwable t) {
+                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply definition on {} -- continuing with no definition", t, objectDelta);
                     }
                 }
             }
@@ -136,6 +134,13 @@ public class Resolver {
                 }
             }
         }
+    }
+
+    private <O extends ObjectType> boolean canApplyDefinition(ObjectDelta<O> objectDelta) {
+        assert objectDelta.isModify();
+
+        // This is currently the only precondition for applyDefinition method call.
+        return objectDelta.getOid() != null;
     }
 
     private void warn(OperationResult result, String text, Exception e) {

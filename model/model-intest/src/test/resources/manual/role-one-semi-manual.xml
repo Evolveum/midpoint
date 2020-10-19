@@ -16,6 +16,9 @@
             <attribute>
                 <ref>ri:interests</ref>
                 <outbound>
+                    <source> <!-- fake source, just to disable unconditional execution of this normal, originally sourceless mapping - see MID-6443 -->
+                        <path>name</path>
+                    </source>
                     <expression>
                         <value>one</value>
                     </expression>

@@ -94,8 +94,8 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 
     private Level originalProfilingLevel;
 
-    RunningTaskQuartzImpl(@NotNull TaskManagerQuartzImpl taskManager, PrismObject<TaskType> taskPrism, RepositoryService repositoryService) {
-        super(taskManager, taskPrism, repositoryService);
+    RunningTaskQuartzImpl(@NotNull TaskManagerQuartzImpl taskManager, PrismObject<TaskType> taskPrism) {
+        super(taskManager, taskPrism);
     }
 
     @Override

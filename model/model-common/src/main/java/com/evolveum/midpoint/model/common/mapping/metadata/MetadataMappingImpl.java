@@ -10,7 +10,7 @@ package com.evolveum.midpoint.model.common.mapping.metadata;
 import com.evolveum.midpoint.model.common.mapping.AbstractMappingImpl;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.repo.common.expression.ValueMetadataComputer;
+import com.evolveum.midpoint.repo.common.expression.TransformationValueMetadataComputer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataMappingType;
 
@@ -28,9 +28,14 @@ public class MetadataMappingImpl<V extends PrismValue, D extends ItemDefinition>
         super(prototype);
     }
 
-    protected ValueMetadataComputer createValueMetadataComputer(OperationResult result) {
+    protected TransformationValueMetadataComputer createValueMetadataComputer(OperationResult result) {
         // No value metadata computing for value metadata itself.
         return null;
+    }
+
+    @Override
+    protected boolean determinePushChangesRequested() {
+        return false;
     }
 
     @Override

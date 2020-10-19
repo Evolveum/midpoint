@@ -8,10 +8,7 @@
 package com.evolveum.midpoint.task.quartzimpl.tracing;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Objects;
 import java.util.*;
@@ -19,6 +16,8 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+
+import com.evolveum.midpoint.schema.traces.TraceWriter;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
@@ -31,7 +30,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
@@ -41,7 +39,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.Tracer;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -66,7 +63,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
     private static final String MACRO_RANDOM = "random";
 
     // To be used during tests to check for MID-5851
-    @SuppressWarnings("WeakerAccess") @VisibleForTesting
+    @VisibleForTesting
     public static boolean checkHashCodeEqualsRelation = false;
 
     @Autowired private PrismContext prismContext;
@@ -83,7 +80,6 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
     private static final String OP_STORE_TRACE = TracerImpl.class.getName() + ".storeTrace";
 
     private static final String TRACE_DIR_NAME = "trace";
-    private static final String ZIP_ENTRY_NAME = "trace.xml";
 
     private static final String DEFAULT_FILE_NAME_PATTERN = "trace-%{timestamp}";
 
@@ -122,23 +118,17 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
                 try {
                     long start = System.currentTimeMillis();
                     TracingOutputType tracingOutput = tracingOutputCreator.createTracingOutput(task, result, tracingProfile);
-                    String xml = prismContext.xmlSerializer()
-                            .options(
-                                    SerializationOptions
-                                            .createSerializeReferenceNames()
-                                            .escapeInvalidCharacters(true))
-                            .serializeRealValue(tracingOutput);
+                    String xml = new TraceWriter(prismContext)
+                            .writeTrace(tracingOutput, file, zip);
+
                     if (zip) {
-                        MiscUtil.writeZipFile(file, ZIP_ENTRY_NAME, xml, StandardCharsets.UTF_8);
                         LOGGER.info("Trace was written to {} ({} chars uncompressed) in {} milliseconds", file, xml.length(),
                                 System.currentTimeMillis() - start);
                     } else {
-                        try (PrintWriter pw = new PrintWriter(new FileWriter(file))) {
-                            pw.write(xml);
-                            LOGGER.info("Trace was written to {} ({} chars) in {} milliseconds", file, xml.length(),
-                                    System.currentTimeMillis() - start);
-                        }
+                        LOGGER.info("Trace was written to {} ({} chars) in {} milliseconds", file, xml.length(),
+                                System.currentTimeMillis() - start);
                     }
+
                     if (!Boolean.FALSE.equals(tracingProfile.isCreateRepoObject())) {
                         ReportDataType reportDataObject = new ReportDataType(prismContext)
                                 .name(createObjectName(tracingProfile, templateParameters))

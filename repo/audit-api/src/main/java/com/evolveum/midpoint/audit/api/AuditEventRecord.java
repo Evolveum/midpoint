@@ -10,6 +10,8 @@ import java.beans.Transient;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCustomColumnPropertyType;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -526,6 +528,7 @@ public class AuditEventRecord implements DebugDumpable {
         ObjectDeltaOperation.checkConsistence(deltas);
     }
 
+    @Deprecated // should go away with the old audit listRecord
     public AuditEventRecordType createAuditEventRecordType() {
         return createAuditEventRecordType(false);
     }
@@ -590,6 +593,14 @@ public class AuditEventRecord implements DebugDumpable {
             referenceEntry.getValue().forEach(v -> referenceType.getValue().add(v.toXml()));
             auditRecordType.getReference().add(referenceType);
         }
+
+        for (Map.Entry<String, String> customColumnEntry : customColumnProperty.entrySet()) {
+            AuditEventRecordCustomColumnPropertyType customColumn = new AuditEventRecordCustomColumnPropertyType();
+            customColumn.setName(customColumnEntry.getKey());
+            customColumn.setValue(customColumnEntry.getValue());
+            auditRecordType.getCustomColumnProperty().add(customColumn);
+        }
+
         // TODO MID-5531 convert custom properties too? What about other than string types?
         return auditRecordType;
     }

@@ -19,8 +19,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.test.DummyTestResource;
 
-import com.evolveum.midpoint.test.PredefinedTestMethodTracing;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -45,6 +43,7 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
     private static final File HW_TOKENS_DIR = new File("src/test/resources/linked/hw-tokens");
     private static final File GUMMI_DIR = new File("src/test/resources/linked/gummi");
     private static final File PROJECTS_DIR = new File("src/test/resources/linked/projects");
+    private static final File ORGS_DIR = new File("src/test/resources/linked/orgs");
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
@@ -93,6 +92,10 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
     private static final TestResource<ArchetypeType> ARCHETYPE_PROJECT_GROUPS = new TestResource<>(PROJECTS_DIR, "archetype-project-groups.xml", "a85bddc9-4ff0-475f-8ccc-17f9038d4ce1");
     // endregion
 
+    // region Orgs scenario
+    private static final TestResource<ArchetypeType> ARCHETYPE_DELETION_SAFE_ORG = new TestResource<>(ORGS_DIR, "archetype-deletion-safe-org.xml", "b8a973e0-f645-490b-a2ac-b69bd4103bf8");
+    // endregion
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -131,6 +134,10 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         addObject(ARCHETYPE_PROJECT, initTask, initResult);
         addObject(ARCHETYPE_PROJECT_USERS, initTask, initResult);
         addObject(ARCHETYPE_PROJECT_GROUPS, initTask, initResult);
+
+        // Initialization for Orgs scenario
+
+        addObject(ARCHETYPE_DELETION_SAFE_ORG, initTask, initResult);
 
 //        predefinedTestMethodTracing = PredefinedTestMethodTracing.MODEL_LOGGING;
     }
@@ -177,9 +184,6 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
 
     @Test
     public void test000SanityForGummi() throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
         assertUser(USER_CAVIN.oid, "after init")
                 .assertOrganizationalUnits()
                 .display();
@@ -729,5 +733,48 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         assertNoObjectByName(OrgType.class, "ariane5", task, result);
         assertNoObjectByName(OrgType.class, "ariane5_users", task, result);
         assertNoObjectByName(OrgType.class, "ariane5_groups", task, result);
+    }
+
+    /**
+     * Deletes org and checks if it's unassigned from its former members.
+     */
+    @Test
+    public void test800DeleteOrg() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        OrgType root = new OrgType(prismContext)
+                .name("root")
+                .beginAssignment()
+                    .targetRef(ARCHETYPE_DELETION_SAFE_ORG.oid, ArchetypeType.COMPLEX_TYPE)
+                .end();
+        addObject(root.asPrismObject(), task, result);
+
+        OrgType child = new OrgType(prismContext)
+                .name("child")
+                .beginAssignment()
+                    .targetRef(root.getOid(), OrgType.COMPLEX_TYPE)
+                .end();
+        addObject(child.asPrismObject(), task, result);
+
+        UserType user = new UserType(prismContext)
+                .name("user")
+                .beginAssignment()
+                    .targetRef(root.getOid(), OrgType.COMPLEX_TYPE)
+                .end();
+        addObject(user.asPrismObject(), task, result);
+
+        when();
+        deleteObject(OrgType.class, root.getOid(), task, result);
+
+        then();
+        assertSuccess(result); // in fact this is HANDLED_ERROR because of missing parent org
+
+        assertOrgAfter(child.getOid())
+                .assertAssignments(0);
+
+        assertUserAfter(user.getOid())
+                .assertAssignments(0);
     }
 }

@@ -20,7 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * @author lazyman
  */
-public class ObjectLinkColumn<T> extends LinkColumn<T>  implements IExportableColumn<T, String> {
+public class ObjectLinkColumn<T> extends AjaxLinkColumn<T> implements IExportableColumn<T, String> {
     private static final long serialVersionUID = 1L;
 
     public ObjectLinkColumn(IModel<String> displayModel) {
@@ -42,7 +42,7 @@ public class ObjectLinkColumn<T> extends LinkColumn<T>  implements IExportableCo
         IModel<ObjectType> superModel = createLinkModel(rowModel);
         final ObjectType targetObjectType = superModel.getObject();
         IModel<String> nameModel = new PropertyModel<>(superModel, FocusType.F_NAME.getLocalPart() + ".orig");
-        cellItem.add(new LinkPanel(componentId, nameModel) {
+        cellItem.add(new AjaxLinkPanel(componentId, nameModel) {
             private static final long serialVersionUID = 1L;
 
             @Override

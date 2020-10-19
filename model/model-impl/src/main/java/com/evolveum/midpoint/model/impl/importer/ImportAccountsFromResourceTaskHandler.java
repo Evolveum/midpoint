@@ -15,6 +15,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -127,7 +128,6 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
         PolyStringType polyString = new PolyStringType("Import from resource " + resource.getName());
         task.setName(polyString);
 
-
         // Set reference to the resource
         task.setObjectRef(ObjectTypeUtil.createObjectRef(resource, prismContext));
 
@@ -149,6 +149,8 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
             result.recordFatalError("Error dealing with schema", e);
             throw new IllegalStateException("Error dealing with schema", e);
         }
+
+        task.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_IMPORT_TASK.value());
 
         // Switch task to background. This will start new thread and call
         // the run(task) method.
@@ -196,7 +198,7 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
 
         SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource, objectClass, "import",
                 coordinatorTask, changeNotificationDispatcher, partition, taskManager);
-        handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
+        handler.setSourceChannel(SchemaConstants.CHANNEL_IMPORT);
         handler.setForceAdd(true);
         handler.setStopOnError(false);
         handler.setContextDesc("from "+resource);
@@ -339,5 +341,10 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
     @Override
     public String getArchetypeOid() {
         return SystemObjectsType.ARCHETYPE_IMPORT_TASK.value();
+    }
+
+    @Override
+    public String getDefaultChannel() {
+        return Channel.IMPORT.getUri();
     }
 }

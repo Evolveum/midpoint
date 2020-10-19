@@ -13,6 +13,8 @@ import java.io.InputStream;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -164,8 +166,9 @@ public interface PrismContext extends ProtectorCreator {
     <C extends Containerable, O extends Objectable> void adopt(PrismContainerValue<C> prismContainerValue, Class<O> type,
             ItemPath path) throws SchemaException;
 
-    <C extends Containerable, O extends Objectable> void adopt(PrismContainerValue<C> prismContainerValue, QName typeName,
-            ItemPath path) throws SchemaException;
+    <C extends Containerable> void adopt(
+            PrismContainerValue<C> prismContainerValue, QName typeName, ItemPath path)
+            throws SchemaException;
     //endregion
 
     //region Serializing
@@ -294,6 +297,14 @@ public interface PrismContext extends ProtectorCreator {
      */
     boolean relationMatches(@NotNull List<QName> relationQuery, QName relation);
 
+    /**
+     * @return Name of the generic type for object/container extension (e.g. c:ExtensionType).
+     */
+    @Experimental
+    QName getExtensionContainerTypeName();
+
+    void setExtensionContainerTypeName(QName typeName);
+
     ParsingContext getDefaultParsingContext();
 
     ParsingContext createParsingContextForAllowMissingRefTypes();
@@ -325,7 +336,7 @@ public interface PrismContext extends ProtectorCreator {
     /**
      * Temporary
      */
-    CanonicalItemPath createCanonicalItemPath(ItemPath itemPath, Class<? extends Containerable> clazz);
+    CanonicalItemPath createCanonicalItemPath(ItemPath itemPath, QName objectType);
 
     /**
      * Temporary
@@ -378,4 +389,7 @@ public interface PrismContext extends ProtectorCreator {
 
     @Experimental
     ValueMetadataFactory getValueMetadataFactory();
+
+    @Experimental
+    EquivalenceStrategy getProvenanceEquivalenceStrategy();
 }

@@ -24,6 +24,7 @@ import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn.ButtonColorClass;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
@@ -138,7 +139,7 @@ public class PageCertDecisions extends PageAdminCertification {
 
     //region Layout
     private void initLayout() {
-        Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
+        Form mainForm = new MidpointForm(ID_MAIN_FORM);
         add(mainForm);
         CertWorkItemDtoProvider provider = createProvider();
         int itemsPerPage = (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_DECISIONS_PANEL);
@@ -205,7 +206,7 @@ public class PageCertDecisions extends PageAdminCertification {
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CERTIFICATION_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_CERTIFICATION_CAMPAIGN_URL)) {
 
-            column = new LinkColumn<CertWorkItemDto>(
+            column = new AjaxLinkColumn<CertWorkItemDto>(
                     createStringResource("PageCertDecisions.table.campaignName"),
                     SearchingUtils.CAMPAIGN_NAME, CertWorkItemDto.F_CAMPAIGN_NAME) {
                 private static final long serialVersionUID = 1L;
@@ -570,7 +571,7 @@ public class PageCertDecisions extends PageAdminCertification {
         }
 
         private void initLayout() {
-            final Form searchForm = new com.evolveum.midpoint.web.component.form.Form(ID_SEARCH_FORM);
+            final Form searchForm = new MidpointForm(ID_SEARCH_FORM);
             add(searchForm);
             searchForm.setOutputMarkupId(true);
 

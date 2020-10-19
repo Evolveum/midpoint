@@ -1,11 +1,22 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.assignment;
+
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
@@ -21,20 +32,6 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-import org.apache.commons.lang.ClassUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
-import java.util.List;
-
 /**
  * @author lazyman
  */
@@ -45,7 +42,7 @@ public class ACAttributeValuePanel extends BasePanel<ACValueConstructionDto> {
     private static final String ID_REMOVE = "remove";
 
     public ACAttributeValuePanel(String id, IModel<ACValueConstructionDto> iModel,
-                                 boolean ignoreMandatoryAttributes, Form form) {
+            boolean ignoreMandatoryAttributes, Form form) {
         super(id, iModel);
 
         initLayout(form, ignoreMandatoryAttributes);
@@ -57,21 +54,21 @@ public class ACAttributeValuePanel extends BasePanel<ACValueConstructionDto> {
 
         InputPanel input = createTypedInputComponent(ID_INPUT, definition);
         for (FormComponent comp : input.getFormComponents()) {
-            comp.setLabel(new PropertyModel(dto.getAttribute(), ACAttributeDto.F_NAME));
-            if (!ignoreMandatoryAttributes){
+            comp.setLabel(new PropertyModel<>(dto.getAttribute(), ACAttributeDto.F_NAME));
+            if (!ignoreMandatoryAttributes) {
                 comp.setRequired(definition.getMinOccurs() > 0);
             }
 
             comp.add(new AjaxFormComponentUpdatingBehavior("blur") {
                 @Override
-                protected void onUpdate(AjaxRequestTarget target) {}
+                protected void onUpdate(AjaxRequestTarget target) {
+                }
             });
         }
 
         add(input);
 
         AjaxLink<Void> addLink = new AjaxLink<Void>(ID_ADD) {
-
             @Override
             public void onClick(AjaxRequestTarget target) {
                 addPerformed(target);
@@ -79,15 +76,13 @@ public class ACAttributeValuePanel extends BasePanel<ACValueConstructionDto> {
         };
         add(addLink);
         addLink.add(new VisibleEnableBehaviour() {
-
             @Override
             public boolean isVisible() {
                 return isAddVisible();
             }
         });
 
-        AjaxLink removeLink = new AjaxLink(ID_REMOVE) {
-
+        AjaxLink<Void> removeLink = new AjaxLink<Void>(ID_REMOVE) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 removePerformed(target);
@@ -123,7 +118,7 @@ public class ACAttributeValuePanel extends BasePanel<ACValueConstructionDto> {
                 type = ClassUtils.primitiveToWrapper(type);
             }
             panel = new TextPanel<>(id, new PropertyModel<>(getModel(), baseExpression),
-                type);
+                    type);
 
             if (ObjectType.F_NAME.equals(definition.getItemName())) {
                 panel.getBaseFormComponent().setRequired(true);

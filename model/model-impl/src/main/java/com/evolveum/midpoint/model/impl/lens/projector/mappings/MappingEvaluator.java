@@ -8,9 +8,13 @@ package com.evolveum.midpoint.model.impl.lens.projector.mappings;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathSegmentImpl;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -177,10 +181,7 @@ public class MappingEvaluator {
         for (MappingType mappingBean : mappingBeans) {
 
             MappingBuilder<V, D> mappingBuilder = mappingFactory.createMappingBuilder(mappingBean, mappingDesc);
-            String mappingName = null;
-            if (mappingBean.getName() != null) {
-                mappingName = mappingBean.getName();
-            }
+            String mappingName = mappingBean.getName();
 
             if (!mappingBuilder.isApplicableToChannel(params.getContext().getChannel())) {
                 LOGGER.trace("Mapping {} not applicable to channel, skipping {}", mappingName, params.getContext().getChannel());
@@ -246,10 +247,8 @@ public class MappingEvaluator {
             evaluateMapping(mapping, params.getContext(), task, result);
 
             PrismValueDeltaSetTriple<V> mappingOutputTriple = mapping.getOutputTriple();
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Output triple of mapping {}\n{}", mapping.getContextDescription(),
-                        mappingOutputTriple == null ? null : mappingOutputTriple.debugDump(1));
-            }
+            LOGGER.trace("Output triple of mapping {}\n{}", mapping.getContextDescription(),
+                    mappingOutputTriple == null ? null : mappingOutputTriple.debugDumpLazily(1));
 
             if (isMeaningful(mappingOutputTriple)) {
 
@@ -266,6 +265,21 @@ public class MappingEvaluator {
                         if (!params.getTargetLoader().isLoaded()) {
                             aPrioriTargetObject = params.getTargetLoader().load("strong mapping", task, result);
                             LOGGER.trace("Loaded object because of strong mapping: {}", aPrioriTargetObject);
+                            hasFullTargetObject = true;
+                        }
+                    }
+                }
+
+                // experimental
+                if (mapping.isPushChanges()) {
+                    mappingOutputStruct.setPushChanges(true);
+
+                    // TODO should we really load the resource object also if we are pushing the changes?
+                    //  (but it looks like we have to!)
+                    if (!hasFullTargetObject && params.getTargetLoader() != null && aPrioriTargetObject != null && aPrioriTargetObject.getOid() != null) {
+                        if (!params.getTargetLoader().isLoaded()) {
+                            aPrioriTargetObject = params.getTargetLoader().load("pushing changes", task, result);
+                            LOGGER.trace("Loaded object because of pushing changes: {}", aPrioriTargetObject);
                             hasFullTargetObject = true;
                         }
                     }
@@ -426,14 +440,15 @@ public class MappingEvaluator {
 
                     Collection<V> valuesToReplace;
 
-                    if (hasFullTargetObject && mappingOutputStruct.isStrongMappingWasUsed()) {
+                    if (hasFullTargetObject && (mappingOutputStruct.isStrongMappingWasUsed() || mappingOutputStruct.isPushChanges())) {
                         valuesToReplace = outputTriple.getNonNegativeValues();
                     } else {
                         valuesToReplace = outputTriple.getPlusSet();
                     }
 
-                    LOGGER.trace("{}: hasFullTargetObject={}, isStrongMappingWasUsed={}, valuesToReplace={}",
-                            mappingDesc, hasFullTargetObject, mappingOutputStruct.isStrongMappingWasUsed(), valuesToReplace);
+                    LOGGER.trace("{}: hasFullTargetObject={}, isStrongMappingWasUsed={}, pushingChange={}, valuesToReplace={}",
+                            mappingDesc, hasFullTargetObject, mappingOutputStruct.isStrongMappingWasUsed(),
+                            mappingOutputStruct.isPushChanges(), valuesToReplace);
 
                     if (!valuesToReplace.isEmpty()) {
 
@@ -623,6 +638,11 @@ public class MappingEvaluator {
         TypedValue<PrismObject<T>> defaultTargetContext = new TypedValue<>(targetContext);
         Collection<V> targetValues = ExpressionUtil.computeTargetValues(mappingBean.getTarget(), defaultTargetContext, variables, mappingFactory.getObjectResolver(), contextDesc, prismContext, task, result);
 
+        MappingSpecificationType specification = new MappingSpecificationType(prismContext)
+                .mappingName(mappingBean.getName())
+                .definitionObjectRef(ObjectTypeUtil.createObjectRef(originObject, prismContext))
+                .assignmentId(createAssignmentId(assignmentPathVariables));
+
         MappingBuilder<V, D> mappingBuilder = mappingFactory.<V, D>createMappingBuilder(mappingBean, contextDesc)
                 .sourceContext(focusOdo)
                 .defaultSource(defaultSource)
@@ -636,6 +656,7 @@ public class MappingEvaluator {
                 .valuePolicySupplier(valuePolicySupplier)
                 .rootNode(focusOdo)
                 .mappingPreExpression(request.getMappingPreExpression()) // Used to populate autoassign assignments
+                .mappingSpecification(specification)
                 .now(now);
 
         MappingImpl<V, D> mapping = mappingBuilder.build();
@@ -654,5 +675,17 @@ public class MappingEvaluator {
         }
 
         return mapping;
+    }
+
+    private String createAssignmentId(AssignmentPathVariables assignmentPathVariables) {
+        if (assignmentPathVariables == null || assignmentPathVariables.getAssignmentPath() == null) {
+            return null;
+        } else {
+            // TODO what about newly-created assignments? They have no ID yet.
+            return assignmentPathVariables.getAssignmentPath().getSegments().stream()
+                    .map(AssignmentPathSegmentImpl::getAssignmentId)
+                    .map(String::valueOf)
+                    .collect(Collectors.joining(":"));
+        }
     }
 }

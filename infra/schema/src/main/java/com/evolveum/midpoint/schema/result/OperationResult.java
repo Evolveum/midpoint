@@ -112,7 +112,7 @@ public class OperationResult
     private static long tokenCount = 1000000000000000000L;
 
     private final String operation;
-
+    private OperationKindType operationKind;
     private OperationResultStatus status;
 
     // Values of the following maps should NOT be null. But in reality it does happen.
@@ -773,7 +773,9 @@ public class OperationResult
         if (localizableMessage == null) {
             return;
         }
-        if (userFriendlyMessage instanceof SingleLocalizableMessage) {
+        if (userFriendlyMessage == null) {
+            userFriendlyMessage = localizableMessage;
+        } else if (userFriendlyMessage instanceof SingleLocalizableMessage) {
             userFriendlyMessage = new LocalizableMessageListBuilder()
                     .message(userFriendlyMessage)
                     .message(localizableMessage)
@@ -820,6 +822,7 @@ public class OperationResult
         boolean hasHandledError = false;
         boolean hasError = false;
         boolean hasWarning = false;
+        StringJoiner operationMessageJoiner = new StringJoiner(", ");
         for (OperationResult sub : getSubresults()) {
             if (sub.getStatus() != OperationResultStatus.NOT_APPLICABLE) {
                 allNotApplicable = false;
@@ -829,34 +832,26 @@ public class OperationResult
             }
             if (sub.getStatus() == OperationResultStatus.FATAL_ERROR) {
                 hasError = true;
-                if (message == null) {
-                    message = sub.getMessage();
-                } else {
-                    message = message + ", " + sub.getMessage();
+                if (sub.getMessage() != null) {
+                    operationMessageJoiner.add(sub.getMessage());
                 }
             }
             if (sub.getStatus() == OperationResultStatus.PARTIAL_ERROR) {
                 hasError = true;
-                if (message == null) {
-                    message = sub.getMessage();
-                } else {
-                    message = message + ", " + sub.getMessage();
+                if (sub.getMessage() != null) {
+                    operationMessageJoiner.add(sub.getMessage());
                 }
             }
             if (sub.getStatus() == OperationResultStatus.HANDLED_ERROR) {
                 hasHandledError = true;
-                if (message == null) {
-                    message = sub.getMessage();
-                } else {
-                    message = message + ", " + sub.getMessage();
+                if (sub.getMessage() != null) {
+                    operationMessageJoiner.add(sub.getMessage());
                 }
             }
             if (sub.getStatus() == OperationResultStatus.IN_PROGRESS) {
                 hasInProgress = true;
-                if (message == null) {
-                    message = sub.getMessage();
-                } else {
-                    message = message + ", " + sub.getMessage();
+                if (sub.getMessage() != null) {
+                    operationMessageJoiner.add(sub.getMessage());
                 }
                 if (asynchronousOperationReference == null) {
                     asynchronousOperationReference = sub.getAsynchronousOperationReference();
@@ -864,12 +859,13 @@ public class OperationResult
             }
             if (sub.getStatus() == OperationResultStatus.WARNING) {
                 hasWarning = true;
-                if (message == null) {
-                    message = sub.getMessage();
-                } else {
-                    message = message + ", " + sub.getMessage();
+                if (sub.getMessage() != null) {
+                    operationMessageJoiner.add(sub.getMessage());
                 }
             }
+        }
+        if (operationMessageJoiner.length() > 0) {
+            message = operationMessageJoiner.toString();
         }
 
         if (allNotApplicable) {
@@ -998,26 +994,23 @@ public class OperationResult
 
     public void recomputeStatus() {
         recordEnd();
-        // Only recompute if there are subresults, otherwise keep original
-        // status
+        // Only recompute if there are subresults, otherwise keep original status
         if (subresults != null && !subresults.isEmpty()) {
             computeStatus();
         }
     }
 
-    public void recomputeStatus(String message) {
+    public void recomputeStatus(String errorMessage) {
         recordEnd();
-        // Only recompute if there are subresults, otherwise keep original
-        // status
+        // Only recompute if there are subresults, otherwise keep original status
         if (subresults != null && !subresults.isEmpty()) {
-            computeStatus(message);
+            computeStatus(errorMessage);
         }
     }
 
     public void recomputeStatus(String errorMessage, String warningMessage) {
         recordEnd();
-        // Only recompute if there are subresults, otherwise keep original
-        // status
+        // Only recompute if there are subresults, otherwise keep original status
         if (subresults != null && !subresults.isEmpty()) {
             computeStatus(errorMessage, warningMessage);
         }
@@ -1529,6 +1522,13 @@ public class OperationResult
         this.status = status;
         this.message = message;
         this.cause = cause;
+        recordUserFriendlyMessage(cause);
+    }
+
+    private void recordUserFriendlyMessage(Throwable cause) {
+        if (cause instanceof CommonException) {
+            setUserFriendlyMessage(((CommonException) cause).getUserFriendlyMessage());
+        }
     }
 
     public void recordFatalError(String message) {
@@ -1617,6 +1617,7 @@ public class OperationResult
                 OperationResultStatus.parseStatusType(result.getStatus()), result.getToken(),
                 result.getMessageCode(), result.getMessage(), localizableMessage, null,
                 subresults);
+        opResult.operationKind(result.getOperationKind());
         opResult.getQualifiers().addAll(result.getQualifier());
         opResult.setImportance(result.getImportance());
         opResult.setAsynchronousOperationReference(result.getAsynchronousOperationReference());
@@ -1648,6 +1649,7 @@ public class OperationResult
 
     private static OperationResultType createOperationResultType(OperationResult opResult, Function<LocalizableMessage, String> resolveKeys) {
         OperationResultType resultType = new OperationResultType();
+        resultType.setOperationKind(opResult.getOperationKind());
         resultType.setToken(opResult.getToken());
         resultType.setStatus(OperationResultStatus.createStatusType(opResult.getStatus()));
         resultType.setImportance(opResult.getImportance());
@@ -2109,6 +2111,16 @@ public class OperationResult
     }
 
     @Override
+    public OperationResult operationKind(OperationKindType value) {
+        this.operationKind = value;
+        return this;
+    }
+
+    public OperationKindType getOperationKind() {
+        return operationKind;
+    }
+
+    @Override
     public OperationResultBuilder setMinor() {
         return setImportance(MINOR);
     }
@@ -2149,13 +2161,16 @@ public class OperationResult
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) { return true; }
-            if (o == null || getClass() != o.getClass()) { return false; }
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
 
             OperationStatusKey that = (OperationStatusKey) o;
-
-            if (operation != null ? !operation.equals(that.operation) : that.operation != null) { return false; }
-            return status == that.status;
+            return Objects.equals(operation, that.operation)
+                    && status == that.status;
         }
 
         @Override
@@ -2172,6 +2187,7 @@ public class OperationResult
         private int hiddenCount;        // how many entries will be hidden (after this wave of stripping)
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     public OperationResult clone() {
         return clone(null, true);
     }
@@ -2179,6 +2195,7 @@ public class OperationResult
     public OperationResult clone(Integer maxDepth, boolean full) {
         OperationResult clone = new OperationResult(operation);
 
+        clone.operationKind = operationKind;
         clone.status = status;
         clone.qualifiers.addAll(qualifiers);
         clone.params = cloneParams(params, full);

@@ -220,7 +220,8 @@ public class M10ObjectTemplate extends AbstractLabTest{
         OrgRootTab rootTab = basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure");
         Assert.assertTrue(rootTab.getOrgHierarchyPanel()
-                .expandAllOrgs()
+                .showTreeNodeDropDownMenu("Technology Division")
+                    .expandAll()
                 .selectOrgInTree("IT Administration Department")
                 .and()
             .getManagerPanel()

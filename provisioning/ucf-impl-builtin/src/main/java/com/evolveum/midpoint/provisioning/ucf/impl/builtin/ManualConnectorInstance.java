@@ -345,17 +345,23 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
     // see CompleteWorkItemsAction.getOutcome(..) method
     private OperationResultStatus translateOutcome(String outcome) {
-
-        // TODO: better algorithm
         if (outcome == null) {
             return null;
-        } else if (outcome.equals(OperationResultStatusType.SUCCESS.value())) {
+        }
+        for (OperationResultStatusType statusType : OperationResultStatusType.values()) {
+            if (outcome.equals(statusType.value())) {
+                return OperationResultStatus.parseStatusType(statusType);
+            }
+        }
+        if (QNameUtil.matchUri(outcome, SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE)) {
             return OperationResultStatus.SUCCESS;
-        } else if (SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE.equals(outcome)) {
-            return OperationResultStatus.SUCCESS;
-        } else {
+        } else if (QNameUtil.matchUri(outcome, SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT)) {
+            return OperationResultStatus.FATAL_ERROR;
+        } else if (QNameUtil.matchUri(outcome, SchemaConstants.MODEL_APPROVAL_OUTCOME_SKIP)) {
+            // Better make this "unknown" than non-applicable. Non-applicable can be misinterpreted.
             return OperationResultStatus.UNKNOWN;
         }
+        return OperationResultStatus.UNKNOWN;
     }
 
     @Override

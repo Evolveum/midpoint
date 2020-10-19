@@ -33,7 +33,7 @@
                 Default GUI authentication sequence.
             </description>
             <channel>
-                <channelId>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#user</channelId>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channelId>
                 <default>true</default>
                 <urlSuffix>gui-default</urlSuffix>
             </channel>
@@ -54,7 +54,7 @@
                 header. The client can decide which one to use.
             </description>
             <channel>
-                <channelId>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#rest</channelId>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#rest</channelId>
                 <default>true</default>
                 <urlSuffix>rest-default</urlSuffix>
             </channel>

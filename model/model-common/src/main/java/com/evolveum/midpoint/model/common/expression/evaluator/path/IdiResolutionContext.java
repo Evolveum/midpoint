@@ -37,7 +37,7 @@ class IdiResolutionContext extends ResolutionContext {
         return new IdiResolutionContext(ExpressionUtil.toItemDeltaItem(value));
     }
 
-    <V extends PrismValue> PrismValueDeltaSetTriple<V> createOutputTriple(PrismContext prismContext) {
+    <V extends PrismValue> PrismValueDeltaSetTriple<V> createOutputTriple(PrismContext prismContext) throws SchemaException {
         //noinspection unchecked
         return (PrismValueDeltaSetTriple<V>) ItemDeltaUtil.toDeltaSetTriple(
                 (Item) itemDeltaItem.getItemOld(),

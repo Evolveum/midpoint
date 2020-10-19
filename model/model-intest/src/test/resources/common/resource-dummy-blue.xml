@@ -327,7 +327,7 @@
             </reaction> -->
             <reaction>
                 <situation>unmatched</situation>
-                <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#NoNsEnSe</channel>
+                <channel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#NoNsEnSe</channel>
                 <synchronize>true</synchronize>
                 <action>
                     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateShadow</handlerUri>

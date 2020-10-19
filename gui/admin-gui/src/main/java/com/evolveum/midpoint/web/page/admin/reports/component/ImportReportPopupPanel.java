@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -16,6 +18,8 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.input.TextAreaPanel;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -65,6 +69,7 @@ public class ImportReportPopupPanel extends BasePanel<ReportDto> implements Popu
     private static final String ID_CANCEL_BUTTON = "cancel";
     private static final String ID_CHOSE_FILE = "choseFile";
     private static final String ID_NAME_FOR_DATA = "reportDataName";
+    private static final String ID_FILE_AS_NAME = "fileAsString";
 
     private ReportType report;
 
@@ -81,7 +86,7 @@ public class ImportReportPopupPanel extends BasePanel<ReportDto> implements Popu
 
     protected void initLayout() {
 
-        Form<?> mainForm = new com.evolveum.midpoint.web.component.form.Form<>(ID_MAIN_FORM);
+        Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         add(mainForm);
 
         FeedbackAlerts feedback = new FeedbackAlerts(ID_POPUP_FEEDBACK);
@@ -93,12 +98,17 @@ public class ImportReportPopupPanel extends BasePanel<ReportDto> implements Popu
         nameField.setOutputMarkupId(true);
         mainForm.add(nameField);
 
+        Model<String> fileStringModel = Model.of("");
+        TextAreaPanel fileStringField = new TextAreaPanel(ID_FILE_AS_NAME, fileStringModel, 5);
+        fileStringField.setOutputMarkupId(true);
+        mainForm.add(fileStringField);
+
         AjaxSubmitButton importButton = new AjaxSubmitButton(ID_IMPORT_BUTTON,
                 createStringResource("PageReports.button.import")) {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
-                importConfirmPerformed(target, nameModel);
+                importConfirmPerformed(target, nameModel, fileStringModel);
             }
 
             @Override
@@ -133,7 +143,7 @@ public class ImportReportPopupPanel extends BasePanel<ReportDto> implements Popu
         return formatDate.format(createDate);
     }
 
-    private void importConfirmPerformed(AjaxRequestTarget target, Model<String> nameModel) {
+    private void importConfirmPerformed(AjaxRequestTarget target, Model<String> nameModel, Model<String> fileStringImport) {
         String dataName;
         if (nameModel == null || StringUtils.isEmpty(nameModel.getObject())) {
 
@@ -158,24 +168,48 @@ public class ImportReportPopupPanel extends BasePanel<ReportDto> implements Popu
         }
 
         FileUpload uploadedFile = getUploadedFile();
-        String fileName = FilenameUtils.removeExtension(uploadedFile.getClientFileName()) + " " + getDataTime()
-                + "." + FilenameUtils.getExtension(uploadedFile.getClientFileName());
-        File newFile = new File(importDir, fileName);
-        // Check new file, delete if it already exists
-        if (newFile.exists()) {
-            newFile.delete();
-        }
-        // Save file
 
-        try {
-            newFile.createNewFile();
-            FileUtils.copyInputStreamToFile(uploadedFile.getInputStream(), newFile);
-        } catch (IOException e) {
-            LOGGER.error("Couldn't create new file " + newFile.getAbsolutePath(), e);
+        if (uploadedFile == null && StringUtils.isEmpty(fileStringImport.getObject())) {
+            LOGGER.error("Please upload file for import");
             FeedbackAlerts feedback = getFeedbackPanel();
-            feedback.error(getPageBase().createStringResource("ImportReportPopupPanel.message.error.createImportFile", newFile.getAbsolutePath()).getString());
+            feedback.error(getPageBase().createStringResource("ImportReportPopupPanel.message.error.uploadFile", importDir).getString());
             target.add(feedback);
             return;
+        }
+
+        String newFilePath;
+        if (uploadedFile != null) {
+            String fileName = FilenameUtils.removeExtension(uploadedFile.getClientFileName()) + " " + getDataTime()
+                    + "." + FilenameUtils.getExtension(uploadedFile.getClientFileName());
+            File newFile = new File(importDir, fileName);
+            // Check new file, delete if it already exists
+            if (newFile.exists()) {
+                newFile.delete();
+            }
+            // Save file
+
+            try {
+                newFile.createNewFile();
+                FileUtils.copyInputStreamToFile(uploadedFile.getInputStream(), newFile);
+                newFilePath = newFile.getAbsolutePath();
+            } catch (IOException e) {
+                LOGGER.error("Couldn't create new file " + newFile.getAbsolutePath(), e);
+                FeedbackAlerts feedback = getFeedbackPanel();
+                feedback.error(getPageBase().createStringResource("ImportReportPopupPanel.message.error.createImportFile", newFile.getAbsolutePath()).getString());
+                target.add(feedback);
+                return;
+            }
+        } else {
+            newFilePath = new File(importDir, dataName).getAbsolutePath();
+            try {
+                Files.write(Paths.get(newFilePath), fileStringImport.getObject().getBytes());
+            } catch (IOException e) {
+                LOGGER.error("Couldn't create new file " + newFilePath, e);
+                FeedbackAlerts feedback = getFeedbackPanel();
+                feedback.error(getPageBase().createStringResource("ImportReportPopupPanel.message.error.createImportFile", newFilePath).getString());
+                target.add(feedback);
+                return;
+            }
         }
 
         ReportDataType reportImportData = null;
@@ -190,7 +224,7 @@ public class ImportReportPopupPanel extends BasePanel<ReportDto> implements Popu
             return;
         }
         reportImportData.setName(new PolyStringType(dataName));
-        reportImportData.setFilePath(newFile.getAbsolutePath());
+        reportImportData.setFilePath(newFilePath);
         Collection<ObjectDelta<? extends ObjectType>> deltas = Collections.singleton(reportImportData.asPrismObject().createAddDelta());
         Task task = getPageBase().createSimpleTask(OPERATION_CREATE_REPORT_DATA);
         try {
@@ -228,12 +262,12 @@ public class ImportReportPopupPanel extends BasePanel<ReportDto> implements Popu
 
     @Override
     public int getWidth() {
-        return 700;
+        return 800;
     }
 
     @Override
     public int getHeight() {
-        return 200;
+        return 305;
     }
 
     @Override

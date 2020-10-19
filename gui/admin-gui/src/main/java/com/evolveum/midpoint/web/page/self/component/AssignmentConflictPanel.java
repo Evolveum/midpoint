@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.self.component;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentConflictDto;
 import com.evolveum.midpoint.web.page.self.dto.ConflictDto;
@@ -41,7 +42,7 @@ public class AssignmentConflictPanel extends BasePanel<ConflictDto> {
     private void initLayout() {
         setOutputMarkupId(true);
 
-        Form container = new com.evolveum.midpoint.web.component.form.Form<>(ID_PANEL_CONTAINER);
+        Form container = new MidpointForm<>(ID_PANEL_CONTAINER);
         container.setOutputMarkupId(true);
         add(container);
 

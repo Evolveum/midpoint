@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
@@ -52,8 +51,8 @@ public class LinkColumn<T> extends AbstractColumn<T, String> implements IExporta
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
-                LinkColumn.this.onClick(target, rowModel);
+            public void onClick() {
+                LinkColumn.this.onClick(rowModel);
             }
 
             @Override
@@ -67,7 +66,7 @@ public class LinkColumn<T> extends AbstractColumn<T, String> implements IExporta
         return true;
     }
 
-    public void onClick(AjaxRequestTarget target, IModel<T> rowModel) {
+    public void onClick(IModel<T> rowModel) {
     }
 
     @Override

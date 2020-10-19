@@ -87,7 +87,7 @@ public class TestConnectionModal<T> extends ModalBox<T> {
 
     public boolean isTestSuccess() {
         boolean isSuccess = false;
-        $(Schrodinger.byDataId("div", "messagesPanel")).waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG_1_M);
+        $(Schrodinger.byDataId("div", "messagesPanel")).waitUntil(Condition.appears, MidPoint.TIMEOUT_MEDIUM_LONG_3_M);
 //        Boolean isSuccess = feedbackConnectorInitialization().isSuccess()
 //                && feedbackConnectorConfiguration().isSuccess()
 //                && feedbackConnectorConnection().isSuccess()
@@ -98,7 +98,7 @@ public class TestConnectionModal<T> extends ModalBox<T> {
 
         for (SelenideElement element : detailBoxes) {
 
-            element.waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG_1_M);
+            element.waitUntil(Condition.appears, MidPoint.TIMEOUT_MEDIUM_LONG_3_M);
 
             String attr = element.attr("class");
 

@@ -14,9 +14,16 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.util.AuditHelper;
 import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.constants.Channel;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -103,6 +110,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
     @Autowired private ChangeNotificationDispatcher changeNotificationDispatcher;
     @Autowired private AuditHelper auditHelper;
     @Autowired private Clock clock;
+    @Autowired private ExpressionFactory expressionFactory;
     @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
@@ -186,10 +194,6 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
         String resourceOid = localCoordinatorTask.getObjectOid();
         opResult.addContext("resourceOid", resourceOid);
 
-        if (localCoordinatorTask.getChannel() == null) {
-            localCoordinatorTask.setChannel(SchemaConstants.CHANGE_CHANNEL_RECON_URI);
-        }
-
         if (resourceOid == null) {
             throw new IllegalArgumentException("Resource OID is missing in task extension");
         }
@@ -199,12 +203,20 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
         try {
             resource = provisioningService.getObject(ResourceType.class, resourceOid, null, localCoordinatorTask, opResult);
 
+            if (ResourceTypeUtil.isInMaintenance(resource.asObjectable()))
+                throw new MaintenanceException("Resource " + resource + " is in the maintenance");
+
             RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
             objectclassDef = ModelImplUtils.determineObjectClass(refinedSchema, localCoordinatorTask);
         } catch (ObjectNotFoundException ex) {
             // This is bad. The resource does not exist. Permanent problem.
             processErrorPartial(runResult, "Resource does not exist, OID: " + resourceOid, ex,
                     TaskRunResultStatus.PERMANENT_ERROR, opResult);
+            return runResult;
+        } catch (MaintenanceException ex) {
+            LOGGER.warn("Reconciliation: {}-{}", ex.getMessage(), ex);
+            opResult.recordHandledError(ex.getMessage(), ex);
+            runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR); // Resource is in the maintenance, do not suspend the task
             return runResult;
         } catch (CommunicationException ex) {
             // Error, but not critical. Just try later.
@@ -438,6 +450,8 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
             throw new IllegalStateException("Error dealing with schema", e);
         }
 
+        task.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value());
+
         // Switch task to background. This will start new thread and call
         // the run(task) method.
         // Note: the thread may be actually started on a different node
@@ -501,7 +515,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
         // result in the following iterative search
         SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource.asObjectable(),
                 objectclassDef, "reconciliation", localCoordinatorTask, changeNotificationDispatcher, partitionDefinition, taskManager);
-        handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_RECON);
+        handler.setSourceChannel(SchemaConstants.CHANNEL_RECON);
         handler.setStopOnError(false);
         handler.setEnableSynchronizationStatistics(true);
         handler.setEnableActionsExecutedStatistics(true);
@@ -653,17 +667,27 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
             return query;
         }
 
-        ObjectQuery taskQuery = prismContext.getQueryConverter().createObjectQuery(ShadowType.class, queryType);
+        ObjectFilter taskFilter = prismContext.getQueryConverter().createObjectFilter(ShadowType.class, queryType.getFilter());
+        ObjectFilter evaluatedFilter = null;
+        try {
+            evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(taskFilter, new ExpressionVariables(), MiscSchemaUtil.getExpressionProfile(),
+                    expressionFactory, prismContext, "collection filter", localCoordinatorTask, localCoordinatorTask.getResult());
+        } catch (SecurityViolationException e) {
+            LOGGER.error("Couldn't evaluate query from task.");
+            return query;
+        }
 
-        if (taskQuery == null || taskQuery.getFilter() == null) {
+        if (taskFilter == null) {
             return query;
         }
 
         if (query == null || query.getFilter() == null) {
+            ObjectQuery taskQuery = prismContext.queryFactory().createQuery();
+            taskQuery.setFilter(evaluatedFilter);
             return taskQuery;
         }
 
-        AndFilter andFilter =  prismContext.queryFactory().createAnd(query.getFilter(), taskQuery.getFilter());
+        AndFilter andFilter =  prismContext.queryFactory().createAnd(query.getFilter(), evaluatedFilter);
         ObjectQuery finalQuery = prismContext.queryFactory().createQuery(andFilter);
         provisioningService.applyDefinition(ShadowType.class, finalQuery, localCoordinatorTask, localCoordinatorTask.getResult());
         return finalQuery;
@@ -712,7 +736,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
         try {
             provisioningService.applyDefinition(shadow, task, result);
             ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
-            change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON));
+            change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_RECON));
             change.setResource(resource);
             ObjectDelta<ShadowType> shadowDelta = shadow.getPrismContext().deltaFactory().object()
                     .createDeleteDelta(ShadowType.class, shadow.getOid());
@@ -817,5 +841,10 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
     @Override
     public String getArchetypeOid() {
         return SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value();
+    }
+
+    @Override
+    public String getDefaultChannel() {
+        return Channel.RECONCILIATION.getUri();
     }
 }

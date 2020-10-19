@@ -1,25 +1,19 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.model.FlexibleLabelModel;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.web.component.util.SummaryTag;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.namespace.QName;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -32,9 +26,17 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.AbstractResource;
 
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.model.FlexibleLabelModel;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.web.component.util.SummaryTag;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author semancik
@@ -123,11 +125,11 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         navigateToObject.add(AttributeAppender.append("title", getReferenceObjectTitleModel()));
         navigateToObject.add(new VisibleBehaviour(() -> {
             ObjectReferenceType ort = getReferencedObjectToNavigate();
-            Class refType = !isReferencedObjectNull() ?
-                    WebComponentUtil.qnameToClass(AbstractSummaryPanel.this.getPageBase().getPrismContext(), ort.getType()) : null;
-            return ort != null && refType != null &&
-                    WebComponentUtil.getObjectDetailsPage(refType) != null;
-
+            Class refType = !isReferencedObjectNull()
+                    ? WebComponentUtil.qnameToClass(AbstractSummaryPanel.this.getPageBase().getPrismContext(), ort.getType())
+                    : null;
+            return ort != null && refType != null
+                    && WebComponentUtil.getObjectDetailsPage(refType) != null;
         }));
         navigateToObject.setOutputMarkupId(true);
         box.add(navigateToObject);
@@ -164,6 +166,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         Label parentOrgLabel = new Label(ID_ORGANIZATION, parentOrgModel);
         parentOrgLabel.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
+
             @Override
             public boolean isVisible() {
                 return parentOrgModel.getObject() != null;
@@ -183,23 +186,26 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 
         Label icon = new Label(ID_ICON, "");
 
-        String archetypeIconCssClass = getArchetypeIconCssClass();
-        if (StringUtils.isNotEmpty(archetypeIconCssClass)){
-            icon.add(AttributeModifier.append("class", archetypeIconCssClass));
-            icon.add(AttributeModifier.append("style", ARCHETYPE_ICON_FONT_SIZE));
-        } else {
-            icon.add(AttributeModifier.append("class", getIconCssClass()));
-        }
+        icon.add(AttributeModifier.append("class", getIconCssClass()));
+
+//        String archetypeIconCssClass = getArchetypeIconCssClass();
+//        if (StringUtils.isNotEmpty(archetypeIconCssClass)) {
+//            icon.add(AttributeModifier.append("class", archetypeIconCssClass));
+//            icon.add(AttributeModifier.append("style", ARCHETYPE_ICON_FONT_SIZE));
+//        } else {
+//            icon.add(AttributeModifier.append("class", getDefaultIconCssClass()));
+//        }
         icon.add(new VisibleEnableBehaviour() {
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return getPhotoModel().getObject() == null;
             }
         });
         iconBox.add(icon);
         NonCachingImage img = new NonCachingImage(ID_PHOTO, getPhotoModel());
-        img.add(new VisibleEnableBehaviour(){
+        img.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
+
             @Override
             public boolean isVisible() {
                 return getPhotoModel().getObject() != null;
@@ -210,9 +216,9 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         tagBox = new RepeatingView(ID_TAG_BOX);
         List<SummaryTag<C>> summaryTags = getSummaryTagComponentList();
 
-        if (getArchetypeSummaryTag() != null){
+//        if (getArchetypeSummaryTag() != null) {
             summaryTags.add(getArchetypeSummaryTag());
-        }
+//        }
         summaryTags.forEach(summaryTag -> {
             WebMarkupContainer summaryTagPanel = new WebMarkupContainer(tagBox.newChildId());
             summaryTagPanel.setOutputMarkupId(true);
@@ -227,6 +233,19 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         box.add(tagBox);
     }
 
+    private IModel<String> getIconCssClass() {
+        return new ReadOnlyModel<>(() -> {
+
+            String archetypeIcon = getArchetypeIconCssClass();
+            if (StringUtils.isNotBlank(archetypeIcon)) {
+                return archetypeIcon;
+            }
+
+            return getDefaultIconCssClass();
+
+        });
+    }
+
     private IModel<String> createArchetypeBackgroundModel() {
         return () -> {
 
@@ -237,6 +256,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
             return "background-color: " + archetypePolicyAdditionalCssClass + ";";
         };
     }
+
     private FlexibleLabelModel<C> createLabelModel(QName modelPropertyName, QName configurationPropertyName) {
         return createFlexibleLabelModel(modelPropertyName, getLabelConfiguration(configurationPropertyName));
     }
@@ -244,6 +264,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
     private FlexibleLabelModel<C> createFlexibleLabelModel(QName modelPropertyName, GuiFlexibleLabelType configuration) {
         return new FlexibleLabelModel<C>(getModel(), ItemName.fromQName(modelPropertyName), getPageBase(), configuration) {
             private static final long serialVersionUID = 1L;
+
             @Override
             protected void addAdditionalExpressionVariables(ExpressionVariables variables) {
                 super.addAdditionalExpressionVariables(variables);
@@ -252,56 +273,43 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         };
     }
 
-    protected List<SummaryTag<C>> getSummaryTagComponentList(){
+    protected List<SummaryTag<C>> getSummaryTagComponentList() {
         return new ArrayList<>();
     }
 
-    protected ObjectReferenceType getReferencedObjectToNavigate(){
+    protected ObjectReferenceType getReferencedObjectToNavigate() {
         return null;
     }
 
-    private boolean isReferencedObjectNull(){
+    private boolean isReferencedObjectNull() {
         return getReferencedObjectToNavigate() == null || StringUtils.isEmpty(getReferencedObjectToNavigate().getOid()) ||
                 getReferencedObjectToNavigate().getType() == null;
     }
 
-    protected IModel<String> getReferenceObjectTitleModel(){
+    protected IModel<String> getReferenceObjectTitleModel() {
         return null;
     }
 
-    private SummaryTag<C> getArchetypeSummaryTag(){
-        String archetypeIconCssClass = getArchetypeIconCssClass();
-        String archetypeIconColor = getArchetypePolicyAdditionalCssClass();
-        String archetypeLabel = getArchetypeLabel();
-        if (StringUtils.isNotEmpty(archetypeLabel)){
+    private SummaryTag<C> getArchetypeSummaryTag() {
+//        String archetypeIconCssClass = getArchetypeIconCssClass();
+//        String archetypeIconColor = getArchetypePolicyAdditionalCssClass();
+//        String archetypeLabel = getArchetypeLabel();
+//        if (StringUtils.isNotEmpty(archetypeLabel)) {
             SummaryTag<C> archetypeSummaryTag = new SummaryTag<C>(ID_SUMMARY_TAG, getModel()) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
                 protected void initialize(C object) {
-                        setIconCssClass(archetypeIconCssClass);
-                        setLabel(createStringResource(archetypeLabel).getString());
-                        setColor(archetypeIconColor);
+                    setIconCssClass(getArchetypeIconCssClass());
+                    setLabel(createStringResource(getArchetypeLabel()).getString());
+                    setColor(getArchetypePolicyAdditionalCssClass());
                 }
 
-                @Override
-                public String getIconCssClass() {
-                    return getArchetypeIconCssClass();
-                }
-
-                @Override
-                public String getColor() {
-                    return getArchetypePolicyAdditionalCssClass();
-                }
-
-                @Override
-                public String getLabel() {
-                    return getArchetypeLabel();
-                }
             };
+            archetypeSummaryTag.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getArchetypeLabel())));
             return archetypeSummaryTag;
-        }
-        return null;
+//        }
+//        return null;
     }
 
     protected void addAdditionalExpressionVariables(ExpressionVariables variables) {
@@ -328,31 +336,31 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         return tagBox.get(id);
     }
 
-    private String getArchetypePolicyAdditionalCssClass(){
-        if (getModelObject() instanceof AssignmentHolderType){
+    private String getArchetypePolicyAdditionalCssClass() {
+        if (getModelObject() instanceof AssignmentHolderType) {
             DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType((AssignmentHolderType) getModelObject(), getPageBase());
             return WebComponentUtil.getIconColor(displayType);
         }
         return "";
     }
 
-    private String getArchetypeLabel(){
-        if (getModelObject() instanceof AssignmentHolderType){
+    private String getArchetypeLabel() {
+        if (getModelObject() instanceof AssignmentHolderType) {
             DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType((AssignmentHolderType) getModelObject(), getPageBase());
             return displayType == null || displayType.getLabel() == null ? "" : displayType.getLabel().getOrig();
         }
         return "";
     }
 
-    private String getArchetypeIconCssClass(){
-        if (getModelObject() instanceof AssignmentHolderType){
+    private String getArchetypeIconCssClass() {
+        if (getModelObject() instanceof AssignmentHolderType) {
             DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType((AssignmentHolderType) getModelObject(), getPageBase());
             return WebComponentUtil.getIconCssClass(displayType);
         }
         return "";
     }
 
-    protected abstract String getIconCssClass();
+    protected abstract String getDefaultIconCssClass();
 
     protected abstract String getIconBoxAdditionalCssClass();
 
@@ -415,7 +423,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         return new Model<>(null);
     }
 
-    protected WebMarkupContainer getSummaryBoxPanel(){
+    protected WebMarkupContainer getSummaryBoxPanel() {
         return (WebMarkupContainer) get(ID_BOX);
     }
 }

@@ -444,7 +444,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
     private boolean isLogDebug(ResourceObjectShadowChangeDescription change) {
         // Reconciliation changes are routine. Do not let them pollute the log files.
-        return !SchemaConstants.CHANGE_CHANNEL_RECON_URI.equals(change.getSourceChannel());
+        return !SchemaConstants.CHANNEL_RECON_URI.equals(change.getSourceChannel());
     }
 
     private void validate(ResourceObjectShadowChangeDescription change) {

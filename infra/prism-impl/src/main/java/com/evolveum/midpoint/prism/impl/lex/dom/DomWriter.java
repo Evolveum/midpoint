@@ -147,10 +147,7 @@ class DomWriter {
     }
 
     private void writeMap(MapXNodeImpl xmap, Element parent) throws SchemaException {
-        MapXNode metadataNode = xmap.getMetadataNode();
-        if (metadataNode != null) {
-            writeMetadata(metadataNode, parent);
-        }
+        writeMetadata(xmap.getMetadataNodes(), parent);
         for (Entry<QName, XNodeImpl> entry: xmap.entrySet()) {
             QName elementQName = entry.getKey();
             XNodeImpl xsubnode = entry.getValue();
@@ -212,15 +209,17 @@ class DomWriter {
         if (xprim.hasMetadata()) {
             Element valuePlusMetadataElement = createAndAppendChild(elementOrAttributeName, parentElement);
             writePrimitiveValue(xprim, valuePlusMetadataElement, valueElementName, false);
-            writeMetadata(xprim.getMetadataNode(), valuePlusMetadataElement);
+            writeMetadata(xprim.getMetadataNodes(), valuePlusMetadataElement);
         } else {
             writePrimitiveValue(xprim, parentElement, elementOrAttributeName, asAttribute);
         }
     }
 
-    private void writeMetadata(MapXNode metadataNode, Element parentElement) throws SchemaException {
-        Element metadataElement = createAndAppendChild(metadataElementName, parentElement);
-        writeMap((MapXNodeImpl) metadataNode, metadataElement);
+    private void writeMetadata(List<MapXNode> metadataNodes, Element parentElement) throws SchemaException {
+        for (MapXNode metadataNode : metadataNodes) {
+            Element metadataElement = createAndAppendChild(metadataElementName, parentElement);
+            writeMap((MapXNodeImpl) metadataNode, metadataElement);
+        }
     }
 
     private void writePrimitiveValue(PrimitiveXNodeImpl<?> xprim, Element parentElement, QName elementOrAttributeName,
@@ -307,8 +306,13 @@ class DomWriter {
     }
 
     @Nullable
-    private Element writeItemPath(PrimitiveXNodeImpl<?> xprim, Element parent, QName elementName) {
+    private Element writeItemPath(PrimitiveXNodeImpl<?> xprim, Element parent, QName elementName) throws SchemaException {
         ItemPathType itemPathType = (ItemPathType) xprim.getValue();
+        if (itemPathType == null) {
+            // FIXME brutal hack (e.g. what about thread safety?)
+            itemPathType = xprim.getParsedValue(ItemPathType.COMPLEX_TYPE, ItemPathType.class);
+        }
+
         if (itemPathType != null) {
             Element element = ItemPathHolder.serializeToElement(itemPathType.getItemPath(), elementName, document);
             parent.appendChild(element);

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl;
 import javax.annotation.PostConstruct;
 import javax.ws.rs.core.Response;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -57,8 +58,7 @@ public class ClusterCacheListener implements CacheListener {
         // Regular cache invalidation can be skipped for nodes not checking in. Cache entries will expire on such nodes
         // eventually. (We can revisit this design decision if needed.)
         clusterExecutionHelper.execute((client, node, result1) -> {
-            client.path(ClusterServiceConsts.EVENT_INVALIDATION +
-                    ObjectTypes.getRestTypeFromClass(type) + (oid != null ? "/" + oid : ""));
+            client.path(getInvalidationRestPath(type, oid));
             Response response = client.post(null);
             Response.StatusType statusInfo = response.getStatusInfo();
             if (statusInfo.getFamily() != Response.Status.Family.SUCCESSFUL) {
@@ -70,6 +70,22 @@ public class ClusterCacheListener implements CacheListener {
             }
             response.close();
         }, null, "cache invalidation", result);
+    }
+
+    @NotNull
+    private <O extends ObjectType> String getInvalidationRestPath(Class<O> type, String oid) {
+        StringBuilder sb = new StringBuilder(ClusterServiceConsts.EVENT_INVALIDATION);
+        if (type != null) {
+            sb.append(ObjectTypes.getRestTypeFromClass(type));
+            if (oid != null) {
+                sb.append("/").append(oid);
+            }
+        } else {
+            if (oid != null) {
+                LOGGER.warn("Cannot invalidate object type null with specific OID. Converting to global invalidation (type=null, oid=null).");
+            }
+        }
+        return sb.toString();
     }
 
     private <O extends ObjectType> boolean canExecute(Class<O> type, String oid, boolean clusterwide, CacheInvalidationContext context) {

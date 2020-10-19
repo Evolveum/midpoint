@@ -12,6 +12,7 @@ import com.evolveum.midpoint.model.common.mapping.metadata.builtin.BuiltinMetada
 
 import com.evolveum.midpoint.model.common.mapping.metadata.builtin.BuiltinMetadataMappingsRegistry;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -29,6 +30,17 @@ public class MetadataMappingEvaluator {
     @Autowired MappingFactory mappingFactory;
     @Autowired PrismContext prismContext;
     @Autowired BuiltinMetadataMappingsRegistry builtinMetadataMappingsRegistry;
+
+    public MetadataMappingEvaluator() {
+    }
+
+    @VisibleForTesting
+    public MetadataMappingEvaluator(MappingFactory mappingFactory, PrismContext prismContext,
+            BuiltinMetadataMappingsRegistry builtinMetadataMappingsRegistry) {
+        this.mappingFactory = mappingFactory;
+        this.prismContext = prismContext;
+        this.builtinMetadataMappingsRegistry = builtinMetadataMappingsRegistry;
+    }
 
     Collection<BuiltinMetadataMapping> getBuiltinMappings() {
         return builtinMetadataMappingsRegistry.getMappings();

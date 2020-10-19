@@ -972,9 +972,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 .addParam("oid", oid)
                 .build();
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Returning unused values of {} to sequence {}", unusedValues, oid);
-        }
+        LOGGER.trace("Returning unused values of {} to sequence {}", unusedValues, oid);
         if (unusedValues == null || unusedValues.isEmpty()) {
             result.recordSuccess();
             return;

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 import org.jetbrains.annotations.NotNull;
@@ -64,15 +65,11 @@ public class LiveSyncTaskHandler implements TaskHandler {
 
     @Override
     public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
-        LOGGER.trace("LiveSyncTaskHandler.run starting");
+        LOGGER.trace("LiveSyncTaskHandler.run starting for {}, partition: {}", task, partition);
 
         OperationResult opResult = new OperationResult(OperationConstants.LIVE_SYNC);
         TaskRunResult runResult = new TaskRunResult();
         runResult.setOperationResult(opResult);
-
-        if (task.getChannel() == null) {
-            task.setChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
-        }
 
         final String ctx = "Live Sync";
 
@@ -80,6 +77,8 @@ public class LiveSyncTaskHandler implements TaskHandler {
         if (targetInfo == null) {
             return runResult;
         }
+
+        LOGGER.trace("Task target: {}", targetInfo);
 
         int changesProcessed;
 
@@ -99,7 +98,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
 
         // This "run" is finished. But the task goes on ...
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-        LOGGER.trace("LiveSyncTaskHandler.run stopping (resource {})", targetInfo.resource);
+        LOGGER.trace("LiveSyncTaskHandler.run stopping (resource {}); changes processed: {}", targetInfo.resource, changesProcessed);
         return runResult;
     }
 
@@ -111,5 +110,10 @@ public class LiveSyncTaskHandler implements TaskHandler {
     @Override
     public String getArchetypeOid() {
         return SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value();
+    }
+
+    @Override
+    public String getDefaultChannel() {
+        return Channel.LIVE_SYNC.getUri();
     }
 }

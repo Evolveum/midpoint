@@ -21,7 +21,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -65,7 +65,7 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
     }
 
     private void initLayout() {
-        Form<?> mainForm = new Form<>(ID_MAIN_FORM);
+        MidpointForm<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         mainForm.setMultiPart(true);
         add(mainForm);
 
@@ -189,11 +189,11 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
         return (CaptchaPanel) get(createComponentPath(ID_MAIN_FORM, ID_CONTENT_AREA, ID_CAPTCHA));
     }
 
-    protected Form<?> getMainForm() {
-        return (Form<?>) get(ID_MAIN_FORM);
+    protected MidpointForm<?> getMainForm() {
+        return (MidpointForm<?>) get(ID_MAIN_FORM);
     }
 
-    protected DynamicFormPanel<UserType> createDynamicPanel(Form<?> mainForm, Task task) {
+    protected DynamicFormPanel<UserType> createDynamicPanel(MidpointForm<?> mainForm, Task task) {
         final ObjectReferenceType ort = getCustomFormRef();
 
         if (ort == null) {

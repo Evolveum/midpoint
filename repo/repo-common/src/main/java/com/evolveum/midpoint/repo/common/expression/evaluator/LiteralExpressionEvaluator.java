@@ -6,49 +6,84 @@
  */
 package com.evolveum.midpoint.repo.common.expression.evaluator;
 
+import java.util.Collection;
+import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.StaticExpressionUtil;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 
 /**
  * Always returns zero set with literal value (values) specified in the evaluator. Plus and minus sets are empty.
  *
- * @author Radovan Semancik
+ * Note: using evaluatorElements as "expressionEvaluatorBean" is a bit strange. It is because I am too lazy to find more
+ * appropriate name for the field. Moreover, for all other uses it really _is_ the expression evaluator bean. So leaving
+ * fixing this to the future. [pmed]
  */
-public class LiteralExpressionEvaluator<V extends PrismValue,D extends ItemDefinition> implements ExpressionEvaluator<V> {
+public class LiteralExpressionEvaluator<V extends PrismValue,D extends ItemDefinition>
+        extends AbstractExpressionEvaluator<V, D, Collection<JAXBElement<?>>> {
 
-    private final QName elementName;
-    private final PrismValueDeltaSetTriple<V> outputTriple;
+    private Item<V, D> literalItem;
+    private boolean literalItemParsed;
 
-    LiteralExpressionEvaluator(QName elementName, PrismValueDeltaSetTriple<V> outputTriple) {
-        this.elementName = elementName;
-        this.outputTriple = outputTriple;
+    LiteralExpressionEvaluator(QName elementName, Collection<JAXBElement<?>> evaluatorElements,
+            D outputDefinition, Protector protector, PrismContext prismContext) {
+        super(elementName, evaluatorElements, outputDefinition, protector, prismContext);
     }
 
     @Override
     public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
+            CommunicationException, ConfigurationException {
+
         ExpressionUtil.checkEvaluatorProfileSimple(this, context);
-        return outputTriple != null ? outputTriple.clone() : null;
+
+        Item<V,D> output = CloneUtil.clone(parseLiteralItem(context.getContextDescription()));
+
+        for (V value : output.getValues()) {
+            addInternalOrigin(value, context);
+        }
+
+        PrismValueDeltaSetTriple<V> outputTriple = ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
+        applyValueMetadata(outputTriple, context, result);
+        return outputTriple;
     }
 
-    @Override
-    public QName getElementName() {
-        return elementName;
+    private Item<V, D> parseLiteralItem(String contextDescription) throws SchemaException {
+        if (!literalItemParsed) {
+            literalItem = StaticExpressionUtil.parseValueElements(expressionEvaluatorBean, outputDefinition, contextDescription);
+            literalItemParsed = true;
+        }
+        return literalItem;
     }
 
     @Override
     public String shortDebugDump() {
-        return "literal: "+outputTriple;
+        try {
+            return "literal: " + shortDebugDump(parseLiteralItem("shortDebugDump"));
+        } catch (SchemaException e) {
+            return "literal: couldn't parse: " + expressionEvaluatorBean;
+        }
+    }
+
+    private String shortDebugDump(Item<V, D> item) {
+        if (item == null || item.hasNoValues()) {
+            return "no values";
+        } else if (item.size() == 1) {
+            return String.valueOf(item.getAnyValue());
+        } else {
+            return String.valueOf(item.getValues());
+        }
     }
 }

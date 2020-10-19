@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.audit.spi.AuditServiceRegistry;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -215,15 +214,6 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
     }
 
     @Override
-    public void listRecordsIterative(String query, Map<String, Object> params, AuditResultHandler handler, OperationResult result) {
-        for (AuditService service : services) {
-            if (service.supportsRetrieval()) {
-                service.listRecordsIterative(query, params, handler, result);
-            }
-        }
-    }
-
-    @Override
     public void reindexEntry(AuditEventRecord record) {
         for (AuditService service : services) {
             if (service.supportsRetrieval()) {
@@ -263,7 +253,7 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
     public int countObjects(
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @Nullable OperationResult parentResult) {
+            @NotNull OperationResult parentResult) {
         int count = 0;
         for (AuditService service : services) {
             if (service.supportsRetrieval()) {
@@ -279,7 +269,7 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
     public SearchResultList<AuditEventRecordType> searchObjects(
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @Nullable OperationResult parentResult)
+            @NotNull OperationResult parentResult)
             throws SchemaException {
         // does it even make sense to merge multiple results for audit?
         SearchResultList<AuditEventRecordType> result = new SearchResultList<>();

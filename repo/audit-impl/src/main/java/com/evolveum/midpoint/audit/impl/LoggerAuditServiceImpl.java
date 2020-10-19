@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -176,13 +175,6 @@ public class LoggerAuditServiceImpl implements AuditService {
     }
 
     @Override
-    public void listRecordsIterative(String query, Map<String, Object> params,
-            AuditResultHandler auditResultHandler, OperationResult result) {
-        throw new UnsupportedOperationException("Object retrieval not supported");
-
-    }
-
-    @Override
     public void reindexEntry(AuditEventRecord record) {
         throw new UnsupportedOperationException("Reindex entry not supported");
     }
@@ -191,7 +183,7 @@ public class LoggerAuditServiceImpl implements AuditService {
     public int countObjects(
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @Nullable OperationResult parentResult) {
+            @NotNull OperationResult parentResult) {
         throw new UnsupportedOperationException("countObjects not supported");
     }
 
@@ -200,7 +192,7 @@ public class LoggerAuditServiceImpl implements AuditService {
     public SearchResultList<AuditEventRecordType> searchObjects(
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @Nullable OperationResult parentResult) {
+            @NotNull OperationResult parentResult) {
         throw new UnsupportedOperationException("searchObjects not supported");
     }
 }

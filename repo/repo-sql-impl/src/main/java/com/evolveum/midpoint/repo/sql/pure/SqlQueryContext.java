@@ -126,7 +126,7 @@ public class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
     }
 
     /**
-     * This takes care of {@link ObjectPaging}
+     * This takes care of {@link ObjectPaging} which includes ordering.
      */
     public void processObjectPaging(ObjectPaging paging) throws QueryException {
         if (paging == null) {
@@ -262,7 +262,8 @@ public class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
     public PageOf<S> transformToSchemaType(PageOf<Tuple> result)
             throws SchemaException, QueryException {
         try {
-            SqlTransformer<S, Q, R> transformer = mapping().createTransformer(prismContext());
+            SqlTransformer<S, Q, R> transformer = mapping()
+                    .createTransformer(prismContext(), querydslConfiguration);
             return result.map(row -> transformer.toSchemaObjectSafe(row, root()));
         } catch (SqlTransformer.SqlTransformationException e) {
             Throwable cause = e.getCause();
@@ -274,5 +275,12 @@ public class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
                 throw e;
             }
         }
+    }
+
+    /**
+     * Returns wrapped query if usage of Querydsl API is more convenient.
+     */
+    public SQLQuery<?> sqlQuery() {
+        return sqlQuery;
     }
 }

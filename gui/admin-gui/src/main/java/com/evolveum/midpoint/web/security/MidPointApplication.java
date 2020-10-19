@@ -14,6 +14,8 @@ import java.util.*;
 import javax.servlet.ServletContext;
 import javax.xml.datatype.Duration;
 
+import com.evolveum.midpoint.common.Clock;
+
 import org.apache.commons.configuration2.Configuration;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
@@ -182,6 +184,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Autowired private AsyncWebProcessManager asyncWebProcessManager;
     @Autowired private ApplicationContext applicationContext;
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
+    @Autowired private Clock clock;
 
     private WebApplicationConfiguration webApplicationConfiguration;
 
@@ -608,5 +611,9 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Override
     public void setApplicationContext(@NotNull ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
+    }
+
+    public Clock getClock() {
+        return clock;
     }
 }

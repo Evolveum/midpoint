@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.prism.impl;
 
+import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.DATA;
 import static com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy.DEFAULT_FOR_EQUALS;
 
 import java.lang.reflect.Array;
@@ -24,28 +25,14 @@ import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.AbstractFreezable;
-import com.evolveum.midpoint.prism.CloneStrategy;
-import com.evolveum.midpoint.prism.ConsistencyCheckScope;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Itemable;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
@@ -444,6 +431,60 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         values.add(newValue);
     }
 
+
+    @Override
+    public void addRespectingMetadataAndCloning(V value, @NotNull EquivalenceStrategy strategy,
+            EquivalenceStrategy metadataEquivalenceStrategy) throws SchemaException {
+        if (!value.hasValueMetadata()) {
+            add(CloneUtil.clone(value), strategy);
+        } else {
+            V existingValue = findValue(value, strategy);
+            if (existingValue == null) {
+                addInternal(CloneUtil.clone(value), false, null);
+            } else {
+                addMetadataValues(existingValue, value.getValueMetadata(), metadataEquivalenceStrategy);
+            }
+        }
+    }
+
+    private void addMetadataValues(V existingValue, ValueMetadata newMetadata, EquivalenceStrategy metadataEquivalenceStrategy) throws SchemaException {
+        ValueMetadata existingValueMetadata = existingValue.getValueMetadata();
+        for (PrismContainerValue<Containerable> newMetadataValue : newMetadata.getValues()) {
+            PrismContainerValue<Containerable> sameProvenance = existingValueMetadata.findValue(newMetadataValue, metadataEquivalenceStrategy);
+            if (sameProvenance != null) {
+                // REAL_VALUE is unsafe here (also) because some parts of metadata are mistakenly marked as operational.
+                // Anyway, it is best to use DATA as "sameProvenance" is taken directly from existingValueMetadata.
+                existingValueMetadata.remove(sameProvenance, DATA);
+            }
+            existingValueMetadata.add(newMetadataValue.clone());
+        }
+    }
+
+    @Override
+    public void removeRespectingMetadata(V value, @NotNull EquivalenceStrategy strategy,
+            EquivalenceStrategy metadataEquivalenceStrategy) {
+        if (!value.hasValueMetadata()) {
+            remove(value, strategy);
+        } else {
+            // We do not support the case when we are deleting by ID but only selected metadata.
+            // I.e. if we want to delete metadata we must supply the correct (matching) value.
+            V existingValue = findValue(value, strategy);
+            if (existingValue != null) {
+                removeMetadataValues(existingValue, value.getValueMetadata(), metadataEquivalenceStrategy);
+            } else {
+                // nothing to do here, the value does not exist
+            }
+        }
+    }
+
+    private void removeMetadataValues(V existingValue, ValueMetadata metadataToRemove, EquivalenceStrategy metadataEquivalenceStrategy) {
+        ValueMetadata existingValueMetadata = existingValue.getValueMetadata();
+        existingValueMetadata.removeAll(metadataToRemove.getValues(), metadataEquivalenceStrategy);
+        if (existingValueMetadata.hasNoValues()) {
+            remove(existingValue, DATA.exceptForValueMetadata());
+        }
+    }
+
     @Override
     public boolean removeAll(Collection<V> newValues, @NotNull EquivalenceStrategy strategy) {
         checkMutable();
@@ -785,15 +826,15 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         if (this == obj) {
             return true;
         }
-        if (getClass() != obj.getClass()) {
+        if (!(obj instanceof Item)) {
             return false;
         }
-        ItemImpl<?,?> second = (ItemImpl<?,?>) obj;
+        Item<?,?> second = (Item<?,?>) obj;
         @SuppressWarnings("unchecked")
-        Collection<V> secondValues = (Collection<V>) second.values;
-        return (!parameterizedEquivalenceStrategy.isConsideringDefinitions() || Objects.equals(definition, second.definition)) &&
-                (!parameterizedEquivalenceStrategy.isConsideringElementNames() || Objects.equals(elementName, second.elementName)) &&
-                incomplete == second.incomplete &&
+        Collection<V> secondValues = (Collection<V>) second.getValues();
+        return (!parameterizedEquivalenceStrategy.isConsideringDefinitions() || Objects.equals(definition, second.getDefinition())) &&
+                (!parameterizedEquivalenceStrategy.isConsideringElementNames() || Objects.equals(elementName, second.getElementName())) &&
+                incomplete == second.isIncomplete() &&
                 MiscUtil.unorderedCollectionEquals(values, secondValues, parameterizedEquivalenceStrategy::equals);
         // Do not compare parents at all. They are not relevant.
     }

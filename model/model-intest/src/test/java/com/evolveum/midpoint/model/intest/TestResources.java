@@ -1008,7 +1008,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         String serializedModifiedResource = prismContext.xmlSerializer().serialize(modifiedResource);
         assertNotNull(serializedModifiedResource);
 
-        ObjectDelta<ResourceType> diffDelta = resourceBefore.diff(modifiedResource, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
+        ObjectDelta<ResourceType> diffDelta = resourceBefore.diff(modifiedResource, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
         displayDumpable("Diff delta", diffDelta);
 
         // WHEN

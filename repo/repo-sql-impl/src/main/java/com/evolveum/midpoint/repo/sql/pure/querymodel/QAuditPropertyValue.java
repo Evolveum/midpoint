@@ -35,9 +35,9 @@ public class QAuditPropertyValue extends FlexibleRelationalPathBase<MAuditProper
     public static final ColumnMetadata RECORD_ID =
             ColumnMetadata.named("record_id").ofType(Types.BIGINT).withSize(19);
     public static final ColumnMetadata NAME =
-            ColumnMetadata.named("name").ofType(Types.NVARCHAR).withSize(255);
+            ColumnMetadata.named("name").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata VALUE =
-            ColumnMetadata.named("value").ofType(Types.NVARCHAR)
+            ColumnMetadata.named("value").ofType(Types.VARCHAR)
                     .withSize(AuditService.MAX_PROPERTY_SIZE);
 
     public final NumberPath<Long> id = createLong("id", ID);

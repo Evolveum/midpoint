@@ -49,13 +49,13 @@ public class ClusterProvider extends MidPointAbstractAuthenticationProvider {
         String enteredUsername = (String) authentication.getPrincipal();
         LOGGER.trace("Authenticating username '{}'", enteredUsername);
 
-        ConnectionEnvironment connEnv = createEnviroment(channel);
+        ConnectionEnvironment connEnv = createEnvironment(channel);
 
         try {
             Authentication token;
             if (authentication instanceof ClusterAuthenticationToken) {
                 String enteredPassword = (String) authentication.getCredentials();
-                if (!nodeAuthenticator.authenticate(null, enteredUsername, enteredPassword, "?")) {
+                if (!nodeAuthenticator.authenticate(null, enteredUsername, enteredPassword, "node authentication")) {
                     throw new AuthenticationServiceException("web.security.flexAuth.cluster.auth.null");
                 } else {
                     token = SecurityContextHolder.getContext().getAuthentication();
@@ -65,10 +65,8 @@ public class ClusterProvider extends MidPointAbstractAuthenticationProvider {
                 throw new AuthenticationServiceException("web.security.provider.unavailable");
             }
 
-            MidPointPrincipal principal = (MidPointPrincipal)token.getPrincipal();
-
-            LOGGER.debug("User '{}' authenticated ({}), authorities: {}", authentication.getPrincipal(),
-                    authentication.getClass().getSimpleName(), principal.getAuthorities());
+            LOGGER.debug("Node '{}' authenticated}", authentication.getPrincipal());
+            token.setAuthenticated(true);
             return token;
 
         } catch (AuthenticationException e) {

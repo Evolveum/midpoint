@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user oid="deadbeef-c001-f00d-1111-222233330001"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension">
+    <name>jack</name>
+    <extension>
+        <ext:differentStringType>ABC</ext:differentStringType>
+    </extension>
+
+    <givenName>Jack</givenName>
+
+    <c:credentials xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        <c:password>
+            <c:value
+                    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+                    xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+                    xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+                    xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+                <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
+                    <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc"/>
+                    <ds:KeyInfo>
+                        <ds:KeyName>HF6JRsNMeJt6alihT44CXKgpe0c=</ds:KeyName>
+                    </ds:KeyInfo>
+                    <enc:CipherData>
+                        <enc:CipherValue>LZ4QxLrHPrNz/VbNXm6tJU+fHverLrpLFaRudVOaIMAJEGJtpRu7gkgGqRlOJQEH
+                        </enc:CipherValue>
+                    </enc:CipherData>
+                </enc:EncryptedData>
+            </c:value>
+        </c:password>
+    </c:credentials>
+
+</user>

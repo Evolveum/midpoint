@@ -10,7 +10,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.assignment.GdprAssignmentPanel;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
@@ -22,7 +22,7 @@ public class FocusConsentTabPanel<F extends FocusType> extends AbstractObjectTab
 
 //    private LoadableModel<List<AssignmentType>> consentsModel;
 
-    public FocusConsentTabPanel(String id, Form<PrismObjectWrapper<F>> mainForm, LoadableModel<PrismObjectWrapper<F>> objectWrapperModel) {
+    public FocusConsentTabPanel(String id, MidpointForm<PrismObjectWrapper<F>> mainForm, LoadableModel<PrismObjectWrapper<F>> objectWrapperModel) {
         super(id, mainForm, objectWrapperModel);
 
         initLayout();

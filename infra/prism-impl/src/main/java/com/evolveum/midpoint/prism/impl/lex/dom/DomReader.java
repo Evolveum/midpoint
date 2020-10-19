@@ -125,12 +125,12 @@ class DomReader {
     }
 
     private void readMetadata(@NotNull Element element, XNodeImpl node) throws SchemaException {
-        Element metadataChild = DOMUtil.getMatchingChildElement(element, metadataElementName);
-        if (metadataChild != null) {
+        List<Element> metadataChildren = DOMUtil.getMatchingChildElements(element, metadataElementName);
+        for (Element metadataChild : metadataChildren) {
             XNodeImpl metadata = readElementContent(metadataChild, null, false);
             if (metadata instanceof MapXNode) {
                 if (node instanceof MetadataAware) {
-                    ((MetadataAware) node).setMetadataNode((MapXNode) metadata);
+                    ((MetadataAware) node).addMetadataNode((MapXNode) metadata);
                 } else {
                     throw new SchemaException("Attempt to add metadata to non-metadata-aware XNode: " + node);
                 }

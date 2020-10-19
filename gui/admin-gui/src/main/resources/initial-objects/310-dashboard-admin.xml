@@ -11,13 +11,23 @@
            oid="00000000-0000-0000-0001-000000000001">
     <name>admin-dashboard</name>
     <display>
-        <label>Admin dashboard</label>
+        <label>
+            <orig>Admin dashboard</orig>
+            <translation>
+                <key>AdminDashboard.title</key>
+            </translation>
+        </label>
     </display>
     <widget>
         <identifier>resources-up</identifier>
         <description>Widget that shows all the resources that are up. Based on "Resources Up" object collection.</description>
         <display>
-            <label>Resources up</label>
+            <label>
+                <orig>Resources up</orig>
+                <translation>
+                    <key>AdminDashboard.resourcesUp</key>
+                </translation>
+            </label>
             <color>#00a65a</color>
             <icon>
                 <cssClass>fa fa-database</cssClass>
@@ -41,7 +51,12 @@
             <dataField>
                 <fieldType>unit</fieldType>
                 <expression>
-                    <value>up</value>
+                    <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType
+                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.up'))
+                        </code>
+                    </script>
                 </expression>
             </dataField>
             <variation>
@@ -62,7 +77,12 @@
         <identifier>audit-recent-errors</identifier>
         <description>Widget that shows recent errors. Data are taken from audit log.</description>
         <display>
-            <label>Recent errors</label>
+            <label>
+                <orig>Recent errors</orig>
+                <translation>
+                    <key>AdminDashboard.recentErrors</key>
+                </translation>
+            </label>
             <color>#00a65a</color>
             <icon>
                 <cssClass>fa fa-ban</cssClass>
@@ -86,7 +106,12 @@
             <dataField>
                 <fieldType>unit</fieldType>
                 <expression>
-                    <value>failed</value>
+                    <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType
+                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.failed'))
+                        </code>
+                    </script>
                 </expression>
             </dataField>
             <variation>
@@ -105,7 +130,12 @@
         <identifier>audit-recent-modifications</identifier>
         <description>Widget that shows recent modifications. Data are taken from audit log.</description>
         <display>
-            <label>Recent modifications</label>
+            <label>
+                <orig>Recent modifications</orig>
+                <translation>
+                    <key>AdminDashboard.recentModifications</key>
+                </translation>
+            </label>
             <color>#00a65a</color>
             <icon>
                 <cssClass>fa fa-cog</cssClass>
@@ -129,7 +159,12 @@
             <dataField>
                 <fieldType>unit</fieldType>
                 <expression>
-                    <value>modifications</value>
+                    <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType
+                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.modifications'))
+                        </code>
+                    </script>
                 </expression>
             </dataField>
         </presentation>
@@ -137,7 +172,12 @@
     <widget>
         <identifier>active-task</identifier>
         <display>
-            <label>Active tasks</label>
+            <label>
+                <orig>Active tasks</orig>
+                <translation>
+                    <key>AdminDashboard.activeTasks</key>
+                </translation>
+            </label>
             <color>#00a65a</color>
             <icon>
                 <cssClass>fa fa-tasks</cssClass>
@@ -161,7 +201,12 @@
             <dataField>
                 <fieldType>unit</fieldType>
                 <expression>
-                    <value>runnable</value>
+                    <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType
+                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.runnable'))
+                        </code>
+                    </script>
                 </expression>
             </dataField>
             <variation>

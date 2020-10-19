@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,20 +8,16 @@ package com.evolveum.midpoint.web.boot;
 
 import javax.servlet.DispatcherType;
 
-import com.evolveum.midpoint.web.security.SessionAndRequestScopeImpl;
-
 import org.apache.wicket.Application;
 import org.apache.wicket.protocol.http.WicketFilter;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.actuate.autoconfigure.endpoint.EndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.endpoint.web.WebEndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.endpoint.web.servlet.WebMvcEndpointManagementContextConfiguration;
 import org.springframework.boot.actuate.autoconfigure.env.EnvironmentEndpointAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.health.HealthContributorAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.health.HealthEndpointAutoConfiguration;
-import org.springframework.boot.actuate.autoconfigure.health.HealthIndicatorAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.info.InfoEndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.management.HeapDumpWebEndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.management.ThreadDumpEndpointAutoConfiguration;
@@ -51,6 +47,7 @@ import ro.isdc.wro.http.WroFilter;
 
 import com.evolveum.midpoint.init.StartupConfiguration;
 import com.evolveum.midpoint.model.api.authentication.NodeAuthenticationEvaluator;
+import com.evolveum.midpoint.web.security.SessionAndRequestScopeImpl;
 import com.evolveum.midpoint.web.util.MidPointProfilingServletFilter;
 
 /**
@@ -70,7 +67,7 @@ import com.evolveum.midpoint.web.util.MidPointProfilingServletFilter;
         WebMvcEndpointManagementContextConfiguration.class,
         ServletManagementContextAutoConfiguration.class,
         HealthEndpointAutoConfiguration.class,
-        HealthIndicatorAutoConfiguration.class,
+        HealthContributorAutoConfiguration.class,
         ThreadDumpEndpointAutoConfiguration.class,
         HeapDumpWebEndpointAutoConfiguration.class,
         EnvironmentEndpointAutoConfiguration.class,
@@ -109,7 +106,9 @@ public abstract class AbstractSpringBootApplication extends SpringBootServletIni
         registration.setDispatcherTypes(DispatcherType.ERROR, DispatcherType.REQUEST, DispatcherType.FORWARD);
         registration.addUrlPatterns("/*");
         registration.addInitParameter(WicketFilter.FILTER_MAPPING_PARAM, "/*");
-        registration.addInitParameter(Application.CONFIGURATION, "deployment");     // deployment development
+        // By default Wicket is in "deployment" mode. To override this in development, add
+        // "-Dwicket.configuration=development" in the run configuration.
+        registration.addInitParameter(Application.CONFIGURATION, "deployment");
         registration.addInitParameter("applicationBean", "midpointApplication");
         registration.addInitParameter(WicketFilter.APP_FACT_PARAM, "org.apache.wicket.spring.SpringWebApplicationFactory");
 
@@ -147,11 +146,7 @@ public abstract class AbstractSpringBootApplication extends SpringBootServletIni
 
     @Bean
     public static BeanFactoryPostProcessor beanFactoryPostProcessor() {
-        return new BeanFactoryPostProcessor() {
-            @Override
-            public void postProcessBeanFactory(ConfigurableListableBeanFactory factory) throws BeansException {
+        return factory ->
                 factory.registerScope("sessionAndRequest", new SessionAndRequestScopeImpl());
-            }
-        };
     }
 }

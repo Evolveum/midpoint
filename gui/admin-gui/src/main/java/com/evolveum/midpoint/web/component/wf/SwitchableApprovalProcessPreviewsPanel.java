@@ -1,16 +1,15 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.wf;
 
 import java.util.Collections;
 import java.util.Optional;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -55,7 +54,7 @@ public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> {
     private LoadableModel<ApprovalProcessExecutionInformationDto> wholeProcessModel;
 
     public SwitchableApprovalProcessPreviewsPanel(String id,
-                                                  IModel<String> taskOidModel, IModel<Boolean> showNextStagesModel, PageBase parentPage) {
+            IModel<String> taskOidModel, IModel<Boolean> showNextStagesModel, PageBase parentPage) {
         super(id, taskOidModel);
         initModels(parentPage);
         initLayout(showNextStagesModel);
@@ -64,6 +63,7 @@ public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> {
     private enum ProcessInfoBox {
         NEXT_STAGES, WHOLE_PROCESS
     }
+
     private ProcessInfoBox displayedProcessInfoBox = ProcessInfoBox.WHOLE_PROCESS;
 
     private void initModels(PageBase parentPage) {
@@ -81,7 +81,7 @@ public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> {
                 } catch (Throwable t) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get approval schema execution information for {}", t, getModelObject());
                     opTask.getResult().recordFatalError(
-                            createStringResource("SwitchableApprovalProcessPreviewsPanel.message.approvalSchemaExecution.fatalError",t.getMessage()).getString(), t);
+                            createStringResource("SwitchableApprovalProcessPreviewsPanel.message.approvalSchemaExecution.fatalError", t.getMessage()).getString(), t);
                 }
                 if (WebComponentUtil.showResultInPage(result)) {
                     parentPage.showResult(result);
@@ -149,9 +149,8 @@ public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> {
             @Override
             public void onClick(Optional<AjaxRequestTarget> target) {
                 displayedProcessInfoBox = ProcessInfoBox.NEXT_STAGES;
-                ((AjaxRequestTarget) target.get()).add(SwitchableApprovalProcessPreviewsPanel.this);
+                target.get().add(SwitchableApprovalProcessPreviewsPanel.this);
             }
-
         });
         showNextStagesContainer.add(WebComponentUtil.createHelp(ID_SHOW_NEXT_STAGES_HELP));
         showNextStagesContainer.add(new VisibleBehaviour(() ->
@@ -165,13 +164,11 @@ public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> {
             @Override
             public void onClick(Optional<AjaxRequestTarget> target) {
                 displayedProcessInfoBox = ProcessInfoBox.WHOLE_PROCESS;
-                ((AjaxRequestTarget) target.get()).add(SwitchableApprovalProcessPreviewsPanel.this);
+                target.get().add(SwitchableApprovalProcessPreviewsPanel.this);
             }
         });
         showWholeProcessContainer.add(new VisibleBehaviour(() -> displayedProcessInfoBox != ProcessInfoBox.WHOLE_PROCESS));
         showWholeProcessContainer.add(WebComponentUtil.createHelp(ID_SHOW_WHOLE_PROCESS_HELP));
         add(showWholeProcessContainer);
-
     }
-
 }

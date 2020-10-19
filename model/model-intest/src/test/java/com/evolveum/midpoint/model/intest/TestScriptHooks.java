@@ -115,8 +115,8 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
 
         displayValue("StaticHookRecorder", StaticHookRecorder.dump());
         StaticHookRecorder.assertInvocationCount("org", 1);
-        StaticHookRecorder.assertInvocationCount("foo", 5);
-        StaticHookRecorder.assertInvocationCount("bar", 5);
+        StaticHookRecorder.assertInvocationCount("foo", 4);
+        StaticHookRecorder.assertInvocationCount("bar", 4);
         StaticHookRecorder.assertInvocationCount("bar-user", 1);
 
         // Check audit
@@ -172,8 +172,8 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
 
         displayValue("StaticHookRecorder", StaticHookRecorder.dump());
         StaticHookRecorder.assertInvocationCount("org", 1);
-        StaticHookRecorder.assertInvocationCount("foo", 10);
-        StaticHookRecorder.assertInvocationCount("bar", 10);
+        StaticHookRecorder.assertInvocationCount("foo", 8);
+        StaticHookRecorder.assertInvocationCount("bar", 8);
         StaticHookRecorder.assertInvocationCount("bar-user", 1);
     }
 

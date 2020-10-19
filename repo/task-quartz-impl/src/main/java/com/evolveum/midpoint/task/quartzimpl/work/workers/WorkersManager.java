@@ -1,11 +1,22 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.task.quartzimpl.work.workers;
+
+import static java.util.Collections.singletonList;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
+import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -21,31 +32,18 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.template.StringSubstitutorUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.util.template.StringSubstitutorUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.apache.commons.collections4.MultiValuedMap;
-import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.Objects;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static java.util.Collections.singletonList;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * Manages worker tasks.
- *
- * @author mederly
  */
 @Component
 public class WorkersManager {
@@ -192,8 +190,9 @@ public class WorkersManager {
         return count;
     }
 
-    class MovedClosed {
+    static class MovedClosed {
         int moved, closed;
+
         MovedClosed(int moved, int closed) {
             this.moved = moved;
             this.closed = closed;
@@ -241,12 +240,18 @@ public class WorkersManager {
             throw new IllegalStateException("Null executionStatus of " + coordinatorTask);
         }
         switch (coordinatorTask.getExecutionStatus()) {
-            case WAITING: workerExecutionStatus = TaskExecutionStatusType.RUNNABLE; break;
+            case WAITING:
+                workerExecutionStatus = TaskExecutionStatusType.RUNNABLE;
+                break;
             case SUSPENDED:
             case RUNNABLE:
-                workerExecutionStatus = TaskExecutionStatusType.SUSPENDED; break;
-            case CLOSED: workerExecutionStatus = TaskExecutionStatusType.CLOSED; break;             // not very useful
-            default: throw new IllegalStateException("Unsupported executionStatus of " + coordinatorTask + ": " + coordinatorTask.getExecutionStatus());
+                workerExecutionStatus = TaskExecutionStatusType.SUSPENDED;
+                break;
+            case CLOSED:
+                workerExecutionStatus = TaskExecutionStatusType.CLOSED;
+                break;             // not very useful
+            default:
+                throw new IllegalStateException("Unsupported executionStatus of " + coordinatorTask + ": " + coordinatorTask.getExecutionStatus());
         }
 
         int count = 0;
@@ -287,7 +292,7 @@ public class WorkersManager {
     }
 
     private void applyDeltas(TaskType worker, List<ItemDeltaType> deltas) throws SchemaException {
-        Collection<? extends ItemDelta> itemDeltas = DeltaConvertor.toModifications(deltas, worker.asPrismObject().getDefinition());
+        Collection<? extends ItemDelta<?, ?>> itemDeltas = DeltaConvertor.toModifications(deltas, worker.asPrismObject().getDefinition());
         ItemDeltaCollectionsUtil.applyTo(itemDeltas, worker.asPrismContainerValue());
     }
 
@@ -301,7 +306,7 @@ public class WorkersManager {
         taskManager.modifyTask(worker.getOid(), itemDeltas, result);
     }
 
-    class WorkerKey {
+    static class WorkerKey {
         final String group;
         final String name;
         final boolean scavenger;
@@ -312,16 +317,15 @@ public class WorkersManager {
             this.scavenger = scavenger;
         }
 
-        WorkerKey(Task worker) {    // objects created by this constructor should be used only for matching and comparisons
+        /** Objects created by this constructor should be used only for matching and comparisons. */
+        WorkerKey(Task worker) {
             this(worker.getExecutionGroup(), PolyString.getOrig(worker.getName()), isScavenger(worker));
         }
 
         @Override
         public boolean equals(Object o) {
-            if (this == o)
-                return true;
-            if (!(o instanceof WorkerKey))
-                return false;
+            if (this == o) { return true; }
+            if (!(o instanceof WorkerKey)) { return false; }
             WorkerKey workerKey = (WorkerKey) o;
             return Objects.equals(group, workerKey.group) &&
                     Objects.equals(name, workerKey.name);

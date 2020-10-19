@@ -1,44 +1,48 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.search;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.apache.wicket.model.StringResourceModel;
+
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
-
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.apache.wicket.model.StringResourceModel;
-
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 
 /**
  * @author honchar
  */
-public class PropertySearchItem<T extends Serializable> extends SearchItem{
+public class PropertySearchItem<T extends Serializable> extends SearchItem {
 
     private static final long serialVersionUID = 1L;
 
-    private ItemPath path;
-    private ItemDefinition definition;
-    private DisplayableValue<T> value;
+    private final ItemPath path;
+    private final ItemDefinition definition;
     //TODO: think about dividing searchItem to searchProperty, searchReference?
-    private List<QName> allowedRelations;
+    private final List<QName> allowedRelations;
 
-    public PropertySearchItem(Search search, ItemPath path, ItemDefinition definition, List<QName> allowedRelations) {
+    private DisplayableValue<T> value;
+    private PolyStringType displayName;
+
+    public PropertySearchItem(Search search, ItemPath path, ItemDefinition definition, List<QName> allowedRelations, PolyStringType displayName) {
         super(search);
         Validate.notNull(path, "Item path must not be null.");
         Validate.notNull(definition, "Item definition must not be null.");
@@ -51,6 +55,7 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem{
         this.path = path;
         this.definition = definition;
         this.allowedRelations = allowedRelations;
+        this.displayName = displayName;
     }
 
     public ItemDefinition getDefinition() {
@@ -87,11 +92,12 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem{
 
     @Override
     public String getName() {
+        if (displayName != null){
+            return WebComponentUtil.getTranslatedPolyString(displayName);
+        }
         String key = definition.getDisplayName();
         if (StringUtils.isEmpty(key)) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(getSearch().getType().getSimpleName()).append('.').append(definition.getItemName().getLocalPart());
-            key = sb.toString();
+            key = getSearch().getType().getSimpleName() + '.' + definition.getItemName().getLocalPart();
         }
 
         StringResourceModel nameModel = PageBase.createStringResourceStatic(null, key);
@@ -109,7 +115,7 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem{
     }
 
     @Override
-    public Type getType(){
+    public Type getType() {
         if (definition instanceof PrismReferenceDefinition) {
             return Type.REFERENCE;
         }
@@ -126,13 +132,21 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem{
         return Type.TEXT;
     }
 
+    public PolyStringType getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(PolyStringType displayName) {
+        this.displayName = displayName;
+    }
+
     @Override
     public String toString() {
-        return new ToStringBuilder(this)
-                .append("definition", definition)
-                .append("search", getSearch())
-                .append("path", path)
-                .append("value", value)
-                .toString();
+        return "PropertySearchItem{" +
+                "path=" + path +
+                ", definition=" + definition +
+                ", allowedRelations=" + allowedRelations +
+                ", value=" + value +
+                '}';
     }
 }

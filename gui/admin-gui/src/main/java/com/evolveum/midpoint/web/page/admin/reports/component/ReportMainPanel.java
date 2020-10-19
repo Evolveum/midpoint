@@ -17,6 +17,7 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.ObjectBasicPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.reports.PageReport;
@@ -69,10 +70,34 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
                 target.add(parentPage.getFeedbackPanel());
             }
         };
-        saveAndRunButton.add(getVisibilityForSaveButton());
+        saveAndRunButton.add(getVisibilityForSaveAndRunButton());
         saveAndRunButton.setOutputMarkupId(true);
         saveAndRunButton.setOutputMarkupPlaceholderTag(true);
         getMainForm().add(saveAndRunButton);
+    }
+
+    private VisibleEnableBehaviour getVisibilityForSaveAndRunButton() {
+        return new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return !getObjectWrapper().isReadOnly() &&
+                        !getDetailsPage().isForcedPreview();
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return !getExecuteChangeOptionsDto().isSaveInBackground();
+            }
+        };
+    }
+
+    @Override
+    public void reloadSavePreviewButtons(AjaxRequestTarget target) {
+        super.reloadSavePreviewButtons(target);
+        target.add(ReportMainPanel.this.get(ID_MAIN_FORM).get(ID_SAVE_AND_RUN));
+
     }
 
     private List<ITab> getTabs(PageAdminObjectDetails<ReportType> parentPage){

@@ -18,8 +18,10 @@ import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
@@ -338,6 +340,14 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         secondaryDelta = null;
     }
 
+    /**
+     * See {@link LensContext#wasAnythingExecuted()}.
+     */
+    @Experimental
+    public boolean wasAnythingReallyExecuted() {
+        return executedDeltas.stream().anyMatch(ObjectDeltaOperation::wasReallyExecuted);
+    }
+
     @FunctionalInterface
     private interface DeltaModifier<O extends Objectable> {
         void modify(ObjectDelta<O> delta) throws SchemaException;
@@ -381,7 +391,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
         ObjectDelta<O> currentDelta = getCurrentDelta();
         // TODO change this
-        if (currentDelta != null && currentDelta.containsModification(itemDelta, EquivalenceStrategy.LITERAL_IGNORE_METADATA)) {
+        if (currentDelta != null && currentDelta.containsModification(itemDelta, EquivalenceStrategy.DATA.exceptForValueMetadata())) {
             return;
         }
 
@@ -463,14 +473,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         executedDeltas.add(executedDelta.clone()); // must be cloned because e.g. for ADD deltas the object gets modified afterwards
     }
 
-    /**
-     * Returns user delta, both primary and secondary (merged together).
-     * The returned object is (kind of) immutable. Changing it may do strange things (but most likely the changes will be lost).
-     */
-    public ObjectDelta<O> getSummaryDelta() {
-        return getCurrentDelta();
-    }
-
+    @Override
     public ObjectDelta<O> getCurrentDelta() {
         if (doesPrimaryDeltaApply()) {
             try {
@@ -486,16 +489,11 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
     abstract boolean doesPrimaryDeltaApply();
 
-    /**
-     * Returns aggregated secondary deltas (from the beginning of the clockwork execution).
-     * TODO is this true also for projection deltas? These are sometimes manipulated.
-     */
     @Override
     public ObjectDelta<O> getSecondaryDelta() {
         return secondaryDelta;
     }
 
-    @Override
     public void setSecondaryDelta(ObjectDelta<O> secondaryDelta) {
         this.secondaryDelta = secondaryDelta;
     }
@@ -574,6 +572,10 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
     public void setFresh(boolean isFresh) {
         this.isFresh = isFresh;
+    }
+
+    public void rot() {
+        setFresh(false);
     }
 
     @NotNull
@@ -951,13 +953,5 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
             primaryDelta.normalize();
             primaryDelta.freeze();
         }
-    }
-
-    int getProjectionWave() {
-        return getLensContext().getProjectionWave();
-    }
-
-    int getExecutionWave() {
-        return getLensContext().getExecutionWave();
     }
 }

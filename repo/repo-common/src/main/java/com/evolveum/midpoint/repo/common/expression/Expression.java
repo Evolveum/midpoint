@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import javax.xml.bind.JAXBElement;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
@@ -403,4 +404,8 @@ public class Expression<V extends PrismValue, D extends ItemDefinition> {
         return sb.toString();
     }
 
+    @VisibleForTesting
+    public List<ExpressionEvaluator<V>> getEvaluators() {
+        return evaluators;
+    }
 }

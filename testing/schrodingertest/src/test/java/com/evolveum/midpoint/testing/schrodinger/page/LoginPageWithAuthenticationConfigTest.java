@@ -137,7 +137,8 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
 
         login.loginWithReloadLoginPage("administrator", "5ecr3t");
         importObject(BULK_TASK, true);
-        basicPage.listTasks().table().clickByName("Add archetype").clickRunNow();
+        basicPage.listTasks().table().clickByName("Add archetype"); //.clickRunNow(); the task is running after import, no need to click run now button
+        screenshot("addArchetypeBulkActionTask");
         Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
         basicPage.loggedUser().logoutIfUserIsLogin();
 

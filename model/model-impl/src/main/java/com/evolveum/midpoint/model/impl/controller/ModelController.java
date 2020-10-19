@@ -13,6 +13,8 @@ import java.io.*;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.IndestructibilityViolationException;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -369,11 +371,13 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                     }
                 }
             }
+
             // Make sure everything is encrypted as needed before logging anything.
             // But before that we need to make sure that we have proper definition, otherwise we
             // might miss some encryptable data in dynamic schemas
             applyDefinitions(deltas, options, task, result);
             ModelImplUtils.encrypt(deltas, protector, options, result);
+
             computePolyStrings(deltas);
 
             LOGGER.trace("MODEL.executeChanges(\n  deltas:\n{}\n  options:{}", DebugUtil.debugDumpLazily(deltas, 2), options);
@@ -394,10 +398,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
             // Note: caches are invalidated automatically via RepositoryCache.invalidateCacheEntries method
 
-        } catch (RuntimeException e) {        // just for sure (TODO split this method into two: raw and non-raw case)
-            ModelImplUtils.recordFatalError(result, e);
-            throw e;
+        } catch (Throwable t) {
+            ModelImplUtils.recordFatalError(result, t);
+            throw t;
         } finally {
+            result.computeStatusIfUnknown();
             exitModelMethod();
         }
     }
@@ -482,21 +487,21 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         try {
             for (ObjectDelta<? extends ObjectType> delta : deltas) {
                 OperationResult result1 = result.createSubresult(EXECUTE_CHANGE);
-
-                // MID-2486
-                if (delta.getObjectTypeClass() == ShadowType.class || delta.getObjectTypeClass() == ResourceType.class) {
-                    try {
-                        provisioning.applyDefinition(delta, task, result1);
-                    } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | RuntimeException e) {
-                        // we can tolerate this - if there's a real problem with definition, repo call below will fail
-                        LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't apply definition on shadow/resource raw-mode delta {} -- continuing the operation.", e, delta);
-                        result1.muteLastSubresultError();
-                    }
-                }
-
-                final boolean preAuthorized = ModelExecuteOptions.isPreAuthorized(options);
                 PrismObject objectToDetermineDetailsForAudit = null;
                 try {
+
+                    // MID-2486
+                    if (delta.getObjectTypeClass() == ShadowType.class || delta.getObjectTypeClass() == ResourceType.class) {
+                        try {
+                            provisioning.applyDefinition(delta, task, result1);
+                        } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | RuntimeException e) {
+                            // we can tolerate this - if there's a real problem with definition, repo call below will fail
+                            LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't apply definition on shadow/resource raw-mode delta {} -- continuing the operation.", e, delta);
+                            result1.muteLastSubresultError();
+                        }
+                    }
+
+                    final boolean preAuthorized = ModelExecuteOptions.isPreAuthorized(options);
                     if (delta.isAdd()) {
                         RepoAddOptions repoOptions = new RepoAddOptions();
                         if (ModelExecuteOptions.isNoCrypt(options)) {
@@ -538,6 +543,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                                     // creating "shadow" existing object for auditing needs.
                                 }
                             }
+                            checkIndestructible(existingObject, task, result1);
                             if (!preAuthorized) {
                                 securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, AuthorizationParameters.Builder.buildObjectDelete(existingObject), null, task, result1);
                                 securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), null, AuthorizationParameters.Builder.buildObjectDelete(existingObject), null, task, result1);
@@ -586,11 +592,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                     } else {
                         throw new IllegalArgumentException("Wrong delta type " + delta.getChangeType() + " in " + delta);
                     }
-                } catch (ObjectAlreadyExistsException | SchemaException | ObjectNotFoundException | ConfigurationException | CommunicationException | SecurityViolationException | RuntimeException e) {
-                    ModelImplUtils.recordFatalError(result1, e);
-                    throw e;
-                } finally {        // to have a record with the failed delta as well
-                    result1.computeStatus();
+                } catch (Throwable t) {
+                    ModelImplUtils.recordFatalError(result1, t);
+                    throw t;
+                } finally { // to have a record with the failed delta as well
+                    result1.computeStatusIfUnknown();
                     ObjectDeltaOperation<? extends ObjectType> odoToAudit = new ObjectDeltaOperation<>(delta, result1);
                     if (objectToDetermineDetailsForAudit != null) {
                         odoToAudit.setObjectName(objectToDetermineDetailsForAudit.getName());
@@ -604,6 +610,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                 }
             }
             return executedDeltas;
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
         } finally {
             cleanupOperationResult(result);
             auditRecord.setTimestamp(System.currentTimeMillis());
@@ -614,6 +623,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             auditHelper.audit(auditRecord, null, task, result);
 
             task.markObjectActionExecutedBoundary();
+        }
+    }
+
+    private <O extends ObjectType> void checkIndestructible(PrismObject<O> existingObject, Task task, OperationResult result) throws IndestructibilityViolationException {
+        if (existingObject != null && Boolean.TRUE.equals(existingObject.asObjectable().isIndestructible())) {
+            IndestructibilityViolationException e = new IndestructibilityViolationException("Attempt to delete indestructible object "+existingObject);
+            ModelImplUtils.recordFatalError(result, e);
+            throw e;
         }
     }
 

@@ -42,7 +42,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.CHANNEL_ASYNC_UPDATE_URI;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -64,7 +64,8 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
     @Nullable private final Authentication authentication;
     @NotNull private final AsyncUpdateConnectorInstance connectorInstance;
 
-    private AtomicInteger messagesSeen = new AtomicInteger(0);
+    private final AtomicInteger messagesSeen = new AtomicInteger(0);
+    private final AtomicInteger changesProduced = new AtomicInteger(0);
 
     TransformationalAsyncUpdateMessageListener(@NotNull ChangeListener changeListener, @Nullable Authentication authentication,
             @NotNull AsyncUpdateConnectorInstance connectorInstance) {
@@ -85,9 +86,9 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
             securityContextManager.setupPreAuthenticatedSecurityContext(authentication);
 
             Task task = connectorInstance.getTaskManager().createTaskInstance(OP_ON_MESSAGE_PREPARATION);
-            task.setChannel(CHANGE_CHANNEL_ASYNC_UPDATE_URI);
+            task.setChannel(CHANNEL_ASYNC_UPDATE_URI);
             if (authentication != null && authentication.getPrincipal() instanceof MidPointPrincipal) {
-                task.setOwner((PrismObject<FocusType>) ((MidPointPrincipal) authentication.getPrincipal()).getFocus().asPrismObject().clone());
+                task.setOwner(((MidPointPrincipal) authentication.getPrincipal()).getFocus().asPrismObject().clone());
             }
             Tracer tracer = connectorInstance.getTracer();
 
@@ -137,9 +138,12 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
                 }
                 boolean ok = true;
                 for (UcfChangeType changeBean : changeBeans) {
+                    // For this to work reliably, we have to run in a single thread. But that's ok.
+                    // If we receive messages in multiple threads, there is no message ordering.
+                    int changeSequentialNumber = changesProduced.incrementAndGet();
                     // intentionally in this order - to process changes even after failure
                     // (if listener wants to fail fast, it can throw an exception)
-                    ok = changeListener.onChange(createChange(changeBean, result), task, result) && ok;
+                    ok = changeListener.onChange(createChange(changeBean, result, changeSequentialNumber), task, result) && ok;
                 }
                 return ok;
             } catch (Throwable t) {
@@ -180,7 +184,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
         }
     }
 
-    private Change createChange(UcfChangeType changeBean, OperationResult result) throws SchemaException {
+    private Change createChange(UcfChangeType changeBean, OperationResult result, int changeSequentialNumber) throws SchemaException {
         QName objectClassName = changeBean.getObjectClass();
         if (objectClassName == null) {
             throw new SchemaException("Object class name is null in " + changeBean);
@@ -204,7 +208,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
         setFromDefaults(changeBean.getObject(), objectClassName);
         Holder<Object> primaryIdentifierRealValueHolder = new Holder<>();
         Collection<ResourceAttribute<?>> identifiers = getIdentifiers(changeBean, objectClassDef, primaryIdentifierRealValueHolder);
-        Change change = new Change(primaryIdentifierRealValueHolder.getValue(), identifiers, asPrismObject(changeBean.getObject()), delta);
+        Change change = new Change(primaryIdentifierRealValueHolder.getValue(), identifiers, asPrismObject(changeBean.getObject()), delta, changeSequentialNumber);
         change.setObjectClassDefinition(objectClassDef);
         if (change.getCurrentResourceObject() == null && change.getObjectDelta() == null) {
             change.setNotificationOnly(true);

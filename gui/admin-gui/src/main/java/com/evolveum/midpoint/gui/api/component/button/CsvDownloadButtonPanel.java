@@ -1,29 +1,16 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.api.component.button;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
-import com.evolveum.midpoint.web.component.dialog.ExportingPanel;
-
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -37,8 +24,13 @@ import org.apache.wicket.util.resource.IResourceStream;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AbstractAjaxDownloadBehavior;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
+import com.evolveum.midpoint.web.component.dialog.ExportingPanel;
 
 public abstract class CsvDownloadButtonPanel extends BasePanel {
 
@@ -68,8 +60,8 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public <T> void exportData(IDataProvider<T> dataProvider, List<IExportableColumn<T, ?>> columns,
-                    OutputStream outputStream) throws IOException {
+            public <T> void exportData(IDataProvider<T> dataProvider,
+                    List<IExportableColumn<T, ?>> columns, OutputStream outputStream) {
                 if (dataProvider instanceof SelectableBeanObjectDataProvider) {
                     ((SelectableBeanObjectDataProvider) dataProvider).setExport(true);        // TODO implement more nicely
                 }
@@ -77,7 +69,7 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
                     ((BaseSortableDataProvider) dataProvider).setExportSize(true);
                     super.exportData(dataProvider, getExportableColumns(), outputStream);
                     ((BaseSortableDataProvider) dataProvider).setExportSize(false);
-                } catch (Exception ex){
+                } catch (Exception ex) {
                     LOGGER.error("Unable to export data,", ex);
                 } finally {
                     if (dataProvider instanceof SelectableBeanObjectDataProvider) {
@@ -88,14 +80,8 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
 
             @Override
             protected <T> IModel<T> wrapModel(IModel<T> model) {
-                if(model.getObject() == null) {
-                    return new IModel<T>() {
-
-                        @Override
-                        public T getObject() {
-                            return (T)"";
-                        }
-                    };
+                if (model.getObject() == null) {
+                    return (IModel<T>) () -> (T) "";
                 }
                 return super.wrapModel(model);
             }
@@ -176,8 +162,7 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
         return exportableColumns;
     }
 
-    protected abstract DataTable<?,?> getDataTable();
+    protected abstract DataTable<?, ?> getDataTable();
 
     protected abstract String getFilename();
-
 }

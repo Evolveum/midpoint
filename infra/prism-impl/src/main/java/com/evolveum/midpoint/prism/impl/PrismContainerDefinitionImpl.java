@@ -75,7 +75,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
             super.setDynamic(true);             // todo is this really ok?
         } else {
             isRuntimeSchema = complexTypeDefinition.isXsdAnyMarker();
-            super.setDynamic(isRuntimeSchema);  // todo is this really ok?
+            //super.setDynamic(isRuntimeSchema);  // todo is this really ok?
         }
         this.compileTimeClass = compileTimeClass;
     }
@@ -100,6 +100,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
         return (Class<C>) complexTypeDefinition.getCompileTimeClass();
     }
 
+    @Override
     public void setCompileTimeClass(Class<C> compileTimeClass) {
         checkMutable();
         this.compileTimeClass = compileTimeClass;
@@ -119,6 +120,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
         return complexTypeDefinition;
     }
 
+    @Override
     public void setComplexTypeDefinition(ComplexTypeDefinition complexTypeDefinition) {
         checkMutable();
         this.complexTypeDefinition = complexTypeDefinition;
@@ -159,6 +161,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
         return complexTypeDefinition != null ? complexTypeDefinition.getIgnoredNamespaces() : null;
     }
 
+    @Override
     public <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path, @NotNull Class<ID> clazz) {
         for (;;) {
             if (path.isEmpty()) {
@@ -351,6 +354,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
      * @param typeName XSD type of the property
      * @return created property definition
      */
+    @Override
     public PrismPropertyDefinitionImpl createPropertyDefinition(QName name, QName typeName) {
         PrismPropertyDefinitionImpl propDef = new PrismPropertyDefinitionImpl(name, typeName, prismContext);
         addDefinition(propDef);
@@ -379,6 +383,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
      * @param maxOccurs maximal number of occurrences (-1 means unbounded)
      * @return created property definition
      */
+    @Override
     public MutablePrismPropertyDefinition<?> createPropertyDefinition(QName name, QName typeName,
             int minOccurs, int maxOccurs) {
         PrismPropertyDefinitionImpl propDef = new PrismPropertyDefinitionImpl(name, typeName, prismContext);
@@ -406,6 +411,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
      * @param typeName  XSD type of the property
      * @return created property definition
      */
+    @Override
     public MutablePrismPropertyDefinition<?> createPropertyDefinition(String localName, QName typeName) {
         QName name = new QName(getSchemaNamespace(), localName);
         return createPropertyDefinition(name, typeName);
@@ -451,6 +457,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
         return createContainerDefinition(name, typeName, 1, 1);
     }
 
+    @Override
     public MutablePrismContainerDefinition<?> createContainerDefinition(QName name, QName typeName,
             int minOccurs, int maxOccurs) {
         PrismSchema typeSchema = prismContext.getSchemaRegistry().findSchemaByNamespace(typeName.getNamespaceURI());
@@ -464,6 +471,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
         return createContainerDefinition(name, typeDefinition, minOccurs, maxOccurs);
     }
 
+    @Override
     public MutablePrismContainerDefinition<?> createContainerDefinition(QName name, ComplexTypeDefinition complexTypeDefinition,
             int minOccurs, int maxOccurs) {
         PrismContainerDefinitionImpl<C> def = new PrismContainerDefinitionImpl<>(name, complexTypeDefinition, prismContext);
@@ -539,6 +547,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
     /**
      * Return a human readable name of this class suitable for logs.
      */
+    @Override
     public String getDebugDumpClassName() {
         return "PCD";
     }

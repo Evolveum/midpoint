@@ -1,11 +1,26 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.security;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
+import org.aopalliance.intercept.MethodInvocation;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.security.access.AccessDecisionManager;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.ConfigAttribute;
+import org.springframework.security.access.SecurityConfig;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.web.FilterInvocation;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -27,22 +42,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.aopalliance.intercept.MethodInvocation;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.security.access.AccessDecisionManager;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.ConfigAttribute;
-import org.springframework.security.access.SecurityConfig;
-import org.springframework.security.authentication.InsufficientAuthenticationException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.web.FilterInvocation;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 
 public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, SecurityContextManager, AccessDecisionManager {
 
@@ -116,7 +115,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 
     @Override
     public <O extends ObjectType, T extends ObjectType> void failAuthorization(String operationUrl,
-            AuthorizationPhaseType phase, AuthorizationParameters<O,T> params,
+            AuthorizationPhaseType phase, AuthorizationParameters<O, T> params,
             OperationResult result) throws SecurityViolationException {
         securityEnforcer.failAuthorization(operationUrl, phase, params, result);
     }
@@ -124,7 +123,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     // MidPoint pages invoke this method (through PageBase)
     @Override
     public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
-            AuthorizationParameters<O,T> params, OwnerResolver ownerResolver, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            AuthorizationParameters<O, T> params, OwnerResolver ownerResolver, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         return securityEnforcer.isAuthorized(operationUrl, phase, params, ownerResolver, task, result);
     }
 
@@ -146,7 +145,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 
     @Override
     public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
-            AuthorizationParameters<O,T> params, OwnerResolver ownerResolver, Task task, OperationResult result)
+            AuthorizationParameters<O, T> params, OwnerResolver ownerResolver, Task task, OperationResult result)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         securityEnforcer.authorize(operationUrl, phase, params, ownerResolver, task, result);
     }
@@ -204,7 +203,6 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
             throw new AccessDeniedException("Not authorized");
         }
 
-
         MidPointPrincipal principal = getPrincipalFromAuthentication(authentication, object, configAttributes);
 
         Task task = taskManager.createTaskInstance(MidPointGuiAuthorizationEvaluator.class.getName() + ".decide");
@@ -223,8 +221,8 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
             }
             LOGGER.trace("DECIDE: authentication={}, object={}, configAttributes={}: ERROR (wrong principal)",
                     authentication, object, configAttributes);
-            throw new IllegalArgumentException("Expected that spring security principal will be of type "+
-                    MidPointPrincipal.class.getName()+" but it was "+(principalObject == null ? null :principalObject.getClass()));
+            throw new IllegalArgumentException("Expected that spring security principal will be of type " +
+                    MidPointPrincipal.class.getName() + " but it was " + (principalObject == null ? null : principalObject.getClass()));
         }
         return (MidPointPrincipal) principalObject;
     }
@@ -239,7 +237,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
             LOGGER.error("Error while processing authorization: {}", e.getMessage(), e);
             LOGGER.trace("DECIDE: authentication={}, object={}, requiredActions={}: ERROR {}",
                     authentication, object, requiredActions, e.getMessage());
-            throw new SystemException("Error while processing authorization: "+e.getMessage(), e);
+            throw new SystemException("Error while processing authorization: " + e.getMessage(), e);
         }
 
         if (LOGGER.isTraceEnabled()) {
@@ -256,7 +254,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     }
 
     private boolean isPermitAll(FilterInvocation filterInvocation) {
-        for (String url: DescriptorLoader.getPermitAllUrls()) {
+        for (String url : DescriptorLoader.getPermitAllUrls()) {
             AntPathRequestMatcher matcher = new AntPathRequestMatcher(url);
             if (matcher.matches(filterInvocation.getRequest())) {
                 return true;
@@ -266,7 +264,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     }
 
     private void addSecurityConfig(FilterInvocation filterInvocation, List<String> requiredActions,
-                      String url, DisplayableValue<String>[] actions) {
+            String url, DisplayableValue<String>[] actions) {
 
         AntPathRequestMatcher matcher = new AntPathRequestMatcher(url);
         if (!matcher.matches(filterInvocation.getRequest()) || actions == null) {

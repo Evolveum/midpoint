@@ -25,7 +25,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -127,8 +126,7 @@ class PathExpressionResolver {
         }
 
         if (root.getValue() instanceof ObjectReferenceType) {
-            //noinspection unchecked
-            root = resolveReference((TypedValue<ObjectReferenceType>) root, objectResolver, topVarDesc, shortDesc, task, result);
+            root = resolveReference(root, objectResolver, null, topVarDesc, shortDesc, task, result);
         }
 
         String lastPathSegmentName = relativePath.lastName().getLocalPart();

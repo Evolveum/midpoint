@@ -1,29 +1,27 @@
 /*
- * Copyright (c) 2018 Evolveum and contributors
+ * Copyright (C) 2018-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.boot;
 
-import com.evolveum.midpoint.model.common.SystemObjectCache;
+import java.io.File;
 
+import org.apache.catalina.Context;
 import org.apache.catalina.Engine;
 import org.apache.catalina.Valve;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.connector.Response;
 import org.apache.catalina.startup.Tomcat;
+import org.apache.catalina.webresources.ExtractingRoot;
 import org.apache.coyote.ajp.AbstractAjpProtocol;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.embedded.tomcat.TomcatWebServer;
-
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
 import org.springframework.boot.web.server.WebServer;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 
-import java.io.File;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 
 /**
  * Custom tomcat factory that used to hack embedded Tomcat setup.
@@ -33,19 +31,17 @@ import java.io.File;
  */
 public class MidPointTomcatServletWebServerFactory extends TomcatServletWebServerFactory {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MidPointTomcatServletWebServerFactory.class);
-
     private File baseDirectory;
 
     private String protocol = DEFAULT_PROTOCOL;
 
     private int backgroundProcessorDelay;
 
-    private String contextPath;
+    private final String contextPath;
 
-    private SystemObjectCache systemObjectCache;
+    private final SystemObjectCache systemObjectCache;
 
-    public MidPointTomcatServletWebServerFactory(String contextPath, SystemObjectCache systemObjectCache){
+    public MidPointTomcatServletWebServerFactory(String contextPath, SystemObjectCache systemObjectCache) {
         this.contextPath = contextPath;
         this.systemObjectCache = systemObjectCache;
     }
@@ -88,7 +84,7 @@ public class MidPointTomcatServletWebServerFactory extends TomcatServletWebServe
         Tomcat tomcat = new Tomcat();
         File baseDir = (this.baseDirectory != null) ? this.baseDirectory : createTempDir("tomcat");
         tomcat.setBaseDir(baseDir.getAbsolutePath());
-        Connector connector = new Connector(this.protocol){
+        Connector connector = new Connector(this.protocol) {
             @Override
             public Response createResponse() {
                 if (protocolHandler instanceof AbstractAjpProtocol<?>) {
@@ -119,4 +115,8 @@ public class MidPointTomcatServletWebServerFactory extends TomcatServletWebServe
         }
     }
 
+    @Override
+    protected void postProcessContext(Context context) {
+        context.setResources(new ExtractingRoot());
+    }
 }

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -56,8 +57,8 @@ public class ObjectTypeUtil {
     /**
      * Never returns null. Returns empty collection instead.
      */
-    public static <T> Collection<T> getExtensionPropertyValuesNotNull(ObjectType objectType, QName propertyQname) {
-        Collection<T> values = getExtensionPropertyValues(objectType, propertyQname);
+    public static <T> Collection<T> getExtensionPropertyValuesNotNull(Containerable containerable, QName propertyQname) {
+        Collection<T> values = getExtensionPropertyValues(containerable, propertyQname);
         if (values == null) {
             return new ArrayList<>(0);
         } else {
@@ -65,9 +66,10 @@ public class ObjectTypeUtil {
         }
     }
 
-    public static <T> Collection<T> getExtensionPropertyValues(ObjectType objectType, QName propertyQname) {
-        PrismObject<? extends ObjectType> object = objectType.asPrismObject();
-        PrismContainer<Containerable> extensionContainer = object.findContainer(ObjectType.F_EXTENSION);
+    public static <T> Collection<T> getExtensionPropertyValues(Containerable containerable, QName propertyQname) {
+        PrismContainerValue pcv = containerable.asPrismContainerValue();
+        //noinspection unchecked
+        PrismContainer<Containerable> extensionContainer = pcv.findContainer(ObjectType.F_EXTENSION);
         if (extensionContainer == null) {
             return null;
         }
@@ -194,11 +196,7 @@ public class ObjectTypeUtil {
 
     public static String getShortTypeName(Class<? extends ObjectType> type) {
         ObjectTypes objectTypeType = ObjectTypes.getObjectType(type);
-        if (objectTypeType != null) {
-            return objectTypeType.getElementName().getLocalPart();
-        } else {
-            return type.getSimpleName();
-        }
+        return objectTypeType.getElementName().getLocalPart();
     }
 
     @NotNull
@@ -280,6 +278,28 @@ public class ObjectTypeUtil {
             return null;
         }
         return createObjectRef(object, prismContext.getDefaultRelation());
+    }
+
+    /**
+     * Creates a very basic (OID-only) reference for a given object. Useful e.g. to create references
+     * to be used in search filters.
+     */
+    @Experimental
+    public static ObjectReferenceType createOidOnlyObjectRef(ObjectType object) {
+        return createObjectRef(object != null ? object.getOid() : null);
+    }
+
+    /**
+     * @return OID-only object ref. Useful for search filters.
+     */
+    public static ObjectReferenceType createObjectRef(String oid) {
+        if (oid == null) {
+            return null;
+        } else {
+            ObjectReferenceType ref = new ObjectReferenceType();
+            ref.setOid(oid);
+            return ref;
+        }
     }
 
     public static ObjectReferenceType createObjectRef(ObjectType objectType, QName relation) {
@@ -943,5 +963,11 @@ public class ObjectTypeUtil {
             refinedValues.forEach(property::addRealValue);
             extension.addReplaceExisting(property);
         }
+    }
+
+    public static List<String> getOids(List<? extends Objectable> objectables) {
+        return objectables.stream()
+                .map(Objectable::getOid)
+                .collect(Collectors.toList());
     }
 }

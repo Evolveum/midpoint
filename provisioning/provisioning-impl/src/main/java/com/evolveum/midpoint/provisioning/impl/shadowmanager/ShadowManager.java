@@ -10,6 +10,7 @@ package com.evolveum.midpoint.provisioning.impl.shadowmanager;
 import java.util.*;
 import java.util.Objects;
 
+import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -17,6 +18,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ConstraintsChecker;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
@@ -778,9 +780,9 @@ public class ShadowManager {
 
         if (repoShadow == null) {
             parentResult
-                    .recordFatalError("Error while creating account shadow object to save in the reposiotory. Shadow is null.");
+                    .recordFatalError("Error while creating account shadow object to save in the repository. Shadow is null.");
             throw new IllegalStateException(
-                    "Error while creating account shadow object to save in the reposiotory. Shadow is null.");
+                    "Error while creating account shadow object to save in the repository. Shadow is null.");
         }
 
         if (!opState.isCompleted()) {
@@ -952,6 +954,18 @@ public class ShadowManager {
         if (delta.isAdd()) {
             // This means we have failed add operation here. We tried to add object,
             // but we have failed. Which means that this shadow is now dead.
+
+            Duration deadRetentionPeriod = ProvisioningUtil.getDeadShadowRetentionPeriod(ctx);
+            if (XmlTypeConverter.isZero(deadRetentionPeriod)) {
+                // Do not bother with marking the shadow as dead. It should be gone immediately.
+                // Deleting it now saves one modify operation.
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Deleting repository shadow (after error handling)\n{}", DebugUtil.debugDump(shadowChanges, 1));
+                }
+                repositoryService.deleteObject(ShadowType.class, opState.getRepoShadow().getOid(), parentResult);
+                return;
+            }
+
             shadowChanges.addAll(
                 prismContext.deltaFor(ShadowType.class)
                     .item(ShadowType.F_DEAD).replace(true)
@@ -1187,8 +1201,16 @@ public class ShadowManager {
                 Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         ResourceType resource = ctx.getResource();
         ResourceConsistencyType consistencyType = resource.getConsistency();
-        if (consistencyType == null) {
+
+        boolean isInMaintenance = ResourceTypeUtil.isInMaintenance(ctx.getResource());
+
+        Boolean avoidDuplicateOperations;
+        if (isInMaintenance) {
+            avoidDuplicateOperations = Boolean.TRUE; // in resource maintenance, always check for duplicates:
+        } else if (consistencyType == null) {
             return null;
+        } else {
+            avoidDuplicateOperations = consistencyType.isAvoidDuplicateOperations();
         }
 
         OptimisticLockingRunner<ShadowType,PendingOperationType> runner = new OptimisticLockingRunner.Builder<ShadowType,PendingOperationType>()
@@ -1203,7 +1225,6 @@ public class ShadowManager {
 
             return runner.run(
                     (object) -> {
-                        Boolean avoidDuplicateOperations = consistencyType.isAvoidDuplicateOperations();
                         if (BooleanUtils.isTrue(avoidDuplicateOperations)) {
                             PendingOperationType existingPendingOperation = findExistingPendingOperation(object, proposedDelta, true);
                             if (existingPendingOperation != null) {
@@ -1905,7 +1926,13 @@ public class ShadowManager {
     public void deleteShadow(ProvisioningContext ctx, PrismObject<ShadowType> oldRepoShadow, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         LOGGER.trace("Deleting repository {}", oldRepoShadow);
-        repositoryService.deleteObject(ShadowType.class, oldRepoShadow.getOid(), parentResult);
+        try {
+            repositoryService.deleteObject(ShadowType.class, oldRepoShadow.getOid(), parentResult);
+        } catch (ObjectNotFoundException e) {
+            // Attempt to delete shadow that is already deleted. No big deal.
+            parentResult.muteLastSubresultError();
+            LOGGER.trace("Attempt to delete repository {} that is already deleted. Ignoring error.", oldRepoShadow);
+        }
     }
 
 

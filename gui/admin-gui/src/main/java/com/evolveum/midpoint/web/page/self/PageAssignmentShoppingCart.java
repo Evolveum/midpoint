@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018 Evolveum and contributors
+ * Copyright (C) 2016-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,10 +9,9 @@ package com.evolveum.midpoint.web.page.self;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
@@ -31,28 +30,23 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionUseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleManagementConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by honchar.
  */
-@PageDescriptor(url = {"/self/assignmentShoppingCart"}, action = {
+@PageDescriptor(url = { "/self/assignmentShoppingCart" }, action = {
         @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,
                 label = PageSelf.AUTH_SELF_ALL_LABEL,
                 description = PageSelf.AUTH_SELF_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SELF_REQUESTS_ASSIGNMENTS_URL,
                 label = "PageAssignmentShoppingCart.auth.requestAssignment.label",
-                description = "PageAssignmentShoppingCart.auth.requestAssignment.description")})
-public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends PageSelf {
+                description = "PageAssignmentShoppingCart.auth.requestAssignment.description") })
+public class PageAssignmentShoppingCart extends PageSelf {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_MAIN_FORM = "mainForm";
@@ -65,7 +59,7 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
     private static final String OPERATION_LOAD_DEFAULT_VIEW_TYPE = DOT_CLASS + "loadDefaultViewType";
     private static final Trace LOGGER = TraceManager.getTrace(PageAssignmentShoppingCart.class);
 
-   private IModel<RoleManagementConfigurationType> roleManagementConfigModel;
+    private IModel<RoleManagementConfigurationType> roleManagementConfigModel;
 
     public PageAssignmentShoppingCart() {
     }
@@ -79,7 +73,7 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
 
         setOutputMarkupId(true);
 
-        Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
+        Form mainForm = new MidpointForm(ID_MAIN_FORM);
         add(mainForm);
 
         List<ITab> tabs = getTabsList();
@@ -95,52 +89,51 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
         };
         tabbedPanel.setOutputMarkupId(true);
 
-        int defaultSelectedTabIndex  = getDefaultViewTypeIndex();
-        if (getRoleCatalogStorage().getDefaultTabIndex() > 0 && getRoleCatalogStorage().getDefaultTabIndex() < tabs.size()){
+        int defaultSelectedTabIndex = getDefaultViewTypeIndex();
+        if (getRoleCatalogStorage().getDefaultTabIndex() > 0 && getRoleCatalogStorage().getDefaultTabIndex() < tabs.size()) {
             tabbedPanel.setSelectedTab(getRoleCatalogStorage().getDefaultTabIndex());
-        } else if (defaultSelectedTabIndex < tabs.size()){
+        } else if (defaultSelectedTabIndex < tabs.size()) {
             tabbedPanel.setSelectedTab(defaultSelectedTabIndex);
         }
         mainForm.add(tabbedPanel);
     }
 
-    private void initModels(){
+    private void initModels() {
         roleManagementConfigModel = new LoadableModel<RoleManagementConfigurationType>(false) {
             @Override
             protected RoleManagementConfigurationType load() {
-                    OperationResult result = new OperationResult(OPERATION_GET_ASSIGNMENT_VIEW_LIST);
-                    SystemConfigurationType config = null;
-                    try {
-                        config = getModelInteractionService().getSystemConfiguration(result);
-                    } catch (ObjectNotFoundException | SchemaException e) {
-                        LOGGER.error("Error getting system configuration: {}", e.getMessage(), e);
-                        return null;
-                    }
-                    if (config != null) {
-                        return config.getRoleManagement();
-                    }
+                OperationResult result = new OperationResult(OPERATION_GET_ASSIGNMENT_VIEW_LIST);
+                SystemConfigurationType config;
+                try {
+                    config = getModelInteractionService().getSystemConfiguration(result);
+                } catch (ObjectNotFoundException | SchemaException e) {
+                    LOGGER.error("Error getting system configuration: {}", e.getMessage(), e);
                     return null;
+                }
+                if (config != null) {
+                    return config.getRoleManagement();
+                }
+                return null;
             }
         };
-
     }
 
-    private int getDefaultViewTypeIndex(){
+    private int getDefaultViewTypeIndex() {
         RoleManagementConfigurationType roleConfig = roleManagementConfigModel.getObject();
 
-        if (roleConfig == null || roleConfig.getDefaultCollection() == null || roleConfig.getDefaultCollection().getCollectionUri() == null){
+        if (roleConfig == null || roleConfig.getDefaultCollection() == null || roleConfig.getDefaultCollection().getCollectionUri() == null) {
             return 0;
         }
         List<AssignmentViewType> viewTypes = Arrays.asList(AssignmentViewType.values());
-        for (AssignmentViewType viewType : viewTypes){
-            if (viewType.getUri().equals(roleConfig.getDefaultCollection().getCollectionUri())){
+        for (AssignmentViewType viewType : viewTypes) {
+            if (viewType.getUri().equals(roleConfig.getDefaultCollection().getCollectionUri())) {
                 return viewTypes.indexOf(viewType);
             }
         }
         return 0;
     }
 
-    private List<ITab> getTabsList(){
+    private List<ITab> getTabsList() {
         List<ITab> tabs = new ArrayList<>();
 
         String roleCatalogOid = getRoleCatalogOid();
@@ -223,27 +216,27 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
         return tabs;
     }
 
-    private VisibleEnableBehaviour getTabVisibleBehaviour(String viewType){
-        return new VisibleEnableBehaviour(){
+    private VisibleEnableBehaviour getTabVisibleBehaviour(String viewType) {
+        return new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isVisible(){
-                if (SchemaConstants.OBJECT_COLLECTION_ROLE_CATALOG_URI.equals(viewType)){
+            public boolean isVisible() {
+                if (SchemaConstants.OBJECT_COLLECTION_ROLE_CATALOG_URI.equals(viewType)) {
                     return !StringUtils.isEmpty(getRoleCatalogOid());
                 }
 
                 RoleManagementConfigurationType config = roleManagementConfigModel.getObject();
-                if (config == null || config.getRoleCatalogCollections() == null){
+                if (config == null || config.getRoleCatalogCollections() == null) {
                     return true;
                 }
 
                 List<ObjectCollectionUseType> viewsList = config.getRoleCatalogCollections().getCollection();
-                if (viewsList.isEmpty()){
+                if (viewsList.isEmpty()) {
                     return true;
                 }
-                for (ObjectCollectionUseType view : viewsList){
-                    if (viewType.equals(view.getCollectionUri())){
+                for (ObjectCollectionUseType view : viewsList) {
+                    if (viewType.equals(view.getCollectionUri())) {
                         return true;
                     }
                 }
@@ -252,17 +245,12 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
         };
     }
 
-    private TabbedPanel getTabbedPanel(){
-        return (TabbedPanel) get(createComponentPath(ID_MAIN_FORM, ID_VIEWS_TAB_PANEL));
-    }
-
-    private RoleCatalogStorage getRoleCatalogStorage(){
+    private RoleCatalogStorage getRoleCatalogStorage() {
         return getSessionStorage().getRoleCatalog();
     }
 
-    private String getRoleCatalogOid(){
+    private String getRoleCatalogOid() {
         RoleManagementConfigurationType config = roleManagementConfigModel.getObject();
         return config == null || config.getRoleCatalogRef() == null ? null : config.getRoleCatalogRef().getOid();
     }
-
 }

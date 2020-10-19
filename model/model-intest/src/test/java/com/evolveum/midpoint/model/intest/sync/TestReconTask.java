@@ -46,7 +46,7 @@ public class TestReconTask extends AbstractSynchronizationStoryTest {
 
     @Override
     protected String getExpectedChannel() {
-        return SchemaConstants.CHANGE_CHANNEL_RECON_URI;
+        return SchemaConstants.CHANNEL_RECON_URI;
     }
 
     @Override

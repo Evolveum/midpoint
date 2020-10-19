@@ -22,6 +22,7 @@ import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeMainPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -344,7 +345,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
     }
 
 
-    public <AH extends FocusType> PrismObject<AH> getFocusObject(){
+    public <AH extends AssignmentHolderType> PrismObject<AH> getFocusObject(){
         AssignmentHolderTypeMainPanel mainPanel = findParent(AssignmentHolderTypeMainPanel.class);
         if (mainPanel != null) {
             return mainPanel.getObjectWrapper().getObject();

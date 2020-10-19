@@ -13,9 +13,7 @@ import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentTargetImpl;
-import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.PruningOperation;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators.*;
@@ -28,11 +26,9 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -45,7 +41,6 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -81,11 +76,10 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
     @Autowired private ObjectModificationConstraintEvaluator modificationConstraintEvaluator;
     @Autowired private StateConstraintEvaluator stateConstraintEvaluator;
     @Autowired private AlwaysTrueConstraintEvaluator alwaysTrueConstraintEvaluator;
+    @Autowired private OrphanedConstraintEvaluator orphanedConstraintEvaluator;
     @Autowired private CompositeConstraintEvaluator compositeConstraintEvaluator;
     @Autowired private TransitionConstraintEvaluator transitionConstraintEvaluator;
     @Autowired private ExpressionFactory expressionFactory;
-
-    private static final QName CONDITION_OUTPUT_NAME = new QName(SchemaConstants.NS_C, "condition");
 
     //region ------------------------------------------------------------------ Assignment policy rules
     /**
@@ -98,22 +92,10 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
     public <F extends AssignmentHolderType> void evaluateAssignmentPolicyRules(LensContext<F> context,
             DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
             Task task, OperationResult result)
-            throws PolicyViolationException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         for (EvaluatedAssignmentImpl<F> evaluatedAssignment : evaluatedAssignmentTriple.union()) {
             RulesEvaluationContext globalCtx = new RulesEvaluationContext();
-
-            /*
-             * We need to determine if the assignment is being added, deleted or simply modified. This is mainly
-             * to decide with regard of "operation" qualifier on Assignment modification constraint.
-             *
-             * The code below should be relatively OK, even when regarding waves greater than zero.
-             * The only thing to reconsider is what if the assignment is being replaced?
-             */
-            AssignmentOrigin origin = evaluatedAssignment.getOrigin();
-            boolean inPlus = origin.isBeingAdded();
-            boolean inMinus = origin.isBeingDeleted();
-            boolean inZero = origin.isBeingKept();
 
             resolveReferences(evaluatedAssignment.getAllTargetsPolicyRules(), getAllGlobalRules(context));
 
@@ -129,7 +111,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
                 if (!hasSituationConstraint(policyRule)) {
                     if (checkApplicabilityToAssignment(policyRule)) {
                         evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
-                                evaluatedAssignment, inPlus, inZero, inMinus, true, context,
+                                evaluatedAssignment, true, context,
                                 evaluatedAssignmentTriple, task, globalCtx), result);
                     }
                 }
@@ -138,7 +120,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
                 if (!hasSituationConstraint(policyRule)) {
                     if (checkApplicabilityToAssignment(policyRule)) {
                         evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
-                                evaluatedAssignment, inPlus, inZero, inMinus, false, context,
+                                evaluatedAssignment, false, context,
                                 evaluatedAssignmentTriple, task, globalCtx), result);
                     }
                 }
@@ -147,7 +129,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
                 if (hasSituationConstraint(policyRule)) {
                     if (checkApplicabilityToAssignment(policyRule)) {
                         evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
-                                evaluatedAssignment, inPlus, inZero, inMinus, true, context,
+                                evaluatedAssignment, true, context,
                                 evaluatedAssignmentTriple, task, globalCtx), result);
                     }
                 }
@@ -156,13 +138,13 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
                 if (hasSituationConstraint(policyRule)) {
                     if (checkApplicabilityToAssignment(policyRule)) {
                         evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
-                                evaluatedAssignment, inPlus, inZero, inMinus, false, context,
+                                evaluatedAssignment, false, context,
                                 evaluatedAssignmentTriple, task, globalCtx), result);
                     }
                 }
             }
             // a bit of hack, but hopefully it will work
-            PlusMinusZero mode = inMinus ? PlusMinusZero.MINUS : evaluatedAssignment.getMode();
+            PlusMinusZero mode = evaluatedAssignment.getOrigin().isBeingDeleted() ? PlusMinusZero.MINUS : evaluatedAssignment.getMode();
             policyStateRecorder.applyAssignmentState(context, evaluatedAssignment, mode, globalCtx.rulesToRecord);
         }
 
@@ -177,8 +159,8 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
         }
     }
 
-    private void resolveReferences(Collection<? extends EvaluatedPolicyRule> evaluatedRules, Collection<? extends PolicyRuleType> otherRules)
-            throws SchemaException, ObjectNotFoundException {
+    private void resolveReferences(Collection<? extends EvaluatedPolicyRule> evaluatedRules,
+            Collection<? extends PolicyRuleType> otherRules) {
         List<PolicyRuleType> rules = evaluatedRules.stream().map(EvaluatedPolicyRule::getPolicyRule).collect(Collectors.toList());
         PolicyRuleTypeUtil.resolveReferences(rules, otherRules, prismContext);
     }
@@ -241,8 +223,8 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
     //region ------------------------------------------------------------------ Focus policy rules
     @ProcessorMethod
     public <AH extends AssignmentHolderType> void evaluateObjectPolicyRules(LensContext<AH> context,
-            XMLGregorianCalendar now, Task task, OperationResult result)
-            throws PolicyViolationException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
+            @SuppressWarnings("unused") XMLGregorianCalendar now, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
         RulesEvaluationContext globalCtx = new RulesEvaluationContext();
 
         List<EvaluatedPolicyRuleImpl> rules = new ArrayList<>();
@@ -300,7 +282,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
 
     private <AH extends AssignmentHolderType> void collectGlobalObjectRules(List<EvaluatedPolicyRuleImpl> rules, LensContext<AH> context,
             Task task, OperationResult result)
-            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
         PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
         if (systemConfiguration == null) {
             return;
@@ -503,6 +485,8 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             return transitionConstraintEvaluator;
         } else if (constraint.getValue() instanceof AlwaysTruePolicyConstraintType) {
             return alwaysTrueConstraintEvaluator;
+        } else if (constraint.getValue() instanceof OrphanedPolicyConstraintType) {
+            return orphanedConstraintEvaluator;
         } else {
             throw new IllegalArgumentException("Unknown policy constraint: " + constraint.getName() + "/" + constraint.getValue().getClass());
         }
@@ -584,8 +568,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
                 .mappingKind(MappingKindType.POLICY_RULE_CONDITION)
                 .contextDescription("condition in global policy rule " + globalPolicyRule.getName())
                 .sourceContext(focusOdo)
-                .defaultTargetDefinition(
-                        prismContext.definitionFactory().createPropertyDefinition(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN))
+                .defaultTargetDefinition(LensUtil.createConditionDefinition(prismContext))
                 .addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
                 .addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
                 .addAliasRegistration(ExpressionConstants.VAR_USER, null)

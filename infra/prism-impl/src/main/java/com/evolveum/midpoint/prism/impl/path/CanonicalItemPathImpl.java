@@ -7,7 +7,15 @@
 
 package com.evolveum.midpoint.prism.impl.path;
 
-import com.evolveum.midpoint.prism.Containerable;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -15,14 +23,6 @@ import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.QNameUtil;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * @author katkav
@@ -36,7 +36,7 @@ public class CanonicalItemPathImpl implements CanonicalItemPath {
             new ImmutablePair<>("http://midpoint.evolveum.com/xml/ns/public", "public"),
             new ImmutablePair<>("http://midpoint.evolveum.com/xml/ns", "midpoint"),
             new ImmutablePair<>("http://prism.evolveum.com/xml/ns", "prism")
-            );
+    );
 
     private static final String SHORTCUT_MARKER_START = "${";
     private static final String SHORTCUT_MARKER_END = "}";
@@ -46,17 +46,21 @@ public class CanonicalItemPathImpl implements CanonicalItemPath {
         private final QName name;
         private final Integer index;        // N means this is Nth unique non-empty namespace in the path (starting from 0)
         private final Integer shortcut;        // K means this namespace is the same as the one with index=K (null if 1st occurrence)
+
         private Segment(QName name, Integer index, Integer shortcut) {
             this.name = name;
             this.index = index;
             this.shortcut = shortcut;
         }
+
         public QName getName() {
             return name;
         }
+
         public Integer getIndex() {
             return index;
         }
+
         public Integer getShortcut() {
             return shortcut;
         }
@@ -64,29 +68,31 @@ public class CanonicalItemPathImpl implements CanonicalItemPath {
 
     private final List<Segment> segments = new ArrayList<>();
 
-    public static CanonicalItemPathImpl create(ItemPath itemPath, Class<? extends Containerable> clazz, PrismContext prismContext) {
-        return new CanonicalItemPathImpl(itemPath, clazz, prismContext);
+    public static CanonicalItemPathImpl create(ItemPath itemPath, QName objectType, PrismContext prismContext) {
+        ItemDefinition<?> def = objectType != null && prismContext != null
+                ? prismContext.getSchemaRegistry().findContainerDefinitionByType(objectType)
+                : null;
+        return new CanonicalItemPathImpl(itemPath, def);
     }
 
     public static CanonicalItemPath create(ItemPath itemPath) {
-        return new CanonicalItemPathImpl(itemPath, null, null);
+        return new CanonicalItemPathImpl(itemPath, null);
     }
 
     private CanonicalItemPathImpl(List<Segment> segments) {
         this.segments.addAll(segments);
     }
 
-    public CanonicalItemPathImpl(ItemPath path, Class<? extends Containerable> clazz, PrismContext prismContext) {
-        ItemDefinition def = clazz != null && prismContext != null ?
-                prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(clazz) : null;
+    public CanonicalItemPathImpl(ItemPath path, ItemDefinition<?> itemDefinition) {
         while (!ItemPath.isEmpty(path)) {
             Object first = path.first();
             if (ItemPath.isName(first)) {
                 ItemName name = ItemPath.toName(first);
-                if (def instanceof PrismContainerDefinition) {
-                    def = ((PrismContainerDefinition) def).findItemDefinition(name);
-                    if (def != null && !QNameUtil.hasNamespace(name)) {
-                        name = def.getItemName();
+                if (itemDefinition instanceof PrismContainerDefinition) {
+                    itemDefinition = ((PrismContainerDefinition<?>) itemDefinition)
+                            .findItemDefinition(name);
+                    if (itemDefinition != null && !QNameUtil.hasNamespace(name)) {
+                        name = itemDefinition.getItemName();
                     }
                 }
                 addToSegments(name);
@@ -129,8 +135,8 @@ public class CanonicalItemPathImpl implements CanonicalItemPath {
     }
 
     public CanonicalItemPathImpl allUpToIncluding(int n) {
-        if (n+1 < segments.size()) {
-            return new CanonicalItemPathImpl(segments.subList(0, n+1));
+        if (n + 1 < segments.size()) {
+            return new CanonicalItemPathImpl(segments.subList(0, n + 1));
         } else {
             return new CanonicalItemPathImpl(segments);
         }

@@ -13,11 +13,12 @@
     <test name="LDAP" preserve-order="true" parallel="false" verbose="10" enabled="true">
         <classes>
 
-            <class name="com.evolveum.midpoint.testing.conntest.TestOpenDj"/>
-            <class name="com.evolveum.midpoint.testing.conntest.TestOpenDjUnsafe"/>
-            <class name="com.evolveum.midpoint.testing.conntest.TestOpenDjDumber"/>
+            <class name="com.evolveum.midpoint.testing.conntest.opendj.TestOpenDj"/>
+            <class name="com.evolveum.midpoint.testing.conntest.opendj.TestOpenDjUnsafe"/>
+            <class name="com.evolveum.midpoint.testing.conntest.opendj.TestOpenDjDumber"/>
 
             <class name="com.evolveum.midpoint.testing.conntest.ad.TestAdLdapAd2012"/>
+            <class name="com.evolveum.midpoint.testing.conntest.ad.TestAdLdapAd2012Strange"/>
 
             <!-- Tests that need some love. Those are failing now, but they are worth saving.
             <class name="com.evolveum.midpoint.testing.conntest.TestOpenLdap"/>

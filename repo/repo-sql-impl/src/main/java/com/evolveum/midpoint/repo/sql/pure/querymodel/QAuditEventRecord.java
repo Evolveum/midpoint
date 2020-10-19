@@ -36,58 +36,58 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
     public static final ColumnMetadata ID =
             ColumnMetadata.named("id").ofType(Types.BIGINT).withSize(19).notNull();
     public static final ColumnMetadata ATTORNEY_NAME =
-            ColumnMetadata.named("attorneyName").ofType(Types.NVARCHAR).withSize(255);
+            ColumnMetadata.named("attorneyName").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata ATTORNEY_OID =
-            ColumnMetadata.named("attorneyOid").ofType(Types.NVARCHAR).withSize(36);
+            ColumnMetadata.named("attorneyOid").ofType(Types.VARCHAR).withSize(36);
     public static final ColumnMetadata CHANNEL =
-            ColumnMetadata.named("channel").ofType(Types.NVARCHAR).withSize(255);
+            ColumnMetadata.named("channel").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata EVENT_IDENTIFIER =
-            ColumnMetadata.named("eventIdentifier").ofType(Types.NVARCHAR).withSize(255);
+            ColumnMetadata.named("eventIdentifier").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata EVENT_STAGE =
             ColumnMetadata.named("eventStage").ofType(Types.INTEGER).withSize(10);
     public static final ColumnMetadata EVENT_TYPE =
             ColumnMetadata.named("eventType").ofType(Types.INTEGER).withSize(10);
     public static final ColumnMetadata HOST_IDENTIFIER =
-            ColumnMetadata.named("hostIdentifier").ofType(Types.NVARCHAR).withSize(255);
+            ColumnMetadata.named("hostIdentifier").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata INITIATOR_NAME =
-            ColumnMetadata.named("initiatorName").ofType(Types.NVARCHAR).withSize(255);
+            ColumnMetadata.named("initiatorName").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata INITIATOR_OID =
-            ColumnMetadata.named("initiatorOid").ofType(Types.NVARCHAR).withSize(36);
+            ColumnMetadata.named("initiatorOid").ofType(Types.VARCHAR).withSize(36);
     public static final ColumnMetadata INITIATOR_TYPE =
             ColumnMetadata.named("initiatorType").ofType(Types.INTEGER).withSize(10);
     public static final ColumnMetadata MESSAGE =
-            ColumnMetadata.named("message").ofType(Types.NVARCHAR)
+            ColumnMetadata.named("message").ofType(Types.VARCHAR)
                     .withSize(AuditService.MAX_MESSAGE_SIZE);
     public static final ColumnMetadata NODE_IDENTIFIER =
-            ColumnMetadata.named("nodeIdentifier").ofType(Types.NVARCHAR).withSize(255);
+            ColumnMetadata.named("nodeIdentifier").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata OUTCOME =
             ColumnMetadata.named("outcome").ofType(Types.INTEGER).withSize(10);
     public static final ColumnMetadata PARAMETER =
-            ColumnMetadata.named("parameter").ofType(Types.NVARCHAR).withSize(255);
+            ColumnMetadata.named("parameter").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata REMOTE_HOST_ADDRESS =
-            ColumnMetadata.named("remoteHostAddress").ofType(Types.NVARCHAR).withSize(255);
+            ColumnMetadata.named("remoteHostAddress").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata REQUEST_IDENTIFIER =
-            ColumnMetadata.named("requestIdentifier").ofType(Types.NVARCHAR).withSize(255);
+            ColumnMetadata.named("requestIdentifier").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata RESULT =
-            ColumnMetadata.named("result").ofType(Types.NVARCHAR).withSize(255);
+            ColumnMetadata.named("result").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata SESSION_IDENTIFIER =
-            ColumnMetadata.named("sessionIdentifier").ofType(Types.NVARCHAR).withSize(255);
+            ColumnMetadata.named("sessionIdentifier").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata TARGET_NAME =
-            ColumnMetadata.named("targetName").ofType(Types.NVARCHAR).withSize(255);
+            ColumnMetadata.named("targetName").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata TARGET_OID =
-            ColumnMetadata.named("targetOid").ofType(Types.NVARCHAR).withSize(36);
+            ColumnMetadata.named("targetOid").ofType(Types.VARCHAR).withSize(36);
     public static final ColumnMetadata TARGET_TYPE =
             ColumnMetadata.named("targetType").ofType(Types.INTEGER).withSize(10);
     public static final ColumnMetadata TARGET_OWNER_NAME =
-            ColumnMetadata.named("targetOwnerName").ofType(Types.NVARCHAR).withSize(255);
+            ColumnMetadata.named("targetOwnerName").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata TARGET_OWNER_OID =
-            ColumnMetadata.named("targetOwnerOid").ofType(Types.NVARCHAR).withSize(36);
+            ColumnMetadata.named("targetOwnerOid").ofType(Types.VARCHAR).withSize(36);
     public static final ColumnMetadata TARGET_OWNER_TYPE =
             ColumnMetadata.named("targetOwnerType").ofType(Types.INTEGER).withSize(10);
     public static final ColumnMetadata TASK_IDENTIFIER =
-            ColumnMetadata.named("taskIdentifier").ofType(Types.NVARCHAR).withSize(255);
+            ColumnMetadata.named("taskIdentifier").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata TASK_OID =
-            ColumnMetadata.named("taskOID").ofType(Types.NVARCHAR).withSize(255);
+            ColumnMetadata.named("taskOID").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata TIMESTAMP =
             ColumnMetadata.named("timestampValue").ofType(Types.TIMESTAMP).withSize(23).withDigits(10);
 

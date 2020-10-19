@@ -131,9 +131,19 @@ public class QueryInterpreter {
         hibernateQuery.addProjectionElementsFor(resultStyle.getIdentifiers(rootAlias));
         if (distinct && !distinctBlobCapable) {
             String subqueryText = "\n" + hibernateQuery.getAsHqlText(2, true);
-            InterpretationContext wrapperContext = new InterpretationContext(this, type, prismContext, relationRegistry,
-                    extItemDictionary, session);
-            interpretPagingAndSorting(wrapperContext, query, false);
+            InterpretationContext wrapperContext = new InterpretationContext(
+                    this, type, prismContext, relationRegistry, extItemDictionary, session);
+            try {
+                interpretPagingAndSorting(wrapperContext, query, false);
+            } catch (QueryException e) {
+                // This fixes cases like MID-6561 and brings in needed joins and wheres
+                // to the outer query, but we don't want to burden all queries with it.
+                LOGGER.debug("Potentially recoverable '{}'.\n"
+                                + "Trying once more after wrapper context interprets the query.",
+                        e.toString());
+                interpretQueryFilter(wrapperContext, query);
+                interpretPagingAndSorting(wrapperContext, query, false);
+            }
             RootHibernateQuery wrapperQuery = wrapperContext.getHibernateQuery();
             if (repoConfiguration.isUsingSQLServer() && resultStyle.getIdentifiers("").size() > 1) {
                 // using 'where exists' clause
@@ -246,7 +256,7 @@ public class QueryInterpreter {
         } else if (filter instanceof ExistsFilter) {
             ExistsFilter existsFilter = (ExistsFilter) filter;
             ItemPath path = existsFilter.getFullPath();
-            ItemDefinition definition = existsFilter.getDefinition();
+            ItemDefinition<?> definition = existsFilter.getDefinition();
             ProperDataSearchResult<?> searchResult = resolver.findProperDataDefinition(
                     baseEntityDefinition, path, definition, JpaDataNodeDefinition.class, context.getPrismContext());
             if (searchResult == null) {
@@ -256,7 +266,7 @@ public class QueryInterpreter {
         } else if (filter instanceof RefFilter) {
             RefFilter refFilter = (RefFilter) filter;
             ItemPath path = refFilter.getFullPath();
-            ItemDefinition definition = refFilter.getDefinition();
+            ItemDefinition<?> definition = refFilter.getDefinition();
             ProperDataSearchResult searchResult = resolver.findProperDataDefinition(
                     baseEntityDefinition, path, definition, JpaReferenceDefinition.class, context.getPrismContext());
             if (searchResult == null) {

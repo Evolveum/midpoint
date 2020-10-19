@@ -1,73 +1,77 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.impl;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.crypto.*;
-import com.evolveum.midpoint.prism.delta.DeltaFactory;
-import com.evolveum.midpoint.prism.impl.delta.DeltaFactoryImpl;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.impl.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
-import com.evolveum.midpoint.prism.impl.crypto.KeyStoreBasedProtectorImpl;
-import com.evolveum.midpoint.prism.impl.marshaller.*;
-import com.evolveum.midpoint.prism.impl.path.CanonicalItemPathImpl;
-import com.evolveum.midpoint.prism.impl.schema.SchemaDefinitionFactory;
-import com.evolveum.midpoint.prism.impl.schema.SchemaFactoryImpl;
-import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
-import com.evolveum.midpoint.prism.marshaller.*;
-import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
-import com.evolveum.midpoint.prism.impl.lex.LexicalProcessorRegistry;
-import com.evolveum.midpoint.prism.impl.lex.dom.DomLexicalProcessor;
-import com.evolveum.midpoint.prism.metadata.ValueMetadataFactory;
-import com.evolveum.midpoint.prism.path.*;
-import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
-import com.evolveum.midpoint.prism.impl.polystring.AlphanumericPolyStringNormalizer;
-import com.evolveum.midpoint.prism.impl.polystring.ConfigurableNormalizer;
-import com.evolveum.midpoint.prism.query.QueryFactory;
-import com.evolveum.midpoint.prism.impl.query.QueryFactoryImpl;
-import com.evolveum.midpoint.prism.query.QueryConverter;
-import com.evolveum.midpoint.prism.impl.query.builder.QueryBuilder;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
-import com.evolveum.midpoint.prism.schema.*;
-import com.evolveum.midpoint.prism.util.PrismMonitor;
-import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.impl.xnode.RootXNodeImpl;
-import com.evolveum.midpoint.prism.xnode.XNodeFactory;
-import com.evolveum.midpoint.prism.impl.xnode.XNodeFactoryImpl;
-import com.evolveum.midpoint.prism.xnode.XNodeMutator;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtector;
+import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorBuilder;
+import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.impl.crypto.KeyStoreBasedProtectorImpl;
+import com.evolveum.midpoint.prism.impl.delta.DeltaFactoryImpl;
+import com.evolveum.midpoint.prism.impl.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
+import com.evolveum.midpoint.prism.impl.lex.LexicalProcessorRegistry;
+import com.evolveum.midpoint.prism.impl.lex.dom.DomLexicalProcessor;
+import com.evolveum.midpoint.prism.impl.marshaller.*;
+import com.evolveum.midpoint.prism.impl.path.CanonicalItemPathImpl;
+import com.evolveum.midpoint.prism.impl.polystring.AlphanumericPolyStringNormalizer;
+import com.evolveum.midpoint.prism.impl.polystring.ConfigurableNormalizer;
+import com.evolveum.midpoint.prism.impl.query.QueryFactoryImpl;
+import com.evolveum.midpoint.prism.impl.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.impl.schema.SchemaDefinitionFactory;
+import com.evolveum.midpoint.prism.impl.schema.SchemaFactoryImpl;
+import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
+import com.evolveum.midpoint.prism.impl.xnode.RootXNodeImpl;
+import com.evolveum.midpoint.prism.impl.xnode.XNodeFactoryImpl;
+import com.evolveum.midpoint.prism.marshaller.JaxbDomHack;
+import com.evolveum.midpoint.prism.marshaller.ParsingMigrator;
+import com.evolveum.midpoint.prism.metadata.ValueMetadataFactory;
+import com.evolveum.midpoint.prism.path.CanonicalItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
+import com.evolveum.midpoint.prism.query.QueryConverter;
+import com.evolveum.midpoint.prism.query.QueryFactory;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.prism.schema.SchemaFactory;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.PrismMonitor;
+import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.XNodeFactory;
+import com.evolveum.midpoint.prism.xnode.XNodeMutator;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
 
 /**
  * @author semancik
- *
  */
 public final class PrismContextImpl implements PrismContext {
-
-    private static final Trace LOGGER = TraceManager.getTrace(PrismContextImpl.class);
 
     private static boolean allowSchemalessSerialization = true;
     private static boolean extraValidation = false;                                        // TODO replace by something serious
@@ -89,8 +93,8 @@ public final class PrismContextImpl implements PrismContext {
     @NotNull private final ItemPathParser itemPathParser;
     @NotNull private final SchemaFactory schemaFactory;
 
-    @Experimental
-    private ValueMetadataFactory valueMetadataFactory;
+    @Experimental private ValueMetadataFactory valueMetadataFactory;
+    @Experimental private EquivalenceStrategy provenanceEquivalenceStrategy;
 
     private ParsingMigrator parsingMigrator;
     private PrismMonitor monitor = null;
@@ -105,6 +109,12 @@ public final class PrismContextImpl implements PrismContext {
     private QName defaultRelation;
 
     private QName objectsElementName;
+
+    /**
+     * Name of the generic type for object/container extension (e.g. c:ExtensionType).
+     */
+    @Experimental
+    private QName extensionContainerTypeName;
 
     // ugly hack
     private QName defaultReferenceTypeName;
@@ -171,14 +181,22 @@ public final class PrismContextImpl implements PrismContext {
             Class<?> normalizerClass;
             try {
                 normalizerClass = Class.forName(fullClassName);
+                Constructor<?> constructor = normalizerClass.getConstructor();
+                defaultPolyStringNormalizer = (PolyStringNormalizer) constructor.newInstance();
             } catch (ClassNotFoundException e) {
-                throw new ClassNotFoundException("Cannot find class "+fullClassName+": "+e.getMessage(), e);
+                throw new ClassNotFoundException("Cannot find class " + fullClassName + ": "
+                        + e.getMessage(), e);
+            } catch (NoSuchMethodException e) {
+                throw new ClassNotFoundException("Cannot find default constructor in "
+                        + fullClassName + ": " + e.getMessage(), e);
+            } catch (InvocationTargetException e) {
+                throw new ClassNotFoundException("Cannot create instance of "
+                        + fullClassName + ": " + e.getMessage(), e);
             }
-            defaultPolyStringNormalizer = (PolyStringNormalizer) normalizerClass.newInstance();
         }
 
         if (defaultPolyStringNormalizer instanceof ConfigurableNormalizer) {
-            ((ConfigurableNormalizer)defaultPolyStringNormalizer).configure(configuration);
+            ((ConfigurableNormalizer) defaultPolyStringNormalizer).configure(configuration);
         }
     }
 
@@ -273,7 +291,7 @@ public final class PrismContextImpl implements PrismContext {
     private LexicalProcessor getParserNotNull(String language) {
         LexicalProcessor lexicalProcessor = getParser(language);
         if (lexicalProcessor == null) {
-            throw new SystemException("No parser for language '"+language+"'");
+            throw new SystemException("No parser for language '" + language + "'");
         }
         return lexicalProcessor;
     }
@@ -330,6 +348,16 @@ public final class PrismContextImpl implements PrismContext {
         this.defaultReferenceTypeName = defaultReferenceTypeName;
     }
 
+    @Override
+    public QName getExtensionContainerTypeName() {
+        return extensionContainerTypeName;
+    }
+
+    @Override
+    public void setExtensionContainerTypeName(QName typeName) {
+        this.extensionContainerTypeName = typeName;
+    }
+
     //endregion
 
     //region Parsing
@@ -381,6 +409,7 @@ public final class PrismContextImpl implements PrismContext {
     //endregion
 
     //region adopt(...) methods
+
     /**
      * Set up the specified object with prism context instance and schema definition.
      */
@@ -430,7 +459,7 @@ public final class PrismContextImpl implements PrismContext {
     }
 
     @Override
-    public <C extends Containerable, O extends Objectable> void adopt(PrismContainerValue<C> prismContainerValue, QName typeName,
+    public <C extends Containerable> void adopt(PrismContainerValue<C> prismContainerValue, QName typeName,
             ItemPath path) throws SchemaException {
         prismContainerValue.revive(this);
         getSchemaRegistry().applyDefinition(prismContainerValue, typeName, path, false);
@@ -605,13 +634,13 @@ public final class PrismContextImpl implements PrismContext {
     }
 
     @Override
-    public CanonicalItemPath createCanonicalItemPath(ItemPath itemPath, Class<? extends Containerable> clazz) {
-        return new CanonicalItemPathImpl(itemPath, clazz, this);
+    public CanonicalItemPath createCanonicalItemPath(ItemPath itemPath, QName objectType) {
+        return CanonicalItemPathImpl.create(itemPath, objectType, this);
     }
 
     @Override
     public CanonicalItemPath createCanonicalItemPath(ItemPath itemPath) {
-        return new CanonicalItemPathImpl(itemPath, null, null);
+        return CanonicalItemPathImpl.create(itemPath);
     }
 
     @Override
@@ -674,5 +703,14 @@ public final class PrismContextImpl implements PrismContext {
     @Override
     public ValueMetadataFactory getValueMetadataFactory() {
         return valueMetadataFactory;
+    }
+
+    @Override
+    public EquivalenceStrategy getProvenanceEquivalenceStrategy() {
+        return provenanceEquivalenceStrategy;
+    }
+
+    public void setProvenanceEquivalenceStrategy(EquivalenceStrategy provenanceEquivalenceStrategy) {
+        this.provenanceEquivalenceStrategy = provenanceEquivalenceStrategy;
     }
 }

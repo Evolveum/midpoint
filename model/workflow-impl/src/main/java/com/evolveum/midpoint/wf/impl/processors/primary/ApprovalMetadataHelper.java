@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.wf.impl.processors.primary;
 
 import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -15,7 +16,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -33,6 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 
 import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult.EQUIVALENT;
@@ -61,9 +62,12 @@ public class ApprovalMetadataHelper {
         }
     }
 
+    /**
+     * See also {@link com.evolveum.midpoint.model.impl.lens.OperationalDataManager#applyAssignmentMetadataDelta(LensContext, ObjectDelta, XMLGregorianCalendar, Task)}.
+     */
+    @SuppressWarnings("JavadocReference")
     private void addAssignmentApprovalMetadataOnObjectModify(ObjectDelta<?> objectDelta, CaseType aCase,
             Task task, OperationResult result) throws SchemaException {
-        // see also OperationalDataManager.applyAssignmentMetadataDelta
         Collection<ObjectReferenceType> approvedBy = getApprovedBy(aCase, result);
         Collection<String> comments = getApproverComments(aCase, task, result);
         Set<Long> processedIds = new HashSet<>();

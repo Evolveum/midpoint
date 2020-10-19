@@ -19,11 +19,9 @@
             <c:_value>JACK</c:_value>
             <c:_metadata>
                 <c:provenance>
-                    <c:yield>
-                        <c:acquisition>
-                            <c:channel>import</c:channel>
-                        </c:acquisition>
-                    </c:yield>
+                    <c:acquisition>
+                        <c:channel>import</c:channel>
+                    </c:acquisition>
                 </c:provenance>
             </c:_metadata>
         </t:value>

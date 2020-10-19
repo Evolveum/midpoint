@@ -12,6 +12,11 @@ import java.util.Map.Entry;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.schema.constants.Channel;
+
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -87,8 +92,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     private transient SecurityPolicyType globalSecurityPolicy;
 
     /**
-     * Channel that is the source of primary change (GUI, live sync, import,
-     * ...)
+     * Channel that is the source of primary change (GUI, live sync, import, ...)
      */
     private String channel;
 
@@ -218,6 +222,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     @NotNull private transient final List<ObjectReferenceType> operationApprovedBy = new ArrayList<>();
     @NotNull private transient final List<String> operationApproverComments = new ArrayList<>();
+
+    private String taskTreeOid;
 
     public LensContext(Class<F> focusClass, PrismContext prismContext,
             ProvisioningService provisioningService) {
@@ -492,11 +498,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         LOGGER.debug("Rotting context because of {}", reason);
         setFresh(false);
         if (focusContext != null) {
-            focusContext.setFresh(false);
+            focusContext.rot();
         }
         for (LensProjectionContext projectionContext : projectionContexts) {
-            projectionContext.setFresh(false);
-            projectionContext.setFullShadow(false);
+            projectionContext.rot();
         }
     }
 
@@ -521,13 +526,11 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
                 ObjectDelta<ShadowType> execDelta = projectionContext.getExecutableDelta();
                 if (isShadowDeltaSignificant(execDelta)) {
                     LOGGER.debug("Context rot: projection {} rotten because of executable delta {}", projectionContext, execDelta);
-                    projectionContext.setFresh(false);
-                    projectionContext.setFullShadow(false);
+                    projectionContext.rot();
                     rotHolder.setValue(true);
                     // Propagate to higher-order projections
                     for (LensProjectionContext relCtx : LensUtil.findRelatedContexts(this, projectionContext)) {
-                        relCtx.setFresh(false);
-                        relCtx.setFullShadow(false);
+                        relCtx.rot();
                     }
                 } else {
                     LOGGER.trace("Context rot: projection {} NOT rotten because no delta", projectionContext);
@@ -548,8 +551,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
     }
 
-    private void rotFocusContextIfNeeded(Holder<Boolean> rotHolder)
-            throws SchemaException {
+    private void rotFocusContextIfNeeded(Holder<Boolean> rotHolder) {
         if (focusContext != null) {
             ObjectDelta<F> execDelta = focusContext.getCurrentDelta(); // TODO!!!
             if (!ObjectDelta.isEmpty(execDelta)) {
@@ -558,7 +560,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             }
             if (rotHolder.getValue()) {
                 // It is OK to refresh focus all the time there was any change. This is cheap.
-                focusContext.setFresh(false);
+                focusContext.rot();
                 // This would be nice but break some tests ... TODO check it
 //                focusContext.setObjectCurrent(null);
 //                focusContext.setObjectNew(null);
@@ -1353,7 +1355,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
         lensContext.setRequestIdentifier(lensContextType.getRequestIdentifier());
         lensContext.setState(ModelState.fromModelStateType(lensContextType.getState()));
-        lensContext.setChannel(lensContextType.getChannel());
+        lensContext.setChannel(Channel.migrateUri(lensContextType.getChannel()));
         lensContext.setFocusContext(LensFocusContext
                 .fromLensFocusContextType(lensContextType.getFocusContext(), lensContext, task, result));
         for (LensProjectionContextType lensProjectionContextType : lensContextType.getProjectionContext()) {
@@ -1561,6 +1563,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             if (!projectionContext.isCanProject()) {
                 continue;
             }
+            if (projectionContext.isCompleted()) {
+                continue;
+            }
             if (projectionContext.isTombstone()) {
                 continue;
             }
@@ -1713,9 +1718,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         // nothing like this for projections (yet)
     }
 
-    // TEMPORARY!!!
-    public boolean itemDeltaExists(ItemPath path) {
-        return focusContext != null && focusContext.itemDeltaExists(path);
+    public boolean primaryFocusItemDeltaExists(ItemPath path) {
+        return focusContext != null && focusContext.primaryItemDeltaExists(path);
     }
 
     public void deleteSecondaryDeltas() {
@@ -1725,5 +1729,51 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         for (LensProjectionContext projectionContext : projectionContexts) {
             projectionContext.deleteSecondaryDeltas();
         }
+    }
+
+    public boolean isExperimentalCodeEnabled() {
+        return systemConfiguration != null && systemConfiguration.asObjectable().getInternals() != null &&
+                Boolean.TRUE.equals(systemConfiguration.asObjectable().getInternals().isEnableExperimentalCode());
+    }
+
+    public String getTaskTreeOid(Task task, OperationResult result) throws SchemaException {
+        if (taskTreeOid == null) {
+            taskTreeOid = task.getTaskTreeId(result);
+        }
+        return taskTreeOid;
+    }
+
+    public ObjectDeltaObject<F> getFocusOdoAbsolute() {
+        return focusContext != null ? focusContext.getObjectDeltaObjectAbsolute() : null;
+    }
+
+    /**
+     * Checks if there was anything (at least partially) executed.
+     *
+     * Currently we can only look at executed deltas and check whether there is something relevant
+     * (i.e. not FATAL_ERROR nor NOT_APPLICABLE).
+     *
+     * Any solution based on operation result status will never be 100% accurate, e.g. because
+     * a network timeout could occur just before returning a status value. So please use with care.
+     */
+    @Experimental
+    public boolean wasAnythingExecuted() {
+        if (focusContext != null && focusContext.wasAnythingReallyExecuted()) {
+            return true;
+        }
+        if (hasRottenReallyExecutedDelta()) {
+            return true;
+        }
+        for (LensProjectionContext projectionContext : projectionContexts) {
+            if (projectionContext.wasAnythingReallyExecuted()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Experimental
+    private boolean hasRottenReallyExecutedDelta() {
+        return rottenExecutedDeltas.stream().anyMatch(ObjectDeltaOperation::wasReallyExecuted);
     }
 }

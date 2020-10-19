@@ -13,7 +13,12 @@
     <archetypePolicy>
         <display>
             <label>Live synchronization task</label>
-            <pluralLabel>Live synchronization tasks</pluralLabel>
+            <pluralLabel>
+                <orig>Live synchronization tasks</orig>
+                <translation>
+                    <key>LiveSynchronizationTasks.title</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fa fa-refresh</cssClass>
                 <color>green</color>

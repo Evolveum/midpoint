@@ -41,6 +41,11 @@
             <icfi:instanceId>khaki</icfi:instanceId>
             <icfi:requireExplicitEnable>false</icfi:requireExplicitEnable>
             <icfi:supportActivation>false</icfi:supportActivation>
+            <icfi:uselessString>
+                <expression>
+                    <path>$configuration/name</path> <!-- MID-6609 -->
+                </expression>
+            </icfi:uselessString>
         </icfc:configurationProperties>
 
     </connectorConfiguration>

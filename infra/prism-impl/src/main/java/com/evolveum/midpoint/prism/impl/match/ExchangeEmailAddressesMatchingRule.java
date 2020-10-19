@@ -96,4 +96,8 @@ public class ExchangeEmailAddressesMatchingRule implements MatchingRule<String> 
         return Pattern.matches(regex, a);            // we ignore case-insensitiveness of the email address
     }
 
+    @Override
+    public String toString() {
+        return "ExchangeEmailAddressesMatchingRule{}";
+    }
 }

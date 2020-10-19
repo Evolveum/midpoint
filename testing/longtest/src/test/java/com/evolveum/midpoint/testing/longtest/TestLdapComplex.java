@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.testing.longtest;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -27,10 +26,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -44,43 +42,28 @@ public class TestLdapComplex extends AbstractLongTest {
 
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ldap-complex");
 
-    public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
-    public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
-
     public static final File USER_TEMPLATE_FILE = new File(TEST_DIR, "user-template.xml");
-
-    protected static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
-    protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
-    protected static final String USER_ADMINISTRATOR_USERNAME = "administrator";
-
-    protected static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
-    protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
 
     protected static final File ROLE_CAPTAIN_FILE = new File(TEST_DIR, "role-captain.xml");
 
     protected static final File ROLE_JUDGE_FILE = new File(TEST_DIR, "role-judge.xml");
 
     protected static final File ROLE_PIRATE_FILE = new File(TEST_DIR, "role-pirate.xml");
-    protected static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556603";
 
     protected static final File ROLE_SAILOR_FILE = new File(TEST_DIR, "role-sailor.xml");
 
     protected static final File ROLE_SECURITY_FILE = new File(TEST_DIR, "role-security.xml");
-    protected static final String ROLE_SECURITY_OID = "ab6de882-1e05-11e8-86f0-379d1205707a";
 
     protected static final File ROLES_LDIF_FILE = new File(TEST_DIR, "roles.ldif");
 
     protected static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj-complex.xml");
-    protected static final String RESOURCE_OPENDJ_NAME = "Localhost OpenDJ";
     protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
     protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
 
     private static final int NUM_LDAP_ENTRIES = 50;
 
-    private static final String LDAP_GROUP_PIRATES_DN = "cn=Pirates,ou=groups,dc=example,dc=com";
-
     private static final String INTENT_SECURITY = "security";
-    private static final String OBJECTCLASS_USER_SECURITY_INFORMATION = "userSecurityInformation";
+    private static final String OBJECT_CLASS_USER_SECURITY_INFORMATION = "userSecurityInformation";
 
     protected ResourceType resourceOpenDjType;
     protected PrismObject<ResourceType> resourceOpenDj;
@@ -94,7 +77,7 @@ public class TestLdapComplex extends AbstractLongTest {
     }
 
     @AfterClass
-    public static void stopResources() throws Exception {
+    public static void stopResources() {
         openDJController.stop();
     }
 
@@ -126,37 +109,36 @@ public class TestLdapComplex extends AbstractLongTest {
 
     @Test
     public void test100BigImport() throws Exception {
-        // GIVEN
+        given();
         loadLdapEntries("u", NUM_LDAP_ENTRIES);
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 2);
         modelService.importFromResource(RESOURCE_OPENDJ_OID,
                 new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
 
-        // THEN
         then();
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
         waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES * 2000);
 
-        // THEN
         then();
 
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
         displayValue("Users", userCount);
         assertEquals("Unexpected number of users", NUM_LDAP_ENTRIES + 4, userCount);
 
-        assertUser("u1", task, result);
+        assertUser("u1");
     }
 
-    private void assertUser(String name, Task task, OperationResult result) throws com.evolveum.midpoint.util.exception.ObjectNotFoundException, com.evolveum.midpoint.util.exception.SchemaException, com.evolveum.midpoint.util.exception.SecurityViolationException, com.evolveum.midpoint.util.exception.CommunicationException, com.evolveum.midpoint.util.exception.ConfigurationException, ExpressionEvaluationException {
-        UserType user = findUserByUsername("u1").asObjectable();
+    private void assertUser(String name)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        UserType user = findUserByUsername(name).asObjectable();
         display("user " + name, user.asPrismObject());
 
         assertEquals("Wrong number of assignments", 4, user.getAssignment().size());
@@ -164,18 +146,16 @@ public class TestLdapComplex extends AbstractLongTest {
 
     @Test(enabled = false)
     public void test120BigReconciliation() throws Exception {
-        // GIVEN
-
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
-        ResourceType resource = modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result).asObjectable();
+        ResourceType resource = modelService.getObject(
+                ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result).asObjectable();
         reconciliationTaskHandler.launch(resource,
                 new QName(RESOURCE_OPENDJ_NAMESPACE, "AccountObjectClass"), task, result);
 
-        // THEN
         then();
         // TODO
 //        OperationResult subresult = result.getLastSubresult();
@@ -183,14 +163,13 @@ public class TestLdapComplex extends AbstractLongTest {
 
         waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES * 2000);
 
-        // THEN
-        then();
+        then(); // use and(description) instead
 
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
         displayValue("Users", userCount);
         assertEquals("Unexpected number of users", NUM_LDAP_ENTRIES + 4, userCount);
 
-        assertUser("u1", task, result);
+        assertUser("u1");
     }
 
     /**
@@ -198,17 +177,15 @@ public class TestLdapComplex extends AbstractLongTest {
      */
     @Test
     public void test500GuybrushAssignSecurity() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         addObject(USER_GUYBRUSH_FILE);
 
-        // WHEN
         when();
         assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_OPENDJ_OID, INTENT_SECURITY, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -218,7 +195,7 @@ public class TestLdapComplex extends AbstractLongTest {
 
         Entry entry = assertOpenDjAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         display("LDAP account after", entry);
-        openDJController.assertHasObjectClass(entry, OBJECTCLASS_USER_SECURITY_INFORMATION);
+        openDJController.assertHasObjectClass(entry, OBJECT_CLASS_USER_SECURITY_INFORMATION);
     }
 
     /**
@@ -226,21 +203,19 @@ public class TestLdapComplex extends AbstractLongTest {
      */
     @Test
     public void test502RuinGuybrushAccountAndReconcile() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Entry entryOrig = openDJController.searchByUid(USER_GUYBRUSH_USERNAME);
-        openDJController.modifyDelete(entryOrig.getDN().toString(), "objectClass", OBJECTCLASS_USER_SECURITY_INFORMATION);
+        openDJController.modifyDelete(entryOrig.getDN().toString(), "objectClass", OBJECT_CLASS_USER_SECURITY_INFORMATION);
         Entry entryBefore = openDJController.fetchEntry(entryOrig.getDN().toString());
         display("LDAP account before", entryBefore);
-        openDJController.assertHasNoObjectClass(entryBefore, OBJECTCLASS_USER_SECURITY_INFORMATION);
+        openDJController.assertHasNoObjectClass(entryBefore, OBJECT_CLASS_USER_SECURITY_INFORMATION);
 
-        // WHEN
         when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -250,6 +225,6 @@ public class TestLdapComplex extends AbstractLongTest {
 
         Entry entry = assertOpenDjAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         display("LDAP account after", entry);
-        openDJController.assertHasObjectClass(entry, OBJECTCLASS_USER_SECURITY_INFORMATION);
+        openDJController.assertHasObjectClass(entry, OBJECT_CLASS_USER_SECURITY_INFORMATION);
     }
 }

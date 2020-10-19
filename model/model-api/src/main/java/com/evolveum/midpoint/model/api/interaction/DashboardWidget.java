@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.api.interaction;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
+import java.io.Serializable;
+
 /**
  * @author skublik
  */

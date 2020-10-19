@@ -155,10 +155,12 @@ public class ArchetypeManager implements Cacheable {
             return null;
         }
 
-        PrismObject<ArchetypeType> archetype = null;
+        PrismObject<ArchetypeType> archetype;
         if (object.canRepresent(AssignmentHolderType.class)) {
             //noinspection unchecked
             archetype = determineArchetype((PrismObject<? extends AssignmentHolderType>) object, explicitArchetypeOid, result);
+        } else {
+            archetype = null;
         }
 
         if (archetype != null) {
@@ -170,8 +172,7 @@ public class ArchetypeManager implements Cacheable {
 
         ArchetypePolicyType archetypePolicy = mergeArchetypePolicies(archetype, result);
 
-
-        // No archetype for this object. Try to find appropriate system configuration section for this object.
+        // Try to find appropriate system configuration section for this object.
         ObjectPolicyConfigurationType objectPolicy = determineObjectPolicyConfiguration(object, result);
         // TODO: cache the result of the merge
         ArchetypePolicyType mergedPolicy = merge(archetypePolicy, objectPolicy);

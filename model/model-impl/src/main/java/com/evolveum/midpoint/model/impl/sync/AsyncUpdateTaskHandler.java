@@ -11,6 +11,7 @@ import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.sync.SyncTaskHelper.TargetInfo;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -61,10 +62,6 @@ public class AsyncUpdateTaskHandler implements TaskHandler {
         TaskRunResult runResult = new TaskRunResult();
         runResult.setOperationResult(opResult);
 
-        if (task.getChannel() == null) {
-            task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
-        }
-
         final String ctx = "Async Update";
 
         TargetInfo targetInfo = helper.getTargetInfo(LOGGER, task, opResult, runResult, ctx);
@@ -94,5 +91,10 @@ public class AsyncUpdateTaskHandler implements TaskHandler {
     @Override
     public String getArchetypeOid() {
         return SystemObjectsType.ARCHETYPE_ASYNC_UPDATE_TASK.value();
+    }
+
+    @Override
+    public String getDefaultChannel() {
+        return Channel.ASYNC_UPDATE.getUri();
     }
 }

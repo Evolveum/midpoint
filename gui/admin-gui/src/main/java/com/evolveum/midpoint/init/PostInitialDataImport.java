@@ -1,20 +1,17 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.init;
 
 import java.io.File;
 import java.util.Arrays;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ImportOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.Validate;
 import org.springframework.security.core.context.SecurityContext;
 
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
@@ -30,6 +27,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ImportOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 
@@ -58,7 +57,7 @@ public class PostInitialDataImport extends DataImport {
 
         OperationResult mainResult = new OperationResult(OPERATION_INITIAL_OBJECTS_IMPORT);
         Task task = taskManager.createTaskInstance(OPERATION_INITIAL_OBJECTS_IMPORT);
-        task.setChannel(SchemaConstants.CHANNEL_GUI_INIT_URI);
+        task.setChannel(SchemaConstants.CHANNEL_INIT_URI);
 
         File[] files = getPostInitialImportObjects();
         LOGGER.debug("Files to be imported: {}.", Arrays.toString(files));
@@ -77,7 +76,7 @@ public class PostInitialDataImport extends DataImport {
                 LOGGER.warn("Post-initial import support only xml files. Actual file: " + file.getName());
                 continue;
             }
-            Item<?,?> item = null;
+            Item<?, ?> item = null;
             try {
                 item = prismContext.parserFor(file).parseItem();
             } catch (Exception ex) {
@@ -149,10 +148,10 @@ public class PostInitialDataImport extends DataImport {
             LOGGER.info("Starting post-initial execute script from file {}.", file.getName());
             Object parsed = expression.getAnyValue().getValue();
             ScriptExecutionResult executionResult =
-                parsed instanceof ExecuteScriptType ?
-                        scripting.evaluateExpression((ExecuteScriptType) parsed, VariablesMap.emptyMap(),
-                                false, task, result) :
-                        scripting.evaluateExpression((ScriptingExpressionType) parsed, task, result);
+                    parsed instanceof ExecuteScriptType ?
+                            scripting.evaluateExpression((ExecuteScriptType) parsed, VariablesMap.emptyMap(),
+                                    false, task, result) :
+                            scripting.evaluateExpression((ScriptingExpressionType) parsed, task, result);
             result.recordSuccess();
             result.addReturn("console", executionResult.getConsoleOutput());
             LOGGER.info("Executed a script in {} as part of post-initial import. Output is:\n{}", file.getName(), executionResult.getConsoleOutput());
@@ -166,7 +165,7 @@ public class PostInitialDataImport extends DataImport {
 
     private File[] getPostInitialImportObjects() {
         File[] files = new File[0];
-        String midpointHomePath= configuration.getMidpointHome();
+        String midpointHomePath = configuration.getMidpointHome();
 
         if (checkDirectoryExistence(midpointHomePath)) {
             if (!midpointHomePath.endsWith("/")) {
@@ -187,8 +186,7 @@ public class PostInitialDataImport extends DataImport {
                     }
                 }
             }
-        }
-        else {
+        } else {
             LOGGER.debug("Directory " + midpointHomePath + " does not exist.");
         }
         return files;
@@ -200,11 +198,11 @@ public class PostInitialDataImport extends DataImport {
         if (files != null) {
             for (File file : files) {
                 if (file.isFile()) {
-                    retFiles = (File[]) ArrayUtils.add(retFiles, file);
+                    retFiles = ArrayUtils.add(retFiles, file);
                     continue;
                 }
                 if (file.isDirectory()) {
-                    retFiles = (File[]) ArrayUtils.addAll(retFiles, listFiles(file));
+                    retFiles = ArrayUtils.addAll(retFiles, listFiles(file));
                 }
             }
         }

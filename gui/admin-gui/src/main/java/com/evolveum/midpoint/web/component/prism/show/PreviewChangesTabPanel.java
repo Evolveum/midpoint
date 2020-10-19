@@ -1,10 +1,28 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.prism.show;
+
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaUtil;
+
+import com.evolveum.midpoint.prism.path.ItemPath;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -32,15 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecut
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEnforcerPreviewOutputType;
 
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import static org.apache.commons.collections.CollectionUtils.addIgnoreNull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by kate on 22.8.2018.
@@ -62,19 +72,19 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
 
     private static final Trace LOGGER = TraceManager.getTrace(PreviewChangesTabPanel.class);
 
-    public PreviewChangesTabPanel(String id, IModel<ModelContext<O>> contextModel){
+    public PreviewChangesTabPanel(String id, IModel<ModelContext<O>> contextModel) {
         super(id, contextModel);
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
 
         initModels();
         initLayout();
     }
 
-    private void initModels(){
+    private void initModels() {
         final List<ObjectDelta<? extends ObjectType>> primaryDeltas = new ArrayList<>();
         final List<ObjectDelta<? extends ObjectType>> secondaryDeltas = new ArrayList<>();
         final List<? extends Scene> primaryScenes;
@@ -85,11 +95,18 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
             if (modelContext != null) {
                 if (modelContext.getFocusContext() != null) {
                     addIgnoreNull(primaryDeltas, CloneUtil.clone(modelContext.getFocusContext().getPrimaryDelta()));
-                    addIgnoreNull(secondaryDeltas, CloneUtil.clone(modelContext.getFocusContext().getSecondaryDelta()));
+                    ObjectDelta<O> summarySecondaryDelta = CloneUtil.clone(modelContext.getFocusContext().getSummarySecondaryDelta());
+                    if (summarySecondaryDelta != null && !summarySecondaryDelta.getModifications().isEmpty()) {
+                        secondaryDeltas.add(summarySecondaryDelta);
+                    }
                 }
+
                 for (ModelProjectionContext projCtx : modelContext.getProjectionContexts()) {
-                    addIgnoreNull(primaryDeltas, CloneUtil.clone(projCtx.getPrimaryDelta()));
-                    addIgnoreNull(secondaryDeltas, CloneUtil.clone(projCtx.getExecutableDelta()));
+                    ObjectDelta<ShadowType> primaryDelta = CloneUtil.clone(projCtx.getPrimaryDelta());
+                    addIgnoreNull(primaryDeltas, primaryDelta);
+                    if (!isEquivalentWithoutOperationAttr(primaryDelta, CloneUtil.clone(projCtx.getExecutableDelta()))) {
+                        addIgnoreNull(secondaryDeltas, CloneUtil.clone(projCtx.getExecutableDelta()));
+                    }
                 }
             }
             if (LOGGER.isTraceEnabled()) {
@@ -114,18 +131,8 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
                 secondaryScenes.size() != 1 ? "PagePreviewChanges.secondaryChangesMore" : "PagePreviewChanges.secondaryChangesOne", secondaryScenes.size());
         final SceneDto primarySceneDto = new SceneDto(primaryScene);
         final SceneDto secondarySceneDto = new SceneDto(secondaryScene);
-        primaryDeltasModel = new IModel<SceneDto>() {
-            @Override
-            public SceneDto getObject() {
-                return primarySceneDto;
-            }
-        };
-        secondaryDeltasModel = new IModel<SceneDto>() {
-            @Override
-            public SceneDto getObject() {
-                return secondarySceneDto;
-            }
-        };
+        primaryDeltasModel = (IModel<SceneDto>) () -> primarySceneDto;
+        secondaryDeltasModel = (IModel<SceneDto>) () -> secondarySceneDto;
 
         PolicyRuleEnforcerPreviewOutputType enforcements = modelContext != null
                 ? modelContext.getPolicyRuleEnforcerPreviewOutput()
@@ -161,7 +168,22 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
         approvalsModel = Model.ofList(approvals);
     }
 
-    private void initLayout(){
+    private boolean isEquivalentWithoutOperationAttr(ObjectDelta<ShadowType> primaryDelta, ObjectDelta<ShadowType> secondaryDelta) {
+        if (primaryDelta == null || secondaryDelta == null) {
+            return false;
+        }
+        List<ItemDelta> modifications = new ArrayList<ItemDelta>();
+        modifications.addAll(secondaryDelta.getModifications());
+        for (ItemDelta secondaryModification : modifications){
+            ItemDefinition def = secondaryModification.getDefinition();
+            if (def != null && def.isOperational()) {
+                secondaryDelta.removeModification(secondaryModification);
+            }
+        }
+        return primaryDelta.equivalent(secondaryDelta);
+    }
+
+    private void initLayout() {
         add(new ScenePanel(ID_PRIMARY_DELTAS_SCENE, primaryDeltasModel));
         add(new ScenePanel(ID_SECONDARY_DELTAS_SCENE, secondaryDeltasModel));
 

@@ -82,15 +82,15 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType> implement
 
     private void collectDeltaValuesAndFreeze(PrismContainer<AssignmentType> assignmentContainerCurrent, ContainerDelta<AssignmentType> currentAssignmentDelta, PrismContext prismContext) throws SchemaException {
         if (currentAssignmentDelta != null) {
-            if (!currentAssignmentDelta.isReplace()) {
-                // For performance reasons it is better to process only changes than to process
-                // the whole new assignment set (that can have hundreds of assignments)
-                collectAssignmentsFromAddDeleteDelta(currentAssignmentDelta);
-            } else {
+            if (currentAssignmentDelta.isReplace()) {
                 allValues().forEach(v -> v.getOrigin().setNew(false));
                 PrismContainer<AssignmentType> assignmentContainerNew =
                         computeAssignmentContainerNew(assignmentContainerCurrent, currentAssignmentDelta, prismContext);
                 collectAssignments(assignmentContainerNew, Mode.NEW);
+            } else {
+                // For performance reasons it is better to process only changes than to process
+                // the whole new assignment set (that can have hundreds of assignments)
+                collectAssignmentsFromAddDeleteDelta(currentAssignmentDelta);
             }
             freezeOrigins();
         }
@@ -118,7 +118,7 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType> implement
     private void collectAssignments(PrismContainer<AssignmentType> assignmentContainer, Mode mode) throws SchemaException {
         if (assignmentContainer != null) {
             for (PrismContainerValue<AssignmentType> assignmentCVal : assignmentContainer.getValues()) {
-                collectAssignment(assignmentCVal, mode, false, null);
+                collectAssignment(assignmentCVal, mode, false, null, false);
             }
         }
     }
@@ -126,7 +126,7 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType> implement
     private void collectVirtualAssignments(Collection<AssignmentType> forcedAssignments) throws SchemaException {
         for (AssignmentType assignment : emptyIfNull(forcedAssignments)) {
             //noinspection unchecked
-            collectAssignment(assignment.asPrismContainerValue(), Mode.CURRENT, true, null);
+            collectAssignment(assignment.asPrismContainerValue(), Mode.CURRENT, true, null, false);
         }
     }
 
@@ -138,12 +138,19 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType> implement
     private void collectAssignmentsFromDeltaSet(Collection<PrismContainerValue<AssignmentType>> assignments,
             AddDeleteReplace deltaSet) throws SchemaException {
         for (PrismContainerValue<AssignmentType> assignmentCVal: emptyIfNull(assignments)) {
-            collectAssignment(assignmentCVal, Mode.IN_ADD_OR_DELETE_DELTA, false, deltaSet);
+            boolean doNotCreateNew = deltaSet == AddDeleteReplace.DELETE;
+            collectAssignment(assignmentCVal, Mode.IN_ADD_OR_DELETE_DELTA, false, deltaSet, doNotCreateNew);
         }
     }
 
+    /**
+     * @param doNotCreateNew If an assignment does not exist, please DO NOT create it.
+     * This flag is used for "delta delete" assignments that do not exist in object current.
+     *
+     * This also means that delete delta assignments must be processed last.
+     */
     private void collectAssignment(PrismContainerValue<AssignmentType> assignmentCVal, Mode mode, boolean virtual,
-            AddDeleteReplace deltaSet) throws SchemaException {
+            AddDeleteReplace deltaSet, boolean doNotCreateNew) throws SchemaException {
 
         @NotNull SmartAssignmentElement element;
 
@@ -154,7 +161,7 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType> implement
             if (assignmentCVal.getId() != null) {
                 element = idMap.get(assignmentCVal.getId());
                 if (element == null) {
-                    // deleting non-existing assignment. Safe to ignore?
+                    // deleting non-existing assignment. Safe to ignore? Yes.
                     return;
                 }
             } else {
@@ -164,6 +171,9 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType> implement
             SmartAssignmentElement existingElement = lookup(assignmentCVal);
             if (existingElement != null) {
                 element = existingElement;
+            } else if (doNotCreateNew) {
+                // Deleting non-existing assignment.
+                return;
             } else {
                 element = put(assignmentCVal, virtual);
             }

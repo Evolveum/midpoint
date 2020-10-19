@@ -7,19 +7,43 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.ValueSelector;
+import com.evolveum.midpoint.schema.metadata.MidpointProvenanceEquivalenceStrategy;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceAcquisitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceYieldType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @Experimental
 public class ProvenanceMetadataUtil {
 
-    public static boolean hasOrigin(ProvenanceYieldType yield, String originOid) {
-        return yield.getAcquisition().stream()
+    public static boolean hasOrigin(ValueMetadataType metadata, String originOid) {
+        return metadata != null && hasOrigin(metadata.getProvenance(), originOid);
+    }
+
+    public static boolean hasOrigin(ProvenanceMetadataType provenance, String originOid) {
+        return provenance.getAcquisition().stream()
                 .anyMatch(acquisition -> hasOrigin(acquisition, originOid));
     }
 
     public static boolean hasOrigin(ProvenanceAcquisitionType acquisition, String originOid) {
         return acquisition.getOriginRef() != null && originOid.equals(acquisition.getOriginRef().getOid());
+    }
+
+    public static boolean hasMappingSpec(ValueMetadataType metadata, MappingSpecificationType mappingSpecification) {
+        return metadata != null && hasMappingSpec(metadata.getProvenance(), mappingSpecification);
+    }
+
+    public static boolean hasMappingSpec(ProvenanceMetadataType provenance, MappingSpecificationType mappingSpecification) {
+        return provenance!= null && MidpointProvenanceEquivalenceStrategy.INSTANCE.equals(provenance.getMappingSpec(), mappingSpecification);
+    }
+
+    public static ValueSelector<PrismContainerValue<ValueMetadataType>> originSelector(String oid) {
+        return pcv -> hasOrigin(pcv.asContainerable(), oid);
+    }
+
+    public static boolean valueHasMappingSpec(PrismValue value, MappingSpecificationType mappingSpecification) {
+        return value.<ValueMetadataType>getValueMetadataAsContainer().valuesStream()
+                .anyMatch(md -> hasMappingSpec(md.asContainerable(), mappingSpecification));
     }
 }

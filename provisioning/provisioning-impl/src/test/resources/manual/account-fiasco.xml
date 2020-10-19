@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2017-2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<shadow oid="414dd45c-017f-11eb-acac-1760a547c740"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <resourceRef oid="8a8e19de-1a14-11e7-965f-6f995b457a8b" />
+    <objectClass>ri:AccountObjectClass</objectClass>
+    <kind>account</kind>
+    <attributes>
+        <ri:username>fiasco</ri:username>
+        <ri:fullname>Francesco Fiasco</ri:fullname>
+    </attributes>
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+    </activation>
+    <credentials>
+        <password>
+            <value>
+                <clearValue>DebaculoMAXIMO</clearValue>
+            </value>
+        </password>
+    </credentials>
+</shadow>

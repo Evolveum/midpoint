@@ -7,20 +7,27 @@
 
 package com.evolveum.midpoint.model.common.mapping.metadata.builtin;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.model.common.mapping.metadata.ConsolidationMetadataComputation;
+import com.evolveum.midpoint.model.common.mapping.metadata.TransformationalMetadataComputation;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.metadata.MidpointProvenanceEquivalenceStrategy;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.collections4.ListUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.common.mapping.metadata.ValueMetadataComputation;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
@@ -36,54 +43,44 @@ public class ProvenanceBuiltinMapping extends BaseBuiltinMetadataMapping {
 
     private static final ItemPath PROVENANCE_PATH = ItemPath.create(ValueMetadataType.F_PROVENANCE);
 
+    @SuppressWarnings("unused")
     ProvenanceBuiltinMapping() {
         super(PROVENANCE_PATH);
     }
 
-    @Override
-    public void apply(@NotNull ValueMetadataComputation computation) {
-
-        List<PrismValue> input = computation.getInputValues();
-
-        LOGGER.trace("Computing provenance during {}. Input values:\n{}",
-                computation.getScope(), lazy(() -> dumpInput(input)));
-
-        ProvenanceMetadataType provenance;
-        if (computation.getScope() == MetadataMappingScopeType.TRANSFORMATION) {
-            provenance = applyDuringTransformation(input);
-        } else if (computation.getScope() == MetadataMappingScopeType.CONSOLIDATION) {
-            provenance = applyDuringConsolidation(input);
-        } else {
-            throw new AssertionError(computation.getScope());
-        }
-
-        LOGGER.trace("Output: provenance:\n{}", provenance != null ?
-                lazy(() -> provenance.asPrismContainerValue().debugDump()) : "(none)");
-
-        computation.getOutputMetadataBean().setProvenance(provenance);
+    @VisibleForTesting
+    public ProvenanceBuiltinMapping(PrismContext prismContext, BuiltinMetadataMappingsRegistry registry) {
+        super(PROVENANCE_PATH);
+        this.prismContext = prismContext;
+        this.registry = registry;
     }
 
     /**
      * Transformation merges the acquisitions into single yield.
      */
-    private ProvenanceMetadataType applyDuringTransformation(List<PrismValue> input) {
-        List<ProvenanceAcquisitionType> acquisitions = collectAcquisitions(input);
-        if (!acquisitions.isEmpty()) {
-            ProvenanceYieldType yield = new ProvenanceYieldType(prismContext);
-            yield.getAcquisition().addAll(acquisitions);
-            return new ProvenanceMetadataType(prismContext).yield(yield);
-        } else {
-            return null;
-        }
+    @Override
+    public void applyForTransformation(@NotNull TransformationalMetadataComputation computation) {
+        List<PrismValue> input = computation.getInputValues();
+
+        LOGGER.trace("Computing provenance during value transformation. Input values:\n{}", lazy(() -> dumpInput(input)));
+
+        ProvenanceMetadataType provenance = new ProvenanceMetadataType(prismContext)
+                .mappingSpec(computation.getMappingSpecification());
+        provenance.getAcquisition().addAll(collectAcquisitions(input));
+
+        LOGGER.trace("Output: provenance:\n{}", lazy(() -> provenance.asPrismContainerValue().debugDump()));
+
+        computation.getOutputMetadataValueBean().setProvenance(provenance);
     }
 
     private List<ProvenanceAcquisitionType> collectAcquisitions(List<PrismValue> input) {
         List<ProvenanceAcquisitionType> acquisitions = new ArrayList<>();
         input.stream()
-                .map(v -> ((ValueMetadataType) v.getValueMetadata().asContainerable()).getProvenance())
                 .filter(Objects::nonNull)
-                .flatMap(provenance -> provenance.getYield().stream())
-                .flatMap(yield -> yield.getAcquisition().stream())
+                .flatMap(prismValue -> prismValue.<ValueMetadataType>getValueMetadataAsContainer().getRealValues().stream())
+                .map(ValueMetadataType::getProvenance)
+                .filter(Objects::nonNull)
+                .flatMap(provenance -> provenance.getAcquisition().stream())
                 .forEach(acquisition -> addAcquisitionIfNotPresent(acquisition, acquisitions));
         return acquisitions;
     }
@@ -96,88 +93,102 @@ public class ProvenanceBuiltinMapping extends BaseBuiltinMetadataMapping {
 
     private boolean isNotPresent(ProvenanceAcquisitionType acquisition, List<ProvenanceAcquisitionType> acquisitions) {
         return acquisitions.stream()
-                .noneMatch(a -> areEquivalent(acquisition, a));
-    }
-
-    private boolean areEquivalent(ProvenanceAcquisitionType a1, ProvenanceAcquisitionType a2) {
-        if (a1 == null) {
-            return a2 == null;
-        } else if (a2 == null) {
-            return false;
-        } else {
-            return referencesEquivalent(a1.getOriginRef(), a2.getOriginRef()) &&
-                    referencesEquivalent(a1.getActorRef(), a2.getActorRef()) &&
-                    referencesEquivalent(a1.getResourceRef(), a2.getResourceRef()) &&
-                    Objects.equals(a1.getChannel(), a2.getChannel());
-        }
-    }
-
-    private boolean referencesEquivalent(ObjectReferenceType ref1, ObjectReferenceType ref2) {
-        if (ref1 == null) {
-            return ref2 == null;
-        } else if (ref2 == null) {
-            return false;
-        } else {
-            return Objects.equals(ref1.getOid(), ref2.getOid());
-        }
+                .noneMatch(a -> MidpointProvenanceEquivalenceStrategy.INSTANCE.equals(acquisition, a));
     }
 
     /**
-     * Consolidation merges the yields.
+     * Consolidation merges the information for one specific yield.
+     * All inputs have the same basic characteristics:
+     *  - equivalent mapping spec
+     *  - equivalent set of acquisitions
+     *
+     * We have to construct a new set of acquisitions, selecting the oldest ones of each kind.
      */
-    private ProvenanceMetadataType applyDuringConsolidation(List<PrismValue> input) {
-        Collection<ProvenanceYieldType> yields = collectYields(input);
-        if (!yields.isEmpty()) {
-            ProvenanceMetadataType provenance = new ProvenanceMetadataType(prismContext);
-            provenance.getYield().addAll(yields);
-            return provenance;
-        } else {
-            return null;
+    @Override
+    public void applyForConsolidation(@NotNull ConsolidationMetadataComputation computation) {
+        ProvenanceMetadataType provenance = new ProvenanceComputation(computation).compute();
+        if (provenance != null) {
+            computation.getOutputMetadataValueBean().setProvenance(provenance);
         }
     }
 
-    private Collection<ProvenanceYieldType> collectYields(List<PrismValue> input) {
-        List<ProvenanceYieldType> yields = new ArrayList<>();
-        input.stream()
-                .map(v -> ((ValueMetadataType) v.getValueMetadata().asContainerable()).getProvenance())
-                .filter(Objects::nonNull)
-                .flatMap(provenance -> provenance.getYield().stream())
-                .forEach(yield -> addYieldIfNotPresent(yield, yields));
-        return yields;
-    }
+    private class ProvenanceComputation {
 
-    private void addYieldIfNotPresent(ProvenanceYieldType yield, List<ProvenanceYieldType> yields) {
-        if (isNotPresent(yield, yields)) {
-            yields.add(yield.clone());
-        }
-    }
+        @NotNull private final ConsolidationMetadataComputation computation;
+        @NotNull private final List<ValueMetadataType> allValues;
+        private final ProvenanceMetadataType representativeProvenance;
 
-    private boolean isNotPresent(ProvenanceYieldType yield, List<ProvenanceYieldType> yields) {
-        return yields.stream()
-                .noneMatch(a -> areEquivalent(yield, a));
-    }
+        private ProvenanceComputation(@NotNull ConsolidationMetadataComputation computation) {
+            this.computation = computation;
 
-    private boolean areEquivalent(ProvenanceYieldType y1, ProvenanceYieldType y2) {
-        if (y1 == null) {
-            return y2 == null;
-        } else if (y2 == null) {
-            return false;
-        } else {
-            return MiscUtil.unorderedCollectionCompare(y1.getAcquisition(), y2.getAcquisition(),
-                    (a1, a2) -> areEquivalent(a1, a2) ? 0 : 1);
-        }
-    }
-
-    private String dumpInput(List<PrismValue> inputValues) {
-        if (inputValues.isEmpty()) {
-            return "  (no values)";
-        } else {
-            StringBuilder sb = new StringBuilder();
-            for (PrismValue inputValue : inputValues) {
-                sb.append("  - ").append(inputValue.toString()).append(" with metadata:\n");
-                sb.append(inputValue.getValueMetadata().debugDump(2)).append("\n");
+            allValues = ListUtils.union(this.computation.getNonNegativeValues(), this.computation.getExistingValues());
+            if (allValues.isEmpty()) {
+                throw new IllegalArgumentException("No input values in " + this.computation.getContextDescription());
             }
-            return sb.toString();
+
+            representativeProvenance = getRepresentativeProvenance();
+        }
+
+        @Nullable
+        private ProvenanceMetadataType getRepresentativeProvenance() {
+            return allValues.get(0).getProvenance();
+        }
+
+        private ProvenanceMetadataType compute() {
+            if (representativeProvenance == null) {
+                return null;
+            }
+
+            ProvenanceMetadataType resultingProvenance = new ProvenanceMetadataType(prismContext);
+            resultingProvenance.setMappingSpec(CloneUtil.clone(representativeProvenance.getMappingSpec()));
+
+            for (ProvenanceAcquisitionType representativeAcquisition : representativeProvenance.getAcquisition()) {
+                List<ProvenanceAcquisitionType> compatibleAcquisitions = getCompatibleAcquisitions(representativeAcquisition);
+                ProvenanceAcquisitionType earliest = compatibleAcquisitions.stream()
+                        .min(Comparator.nullsLast(Comparator.comparing(acquisition -> XmlTypeConverter.toMillisNullable(acquisition.getTimestamp()))))
+                        .orElseThrow(() -> new IllegalStateException("No earliest acquisition"));
+                resultingProvenance.getAcquisition().add(earliest.clone());
+            }
+
+            return resultingProvenance;
+        }
+
+        private @NotNull List<ProvenanceAcquisitionType> getCompatibleAcquisitions(ProvenanceAcquisitionType representativeAcquisition) {
+            List<ProvenanceAcquisitionType> acquisitions = new ArrayList<>();
+            for (ValueMetadataType metadata : allValues) {
+                ProvenanceMetadataType provenance = metadata.getProvenance();
+                List<ProvenanceAcquisitionType> compatibleAcq = provenance.getAcquisition().stream()
+                        .filter(acq -> MidpointProvenanceEquivalenceStrategy.INSTANCE.equals(acq, representativeAcquisition))
+                        .collect(Collectors.toList());
+                if (compatibleAcq.size() != 1) {
+                    LOGGER.error("Something went wrong. We expected to find single acquisition in each yield. In: {}\n"
+                                    + "allValues:\n{}\nrepresentativeProvenance:\n{}\nrepresentativeAcquisition:\n{}\n"
+                                    + "this metadata:\n{}\ncompatible acquisitions found:\n{}",
+                            computation.getContextDescription(),
+                            DebugUtil.debugDump(allValues, 1),
+                            DebugUtil.debugDump(representativeProvenance, 1),
+                            DebugUtil.debugDump(representativeAcquisition, 1),
+                            DebugUtil.debugDump(metadata, 1),
+                            DebugUtil.debugDump(compatibleAcq, 1));
+                    throw new IllegalStateException("Something went wrong. We expected to find single acquisition in each value. "
+                            + "See the log. In: " + computation.getContextDescription());
+                }
+                acquisitions.add(compatibleAcq.get(0));
+            }
+            return acquisitions;
         }
     }
+
+//    private String dumpInputMetadata(List<ValueMetadataType> values) {
+//        if (values.isEmpty()) {
+//            return "  (no values)";
+//        } else {
+//            StringBuilder sb = new StringBuilder();
+//            for (ValueMetadataType value : values) {
+//                sb.append(" -\n");
+//                sb.append(value.asPrismContainerValue().debugDump(2)).append("\n");
+//            }
+//            return sb.toString();
+//        }
+//    }
 }

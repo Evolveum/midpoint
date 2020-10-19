@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="3be6feda-1099-4e3c-9499-27d6520c5987"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+
+    <name>Dummy Resource 'No create'</name>
+    <description>Resource without create capability</description>
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties>
+            <icfi:instanceId>no-create</icfi:instanceId>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <intent>default</intent>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
+                </outbound>
+            </attribute>
+        </objectType>
+    </schemaHandling>
+    <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+        <configured>
+            <cap:create>
+                <cap:enabled>false</cap:enabled>
+            </cap:create>
+        </configured>
+    </capabilities>
+    <!--<consistency> &lt;!&ndash; A workaround for MID-6455 &ndash;&gt;-->
+    <!--    <connectorErrorCriticality>-->
+    <!--        <unsupported>partial</unsupported>-->
+    <!--    </connectorErrorCriticality>-->
+    <!--</consistency>-->
+    <synchronization>
+        <objectSynchronization>
+            <kind>account</kind>
+            <intent>default</intent>
+            <enabled>true</enabled>
+            <correlation>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <expression>
+                        <path>$projection/attributes/icfs:name</path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
+</resource>

@@ -215,24 +215,7 @@ public class TestClockwork extends AbstractLensTest {
         assertEquals(SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
-        assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
-        // originally here was 6 (TODO why now four?)
-        assertEquals("Unexpected number of account secondary changes", 4, accountSecondaryDelta.getModifications().size());
-        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, PATH_ACTIVATION_ADMINISTRATIVE_STATUS, ActivationStatusType.DISABLED);
-        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, SchemaConstants.PATH_ACTIVATION_DISABLE_REASON,
-                SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
-
-        ContainerDelta<TriggerType> triggerDelta = accountSecondaryDelta.findContainerDelta(ObjectType.F_TRIGGER);
-        assertNotNull("No trigger delta in account secondary delta", triggerDelta);
-        assertEquals("Wrong trigger delta size", 1, triggerDelta.getValuesToAdd().size());
-        TriggerType triggerType = triggerDelta.getValuesToAdd().iterator().next().asContainerable();
-        assertEquals("Wrong trigger URL", RecomputeTriggerHandler.HANDLER_URI, triggerType.getHandlerUri());
-        XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
-        start.add(XmlTypeConverter.createDuration(true, 0, 0, 25, 0, 0, 0));
-        XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
-        end.add(XmlTypeConverter.createDuration(true, 0, 0, 35, 0, 0, 0));
-        TestUtil.assertBetween("Wrong trigger timestamp", start, end, triggerType.getTimestamp());
-
+        assertNull("Secondary delta is not null", accountSecondaryDelta);
     }
 
     private void assignAccountToJackAsync(boolean serialize) throws Exception {
@@ -305,9 +288,7 @@ public class TestClockwork extends AbstractLensTest {
         LensProjectionContext accContext = accountContexts.iterator().next();
         assertNull("Account primary delta sneaked in", accContext.getPrimaryDelta());
 
-        // ADD might be expected here. But projector goes over several iterations. And in the last
-        // iteration the account already exists. Hence KEEP and not ADD.
-        assertEquals(SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
+        assertEquals(SynchronizationPolicyDecision.ADD, accContext.getSynchronizationPolicyDecision());
 
         ObjectDelta<?> executedDelta = getExecutedDelta(accContext);
         assertNotNull("No executed delta in " + accContext, executedDelta);

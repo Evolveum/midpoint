@@ -1903,6 +1903,9 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
     /**
      * MID-4095
+     *
+     * This test tries to ADD value of "one" to attributes/interests, creating a new pending operation.
+     * TODO
      */
     @Test
     public void test525CloseCasesAndReconcileWill() throws Exception {

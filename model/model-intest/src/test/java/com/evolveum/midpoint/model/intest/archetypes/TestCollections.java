@@ -132,7 +132,7 @@ public class TestCollections extends AbstractArchetypesTest {
         assertSuccess(result);
         assertNotNull("Null stats", stats);
 
-        assertEquals("Wrong object count", getNumberOfUsers(), stats.getObjectCount());
+        assertEquals("Wrong object count", (Integer) getNumberOfUsers(), stats.getObjectCount());
         assertEquals("Wrong domain count", (Integer) getNumberOfUsers(), stats.getDomainCount());
         assertPercentage(stats, 100);
     }
@@ -175,7 +175,7 @@ public class TestCollections extends AbstractArchetypesTest {
         assertSuccess(result);
         assertNotNull("Null stats", stats);
 
-        assertEquals("Wrong object count", getNumberOfUsers() - numberOfDisabledUsers, stats.getObjectCount());
+        assertEquals("Wrong object count", (Integer) (getNumberOfUsers() - numberOfDisabledUsers), stats.getObjectCount());
         assertEquals("Wrong domain count", (Integer) getNumberOfUsers(), stats.getDomainCount());
         assertPercentage(stats, (getNumberOfUsers() - numberOfDisabledUsers) * 100f / getNumberOfUsers());
     }

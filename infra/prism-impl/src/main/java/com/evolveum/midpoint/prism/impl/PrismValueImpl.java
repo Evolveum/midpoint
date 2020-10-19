@@ -44,6 +44,8 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
 
     protected transient PrismContext prismContext;
 
+    private boolean isTransient;
+
     PrismValueImpl() {
     }
 
@@ -249,10 +251,11 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
             clone.prismContext = this.prismContext;
         }
         clone.valueMetadata = valueMetadata != null ? valueMetadata.clone() : null;
+        clone.isTransient = isTransient;
     }
 
-    EquivalenceStrategy getEqualsHashCodeStrategy() {
-        return defaultIfNull(defaultEquivalenceStrategy, EquivalenceStrategy.NOT_LITERAL);
+    private EquivalenceStrategy getEqualsHashCodeStrategy() {
+        return defaultIfNull(defaultEquivalenceStrategy, EquivalenceStrategy.DATA);
     }
 
     @Override
@@ -296,25 +299,6 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
         return this == other ||
                 (other == null || other instanceof PrismValue) &&
                 equals((PrismValue) other, getEqualsHashCodeStrategy());
-    }
-
-    public boolean equals(PrismValue thisValue, PrismValue otherValue) {
-        if (thisValue == otherValue) {
-            return true;
-        }
-        if (thisValue == null || otherValue == null) {
-            return false;
-        }
-        return thisValue.equals(otherValue, getEqualsHashCodeStrategy());
-    }
-
-    /**
-     * Assumes matching representations. I.e. it assumes that both this and otherValue represent the same instance of item.
-     * E.g. the container with the same ID.
-     */
-    @Override
-    public Collection<? extends ItemDelta> diff(PrismValue otherValue) {
-        return diff(otherValue, EquivalenceStrategy.IGNORE_METADATA);
     }
 
     /**
@@ -389,36 +373,53 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
     }
 
     @Override
-    public Optional<ValueMetadata> valueMetadata() {
-        if (valueMetadata != null) {
-            return Optional.of(valueMetadata);
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    @Override
     @NotNull
     public ValueMetadata getValueMetadata() {
         if (valueMetadata == null) {
-            if (prismContext != null && prismContext.getValueMetadataFactory() != null) {
-                valueMetadata = prismContext.getValueMetadataFactory().createEmpty();
-            } else {
-                valueMetadata = ValueMetadataAdapter.holding(new PrismContainerValueImpl<>());
-            }
+            assert isMutable();
+            valueMetadata = createEmptyMetadata();
         }
         return valueMetadata;
     }
 
+    private ValueMetadata createEmptyMetadata() {
+        if (prismContext != null && prismContext.getValueMetadataFactory() != null) {
+            return prismContext.getValueMetadataFactory().createEmpty();
+        } else {
+            return ValueMetadataAdapter.holding(new PrismContainerImpl<>(PrismConstants.VALUE_METADATA_CONTAINER_NAME));
+        }
+    }
+
+    @Override
+    public boolean hasValueMetadata() {
+        return valueMetadata != null && valueMetadata.hasAnyValue();
+    }
+
     @Override
     public void setValueMetadata(ValueMetadata valueMetadata) {
+        checkMutable();
+        if (valueMetadata != null) {
+            valueMetadata.checkConsistence(ConsistencyCheckScope.MANDATORY_CHECKS_ONLY); // TODO optimize
+        }
         this.valueMetadata = valueMetadata;
     }
 
     @Override
-    public void setValueMetadata(Containerable realValue) {
+    public void setValueMetadata(PrismContainer<?> valueMetadataContainer) {
+        if (valueMetadataContainer != null) {
+            setValueMetadata(ValueMetadataAdapter.holding(valueMetadataContainer));
+        } else {
+            setValueMetadata((ValueMetadata) null);
+        }
+    }
+
+    @Override
+    public void setValueMetadata(Containerable realValue) throws SchemaException {
         if (realValue != null) {
-            setValueMetadata(ValueMetadataAdapter.holding(realValue.asPrismContainerValue()));
+            ValueMetadata newMetadata = createEmptyMetadata();
+            //noinspection unchecked
+            newMetadata.add(realValue.asPrismContainerValue());
+            setValueMetadata(newMetadata);
         } else {
             setValueMetadata((ValueMetadata) null);
         }
@@ -426,9 +427,20 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
 
     @Override
     protected void performFreeze() {
+        getValueMetadata(); // to create empty metadata if there's none
         if (valueMetadata != null) {
             valueMetadata.freeze();
         }
         super.performFreeze();
+    }
+
+    @Override
+    public boolean isTransient() {
+        return isTransient;
+    }
+
+    @Override
+    public void setTransient(boolean value) {
+        isTransient = value;
     }
 }

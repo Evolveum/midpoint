@@ -17,10 +17,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstExpressionEvaluatorType;
 
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +41,8 @@ public class ConstExpressionEvaluator<V extends PrismValue, D extends ItemDefini
 
     @Override
     public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
+            CommunicationException, ConfigurationException {
         checkEvaluatorProfile(context);
 
         String constName = expressionEvaluatorBean.getValue();
@@ -53,16 +51,22 @@ public class ConstExpressionEvaluator<V extends PrismValue, D extends ItemDefini
         //noinspection unchecked
         Item<V, D> output = outputDefinition.instantiate();
 
-        Object value = ExpressionUtil.convertToOutputValue(stringValue, outputDefinition, protector);
+        Object realValue = ExpressionUtil.convertToOutputValue(stringValue, outputDefinition, protector);
 
         if (output instanceof PrismProperty) {
-            ((PrismProperty<Object>) output).addRealValue(value);
+            if (realValue != null) {
+                PrismPropertyValue<Object> prismValue = prismContext.itemFactory().createPropertyValue(realValue);
+                addInternalOrigin(prismValue, context);
+                ((PrismProperty<Object>) output).add(prismValue);
+            }
         } else {
             throw new UnsupportedOperationException(
                     "Can only provide values of property, not " + output.getClass());
         }
 
-        return ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
+        PrismValueDeltaSetTriple<V> outputTriple = ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
+        applyValueMetadata(outputTriple, context, result);
+        return outputTriple;
     }
 
     @Override

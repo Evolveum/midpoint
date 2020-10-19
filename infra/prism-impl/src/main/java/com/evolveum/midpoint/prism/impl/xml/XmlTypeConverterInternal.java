@@ -7,6 +7,19 @@
 
 package com.evolveum.midpoint.prism.impl.xml;
 
+import java.io.File;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.time.ZonedDateTime;
+import java.util.GregorianCalendar;
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.codec.binary.Base64;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.impl.marshaller.ItemPathSerializerTemp;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -16,47 +29,14 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import org.apache.commons.codec.binary.Base64;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.Duration;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.time.ZonedDateTime;
-import java.util.GregorianCalendar;
 
 /**
  *  This is to be cleaned up later. Ideally, this functionality should be accessed by prism serializer interface.
  */
 public class XmlTypeConverterInternal {
 
-    private static DatatypeFactory datatypeFactory = null;
-
-    private static DatatypeFactory getDatatypeFactory() {
-        if (datatypeFactory == null) {
-            try {
-                datatypeFactory = DatatypeFactory.newInstance();
-            } catch (DatatypeConfigurationException ex) {
-                throw new IllegalStateException("Cannot construct DatatypeFactory: " + ex.getMessage(), ex);
-            }
-        }
-        return datatypeFactory;
-    }
-
-
     /**
-     * @param val
-     * @param elementName
-     * @param doc
-     * @param recordType
      * @return created element
-     * @throws SchemaException
      */
     public static Element toXsdElement(Object val, QName elementName, Document doc, boolean recordType) throws SchemaException {
         if (val == null) {
@@ -133,9 +113,9 @@ public class XmlTypeConverterInternal {
                 return XsdTypeMapper.BOOLEAN_XML_VALUE_FALSE;
             }
         } else if (type.equals(BigInteger.class)) {
-            return ((BigInteger) val).toString();
+            return val.toString();
         } else if (type.equals(BigDecimal.class)) {
-            return ((BigDecimal) val).toString();
+            return val.toString();
         } else if (type.equals(GregorianCalendar.class)) {
             XMLGregorianCalendar xmlCal = XmlTypeConverter.createXMLGregorianCalendar((GregorianCalendar) val);
             return xmlCal.toXMLFormat();
@@ -146,7 +126,7 @@ public class XmlTypeConverterInternal {
         } else if (XMLGregorianCalendar.class.isAssignableFrom(type)) {
             return ((XMLGregorianCalendar) val).toXMLFormat();
         } else if (Duration.class.isAssignableFrom(type)) {
-            return ((Duration) val).toString();
+            return val.toString();
         } else if (type.equals(UniformItemPath.class) || type.equals(ItemPath.class)) {
             return ItemPathSerializerTemp.serializeWithDeclarations((ItemPath) val);
         } else {

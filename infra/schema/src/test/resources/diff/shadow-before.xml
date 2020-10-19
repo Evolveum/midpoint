@@ -16,7 +16,7 @@
     <metadata>
         <createTimestamp>2015-01-27T11:02:07.187+01:00</createTimestamp>
         <creatorRef oid="00000000-0000-0000-0000-000000000002" type="UserType"><!-- administrator --></creatorRef>
-        <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
+        <createChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</createChannel>
     </metadata>
     <resourceRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                  oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
@@ -40,7 +40,7 @@
         <t:itemDelta>
             <t:modificationType>replace</t:modificationType>
             <t:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">c:metadata/c:modifyChannel</t:path>
-            <t:value xsi:type="xsd:string">http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</t:value>
+            <t:value xsi:type="xsd:string">http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</t:value>
         </t:itemDelta>
         <t:itemDelta>
             <t:modificationType>replace</t:modificationType>
@@ -59,7 +59,7 @@
     <synchronizationSituationDescription>
         <situation>linked</situation>
         <timestamp>2015-01-27T11:05:58.720+01:00</timestamp>
-        <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</channel>
+        <channel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channel>
         <full>false</full>
     </synchronizationSituationDescription>
     <objectClass xmlns:qn948="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">qn948:AccountObjectClass</objectClass>

@@ -1,11 +1,24 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.gui.api.component.result;
+
+import java.io.PrintWriter;
+import java.io.Serializable;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -22,22 +35,9 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
-
-import java.io.PrintWriter;
-import java.io.Serializable;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * @author lazyman
@@ -161,7 +161,7 @@ public class OpResult implements Serializable, Visitable {
         }
 
         String caseOid = OperationResult.referenceToCaseOid(result.findAsynchronousOperationReference());
-        if(caseOid != null) {
+        if (caseOid != null) {
             opResult.caseOid = caseOid;
         }
 
@@ -215,14 +215,14 @@ public class OpResult implements Serializable, Visitable {
         try {
             pageBase.getModelService().getObject(TaskType.class, backgroundTaskOid, null, task, task.getResult());
             backgroundTaskVisible = true;
-        } catch (ObjectNotFoundException|SchemaException|SecurityViolationException|CommunicationException|ConfigurationException|ExpressionEvaluationException e) {
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
             LOGGER.debug("Task {} is not visible by the current user: {}: {}", backgroundTaskOid, e.getClass(), e.getMessage());
             backgroundTaskVisible = false;
         }
     }
 
     private void determineCaseVisibility(PageBase pageBase) {
-        if(getStatus().equals(OperationResultStatus.FATAL_ERROR)) {
+        if (getStatus().equals(OperationResultStatus.FATAL_ERROR)) {
             caseVisible = false;
             return;
         }
@@ -245,7 +245,7 @@ public class OpResult implements Serializable, Visitable {
         try {
             pageBase.getModelService().getObject(CaseType.class, caseOid, null, task, task.getResult());
             caseVisible = true;
-        } catch (ObjectNotFoundException|SchemaException|SecurityViolationException|CommunicationException|ConfigurationException|ExpressionEvaluationException e) {
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
             LOGGER.debug("Case {} is not visible by the current user: {}: {}", caseOid, e.getClass(), e.getMessage());
             caseVisible = false;
         }
@@ -353,7 +353,7 @@ public class OpResult implements Serializable, Visitable {
 
         visitor.visit(this);
 
-        for (OpResult result : this.getSubresults()){
+        for (OpResult result : this.getSubresults()) {
             result.accept(visitor);
         }
 

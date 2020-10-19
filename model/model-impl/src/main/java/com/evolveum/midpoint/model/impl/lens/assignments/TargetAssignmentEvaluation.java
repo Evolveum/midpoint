@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.model.impl.lens.assignments.TargetEvaluation.TargetActivation;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -17,11 +16,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import javax.xml.namespace.QName;
 
-import static com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator.getOrderOneObject;
 import static com.evolveum.midpoint.model.impl.lens.assignments.Util.isAllowedByLimitations;
 
 /**
@@ -57,9 +54,6 @@ class TargetAssignmentEvaluation<AH extends AssignmentHolderType> extends Abstra
         assert targetOverallConditionState.isNotAllFalse();
         checkIfAlreadyEvaluated();
 
-        // TODO reconsider this
-        ObjectType orderOneObject = getOrderOneObject(segment);
-
         if (ctx.ae.relationRegistry.isDelegation(segment.relation)) {
             // We have to handle assignments as though they were inducements here.
             if (!isAllowedByLimitations(segment, nextAssignment, ctx)) {
@@ -83,7 +77,6 @@ class TargetAssignmentEvaluation<AH extends AssignmentHolderType> extends Abstra
                 .prismContext(ctx.ae.prismContext)
                 .evaluationOrder(nextEvaluationOrder)
                 .evaluationOrderForTarget(nextEvaluationOrderForTarget)
-                .varThisObject(orderOneObject)
                 .pathToSourceValid(targetActivation.pathAndTargetActive)
                 .pathToSourceConditionState(targetOverallConditionState)
                 .build();

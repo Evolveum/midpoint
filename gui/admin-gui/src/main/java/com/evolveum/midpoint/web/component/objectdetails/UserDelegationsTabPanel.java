@@ -31,7 +31,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.assignment.DelegationEditorPanel;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
@@ -55,7 +55,7 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
     private LoadableModel<List<AssignmentEditorDto>> delegationsModel;
     private LoadableModel<List<AssignmentInfoDto>> privilegesListModel;
 
-    public UserDelegationsTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel,
+    public UserDelegationsTabPanel(String id, MidpointForm mainForm, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel,
             LoadableModel<List<AssignmentEditorDto>> delegationsModel,
             LoadableModel<List<AssignmentInfoDto>> privilegesListModel) {
         super(id, mainForm, focusWrapperModel);

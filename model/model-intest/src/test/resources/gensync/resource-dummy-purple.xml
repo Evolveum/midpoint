@@ -96,7 +96,6 @@
                 <ref>ri:priv</ref>
                 <inbound>
                     <name>mate-inbound</name>
-                    <tolerant>true</tolerant>
                     <strength>strong</strength>
                     <expression>
                         <assignmentTargetSearch>

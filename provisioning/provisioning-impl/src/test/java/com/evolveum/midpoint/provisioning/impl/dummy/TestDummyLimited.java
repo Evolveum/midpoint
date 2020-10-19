@@ -127,7 +127,7 @@ public class TestDummyLimited extends TestDummy {
         DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
         assertTrue("Dummy account " + ACCOUNT_WILL_USERNAME + " is disabled, expected enabled", dummyAccount.isEnabled());
 
-        syncServiceMock.assertNotifyFailureOnly();
+        syncServiceMock.assertSingleNotifyFailureOnly();
 
         assertSteadyResource();
     }
@@ -172,7 +172,7 @@ public class TestDummyLimited extends TestDummy {
         DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
         assertTrue("Dummy account " + ACCOUNT_WILL_USERNAME + " is disabled, expected enabled", dummyAccount.isEnabled());
 
-        syncServiceMock.assertNotifyFailureOnly();
+        syncServiceMock.assertSingleNotifyFailureOnly();
 
         assertSteadyResource();
     }
@@ -213,7 +213,7 @@ public class TestDummyLimited extends TestDummy {
         DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
         assertTrue("Dummy account " + ACCOUNT_WILL_USERNAME + " is disabled, expected enabled", dummyAccount.isEnabled());
 
-        syncServiceMock.assertNotifyFailureOnly();
+        syncServiceMock.assertSingleNotifyFailureOnly();
 
         assertSteadyResource();
     }
@@ -260,7 +260,7 @@ public class TestDummyLimited extends TestDummy {
         assertNull("Unexpected account validFrom in account " + ACCOUNT_WILL_USERNAME + ": " + dummyAccount.getValidFrom(), dummyAccount.getValidFrom());
         assertNull("Unexpected account validTo in account " + ACCOUNT_WILL_USERNAME + ": " + dummyAccount.getValidTo(), dummyAccount.getValidTo());
 
-        syncServiceMock.assertNotifyFailureOnly();
+        syncServiceMock.assertSingleNotifyFailureOnly();
 
         assertSteadyResource();
     }
@@ -302,7 +302,7 @@ public class TestDummyLimited extends TestDummy {
         assertNull("Unexpected account validFrom in account " + ACCOUNT_WILL_USERNAME + ": " + dummyAccount.getValidFrom(), dummyAccount.getValidFrom());
         assertNull("Unexpected account validTo in account " + ACCOUNT_WILL_USERNAME + ": " + dummyAccount.getValidTo(), dummyAccount.getValidTo());
 
-        syncServiceMock.assertNotifyFailureOnly();
+        syncServiceMock.assertSingleNotifyFailureOnly();
 
         assertSteadyResource();
     }
@@ -348,7 +348,7 @@ public class TestDummyLimited extends TestDummy {
         assertNull("Unexpected account validFrom in account " + ACCOUNT_WILL_USERNAME + ": " + dummyAccount.getValidFrom(), dummyAccount.getValidFrom());
         assertNull("Unexpected account validTo in account " + ACCOUNT_WILL_USERNAME + ": " + dummyAccount.getValidTo(), dummyAccount.getValidTo());
 
-        syncServiceMock.assertNotifyFailureOnly();
+        syncServiceMock.assertSingleNotifyFailureOnly();
 
         assertSteadyResource();
     }
@@ -398,7 +398,7 @@ public class TestDummyLimited extends TestDummy {
 
         delta.checkConsistence();
 
-        syncServiceMock.assertNotifyFailureOnly();
+        syncServiceMock.assertSingleNotifyFailureOnly();
 
         assertSteadyResource();
     }

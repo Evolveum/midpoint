@@ -11,7 +11,7 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.self.component.AssignmentConflictPanel;
 import com.evolveum.midpoint.web.page.self.dto.ConflictDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -47,7 +47,7 @@ public class PageAssignmentConflicts extends PageSelf {
     }
 
     private void initLayout() {
-        Form mainForm = new Form(ID_MAIN_FORM);
+        MidpointForm mainForm = new MidpointForm(ID_MAIN_FORM);
         mainForm.setOutputMarkupId(true);
         add(mainForm);
 

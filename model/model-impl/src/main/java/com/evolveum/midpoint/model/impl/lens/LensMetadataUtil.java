@@ -8,14 +8,18 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
-import com.evolveum.midpoint.model.common.mapping.metadata.ValueMetadataComputation;
-import com.evolveum.midpoint.model.common.mapping.metadata.ValueMetadataProcessingSpec;
+import com.evolveum.midpoint.model.common.mapping.metadata.ConsolidationMetadataComputation;
+import com.evolveum.midpoint.model.common.mapping.metadata.ItemValueMetadataProcessingSpec;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.common.expression.ValueMetadataComputer;
+import com.evolveum.midpoint.repo.common.expression.ConsolidationValueMetadataComputer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
+import org.jetbrains.annotations.NotNull;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataMappingScopeType.CONSOLIDATION;
 
@@ -25,27 +29,31 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataMappi
 @Experimental
 public class LensMetadataUtil {
 
-    public static ValueMetadataComputer createValueMetadataConsolidationComputer(ItemPath itemPath, LensContext<?> lensContext, ModelBeans beans,
+    private static final Trace LOGGER = TraceManager.getTrace(LensMetadataUtil.class);
+
+    public static ConsolidationValueMetadataComputer createValueMetadataConsolidationComputer(ItemPath itemPath, LensContext<?> lensContext, ModelBeans beans,
             MappingEvaluationEnvironment env, OperationResult result) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
-        ValueMetadataProcessingSpec processingSpec = createProcessingSpec(itemPath, lensContext, beans, env, result);
+        ItemValueMetadataProcessingSpec processingSpec = createProcessingSpec(itemPath, lensContext, beans, env, result);
+        LOGGER.trace("Value metadata processing spec:\n{}", processingSpec.debugDumpLazily(1));
         if (processingSpec.isEmpty()) {
             return null;
         } else {
-            return ValueMetadataComputer.named(() -> "Computer for consolidation of " + itemPath + " in " + env.contextDescription,
-                    (inputValues, computationOpResult) ->
-                            ValueMetadataComputation
-                                    .forConsolidation(inputValues, processingSpec, beans.commonBeans, env)
+            return ConsolidationValueMetadataComputer.named(() -> "Computer for consolidation of " + itemPath + " in " + env.contextDescription,
+                    (nonNegativeValues, existingValues, computationOpResult) ->
+                            ConsolidationMetadataComputation
+                                    .forConsolidation(nonNegativeValues, existingValues, processingSpec, beans.commonBeans, env)
                                     .execute(computationOpResult));
         }
     }
 
-    private static ValueMetadataProcessingSpec createProcessingSpec(ItemPath itemPath, LensContext<?> lensContext, ModelBeans beans,
+    @NotNull
+    private static ItemValueMetadataProcessingSpec createProcessingSpec(ItemPath itemPath, LensContext<?> lensContext, ModelBeans beans,
             MappingEvaluationEnvironment env, OperationResult result) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
-        ValueMetadataProcessingSpec processingSpec = ValueMetadataProcessingSpec.forScope(CONSOLIDATION);
+        ItemValueMetadataProcessingSpec processingSpec = ItemValueMetadataProcessingSpec.forScope(CONSOLIDATION);
         // TODO What about persona mappings? outbound mappings? We should not use object template for that.
         processingSpec.populateFromCurrentFocusTemplate(lensContext, itemPath, beans.modelObjectResolver,
                 env.contextDescription, env.task, result);

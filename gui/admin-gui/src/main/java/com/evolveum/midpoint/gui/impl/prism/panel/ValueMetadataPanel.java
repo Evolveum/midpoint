@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -17,12 +17,13 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 /**
  * @author katka
- *
  */
 public class ValueMetadataPanel<C extends Containerable, CVW extends PrismContainerValueWrapper<C>>
         extends PrismContainerValuePanel<C, CVW> {
@@ -37,13 +38,19 @@ public class ValueMetadataPanel<C extends Containerable, CVW extends PrismContai
         Label labelComponent = new Label(ID_LABEL, headerLabelModel);
         labelComponent.setOutputMarkupId(true);
         labelComponent.setOutputMarkupPlaceholderTag(true);
-        labelComponent.add(new VisibleBehaviour(this::hasMultivalueParent));
+        labelComponent.add(new VisibleBehaviour(this::notEmptyAndNotDirectChildOfValueMetadataType));
         header.add(labelComponent);
     }
 
-    private boolean hasMultivalueParent() {
+    private boolean notEmptyAndNotDirectChildOfValueMetadataType() {
         CVW modelObject = getModelObject();
+
         if (modelObject == null) {
+            return false;
+        }
+
+        // TODO probably this doesn't need to be here if the wrapper factory generates wrappers correctly..
+        if (modelObject.getOldValue() == null || modelObject.getOldValue().isEmpty()) {
             return false;
         }
 
@@ -52,7 +59,16 @@ public class ValueMetadataPanel<C extends Containerable, CVW extends PrismContai
             return false;
         }
 
-        return parent.isMultiValue();
+        PrismContainerValueWrapper<?> parentContainerValue = parent.getParent();
+        if (parentContainerValue == null) {
+            return true;
+        }
+
+        if (parentContainerValue.getDefinition() == null) {
+            return false;
+        }
+
+        return !QNameUtil.match(parentContainerValue.getDefinition().getTypeName(), ValueMetadataType.COMPLEX_TYPE);
     }
 
     @Override
@@ -73,7 +89,7 @@ public class ValueMetadataPanel<C extends Containerable, CVW extends PrismContai
     }
 
     @Override
-    protected void createMetadataPanel(Form form) {
+    protected void createMetadataPanel(MidpointForm form) {
 
     }
 

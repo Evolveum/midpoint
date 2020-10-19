@@ -9,12 +9,10 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 import javax.annotation.PostConstruct;
 
 import org.apache.wicket.markup.html.panel.Panel;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -25,7 +23,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
  * @author katka
- *
  */
 @Component
 public class ModificationsPanelFactory extends AbstractGuiComponentFactory<ObjectDeltaType> {
@@ -36,7 +33,7 @@ public class ModificationsPanelFactory extends AbstractGuiComponentFactory<Objec
     }
 
     @Override
-    public <IW extends ItemWrapper> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
         return ObjectDeltaType.COMPLEX_TYPE.equals(wrapper.getTypeName());
     }
 
@@ -58,5 +55,4 @@ public class ModificationsPanelFactory extends AbstractGuiComponentFactory<Objec
             }
         });
     }
-
 }

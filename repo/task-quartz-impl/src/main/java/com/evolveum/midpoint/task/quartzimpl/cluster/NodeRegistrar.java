@@ -144,7 +144,7 @@ public class NodeRegistrar implements Cacheable {
                 nodeToBe.setSecret(nodeInRepo.asObjectable().getSecret());
                 nodeToBe.setSecretUpdateTimestamp(nodeInRepo.asObjectable().getSecretUpdateTimestamp());
             }
-            ObjectDelta<NodeType> nodeDelta = nodeInRepo.diff(nodeToBe.asPrismObject(), EquivalenceStrategy.LITERAL);
+            ObjectDelta<NodeType> nodeDelta = nodeInRepo.diff(nodeToBe.asPrismObject(), EquivalenceStrategy.DATA);
             LOGGER.debug("Applying delta to existing node object:\n{}", nodeDelta.debugDumpLazily());
             try {
                 getRepositoryService().modifyObject(NodeType.class, nodeInRepo.getOid(), nodeDelta.getModifications(), result);

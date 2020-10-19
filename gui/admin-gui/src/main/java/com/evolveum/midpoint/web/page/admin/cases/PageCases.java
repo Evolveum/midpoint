@@ -1,10 +1,24 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.cases;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -34,17 +48,8 @@ import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
-import java.util.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 
 /**
  * @author acope on 9/14/17.
@@ -98,23 +103,22 @@ public class PageCases extends PageAdminObjectList<CaseType> {
     }
 
     @Override
-    protected Class getType(){
+    protected Class getType() {
         return CaseType.class;
     }
 
     @Override
-    protected UserProfileStorage.TableId getTableId(){
+    protected UserProfileStorage.TableId getTableId() {
         return UserProfileStorage.TableId.TABLE_CASES;
     }
 
-
     @Override
-    protected boolean isCreateNewObjectEnabled(){
+    protected boolean isCreateNewObjectEnabled() {
         return false;
     }
 
     @Override
-    protected Collection<SelectorOptions<GetOperationOptions>> getQueryOptions(){
+    protected Collection<SelectorOptions<GetOperationOptions>> getQueryOptions() {
         return getOperationOptionsBuilder()
                 .item(CaseType.F_OBJECT_REF).resolve()
                 .item(CaseType.F_TARGET_REF).resolve()
@@ -122,7 +126,7 @@ public class PageCases extends PageAdminObjectList<CaseType> {
     }
 
     @Override
-    protected void setDefaultSorting(BaseSortableDataProvider<SelectableBean<CaseType>> provider){
+    protected void setDefaultSorting(BaseSortableDataProvider<SelectableBean<CaseType>> provider) {
         provider.setSort(MetadataType.F_CREATE_TIMESTAMP.getLocalPart(), SortOrder.DESCENDING);
     }
 
@@ -144,13 +148,14 @@ public class PageCases extends PageAdminObjectList<CaseType> {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        if (getRowModel() == null && warnIfNoCaseSelected(target)){
+                        if (getRowModel() == null && warnIfNoCaseSelected(target)) {
                             return;
                         }
                         if (getRowModel() == null) {
                             stopCaseProcessConfirmed(target);
                         } else {
-                            stopCaseProcessConfirmed(target, Arrays.asList(getRowModel().getObject().getValue()));
+                            stopCaseProcessConfirmed(target,
+                                    Collections.singletonList(getRowModel().getObject().getValue()));
                         }
                     }
                 };
@@ -158,8 +163,8 @@ public class PageCases extends PageAdminObjectList<CaseType> {
 
             @Override
             public IModel<Boolean> getEnabled() {
-                IModel<SelectableBeanImpl<CaseType>> rowModel = ((ColumnMenuAction<SelectableBeanImpl<CaseType>>)getAction()).getRowModel();
-                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getValue() != null){
+                IModel<SelectableBeanImpl<CaseType>> rowModel = ((ColumnMenuAction<SelectableBeanImpl<CaseType>>) getAction()).getRowModel();
+                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getValue() != null) {
                     return Model.of(!CaseTypeUtil.isClosed(rowModel.getObject().getValue()));
                 } else {
                     return super.getEnabled();
@@ -167,12 +172,12 @@ public class PageCases extends PageAdminObjectList<CaseType> {
             }
 
             @Override
-            public CompositedIconBuilder getIconCompositedBuilder(){
+            public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_STOP_MENU_ITEM);
             }
 
             @Override
-            public IModel<String> getConfirmationMessageModel(){
+            public IModel<String> getConfirmationMessageModel() {
                 return getObjectListPanel().getSelectedObjectsCount() > 0 ?
                         createStringResource("pageCases.button.stopProcess.multiple.confirmationMessage", getObjectListPanel().getSelectedObjectsCount()) :
                         createStringResource("pageCases.button.stopProcess.confirmationMessage");
@@ -188,27 +193,28 @@ public class PageCases extends PageAdminObjectList<CaseType> {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        if (getRowModel() == null && warnIfNoCaseSelected(target)){
+                        if (getRowModel() == null && warnIfNoCaseSelected(target)) {
                             return;
                         }
                         if (getRowModel() == null) {
                             deleteCaseObjectsConfirmed(target);
                         } else {
-                            deleteCaseObjectsConfirmed(target, Arrays.asList(getRowModel().getObject().getValue()));
+                            deleteCaseObjectsConfirmed(target,
+                                    Collections.singletonList(getRowModel().getObject().getValue()));
                         }
                     }
                 };
             }
 
             @Override
-            public CompositedIconBuilder getIconCompositedBuilder(){
+            public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_DELETE_MENU_ITEM);
             }
 
             @Override
             public IModel<Boolean> getEnabled() {
-                IModel<SelectableBeanImpl<CaseType>> rowModel = ((ColumnMenuAction<SelectableBeanImpl<CaseType>>)getAction()).getRowModel();
-                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getValue() != null){
+                IModel<SelectableBeanImpl<CaseType>> rowModel = ((ColumnMenuAction<SelectableBeanImpl<CaseType>>) getAction()).getRowModel();
+                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getValue() != null) {
                     return Model.of(!CaseTypeUtil.isClosed(rowModel.getObject().getValue()));
                 } else {
                     return super.getEnabled();
@@ -216,7 +222,7 @@ public class PageCases extends PageAdminObjectList<CaseType> {
             }
 
             @Override
-            public IModel<String> getConfirmationMessageModel(){
+            public IModel<String> getConfirmationMessageModel() {
                 return getObjectListPanel().getSelectedObjectsCount() > 0 ?
                         createStringResource("pageCases.button.delete.multiple.confirmationMessage", getObjectListPanel().getSelectedObjectsCount()) :
                         createStringResource("pageCases.button.delete.confirmationMessage");
@@ -227,21 +233,12 @@ public class PageCases extends PageAdminObjectList<CaseType> {
         return menu;
     }
 
-    private <O extends ObjectType> String getObjectRef(IModel<SelectableBeanImpl<CaseType>> caseModel) {
-        CaseType caseModelObject = caseModel.getObject().getValue();
-        if (caseModelObject == null || caseModelObject.getObjectRef() == null) {
-            return "";
-        }
-        return WebComponentUtil.getEffectiveName(caseModelObject.getObjectRef(), AbstractRoleType.F_DISPLAY_NAME, PageCases.this,
-                OPERATION_LOAD_REFERENCE_DISPLAY_NAME);
-    }
-
-    private void deleteCaseObjectsConfirmed(AjaxRequestTarget target){
+    private void deleteCaseObjectsConfirmed(AjaxRequestTarget target) {
         deleteCaseObjectsConfirmed(target, getObjectListPanel().getSelectedObjects());
     }
 
-    private void deleteCaseObjectsConfirmed(AjaxRequestTarget target, List<CaseType> casesToDelete){
-        if (casesToDelete == null){
+    private void deleteCaseObjectsConfirmed(AjaxRequestTarget target, List<CaseType> casesToDelete) {
+        if (casesToDelete == null) {
             return;
         }
         OperationResult result = new OperationResult(OPERATION_DELETE_CASE_OBJECT);
@@ -258,12 +255,12 @@ public class PageCases extends PageAdminObjectList<CaseType> {
         getObjectListPanel().clearCache();
     }
 
-    private void stopCaseProcessConfirmed(AjaxRequestTarget target){
+    private void stopCaseProcessConfirmed(AjaxRequestTarget target) {
         stopCaseProcessConfirmed(target, getObjectListPanel().getSelectedObjects());
     }
 
-    private void stopCaseProcessConfirmed(AjaxRequestTarget target, List<CaseType> casesToStop){
-        if (casesToStop == null){
+    private void stopCaseProcessConfirmed(AjaxRequestTarget target, List<CaseType> casesToStop) {
+        if (casesToStop == null) {
             return;
         }
         OperationResult result = new OperationResult(OPERATION_STOP_CASE_PROCESS);
@@ -271,7 +268,7 @@ public class PageCases extends PageAdminObjectList<CaseType> {
             Task task = createSimpleTask(OPERATION_STOP_CASE_PROCESS);
             try {
                 getWorkflowService().cancelCase(caseObject.getOid(), task, result);
-            } catch (Exception ex){
+            } catch (Exception ex) {
                 LOGGER.error("Couldn't stop case process: {}", ex.getLocalizedMessage());
                 result.recordFatalError(createStringResource("PageCases.message.stopCaseProcessConfirmed.fatalError").getString(), ex);
             }
@@ -284,8 +281,8 @@ public class PageCases extends PageAdminObjectList<CaseType> {
         getObjectListPanel().clearCache();
     }
 
-    private boolean warnIfNoCaseSelected(AjaxRequestTarget target){
-        if (CollectionUtils.isEmpty(getObjectListPanel().getSelectedObjects())){
+    private boolean warnIfNoCaseSelected(AjaxRequestTarget target) {
+        if (CollectionUtils.isEmpty(getObjectListPanel().getSelectedObjects())) {
             warn(getString("PageCases.noCaseSelected"));
             target.add(getFeedbackPanel());
         }

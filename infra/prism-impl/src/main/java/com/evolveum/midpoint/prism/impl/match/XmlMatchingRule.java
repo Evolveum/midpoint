@@ -41,9 +41,6 @@ public class XmlMatchingRule implements MatchingRule<String> {
         return (DOMUtil.XSD_STRING.equals(xsdType));
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.model.match.MatchingRule#match(java.lang.Object, java.lang.Object)
-     */
     @Override
     public boolean match(String a, String b) {
         if (a == null && b == null) {
@@ -66,9 +63,6 @@ public class XmlMatchingRule implements MatchingRule<String> {
         }
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.prism.match.MatchingRule#normalize(java.lang.Object)
-     */
     @Override
     public String normalize(String original) {
         if (original == null) {
@@ -93,4 +87,8 @@ public class XmlMatchingRule implements MatchingRule<String> {
         return false;
     }
 
+    @Override
+    public String toString() {
+        return "XmlMatchingRule{}";
+    }
 }

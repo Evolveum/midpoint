@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.PROPERTY
 import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.PROPERTY_JDBC_URL;
 
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.Types;
 import java.util.List;
 import javax.sql.DataSource;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sql.helpers.JdbcSession;
 import com.evolveum.midpoint.repo.sql.pure.SqlTableMetadata;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.mapping.QAuditEventRecordMapping;
 import com.evolveum.midpoint.repo.sql.util.EntityStateInterceptor;
 import com.evolveum.midpoint.repo.sql.util.MidPointImplicitNamingStrategy;
 import com.evolveum.midpoint.repo.sql.util.MidPointPhysicalNamingStrategy;
@@ -92,13 +94,17 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
         for (Configuration subConfigColumn : subConfigColumns) {
             String columnName = getStringFromConfig(
                     subConfigColumn, CONF_AUDIT_SERVICE_COLUMN_NAME);
-            String eventRecordPropertyName = getStringFromConfig(
+            String propertyName = getStringFromConfig(
                     subConfigColumn, CONF_AUDIT_SERVICE_EVENT_RECORD_PROPERTY_NAME);
             // No type definition for now, it's all String or String implicit conversion.
 
-            auditService.addCustomColumn(eventRecordPropertyName, columnName);
+            ColumnMetadata columnMetadata =
+                    ColumnMetadata.named(columnName).ofType(Types.NVARCHAR).withSize(255);
+            QAuditEventRecordMapping.INSTANCE.addExtensionColumn(propertyName, columnMetadata);
             if (tableMetadata != null && tableMetadata.get(columnName) == null) {
-                try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startTransaction()) {
+                // Fails on SQL Server with snapshot transaction, so different isolation is used.
+                try (JdbcSession jdbcSession = baseHelper.newJdbcSession()
+                        .startTransaction(Connection.TRANSACTION_READ_COMMITTED)) {
                     jdbcSession.addColumn(QAuditEventRecord.TABLE_NAME,
                             ColumnMetadata.named(columnName).ofType(Types.VARCHAR).withSize(255));
                 }

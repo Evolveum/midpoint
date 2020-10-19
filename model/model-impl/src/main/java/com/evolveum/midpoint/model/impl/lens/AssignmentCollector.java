@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +73,7 @@ public class AssignmentCollector {
     @Autowired private Clock clock;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
     @Autowired private ContextLoader contextLoader;
+    @Autowired private ModelBeans modelBeans;
 
     public <AH extends AssignmentHolderType> Collection<EvaluatedAssignment<AH>> collect(PrismObject<AH> focus,
             boolean loginMode, Task task, OperationResult result) throws SchemaException {
@@ -89,6 +91,7 @@ public class AssignmentCollector {
                             .referenceResolver(referenceResolver)
                             .focusOdo(new ObjectDeltaObject<>(focus, null, focus, focus.getDefinition()))
                             .channel(null)
+                            .modelBeans(modelBeans)
                             .objectResolver(objectResolver)
                             .systemObjectCache(systemObjectCache)
                             .relationRegistry(relationRegistry)

@@ -8,10 +8,10 @@ package com.evolveum.midpoint.gui.impl.prism.panel;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemEditabilityHandler;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismValue;
 
 import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
@@ -20,12 +20,10 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumnPanel;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -72,7 +70,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
         headerPanel.add(new VisibleBehaviour(() -> getHeaderVisibility()));
         add(headerPanel);
 
-        ListView<VW> valuesPanel = createValuesPanel();
+        Component valuesPanel = createValuesPanel();
         add(valuesPanel);
 
     }
@@ -86,9 +84,9 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
 
     protected abstract Component createHeaderPanel();
 
-    protected ListView<VW> createValuesPanel() {
+    protected Component createValuesPanel() {
 
-        ListView<VW> values = new ListView<VW>(ID_VALUES, new PropertyModel<>(getModel(), "values")) {
+        ListView<VW> values = new ListView<VW>(ID_VALUES, createValuesModel()) {
 
             private static final long serialVersionUID = 1L;
 
@@ -103,6 +101,10 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
         };
 
         return values;
+    }
+
+    protected IModel<List<VW>> createValuesModel() {
+        return new PropertyModel<>(getModel(), "values");
     }
 
     protected void removeValue(VW valueToRemove, AjaxRequestTarget target) throws SchemaException {

@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.api.component;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.SchemaHelper;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
-import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.Contract;
+
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Base class for most midPoint GUI panels. It has a constructor and

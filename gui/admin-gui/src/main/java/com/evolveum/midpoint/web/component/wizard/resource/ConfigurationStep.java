@@ -46,7 +46,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
@@ -137,7 +137,7 @@ public class ConfigurationStep extends WizardStep {
     }
 
     private void initLayout() {
-        Form form = new com.evolveum.midpoint.web.component.form.Form<>(ID_MAIN, true);
+        MidpointForm form = new MidpointForm<>(ID_MAIN, true);
         form.setOutputMarkupId(true);
         add(form);
 
@@ -211,8 +211,8 @@ public class ConfigurationStep extends WizardStep {
         tabbedPanel.setSelectedTab(i);
     }
 
-    private Form getForm() {
-        return (Form) get(ID_MAIN);
+    private MidpointForm getForm() {
+        return (MidpointForm) get(ID_MAIN);
     }
 
     @SuppressWarnings("unchecked")

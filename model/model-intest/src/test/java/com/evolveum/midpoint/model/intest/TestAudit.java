@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020 Evolveum and contributors
+ * Copyright (C) 2016-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -526,8 +526,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         final int ITERATIONS = 300;
         final long TIMEOUT = 600_000;
 
-//        skipTestIf(isH2(), "because of H2 database");
-
         // creating objects
         List<String> oids = new ArrayList<>(NUM_THREADS);
         for (int i = 0; i < NUM_THREADS; i++) {
@@ -550,7 +548,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
                     OperationResult threadResult = threadTask.getResult();
                     for (int iteration = 0; iteration < ITERATIONS; iteration++) {
                         display("Executing iteration " + iteration + " on user " + index);
-                        ObjectDelta delta = prismContext.deltaFor(UserType.class)
+                        ObjectDelta<? extends ObjectType> delta = prismContext.deltaFor(UserType.class)
                                 .item(UserType.F_FULL_NAME).replace(PolyString.fromOrig("User " + index + " iteration " + iteration))
                                 .asObjectDelta(oids.get(index));
                         executeChangesAssertSuccess(delta, null, threadTask, threadResult);
@@ -600,10 +598,8 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         final int ITERATIONS = 300;
         final long TIMEOUT = 600_000;
 
-        // Originally we wanted to skip this because of possible concurrency issues on H2, but we'll try it for a while
-//        skipTestIf(isH2(), "H2 database can have MVCC issues");
-
-        final AtomicBoolean failed = new AtomicBoolean(false);        // signal to kill other threads after a failure
+        // signal to kill other threads after a failure
+        final AtomicBoolean failed = new AtomicBoolean(false);
 
         // creating threads + starting them
         List<Thread> threads = new ArrayList<>(NUM_THREADS);
@@ -620,11 +616,11 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
                         AuditEventRecord record = new AuditEventRecord(AuditEventType.MODIFY_OBJECT, AuditEventStage.EXECUTION);
                         record.setEventIdentifier(
                                 iteration + ":" + System.currentTimeMillis() + "-" + (int) (Math.random() * 1_000_000));
-                        ObjectDelta<?> delta = prismContext.deltaFor(UserType.class)
+                        ObjectDelta<? extends ObjectType> delta = prismContext.deltaFor(UserType.class)
                                 .item(UserType.F_FULL_NAME).replace(PolyString.fromOrig("Hi" + iteration))
                                 .item(UserType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP).replace(XmlTypeConverter.createXMLGregorianCalendar(new Date()))
                                 .asObjectDelta("oid" + index);
-                        record.addDelta(new ObjectDeltaOperation(delta));
+                        record.addDelta(new ObjectDeltaOperation<>(delta));
                         modelAuditService.audit(record, threadTask, threadResult);
                         if (failed.get()) {
                             results.set(index, new IllegalStateException("Some other thread failed"));

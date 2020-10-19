@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.ArrayList;
@@ -12,7 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -22,11 +21,12 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismReferenceWrapperColumn;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -51,7 +51,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     protected static final String DOT_CLASS = AbstractRoleAssignmentPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_TARGET_REF_OBJECT = DOT_CLASS + "loadAssignmentTargetRefObject";
 
-    public AbstractRoleAssignmentPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel){
+    public AbstractRoleAssignmentPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel) {
         super(id, assignmentContainerWrapperModel);
     }
 
@@ -71,12 +71,12 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
             columns.add(new PrismReferenceWrapperColumn<AssignmentType, ObjectReferenceType>(getModel(), AssignmentType.F_ORG_REF, ColumnType.STRING, getPageBase()));
         }
 
-        columns.add(new AbstractColumn<PrismContainerValueWrapper<AssignmentType>, String>(createStringResource("AbstractRoleAssignmentPanel.identifierLabel")){
+        columns.add(new AbstractColumn<PrismContainerValueWrapper<AssignmentType>, String>(createStringResource("AbstractRoleAssignmentPanel.identifierLabel")) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item, String componentId,
-                                     final IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+                    final IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
                 item.add(new Label(componentId, getIdentifierLabelModel(rowModel.getObject())));
             }
         });
@@ -84,17 +84,21 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         return columns;
     }
 
-    private String getRelationLabelValue(PrismContainerValueWrapper<AssignmentType> assignmentWrapper){
+    private String getRelationLabelValue(PrismContainerValueWrapper<AssignmentType> assignmentWrapper) {
         if (assignmentWrapper == null || assignmentWrapper.getRealValue() == null
                 || assignmentWrapper.getRealValue().getTargetRef() == null
-                || assignmentWrapper.getRealValue().getTargetRef().getRelation() == null){
+                || assignmentWrapper.getRealValue().getTargetRef().getRelation() == null) {
             return "";
         }
-        return assignmentWrapper.getRealValue().getTargetRef().getRelation().getLocalPart();
+
+        QName relation = assignmentWrapper.getRealValue().getTargetRef().getRelation();
+        String relationDisplayName = WebComponentUtil.getRelationHeaderLabelKeyIfKnown(relation);
+        return StringUtils.isNotEmpty(relationDisplayName) ?
+                getPageBase().createStringResource(relationDisplayName).getString() :
+                getPageBase().createStringResource(relation.getLocalPart()).getString();
     }
 
-
-    protected void initCustomPaging(){
+    protected void initCustomPaging() {
         getAssignmentsTabStorage().setPaging(getPrismContext().queryFactory()
                 .createPaging(0, (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)));
     }
@@ -114,7 +118,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 
         QName targetType = getAssignmentType();
         RefFilter targetRefFilter = null;
-        if (targetType != null){
+        if (targetType != null) {
             ObjectReferenceType ort = new ObjectReferenceType();
             ort.setType(targetType);
             ort.setRelation(new QName(PrismConstants.NS_QUERY, "any"));
@@ -134,29 +138,29 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         return query;
     }
 
-    protected QName getAssignmentType(){
+    protected QName getAssignmentType() {
         return AbstractRoleType.COMPLEX_TYPE;
     }
 
-    private <O extends ObjectType> IModel<String> getIdentifierLabelModel(PrismContainerValueWrapper<AssignmentType> assignmentContainer){
-        if (assignmentContainer == null || assignmentContainer.getRealValue() == null){
+    private <O extends ObjectType> IModel<String> getIdentifierLabelModel(PrismContainerValueWrapper<AssignmentType> assignmentContainer) {
+        if (assignmentContainer == null || assignmentContainer.getRealValue() == null) {
             return Model.of("");
         }
         AssignmentType assignment = assignmentContainer.getRealValue();
-        if (assignment.getTargetRef() == null){
+        if (assignment.getTargetRef() == null) {
             return Model.of("");
         }
 
         PrismObject<O> object = WebModelServiceUtils.loadObject(assignment.getTargetRef(), getPageBase(),
                 getPageBase().createSimpleTask(OPERATION_LOAD_TARGET_REF_OBJECT), new OperationResult(OPERATION_LOAD_TARGET_REF_OBJECT));
-        if (object == null || !(object.asObjectable() instanceof AbstractRoleType)){
+        if (object == null || !(object.asObjectable() instanceof AbstractRoleType)) {
             return Model.of("");
         }
         AbstractRoleType targetRefObject = (AbstractRoleType) object.asObjectable();
-        if (StringUtils.isNotEmpty(targetRefObject.getIdentifier())){
+        if (StringUtils.isNotEmpty(targetRefObject.getIdentifier())) {
             return Model.of(targetRefObject.getIdentifier());
         }
-        if (targetRefObject.getDisplayName() != null && !targetRefObject.getName().getOrig().equals(targetRefObject.getDisplayName().getOrig())){
+        if (targetRefObject.getDisplayName() != null && !targetRefObject.getName().getOrig().equals(targetRefObject.getDisplayName().getOrig())) {
             return Model.of(targetRefObject.getName().getOrig());
         }
         return Model.of("");
@@ -171,14 +175,14 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 
     @Override
     protected ItemVisibility getTypedContainerVisibility(ItemWrapper<?, ?> wrapper) {
-        if (QNameUtil.match(PolicyRuleType.COMPLEX_TYPE, wrapper.getTypeName())){
+        if (QNameUtil.match(PolicyRuleType.COMPLEX_TYPE, wrapper.getTypeName())) {
             return ItemVisibility.HIDDEN;
         }
-        if (QNameUtil.match(PersonaConstructionType.COMPLEX_TYPE, wrapper.getTypeName())){
+        if (QNameUtil.match(PersonaConstructionType.COMPLEX_TYPE, wrapper.getTypeName())) {
             return ItemVisibility.HIDDEN;
         }
 
-        if (QNameUtil.match(ConstructionType.COMPLEX_TYPE, wrapper.getTypeName())){
+        if (QNameUtil.match(ConstructionType.COMPLEX_TYPE, wrapper.getTypeName())) {
             return ItemVisibility.HIDDEN;
         }
 

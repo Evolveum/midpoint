@@ -290,4 +290,30 @@ public class AssignmentPathImpl implements AssignmentPath {
         newLast.freeze();
         replaceLast(newLast);
     }
+
+    /**
+     * Used as a source for thisObject variable. This variable is officially deprecated, but it is used as a legacy
+     * role pointer in {@link com.evolveum.midpoint.model.common.expression.evaluator.AssociationFromLinkExpressionEvaluator}.
+     *
+     * This is the specification from common-3 documentation:
+     *
+     * "The legacy algorithm is guaranteed to work up to meta-role level.
+     * For plain roles (order-one inducement) the role itself is selected.
+     * For meta-roles (order-two inducement) the first (plain) role is selected.
+     * At the meta-meta role level (order-three inducement) and above the
+     * behavior is formally undefined and it may change in any future versions.
+     * However, current behaviour roughly corresponds to assignment path index -2."
+     *
+     * Should be removed or adapted on appropriate occasion.
+     */
+    public ObjectType getConstructionThisObject() {
+        AssignmentPathSegmentImpl constructionSource = beforeLast(1);
+        if (constructionSource == null) {
+            return null;
+        } else if (constructionSource.getEvaluationOrder().getSummaryOrder() == 1) {
+            return constructionSource.getTarget();
+        } else {
+            return constructionSource.getSource(); // first role (for order=2) a.k.a. index -2 (generally)
+        }
+    }
 }

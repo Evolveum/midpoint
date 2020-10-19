@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,7 +8,7 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import java.util.*;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -87,7 +87,7 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
                         WebPrismUtil.createNewValueWrapper(archetypeAssignment, archetypeAssignmentValue, getPageBase(), target);
                     } catch (SchemaException e) {
                         LOGGER.error("Exception during assignment lookup, reason: {}", e.getMessage(), e);
-                        getSession().error("Cannot set seleted handler: " + e.getMessage());
+                        getSession().error("Cannot set selected handler: " + e.getMessage());
                         return;
                     }
                 }

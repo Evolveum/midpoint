@@ -1,17 +1,12 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.form;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.AceEditor;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -19,6 +14,11 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.AceEditor;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
 /**
  * @author lazyman
@@ -38,24 +38,24 @@ public class AceEditorFormGroup extends BasePanel<String> {
     }
 
     public AceEditorFormGroup(String id, IModel<String> value, IModel<String> label, String labelSize, String textSize,
-                             boolean required) {
+            boolean required) {
         this(id, value, label, labelSize, textSize, required, DEFAULT_NUMBER_OF_ROWS);
     }
 
     public AceEditorFormGroup(String id, IModel<String> value, IModel<String> label, String labelSize, String textSize,
-                             boolean required, int rowNumber){
+            boolean required, int rowNumber) {
         this(id, value, label, null, false, labelSize, textSize, required, rowNumber);
     }
 
     public AceEditorFormGroup(String id, IModel<String> value, IModel<String> label, String tooltipKey,
-                             boolean isTooltipInModal, String labelSize, String textSize, boolean required, int rowNumber){
+            boolean isTooltipInModal, String labelSize, String textSize, boolean required, int rowNumber) {
         super(id, value);
 
         initLayout(label, tooltipKey, isTooltipInModal, labelSize, textSize, required, rowNumber);
     }
 
     private void initLayout(IModel<String> label, final String tooltipKey, boolean isTooltipInModal, String labelSize,
-                            String textSize, boolean required, int rowNumber) {
+            String textSize, boolean required, int rowNumber) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         add(labelContainer);
 
@@ -66,13 +66,8 @@ public class AceEditorFormGroup extends BasePanel<String> {
         labelContainer.add(l);
 
         Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
-        tooltipLabel.add(new AttributeAppender("data-original-title", new IModel<String>() {
-
-            @Override
-            public String getObject() {
-                return getString(tooltipKey);
-        }
-        }));
+        tooltipLabel.add(new AttributeAppender("data-original-title",
+                (IModel<String>) () -> getString(tooltipKey)));
         tooltipLabel.add(new InfoTooltipBehavior(isTooltipInModal));
         tooltipLabel.add(new VisibleEnableBehaviour() {
 
@@ -101,7 +96,7 @@ public class AceEditorFormGroup extends BasePanel<String> {
     }
 
     public void setRows(int rows) {
-        TextArea area = (TextArea) get(createComponentPath(ID_TEXT_WRAPPER, ID_TEXT));
+        TextArea<?> area = (TextArea<?>) get(createComponentPath(ID_TEXT_WRAPPER, ID_TEXT));
         area.add(AttributeModifier.replace("rows", rows));
     }
 }
