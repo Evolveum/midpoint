@@ -32,16 +32,16 @@ public class M9OrganizationalStructure extends AbstractLabTest{
 
     @Test(groups={"M9"}, dependsOnGroups={"M8"})
     public void mod09test01ImportStaticOrgStructure() {
-        importObject(ARCHETYPE_ORG_FUNCTIONAL_FILE, true, true);
-        importObject(ARCHETYPE_ORG_COMPANY_FILE, true);
-        importObject(ARCHETYPE_ORG_GROUP_FILE, true);
-        importObject(ARCHETYPE_ORG_GROUP_LIST_FILE, true);
+        addObjectFromFile(ARCHETYPE_ORG_FUNCTIONAL_FILE);
+        addObjectFromFile(ARCHETYPE_ORG_COMPANY_FILE);
+        addObjectFromFile(ARCHETYPE_ORG_GROUP_FILE);
+        addObjectFromFile(ARCHETYPE_ORG_GROUP_LIST_FILE);
 
         basicPage.loggedUser().logoutIfUserIsLogin();
         FormLoginPage login = midPoint.formLogin();
         login.login(getUsername(), getPassword());
 
-        importObject(ORG_EXAMPLE_FILE, true);
+        addObjectFromFile(ORG_EXAMPLE_FILE);
 
         OrgTreePage orgTree = basicPage.orgStructure();
         Assert.assertTrue(orgTree.selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
@@ -56,7 +56,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                     .containsChildOrg("Groups", "Active Employees", "Administrators", "Contractors", "Former Employees",
                         "Inactive Employees", "Security"));
 
-        importObject(ORG_SECRET_OPS_FILE, true);
+        addObjectFromFile(ORG_SECRET_OPS_FILE);
         Assert.assertTrue(basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                     .getOrgHierarchyPanel()

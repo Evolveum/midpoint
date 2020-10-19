@@ -13,6 +13,8 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by matus on 5/21/2018.
@@ -32,9 +34,9 @@ public class PolyStringTests extends AbstractSchrodingerTest {
 
     private static final File SYSTEM_CONFIGURATION_FULLTEXT_FILE = new File("./src/test/resources/configuration/objects/systemconfig/system-configuration-fulltext.xml");
 
-    @Test
-    public void turnOnFullTextSearch(){
-        importObject(SYSTEM_CONFIGURATION_FULLTEXT_FILE,true);
+    @Override
+    protected List<File> getObjectListToImport(){
+        return Arrays.asList(SYSTEM_CONFIGURATION_FULLTEXT_FILE);
     }
 
     @Test (dependsOnMethods = INIT_BASIC_CONFIG_DEPENDENCY)

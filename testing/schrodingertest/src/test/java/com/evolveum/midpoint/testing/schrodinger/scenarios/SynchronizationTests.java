@@ -53,8 +53,8 @@ public class SynchronizationTests extends AbstractSchrodingerTest {
         csvTargetFile = new File(testTargetDir, FILE_RESOUCE_NAME);
         FileUtils.copyFile(CSV_INITIAL_SOURCE_FILE, csvTargetFile);
 
-        importObject(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_FILE,true);
-        importObject(ScenariosCommons.USER_TEST_RAPHAEL_FILE,true);
+        addObjectFromFile(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_FILE);
+        addObjectFromFile(ScenariosCommons.USER_TEST_RAPHAEL_FILE);
 
         //changeResourceFilePath(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME, ScenariosCommons.CSV_SOURCE_OLDVALUE, CSV_TARGET_FILE.getAbsolutePath(), true);
 

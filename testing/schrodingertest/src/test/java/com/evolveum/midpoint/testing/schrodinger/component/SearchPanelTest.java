@@ -8,6 +8,8 @@ package com.evolveum.midpoint.testing.schrodinger.component;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
@@ -42,15 +44,10 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
     private static final String ADMINISTRATIVE_STATUS_ATTRIBUTE = "Administrative status";
     private static final String ROLE_MEMBERSHIP_ATTRIBUTE = "Role membership";
 
-    @BeforeClass
     @Override
-    public void beforeClass() throws IOException {
-        super.beforeClass();
-        importObject(SEARCH_BY_NAME_USER_FILE, true);
-        importObject(SEARCH_BY_GIVEN_NAME_USER_FILE, true);
-        importObject(SEARCH_BY_FAMILY_NAME_USER_FILE, true);
-        importObject(REQUESTABLE_ROLE_FILE, true);
-        importObject(DISABLED_ROLE_FILE, true);
+    protected List<File> getObjectListToImport(){
+        return Arrays.asList(SEARCH_BY_NAME_USER_FILE, SEARCH_BY_GIVEN_NAME_USER_FILE, SEARCH_BY_FAMILY_NAME_USER_FILE,
+                REQUESTABLE_ROLE_FILE, DISABLED_ROLE_FILE);
     }
 
     @Test

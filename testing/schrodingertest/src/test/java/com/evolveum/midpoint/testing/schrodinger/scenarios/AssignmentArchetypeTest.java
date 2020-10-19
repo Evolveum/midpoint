@@ -23,7 +23,7 @@ public class AssignmentArchetypeTest extends AbstractSchrodingerTest {
 
     @Test(priority = 0)
     public void importArchetypeBusinessRole() {
-        importObject(ARCHETYPE_BUSINESS_ROLE_FILE);
+        addObjectFromFile(ARCHETYPE_BUSINESS_ROLE_FILE);
     }
 
     @Test

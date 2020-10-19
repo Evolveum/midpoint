@@ -73,10 +73,10 @@ public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
 
 //        showTask("HR Synchronization").clickSuspend();
 
-        importObject(HR_RESOURCE_FILE_8_1,true);
+        addObjectFromFile(HR_RESOURCE_FILE_8_1);
         changeResourceAttribute(HR_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, hrTargetFile.getAbsolutePath(), true);
 
-        importObject(CSV_3_RESOURCE_FILE_8_1,true);
+        addObjectFromFile(CSV_3_RESOURCE_FILE_8_1);
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         ResourceAccountsTab<ViewResourcePage> accountTab = basicPage.listResources()

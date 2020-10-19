@@ -6,9 +6,19 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
+import static com.codeborne.selenide.Selenide.$;
+
+import java.io.File;
+import java.util.Collections;
+import java.util.List;
+
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
+import org.openqa.selenium.By;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.component.common.Search;
@@ -18,13 +28,6 @@ import com.evolveum.midpoint.schrodinger.component.modal.ObjectBrowserModal;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
-import org.openqa.selenium.By;
-import org.testng.Assert;
-import org.testng.annotations.Test;
-
-import java.io.File;
-
-import static com.codeborne.selenide.Selenide.$;
 
 /**
  * Created by honchar
@@ -46,9 +49,9 @@ public class ObjectListArchetypeTests extends AbstractSchrodingerTest {
     private static final String COLLECTION_HEADER = "Collection";
     public static final String OBJECT_LIST_ARCHETYPE_TESTS_GROUP = "bjectListArchetypeTests";
 
-    @Test(priority = 0, groups = OBJECT_LIST_ARCHETYPE_TESTS_GROUP)
-    public void importEmployeeArchetype() {
-        importObject(EMPLOYEE_ARCHETYPE_FILE, true);
+    @Override
+    protected List<File> getObjectListToImport() {
+        return Collections.singletonList(EMPLOYEE_ARCHETYPE_FILE);
     }
 
     @Test(priority = 1, dependsOnMethods ={"importEmployeeArchetype"}, groups = OBJECT_LIST_ARCHETYPE_TESTS_GROUP)

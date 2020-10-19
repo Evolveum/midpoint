@@ -68,7 +68,8 @@ public class M11SystemConfiguration extends AbstractLabTest {
         notificationFile = new File(getTestTargetDir(), NOTIFICATION_FILE_NAME);
         notificationFile.createNewFile();
 
-        importObject(SYSTEM_CONFIGURATION_FILE_11_1, true);
+        addObjectFromFile(SYSTEM_CONFIGURATION_FILE_11_1);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
 
         basicPage.notifications()
                 .setRedirectToFile(notificationFile.getAbsolutePath())
@@ -125,7 +126,8 @@ public class M11SystemConfiguration extends AbstractLabTest {
 
     @Test(dependsOnMethods = {"mod11test01ConfiguringNotifications"},groups={"M11"}, dependsOnGroups={"M10"})
     public void mod11test02ConfiguringDeploymentInformation() {
-        importObject(SYSTEM_CONFIGURATION_FILE_11_2, true);
+        addObjectFromFile(SYSTEM_CONFIGURATION_FILE_11_2);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
 
         Assert.assertTrue($(Schrodinger.byDataId("header", "mainHeader"))
                 .getCssValue("background-color").equals("rgba(48, 174, 48, 1)"));
@@ -157,10 +159,11 @@ public class M11SystemConfiguration extends AbstractLabTest {
 
     @Test(dependsOnMethods = {"mod11test02ConfiguringDeploymentInformation"},groups={"M11"}, dependsOnGroups={"M10"})
     public void mod11test03ConfiguringObjectCollectionsAndViews() {
-        importObject(OBJECT_COLLECTION_ACTIVE_EMP_FILE, true);
-        importObject(OBJECT_COLLECTION_INACTIVE_EMP_FILE, true);
-        importObject(OBJECT_COLLECTION_FORMER_EMP_FILE, true);
-        importObject(SYSTEM_CONFIGURATION_FILE_11_3, true);
+        addObjectFromFile(OBJECT_COLLECTION_ACTIVE_EMP_FILE);
+        addObjectFromFile(OBJECT_COLLECTION_INACTIVE_EMP_FILE);
+        addObjectFromFile(OBJECT_COLLECTION_FORMER_EMP_FILE);
+        addObjectFromFile(SYSTEM_CONFIGURATION_FILE_11_3);
+        Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
 
         basicPage.loggedUser().logoutIfUserIsLogin();
         FormLoginPage login = midPoint.formLogin();

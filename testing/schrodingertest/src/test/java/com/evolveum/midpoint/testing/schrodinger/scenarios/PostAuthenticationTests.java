@@ -10,6 +10,8 @@ import static com.codeborne.selenide.Selenide.open;
 import static com.codeborne.selenide.Selenide.sleep;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 import com.codeborne.selenide.Selenide;
 import org.testng.Assert;
@@ -41,16 +43,11 @@ public class PostAuthenticationTests extends AbstractSchrodingerTest {
     protected static final String ACTIVATION_STATE_ENABLED_VALUE = "Enabled";
     protected static final String ACTIVATION_STATE_ARCHIVAED_VALUE = "Archived";
 
-    @Test (groups = TEST_GROUP_BEFORE_POST_AUTH_FLOW)
-    public void initBasicConfiguration(){
-    importObject(ROLE_POST_AUTHENTICATION_AUTHORIZATION_FILE,true);
-    importObject(CUSTOM_FORM_POST_AUTH_FILE,true);
-    importObject(SECURITY_POLICY_POST_AUTH_DEFAULT_FILE,true);
-    importObject(SYSTEM_CONFIGURATION_POST_AUTH_NON_ACTIVE_FILE,true);
-    importObject(USER_TEST_TITIAN_FILE,true);
-    importObject(USER_TEST_BOTTICELLI_FILE,true);
+    @Override
+    protected List<File> getObjectListToImport(){
+        return Arrays.asList(ROLE_POST_AUTHENTICATION_AUTHORIZATION_FILE, CUSTOM_FORM_POST_AUTH_FILE, SECURITY_POLICY_POST_AUTH_DEFAULT_FILE,
+                SYSTEM_CONFIGURATION_POST_AUTH_NON_ACTIVE_FILE, USER_TEST_TITIAN_FILE, USER_TEST_BOTTICELLI_FILE);
     }
-
 
     @Test (dependsOnMethods = {INIT_BASIC_CONFIG_DEPENDENCY}, groups = TEST_GROUP_BEFORE_POST_AUTH_FLOW)
     public void forcedActivationStatusProposedEnabled(){
@@ -120,9 +117,9 @@ public class PostAuthenticationTests extends AbstractSchrodingerTest {
         //todo midpoint opens the previous page before logout
         open("/self/dashboard");
 
-        importObject(SYSTEM_CONFIGURATION_POST_AUTH_ACTIVE_FILE,true);
+        addObjectFromFile(SYSTEM_CONFIGURATION_POST_AUTH_ACTIVE_FILE);
 
-          ListUsersPage usersPage = basicPage.listUsers();
+        ListUsersPage usersPage = basicPage.listUsers();
         UserPage parent = usersPage
                 .table()
                 .search()

@@ -87,7 +87,7 @@ public class LoginPageTest extends AbstractLoginPageTest {
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         open("/");
         login.loginWithReloadLoginPage("administrator", "5ecr3t");
-        importObject(SEC_QUES_RESET_PASS_SECURITY_POLICY, true);
+        addObjectFromFile(SEC_QUES_RESET_PASS_SECURITY_POLICY);
         basicPage.loggedUser().logoutIfUserIsLogin();
         login.forgotPassword();
         $(Schrodinger.byDataId("username")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).setValue(NAME_OF_ENABLED_USER);

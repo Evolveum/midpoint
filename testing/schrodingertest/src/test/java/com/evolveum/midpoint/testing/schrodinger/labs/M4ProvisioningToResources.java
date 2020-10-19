@@ -48,7 +48,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
 
     @Test(groups={"M4"}, dependsOnGroups={"M3"})
     public void mod04test01BasicProvisioningToMultipleResources() {
-        importObject(CSV_1_RESOURCE_FILE,true);
+        addObjectFromFile(CSV_1_RESOURCE_FILE);
 
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
 
@@ -184,11 +184,10 @@ public class M4ProvisioningToResources extends AbstractLabTest {
 
     @Test(dependsOnMethods = {"mod04test01BasicProvisioningToMultipleResources"}, groups={"M4"}, dependsOnGroups={"M3"})
     public void mod04test02AddingMappings() {
-
-        importObject(CSV_1_RESOURCE_FILE_4_2,true);
+        addObjectFromFile(CSV_1_RESOURCE_FILE_4_2);
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
 
-        importObject(CSV_3_RESOURCE_FILE_4_2,true);
+        addObjectFromFile(CSV_3_RESOURCE_FILE_4_2);
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
 
         showUser("kirk")
@@ -219,7 +218,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
 
     @Test(dependsOnMethods = {"mod04test02AddingMappings"}, groups={"M4"}, dependsOnGroups={"M3"})
     public void mod04test03ModifyingExistingMappings() {
-        importObject(CSV_1_RESOURCE_FILE_4_3,true);
+        addObjectFromFile(CSV_1_RESOURCE_FILE_4_3);
 
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
 
@@ -295,7 +294,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
         AccountPage shadow = showShadow(CSV_3_RESOURCE_NAME, "Distinguished Name", "cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com");
         Assert.assertTrue(shadow.form().compareInputAttributeValue("manager", "xxx"));
 
-        importObject(CSV_3_RESOURCE_FILE_4_4,true);
+        addObjectFromFile(CSV_3_RESOURCE_FILE_4_4);
 
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
     }

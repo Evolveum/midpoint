@@ -446,6 +446,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(
             File file, boolean metadata, OperationResult parentResult)
             throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
+        return repoAddObjectFromFile(file, (RepoAddOptions) null, metadata, parentResult);
+    }
+
+    protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(
+            File file, RepoAddOptions options, boolean metadata, OperationResult parentResult)
+            throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
 
         OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
                 + ".repoAddObjectFromFile");
@@ -510,10 +516,15 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected <T extends ObjectType> void repoAddObject(
             PrismObject<T> object, String contextDesc, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
+        repoAddObject(object, contextDesc, null, result);
+    }
+    protected <T extends ObjectType> void repoAddObject(
+            PrismObject<T> object, String contextDesc, RepoAddOptions options, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
         if (object.canRepresent(TaskType.class)) {
             Assert.assertNotNull(taskManager, "Task manager is not initialized");
             try {
-                taskManager.addTask((PrismObject<TaskType>) object, result);
+                taskManager.addTask((PrismObject<TaskType>) object, options, result);
             } catch (ObjectAlreadyExistsException | SchemaException ex) {
                 result.recordFatalError(ex.getMessage(), ex);
                 throw ex;
@@ -522,7 +533,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             Assert.assertNotNull(repositoryService, "Repository service is not initialized");
             try {
                 CryptoUtil.encryptValues(protector, object);
-                String oid = repositoryService.addObject(object, null, result);
+                String oid = repositoryService.addObject(object, options, result);
                 object.setOid(oid);
             } catch (ObjectAlreadyExistsException | SchemaException | EncryptionException ex) {
                 result.recordFatalError(ex.getMessage() + " while adding " + object + (contextDesc == null ? "" : " " + contextDesc), ex);
