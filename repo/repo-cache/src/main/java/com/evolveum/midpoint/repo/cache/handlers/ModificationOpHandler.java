@@ -113,7 +113,7 @@ public class ModificationOpHandler extends BaseOpHandler {
                 .addArbitraryObjectAsParam("options", options)
                 .build();
 
-        if (result.isTraced()) {
+        if (result.isTracingAny(RepositoryModifyTraceType.class)) {
             RepositoryModifyTraceType trace = new RepositoryModifyTraceType(prismContext)
                     .cache(true)
                     .objectType(prismContext.getSchemaRegistry().determineTypeForClass(type))
@@ -156,7 +156,7 @@ public class ModificationOpHandler extends BaseOpHandler {
                 .addParam("oid", oid)
                 .build();
 
-        if (result.isTraced()) {
+        if (result.isTracingAny(RepositoryDeleteTraceType.class)) {
             RepositoryDeleteTraceType trace = new RepositoryDeleteTraceType(prismContext)
                     .cache(true)
                     .objectType(prismContext.getSchemaRegistry().determineTypeForClass(type))
