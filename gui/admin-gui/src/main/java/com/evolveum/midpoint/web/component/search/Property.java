@@ -10,7 +10,7 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
