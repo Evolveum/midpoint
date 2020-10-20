@@ -36,7 +36,6 @@ public class PostAuthenticationTests extends AbstractSchrodingerTest {
 
     protected static final String TEST_USER_TITIAN_PASSWORD= "5ecr3t";
     protected static final String ROLE_POST_AUTHENTICATION_AUTHORIZATION_NAME= "Post authentication authorization role";
-    protected static final String INIT_BASIC_CONFIG_DEPENDENCY = "initBasicConfiguration";
     protected static final String TEST_GROUP_BEFORE_POST_AUTH_FLOW = "beforePostAuthFlow";
     protected static final String TEST_FLOW_WITHOUT_POST_AUTH_ROLE_ASSIGNED = "flowWithoutPostAuthRoleAssigned";
 
@@ -49,7 +48,7 @@ public class PostAuthenticationTests extends AbstractSchrodingerTest {
                 SYSTEM_CONFIGURATION_POST_AUTH_NON_ACTIVE_FILE, USER_TEST_TITIAN_FILE, USER_TEST_BOTTICELLI_FILE);
     }
 
-    @Test (dependsOnMethods = {INIT_BASIC_CONFIG_DEPENDENCY}, groups = TEST_GROUP_BEFORE_POST_AUTH_FLOW)
+    @Test (groups = TEST_GROUP_BEFORE_POST_AUTH_FLOW)
     public void forcedActivationStatusProposedEnabled(){
 
     ListUsersPage usersPage = basicPage.listUsers();
@@ -67,7 +66,7 @@ public class PostAuthenticationTests extends AbstractSchrodingerTest {
             );
     }
 
-    @Test (dependsOnMethods = {INIT_BASIC_CONFIG_DEPENDENCY}, groups = TEST_GROUP_BEFORE_POST_AUTH_FLOW)
+    @Test (groups = TEST_GROUP_BEFORE_POST_AUTH_FLOW)
     public void forcedActivationStatusProposedArchived(){
 
     ListUsersPage usersPage = basicPage.listUsers();

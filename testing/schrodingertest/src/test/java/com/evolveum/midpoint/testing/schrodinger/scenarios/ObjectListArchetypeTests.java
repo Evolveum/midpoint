@@ -54,7 +54,7 @@ public class ObjectListArchetypeTests extends AbstractSchrodingerTest {
         return Collections.singletonList(EMPLOYEE_ARCHETYPE_FILE);
     }
 
-    @Test(priority = 1, dependsOnMethods ={"importEmployeeArchetype"}, groups = OBJECT_LIST_ARCHETYPE_TESTS_GROUP)
+    @Test(priority = 1, groups = OBJECT_LIST_ARCHETYPE_TESTS_GROUP)
     public void configureArchetypeObjectListView(){
         AdminGuiTab adminGuiTab = basicPage.adminGui();
         PrismForm<AdminGuiTab> prismForm = adminGuiTab.form();

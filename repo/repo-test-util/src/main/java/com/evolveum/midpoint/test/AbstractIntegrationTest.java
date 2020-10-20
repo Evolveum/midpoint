@@ -469,7 +469,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
 
         logger.trace("Adding object:\n{}", object.debugDump());
-        repoAddObject(object, "from file " + file, result);
+        repoAddObject(object, "from file " + file, options, result);
         result.recordSuccess();
         return object;
     }

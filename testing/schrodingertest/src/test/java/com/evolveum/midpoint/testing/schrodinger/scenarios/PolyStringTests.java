@@ -28,7 +28,6 @@ public class PolyStringTests extends AbstractSchrodingerTest {
     private static final String TEST_USER_JOZKO_FULL_NAME = "Jožko Jörg Nguyễn Trißtan Guðmund Mrkvičkä";
     private static final String TEST_USER_JOZKO_ADDITIONAL_NAME = "Jörg Nguyễn Trißtan Guðmund ";
 
-    private static final String INIT_BASIC_CONFIG_DEPENDENCY = "turnOnFullTextSearch";
     private static final String CREATE_USER_WITH_DIACRITIC_DEPENDENCY = "createUserWithDiacritic";
     private static final String SEARCH_USER_WITH_DIACRITIC_DEPENDENCY = "searchForUserWithDiacritic";
 
@@ -39,7 +38,7 @@ public class PolyStringTests extends AbstractSchrodingerTest {
         return Arrays.asList(SYSTEM_CONFIGURATION_FULLTEXT_FILE);
     }
 
-    @Test (dependsOnMethods = INIT_BASIC_CONFIG_DEPENDENCY)
+    @Test
     public void createUserWithDiacritic(){
         UserPage user = basicPage.newUser();
 
