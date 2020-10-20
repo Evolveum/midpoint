@@ -34,8 +34,16 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
     private static final File SEARCH_BY_NAME_USER_FILE = new File(COMPONENT_USERS_DIRECTORY + "searchByNameUser.xml");
     private static final File SEARCH_BY_GIVEN_NAME_USER_FILE = new File(COMPONENT_USERS_DIRECTORY + "searchByGivenNameUser.xml");
     private static final File SEARCH_BY_FAMILY_NAME_USER_FILE = new File(COMPONENT_USERS_DIRECTORY + "searchByFamilyNameUser.xml");
+    private static final File SEARCH_BY_ROLE_MEMBERSHIP_NAME_USER_FILE = new File(COMPONENT_USERS_DIRECTORY + "user-role-membership-name-search.xml");
+    private static final File SEARCH_BY_ROLE_MEMBERSHIP_OID_USER_FILE = new File(COMPONENT_USERS_DIRECTORY + "user-role-membership-oid-search.xml");
+    private static final File SEARCH_BY_ROLE_MEMBERSHIP_TYPE_USER_FILE = new File(COMPONENT_USERS_DIRECTORY + "user-role-membership-type-search.xml");
+    private static final File SEARCH_BY_ROLE_MEMBERSHIP_RELATION_USER_FILE = new File(COMPONENT_USERS_DIRECTORY + "user-role-membership-relation-search.xml");
     private static final File REQUESTABLE_ROLE_FILE = new File(COMPONENT_ROLES_DIRECTORY + "requestableRole.xml");
     private static final File DISABLED_ROLE_FILE = new File(COMPONENT_ROLES_DIRECTORY + "disabledRole.xml");
+    private static final File SEARCH_BY_ROLE_MEMBERSHIP_NAME_ROLE_FILE = new File(COMPONENT_ROLES_DIRECTORY + "role-membership-search-by-name.xml");
+    private static final File SEARCH_BY_ROLE_MEMBERSHIP_OID_ROLE_FILE = new File(COMPONENT_ROLES_DIRECTORY + "role-membership-search-by-oid.xml");
+    private static final File SEARCH_BY_ROLE_MEMBERSHIP_TYPE_ROLE_FILE = new File(COMPONENT_ROLES_DIRECTORY + "role-membership-search-by-type.xml");
+    private static final File SEARCH_BY_ROLE_MEMBERSHIP_RELATIONS_ROLE_FILE = new File(COMPONENT_ROLES_DIRECTORY + "role-membership-search-by-relation.xml");
 
     private static final String NAME_ATTRIBUTE = "Name";
     private static final String GIVEN_NAME_ATTRIBUTE = "Given name";
@@ -47,7 +55,9 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
     @Override
     protected List<File> getObjectListToImport(){
         return Arrays.asList(SEARCH_BY_NAME_USER_FILE, SEARCH_BY_GIVEN_NAME_USER_FILE, SEARCH_BY_FAMILY_NAME_USER_FILE,
-                REQUESTABLE_ROLE_FILE, DISABLED_ROLE_FILE);
+                REQUESTABLE_ROLE_FILE, DISABLED_ROLE_FILE, SEARCH_BY_ROLE_MEMBERSHIP_NAME_USER_FILE, SEARCH_BY_ROLE_MEMBERSHIP_OID_USER_FILE,
+                SEARCH_BY_ROLE_MEMBERSHIP_TYPE_USER_FILE, SEARCH_BY_ROLE_MEMBERSHIP_RELATION_USER_FILE, SEARCH_BY_ROLE_MEMBERSHIP_NAME_ROLE_FILE,
+                SEARCH_BY_ROLE_MEMBERSHIP_OID_ROLE_FILE, SEARCH_BY_ROLE_MEMBERSHIP_TYPE_ROLE_FILE, SEARCH_BY_ROLE_MEMBERSHIP_RELATIONS_ROLE_FILE);
     }
 
     @Test
@@ -121,6 +131,20 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
                 .inputDropDownValue("disabled")
                 .updateSearch();
         Assert.assertEquals(1, table.countTableObjects());
+    }
+
+    @Test
+    public void test0050referenceAttributeByOidSearch() {
+        RolesPageTable table = basicPage.listRoles().table();
+        Search<RolesPageTable> search = (Search<RolesPageTable>) table.search();
+        search.resetBasicSearch();
+        Assert.assertNotEquals(1, table.countTableObjects());
+        search.byItemName(ROLE_MEMBERSHIP_ATTRIBUTE)
+                .inputRefOid("332fd5e-sdf7-4322-9ff3-1848cd6ed4aa")
+                .updateSearch();
+        Assert.assertEquals(1, table.countTableObjects());
+        Assert.assertTrue(table.containsLinksTextPartially("testUserWithRoleMembershipSearchByOid"));
+        Assert.assertTrue(table.containsText("roleSearchByOidTest"));
     }
 
 }
