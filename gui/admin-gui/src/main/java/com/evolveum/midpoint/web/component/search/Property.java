@@ -8,12 +8,16 @@ package com.evolveum.midpoint.web.component.search;
 
 import java.io.Serializable;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.Validate;
+
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
-import org.apache.commons.lang3.Validate;
-import com.evolveum.midpoint.prism.ItemDefinition;
+import org.apache.wicket.model.StringResourceModel;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -39,6 +43,9 @@ public class Property implements Serializable, Comparable<Property> {
     }
 
     public String getName() {
+        if (definition != null && StringUtils.isNotEmpty(definition.getDisplayName())) {
+            return PageBase.createStringResourceStatic(null, definition.getDisplayName()).getString();
+        }
         return WebComponentUtil.getItemDefinitionDisplayNameOrName(definition, null);
     }
 
