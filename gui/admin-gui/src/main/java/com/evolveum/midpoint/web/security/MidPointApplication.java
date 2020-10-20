@@ -16,6 +16,8 @@ import javax.xml.datatype.Duration;
 
 import com.evolveum.midpoint.common.Clock;
 
+import com.evolveum.midpoint.repo.api.*;
+
 import org.apache.commons.configuration2.Configuration;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
@@ -75,10 +77,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.api.CacheRegistry;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
-import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SchemaHelper;
@@ -170,6 +168,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private TaskManager taskManager;
     @Autowired private ModelAuditService auditService;
+    @Autowired private SqlPerformanceMonitorsCollection performanceMonitorsCollection; // temporary
     @Autowired private RepositoryService repositoryService; // temporary
     @Autowired private CacheRegistry cacheRegistry;
     @Autowired private WorkflowService workflowService;
@@ -470,6 +469,10 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
     public ModelAuditService getAuditService() {
         return auditService;
+    }
+
+    public SqlPerformanceMonitorsCollection getSqlPerformanceMonitorsCollection() {
+        return performanceMonitorsCollection;
     }
 
     public RepositoryService getRepositoryService() {

@@ -65,7 +65,7 @@ public class ObjectValuePolicyEvaluator {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectValuePolicyEvaluator.class);
 
-    private static final String OPERATION_VALIDATE_VALUE = ObjectValuePolicyEvaluator.class + ".validateValue";
+    private static final String OPERATION_VALIDATE_VALUE = ObjectValuePolicyEvaluator.class.getName() + ".validateValue";
 
     private final Protector protector;
 

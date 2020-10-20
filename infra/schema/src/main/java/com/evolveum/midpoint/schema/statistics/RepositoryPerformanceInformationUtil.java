@@ -7,14 +7,13 @@
 
 package com.evolveum.midpoint.schema.statistics;
 
+import com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter.Options;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositoryOperationPerformanceInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositoryPerformanceInformationType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  *
@@ -74,39 +73,11 @@ public class RepositoryPerformanceInformationUtil {
     }
 
     public static String format(RepositoryPerformanceInformationType i) {
-        StringBuilder sb = new StringBuilder();
-        List<RepositoryOperationPerformanceInformationType> operations = new ArrayList<>(i.getOperation());
-        operations.sort(Comparator.comparing(RepositoryOperationPerformanceInformationType::getName));
-        int max = operations.stream().mapToInt(op -> op.getName().length()).max().orElse(0);
-        for (RepositoryOperationPerformanceInformationType op : operations) {
-            long totalTime = defaultIfNull(op.getTotalTime(), 0L);
-            long totalWastedTime = defaultIfNull(op.getTotalWastedTime(), 0L);
-            int invocationCount = defaultIfNull(op.getInvocationCount(), 0);
-            int executionCount = defaultIfNull(op.getExecutionCount(), 0);
-            sb.append(String.format("  %-" + (max+2) + "s count:%7d, total time: %s", op.getName()+":", invocationCount,
-                    timeInfo(totalTime, op.getMinTime(), op.getMaxTime(), invocationCount)));
-            if (totalTime > 0 && executionCount > invocationCount) {
-                sb.append(String.format(Locale.US, ", wasted time for %4d retry/retries: %s (%s)", executionCount-invocationCount,
-                        timeInfo(totalWastedTime, op.getMinWastedTime(), op.getMaxWastedTime(), invocationCount), percent(totalWastedTime, totalTime)));
-            }
-            sb.append("\n");
-        }
-        return sb.toString();
+        return new RepositoryPerformanceInformationPrinter(i, null, null, null).print();
     }
 
-    private static String timeInfo(long total, Long min, Long max, int count) {
-        return String.format(Locale.US, "%8d ms [min: %5d, max: %5d, avg: %7.1f]", total,
-                defaultIfNull(min, 0L), defaultIfNull(max, 0L),
-                count > 0 ? (float) total / count : 0);
-    }
-
-    private static String percent(long value, long base) {
-        if (base != 0) {
-            return String.format(Locale.US, "%6.2f%%", 100.0 * value / base);
-        } else if (value == 0) {
-            return String.format(Locale.US, "%6.2f%%", 0.0);
-        } else {
-            return "   NaN%";
-        }
+    public static String format(RepositoryPerformanceInformationType i, Options options, Integer iterations, Integer seconds) {
+        return new RepositoryPerformanceInformationPrinter(i, options, iterations, seconds)
+                .print();
     }
 }
