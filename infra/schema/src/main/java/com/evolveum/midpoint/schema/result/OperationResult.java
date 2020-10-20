@@ -919,7 +919,7 @@ public class OperationResult
         return isTracing(traceClass, TracingLevelType.NORMAL);
     }
 
-    public boolean isTracingMinimal(Class<? extends TraceType> traceClass) {
+    public boolean isTracingAny(Class<? extends TraceType> traceClass) {
         return isTracing(traceClass, TracingLevelType.MINIMAL);
     }
 

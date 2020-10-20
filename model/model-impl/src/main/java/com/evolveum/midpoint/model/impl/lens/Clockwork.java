@@ -129,9 +129,7 @@ public class Clockwork {
 
         ClockworkRunTraceType trace = null;
         try {
-            if (result.isTraced()) {
-                trace = recordTraceAtStart(context, result);
-            }
+            trace = recordTraceAtStart(context, result);
 
             LOGGER.trace("Running clockwork for context {}", context);
             context.checkConsistenceIfNeeded();
@@ -265,11 +263,15 @@ public class Clockwork {
 
     private <F extends ObjectType> ClockworkRunTraceType recordTraceAtStart(LensContext<F> context,
             OperationResult result) throws SchemaException {
-        ClockworkRunTraceType trace = new ClockworkRunTraceType(prismContext);
-        trace.setInputLensContextText(context.debugDump());
-        trace.setInputLensContext(context.toLensContextType(getExportTypeTraceOrReduced(trace, result)));
-        result.addTrace(trace);
-        return trace;
+        if (result.isTracingAny(ClockworkRunTraceType.class)) {
+            ClockworkRunTraceType trace = new ClockworkRunTraceType(prismContext);
+            trace.setInputLensContextText(context.debugDump());
+            trace.setInputLensContext(context.toLensContextType(getExportTypeTraceOrReduced(trace, result)));
+            result.addTrace(trace);
+            return trace;
+        } else {
+            return null;
+        }
     }
 
     private <F extends ObjectType> void recordTraceAtEnd(LensContext<F> context, ClockworkRunTraceType trace,
@@ -389,7 +391,7 @@ public class Clockwork {
                 .build();
 
         ClockworkClickTraceType trace;
-        if (result.isTraced()) {
+        if (result.isTracingAny(ClockworkClickTraceType.class)) {
             trace = new ClockworkClickTraceType(prismContext);
             if (result.isTracingNormal(ClockworkClickTraceType.class)) {
                 trace.setInputLensContextText(context.debugDump());

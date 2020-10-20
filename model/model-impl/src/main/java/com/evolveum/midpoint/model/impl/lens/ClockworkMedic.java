@@ -321,7 +321,7 @@ public class ClockworkMedic {
                     .addQualifier(qualifier)
                     .build();
             ProjectorComponentTraceType trace;
-            if (result.isTraced()) {
+            if (result.isTracingAny(ProjectorComponentTraceType.class)) {
                 trace = new ProjectorComponentTraceType();
                 if (result.isTracingNormal(ProjectorComponentTraceType.class)) {
                     trace.setInputLensContextText(context.debugDump());
