@@ -6,9 +6,8 @@
 ~ and European Union Public License. See LICENSE file for details.
 -->
 
-<user oid="430ffd5e-f7f7-4772-94sd-18grc22ed4aa" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<user oid="fb044d5e-f7f7-4772-94sd-1re33d6ed4aa" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
     <name>testUserWithRoleMembershipSearchByType</name>
-    <roleMembershipRef oid="433dfd5e-f7f7-4772-9xcd-18grc23vd4aa" relation="org:default" type="c:RoleType"/>
+    <roleMembershipRef oid="33f5585e-kk21-43g2-94sd-18gsrw6ed4aa" relation="org:default" type="c:OrgType"/>
 </user>
-

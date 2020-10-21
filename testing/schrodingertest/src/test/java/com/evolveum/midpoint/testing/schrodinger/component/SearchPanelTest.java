@@ -7,12 +7,10 @@
 package com.evolveum.midpoint.testing.schrodinger.component;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
 import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schrodinger.component.common.Search;
@@ -30,6 +28,7 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
     private static final String COMPONENT_OBJECTS_DIRECTORY = COMPONENT_RESOURCES_DIRECTORY + "objects/";
     private static final String COMPONENT_USERS_DIRECTORY = COMPONENT_OBJECTS_DIRECTORY + "users/";
     private static final String COMPONENT_ROLES_DIRECTORY = COMPONENT_OBJECTS_DIRECTORY + "roles/";
+    private static final String COMPONENT_ORGS_DIRECTORY = COMPONENT_OBJECTS_DIRECTORY + "orgs/";
 
     private static final File SEARCH_BY_NAME_USER_FILE = new File(COMPONENT_USERS_DIRECTORY + "searchByNameUser.xml");
     private static final File SEARCH_BY_GIVEN_NAME_USER_FILE = new File(COMPONENT_USERS_DIRECTORY + "searchByGivenNameUser.xml");
@@ -42,7 +41,7 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
     private static final File DISABLED_ROLE_FILE = new File(COMPONENT_ROLES_DIRECTORY + "disabledRole.xml");
     private static final File SEARCH_BY_ROLE_MEMBERSHIP_NAME_ROLE_FILE = new File(COMPONENT_ROLES_DIRECTORY + "role-membership-search-by-name.xml");
     private static final File SEARCH_BY_ROLE_MEMBERSHIP_OID_ROLE_FILE = new File(COMPONENT_ROLES_DIRECTORY + "role-membership-search-by-oid.xml");
-    private static final File SEARCH_BY_ROLE_MEMBERSHIP_TYPE_ROLE_FILE = new File(COMPONENT_ROLES_DIRECTORY + "role-membership-search-by-type.xml");
+    private static final File SEARCH_BY_ROLE_MEMBERSHIP_TYPE_ORG_FILE = new File(COMPONENT_ORGS_DIRECTORY + "org-membership-search-by-type.xml");
     private static final File SEARCH_BY_ROLE_MEMBERSHIP_RELATIONS_ROLE_FILE = new File(COMPONENT_ROLES_DIRECTORY + "role-membership-search-by-relation.xml");
 
     private static final String NAME_ATTRIBUTE = "Name";
@@ -51,13 +50,14 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
     private static final String REQUESTABLE_ATTRIBUTE = "Requestable";
     private static final String ADMINISTRATIVE_STATUS_ATTRIBUTE = "Administrative status";
     private static final String ROLE_MEMBERSHIP_ATTRIBUTE = "Role membership";
+    private static final String REF_SEARCH_FIELD_VALUE = "roleMembershipByNameSearch; Oid:33fd485e-kk21-43g2-94sd-18dgrw6ed4aa; Relation:default; RoleType";
 
     @Override
     protected List<File> getObjectListToImport(){
         return Arrays.asList(SEARCH_BY_NAME_USER_FILE, SEARCH_BY_GIVEN_NAME_USER_FILE, SEARCH_BY_FAMILY_NAME_USER_FILE,
                 REQUESTABLE_ROLE_FILE, DISABLED_ROLE_FILE, SEARCH_BY_ROLE_MEMBERSHIP_NAME_USER_FILE, SEARCH_BY_ROLE_MEMBERSHIP_OID_USER_FILE,
                 SEARCH_BY_ROLE_MEMBERSHIP_TYPE_USER_FILE, SEARCH_BY_ROLE_MEMBERSHIP_RELATION_USER_FILE, SEARCH_BY_ROLE_MEMBERSHIP_NAME_ROLE_FILE,
-                SEARCH_BY_ROLE_MEMBERSHIP_OID_ROLE_FILE, SEARCH_BY_ROLE_MEMBERSHIP_TYPE_ROLE_FILE, SEARCH_BY_ROLE_MEMBERSHIP_RELATIONS_ROLE_FILE);
+                SEARCH_BY_ROLE_MEMBERSHIP_OID_ROLE_FILE, SEARCH_BY_ROLE_MEMBERSHIP_TYPE_ORG_FILE, SEARCH_BY_ROLE_MEMBERSHIP_RELATIONS_ROLE_FILE);
     }
 
     @Test
@@ -134,7 +134,7 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
     }
 
     @Test
-    public void test0050referenceAttributeByOidSearch() {
+    public void test0060referenceAttributeByOidSearch() {
         UsersPageTable table = basicPage.listUsers().table();
         Search<UsersPageTable> search = (Search<UsersPageTable>) table.search();
         search.resetBasicSearch();
@@ -144,6 +144,43 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
                 .updateSearch();
         Assert.assertEquals(1, table.countTableObjects());
         Assert.assertTrue(table.containsLinksTextPartially("testUserWithRoleMembershipSearchByOid"));
+    }
+
+    @Test
+    public void test0070referenceAttributeByTypeSearch() {
+        UsersPageTable table = basicPage.listUsers().table();
+        Search<UsersPageTable> search = (Search<UsersPageTable>) table.search();
+        search.resetBasicSearch();
+        search.byItemName(ROLE_MEMBERSHIP_ATTRIBUTE)
+                .inputRefType("Organization")
+                .updateSearch();
+        Assert.assertEquals(1, table.countTableObjects());
+        Assert.assertTrue(table.containsLinksTextPartially("testUserWithRoleMembershipSearchByType"));
+    }
+
+    @Test
+    public void test0080referenceAttributeByRelationSearch() {
+        UsersPageTable table = basicPage.listUsers().table();
+        Search<UsersPageTable> search = (Search<UsersPageTable>) table.search();
+        search.resetBasicSearch();
+        search.byItemName(ROLE_MEMBERSHIP_ATTRIBUTE)
+                .inputRefRelation("Manager")
+                .updateSearch();
+        Assert.assertEquals(1, table.countTableObjects());
+        Assert.assertTrue(table.containsLinksTextPartially("testUserWithRoleMembershipSearchByRelation"));
+    }
+
+    @Test
+    public void test0080referenceAttributeByNameSearch() {
+        UsersPageTable table = basicPage.listUsers().table();
+        Search<UsersPageTable> search = (Search<UsersPageTable>) table.search();
+        search.resetBasicSearch();
+        search.byItemName(ROLE_MEMBERSHIP_ATTRIBUTE)
+                .inputRefName("roleMembershipByName", "roleMembershipByNameSearch")
+                .updateSearch();
+        Assert.assertEquals(1, table.countTableObjects());
+        Assert.assertTrue(table.containsLinksTextPartially("testUserWithRoleMembershipSearchByName"));
+        Assert.assertTrue(search.byItemName(ROLE_MEMBERSHIP_ATTRIBUTE).matchRefSearchFieldValue(REF_SEARCH_FIELD_VALUE));
     }
 
 }
