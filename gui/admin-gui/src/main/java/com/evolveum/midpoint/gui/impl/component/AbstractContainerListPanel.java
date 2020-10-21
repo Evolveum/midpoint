@@ -42,7 +42,7 @@ import java.util.List;
  * @author skublik
  */
 
-public abstract class AbstractContainerListPanel<C extends Containerable> extends BasePanel<PrismContainerWrapper<C>> {
+public abstract class AbstractContainerListPanel<C extends Containerable, T> extends BasePanel<T> {
 
     private static final long serialVersionUID = 1L;
 
@@ -54,7 +54,7 @@ public abstract class AbstractContainerListPanel<C extends Containerable> extend
 //    private TableId tableId;
     private Class<? extends C> type;
 
-    public AbstractContainerListPanel(String id, Class<? extends C> type, IModel<PrismContainerWrapper<C>> model) {
+    public AbstractContainerListPanel(String id, Class<? extends C> type, IModel<T> model) {
         super(id, model);
 //        this.tableId = tableId;
         this.type = type;

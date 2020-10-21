@@ -23,13 +23,10 @@ import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeMainPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -60,18 +57,15 @@ import com.evolveum.midpoint.web.component.search.SearchFormPanel;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
-import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * @author skublik
  */
 
-public abstract class MultivalueContainerListPanel<C extends Containerable, S extends Serializable> extends AbstractContainerListPanel<C> {
+public abstract class MultivalueContainerListPanel<C extends Containerable, S extends Serializable> extends AbstractContainerListPanel<C, PrismContainerWrapper<C>> {
 
     private static final long serialVersionUID = 1L;
 
@@ -79,7 +73,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 
     private LoadableModel<Search> searchModel = null;
 
-    public MultivalueContainerListPanel(String id, @NotNull IModel<PrismContainerWrapper<C>> model) {
+    public MultivalueContainerListPanel(String id, IModel<PrismContainerWrapper<C>> model) {
         super(id, model.getObject().getTypeClass(), model);
 
         searchModel = new LoadableModel<Search>(false) {
