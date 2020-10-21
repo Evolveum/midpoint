@@ -14,22 +14,26 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.IModel;
 
 /**
  * @author honchar
  */
-public abstract class SpecialPopoverSearchPanel extends BasePanel {
+public abstract class SpecialPopoverSearchPanel<T> extends BasePanel<T> {
 
     private static final long serialVersionUID = 1L;
 
     private static final String ID_TEXT_FIELD = "valueTextField";
     private static final String ID_EDIT_BUTTON = "editButton";
     private static final String ID_POPOVER_PANEL = "popoverPanel";
-    private static final String ID_POPOVER_BODY = "popoverBody";
     private static final String ID_POPOVER = "popover";
 
     public SpecialPopoverSearchPanel(String id) {
         super(id);
+    }
+
+    public SpecialPopoverSearchPanel(String id, IModel<T> model) {
+        super(id, model);
     }
 
     @Override
@@ -41,9 +45,9 @@ public abstract class SpecialPopoverSearchPanel extends BasePanel {
     private void initLayout(){
         setOutputMarkupId(true);
 
-        TextPanel<String> textField = new TextPanel<String>(ID_TEXT_FIELD, this::getTextValue);
+        TextPanel<String> textField = new TextPanel<String>(ID_TEXT_FIELD, getTextValue());
         textField.setOutputMarkupId(true);
-        textField.add(AttributeAppender.append("title", this::getTextValue));
+        textField.add(AttributeAppender.append("title", getTextValue().getObject()));
         textField.setEnabled(false);
         add(textField);
 
@@ -63,19 +67,15 @@ public abstract class SpecialPopoverSearchPanel extends BasePanel {
         popover.setOutputMarkupId(true);
         add(popover);
 
-        WebMarkupContainer popoverBody = new WebMarkupContainer(ID_POPOVER_BODY);
-        popoverBody.setOutputMarkupId(true);
-        popover.add(popoverBody);
-
         WebMarkupContainer searchPopupPanel = createPopupPopoverPanel(ID_POPOVER_PANEL);
         searchPopupPanel.setRenderBodyOnly(true);
-        popoverBody.add(searchPopupPanel);
+        popover.add(searchPopupPanel);
 
     }
 
-    protected abstract String getTextValue();
+    protected abstract IModel<String> getTextValue();
 
-    protected abstract WebMarkupContainer createPopupPopoverPanel(String id);
+    protected abstract SpecialPopoverSearchPopupPanel createPopupPopoverPanel(String id);
 
     public void togglePopover(AjaxRequestTarget target, Component button, Component popover, int paddingRight) {
         StringBuilder script = new StringBuilder();

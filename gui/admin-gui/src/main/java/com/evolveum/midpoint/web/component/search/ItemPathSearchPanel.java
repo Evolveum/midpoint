@@ -21,28 +21,25 @@ import javax.xml.datatype.XMLGregorianCalendar;
 /**
  * @author honchar
  */
-public class ItemPathSearchPanel extends SpecialPopoverSearchPanel {
+public class ItemPathSearchPanel extends SpecialPopoverSearchPanel<ItemPathDto> {
 
     private static final long serialVersionUID = 1L;
 
-    private IModel<ItemPathDto> itemPathModel;
-
     public ItemPathSearchPanel(String id, IModel<ItemPathDto> itemPathModel) {
-        super(id);
-        this.itemPathModel = itemPathModel;
+        super(id, itemPathModel);
     }
 
     @Override
     protected void onInitialize() {
-        if (itemPathModel.getObject() == null) {
-            itemPathModel.setObject(new ItemPathDto());
+        if (getModelObject() == null) {
+            getModel().setObject(new ItemPathDto());
         }
         super.onInitialize();
     }
 
     @Override
     protected SpecialPopoverSearchPopupPanel createPopupPopoverPanel(String id) {
-        return new ItemPathSearchPopupPanel(id, itemPathModel) {
+        return new ItemPathSearchPopupPanel(id, getModel()) {
 
             private static final long serialVersionUID = 1L;
 
@@ -54,19 +51,25 @@ public class ItemPathSearchPanel extends SpecialPopoverSearchPanel {
     }
 
     @Override
-    public String getTextValue() {
-        if (itemPathModel.getObject().toItemPath() == null) {
-            return "";
-        }
-        ObjectTypes object = ObjectTypes.getObjectTypeFromTypeQName(itemPathModel.getObject().getObjectType());
-        StringBuilder sb = new StringBuilder();
-        if (object != null) {
-            sb.append("(")
-                .append(getPageBase().createStringResource(object).getString())
-                .append(") ");
-        }
-        sb.append(itemPathModel.getObject().toItemPath().toString());
-        return sb.toString();
+    public IModel<String> getTextValue() {
+        return new IModel<String>() {
+
+            @Override
+            public String getObject() {
+                if (getModelObject().toItemPath() == null) {
+                    return "";
+                }
+                ObjectTypes object = ObjectTypes.getObjectTypeFromTypeQName(getModelObject().getObjectType());
+                StringBuilder sb = new StringBuilder();
+                if (object != null) {
+                    sb.append("(")
+                            .append(getPageBase().createStringResource(object).getString())
+                            .append(") ");
+                }
+                sb.append(getModelObject().toItemPath().toString());
+                return sb.toString();
+            }
+        };
     }
 
 }

@@ -21,7 +21,7 @@ import org.apache.wicket.model.IModel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-public class SpecialPopoverSearchPopupPanel extends BasePanel {
+public class SpecialPopoverSearchPopupPanel<T> extends BasePanel<T> {
 
     private static final long serialVersionUID = 1L;
 
@@ -31,6 +31,10 @@ public class SpecialPopoverSearchPopupPanel extends BasePanel {
 
     public SpecialPopoverSearchPopupPanel(String id) {
         super(id);
+    }
+
+    public SpecialPopoverSearchPopupPanel(String id, IModel<T> model) {
+        super(id,model);
     }
 
     @Override

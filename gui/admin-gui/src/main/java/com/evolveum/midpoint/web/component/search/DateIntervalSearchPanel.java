@@ -50,18 +50,24 @@ public class DateIntervalSearchPanel extends SpecialPopoverSearchPanel {
     }
 
     @Override
-    public String getTextValue() {
-        StringBuilder sb = new StringBuilder();
-        if (fromDateModel != null && fromDateModel.getObject() != null) {
-            sb.append(WebComponentUtil.getLocalizedDate(fromDateModel.getObject(), DateLabelComponent.SHORT_SHORT_STYLE));
-        }
-        if (sb.length() > 0 && toDateModel != null && toDateModel.getObject() != null) {
-            sb.append("-");
-        }
-        if (toDateModel != null && toDateModel.getObject() != null) {
-            sb.append(WebComponentUtil.getLocalizedDate(toDateModel.getObject(), DateLabelComponent.SHORT_SHORT_STYLE));
-        }
-        return sb.toString();
+    public IModel<String> getTextValue() {
+        return new IModel<String>(){
+
+            @Override
+            public String getObject() {
+                StringBuilder sb = new StringBuilder();
+                if (fromDateModel != null && fromDateModel.getObject() != null) {
+                    sb.append(WebComponentUtil.getLocalizedDate(fromDateModel.getObject(), DateLabelComponent.SHORT_SHORT_STYLE));
+                }
+                if (sb.length() > 0 && toDateModel != null && toDateModel.getObject() != null) {
+                    sb.append("-");
+                }
+                if (toDateModel != null && toDateModel.getObject() != null) {
+                    sb.append(WebComponentUtil.getLocalizedDate(toDateModel.getObject(), DateLabelComponent.SHORT_SHORT_STYLE));
+                }
+                return sb.toString();
+            }
+        };
     }
 
 }
