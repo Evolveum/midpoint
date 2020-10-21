@@ -36,6 +36,7 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
     private static final String CONFIGURATION_ORGS_DIRECTORY = CONFIGURATION_OBJECTS_DIRECTORY + "orgs/";
 
     private static final File USER_ORG_MEMBER_FILE = new File(CONFIGURATION_USERS_DIRECTORY + "user-org-member.xml");
+    private static final File USER_NOT_ORG_MEMBER_FILE = new File(CONFIGURATION_USERS_DIRECTORY + "user-not-org-member.xml");
     private static final File ORG_WITH_MEMBER_FILE = new File(CONFIGURATION_ORGS_DIRECTORY + "org-with-member.xml");
     private static final String ORG_NAME = "TestOrgWithMembers";
     private static final String ORG_WITH_MEMBER_NAME = "Assign member test";
@@ -43,7 +44,7 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
 
     @Override
     protected List<File> getObjectListToImport(){
-        return Arrays.asList(USER_ORG_MEMBER_FILE, ORG_WITH_MEMBER_FILE);
+        return Arrays.asList(USER_ORG_MEMBER_FILE, USER_NOT_ORG_MEMBER_FILE, ORG_WITH_MEMBER_FILE);
     }
 
     @Test
@@ -102,6 +103,13 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
                                             .getMemberPanel()
                                                 .table()
                                                     .containsLinksTextPartially("UniqueNameUserForMemberTest"));
-
+        //test that schrodinger looks correctly for the element inside parent element, not on the whole page
+        // (both page and popup window contains tables with Name column, we need to look through Name column in the popup)
+        Assert.assertNotNull(basicPage.orgStructure()
+                                .selectTabWithRootOrg(ORG_WITH_MEMBER_NAME)
+                                    .getMemberPanel()
+                                    .assignMember()
+                                        .table()
+                                            .rowByColumnLabel("Name", "NotMemberUser"));
     }
 }
