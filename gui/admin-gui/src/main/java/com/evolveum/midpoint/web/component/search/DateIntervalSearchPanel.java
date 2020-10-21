@@ -23,15 +23,9 @@ import com.evolveum.midpoint.web.component.input.TextPanel;
 /**
  * @author honchar
  */
-public class DateIntervalSearchPanel extends BasePanel {
+public class DateIntervalSearchPanel extends SpecialPopoverSearchPanel {
 
     private static final long serialVersionUID = 1L;
-
-    private static final String ID_DATE_TEXT_FIELD = "dateValueTextField";
-    private static final String ID_SET_DATE_BUTTON = "setDateButton";
-    private static final String ID_DATE_POPOVER_PANEL = "datePopoverPanel";
-    private static final String ID_DATE_POPOVER_BODY = "datePopoverBody";
-    private static final String ID_DATE_POPOVER = "datePopover";
 
     private IModel<XMLGregorianCalendar> fromDateModel;
     private IModel<XMLGregorianCalendar> toDateModel;
@@ -43,66 +37,20 @@ public class DateIntervalSearchPanel extends BasePanel {
     }
 
     @Override
-    protected void onInitialize(){
-        super.onInitialize();
-        initLayout();
-    }
+    protected SpecialPopoverSearchPopupPanel createPopupPopoverPanel(String id) {
+        return new DateIntervalSearchPopupPanel(id, fromDateModel, toDateModel) {
 
-    private void initLayout(){
-        setOutputMarkupId(true);
-
-        TextPanel<String> dateTextField = new TextPanel<String>(ID_DATE_TEXT_FIELD, this::getDateTextValue);
-        dateTextField.setOutputMarkupId(true);
-        dateTextField.add(AttributeAppender.append("title", this::getDateTextValue));
-        dateTextField.setEnabled(false);
-        add(dateTextField);
-
-        AjaxButton setDateButton = new AjaxButton(ID_SET_DATE_BUTTON) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
-                togglePopover(target, DateIntervalSearchPanel.this.get(ID_DATE_TEXT_FIELD),
-                        DateIntervalSearchPanel.this.get(ID_DATE_POPOVER), 0);
+            protected void confirmPerformed(AjaxRequestTarget target) {
+                target.add(DateIntervalSearchPanel.this);
             }
         };
-        setDateButton.setOutputMarkupId(true);
-        add(setDateButton);
-
-        WebMarkupContainer popover = new WebMarkupContainer(ID_DATE_POPOVER);
-        popover.setOutputMarkupId(true);
-        add(popover);
-
-        WebMarkupContainer popoverBody = new WebMarkupContainer(ID_DATE_POPOVER_BODY);
-        popoverBody.setOutputMarkupId(true);
-        popover.add(popoverBody);
-
-        DateIntervalSearchPopupPanel dateIntervalSearchPopupPanel =
-                new DateIntervalSearchPopupPanel(ID_DATE_POPOVER_PANEL, fromDateModel, toDateModel) {
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected void confirmPerformed(AjaxRequestTarget target) {
-                        target.add(DateIntervalSearchPanel.this);
-                    }
-                };
-        dateIntervalSearchPopupPanel.setRenderBodyOnly(true);
-        popoverBody.add(dateIntervalSearchPopupPanel);
-
     }
 
-    public void togglePopover(AjaxRequestTarget target, Component button, Component popover, int paddingRight) {
-        StringBuilder script = new StringBuilder();
-        script.append("toggleSearchPopover('");
-        script.append(button.getMarkupId()).append("','");
-        script.append(popover.getMarkupId()).append("',");
-        script.append(paddingRight).append(");");
-
-        target.appendJavaScript(script.toString());
-    }
-
-    public String getDateTextValue() {
+    @Override
+    public String getTextValue() {
         StringBuilder sb = new StringBuilder();
         if (fromDateModel != null && fromDateModel.getObject() != null) {
             sb.append(WebComponentUtil.getLocalizedDate(fromDateModel.getObject(), DateLabelComponent.SHORT_SHORT_STYLE));

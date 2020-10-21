@@ -35,7 +35,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
     private static final Trace LOGGER = TraceManager.getTrace(SelectableBeanObjectDataProvider.class);
 
     public SelectableBeanObjectDataProvider(Component component, Class<? extends O> type, Set<? extends O> selected) {
-        super(component, type, selected);
+        super(component, type, selected, true);
     }
 
     public List<SelectableBean<O>> createDataObjectWrappers(Class<? extends O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)

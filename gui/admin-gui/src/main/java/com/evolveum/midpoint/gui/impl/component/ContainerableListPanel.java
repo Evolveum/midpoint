@@ -15,7 +15,6 @@ import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -155,7 +154,7 @@ public abstract class ContainerableListPanel<C extends Containerable> extends Ab
     protected List<IColumn> createColumns() {
         List<IColumn> columns;
         if (isCustomColumnsListConfigured()) {
-            columns = initCustomColumns();
+            columns = initCustomViewColumns();
         } else {
             columns = initColumns();
         }
@@ -172,7 +171,7 @@ public abstract class ContainerableListPanel<C extends Containerable> extends Ab
         return columns;
     }
 
-    protected List<IColumn> initCustomColumns() {
+    protected List<IColumn> initCustomViewColumns() {
         LOGGER.trace("Start to init custom columns for table of type {}", getType());
         List<IColumn> columns = new ArrayList<>();
         List<GuiObjectColumnType> customColumns = getGuiObjectColumnTypeList();
@@ -186,14 +185,16 @@ public abstract class ContainerableListPanel<C extends Containerable> extends Ab
         }
 
         IColumn<SelectableBean<C>, String> iconColumn = createIconColumn();
-        columns.add(iconColumn);
+        if (iconColumn != null) {
+            columns.add(iconColumn);
+        }
 
-        columns.addAll(getCustomColumnsTransformed(customColumns));
+        columns.addAll(getViewColumnsTransformed(customColumns));
         LOGGER.trace("Finished to init custom columns, created columns {}", columns);
         return columns;
     }
 
-    protected List<IColumn> getCustomColumnsTransformed(List<GuiObjectColumnType> customColumns){
+    protected List<IColumn> getViewColumnsTransformed(List<GuiObjectColumnType> customColumns){
         List<IColumn> columns = new ArrayList<>();
         if (customColumns == null || customColumns.isEmpty()) {
             return columns;
@@ -349,7 +350,7 @@ public abstract class ContainerableListPanel<C extends Containerable> extends Ab
             if (defaultView == null) {
                 return null;
             }
-            others = getCustomColumnsTransformed(defaultView.getColumn());
+            others = getViewColumnsTransformed(defaultView.getColumn());
         } else {
             columns.add(createNameColumn(null, null, null));
         }
@@ -734,21 +735,11 @@ public abstract class ContainerableListPanel<C extends Containerable> extends Ab
         Search search = searchModel.getObject();
         ObjectQuery query = search != null ? search.createObjectQuery(getPageBase().getPrismContext()) :
                 getPrismContext().queryFor(getType()).build();
-        ObjectFilter customFilter = getCustomFilter();
-            if (customFilter != null){
-                if (query == null){
-                    query = getPrismContext().queryFor(getType()).build();
-                }
-                query.addFilter(customFilter);
-            }
+                customizeContentQuery(query);
         return query;
     }
 
-    protected ObjectFilter getCustomFilter(){
-        return null;
-    }
-
-    protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
+    protected ObjectQuery customizeContentQuery(ObjectQuery query) {
         return query;
     }
 

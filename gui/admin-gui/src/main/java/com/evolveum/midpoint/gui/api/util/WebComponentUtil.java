@@ -975,7 +975,10 @@ public final class WebComponentUtil {
     }
 
     public static <T extends Enum> IModel<String> createLocalizedModelForEnum(T value, Component comp) {
-        String key = value != null ? value.getClass().getSimpleName() + "." + value.name() : "";
+        if (value == null) {
+            return Model.of("");
+        }
+        String key = value.getClass().getSimpleName() + "." + value.name();
         return new StringResourceModel(key, comp, null);
     }
 

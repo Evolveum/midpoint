@@ -193,7 +193,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
         Search search = getSearchModel().getObject();
         ObjectQuery query = search.createObjectQuery(getPageBase().getPrismContext());
         query = addArchetypeFilter(query);
-        query = addFilterToContentQuery(query);
+        query = customizeContentQuery(query);
         return query;
     }
 

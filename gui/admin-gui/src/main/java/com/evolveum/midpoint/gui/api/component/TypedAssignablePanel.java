@@ -427,7 +427,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
             }
 
             @Override
-            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
+            protected ObjectQuery customizeContentQuery(ObjectQuery query) {
                 if (type.equals(RoleType.COMPLEX_TYPE)) {
                     LOGGER.debug("Loading roles which the current user has right to assign");
                     Task task = TypedAssignablePanel.this.getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);

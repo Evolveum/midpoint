@@ -22,14 +22,12 @@ import org.apache.wicket.model.IModel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-public class DateIntervalSearchPopupPanel extends BasePanel {
+public class DateIntervalSearchPopupPanel extends SpecialPopoverSearchPopupPanel {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String ID_DATE_FORM = "dateForm";
     private static final String ID_DATE_FROM_VALUE = "dateFromValue";
     private static final String ID_DATE_TO_VALUE = "dateToValue";
-    private static final String ID_CONFIRM_BUTTON = "confirmButton";
 
     private IModel<XMLGregorianCalendar> fromDateModel;
     private IModel<XMLGregorianCalendar> toDateModel;
@@ -41,44 +39,17 @@ public class DateIntervalSearchPopupPanel extends BasePanel {
     }
 
     @Override
-    protected void onInitialize() {
-        super.onInitialize();
-        initLayout();
-    }
-
-    private void initLayout() {
-        setOutputMarkupId(true);
-
-        MidpointForm dateForm = new MidpointForm(ID_DATE_FORM);
-        dateForm.setOutputMarkupId(true);
-        add(dateForm);
-
-        DateValidator validator = WebComponentUtil.getRangeValidator(dateForm, SchemaConstants.PATH_ACTIVATION);
+    protected void customizationPopoverForm(MidpointForm popoverForm) {
+        DateValidator validator = WebComponentUtil.getRangeValidator(popoverForm, SchemaConstants.PATH_ACTIVATION);
 
         DatePanel fromDatePanel = new DatePanel(ID_DATE_FROM_VALUE, fromDateModel);
         fromDatePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        dateForm.add(fromDatePanel);
+        popoverForm.add(fromDatePanel);
         validator.setDateFrom((DateTimeField) fromDatePanel.getBaseFormComponent());
 
         DatePanel toDatePanel = new DatePanel(ID_DATE_TO_VALUE, toDateModel);
         toDatePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        dateForm.add(toDatePanel);
+        popoverForm.add(toDatePanel);
         validator.setDateFrom((DateTimeField) toDatePanel.getBaseFormComponent());
-
-        AjaxButton confirm = new AjaxButton(ID_CONFIRM_BUTTON, createStringResource("Button.ok")) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                confirmPerformed(target);
-            }
-        };
-        dateForm.add(confirm);
-
     }
-
-    protected void confirmPerformed(AjaxRequestTarget target){
-    }
-
 }

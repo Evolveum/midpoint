@@ -12,6 +12,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.wicket.model.StringResourceModel;
@@ -127,6 +129,10 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem {
 
         if (DOMUtil.XSD_BOOLEAN.equals(def.getTypeName())) {
             return Type.BOOLEAN;
+        }
+
+        if (QNameUtil.match(ItemPathType.COMPLEX_TYPE, def.getTypeName())) {
+            return Type.ITEM_PATH;
         }
 
         return Type.TEXT;

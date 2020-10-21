@@ -11,6 +11,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author honchar
@@ -22,8 +23,8 @@ public class DateSearchItem<T extends Serializable> extends PropertySearchItem<T
     private XMLGregorianCalendar fromDate;
     private XMLGregorianCalendar toDate;
 
-    public DateSearchItem(Search search, ItemPath path, ItemDefinition definition) {
-        super(search, path, definition, null, null);
+    public DateSearchItem(Search search, ItemPath path, ItemDefinition definition, PolyStringType displayName) {
+        super(search, path, definition, null, displayName);
     }
 
     public XMLGregorianCalendar getFromDate() {

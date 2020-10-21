@@ -83,7 +83,7 @@ public class CasesListPanel extends BasePanel<CaseType> {
             }
 
             @Override
-            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
+            protected ObjectQuery customizeContentQuery(ObjectQuery query) {
                 if (query == null) {
                     query = CasesListPanel.this.getPageBase().getPrismContext().queryFor(CaseType.class)
                             .build();

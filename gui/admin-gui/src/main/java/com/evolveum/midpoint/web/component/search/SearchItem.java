@@ -18,7 +18,7 @@ public abstract class SearchItem implements Serializable {
     private static final long serialVersionUID = 1L;
 
     public enum Type {
-        TEXT, BOOLEAN, ENUM, BROWSER, REFERENCE, FILTER, DATE
+        TEXT, BOOLEAN, ENUM, BROWSER, REFERENCE, FILTER, DATE, ITEM_PATH
     }
 
     private final Search search;

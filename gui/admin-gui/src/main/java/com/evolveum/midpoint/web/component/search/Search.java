@@ -12,6 +12,12 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
+import com.evolveum.midpoint.util.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -23,17 +29,9 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
@@ -65,10 +63,6 @@ public class Search implements Serializable, DebugDumpable {
     private final List<SearchItem> items = new ArrayList<>();
 
     public Search(Class<? extends Containerable> type, List<SearchItemDefinition> allDefinitions) {
-        this(type, allDefinitions, null);
-    }
-
-    public Search(Class<? extends Containerable> type, List<SearchItemDefinition> allDefinitions, ItemPath defaultSearchItemPath) {
         this(type, allDefinitions, false, null);
     }
 
@@ -147,8 +141,13 @@ public class Search implements Serializable, DebugDumpable {
             return null;
         }
 
-        PropertySearchItem item = new PropertySearchItem(this, itemToRemove.getPath(), def, itemToRemove.getAllowedValues(),
-                itemToRemove.getDisplayName());
+        PropertySearchItem item;
+        if (QNameUtil.match(itemToRemove.getDef().getTypeName(), DOMUtil.XSD_DATETIME)) {
+            item = new DateSearchItem(this, itemToRemove.getPath(), def, itemToRemove.getDisplayName());
+        } else {
+            item = new PropertySearchItem(this, itemToRemove.getPath(), def, itemToRemove.getAllowedValues(),
+                    itemToRemove.getDisplayName());
+        }
         if (def instanceof PrismReferenceDefinition) {
             ObjectReferenceType ref = new ObjectReferenceType();
             List<QName> supportedTargets = WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) def).getTargetTypeName());
@@ -341,6 +340,10 @@ public class Search implements Serializable, DebugDumpable {
             String value = (String) searchValue.getValue();
             return ctx.queryFor(ObjectType.class)
                     .item(path, propDef).contains(value).matchingCaseIgnore().buildFilter();
+        } else if (QNameUtil.match(ItemPathType.COMPLEX_TYPE, propDef.getTypeName())) {
+            ItemPathDto itemPath = (ItemPathDto) searchValue.getValue();
+            return ctx.queryFor(ObjectType.class)
+                    .item(path, propDef).eq(new ItemPathType(itemPath.toItemPath())).buildFilter();
         }
 
         //we don't know how to create filter from search item, should not happen, ha ha ha :)

@@ -87,7 +87,7 @@ public class PageTasks extends PageAdmin {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
+            protected ObjectQuery customizeContentQuery(ObjectQuery query) {
                 if (isCollectionViewPanel()) {
                     return query;
                 }

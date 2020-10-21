@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -104,8 +106,12 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
             }
 
             @Override
-            protected ObjectFilter getCustomFilter() {
-                return getCaseWorkItemsFilter();
+            protected ObjectQuery customizeContentQuery(ObjectQuery query) {
+                if (query == null){
+                    query = getPrismContext().queryFor(getType()).build();
+                }
+                query.addFilter(getCaseWorkItemsFilter());
+                return query;
             }
 
             @Override

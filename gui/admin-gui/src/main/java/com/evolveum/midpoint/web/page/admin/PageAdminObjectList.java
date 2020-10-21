@@ -90,7 +90,7 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 
 
             @Override
-            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
+            protected ObjectQuery customizeContentQuery(ObjectQuery query) {
                 return PageAdminObjectList.this.addCustomFilterToContentQuery(query);
             }
 

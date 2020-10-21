@@ -137,7 +137,7 @@ public class PageAttorneySelection extends PageBase {
             }
 
             @Override
-            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
+            protected ObjectQuery customizeContentQuery(ObjectQuery query) {
                 if (query == null) {
                     query = PageAttorneySelection.this.getPrismContext().queryFactory().createQuery();
                 }

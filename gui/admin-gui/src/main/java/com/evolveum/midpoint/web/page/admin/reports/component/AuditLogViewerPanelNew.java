@@ -12,10 +12,13 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.query.ObjectOrdering;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.gui.impl.GuiChannel;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -33,6 +36,7 @@ import com.evolveum.midpoint.web.session.PageStorage;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
@@ -46,13 +50,10 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogDetails;
-import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordProvider;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
@@ -90,13 +91,18 @@ public class AuditLogViewerPanelNew extends BasePanel {
             }
 
             @Override
-            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
+            protected ObjectQuery customizeContentQuery(ObjectQuery query) {
                 return AuditLogViewerPanelNew.this.addFilterToContentQuery(query, getPageStorage());
             }
 
             @Override
             protected IColumn createNameColumn(IModel columnNameModel, String itemPath, ExpressionType expression) {
                 return AuditLogViewerPanelNew.this.createNameColumn();
+            }
+
+            @Override
+            protected IColumn<SelectableBean, String> createCheckboxColumn() {
+                return null;
             }
 
             @Override
@@ -121,7 +127,8 @@ public class AuditLogViewerPanelNew extends BasePanel {
 
             @Override
             protected ISelectableDataProvider createProvider() {
-                return new SelectableBeanContainerDataProvider<AuditEventRecordType>(AuditLogViewerPanelNew.this, AuditEventRecordType.class, null) {
+                SelectableBeanContainerDataProvider<AuditEventRecordType> provider = new SelectableBeanContainerDataProvider<AuditEventRecordType>(
+                        AuditLogViewerPanelNew.this, AuditEventRecordType.class, null,false) {
 
                     @Override
                     protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
@@ -136,16 +143,6 @@ public class AuditLogViewerPanelNew extends BasePanel {
                         return createQuery();
                     }
 
-                    @NotNull
-                    @Override
-                    protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
-                        List<ObjectOrdering> customOrdering =  createCustomOrdering(sortParam);
-                        if (customOrdering != null) {
-                            return customOrdering;
-                        }
-                        return super.createObjectOrderings(sortParam);
-                    }
-
                     @Override
                     protected Integer countObjects(Class<? extends AuditEventRecordType> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
                         return getPage().getAuditService().countObjects(query, currentOptions, result);
@@ -155,8 +152,24 @@ public class AuditLogViewerPanelNew extends BasePanel {
                     protected List<AuditEventRecordType> searchObjects(Class<? extends AuditEventRecordType> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
                         return getPage().getAuditService().searchObjects(query, options, result);
                     }
+
+                    @NotNull
+                    @Override
+                    protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+                        if (sortParam != null && sortParam.getProperty() != null) {
+                            OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
+                            return Collections.singletonList(
+                                    getPrismContext().queryFactory().createOrdering(
+                                            ItemPath.create(new QName(AuditEventRecordType.COMPLEX_TYPE.getNamespaceURI(), sortParam.getProperty())), order));
+                        } else {
+                            return Collections.emptyList();
+                        }
+                    }
                 };
+                provider.setSort(AuditEventRecordType.F_TIMESTAMP.getLocalPart(), SortOrder.DESCENDING);
+                return provider;
             }
+
         };
         auditLogViewerTable.setOutputMarkupId(true);
         add(auditLogViewerTable);
@@ -166,7 +179,7 @@ public class AuditLogViewerPanelNew extends BasePanel {
         List<IColumn<SelectableBean<AuditEventRecordType>, String>> columns = new ArrayList<>();
         LinkColumn<SelectableBean<AuditEventRecordType>> initiatorRefColumn =
                 new LinkColumn<SelectableBean<AuditEventRecordType>>(createStringResource("AuditEventRecordType.initiatorRef"),
-                        AuditEventRecordProvider.INITIATOR_OID_PARAMETER, AuditEventRecordType.F_INITIATOR_REF.getLocalPart()) {
+                        AuditEventRecordType.F_INITIATOR_REF.getLocalPart()) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -187,7 +200,7 @@ public class AuditLogViewerPanelNew extends BasePanel {
             IColumn<SelectableBean<AuditEventRecordType>, String> eventStageColumn =
                     new PropertyColumn<SelectableBean<AuditEventRecordType>, String>(
                             createStringResource("PageAuditLogViewer.eventStageLabel"),
-                            AuditEventRecordProvider.EVENT_STAGE_PARAMETER, "eventStage") {
+                            AuditEventRecordType.F_EVENT_STAGE.getLocalPart(), AuditEventRecordType.F_EVENT_STAGE.getLocalPart()) {
                         private static final long serialVersionUID = 1L;
 
                         @Override
@@ -201,7 +214,7 @@ public class AuditLogViewerPanelNew extends BasePanel {
 
         IColumn<SelectableBean<AuditEventRecordType>, String> eventTypeColumn =
                 new PropertyColumn<SelectableBean<AuditEventRecordType>, String>(createStringResource("PageAuditLogViewer.eventTypeLabel"),
-                        AuditEventRecordProvider.EVENT_TYPE_PARAMETER, "eventType") {
+                        AuditEventRecordType.F_EVENT_TYPE.getLocalPart(), AuditEventRecordType.F_EVENT_TYPE.getLocalPart()) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -214,7 +227,7 @@ public class AuditLogViewerPanelNew extends BasePanel {
         if (!isObjectHistoryPanel()) {
             LinkColumn<SelectableBean<AuditEventRecordType>> targetRefColumn =
                     new LinkColumn<SelectableBean<AuditEventRecordType>>(createStringResource("AuditEventRecordType.targetRef"),
-                            AuditEventRecordProvider.TARGET_OID_PARAMETER, AuditEventRecordType.F_TARGET_REF.getLocalPart()) {
+                            AuditEventRecordType.F_TARGET_REF.getLocalPart()) {
                         private static final long serialVersionUID = 1L;
 
                         @Override
@@ -235,7 +248,7 @@ public class AuditLogViewerPanelNew extends BasePanel {
         if (!isObjectHistoryPanel()) {
             LinkColumn<SelectableBean<AuditEventRecordType>> targetOwnerRefColumn =
                     new LinkColumn<SelectableBean<AuditEventRecordType>>(createStringResource("AuditEventRecordType.targetOwnerRef"),
-                            AuditEventRecordProvider.TARGET_OWNER_OID_PARAMETER, AuditEventRecordType.F_TARGET_OWNER_REF.getLocalPart()) {
+                            AuditEventRecordType.F_TARGET_OWNER_REF.getLocalPart()) {
                         private static final long serialVersionUID = 1L;
 
                         @Override
@@ -255,7 +268,7 @@ public class AuditLogViewerPanelNew extends BasePanel {
         IColumn<SelectableBean<AuditEventRecordType>, String> channelColumn =
                 new PropertyColumn<SelectableBean<AuditEventRecordType>, String>(
                         createStringResource("AuditEventRecordType.channel"),
-                        AuditEventRecordProvider.CHANNEL_PARAMETER, "channel") {
+                        AuditEventRecordType.F_CHANNEL.getLocalPart(), AuditEventRecordType.F_CHANNEL.getLocalPart()) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -263,8 +276,8 @@ public class AuditLogViewerPanelNew extends BasePanel {
                             IModel<SelectableBean<AuditEventRecordType>> rowModel) {
                         AuditEventRecordType auditEventRecordType = unwrapModel(rowModel);
                         String channel = auditEventRecordType.getChannel();
-                        Channel channelValue = null;
-                        for (Channel chan : Channel.values()) {
+                        GuiChannel channelValue = null;
+                        for (GuiChannel chan : GuiChannel.values()) {
                             if (chan.getUri().equals(channel)) {
                                 channelValue = chan;
                                 break;
@@ -283,7 +296,7 @@ public class AuditLogViewerPanelNew extends BasePanel {
         IColumn<SelectableBean<AuditEventRecordType>, String> outcomeColumn =
                 new PropertyColumn<SelectableBean<AuditEventRecordType>, String>(
                         createStringResource("PageAuditLogViewer.outcomeLabel"),
-                        AuditEventRecordProvider.OUTCOME_PARAMETER, "outcome") {
+                        AuditEventRecordType.F_OUTCOME.getLocalPart(), AuditEventRecordType.F_OUTCOME.getLocalPart()) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -297,7 +310,8 @@ public class AuditLogViewerPanelNew extends BasePanel {
     }
 
     private IColumn createNameColumn() {
-        return new LinkColumn<SelectableBean<AuditEventRecordType>>(createStringResource("AuditEventRecordType.timestamp")) {
+        return new LinkColumn<SelectableBean<AuditEventRecordType>>(createStringResource("AuditEventRecordType.timestamp"), AuditEventRecordType.F_TIMESTAMP.getLocalPart(),
+                AuditEventRecordType.F_TIMESTAMP.getLocalPart()) {
             private static final long serialVersionUID = 1L;
 
             @Override

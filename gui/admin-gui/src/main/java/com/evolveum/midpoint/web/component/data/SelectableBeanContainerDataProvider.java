@@ -9,8 +9,6 @@ package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -24,7 +22,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -68,8 +65,8 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
     private Class<? extends C> type;
     private Collection<SelectorOptions<GetOperationOptions>> options;
 
-    public SelectableBeanContainerDataProvider(Component component, Class<? extends C> type, Set<? extends C> selected) {
-        super(component, false, true);
+    public SelectableBeanContainerDataProvider(Component component, Class<? extends C> type, Set<? extends C> selected, boolean useDefaultSortingField) {
+        super(component, false, useDefaultSortingField);
 
         Validate.notNull(type);
         if (selected != null) {

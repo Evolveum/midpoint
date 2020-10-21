@@ -120,7 +120,7 @@ public class ChildCasesTabPanel extends AbstractObjectTabPanel<CaseType> {
             }
 
             @Override
-            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
+            protected ObjectQuery customizeContentQuery(ObjectQuery query) {
                 if (query == null) {
                     query = ChildCasesTabPanel.this.getPageBase().getPrismContext().queryFactory().createQuery();
                 }

@@ -95,7 +95,7 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
             }
 
             @Override
-            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
+            protected ObjectQuery customizeContentQuery(ObjectQuery query) {
                 ObjectQuery queryWithFilters = AbstractPopupTabPanel.this.addFilterToContentQuery(query);
                 if (queryWithFilters == null) {
                     queryWithFilters = AbstractPopupTabPanel.this.getPageBase().getPrismContext().queryFactory().createQuery();
