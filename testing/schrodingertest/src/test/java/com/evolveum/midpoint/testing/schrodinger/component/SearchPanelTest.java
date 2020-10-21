@@ -135,8 +135,8 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
 
     @Test
     public void test0050referenceAttributeByOidSearch() {
-        RolesPageTable table = basicPage.listRoles().table();
-        Search<RolesPageTable> search = (Search<RolesPageTable>) table.search();
+        UsersPageTable table = basicPage.listUsers().table();
+        Search<UsersPageTable> search = (Search<UsersPageTable>) table.search();
         search.resetBasicSearch();
         Assert.assertNotEquals(1, table.countTableObjects());
         search.byItemName(ROLE_MEMBERSHIP_ATTRIBUTE)
@@ -144,7 +144,6 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
                 .updateSearch();
         Assert.assertEquals(1, table.countTableObjects());
         Assert.assertTrue(table.containsLinksTextPartially("testUserWithRoleMembershipSearchByOid"));
-        Assert.assertTrue(table.containsText("roleSearchByOidTest"));
     }
 
 }

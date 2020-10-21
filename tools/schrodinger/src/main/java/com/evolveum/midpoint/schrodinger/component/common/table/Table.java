@@ -142,6 +142,9 @@ public class Table<T> extends Component<T> {
         if (countStringValue == null) {
             return 0;
         }
+        if (countStringValue.equals("No matching result found.")) {
+            return 0;
+        }
         int lastSpaceIndex = countStringValue.lastIndexOf(" ");
         if (lastSpaceIndex < 0) {
             return 0;
