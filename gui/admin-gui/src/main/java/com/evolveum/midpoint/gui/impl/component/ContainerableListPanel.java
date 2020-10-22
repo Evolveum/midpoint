@@ -70,7 +70,7 @@ import java.util.stream.Collectors;
 /**
  * @author katkav
  */
-public abstract class ContainerableListPanel<C extends Containerable> extends AbstractContainerListPanel<C, C> {
+public abstract class ContainerableListPanel<C extends Containerable> extends AbstractContainerableListPanel<C, C> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerableListPanel.class);

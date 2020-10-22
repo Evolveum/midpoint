@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.component;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.prism.Containerable;
@@ -23,7 +22,6 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -42,11 +40,11 @@ import java.util.List;
  * @author skublik
  */
 
-public abstract class AbstractContainerListPanel<C extends Containerable, T> extends BasePanel<T> {
+public abstract class AbstractContainerableListPanel<C extends Containerable, T> extends BasePanel<T> {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractContainerListPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractContainerableListPanel.class);
 
     public static final String ID_ITEMS = "items";
     private static final String ID_ITEMS_TABLE = "itemsTable";
@@ -54,7 +52,7 @@ public abstract class AbstractContainerListPanel<C extends Containerable, T> ext
 //    private TableId tableId;
     private Class<? extends C> type;
 
-    public AbstractContainerListPanel(String id, Class<? extends C> type, IModel<T> model) {
+    public AbstractContainerableListPanel(String id, Class<? extends C> type, IModel<T> model) {
         super(id, model);
 //        this.tableId = tableId;
         this.type = type;
@@ -123,7 +121,7 @@ public abstract class AbstractContainerListPanel<C extends Containerable, T> ext
 
             @Override
             protected WebMarkupContainer createHeader(String headerId) {
-                WebMarkupContainer header = AbstractContainerListPanel.this.createHeader(headerId);
+                WebMarkupContainer header = AbstractContainerableListPanel.this.createHeader(headerId);
                 header.add(new VisibleBehaviour(() -> isHeaderVisible()));
                 return header;
 
@@ -131,14 +129,15 @@ public abstract class AbstractContainerListPanel<C extends Containerable, T> ext
 
             @Override
             protected Item customizeNewRowItem(Item item, IModel model) {
-                if (model.getObject() instanceof PrismContainerValueWrapper) {
+                String status = GuiImplUtil.getObjectStatus(model.getObject());
+                if (status != null) {
                     item.add(AttributeModifier.append("class", new IModel<String>() {
 
                         private static final long serialVersionUID = 1L;
 
                         @Override
                         public String getObject() {
-                            return GuiImplUtil.getObjectStatus(model.getObject());
+                            return status;
                         }
                     }));
                 }
@@ -153,27 +152,27 @@ public abstract class AbstractContainerListPanel<C extends Containerable, T> ext
 
             @Override
             public String getAdditionalBoxCssClasses() {
-                return AbstractContainerListPanel.this.getAdditionalBoxCssClasses();
+                return AbstractContainerableListPanel.this.getAdditionalBoxCssClasses();
             }
 
             @Override
             protected boolean hideFooterIfSinglePage(){
-                return AbstractContainerListPanel.this.hideFooterIfSinglePage();
+                return AbstractContainerableListPanel.this.hideFooterIfSinglePage();
             }
 
             @Override
             public int getAutoRefreshInterval() {
-                return AbstractContainerListPanel.this.getAutoRefreshInterval();
+                return AbstractContainerableListPanel.this.getAutoRefreshInterval();
             }
 
             @Override
             public boolean isAutoRefreshEnabled() {
-                return AbstractContainerListPanel.this.isRefreshEnabled();
+                return AbstractContainerableListPanel.this.isRefreshEnabled();
             }
 
             @Override
             public boolean enableSavePageSize() {
-                return AbstractContainerListPanel.this.enableSavePageSize();
+                return AbstractContainerableListPanel.this.enableSavePageSize();
             }
         };
         itemTable.setOutputMarkupId(true);
