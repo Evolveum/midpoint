@@ -149,7 +149,7 @@ public class Projector {
                 .addContext("projectionWave", context.getProjectionWave())
                 .build();
         ProjectorRunTraceType trace;
-        if (result.isTraced()) {
+        if (result.isTracingAny(ProjectorRunTraceType.class)) {
             trace = new ProjectorRunTraceType();
             trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
             trace.setInputLensContextText(context.debugDump());

@@ -9,10 +9,14 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 /**
  * Common supertype for SQL-based repository-like services.
  */
 public abstract class SqlBaseService {
+
+    @Autowired private SqlPerformanceMonitorsCollectionImpl monitorsCollection;
 
     private SqlPerformanceMonitorImpl performanceMonitor;
 
@@ -23,6 +27,7 @@ public abstract class SqlBaseService {
             SqlRepositoryConfiguration config = sqlConfiguration();
             performanceMonitor = new SqlPerformanceMonitorImpl(
                     config.getPerformanceStatisticsLevel(), config.getPerformanceStatisticsFile());
+            monitorsCollection.register(performanceMonitor);
         }
 
         return performanceMonitor;
@@ -31,6 +36,8 @@ public abstract class SqlBaseService {
     public void destroy() {
         if (performanceMonitor != null) {
             performanceMonitor.shutdown();
+            monitorsCollection.deregister(performanceMonitor);
+            performanceMonitor = null;
         }
     }
 }

@@ -146,12 +146,12 @@ public class StatisticsUtil {
         }
         StringBuilder sb = new StringBuilder();
         if (statistics.getIterativeTaskInformation() != null) {
-            sb.append("Iterative task information:\n")
+            sb.append("Iterative task information\n\n")
                     .append(IterativeTaskInformation.format(statistics.getIterativeTaskInformation()))
                     .append("\n");
         }
         if (statistics.getActionsExecutedInformation() != null) {
-            sb.append("Actions executed:\n")
+            sb.append("Actions executed\n\n")
                     .append(ActionsExecutedInformation.format(statistics.getActionsExecutedInformation()))
                     .append("\n");
         }
@@ -161,22 +161,22 @@ public class StatisticsUtil {
 //                    .append("\n");
 //        }
         if (statistics.getEnvironmentalPerformanceInformation() != null) {
-            sb.append("Environmental performance information:\n")
+            sb.append("Environmental performance information\n\n")
                     .append(EnvironmentalPerformanceInformation.format(statistics.getEnvironmentalPerformanceInformation()))
                     .append("\n");
         }
         if (statistics.getRepositoryPerformanceInformation() != null) {
-            sb.append("Repository performance information:\n")
+            sb.append("Repository performance information\n\n")
                     .append(RepositoryPerformanceInformationUtil.format(statistics.getRepositoryPerformanceInformation()))
                     .append("\n");
         }
         if (statistics.getCachesPerformanceInformation() != null) {
-            sb.append("Cache performance information:\n")
+            sb.append("Cache performance information\n\n")
                     .append(CachePerformanceInformationUtil.format(statistics.getCachesPerformanceInformation()))
                     .append("\n");
         }
         if (statistics.getOperationsPerformanceInformation() != null) {
-            sb.append("Methods performance information:\n")
+            sb.append("Methods performance information\n\n")
                     .append(OperationsPerformanceInformationUtil.format(statistics.getOperationsPerformanceInformation()))
                     .append("\n");
         }

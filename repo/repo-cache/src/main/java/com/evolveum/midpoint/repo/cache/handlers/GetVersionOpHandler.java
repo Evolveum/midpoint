@@ -92,7 +92,7 @@ public class GetVersionOpHandler extends CachedOpHandler {
                 .build();
 
         RepositoryGetVersionTraceType trace;
-        if (result.isTraced()) {
+        if (result.isTracingAny(RepositoryGetVersionTraceType.class)) {
             trace = new RepositoryGetVersionTraceType(prismContext)
                     .cache(true)
                     .objectType(prismContext.getSchemaRegistry().determineTypeForClass(type))

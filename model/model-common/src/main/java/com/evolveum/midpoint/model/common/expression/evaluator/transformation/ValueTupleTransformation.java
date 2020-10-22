@@ -133,7 +133,7 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
                 .setMinor()
                 .build();
         result.addParam("context", context.getContextDescription());
-        if (result.isTraced() && result.isTracingNormal(ValueTransformationTraceType.class)) {
+        if (result.isTracingNormal(ValueTransformationTraceType.class)) {
             trace = new ValueTransformationTraceType(combinatorialEvaluation.prismContext);
             result.getTraces().add(trace);
             dumpValueCombinationToTrace();

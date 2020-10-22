@@ -154,6 +154,11 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.github.inamik.text.tables</groupId>
+            <artifactId>inamik-text-tables</artifactId>
+        </dependency>
+
         <!--  Testing dependencies  -->
         <dependency>
             <groupId>org.testng</groupId>

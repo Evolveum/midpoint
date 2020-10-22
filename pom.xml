@@ -874,7 +874,7 @@
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
-                <version>3.1-M3</version>
+                <version>3.1</version>
                 <exclusions>
                     <!-- Needed otherwise the JDK14 SLF4J binding can override the midpoint's logback binding -->
                     <exclusion>
@@ -1032,6 +1032,11 @@
                 <groupId>org.apache.derby</groupId>
                 <artifactId>derbyclient</artifactId>
                 <version>${derby.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.inamik.text.tables</groupId>
+                <artifactId>inamik-text-tables</artifactId>
+                <version>0.8</version>
             </dependency>
 
             <!-- Jasper reports -->

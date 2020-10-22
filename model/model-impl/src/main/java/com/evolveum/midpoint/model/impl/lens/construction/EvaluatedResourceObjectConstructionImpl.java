@@ -229,7 +229,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
                 .addParam("resourceShadowDiscriminator", rsd.toHumanReadableDescription())
                 .setMinor()
                 .build();
-        if (result.isTraced()) {
+        if (result.isTracingAny(ResourceObjectConstructionEvaluationTraceType.class)) {
             ResourceObjectConstructionEvaluationTraceType trace = new ResourceObjectConstructionEvaluationTraceType(construction.beans.prismContext);
             trace.setConstruction(construction.constructionBean);
             trace.setResourceShadowDiscriminator(LensUtil.createDiscriminatorBean(rsd, construction.lensContext));
