@@ -505,7 +505,7 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
 
         return new SearchFormPanel(headerId, searchModel) {
 
-            private static final long serialVersionUID1 = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
