@@ -230,8 +230,8 @@ public abstract class ResourceContentPanel extends Panel {
                     }
 
                     @Override
-                    protected List<IColumn> createDefaultColumns() {
-                        return (List) ResourceContentPanel.this.initColumns();
+                    protected List<IColumn<SelectableBean<ShadowType>, String>> createDefaultColumns() {
+                        return ResourceContentPanel.this.initColumns();
                     }
 
                     @Override

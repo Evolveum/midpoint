@@ -57,12 +57,14 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.lang.Classes;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -70,7 +72,7 @@ import java.util.stream.Collectors;
 /**
  * @author katkav
  */
-public abstract class ContainerableListPanel<C extends Containerable> extends AbstractContainerableListPanel<C, C> {
+public abstract class ContainerableListPanel<C extends Containerable, SO extends Serializable> extends AbstractContainerableListPanel<C, SO, C> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerableListPanel.class);
@@ -151,8 +153,8 @@ public abstract class ContainerableListPanel<C extends Containerable> extends Ab
         return SearchFactory.createContainerSearch(getType(), getPageBase());
     }
 
-    protected List<IColumn> createColumns() {
-        List<IColumn> columns;
+    protected List<IColumn<SO, String>> createColumns() {
+        List<IColumn<SO, String>> columns;
         if (isCustomColumnsListConfigured()) {
             columns = initCustomViewColumns();
         } else {
@@ -165,26 +167,26 @@ public abstract class ContainerableListPanel<C extends Containerable> extends Ab
         addCustomActions(menuItems, () -> getSelectedObjects());
 
         if (!menuItems.isEmpty()) {
-            InlineMenuButtonColumn<SelectableBean<C>> actionsColumn = new InlineMenuButtonColumn<>(menuItems, getPageBase());
+            InlineMenuButtonColumn<SO> actionsColumn = new InlineMenuButtonColumn<>(menuItems, getPageBase());
             columns.add(actionsColumn);
         }
         return columns;
     }
 
-    protected List<IColumn> initCustomViewColumns() {
+    protected List<IColumn<SO, String>> initCustomViewColumns() {
         LOGGER.trace("Start to init custom columns for table of type {}", getType());
-        List<IColumn> columns = new ArrayList<>();
+        List<IColumn<SO, String>> columns = new ArrayList<>();
         List<GuiObjectColumnType> customColumns = getGuiObjectColumnTypeList();
         if (customColumns == null){
             return columns;
         }
 
-        CheckBoxHeaderColumn<SelectableBean<C>> checkboxColumn = (CheckBoxHeaderColumn<SelectableBean<C>>) createCheckboxColumn();
+        IColumn<SO, String> checkboxColumn = createCheckboxColumn();
         if (checkboxColumn != null) {
             columns.add(checkboxColumn);
         }
 
-        IColumn<SelectableBean<C>, String> iconColumn = createIconColumn();
+        IColumn<SO, String> iconColumn = createIconColumn();
         if (iconColumn != null) {
             columns.add(iconColumn);
         }
@@ -194,12 +196,12 @@ public abstract class ContainerableListPanel<C extends Containerable> extends Ab
         return columns;
     }
 
-    protected List<IColumn> getViewColumnsTransformed(List<GuiObjectColumnType> customColumns){
-        List<IColumn> columns = new ArrayList<>();
+    protected List<IColumn<SO, String>> getViewColumnsTransformed(List<GuiObjectColumnType> customColumns){
+        List<IColumn<SO, String>> columns = new ArrayList<>();
         if (customColumns == null || customColumns.isEmpty()) {
             return columns;
         }
-        IColumn<SelectableBean<C>, String> column;
+        IColumn<SO, String> column;
         for (GuiObjectColumnType customColumn : customColumns) {
             if (customColumn.getPath() == null && (customColumn.getExport() == null || customColumn.getExport().getExpression() == null)) {
                 continue;
@@ -227,18 +229,19 @@ public abstract class ContainerableListPanel<C extends Containerable> extends Ab
                     // TODO what if a complex path is provided here?
                     column = createNameColumn(columnDisplayModel, customColumn.getPath() == null ? "" : customColumn.getPath().toString(), null); //TODO check expression
                 } else {
-                    column = new AbstractExportableColumn<SelectableBean<C>, String>(columnDisplayModel, customColumn.getSortProperty()) {
+                    column = new AbstractExportableColumn<SO, String>(columnDisplayModel, customColumn.getSortProperty()) {
                         private static final long serialVersionUID = 1L;
 
                         @Override
-                        public void populateItem(org.apache.wicket.markup.repeater.Item<ICellPopulator<SelectableBean<C>>> item,
-                                String componentId, IModel<SelectableBean<C>> rowModel) {
+                        public void populateItem(org.apache.wicket.markup.repeater.Item<ICellPopulator<SO>> item,
+                                String componentId, IModel<SO> rowModel) {
                             item.add(new Label(componentId, getDataModel(rowModel)));
                         }
 
                         @Override
-                        public IModel<?> getDataModel(IModel<SelectableBean<C>> rowModel) {
-                            C value = rowModel.getObject().getValue();
+                        public IModel<?> getDataModel(IModel<SO> rowModel) {
+                            PropertyModel<C> valueModel = new PropertyModel<C>(rowModel, "value");
+                            C value = valueModel.getObject();
                             if (value == null) {
                                 return Model.of("");
                             }
@@ -330,21 +333,21 @@ public abstract class ContainerableListPanel<C extends Containerable> extends Ab
                 .collect(Collectors.joining(", ")));
     }
 
-    protected List<IColumn> initColumns() {
+    protected List<IColumn<SO, String>> initColumns() {
         LOGGER.trace("Start to init columns for table of type {}", getType());
-        List<IColumn> columns = new ArrayList<>();
+        List<IColumn<SO, String>> columns = new ArrayList<>();
 
-        CheckBoxHeaderColumn<SelectableBean<C>> checkboxColumn = (CheckBoxHeaderColumn<SelectableBean<C>>) createCheckboxColumn();
+        IColumn<SO, String> checkboxColumn = createCheckboxColumn();
         if (checkboxColumn != null) {
             columns.add(checkboxColumn);
         }
 
-        IColumn<SelectableBean<C>, String> iconColumn = createIconColumn();
+        IColumn<SO, String> iconColumn = createIconColumn();
         if (iconColumn != null) {
             columns.add(iconColumn);
         }
 
-        List<IColumn> others = createDefaultColumns();
+        List<IColumn<SO, String>> others = createDefaultColumns();
         if (others == null) {
             GuiObjectListViewType defaultView = DefaultColumnUtils.getDefaultView(getType());
             if (defaultView == null) {
@@ -362,18 +365,18 @@ public abstract class ContainerableListPanel<C extends Containerable> extends Ab
         return columns;
     }
 
-    protected IColumn<SelectableBean<C>, String> createCheckboxColumn(){
+    protected IColumn<SO, String> createCheckboxColumn(){
         return new CheckBoxHeaderColumn<>();
     }
 
-    protected IColumn<SelectableBean<C>, String> createIconColumn(){
+    protected IColumn<SO, String> createIconColumn(){
         return (IColumn) ColumnUtils.createIconColumn(getPageBase());
     }
 
-    protected abstract IColumn<SelectableBean<C>, String> createNameColumn(IModel<String> columnNameModel, String itemPath,
+    protected abstract IColumn<SO, String> createNameColumn(IModel<String> columnNameModel, String itemPath,
             ExpressionType expression);
 
-    protected List<IColumn> createDefaultColumns() {
+    protected List<IColumn<SO, String>> createDefaultColumns() {
         return null;
     }
 

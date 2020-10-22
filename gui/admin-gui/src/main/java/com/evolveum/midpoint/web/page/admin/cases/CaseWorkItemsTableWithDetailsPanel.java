@@ -74,8 +74,8 @@ public abstract class CaseWorkItemsTableWithDetailsPanel extends BasePanel<Prism
 
     }
 
-    protected MultivalueContainerListPanelWithDetailsPanel<CaseWorkItemType, AssignmentCandidatesSpecification> getCaseWorkItemsTablePanel() {
-        return ((MultivalueContainerListPanelWithDetailsPanel<CaseWorkItemType, AssignmentCandidatesSpecification>)get(ID_WORKITEMS_TABLE));
+    protected MultivalueContainerListPanelWithDetailsPanel<CaseWorkItemType> getCaseWorkItemsTablePanel() {
+        return ((MultivalueContainerListPanelWithDetailsPanel<CaseWorkItemType>)get(ID_WORKITEMS_TABLE));
     }
 
     protected abstract ObjectQuery createQuery();

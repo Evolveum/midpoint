@@ -88,7 +88,8 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
     }
 
     private void initLayout(){
-        ContainerableListPanel workItemsPanel = new ContainerableListPanel(ID_WORKITEMS_TABLE, CaseWorkItemType.class) {
+        ContainerableListPanel workItemsPanel =
+                new ContainerableListPanel<CaseWorkItemType, PrismContainerValueWrapper<CaseWorkItemType>>(ID_WORKITEMS_TABLE, CaseWorkItemType.class) {
 
             @Override
             protected PageStorage getPageStorage() {
@@ -295,7 +296,7 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
             AjaxRequestTarget target) {
         List<PrismContainerValueWrapper<CaseWorkItemType>> selectedWorkItems = new ArrayList<>();
         if (rowModel == null) {
-            ContainerableListPanel<CaseWorkItemType> tablePanel = getContainerableListPanel();
+            ContainerableListPanel<CaseWorkItemType, PrismContainerValueWrapper<CaseWorkItemType>> tablePanel = getContainerableListPanel();
             selectedWorkItems.addAll(tablePanel.getSelectedObjects());
         } else {
             selectedWorkItems.addAll(Collections.singletonList(rowModel.getObject()));
@@ -326,12 +327,8 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
 
     }
 
-//<<<<<<< HEAD
-//    public ContainerListPanel<CaseWorkItemType> getContainerListPanel(){
-//        return (ContainerListPanel<CaseWorkItemType>) get(ID_WORKITEMS_TABLE);
-//=======
-    public ContainerableListPanel<CaseWorkItemType> getContainerableListPanel() {
-        return (ContainerableListPanel<CaseWorkItemType>) get(ID_WORKITEMS_TABLE);
+    public ContainerableListPanel<CaseWorkItemType, PrismContainerValueWrapper<CaseWorkItemType>> getContainerableListPanel() {
+        return (ContainerableListPanel<CaseWorkItemType, PrismContainerValueWrapper<CaseWorkItemType>>) get(ID_WORKITEMS_TABLE);
     }
 
     protected ObjectFilter getCaseWorkItemsFilter() {

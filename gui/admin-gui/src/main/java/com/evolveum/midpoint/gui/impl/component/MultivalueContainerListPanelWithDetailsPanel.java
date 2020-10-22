@@ -30,8 +30,8 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
  * @author skublik
  */
 
-public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Containerable, S extends Serializable>
-        extends MultivalueContainerListPanel<C, S> {
+public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Containerable>
+        extends MultivalueContainerListPanel<C> {
 
     private static final long serialVersionUID = 1L;
 

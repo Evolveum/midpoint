@@ -50,7 +50,6 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     private static final String ID_FOOTER_CONTAINER = "footerContainer";
     private static final String ID_BUTTON_TOOLBAR = "buttonToolbar";
 
-//    private UserProfileStorage.TableId tableId;
     private String tableIdKey;
     private boolean showPaging;
     private String additionalBoxCssClasses = null;

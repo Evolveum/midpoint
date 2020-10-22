@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -45,7 +46,7 @@ import com.evolveum.midpoint.web.session.PageStorage;
 /**
  * @author katkav
  */
-public abstract class ObjectListPanel<O extends ObjectType> extends ContainerableListPanel<O> {
+public abstract class ObjectListPanel<O extends ObjectType> extends ContainerableListPanel<O, SelectableBean<O>> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectListPanel.class);
@@ -234,9 +235,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
     }
 
     @Override
-    protected List<IColumn> createDefaultColumns() {
+    protected List<IColumn<SelectableBean<O>, String>> createDefaultColumns() {
         return super.createDefaultColumns();
     }
-
-
 }

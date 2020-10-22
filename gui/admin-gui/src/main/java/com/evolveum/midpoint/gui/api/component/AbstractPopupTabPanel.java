@@ -69,9 +69,9 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected List<IColumn> createDefaultColumns() {
+            protected List<IColumn<SelectableBean<O>, String>> createDefaultColumns() {
                 if (AbstractRoleType.class.isAssignableFrom(getType())){
-                    List<IColumn> columns = new ArrayList<>();
+                    List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<>();
                     columns.addAll((Collection)ColumnUtils.getDefaultAbstractRoleColumns(false));
                     return columns;
                 } else {

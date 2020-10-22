@@ -28,7 +28,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.error.PageError;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.RestartResponseException;
@@ -118,14 +117,14 @@ public class PageAttorneySelection extends PageBase {
                     @Override
                     public void onClick(AjaxRequestTarget target, IModel<SelectableBean<UserType>> rowModel) {
                         UserType object = rowModel.getObject().getValue();
-                        selectUserPerformed(target, object.getOid());
+                        selectUserPerformed(object.getOid());
                     }
                 };
             }
 
             @Override
-            protected List<IColumn> createDefaultColumns() {
-                List<IColumn> columns = new ArrayList<>();
+            protected List<IColumn<SelectableBean<UserType>, String>> createDefaultColumns() {
+                List<IColumn<SelectableBean<UserType>, String>> columns = new ArrayList<>();
                 columns.add(createNameColumn(null, null, null));
                 columns.addAll(PageAttorneySelection.this.initColumns());
                 return columns;
@@ -171,27 +170,27 @@ public class PageAttorneySelection extends PageBase {
     private List<IColumn<SelectableBean<UserType>, String>> initColumns() {
         List<IColumn<SelectableBean<UserType>, String>> columns = new ArrayList<>();
 
-        IColumn<SelectableBean<UserType>, String> column = new PropertyColumn(
+        IColumn<SelectableBean<UserType>, String> column = new PropertyColumn<>(
                 createStringResource("UserType.givenName"), UserType.F_GIVEN_NAME.getLocalPart(),
                 SelectableBeanImpl.F_VALUE + ".givenName");
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("UserType.familyName"),
+        column = new PropertyColumn<>(createStringResource("UserType.familyName"),
                 UserType.F_FAMILY_NAME.getLocalPart(), SelectableBeanImpl.F_VALUE + ".familyName");
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("UserType.fullName"),
+        column = new PropertyColumn<>(createStringResource("UserType.fullName"),
                 UserType.F_FULL_NAME.getLocalPart(), SelectableBeanImpl.F_VALUE + ".fullName");
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("UserType.emailAddress"), null,
+        column = new PropertyColumn<>(createStringResource("UserType.emailAddress"), null,
                 SelectableBeanImpl.F_VALUE + ".emailAddress");
         columns.add(column);
 
         return columns;
     }
 
-    private void selectUserPerformed(AjaxRequestTarget target, String oid) {
+    private void selectUserPerformed(String oid) {
         PageParameters parameters = new PageParameters();
         parameters.add(PARAMETER_DONOR_OID, oid);
         PageWorkItemsAttorney workItemsPage = new PageWorkItemsAttorney(parameters);

@@ -109,8 +109,8 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
     }
 
     private void initLayout() {
-        MultivalueContainerListPanelWithDetailsPanel<ShadowType, F> multivalueContainerListPanel =
-                new MultivalueContainerListPanelWithDetailsPanel<ShadowType, F>(ID_SHADOW_TABLE, getShadowDefinition()) {
+        MultivalueContainerListPanelWithDetailsPanel<ShadowType> multivalueContainerListPanel =
+                new MultivalueContainerListPanelWithDetailsPanel<ShadowType>(ID_SHADOW_TABLE, getShadowDefinition()) {
 
             private static final long serialVersionUID = 1L;
 
@@ -185,9 +185,9 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                     }
 
                     @Override
-                    protected List<IColumn> createColumns() {
-                return (List) initBasicColumns();
-            }
+                    protected List<IColumn<PrismContainerValueWrapper<ShadowType>, String>> createColumns() {
+                        return initBasicColumns();
+                    }
 
                     @Override
                     public void editItemPerformed(AjaxRequestTarget target,
@@ -379,8 +379,8 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
         return shadow;
     }
 
-    private MultivalueContainerListPanelWithDetailsPanel<ShadowType, F> getMultivalueContainerListPanel() {
-        return ((MultivalueContainerListPanelWithDetailsPanel<ShadowType, F>) get(ID_SHADOW_TABLE));
+    private MultivalueContainerListPanelWithDetailsPanel<ShadowType> getMultivalueContainerListPanel() {
+        return ((MultivalueContainerListPanelWithDetailsPanel<ShadowType>) get(ID_SHADOW_TABLE));
     }
 
     private void addSelectedAccountPerformed(AjaxRequestTarget target, List<ResourceType> newResources) {

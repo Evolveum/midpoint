@@ -71,7 +71,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * @author skublik
  */
-public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePanel<PrismContainerWrapper<LoggingConfigurationType>> {
+public class LoggingConfigurationTabPanel extends BasePanel<PrismContainerWrapper<LoggingConfigurationType>> {
 
     private static final long serialVersionUID = 1L;
 
@@ -109,8 +109,8 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 
         PrismContainerWrapperModel<LoggingConfigurationType, ClassLoggerConfigurationType> loggerModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), LoggingConfigurationType.F_CLASS_LOGGER);
 
-        MultivalueContainerListPanel<ClassLoggerConfigurationType, S> loggersMultivalueContainerListPanel =
-                new MultivalueContainerListPanel<ClassLoggerConfigurationType, S>(ID_LOGGERS, loggerModel) {
+        MultivalueContainerListPanel<ClassLoggerConfigurationType> loggersMultivalueContainerListPanel =
+                new MultivalueContainerListPanel<ClassLoggerConfigurationType>(ID_LOGGERS, loggerModel) {
 
             private static final long serialVersionUID = 1L;
 
@@ -143,11 +143,11 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
             }
 
             @Override
-            protected List<IColumn> createColumns() {
-                return (List) initLoggersBasicColumns(loggerModel);
+            protected List<IColumn<PrismContainerValueWrapper<ClassLoggerConfigurationType>, String>> createColumns() {
+                return initLoggersBasicColumns(loggerModel);
             }
 
-            @Override
+                    @Override
             protected void editItemPerformed(AjaxRequestTarget target,
                     IModel<PrismContainerValueWrapper<ClassLoggerConfigurationType>> rowModel,
                     List<PrismContainerValueWrapper<ClassLoggerConfigurationType>> listItems) {
@@ -166,8 +166,8 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 
         PrismContainerWrapperModel<LoggingConfigurationType, AppenderConfigurationType> appenderModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), LoggingConfigurationType.F_APPENDER);
 
-        MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S> appendersMultivalueContainerListPanel =
-                new MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S>(ID_APPENDERS, appenderModel) {
+        MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType> appendersMultivalueContainerListPanel =
+                new MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType>(ID_APPENDERS, appenderModel) {
 
             private static final long serialVersionUID = 1L;
 
@@ -198,11 +198,11 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
             }
 
             @Override
-            protected List<IColumn> createColumns() {
-                return (List) initAppendersBasicColumns(appenderModel);
+            protected List<IColumn<PrismContainerValueWrapper<AppenderConfigurationType>, String>> createColumns() {
+                return initAppendersBasicColumns(appenderModel);
             }
 
-            @Override
+                    @Override
             protected MultivalueContainerDetailsPanel<AppenderConfigurationType> getMultivalueContainerDetailsPanel(
                     ListItem<PrismContainerValueWrapper<AppenderConfigurationType>> item) {
                 return LoggingConfigurationTabPanel.this.getAppendersMultivalueContainerDetailsPanel(item);
@@ -346,8 +346,8 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
     }
 
     protected void newAppendersClickPerformed(AjaxRequestTarget target) {
-        MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S> appenders
-                = (MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S>) get(ID_APPENDERS);
+        MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType> appenders
+                = (MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType>) get(ID_APPENDERS);
         DropDownChoicePanel<QName> appendersChoice = (DropDownChoicePanel<QName>) getAppendersMultivalueContainerListPanel().getTable().getFooterButtonToolbar().get(createComponentPath(ID_CHOICE_APPENDER_TYPE_FORM, ID_APPENDERS_CHOICE));
         PrismContainerValue<AppenderConfigurationType> newObjectPolicy = null;
         if (QNameUtil.match(appendersChoice.getModel().getObject(), FileAppenderConfigurationType.COMPLEX_TYPE)) {
@@ -414,12 +414,12 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
         return header;
     }
 
-    private MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S> getAppendersMultivalueContainerListPanel() {
-        return ((MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S>) get(ID_APPENDERS));
+    private MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType> getAppendersMultivalueContainerListPanel() {
+        return ((MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType>) get(ID_APPENDERS));
     }
 
-    private MultivalueContainerListPanel<ClassLoggerConfigurationType, S> getLoggersMultivalueContainerListPanel() {
-        return ((MultivalueContainerListPanel<ClassLoggerConfigurationType, S>) get(ID_LOGGERS));
+    private MultivalueContainerListPanel<ClassLoggerConfigurationType> getLoggersMultivalueContainerListPanel() {
+        return ((MultivalueContainerListPanel<ClassLoggerConfigurationType>) get(ID_LOGGERS));
     }
 
     private void initAppenderPaging() {

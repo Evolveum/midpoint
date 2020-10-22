@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -49,14 +48,12 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
-import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 
 /**
  * @author skublik
  */
-public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends BasePanel<PrismContainerWrapper<ObjectPolicyConfigurationType>> {
+public class ObjectPolicyConfigurationTabPanel extends BasePanel<PrismContainerWrapper<ObjectPolicyConfigurationType>> {
 
     private static final long serialVersionUID = 1L;
 
@@ -83,8 +80,8 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
     }
 
     protected void initLayout() {
-        MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S> multivalueContainerListPanel
-                = new MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S>(ID_OBJECTS_POLICY, getModel()) {
+        MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType> multivalueContainerListPanel
+                = new MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType>(ID_OBJECTS_POLICY, getModel()) {
 
             private static final long serialVersionUID = 1L;
 
@@ -115,8 +112,8 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
             }
 
             @Override
-            protected List<IColumn> createColumns() {
-                return (List) initBasicColumns();
+            protected List<IColumn<PrismContainerValueWrapper<ObjectPolicyConfigurationType>, String>> createColumns() {
+                return initBasicColumns();
             }
 
             @Override
@@ -197,8 +194,8 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
         return itemWrapper.isMandatory();
     }
 
-    private MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S> getMultivalueContainerListPanel(){
-        return ((MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S>)get(ID_OBJECTS_POLICY));
+    private MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType> getMultivalueContainerListPanel(){
+        return ((MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType>)get(ID_OBJECTS_POLICY));
     }
 
 

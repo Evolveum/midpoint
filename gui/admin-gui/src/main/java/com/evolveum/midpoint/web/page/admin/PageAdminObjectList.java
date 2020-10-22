@@ -69,8 +69,8 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected List<IColumn> createDefaultColumns() {
-                return (List) PageAdminObjectList.this.initColumns();
+            protected List<IColumn<SelectableBean<O>, String>> createDefaultColumns() {
+                return PageAdminObjectList.this.initColumns();
             }
 
             @Override

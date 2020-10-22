@@ -78,8 +78,8 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
     }
 
     protected void initLayout() {
-        MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType, S> multivalueContainerListPanel =
-                new MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType, S>(ID_GLOBAL_POLICY_RULE, getModel()) {
+        MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType> multivalueContainerListPanel =
+                new MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType>(ID_GLOBAL_POLICY_RULE, getModel()) {
 
             private static final long serialVersionUID = 1L;
 
@@ -110,11 +110,11 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
             }
 
             @Override
-            protected List<IColumn> createColumns() {
-                return (List) initBasicColumns();
+            protected List<IColumn<PrismContainerValueWrapper<GlobalPolicyRuleType>, String>> createColumns() {
+                return initBasicColumns();
             }
 
-            @Override
+                    @Override
             protected MultivalueContainerDetailsPanel<GlobalPolicyRuleType> getMultivalueContainerDetailsPanel(
                     ListItem<PrismContainerValueWrapper<GlobalPolicyRuleType>> item) {
                 return GlobalPolicyRuleTabPanel.this.getMultivalueContainerDetailsPanel(item);
@@ -171,8 +171,8 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
         return detailsPanel;
     }
 
-    private MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType, S> getMultivalueContainerListPanel(){
-        return ((MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType, S>)get(ID_GLOBAL_POLICY_RULE));
+    private MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType> getMultivalueContainerListPanel(){
+        return ((MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType>)get(ID_GLOBAL_POLICY_RULE));
     }
 
     private ObjectQuery createQuery() {
@@ -208,9 +208,9 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
 
         columns.add(linkColumn);
 
-        columns.add(new PrismContainerWrapperColumn<GlobalPolicyRuleType>(getModel(), GlobalPolicyRuleType.F_POLICY_CONSTRAINTS, getPageBase()));
+        columns.add(new PrismContainerWrapperColumn<>(getModel(), GlobalPolicyRuleType.F_POLICY_CONSTRAINTS, getPageBase()));
 
-        columns.add(new PrismContainerWrapperColumn<GlobalPolicyRuleType>(getModel(),GlobalPolicyRuleType.F_POLICY_ACTIONS, getPageBase()));
+        columns.add(new PrismContainerWrapperColumn<>(getModel(),GlobalPolicyRuleType.F_POLICY_ACTIONS, getPageBase()));
 
         columns.add(new PrismPropertyWrapperColumn<GlobalPolicyRuleType, String>(getModel(), GlobalPolicyRuleType.F_POLICY_SITUATION, ColumnType.STRING, getPageBase()));
 

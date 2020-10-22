@@ -54,8 +54,8 @@ public class FocusTriggersTabPanel<F extends FocusType> extends AbstractObjectTa
         PrismContainerWrapperModel<F, TriggerType> triggersModel = PrismContainerWrapperModel.fromContainerWrapper(
                 getObjectWrapperModel(), FocusType.F_TRIGGER);
 
-        MultivalueContainerListPanel<TriggerType, AssignmentObjectRelation> multivalueContainerListPanel =
-                new MultivalueContainerListPanel<TriggerType, AssignmentObjectRelation>(ID_TRIGGERS_PANEL, triggersModel) {
+        MultivalueContainerListPanel<TriggerType> multivalueContainerListPanel =
+                new MultivalueContainerListPanel<TriggerType>(ID_TRIGGERS_PANEL, triggersModel) {
 
                     private static final long serialVersionUID = 1L;
 
@@ -84,7 +84,7 @@ public class FocusTriggersTabPanel<F extends FocusType> extends AbstractObjectTa
                     }
 
                     @Override
-                    protected List<IColumn> createColumns() {
+                    protected List<IColumn<PrismContainerValueWrapper<TriggerType>, String>> createColumns() {
                         return createTriggersColumns();
                     }
 
@@ -106,8 +106,8 @@ public class FocusTriggersTabPanel<F extends FocusType> extends AbstractObjectTa
         setOutputMarkupId(true);
     }
 
-    private List<IColumn> createTriggersColumns(){
-        List<IColumn> columns = new ArrayList<>();
+    private List<IColumn<PrismContainerValueWrapper<TriggerType>, String>> createTriggersColumns(){
+        List<IColumn<PrismContainerValueWrapper<TriggerType>, String>> columns = new ArrayList<>();
         columns.add(new AbstractColumn<PrismContainerValueWrapper<TriggerType>, String>(createStringResource("FocusTriggersTabPanel.timestampColumn")){
             private static final long serialVersionUID = 1L;
 

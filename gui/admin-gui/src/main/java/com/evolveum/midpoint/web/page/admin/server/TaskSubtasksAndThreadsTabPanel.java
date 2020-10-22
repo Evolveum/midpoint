@@ -87,8 +87,8 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
             }
 
             @Override
-            protected List<IColumn> createDefaultColumns() {
-                List<IColumn> columns = super.createDefaultColumns();
+            protected List<IColumn<SelectableBean<TaskType>, String>> createDefaultColumns() {
+                List<IColumn<SelectableBean<TaskType>, String>> columns = super.createDefaultColumns();
                 columns.add(2, new EnumPropertyColumn<SelectableBean<TaskType>>(createStringResource("SubtasksPanel.label.kind"), createTaskKindExpression()) {
 
                     @Override

@@ -244,7 +244,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             @Override
-            protected List<IColumn> createDefaultColumns() {
+            protected List<IColumn<SelectableBean<ObjectType>, String>> createDefaultColumns() {
                 return (List) createMembersColumns();
             }
 

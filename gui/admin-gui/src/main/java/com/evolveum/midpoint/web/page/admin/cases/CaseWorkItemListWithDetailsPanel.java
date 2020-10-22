@@ -45,7 +45,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 /**
  * Created by honchar
  */
-public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContainerListPanelWithDetailsPanel<CaseWorkItemType, String> {
+public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContainerListPanelWithDetailsPanel<CaseWorkItemType> {
 
     private static final long serialVersionUID = 1L;
 
@@ -146,8 +146,8 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
     }
 
     @Override
-    protected List<IColumn> createColumns() {
-        return (List) getWorkItemColumns();
+    protected List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> createColumns() {
+        return getWorkItemColumns();
     }
 
     @Override

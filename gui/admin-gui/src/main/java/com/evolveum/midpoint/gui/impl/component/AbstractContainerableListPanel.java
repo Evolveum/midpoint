@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.prism.Containerable;
@@ -28,19 +27,27 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.lang.Classes;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * @author skublik
+ *
+ * Abstract class for List panels with table.
+ *
+ * @param <C>
+ *     the container of displayed objects in table
+ * @param <PO>
+ *     the type of the object processed by provider
+ * @param <T>
+ *     the type of the model object
  */
-
-public abstract class AbstractContainerableListPanel<C extends Containerable, T> extends BasePanel<T> {
+public abstract class AbstractContainerableListPanel<C extends Containerable, PO extends Serializable, T> extends BasePanel<T> {
 
     private static final long serialVersionUID = 1L;
 
@@ -49,12 +56,10 @@ public abstract class AbstractContainerableListPanel<C extends Containerable, T>
     public static final String ID_ITEMS = "items";
     private static final String ID_ITEMS_TABLE = "itemsTable";
 
-//    private TableId tableId;
     private Class<? extends C> type;
 
     public AbstractContainerableListPanel(String id, Class<? extends C> type, IModel<T> model) {
         super(id, model);
-//        this.tableId = tableId;
         this.type = type;
     }
 
@@ -81,7 +86,7 @@ public abstract class AbstractContainerableListPanel<C extends Containerable, T>
         itemsContainer.setOutputMarkupPlaceholderTag(true);
         add(itemsContainer);
 
-        BoxedTablePanel<PrismContainerValueWrapper<C>> itemTable = initItemTable();
+        BoxedTablePanel<PO> itemTable = initItemTable();
         itemTable.setOutputMarkupId(true);
         itemTable.setOutputMarkupPlaceholderTag(true);
         itemsContainer.add(itemTable);
@@ -110,12 +115,12 @@ public abstract class AbstractContainerableListPanel<C extends Containerable, T>
         return initSearch(headerId);
     }
 
-    protected BoxedTablePanel initItemTable() {
+    protected BoxedTablePanel<PO> initItemTable() {
 
-        List<IColumn> columns = createColumns();
+        List<IColumn<PO, String>> columns = createColumns();
         int itemPerPage = getTableIdKeyValue() == null ? UserProfileStorage.DEFAULT_PAGING_SIZE : (int) getPageBase().getItemsPerPage(getTableIdKeyValue());
-        ISortableDataProvider provider = createProvider();
-        BoxedTablePanel itemTable = new BoxedTablePanel(ID_ITEMS_TABLE,
+        ISelectableDataProvider provider = createProvider();
+        BoxedTablePanel<PO> itemTable = new BoxedTablePanel<PO>(ID_ITEMS_TABLE,
                 provider, columns, getTableIdKeyValue(), itemPerPage) {
             private static final long serialVersionUID = 1L;
 
@@ -284,7 +289,7 @@ public abstract class AbstractContainerableListPanel<C extends Containerable, T>
         };
     }
 
-    protected abstract List<IColumn> createColumns();
+    protected abstract List<IColumn<PO, String>> createColumns();
 
     public BoxedTablePanel getTable() {
         return (BoxedTablePanel) get(createComponentPath(ID_ITEMS, ID_ITEMS_TABLE));

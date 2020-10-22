@@ -65,7 +65,8 @@ import org.jetbrains.annotations.NotNull;
  * @author skublik
  */
 
-public abstract class MultivalueContainerListPanel<C extends Containerable, S extends Serializable> extends AbstractContainerableListPanel<C, PrismContainerWrapper<C>> {
+public abstract class MultivalueContainerListPanel<C extends Containerable>
+        extends AbstractContainerableListPanel<C, PrismContainerValueWrapper<C>, PrismContainerWrapper<C>> {
 
     private static final long serialVersionUID = 1L;
 

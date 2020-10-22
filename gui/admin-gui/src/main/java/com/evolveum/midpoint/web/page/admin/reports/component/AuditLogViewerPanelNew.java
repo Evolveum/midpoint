@@ -18,9 +18,7 @@ import com.evolveum.midpoint.gui.impl.GuiChannel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -78,7 +76,8 @@ public class AuditLogViewerPanelNew extends BasePanel {
     }
 
     private void initLayout() {
-        ContainerableListPanel auditLogViewerTable = new ContainerableListPanel(ID_AUDIT_LOG_VIEWER_TABLE, AuditEventRecordType.class) {
+        ContainerableListPanel<AuditEventRecordType, SelectableBean<AuditEventRecordType>> auditLogViewerTable =
+                new ContainerableListPanel<AuditEventRecordType, SelectableBean<AuditEventRecordType>>(ID_AUDIT_LOG_VIEWER_TABLE, AuditEventRecordType.class) {
 
             @Override
             protected List<IColumn<SelectableBean<AuditEventRecordType>, String>> createDefaultColumns() {
@@ -96,17 +95,18 @@ public class AuditLogViewerPanelNew extends BasePanel {
             }
 
             @Override
-            protected IColumn createNameColumn(IModel columnNameModel, String itemPath, ExpressionType expression) {
+            protected IColumn<SelectableBean<AuditEventRecordType>, String> createNameColumn(IModel<String> columnNameModel,
+                    String itemPath, ExpressionType expression) {
                 return AuditLogViewerPanelNew.this.createNameColumn();
             }
 
             @Override
-            protected IColumn<SelectableBean, String> createCheckboxColumn() {
+            protected IColumn<SelectableBean<AuditEventRecordType>, String> createCheckboxColumn() {
                 return null;
             }
 
             @Override
-            protected IColumn createIconColumn() {
+            protected IColumn<SelectableBean<AuditEventRecordType>, String> createIconColumn() {
                 return null;
             }
 
@@ -126,7 +126,7 @@ public class AuditLogViewerPanelNew extends BasePanel {
             }
 
             @Override
-            protected ISelectableDataProvider createProvider() {
+            protected ISelectableDataProvider<AuditEventRecordType, SelectableBean<AuditEventRecordType>> createProvider() {
                 SelectableBeanContainerDataProvider<AuditEventRecordType> provider = new SelectableBeanContainerDataProvider<AuditEventRecordType>(
                         AuditLogViewerPanelNew.this, AuditEventRecordType.class, null,false) {
 
@@ -144,12 +144,15 @@ public class AuditLogViewerPanelNew extends BasePanel {
                     }
 
                     @Override
-                    protected Integer countObjects(Class<? extends AuditEventRecordType> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+                    protected Integer countObjects(Class<? extends AuditEventRecordType> type, ObjectQuery query,
+                            Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result) {
                         return getPage().getAuditService().countObjects(query, currentOptions, result);
                     }
 
                     @Override
-                    protected List<AuditEventRecordType> searchObjects(Class<? extends AuditEventRecordType> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+                    protected List<AuditEventRecordType> searchObjects(Class<? extends AuditEventRecordType> type, ObjectQuery query,
+                            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
+                            throws SchemaException {
                         return getPage().getAuditService().searchObjects(query, options, result);
                     }
 
@@ -309,7 +312,7 @@ public class AuditLogViewerPanelNew extends BasePanel {
         return columns;
     }
 
-    private IColumn createNameColumn() {
+    private IColumn<SelectableBean<AuditEventRecordType>, String> createNameColumn() {
         return new LinkColumn<SelectableBean<AuditEventRecordType>>(createStringResource("AuditEventRecordType.timestamp"), AuditEventRecordType.F_TIMESTAMP.getLocalPart(),
                 AuditEventRecordType.F_TIMESTAMP.getLocalPart()) {
             private static final long serialVersionUID = 1L;

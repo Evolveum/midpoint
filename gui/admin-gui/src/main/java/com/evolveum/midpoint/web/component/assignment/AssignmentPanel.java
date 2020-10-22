@@ -113,8 +113,8 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 
     private void initLayout() {
 
-        MultivalueContainerListPanelWithDetailsPanel<AssignmentType, AssignmentObjectRelation> multivalueContainerListPanel =
-                new MultivalueContainerListPanelWithDetailsPanel<AssignmentType, AssignmentObjectRelation>(ID_ASSIGNMENTS, getModel() != null ? getModel() : Model.of()) {
+        MultivalueContainerListPanelWithDetailsPanel<AssignmentType> multivalueContainerListPanel =
+                new MultivalueContainerListPanelWithDetailsPanel<AssignmentType>(ID_ASSIGNMENTS, getModel() != null ? getModel() : Model.of()) {
 
                     private static final long serialVersionUID = 1L;
 
@@ -139,11 +139,11 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                     }
 
                     @Override
-                    protected List<IColumn> createColumns() {
+                    protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createColumns() {
                         if (AssignmentPanel.this.getModelObject() == null) {
                             return new ArrayList<>();
                         }
-                        return (List) initBasicColumns();
+                        return initBasicColumns();
                     }
 
                     @Override
@@ -951,8 +951,8 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
     }
 
     @SuppressWarnings("unchecked")
-    protected MultivalueContainerListPanelWithDetailsPanel<AssignmentType, AssignmentCandidatesSpecification> getMultivalueContainerListPanel() {
-        return ((MultivalueContainerListPanelWithDetailsPanel<AssignmentType, AssignmentCandidatesSpecification>) get(ID_ASSIGNMENTS));
+    protected MultivalueContainerListPanelWithDetailsPanel<AssignmentType> getMultivalueContainerListPanel() {
+        return ((MultivalueContainerListPanelWithDetailsPanel<AssignmentType>) get(ID_ASSIGNMENTS));
     }
 
     protected PageBase getParentPage() {

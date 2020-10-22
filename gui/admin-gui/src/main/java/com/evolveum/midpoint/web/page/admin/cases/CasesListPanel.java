@@ -73,7 +73,7 @@ public class CasesListPanel extends BasePanel<CaseType> {
 
 
             @Override
-            protected List<IColumn> createDefaultColumns() {
+            protected List<IColumn<SelectableBean<CaseType>, String>> createDefaultColumns() {
                 return (List) ColumnUtils.getDefaultCaseColumns(CasesListPanel.this.getPageBase(), isDashboard());
             }
 

@@ -6,17 +6,17 @@
  */
 package com.evolveum.midpoint.web.component.search;
 
-import java.io.Serializable;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author honchar
  */
-public class DateSearchItem<T extends Serializable> extends PropertySearchItem<T> {
+public class DateSearchItem extends PropertySearchItem {
 
     private static final long serialVersionUID = 1L;
 
@@ -47,5 +47,4 @@ public class DateSearchItem<T extends Serializable> extends PropertySearchItem<T
     public Type getType() {
         return Type.DATE;
     }
-
 }

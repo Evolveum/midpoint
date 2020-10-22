@@ -72,7 +72,7 @@ public class ChildCasesTabPanel extends AbstractObjectTabPanel<CaseType> {
             }
 
             @Override
-            protected List<IColumn> createDefaultColumns() {
+            protected List<IColumn<SelectableBean<CaseType>, String>> createDefaultColumns() {
                 List<IColumn<SelectableBean<CaseType>, String>> columns = new ArrayList<IColumn<SelectableBean<CaseType>, String>>();
 
                 IColumn column = new PropertyColumn(createStringResource("pageCases.table.description"), "value.description");
