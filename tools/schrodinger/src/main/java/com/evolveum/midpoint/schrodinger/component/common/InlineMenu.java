@@ -20,10 +20,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
+import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -106,6 +109,12 @@ public class InlineMenu<T> extends Component<T> {
         SelenideElement element = getParentElement().find("div.btn-group ul.dropdown-menu li a schrodinger[data-s-resource-key=" + itemKey + "]");
         element.parent().click();
 
+        return this;
+    }
+
+    public InlineMenu<T> clickInlineMenuButtonByTitle(String title) {
+        getParentElement().$(Schrodinger.byElementAttributeValue("button", "title", title))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         return this;
     }
 }
