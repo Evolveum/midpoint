@@ -280,6 +280,7 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
         return true;
     }
 
+    // FIXME what if a == b == null ? The method should (most probably) return true in such case.
     public static boolean equalsIntent(String a, String b) {
         if (a == null || b == null) {
             return false;
