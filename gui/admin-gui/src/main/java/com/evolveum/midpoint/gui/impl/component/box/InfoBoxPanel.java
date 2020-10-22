@@ -113,6 +113,7 @@ public abstract class InfoBoxPanel extends BasePanel<DashboardWidgetType> {
                 Task task = getPageBase().createSimpleTask("Get DashboardWidget");
                 OperationResult result = task.getResult();
                 try {
+                    getPrismContext().adopt(getModelObject());
                     DashboardWidget dashboardWidget = getPageBase().getDashboardService().createWidgetData(getModelObject(), task, result);
                     result.computeStatusIfUnknown();
                     return new DashboardWidgetDto(dashboardWidget, getPageBase());
