@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.component;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -181,6 +182,13 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
             return columns;
         }
 
+        addingCheckAndIconColumnIfExists(columns);
+
+        columns.addAll(getViewColumnsTransformed(customColumns));
+        LOGGER.trace("Finished to init custom columns, created columns {}", columns);
+        return columns;
+    }
+    private void addingCheckAndIconColumnIfExists(List<IColumn<SO, String>> columns){
         IColumn<SO, String> checkboxColumn = createCheckboxColumn();
         if (checkboxColumn != null) {
             columns.add(checkboxColumn);
@@ -190,10 +198,6 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
         if (iconColumn != null) {
             columns.add(iconColumn);
         }
-
-        columns.addAll(getViewColumnsTransformed(customColumns));
-        LOGGER.trace("Finished to init custom columns, created columns {}", columns);
-        return columns;
     }
 
     protected List<IColumn<SO, String>> getViewColumnsTransformed(List<GuiObjectColumnType> customColumns){
@@ -240,7 +244,7 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
 
                         @Override
                         public IModel<?> getDataModel(IModel<SO> rowModel) {
-                            PropertyModel<C> valueModel = new PropertyModel<C>(rowModel, "value");
+                            PropertyModel<C> valueModel = new PropertyModel<>(rowModel, "value");
                             C value = valueModel.getObject();
                             if (value == null) {
                                 return Model.of("");
@@ -310,7 +314,7 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
                 .map(itemValue -> {
                     if (itemValue instanceof PrismPropertyValue) {
                         if (lookupTable == null) {
-                            if (QNameUtil.match(((PrismPropertyValue) itemValue).getTypeName(), PolyStringType.COMPLEX_TYPE)) {
+                            if (QNameUtil.match((itemValue).getTypeName(), PolyStringType.COMPLEX_TYPE)) {
                                 return WebComponentUtil.getTranslatedPolyString((PolyString)((PrismPropertyValue<?>) itemValue).getValue());
                             }
                             return String.valueOf(((PrismPropertyValue<?>) itemValue).getValue());
@@ -337,15 +341,7 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
         LOGGER.trace("Start to init columns for table of type {}", getType());
         List<IColumn<SO, String>> columns = new ArrayList<>();
 
-        IColumn<SO, String> checkboxColumn = createCheckboxColumn();
-        if (checkboxColumn != null) {
-            columns.add(checkboxColumn);
-        }
-
-        IColumn<SO, String> iconColumn = createIconColumn();
-        if (iconColumn != null) {
-            columns.add(iconColumn);
-        }
+        addingCheckAndIconColumnIfExists(columns);
 
         List<IColumn<SO, String>> others = createDefaultColumns();
         if (others == null) {
@@ -370,7 +366,7 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
     }
 
     protected IColumn<SO, String> createIconColumn(){
-        return (IColumn) ColumnUtils.createIconColumn(getPageBase());
+        return (IColumn<SO, String>) ColumnUtils.createIconColumn(getPageBase());
     }
 
     protected abstract IColumn<SO, String> createNameColumn(IModel<String> columnNameModel, String itemPath,
@@ -386,7 +382,7 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
         return initSearch(headerId);
     }
 
-    protected ISelectableDataProvider createProvider() {
+    protected ISelectableDataProvider<PrismContainerValueWrapper<C>, PrismContainerValueWrapper<C>> createProvider() {
         ContainerListDataProvider<C> provider = new ContainerListDataProvider<C>(this,
                 getType(), createOptions()) {
             private static final long serialVersionUID = 1L;
@@ -429,9 +425,8 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
         return selectedList.size();
     }
 
-    @SuppressWarnings("unchecked")
-    @NotNull
-    public List getSelectedObjects() {
+
+    public List<C> getSelectedObjects() {
         ISelectableDataProvider dataProvider = getDataProvider();
         return dataProvider.getSelectedObjects();
     }
@@ -507,9 +502,10 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
     }
 
     protected SearchFormPanel initSearch(String headerId) {
-        SearchFormPanel searchPanel = new SearchFormPanel(headerId, searchModel) {
 
-            private static final long serialVersionUID = 1L;
+        return new SearchFormPanel(headerId, searchModel) {
+
+            private static final long serialVersionUID1 = 1L;
 
             @Override
             protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
@@ -525,8 +521,6 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
             }
 
         };
-
-        return searchPanel;
     }
 
     public String getAdditionalBoxCssClasses() {
@@ -558,7 +552,7 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
 
     protected boolean isRefreshEnabled() {
         if (getAutoRefreshInterval() == 0) {
-            return manualRefreshEnabled == null ? false : manualRefreshEnabled.booleanValue();
+            return manualRefreshEnabled != null && manualRefreshEnabled.booleanValue();
         }
 
         if (manualRefreshEnabled == null) {
@@ -594,7 +588,7 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
 
         if (!StringUtils.isEmpty(dashboardOid) && !StringUtils.isEmpty(dashboardWidgetName)) {
             Task task = getPageBase().createSimpleTask("Create view from dashboard");
-            @NotNull DashboardType dashboard = WebModelServiceUtils.loadObject(DashboardType.class, dashboardOid, getPageBase(), task, task.getResult()).getRealValue();
+            DashboardType dashboard = WebModelServiceUtils.loadObject(DashboardType.class, dashboardOid, getPageBase(), task, task.getResult()).getRealValue();
             if (dashboard != null) {
                 for (DashboardWidgetType widget :dashboard.getWidget()) {
                     if (widget.getIdentifier().equals(dashboardWidgetName)
@@ -649,7 +643,7 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
 
     @SuppressWarnings("unchecked")
     protected ISelectableDataProvider getDataProvider() {
-        BoxedTablePanel<SelectableBean<C>> table = getTable();
+        BoxedTablePanel<SO> table = getTable();
         ISelectableDataProvider provider = (ISelectableDataProvider) table
                 .getDataTable().getDataProvider();
         return provider;
