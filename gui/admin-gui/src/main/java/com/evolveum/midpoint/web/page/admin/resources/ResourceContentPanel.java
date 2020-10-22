@@ -246,7 +246,7 @@ public abstract class ResourceContentPanel extends Panel {
                     }
 
                     @Override
-                    protected ISelectableDataProvider<ShadowType, SelectableBean<ShadowType>> createProvider() {
+                    protected ISelectableDataProvider createProvider() {
                         provider = (SelectableBeanObjectDataProvider<ShadowType>) super.createProvider();
                         provider.setEmptyListOnNullQuery(true);
                         provider.setSort(null);

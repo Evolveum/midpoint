@@ -108,7 +108,7 @@ public class ResourceTasksPanel extends Panel implements Popupable {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected ISelectableDataProvider<Serializable, Serializable> createProvider() {
+                    protected ISelectableDataProvider createProvider() {
                         return new SelectableListDataProvider<>(pageBase, tasks);
                     }
 

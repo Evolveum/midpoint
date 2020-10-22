@@ -126,7 +126,7 @@ public class AuditLogViewerPanelNew extends BasePanel {
             }
 
             @Override
-            protected ISelectableDataProvider<AuditEventRecordType, SelectableBean<AuditEventRecordType>> createProvider() {
+            protected ISelectableDataProvider createProvider() {
                 SelectableBeanContainerDataProvider<AuditEventRecordType> provider = new SelectableBeanContainerDataProvider<AuditEventRecordType>(
                         AuditLogViewerPanelNew.this, AuditEventRecordType.class, null,false) {
 

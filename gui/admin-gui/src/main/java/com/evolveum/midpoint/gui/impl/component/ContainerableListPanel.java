@@ -426,7 +426,7 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
     }
 
 
-    public List<C> getSelectedObjects() {
+    public List getSelectedObjects() {
         ISelectableDataProvider dataProvider = getDataProvider();
         return dataProvider.getSelectedObjects();
     }

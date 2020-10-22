@@ -113,7 +113,7 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
         TaskTablePanel workerThreadsTable = new TaskTablePanel(ID_WORKER_THREADS_TABLE, null) {
 
             @Override
-            protected ISelectableDataProvider<Serializable, Serializable> createProvider() {
+            protected ISelectableDataProvider createProvider() {
                 return new SelectableListDataProvider<>(TaskSubtasksAndThreadsTabPanel.this, createWorkersModel());
             }
 
