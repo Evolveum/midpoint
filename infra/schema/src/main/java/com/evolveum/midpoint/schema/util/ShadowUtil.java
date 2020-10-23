@@ -511,7 +511,7 @@ public class ShadowUtil {
         if (shadowType == null) {
             return false;
         }
-        if (!resourceOid.equals(shadowType.getResourceRef().getOid())) {
+        if (!shadowHasResourceOid(shadowType, resourceOid)) {
             return false;
         }
         if (!MiscUtil.equals(kind, shadowType.getKind())) {
@@ -523,29 +523,40 @@ public class ShadowUtil {
         return MiscUtil.equals(intent, shadowType.getIntent());
     }
 
-    /**
-     * Strict mathcing. E.g. null discriminator kind is intepreted as ACCOUNT and it must match the kind
-     * in the shadow.
-     */
     public static boolean matches(PrismObject<ShadowType> shadow, ResourceShadowDiscriminator discr) {
         return matches(shadow.asObjectable(), discr);
     }
 
-    /**
-     * Strict mathcing. E.g. null discriminator kind is intepreted as ACCOUNT and it must match the kind
-     * in the shadow.
-     */
     public static boolean matches(ShadowType shadowType, ResourceShadowDiscriminator discr) {
         if (shadowType == null) {
             return false;
         }
-        if (!discr.getResourceOid().equals(shadowType.getResourceRef().getOid())) {
+        if (discr == null) {
+            return false; // shouldn't occur
+        }
+        if (!shadowHasResourceOid(shadowType, discr.getResourceOid())) {
             return false;
         }
         if (!MiscUtil.equals(discr.getKind(), shadowType.getKind())) {
             return false;
         }
         return ResourceShadowDiscriminator.equalsIntent(shadowType.getIntent(), discr.getIntent());
+    }
+
+    /**
+     * Returns true if the shadow has non-null resource OID that matches given value.
+     *
+     * Neither one of the OIDs (in shadow nor in discriminator) should be null.
+     * So we intentionally return false even if they are both null (and therefore equal).
+     *
+     * In reality such situations sometimes occur (see MID-6673). Maybe we should find
+     * and fix the primary cause and then strictly require non-nullity of these OIDs here.
+     * But not now.
+     */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private static boolean shadowHasResourceOid(ShadowType shadow, String oid) {
+        String shadowResourceOid = shadow.getResourceRef() != null ? shadow.getResourceRef().getOid() : null;
+        return shadowResourceOid != null && shadowResourceOid.equals(oid);
     }
 
     /**
@@ -556,7 +567,10 @@ public class ShadowUtil {
         if (shadowType == null) {
             return false;
         }
-        if (!discr.getResourceRef().getOid().equals(shadowType.getResourceRef().getOid())) {
+        if (discr == null || discr.getResourceRef() == null) {
+            return false; // shouldn't occur
+        }
+        if (!shadowHasResourceOid(shadowType, discr.getResourceRef().getOid())) {
             return false;
         }
         if (discr.getKind() != null && !MiscUtil.equals(discr.getKind(), shadowType.getKind())) {
@@ -605,7 +619,7 @@ public class ShadowUtil {
             sb.append("[");
         }
         sb.append("]");
-        return shadow.toString();
+        return shadow.toString(); // TODO probably sb.toString() here
     }
 
     public static String getHumanReadableName(ShadowType shadowType) {
