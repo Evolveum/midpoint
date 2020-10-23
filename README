@@ -1,5 +1,5 @@
-MidPoint 4.2 Development Branch
--------------------------------
+MidPoint 4.2 "Maxwell"
+----------------------
 
 General information:
 
