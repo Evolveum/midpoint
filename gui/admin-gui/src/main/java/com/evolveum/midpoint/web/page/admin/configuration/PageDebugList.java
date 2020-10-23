@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -60,7 +61,7 @@ import com.evolveum.midpoint.web.component.data.RepositoryObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.TwoValueLinkPanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.DeleteAllDto;
@@ -165,7 +166,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
             @Override
             protected List<QName> load() {
-                if (searchModel != null && searchModel.getObject() != null && searchModel.getObject().getResource() != null) {
+                if (searchModel.getObject() != null && searchModel.getObject().getResource() != null) {
                     ObjectViewDto objectViewDto = searchModel.getObject().getResource();
                     OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCE_OBJECT);
                     PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(ResourceType.class, objectViewDto.getOid(), PageDebugList.this,
@@ -196,6 +197,16 @@ public class PageDebugList extends PageAdminConfiguration {
             LOGGER.error("Failed to load resources {}", ex.getMessage(), ex);
         }
 
+        objects.sort((r1, r2) -> {
+
+            if (r1 == null || r2 == null) {
+                return 0;
+            }
+
+            Collator collator = WebComponentUtil.getCollator();
+            return collator.compare(r1.getName(), r2.getName());
+
+        });
         result.computeStatusIfUnknown();
         showResult(result, false);
         return objects;
@@ -248,7 +259,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
             @Override
             protected WebMarkupContainer createHeader(String headerId) {
-                return new DebugSearchFragment(headerId, ID_TABLE_HEADER, PageDebugList.this, searchModel,
+                DebugSearchFragment headerFragment = new DebugSearchFragment(headerId, ID_TABLE_HEADER, PageDebugList.this, searchModel,
                         resourcesModel, objectClassListModel, showAllItemsModel) {
 
                     private static final long serialVersionUID = 1L;
@@ -258,6 +269,8 @@ public class PageDebugList extends PageAdminConfiguration {
                         listObjectsPerformed(target, oidFilter);
                     }
                 };
+                headerFragment.setOutputMarkupId(true);
+                return headerFragment;
             }
 
         };
@@ -275,7 +288,7 @@ public class PageDebugList extends PageAdminConfiguration {
         IColumn<DebugObjectItem, String> column = new CheckBoxHeaderColumn<>();
         columns.add(column);
 
-        column = new LinkColumn<DebugObjectItem>(createStringResource("pageDebugList.name"),
+        column = new AjaxLinkColumn<DebugObjectItem>(createStringResource("pageDebugList.name"),
                 DebugObjectItem.F_NAME, DebugObjectItem.F_NAME) {
             private static final long serialVersionUID = 1L;
 

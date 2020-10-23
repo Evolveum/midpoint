@@ -74,7 +74,7 @@
 
     <groupId>com.evolveum.midpoint</groupId>
     <artifactId>midpoint</artifactId>
-    <version>4.2-SNAPSHOT</version>
+    <version>4.3-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>midPoint Project</name>
@@ -169,7 +169,7 @@
         <quartz.version>2.3.2.e1</quartz.version>
         <selenium.version>3.141.59</selenium.version>
         <slf4j.version>1.7.25</slf4j.version>
-        <logback.version>1.2.3</logback.version>
+        <logback.version>1.2.3e1</logback.version>
         <spring.security.saml2.version>2.0.0.M30</spring.security.saml2.version>
         <cache2k.version>1.2.1.Final</cache2k.version>
         <cas.client.version>3.5.0</cas.client.version>
@@ -874,7 +874,7 @@
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
-                <version>3.1-M3</version>
+                <version>3.1</version>
                 <exclusions>
                     <!-- Needed otherwise the JDK14 SLF4J binding can override the midpoint's logback binding -->
                     <exclusion>
@@ -1032,6 +1032,11 @@
                 <groupId>org.apache.derby</groupId>
                 <artifactId>derbyclient</artifactId>
                 <version>${derby.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.inamik.text.tables</groupId>
+                <artifactId>inamik-text-tables</artifactId>
+                <version>0.8</version>
             </dependency>
 
             <!-- Jasper reports -->

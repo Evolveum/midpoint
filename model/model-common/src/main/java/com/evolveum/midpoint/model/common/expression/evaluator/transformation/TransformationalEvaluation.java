@@ -16,11 +16,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionEvaluatorWrapperType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionEvaluatorType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueTransformationEvaluationModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueTransformationExpressionEvaluationTraceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.DeltaSetTripleType;
 
@@ -47,7 +43,7 @@ class TransformationalEvaluation<V extends PrismValue, D extends ItemDefinition,
         this.parentResult = parentResult;
         this.evaluator = evaluator;
         this.prismContext = evaluator.getPrismContext();
-        if (parentResult.isTraced()) {
+        if (parentResult.isTraced() && parentResult.isTracingNormal(ValueTransformationExpressionEvaluationTraceType.class)) {
             trace = new ValueTransformationExpressionEvaluationTraceType(prismContext);
             parentResult.addTrace(trace);
         } else {

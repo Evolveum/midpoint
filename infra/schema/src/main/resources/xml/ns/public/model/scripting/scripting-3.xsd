@@ -1052,6 +1052,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Filter matching assignments to be deleted.
+                                Expressions are supported here, but only as an experimental feature.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

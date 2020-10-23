@@ -206,7 +206,7 @@ public class PageCertDecisions extends PageAdminCertification {
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CERTIFICATION_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_CERTIFICATION_CAMPAIGN_URL)) {
 
-            column = new LinkColumn<CertWorkItemDto>(
+            column = new AjaxLinkColumn<CertWorkItemDto>(
                     createStringResource("PageCertDecisions.table.campaignName"),
                     SearchingUtils.CAMPAIGN_NAME, CertWorkItemDto.F_CAMPAIGN_NAME) {
                 private static final long serialVersionUID = 1L;

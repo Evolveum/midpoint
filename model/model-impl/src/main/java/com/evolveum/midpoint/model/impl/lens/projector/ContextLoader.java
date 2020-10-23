@@ -105,7 +105,7 @@ public class ContextLoader implements ProjectorProcessor {
 
         OperationResult result = parentResult.createMinorSubresult(OPERATION_LOAD);
         ProjectorComponentTraceType trace;
-        if (result.isTraced()) {
+        if (result.isTracingAny(ProjectorComponentTraceType.class)) {
             trace = new ProjectorComponentTraceType(prismContext);
             if (result.isTracingNormal(ProjectorComponentTraceType.class)) {
                 trace.setInputLensContextText(context.debugDump());
@@ -336,7 +336,7 @@ public class ContextLoader implements ProjectorProcessor {
                 .setMinor()
                 .build();
         FocusLoadedTraceType trace;
-        if (result.isTraced()) {
+        if (result.isTracingAny(FocusLoadedTraceType.class)) {
             trace = new FocusLoadedTraceType(prismContext);
             if (result.isTracingNormal(FocusLoadedTraceType.class)) {
                 trace.setInputLensContextText(context.debugDump());
@@ -1441,7 +1441,7 @@ public class ContextLoader implements ProjectorProcessor {
                 .addParam("reason", reason)
                 .build();
         FullShadowLoadedTraceType trace;
-        if (result.isTraced()) {
+        if (result.isTracingAny(FullShadowLoadedTraceType.class)) {
             trace = new FullShadowLoadedTraceType(prismContext);
             if (result.isTracingNormal(FullShadowLoadedTraceType.class)) {
                 trace.setInputLensContextText(context.debugDump());

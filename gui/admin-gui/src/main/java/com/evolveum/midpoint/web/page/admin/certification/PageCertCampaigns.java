@@ -376,7 +376,7 @@ public class PageCertCampaigns extends PageAdminCertification {
         column = new CheckBoxHeaderColumn<>();
         columns.add(column);
 
-        column = new LinkColumn<CertCampaignListItemDto>(createStringResource("PageCertCampaigns.table.name"),
+        column = new AjaxLinkColumn<CertCampaignListItemDto>(createStringResource("PageCertCampaigns.table.name"),
                 AccessCertificationCampaignType.F_NAME.getLocalPart(), CertCampaignListItemDto.F_NAME) {
             @Override
             public void onClick(AjaxRequestTarget target, IModel<CertCampaignListItemDto> rowModel) {

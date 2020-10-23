@@ -12,6 +12,8 @@ import java.io.Serializable;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -28,8 +30,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkPanel;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseOrWorkItemDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertWorkItemDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.SearchingUtils;
@@ -82,7 +83,7 @@ public class CertDecisionHelper implements Serializable {
 
     public <T extends CertCaseOrWorkItemDto> IColumn<T, String> createObjectNameColumn(final PageBase page, final String headerKey) {
         IColumn column;
-        column = new LinkColumn<CertCaseOrWorkItemDto>(page.createStringResource(headerKey),
+        column = new AjaxLinkColumn<CertCaseOrWorkItemDto>(page.createStringResource(headerKey),
                 SearchingUtils.OBJECT_NAME, CertCaseOrWorkItemDto.F_OBJECT_NAME) {
 
             @Override
@@ -96,7 +97,7 @@ public class CertDecisionHelper implements Serializable {
 
     public <T extends CertCaseOrWorkItemDto> IColumn<T, String> createTargetNameColumn(final PageBase page, final String headerKey) {
         IColumn column;
-        column = new LinkColumn<CertCaseOrWorkItemDto>(page.createStringResource(headerKey),
+        column = new AjaxLinkColumn<CertCaseOrWorkItemDto>(page.createStringResource(headerKey),
                 SearchingUtils.TARGET_NAME, CertCaseOrWorkItemDto.F_TARGET_NAME) {
 
             @Override
@@ -122,7 +123,7 @@ public class CertDecisionHelper implements Serializable {
                     List<ObjectReferenceType> reviewersList = ((CertWorkItemDto) dto).getReviewerRefList();
                     if (CollectionUtils.isNotEmpty(reviewersList)) {
                         for (ObjectReferenceType reviewer : reviewersList) {
-                            reviewersPanel.add(new LinkPanel(reviewersPanel.newChildId(),
+                            reviewersPanel.add(new AjaxLinkPanel(reviewersPanel.newChildId(),
                                     Model.of(WebComponentUtil.getDisplayNameOrName(reviewer))) {
                                 private static final long serialVersionUID = 1L;
 

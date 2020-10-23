@@ -773,7 +773,9 @@ public class OperationResult
         if (localizableMessage == null) {
             return;
         }
-        if (userFriendlyMessage instanceof SingleLocalizableMessage) {
+        if (userFriendlyMessage == null) {
+            userFriendlyMessage = localizableMessage;
+        } else if (userFriendlyMessage instanceof SingleLocalizableMessage) {
             userFriendlyMessage = new LocalizableMessageListBuilder()
                     .message(userFriendlyMessage)
                     .message(localizableMessage)
@@ -917,7 +919,7 @@ public class OperationResult
         return isTracing(traceClass, TracingLevelType.NORMAL);
     }
 
-    public boolean isTracingMinimal(Class<? extends TraceType> traceClass) {
+    public boolean isTracingAny(Class<? extends TraceType> traceClass) {
         return isTracing(traceClass, TracingLevelType.MINIMAL);
     }
 
@@ -1520,6 +1522,13 @@ public class OperationResult
         this.status = status;
         this.message = message;
         this.cause = cause;
+        recordUserFriendlyMessage(cause);
+    }
+
+    private void recordUserFriendlyMessage(Throwable cause) {
+        if (cause instanceof CommonException) {
+            setUserFriendlyMessage(((CommonException) cause).getUserFriendlyMessage());
+        }
     }
 
     public void recordFatalError(String message) {

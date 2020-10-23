@@ -20,7 +20,19 @@
             <q:or>
                 <q:ref>
                     <q:path>targetRef</q:path>
-                    <q:value oid="12345678-d34d-b33f-f00d-555555556666" relation="manager"/>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType
+                                import javax.xml.namespace.QName
+
+                                ref = new ObjectReferenceType()
+                                ref.oid = '12345678-d34d-b33f-f00d-555555556666'
+                                ref.relation = new QName('manager')
+                                ref
+                            </code>
+                        </script>
+                    </expression>
                 </q:ref>
                 <q:ref>
                     <q:path>targetRef</q:path>

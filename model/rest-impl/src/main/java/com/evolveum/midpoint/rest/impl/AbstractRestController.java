@@ -52,7 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 /**
  * Base REST controller class providing common (utility) methods and logger.
  */
-class AbstractRestController {
+public class AbstractRestController {
 
     protected final Trace logger = TraceManager.getTrace(getClass());
 

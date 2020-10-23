@@ -568,12 +568,22 @@ public class ModelImplUtils {
     }
 
     public static ModelExecuteOptions getModelExecuteOptions(@NotNull Task task) {
-        ModelExecuteOptionsType options = task.getExtensionContainerRealValueOrClone(SchemaConstants.C_MODEL_EXECUTE_OPTIONS);
-        if (options == null) {
-            return null;
-        } else {
-            return ModelExecuteOptions.fromModelExecutionOptionsType(options);
+        ModelExecuteOptionsType options1 = task.getExtensionContainerRealValueOrClone(SchemaConstants.C_MODEL_EXECUTE_OPTIONS); // legacy
+        if (options1 != null) {
+            return ModelExecuteOptions.fromModelExecutionOptionsType(options1);
         }
+
+        ModelExecuteOptionsType options2 = task.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_MODEL_EXECUTE_OPTIONS);
+        if (options2 != null) {
+            return ModelExecuteOptions.fromModelExecutionOptionsType(options2);
+        }
+
+        ModelExecuteOptionsType options3 = task.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
+        if (options3 != null) {
+            return ModelExecuteOptions.fromModelExecutionOptionsType(options3);
+        }
+
+        return null;
     }
 
     public static ExpressionVariables getDefaultExpressionVariables(@NotNull LensContext<?> context,
@@ -755,6 +765,7 @@ public class ModelImplUtils {
         return targetRef;
     }
 
+    @NotNull
     public static <V extends PrismValue, F extends ObjectType> List<V> evaluateScript(
                 ScriptExpression scriptExpression, LensContext<F> lensContext, ExpressionVariables variables, boolean useNew, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -793,8 +804,7 @@ public class ModelImplUtils {
                     result.recordSuccess();
                 }
                 return CriticalityType.IGNORE;
-            }
-            else if (e instanceof CommunicationException) {
+            } else if (e instanceof CommunicationException) {
                 // Network problem. Just continue evaluation. The error is recorded in the result.
                 // The consistency mechanism has (most likely) already done the best.
                 // We cannot do any better.

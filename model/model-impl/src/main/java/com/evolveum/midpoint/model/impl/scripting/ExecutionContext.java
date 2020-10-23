@@ -88,7 +88,7 @@ public class ExecutionContext {
     public void println(Object o) {
         consoleOutput.append(o).append("\n");
         if (o != null) {
-            LOGGER.info("Script console message: {}", o);          // temporary, until some better way of logging bulk action executions is found
+            LOGGER.debug("Script console message: {}", o);          // temporary, until some better way of logging bulk action executions is found
         }
     }
 

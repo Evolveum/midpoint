@@ -10,6 +10,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+
+import com.evolveum.midpoint.web.component.search.filter.SearchFilter;
+
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -341,16 +349,29 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
         return new LoadableModel<List<Property>>() {
             @Override
             protected List<Property> load() {
-                PrismObjectDefinition objectDef = SearchFactory.findObjectDefinition(getType(), null, getPageBase());
-                List<SearchItemDefinition> availableDefs =
-                        SearchFactory.getAvailableDefinitions(objectDef, true);
-                List<Property> propertiesList = new ArrayList<>();
-                availableDefs.forEach(searchItemDef -> {
-                    if (!isPropertyAlreadyAdded(searchItemDef.getPath())) {
-                        propertiesList.add(new Property(searchItemDef.getDef(), searchItemDef.getPath()));
-                    }
-                });
-                return propertiesList;
+                Class<?> type = getType();
+
+                if (ObjectType.class.isAssignableFrom(type)) {
+                    PrismObjectDefinition objectDef = SearchFactory.findObjectDefinition(getType(), null, getPageBase());
+                    List<SearchItemDefinition> availableDefs =
+                            SearchFactory.getAvailableDefinitions(objectDef, true);
+                    List<Property> propertiesList = new ArrayList<>();
+                    availableDefs.forEach(searchItemDef -> {
+                        if (!isPropertyAlreadyAdded(searchItemDef.getPath())) {
+                            propertiesList.add(new Property(searchItemDef.getDef(), searchItemDef.getPath()));
+                        }
+                    });
+                    return propertiesList;
+                }
+                if (AuditEventRecordType.class.isAssignableFrom(type)) {
+                    PrismContainerDefinition<AuditEventRecordType> auditDefs = getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AuditEventRecordType.class);
+                    List<Property> propertiesList = auditDefs.getDefinitions()
+                            .stream()
+                                .map(def -> new Property(def, def.getItemName()))
+                                .collect(Collectors.toList());
+                    return propertiesList;
+                }
+                return Collections.EMPTY_LIST;
             }
         };
     }

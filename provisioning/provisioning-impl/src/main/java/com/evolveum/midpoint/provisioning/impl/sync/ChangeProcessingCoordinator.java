@@ -22,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.concurrent.*;
 import java.util.function.Supplier;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -37,8 +36,7 @@ public class ChangeProcessingCoordinator {
 
     private static final Trace LOGGER = TraceManager.getTrace(ChangeProcessingCoordinator.class);
 
-    private static final long WORKER_THREAD_WAIT_FOR_REQUEST = 500L;
-    private static final long REQUEST_QUEUE_OFFER_TIMEOUT = 1000L;
+    private static final long WORKER_THREAD_WAIT_FOR_REQUEST = 100L;
 
     private static final String OP_HANDLE_ASYNCHRONOUSLY = ChangeProcessingCoordinator.class.getName() + ".handleAsynchronously";
 
@@ -49,8 +47,7 @@ public class ChangeProcessingCoordinator {
 
     private final boolean multithreaded;
     private final List<OperationResult> workerSpecificResults;
-    private final BlockingQueue<ProcessChangeRequest> waitingRequestsQueue;
-    private final AffinityController affinityController;
+    private final RequestsBuffer requestsBuffer;
 
     private volatile boolean allItemsSubmitted;
 
@@ -63,23 +60,20 @@ public class ChangeProcessingCoordinator {
 
         int threadsCount = getWorkerThreadsCount();
         if (threadsCount > 0) {
-            int queueSize = threadsCount*2;                // actually, size of threadsCount should be sufficient but it doesn't hurt if queue is larger
             multithreaded = true;
-            waitingRequestsQueue = new ArrayBlockingQueue<>(queueSize);
             workerSpecificResults = new ArrayList<>(threadsCount);
-            affinityController = new AffinityController();
+            requestsBuffer = new RequestsBuffer(threadsCount);
             createWorkerTasks(threadsCount);
         } else {
             multithreaded = false;
-            waitingRequestsQueue = null;
             workerSpecificResults = null;
-            affinityController = null;
+            requestsBuffer = null;
         }
     }
 
     public void submit(ProcessChangeRequest request, OperationResult result) throws InterruptedException {
         if (multithreaded) {
-            while (!waitingRequestsQueue.offer(request, REQUEST_QUEUE_OFFER_TIMEOUT, TimeUnit.MILLISECONDS)) {
+            while (!requestsBuffer.offer(request)) {
                 if (!canRunSupplier.get()) {
                     result.recordStatus(OperationResultStatus.WARNING, "Could not submit request as the processing was interrupted");
                     return;
@@ -131,58 +125,58 @@ public class ChangeProcessingCoordinator {
         public void run(RunningTask workerTask) {
 
             assert multithreaded;
-            assert waitingRequestsQueue != null;
-            assert affinityController != null;
+            assert requestsBuffer != null;
 
             // temporary hack: how to see thread name for this task
             workerTask.setName(workerTask.getName().getOrig() + " (" + Thread.currentThread().getName() + ")");
             workerSpecificResult.addArbitraryObjectAsContext("subtaskName", workerTask.getName());
 
+            String taskIdentifier = workerTask.getTaskIdentifier();
+
             while (workerTask.canRun() && canRunSupplier.get()) {
+
                 workerTask.refreshLowLevelStatistics();
-                ProcessChangeRequest preAssigned = affinityController.getAssigned(workerTask.getTaskIdentifier());
-                ProcessChangeRequest request;
-                if (preAssigned != null) {
-                    LOGGER.trace("Got pre-assigned request {}", preAssigned);
-                    request = preAssigned;
-                } else {
-                    try {
-                        request = waitingRequestsQueue.poll(WORKER_THREAD_WAIT_FOR_REQUEST, TimeUnit.MILLISECONDS);
-                        LOGGER.trace("Got request {}", request);
-                    } catch (InterruptedException e) {
-                        LOGGER.trace("Interrupted when waiting for next request", e);
-                        workerTask.refreshLowLevelStatistics();
-                        break;
-                    }
-                }
-                workerTask.refreshLowLevelStatistics();
+                ProcessChangeRequest request = requestsBuffer.poll(taskIdentifier);
+
                 if (request != null) {
-                    if (!affinityController.bind(workerTask.getTaskIdentifier(), request)) {
-                        continue;
-                    }
                     try {
                         changeProcessor.execute(request, workerTask, coordinatorTask, taskPartition, workerSpecificResult);
                     } finally {
-                        request.setDone(true);          // probably set already -- but better twice than not at all
-                        affinityController.unbind(workerTask.getTaskIdentifier(), request);
-
-                        workerSpecificResult.computeStatus(true);
-                        // We do NOT try to summarize/cleanup the whole results hierarchy.
-                        // There could be some accesses to the request's subresult from the thread that originated it.
-                        workerSpecificResult.summarize(false);
-                        workerSpecificResult.cleanupResult();
+                        request.setDone(true); // probably set already -- but better twice than not at all
+                        requestsBuffer.markProcessed(request, taskIdentifier);
+                        treatOperationResultAfterOperation();
+                        workerTask.setProgressTransient(workerTask.getProgress() + 1);
                     }
                 } else {
                     if (allItemsSubmitted) {
-                        LOGGER.trace("queue is empty and nothing more is expected - exiting");
+                        LOGGER.trace("Queue is empty and nothing more is expected - exiting");
                         break;
+                    } else {
+                        LOGGER.trace("No requests to be processed but expecting some to come. Waiting for {} msec", WORKER_THREAD_WAIT_FOR_REQUEST);
+                        try {
+                            //noinspection BusyWait
+                            Thread.sleep(WORKER_THREAD_WAIT_FOR_REQUEST);
+                        } catch (InterruptedException e) {
+                            LOGGER.trace("Waiting interrupted, exiting");
+                            break;
+                        }
                     }
                 }
             }
-            int assigned = affinityController.hasAssigned(workerTask.getTaskIdentifier());
-            if (assigned > 0) {
-                LOGGER.warn("Worker task exiting but it has {} change requests assigned", assigned);
+
+            int reservedRequests = requestsBuffer.getReservedRequestsCount(taskIdentifier);
+            if (reservedRequests > 0) {
+                LOGGER.warn("Worker task exiting but it has {} reserved (pre-assigned) change requests", reservedRequests);
             }
+            workerTask.refreshLowLevelStatistics();
+        }
+
+        private void treatOperationResultAfterOperation() {
+            workerSpecificResult.computeStatus(true);
+            // We do NOT try to summarize/cleanup the whole results hierarchy.
+            // There could be some accesses to the request's subresult from the thread that originated it.
+            workerSpecificResult.summarize(false);
+            workerSpecificResult.cleanupResult();
         }
     }
 

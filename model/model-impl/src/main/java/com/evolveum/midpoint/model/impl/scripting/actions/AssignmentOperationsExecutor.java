@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -54,7 +55,7 @@ abstract class AssignmentOperationsExecutor<P extends AssignmentOperationsExecut
         if (checkParameters(parameters, context)) {
             iterateOverObjects(input, context, globalResult,
                     (object, item, result) ->
-                            apply(object.asObjectable(), parameters, context, result),
+                            apply(object.asObjectable(), item, parameters, context, result),
                     (object, exception) ->
                             context.println("Failed to modify " + object + drySuffix(parameters.dryRun) + exceptionSuffix(exception))
             );
@@ -69,14 +70,19 @@ abstract class AssignmentOperationsExecutor<P extends AssignmentOperationsExecut
             OperationResult result) throws SchemaException, ScriptExecutionException, ObjectNotFoundException,
             SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
-    private void apply(AssignmentHolderType object, P parameters, ExecutionContext context, OperationResult result)
-            throws SchemaException, ScriptExecutionException {
-        ObjectDelta<? extends ObjectType> delta = createDelta(object, parameters);
-        operationsHelper.applyDelta(delta, parameters.options, parameters.dryRun, context, result);
-        context.println("Modified " + object + optionsSuffix(parameters.options, parameters.dryRun));
+    private void apply(AssignmentHolderType object, PipelineItem item, P parameters, ExecutionContext context, OperationResult result)
+            throws SchemaException, ScriptExecutionException, ObjectNotFoundException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        ObjectDelta<? extends ObjectType> delta = createDelta(object, item, parameters, context, result);
+        if (!delta.isEmpty()) {
+            operationsHelper.applyDelta(delta, parameters.options, parameters.dryRun, context, result);
+            context.println("Modified " + object + optionsSuffix(parameters.options, parameters.dryRun));
+        }
     }
 
-    abstract ObjectDelta<? extends ObjectType> createDelta(AssignmentHolderType object, P parameters) throws SchemaException;
+    abstract ObjectDelta<? extends ObjectType> createDelta(AssignmentHolderType object, PipelineItem item, P parameters,
+            ExecutionContext context, OperationResult result) throws SchemaException, ConfigurationException,
+            ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException;
 
     @Override
     protected Class<AssignmentHolderType> getObjectType() {

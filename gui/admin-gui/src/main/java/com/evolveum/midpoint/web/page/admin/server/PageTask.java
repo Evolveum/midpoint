@@ -6,10 +6,11 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
+import static java.util.Collections.singletonList;
+
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -184,8 +185,11 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         AjaxButton suspend = new AjaxButton(repeatingView.newChildId(), createStringResource("pageTaskEdit.button.suspend")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                String taskOid = getObjectWrapper().getOid();
-                OperationResult result = TaskOperationUtils.suspendPerformed(getTaskService(), Collections.singletonList(taskOid), PageTask.this);
+                PrismObject<TaskType> task = getObjectWrapper().getObject();
+                if (task == null) {
+                    return;
+                }
+                OperationResult result = TaskOperationUtils.suspendTasks(singletonList(task.asObjectable()), PageTask.this);
                 afterOperation(target, result);
             }
         };
@@ -198,8 +202,11 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         AjaxButton resume = new AjaxButton(repeatingView.newChildId(), createStringResource("pageTaskEdit.button.resume")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                String oid = getObjectWrapper().getOid();
-                OperationResult result = TaskOperationUtils.resumePerformed(getTaskService(), Collections.singletonList(oid), PageTask.this);
+                PrismObject<TaskType> task = getObjectWrapper().getObject();
+                if (task == null) {
+                    return;
+                }
+                OperationResult result = TaskOperationUtils.resumeTasks(singletonList(task.asObjectable()), PageTask.this);
                 afterOperation(target, result);
             }
         };
@@ -214,7 +221,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             public void onClick(AjaxRequestTarget target) {
                 String oid = getObjectWrapper().getOid();
                 refreshEnabled = Boolean.TRUE;
-                OperationResult result = TaskOperationUtils.runNowPerformed(getTaskService(), Collections.singletonList(oid), PageTask.this);
+                OperationResult result = TaskOperationUtils.runNowPerformed(singletonList(oid), PageTask.this);
                 afterOperation(target, result);
             }
         };
@@ -319,7 +326,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     private String getReportDataOid() {
         PrismObject<TaskType> task = getTask().asPrismObject();
         PrismReference reportData = task.findReference(ItemPath.create(TaskType.F_EXTENSION, ReportConstants.REPORT_DATA_PROPERTY_NAME));
-        if (reportData == null || reportData.getRealValue() == null) {
+        if (reportData == null || reportData.getRealValue() == null || reportData.getRealValue().getOid() == null) {
             PrismProperty<String> reportOutputOid = task.findProperty(ItemPath.create(TaskType.F_EXTENSION, ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME));
             if (reportOutputOid == null) {
                 return null;
@@ -411,7 +418,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                ConfirmationPanel dialog = new ConfirmationPanel(getMainPopupBodyId(), createStringResource("operationalButtonsPanel.cleanupEnvironmentalPerformance.confirmation")) {
+                ConfirmationPanel dialog = new ConfirmationPanel(getMainPopupBodyId(), createStringResource("operationalButtonsPanel.cleanupResults.confirmation")) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -448,11 +455,14 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             return null;
         }
 
-        PrismValue oldValue = itemValue.getOldValue().clone();
+        PrismValue newValue = itemValue.getNewValue();
+        if (newValue == null || newValue.isEmpty()) {
+            return null;
+        }
 
         return getPrismContext().deltaFor(TaskType.class)
                 .item(itemName)
-                .delete(oldValue)
+                .replace()
                 .asItemDelta();
 
     }
@@ -719,7 +729,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                         if (!(val instanceof PrismContainerValueWrapper)) {
                             continue;
                         }
-                        ItemPath lastItemPath = ItemPath.create(Collections.singletonList(((PrismContainerValueWrapper) val).getPath().last()));
+                        ItemPath lastItemPath = ItemPath.create(singletonList(((PrismContainerValueWrapper) val).getPath().last()));
                         PrismContainerValueWrapper oldVal = oldValWrapper.findContainerValue(lastItemPath);
                         applyOldPageContainersState(oldVal, (PrismContainerValueWrapper) val);
                     }

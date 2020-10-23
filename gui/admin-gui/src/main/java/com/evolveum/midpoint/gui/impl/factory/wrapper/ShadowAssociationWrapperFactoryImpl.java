@@ -13,6 +13,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -224,7 +225,28 @@ public class ShadowAssociationWrapperFactoryImpl extends PrismContainerWrapperFa
         }
 
         shadowValueWrapper.getItems().addAll((Collection) shadowReferences);
+        setupExpanded(shadowValueWrapper);
         return Collections.singletonList(shadowValueWrapper);
+
+    }
+
+    private void setupExpanded(PrismContainerValueWrapper<ShadowAssociationType> shadowValueWrapper) {
+        if (CollectionUtils.isEmpty(shadowValueWrapper.getItems())) {
+            shadowValueWrapper.setExpanded(false);
+            return;
+        }
+
+        if (shadowValueWrapper.getItems().size() > 1) {
+            shadowValueWrapper.setExpanded(true);
+            return;
+        }
+
+        ItemWrapper<?, ?> itemWrapper = shadowValueWrapper.getItems().iterator().next();
+        if (itemWrapper.isEmpty()) {
+            shadowValueWrapper.setExpanded(false);
+        } else {
+            shadowValueWrapper.setExpanded(true);
+        }
 
     }
 

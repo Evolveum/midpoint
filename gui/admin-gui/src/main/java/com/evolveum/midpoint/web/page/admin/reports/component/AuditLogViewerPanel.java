@@ -15,6 +15,8 @@ import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -38,11 +40,17 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
 import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.GuiChannel;
-import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -78,6 +86,8 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
  * Created by honchar.
@@ -131,6 +141,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
     private static final String ID_SEARCH_BUTTON = "searchButton";
     private static final String ID_RESET_SEARCH_BUTTON = "resetSearchButton";
 
+    private static final String ID_COLLECTION_REF_PANEL = "collectionRefPanel";
+
     static final Trace LOGGER = TraceManager.getTrace(AuditLogViewerPanel.class);
 
     private static final String OPERATION_RESOLVE_REFENRENCE_NAME = AuditLogViewerPanel.class.getSimpleName()
@@ -139,6 +151,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
             + ".isResourceOidAuditEnabled()";
 
     private static final int DEFAULT_PAGE_SIZE = 10;
+
+    private static final String OPERATION_LOAD_COLLECTION_REF_WRAPPER = AuditLogViewerPanel.class.getSimpleName() + ".loadCollectionRefWrapper";
 
     private final boolean isHistory;
 
@@ -155,19 +169,49 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
 
     private void initLayout() {
 
+        initParametersPanel();
+        initAuditLogViewerTable();
+    }
+
+    private void initParametersPanel() {
+        LoadableModel<PrismContainerWrapper<CollectionRefSpecificationType>> collectionRefModel = new LoadableModel<PrismContainerWrapper<CollectionRefSpecificationType>>(false) {
+
+            @Override
+            protected PrismContainerWrapper<CollectionRefSpecificationType> load() {
+                Task task = getPageBase().createSimpleTask(OPERATION_LOAD_COLLECTION_REF_WRAPPER);
+                WrapperContext ctx = new WrapperContext(task, task.getResult());
+                ctx.setCreateIfEmpty(false);
+                ctx.setReadOnly(Boolean.TRUE);
+                CollectionRefSpecificationType collectionRefSpecificationType = getModelObject().getCollectionRef();
+                if (collectionRefSpecificationType == null) {
+                    return null;
+                }
+                PrismContainerValue<CollectionRefSpecificationType> collectionRefContainerVal = collectionRefSpecificationType.asPrismContainerValue();
+                PrismContainerDefinition<CollectionRefSpecificationType> collectionDef = collectionRefContainerVal.getDefinition();
+                try {
+                    PrismContainer<CollectionRefSpecificationType> collectionRef = collectionDef.instantiate();
+                    collectionRef.add(collectionRefContainerVal.clone());
+                    return getPageBase().createItemWrapper(collectionRef, ItemStatus.NOT_CHANGED, ctx);
+                } catch (SchemaException e) {
+                    LOGGER.error("Cannot create wrapper for collection ref");
+
+                }
+                return null;
+            }
+        };
+
+        collectionRefModel.getObject(); //TODO brutal hack, we need to load object to create wrapper. without this, no panels are registered, so nothing is shown in GUI.
+        SingleContainerPanel<CollectionRefSpecificationType> collectionRefContainer = new SingleContainerPanel<>(ID_COLLECTION_REF_PANEL, collectionRefModel, CollectionRefSpecificationType.COMPLEX_TYPE);
+        add(collectionRefContainer);
+        collectionRefContainer.add(new VisibleBehaviour(() -> collectionRefModel != null && collectionRefModel.getObject() != null));
+
         Form mainForm = new Form(ID_MAIN_FORM);
         mainForm.setOutputMarkupId(true);
         add(mainForm);
-
-        initParametersPanel(mainForm);
-        initAuditLogViewerTable(mainForm);
-    }
-
-    private void initParametersPanel(Form mainForm) {
         WebMarkupContainer parametersPanel = new WebMarkupContainer(ID_PARAMETERS_PANEL);
         parametersPanel.setOutputMarkupId(true);
         mainForm.add(parametersPanel);
-
+        parametersPanel.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getCollectionRef() == null));
         DatePanel from = new DatePanel(ID_FROM, new PropertyModel<>(
                 getModel(), AuditSearchDto.F_FROM));
         DateValidator dateFromValidator = WebComponentUtil.getRangeValidator(mainForm, ItemPath.create(AuditSearchDto.F_FROM));
@@ -248,18 +292,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         usedQueryContainer.setOutputMarkupId(true);
         parametersPanel.add(usedQueryContainer);
 
-        IModel<AuditSearchDto> model = getModel();
-        IModel<AuditSearchType> auditSearchModel = Model.of();
-        if (model != null && model.getObject() != null && model.getObject().getCollectionRef() != null) {
-            ObjectReferenceType ref = model.getObject().getCollectionRef().getCollectionRef();
-            Task task = getPageBase().createSimpleTask("Search collection");
-            ObjectCollectionType collection = (ObjectCollectionType) WebModelServiceUtils.loadObject(ref,
-                    getPageBase(), task, task.getResult()).getRealValue();
-            if (collection != null && collection.getFilter() == null && collection.getAuditSearch() != null
-                    && collection.getAuditSearch().getRecordQuery() != null) {
-                auditSearchModel.setObject(collection.getAuditSearch());
-            }
-        }
+        IModel<AuditSearchType> auditSearchModel = new ReadOnlyModel<>(() -> getAuditSearchModel());
 
         TextPanel<String> usedQuery = new TextPanel<>(ID_USED_QUERY, new PropertyModel<>(auditSearchModel, "recordQuery"));
         usedQuery.setOutputMarkupId(true);
@@ -458,6 +491,32 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
 
     }
 
+    private AuditSearchType getAuditSearchModel() {
+        AuditSearchDto auditSearchDto = getModelObject();
+        if (auditSearchDto == null) {
+            return null;
+        }
+
+        CollectionRefSpecificationType collectionRefSpecificationType = auditSearchDto.getCollectionRef();
+        if (collectionRefSpecificationType == null) {
+            return null;
+        }
+
+        ObjectReferenceType ref = collectionRefSpecificationType.getCollectionRef();
+        Task task = getPageBase().createSimpleTask("Search collection");
+        PrismObject<ObjectCollectionType> collection = WebModelServiceUtils.loadObject(ref, getPageBase(), task, task.getResult());
+        if (collection == null) {
+            return null;
+        }
+
+        ObjectCollectionType collectionType = collection.asObjectable();
+        if (collectionType.getFilter() != null) {
+            return null;
+        }
+
+        return collectionType.getAuditSearch();
+    }
+
     private VisibleEnableBehaviour getVisibleBehaviourForUsedQueryComponent() {
         return new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
@@ -558,7 +617,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         return parameters;
     }
 
-    private void initAuditLogViewerTable(Form mainForm) {
+    private void initAuditLogViewerTable() {
         AuditEventRecordProvider provider = new AuditEventRecordProvider(AuditLogViewerPanel.this, getCollectionRefForAuditEventModel(),
                 this::getAuditEventProviderParameters) {
             private static final long serialVersionUID = 1L;
@@ -581,12 +640,15 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         };
         UserProfileStorage userProfile = getPageBase().getSessionStorage().getUserProfile();
         int pageSize = DEFAULT_PAGE_SIZE;
+        if (getModelObject().getCollectionRef() != null) {
+            pageSize = 20;
+        }
         if (userProfile.getTables().containsKey(UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER.toString())) {
             pageSize = userProfile.getPagingSize(UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER.toString());
         }
         List<IColumn<AuditEventRecordType, String>> columns = initColumns();
         BoxedTablePanel<AuditEventRecordType> table = new BoxedTablePanel<AuditEventRecordType>(ID_TABLE, provider, columns,
-                UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER, pageSize) {
+                UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER, pageSize, false) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -618,7 +680,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         table.setShowPaging(true);
         table.setCurrentPage(getCurrentPage());
         table.setOutputMarkupId(true);
-        mainForm.add(table);
+        add(table);
     }
 
     protected abstract AuditLogStorage getAuditLogStorage();
@@ -638,7 +700,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
     }
 
     private BoxedTablePanel getAuditLogViewerTable() {
-        return (BoxedTablePanel) get(ID_MAIN_FORM).get(ID_TABLE);
+        return (BoxedTablePanel) get(ID_TABLE);
     }
 
     protected List<IColumn<AuditEventRecordType, String>> initColumns() {
@@ -663,16 +725,21 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
             }
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<AuditEventRecordType> rowModel) {
+            public void onClick(IModel<AuditEventRecordType> rowModel) {
                 AuditEventRecordType record = rowModel.getObject();
                 try {
                     AuditEventRecord.adopt(record, getPageBase().getPrismContext());
                 } catch (SchemaException e) {
                     throw new SystemException("Couldn't adopt event record: " + e, e);
                 }
-                getPageBase().navigateToNext(new PageAuditLogDetails(record));
+                if (WebModelServiceUtils.isEnableExperimentalFeature(getPageBase())) {
+                    PageParameters params = new PageParameters();
+                    params.add(OnePageParameterEncoder.PARAMETER, record.getEventIdentifier());
+                    getPageBase().navigateToNext(PageAuditLogDetails.class, params);
+                } else {
+                    getPageBase().navigateToNext(new PageAuditLogDetails(record));
+                }
             }
-
         };
         columns.add(linkColumn);
 
@@ -798,6 +865,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         getPageBase().getFeedbackPanel().getFeedbackMessages().clear();
         target.add(getPageBase().getFeedbackPanel());
         target.add(getMainFormComponent());
+        target.add(getAuditLogViewerTable());
     }
 
     private Form getMainFormComponent() {

@@ -165,4 +165,9 @@ public class PrismObjectValueImpl<O extends Objectable> extends PrismContainerVa
     public static <T extends Objectable> T asObjectable(PrismObject<T> object) {
         return object != null ? object.asObjectable() : null;
     }
+
+    @Override
+    public Object getIdentifier() {
+        return oid;
+    }
 }

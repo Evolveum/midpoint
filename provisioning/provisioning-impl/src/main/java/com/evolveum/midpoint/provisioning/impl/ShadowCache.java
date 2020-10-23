@@ -754,6 +754,7 @@ public class ShadowCache {
         }
         ResourceOperationDescription operationDescription = ProvisioningUtil.createResourceFailureDescription(shadow, ctx.getResource(), delta, parentResult);
         operationListener.notifyFailure(operationDescription, task, parentResult);
+        parentResult.computeStatusIfUnknown();
     }
 
     private OperationResultStatus handleModifyError(ProvisioningContext ctx,
@@ -1206,10 +1207,10 @@ public class ShadowCache {
             }
         }
 
-        repoShadow = cancelAllPendingOperations(ctx, repoShadow, task, parentResult);
+        PrismObject<ShadowType> updatedRepoShadow = cancelAllPendingOperations(ctx, repoShadow, task, parentResult);
 
         ProvisioningOperationState<AsynchronousOperationResult> opState = new ProvisioningOperationState<>();
-        opState.setRepoShadow(repoShadow);
+        opState.setRepoShadow(updatedRepoShadow);
 
         return deleteShadowAttempt(ctx, options, scripts, opState, task, parentResult);
     }
@@ -1224,7 +1225,7 @@ public class ShadowCache {
                     throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
                     SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
-        PrismObject<ShadowType> repoShadow = opState.getRepoShadow();
+        final PrismObject<ShadowType> repoShadow = opState.getRepoShadow();
         shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
 
         PendingOperationType duplicateOperation = shadowManager.checkAndRecordPendingDeleteOperationBeforeExecution(ctx, repoShadow, opState, task, parentResult);

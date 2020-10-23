@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -16,6 +17,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.Channel;
+
+import com.evolveum.midpoint.util.exception.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -57,10 +60,6 @@ import com.evolveum.midpoint.test.ProvisioningScriptSpec;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -1092,6 +1091,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertCustomColumn("foo", "test");
+        dummyAuditService.assertCustomColumn("ship", "Black Pearl");
 //        dummyAuditService.assertResourceOid(RESOURCE_DUMMY_OID);
         dummyAuditService.assertExecutionSuccess();
 
@@ -3233,7 +3233,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSteadyResources();
     }
 
-    @Test   // MID-5516
+    @Test // MID-5516
     public void test400RemoveExtensionProtectedStringValue() throws Exception {
         // GIVEN
         Task task = getTestTask();
@@ -3269,6 +3269,41 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         display("joe after", joeAfter);
 
         joeAfter.checkConsistence();
+    }
+
+    @Test // MID-6592
+    public void test410RecomputeRole() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        String roleOid = addTestRole(task, result);
+
+        preTestCleanup(AssignmentPolicyEnforcementType.FULL);
+
+        ObjectDelta<RoleType> emptyDelta = deltaFor(RoleType.class)
+                .asObjectDelta(roleOid);
+
+        when();
+        modelService.executeChanges(singleton(emptyDelta), ModelExecuteOptions.create(prismContext).reconcile(), task, result);
+
+        then();
+        assertSuccess(result);
+
+        displayDumpable("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertCustomColumn("foo", "test");
+    }
+
+    private String addTestRole(Task task, OperationResult result) throws CommonException {
+        RoleType role = new RoleType(prismContext)
+                .name("test410");
+        PrismPropertyDefinition<String> costCenterDef = role.asPrismObject().getDefinition()
+                .findPropertyDefinition(ItemPath.create(RoleType.F_EXTENSION, "costCenter"));
+        PrismProperty<String> costCenterProp = costCenterDef.instantiate();
+        costCenterProp.setRealValue("CC000");
+        role.asPrismObject().getOrCreateExtension().getValue().add(costCenterProp);
+        return addObject(role.asPrismObject(), task, result);
     }
 
     private void assertDummyScriptsAdd(PrismObject<UserType> user, PrismObject<? extends ShadowType> account, ResourceType resource) {

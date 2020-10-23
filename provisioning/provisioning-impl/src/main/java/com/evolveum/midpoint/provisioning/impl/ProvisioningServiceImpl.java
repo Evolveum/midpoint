@@ -295,7 +295,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             } catch (EncryptionException e) {
                 ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
                 throw new SystemException(e.getMessage(), e);
-            } catch (SchemaException | ConfigurationException | SecurityViolationException | PolicyViolationException | ExpressionEvaluationException | RuntimeException | Error e) {
+            } catch (Exception | Error e) {
                 ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
                 throw e;
             }

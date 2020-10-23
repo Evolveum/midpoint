@@ -17,17 +17,17 @@ import org.apache.wicket.model.IModel;
 /**
  * @author lazyman
  */
-public class EditableLinkColumn<T extends Editable> extends LinkColumn<T> {
+public class EditableAjaxLinkColumn<T extends Editable> extends AjaxLinkColumn<T> {
 
-    public EditableLinkColumn(IModel<String> displayModel) {
+    public EditableAjaxLinkColumn(IModel<String> displayModel) {
         super(displayModel);
     }
 
-    public EditableLinkColumn(IModel<String> displayModel, String propertyExpression) {
+    public EditableAjaxLinkColumn(IModel<String> displayModel, String propertyExpression) {
         super(displayModel, propertyExpression);
     }
 
-    public EditableLinkColumn(IModel<String> displayModel, String sortProperty, String propertyExpression) {
+    public EditableAjaxLinkColumn(IModel<String> displayModel, String sortProperty, String propertyExpression) {
         super(displayModel, sortProperty, propertyExpression);
     }
 

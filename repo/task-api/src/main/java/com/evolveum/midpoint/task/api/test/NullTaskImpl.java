@@ -461,6 +461,16 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
+    public void addArchetypeInformation(String archetypeOid) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void addArchetypeInformationIfMissing(String archetypeOid) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public PrismContainer<? extends ExtensionType> getExtensionOrClone() {
         return null;
     }

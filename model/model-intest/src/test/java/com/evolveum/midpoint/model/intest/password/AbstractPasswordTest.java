@@ -16,6 +16,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.schema.constants.Channel;
 
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -1219,6 +1221,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         // THEN
         assertFailure(result);
+        assertUserFriendlyMessage(result, "PolicyViolationException.message.credentials.password");
 
         assertJackPasswordsWithHistory(USER_PASSWORD_VALID_1, USER_PASSWORD_AA_CLEAR);
         assertNoUserPasswordNotifications();
@@ -1430,6 +1433,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         // THEN
         assertFailure(result);
+        assertUserFriendlyMessage(result, "PolicyViolationException.message.credentials.password");
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -3056,6 +3060,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // THEN
         then();
         assertPartialError(result);
+        assertUserFriendlyMessage(result, "PolicyViolationException.message.projectionPassword");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
@@ -4494,5 +4499,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertNotNull("No credentials/password/metadata/modifyTimestamp", metadata.getModifyTimestamp());
         assertNotNull("No credentials/password/metadata/modifierRef", metadata.getModifierRef());
         assertEquals("Wrong modifyChannel", SchemaConstants.CHANNEL_USER_URI, metadata.getModifyChannel());
+    }
+
+    protected void assertUserFriendlyMessage(OperationResult result, String expectedKey) {
+        assertThat(result.getUserFriendlyMessage()).as("user friendly message").isNotNull();
+        assertThat(((SingleLocalizableMessage) result.getUserFriendlyMessage()).getKey())
+                .as("user friendly message key")
+                .isEqualTo(expectedKey);
     }
 }

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+~ Copyright (c) 2010-2020 Evolveum and contributors
+~
+~ This work is dual-licensed under the Apache License 2.0
+~ and European Union Public License. See LICENSE file for details.
+-->
+
+<role oid="9928fd5e-o5k2-4ols-nn32-a887cd6ed4aa"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Requestable role</name>
+    <requestable>true</requestable>
+</role>
+

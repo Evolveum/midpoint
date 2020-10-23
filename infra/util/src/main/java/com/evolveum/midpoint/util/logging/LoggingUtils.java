@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -13,11 +13,6 @@ import java.util.List;
 import ch.qos.logback.classic.Level;
 import org.apache.commons.lang.Validate;
 
-/**
- *
- * @author lazyman
- *
- */
 public class LoggingUtils {
 
     /**
@@ -32,6 +27,13 @@ public class LoggingUtils {
      */
     public static void logUnexpectedException(final Trace LOGGER, String message, Throwable ex, Object... objects) {
         logExceptionInternal(Level.ERROR, Level.ERROR, LOGGER, message, ex, objects);
+    }
+
+    /**
+     * When logging unexpected exception, we always want to see the stack trace (so everything is logged on ERROR level)
+     */
+    public static void logUnexpectedException(final Trace LOGGER, Throwable ex) {
+        logExceptionInternal(Level.ERROR, Level.ERROR, LOGGER, "Unexpected exception", ex);
     }
 
     /**
@@ -52,8 +54,7 @@ public class LoggingUtils {
         Validate.notNull(LOGGER, "Logger can't be null.");
         Validate.notNull(ex, "Exception can't be null.");
 
-        List<Object> args = new ArrayList<>();
-        args.addAll(Arrays.asList(objects));
+        List<Object> args = new ArrayList<>(Arrays.asList(objects));
         args.add(ex.getMessage() + " (" + ex.getClass() + ")");
 
         if (!first.equals(second)) {
@@ -84,27 +85,26 @@ public class LoggingUtils {
     public static void logStackTrace(final Trace LOGGER, String message) {
         if (LOGGER.isTraceEnabled()) {
             if (message != null) {
-                LOGGER.trace(message+":\n{}", dumpStackTrace(LoggingUtils.class));
+                LOGGER.trace(message + ":\n{}", dumpStackTrace(LoggingUtils.class));
             } else {
                 LOGGER.trace("{}", dumpStackTrace(LoggingUtils.class));
             }
         }
     }
 
-    public static String dumpStackTrace(Class... classesToSkip) {
+    public static String dumpStackTrace(Class<?>... classesToSkip) {
         StackTraceElement[] fullStack = Thread.currentThread().getStackTrace();
-        String immediateClass = null;
-        String immediateMethod = null;
         boolean firstFrameLogged = false;
         StringBuilder sb = new StringBuilder();
-        OUTER: for (StackTraceElement stackElement: fullStack) {
+        OUTER:
+        for (StackTraceElement stackElement : fullStack) {
             if (!firstFrameLogged) {
                 if (stackElement.getClassName().equals(Thread.class.getName())) {
                     // skip call to thread.getStackTrace();
                     continue;
                 }
                 if (classesToSkip != null) {
-                    for (Class classToSkip: classesToSkip) {
+                    for (Class<?> classToSkip : classesToSkip) {
                         if (stackElement.getClassName().equals(classToSkip.getName())) {
                             continue OUTER;
                         }

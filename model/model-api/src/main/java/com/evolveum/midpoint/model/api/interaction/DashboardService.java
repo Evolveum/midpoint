@@ -9,8 +9,8 @@ package com.evolveum.midpoint.model.api.interaction;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -41,7 +41,7 @@ public interface DashboardService {
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException,
             ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
-    List<AuditEventRecordType> searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, Task task, OperationResult result)
+    List<AuditEventRecordType> searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, ObjectPaging paging, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException;
 

@@ -235,6 +235,7 @@ public class ExecutionHelper {
         if (waiting) {
             task.setInitialExecutionStatus(TaskExecutionStatus.WAITING);
         }
+        task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_APPROVAL_TASK.value());
         setExecutionConstraints(task, aCase, result);
         taskManager.switchToBackground(task, result);
     }

@@ -152,4 +152,8 @@ public class TaskTypeUtil {
     private static boolean isCoordinatedWorker(TaskType taskType) {
         return taskType.getWorkManagement() != null && TaskKindType.WORKER == taskType.getWorkManagement().getTaskKind();
     }
+
+    public static boolean isManageableTreeRoot(TaskType taskType) {
+        return isCoordinator(taskType) || isPartitionedMaster(taskType);
+    }
 }

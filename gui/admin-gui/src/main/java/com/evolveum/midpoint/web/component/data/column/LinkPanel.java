@@ -7,18 +7,18 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 import javax.xml.namespace.QName;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
+import com.evolveum.midpoint.util.logging.Trace;
+
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
  * @author lazyman
@@ -29,26 +29,17 @@ public class LinkPanel extends Panel {
     private static final String ID_LINK = "link";
     private static final String ID_LABEL = "label";
 
+    private static final transient Trace LOGGER = TraceManager.getTrace(LinkPanel.class);
+
     public LinkPanel(String id, IModel labelModel) {
         super(id);
 
-        AjaxLink<String> link = new AjaxLink<String>(ID_LINK) {
-            private static final long serialVersionUID = 1L;
-
+        Link<String> link = new Link<String>(ID_LINK) {
             @Override
-            public void onClick(AjaxRequestTarget target) {
-                LinkPanel.this.onClick(target);
+            public void onClick() {
+                LinkPanel.this.onClick();
             }
 
-//            @Override
-//            public String getBeforeDisabledLink() {
-//                return null;
-//            }
-//
-//            @Override
-//            public String getAfterDisabledLink() {
-//                return null;
-//            }
         };
         Label label;
         if(labelModel.getObject() instanceof QName) {
@@ -78,6 +69,6 @@ public class LinkPanel extends Panel {
         return true;
     }
 
-    public void onClick(AjaxRequestTarget target) {
+    public void onClick() {
     }
 }

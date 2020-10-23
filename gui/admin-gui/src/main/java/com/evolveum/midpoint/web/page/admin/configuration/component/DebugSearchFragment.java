@@ -164,6 +164,11 @@ public class DebugSearchFragment extends Fragment {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
+                DebugSearchDto searchDto = DebugSearchFragment.this.getModel().getObject();
+                searchDto.setType(choice.getModel().getObject());
+                searchDto.setSearch(null);
+                getSearchPanel().resetMoreDialogModel();
+                target.add(getSearchPanel());
                 searchPerformed(target);
             }
         });
@@ -246,7 +251,7 @@ public class DebugSearchFragment extends Fragment {
     }
 
     private WebMarkupContainer createSearchPanel() {
-        return new SearchPanel(ID_SEARCH,
+        SearchPanel searchPanel = new SearchPanel(ID_SEARCH,
                 new PropertyModel<>(getModel(), DebugSearchDto.F_SEARCH)) {
             private static final long serialVersionUID = 1L;
 
@@ -255,6 +260,8 @@ public class DebugSearchFragment extends Fragment {
                 DebugSearchFragment.this.searchPerformed(target);
             }
         };
+        searchPanel.setOutputMarkupId(true);
+        return searchPanel;
     }
 
     public AjaxCheckBox getZipCheck() {
@@ -294,5 +301,9 @@ public class DebugSearchFragment extends Fragment {
     }
 
     protected void searchPerformed(AjaxRequestTarget target, boolean oidFilter) {
+    }
+
+    private SearchPanel getSearchPanel() {
+        return (SearchPanel) get(ID_SEARCH_FORM).get(ID_SEARCH);
     }
 }

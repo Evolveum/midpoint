@@ -204,11 +204,11 @@ public class ChangeExecutor {
 
                 } catch (PreconditionViolationException e) {
 
-                    if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("Modification precondition failed for {}: {}", focusContext.getHumanReadableName(),
-                                e.getMessage());
-                    }
+                    LOGGER.debug("Modification precondition failed for {}: {}", focusContext.getHumanReadableName(),
+                            e.getMessage());
+
                     //                    TODO: fatal error if the conflict resolution is "error" (later)
+                    subResult.recordHandledError(e);
                     result.recordHandledError(e);
                     throw e;
 
@@ -350,7 +350,8 @@ public class ChangeExecutor {
                 subResult.recordNotApplicableIfUnknown();
 
             } catch (SchemaException | ObjectNotFoundException | PreconditionViolationException | CommunicationException |
-                    ConfigurationException | SecurityViolationException | PolicyViolationException | ExpressionEvaluationException | RuntimeException | Error e) {
+                    ConfigurationException | SecurityViolationException | PolicyViolationException | ExpressionEvaluationException |
+                    RuntimeException | Error e) {
                 recordProjectionExecutionException(e, projCtx, subResult, SynchronizationPolicyDecision.BROKEN);
 
                 // We still want to update the links here. E.g. this may be live sync case where we discovered new account

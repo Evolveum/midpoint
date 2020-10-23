@@ -33,9 +33,6 @@ import java.util.stream.Collectors;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType.*;
 import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
-/**
- * @author mederly
- */
 public class PolicyRuleTypeUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleTypeUtil.class);
@@ -59,6 +56,7 @@ public class PolicyRuleTypeUtil {
     private static final String SYMBOL_SITUATION = "sit";
     private static final String SYMBOL_TRANSITION = "trans";
     private static final String SYMBOL_ALWAYS_TRUE = "true";
+    private static final String SYMBOL_ORPHANED = "orphaned";
 
     static {
         CONSTRAINT_NAMES.put(PolicyConstraintsType.F_MIN_ASSIGNEES.getLocalPart(), SYMBOL_MIN);
@@ -75,6 +73,7 @@ public class PolicyRuleTypeUtil {
         CONSTRAINT_NAMES.put(PolicyConstraintsType.F_SITUATION.getLocalPart(), SYMBOL_SITUATION);
         CONSTRAINT_NAMES.put(PolicyConstraintsType.F_TRANSITION.getLocalPart(), SYMBOL_TRANSITION);
         CONSTRAINT_NAMES.put(PolicyConstraintsType.F_ALWAYS_TRUE.getLocalPart(), SYMBOL_ALWAYS_TRUE);
+        CONSTRAINT_NAMES.put(PolicyConstraintsType.F_ORPHANED.getLocalPart(), SYMBOL_ORPHANED);
     }
 
     public static String toShortString(PolicyRuleType rule) {
@@ -353,6 +352,7 @@ public class PolicyRuleTypeUtil {
                 && visit(pc.getSituation(), F_SITUATION, visitor)
                 && visit(pc.getTransition(), F_TRANSITION, visitor)
                 && visit(pc.getAlwaysTrue(), F_ALWAYS_TRUE, visitor)
+                && visit(pc.getOrphaned(), F_ORPHANED, visitor)
                 && visit(pc.getAnd(), F_AND, visitor)
                 && visit(pc.getOr(), F_OR, visitor)
                 && visit(pc.getNot(), F_NOT, visitor);

@@ -5288,6 +5288,9 @@
                                 and so on. Simply speaking the name is used to distinguish
                                 credentials that have the same type but different purpose.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>AbstractCredentialType.name</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="metadata" type="tns:MetadataType" minOccurs="0">
@@ -12633,6 +12636,15 @@
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
 
+    <xsd:element name="attributes" type="tns:ShadowAttributesType">
+       <!--  Necessary to find item definition for attributes -->
+       <xsd:annotation>
+           <xsd:appinfo>
+               <a:displayName>ShadowType.attributes</a:displayName>
+           </xsd:appinfo>
+       </xsd:annotation>
+    </xsd:element>
+
     <xsd:complexType name="ShadowAssociationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -17064,12 +17076,20 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
-                  <xsd:annotation>
-                      <xsd:documentation>
-                          Expression that produces value of the property.
-                      </xsd:documentation>
-                  </xsd:annotation>
-              </xsd:element>
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expression that produces value of the property.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="targetSelector" type="tns:ObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Selector(s) for target objects to which this property derivation applies.
+                        If multiple selectors are defined, at least one of them has to match.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -21981,6 +22001,14 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ALWAYS_TRUE"/>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="orphaned">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ORPHANED"/>
                         <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -28402,4 +28430,3 @@
     <xsd:element name="triggerCreation" type="tns:TriggerCreationType" />
 
 </xsd:schema>
-

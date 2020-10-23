@@ -178,6 +178,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 
     @Autowired private MidpointConfiguration midpointConfiguration;
     @Autowired private RepositoryService repositoryService;
+    @Autowired(required = false) private SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
     @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
     @Autowired private PrismContext prismContext;
     @Autowired private SchemaHelper schemaHelper;
@@ -1238,7 +1239,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     public void waitForTransientChildren(RunningTask task, OperationResult result) {
         for (RunningTaskQuartzImpl subtask : ((RunningTaskQuartzImpl) task).getRunningLightweightAsynchronousSubtasks()) {
             Future future = subtask.getLightweightHandlerFuture();
-            if (future != null) {       // should always be
+            if (future != null) { // should always be
                 LOGGER.debug("Waiting for subtask {} to complete.", subtask);
                 try {
                     future.get();
@@ -2000,6 +2001,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
         return repositoryService;
     }
 
+    public SqlPerformanceMonitorsCollection getSqlPerformanceMonitorsCollection() {
+        return sqlPerformanceMonitorsCollection;
+    }
+
     public RelationRegistry getRelationRegistry() {
         return relationRegistry;
     }
@@ -2248,24 +2253,56 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
         OperationResult result = parentResult.createMinorSubresult(DOT_IMPL_CLASS + "getTaskTypeByIdentifier");
         result.addParam("identifier", identifier);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
+        try {
+            ObjectQuery query = prismContext.queryFor(TaskType.class)
+                    .item(TaskType.F_TASK_IDENTIFIER).eq(identifier)
+                    .build();
 
-        ObjectQuery query = prismContext.queryFor(TaskType.class)
-                .item(TaskType.F_TASK_IDENTIFIER).eq(identifier)
-                .build();
+            List<PrismObject<TaskType>> list = repositoryService.searchObjects(TaskType.class, query, options, result);
+            if (list.isEmpty()) {
+                throw new ObjectNotFoundException("Task with identifier " + identifier + " could not be found");
+            } else if (list.size() > 1) {
+                throw new IllegalStateException("Found more than one task with identifier " + identifier + " (" + list.size() + " of them)");
+            }
+            PrismObject<TaskType> retval = list.get(0);
+            if (SelectorOptions.hasToLoadPath(TaskType.F_SUBTASK_REF, options)) {
+                ClusterStatusInformation clusterStatusInformation = getClusterStatusInformation(options, TaskType.class, true, result); // returns null if noFetch is set
+                fillInSubtasks(retval.asObjectable(), clusterStatusInformation, options, result);
+            }
+            return retval;
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
 
-        List<PrismObject<TaskType>> list = repositoryService.searchObjects(TaskType.class, query, options, result);
-        if (list.isEmpty()) {
-            throw new ObjectNotFoundException("Task with identifier " + identifier + " could not be found");
-        } else if (list.size() > 1) {
-            throw new IllegalStateException("Found more than one task with identifier " + identifier + " (" + list.size() + " of them)");
+    @Override
+    public boolean isOrphaned(PrismObject<TaskType> task, OperationResult parentResult) throws SchemaException {
+        OperationResult result = parentResult.createMinorSubresult(DOT_IMPL_CLASS + "isOrphaned");
+        try {
+            String parentIdentifier = task.asObjectable().getParent();
+            if (parentIdentifier == null) {
+                return false;
+            }
+            try {
+                PrismObject<TaskType> parent = getTaskTypeByIdentifier(parentIdentifier, null, result);
+                LOGGER.trace("Found a parent of {}: {}", task, parent);
+                return false;
+            } catch (ObjectNotFoundException e) {
+                LOGGER.debug("Parent ({}) of {} does not exist. The task is orphaned.", parentIdentifier, task);
+                result.muteLastSubresultError();
+                result.recordSuccess(); // we want not only FATAL_ERROR to be removed but we don't want to see HANDLED_ERROR as well
+                return true;
+            }
+        } catch (Throwable t) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Parent ({}) of {} probably exists but couldn't be retrieved.",
+                    t, task.asObjectable().getParent(), task);result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
         }
-        PrismObject<TaskType> retval = list.get(0);
-        if (SelectorOptions.hasToLoadPath(TaskType.F_SUBTASK_REF, options)) {
-            ClusterStatusInformation clusterStatusInformation = getClusterStatusInformation(options, TaskType.class, true, result); // returns null if noFetch is set
-            fillInSubtasks(retval.asObjectable(), clusterStatusInformation, options, result);
-        }
-        result.computeStatusIfUnknown();
-        return retval;
     }
 
     List<Task> resolveTasksFromTaskTypes(List<PrismObject<TaskType>> taskPrisms, OperationResult result) throws SchemaException {

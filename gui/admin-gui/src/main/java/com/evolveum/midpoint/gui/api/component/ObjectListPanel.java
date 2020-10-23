@@ -189,9 +189,13 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
                 String searchByName = getSearchByNameParameterValue();
                 if (searchByName != null) {
-                    for (PropertySearchItem item : search.getPropertyItems()) {
-                        if (ItemPath.create(ObjectType.F_NAME).equivalent(item.getPath())) {
-                            item.setValue(new SearchValue(searchByName));
+                    if (SearchBoxModeType.FULLTEXT.equals(search.getSearchType())) {
+                        search.setFullText(searchByName);
+                    } else {
+                        for (PropertySearchItem item : search.getPropertyItems()) {
+                            if (ItemPath.create(ObjectType.F_NAME).equivalent(item.getPath())) {
+                                item.setValue(new SearchValue(searchByName));
+                            }
                         }
                     }
                 }
@@ -385,24 +389,23 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
                                 return Model.of("");
                             }
                             Item<?, ?> item = null;
-                            if (columnPath != null) {
-                                item = value.asPrismContainerValue().findItem(columnPath);
-                            }
-                            Item object = value.asPrismObject();
-                            if (item != null) {
-                                object = item;
-                            }
                             if (expression != null) {
                                 Task task = getPageBase().createSimpleTask("evaluate column expression");
                                 try {
+                                    if (columnPath != null) {
+                                        item = value.asPrismContainerValue().findItem(columnPath);
+                                    }
+                                    Item object = value.asPrismObject();
+                                    if (item != null) {
+                                        object = item;
+                                    }
                                     ExpressionVariables expressionVariables = new ExpressionVariables();
                                     expressionVariables.put(ExpressionConstants.VAR_OBJECT, object, object.getClass());
                                     String stringValue = ExpressionUtil.evaluateStringExpression(expressionVariables, getPageBase().getPrismContext(), expression,
                                             MiscSchemaUtil.getExpressionProfile(), getPageBase().getExpressionFactory(), "evaluate column expression",
                                             task, task.getResult()).iterator().next();
                                     return Model.of(stringValue);
-                                } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
-                                        | ConfigurationException | SecurityViolationException e) {
+                                } catch (Exception e) {
                                     LOGGER.error("Couldn't execute expression for name column");
                                     OperationResult result = task.getResult();
                                     OperationResultStatusPresentationProperties props = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result.getStatus());

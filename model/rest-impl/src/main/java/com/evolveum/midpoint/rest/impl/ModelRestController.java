@@ -291,7 +291,7 @@ public class ModelRestController extends AbstractRestController {
             result.recordSuccessIfUnknown();
         } catch (SecurityViolationException | ObjectNotFoundException | SchemaException |
                 CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-            e.printStackTrace();
+            LoggingUtils.logUnexpectedException(logger, e);
             response = status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
 
@@ -495,7 +495,7 @@ public class ModelRestController extends AbstractRestController {
         ResponseEntity<?> response;
         try {
             ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options, prismContext);
-            Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(modificationType, clazz, prismContext);
+            Collection<? extends ItemDelta<?, ?>> modifications = DeltaConvertor.toModifications(modificationType, clazz, prismContext);
             model.modifyObject(clazz, oid, modifications, modelExecuteOptions, task, result);
             response = createResponse(HttpStatus.NO_CONTENT, result);
         } catch (Exception ex) {

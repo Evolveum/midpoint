@@ -12,8 +12,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Synchronizati
 import static org.testng.AssertJUnit.assertEquals;
 
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
-import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationUtil;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;

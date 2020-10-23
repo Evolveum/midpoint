@@ -12,8 +12,8 @@ import java.util.*;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SchemaHelper;
@@ -375,7 +375,7 @@ public class DashboardServiceImpl implements DashboardService {
                     collectionSpec, null, task, task.getResult());
             CollectionStats collStats = modelInteractionService.determineCollectionStats(compiledCollection, task, result);
 
-            int value = collStats.getObjectCount();//getObjectCount(valueCollection, true, task, result);
+            Integer value = collStats.getObjectCount();//getObjectCount(valueCollection, true, task, result);
             Integer domainValue = collStats.getDomainCount();
             IntegerStatType statType = generateIntegerStat(value, domainValue);
 
@@ -550,7 +550,7 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
-    public List<AuditEventRecordType> searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, Task task, OperationResult result)
+    public List<AuditEventRecordType> searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, ObjectPaging paging, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         List<AuditEventRecordType> auditRecords = new ArrayList<>();
         if (collectionConfig.getCollectionRef() != null) {
@@ -570,6 +570,7 @@ public class DashboardServiceImpl implements DashboardService {
                         expressionFactory, prismContext, "collection filter", task, result);
                 ObjectQuery query = prismContext.queryFactory().createQuery();
                 query.setFilter(evaluatedFilter);
+                query.setPaging(paging);
                 @NotNull Collection<SelectorOptions<GetOperationOptions>> option = combineAuditOption(collectionConfig, collection, task, result);
                 auditRecords.addAll(auditService.searchObjects(query, option, result));
                 if (auditRecords == null) {

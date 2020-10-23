@@ -11,8 +11,8 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -114,7 +114,7 @@ public class OrgUnitAddDeletePopup extends ModalWindow{
         IColumn column = new CheckBoxHeaderColumn<OrgType>();
         columns.add(column);
 
-        column = new LinkColumn<SelectableBeanImpl<OrgType>>(createStringResource("orgUnitAddDeletePopup.column.name"), getSortableProperty(), "value.name"){
+        column = new AjaxLinkColumn<SelectableBeanImpl<OrgType>>(createStringResource("orgUnitAddDeletePopup.column.name"), getSortableProperty(), "value.name"){
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBeanImpl<OrgType>> rowModel){

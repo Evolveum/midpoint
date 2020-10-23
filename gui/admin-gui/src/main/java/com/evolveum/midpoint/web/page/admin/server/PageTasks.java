@@ -88,6 +88,9 @@ public class PageTasks extends PageAdmin {
 
             @Override
             protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
+                if (isCollectionViewPanel()) {
+                    return query;
+                }
                 if (query == null) {
                     query = getPrismContext().queryFactory().createQuery();
                 }

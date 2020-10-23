@@ -306,8 +306,8 @@ CREATE TABLE m_focus_photo (
   photo     BYTEA,
   PRIMARY KEY (owner_oid)
 );
-CREATE TABLE m_focus_policy_situation (
-  focus_oid       VARCHAR(36) NOT NULL,
+CREATE TABLE m_object_policy_situation (
+  object_oid      VARCHAR(36) NOT NULL,
   policySituation VARCHAR(255)
 );
 CREATE TABLE m_object (
@@ -1073,8 +1073,8 @@ ALTER TABLE IF EXISTS m_connector_target_system
   ADD CONSTRAINT fk_connector_target_system FOREIGN KEY (connector_oid) REFERENCES m_connector;
 ALTER TABLE IF EXISTS m_focus_photo
   ADD CONSTRAINT fk_focus_photo FOREIGN KEY (owner_oid) REFERENCES m_focus;
-ALTER TABLE IF EXISTS m_focus_policy_situation
-  ADD CONSTRAINT fk_focus_policy_situation FOREIGN KEY (focus_oid) REFERENCES m_focus;
+ALTER TABLE m_object_policy_situation
+  ADD CONSTRAINT fk_object_policy_situation FOREIGN KEY (object_oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_object_ext_boolean
   ADD CONSTRAINT fk_o_ext_boolean_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_object_ext_date
@@ -1197,7 +1197,7 @@ CREATE INDEX iAssignmentExtReferenceItemId ON M_ASSIGNMENT_EXT_REFERENCE(ITEM_ID
 CREATE INDEX iAssignmentExtStringItemId ON M_ASSIGNMENT_EXT_STRING(ITEM_ID);
 CREATE INDEX iAssignmentPolicySituationId ON M_ASSIGNMENT_POLICY_SITUATION(ASSIGNMENT_OID, ASSIGNMENT_ID);
 CREATE INDEX iConnectorTargetSystemOid ON M_CONNECTOR_TARGET_SYSTEM(CONNECTOR_OID);
-CREATE INDEX iFocusPolicySituationOid ON M_FOCUS_POLICY_SITUATION(FOCUS_OID);
+CREATE INDEX iObjectPolicySituationOid ON M_OBJECT_POLICY_SITUATION(OBJECT_OID);
 CREATE INDEX iObjectExtBooleanItemId ON M_OBJECT_EXT_BOOLEAN(ITEM_ID);
 CREATE INDEX iObjectExtDateItemId ON M_OBJECT_EXT_DATE(ITEM_ID);
 CREATE INDEX iObjectExtLongItemId ON M_OBJECT_EXT_LONG(ITEM_ID);

@@ -249,7 +249,7 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
         FormLoginPage login = midPoint.formLogin();
         login.login(getUsername(), getPassword());
 
-        basicPage.listUsers().newUser("New "+ARCHETYPE_EMPLOYEE_LABEL.toLowerCase())
+        basicPage.listUsers().newObjectCollection("New "+ARCHETYPE_EMPLOYEE_LABEL.toLowerCase())
                 .selectTabBasic()
                     .form()
                         .addAttributeValue(UserType.F_NAME, "janeway")

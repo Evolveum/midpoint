@@ -17,8 +17,13 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -35,6 +40,8 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
+import static com.evolveum.midpoint.model.impl.scripting.VariablesUtil.cloneIfNecessary;
+
 /**
  * Superclass for all action executors.
  */
@@ -45,6 +52,7 @@ public abstract class BaseActionExecutor implements ActionExecutor {
     @Autowired protected ScriptingExpressionEvaluator scriptingExpressionEvaluator;
     @Autowired protected PrismContext prismContext;
     @Autowired protected OperationsHelper operationsHelper;
+    @Autowired protected ExpressionFactory expressionFactory;
     @Autowired protected ExpressionHelper expressionHelper;
     @Autowired protected ProvisioningService provisioningService;
     @Autowired protected ModelService modelService;
@@ -150,4 +158,22 @@ public abstract class BaseActionExecutor implements ActionExecutor {
     }
 
     abstract String getActionName();
+
+    /**
+     * Creates variables for script evaluation based on some externally-supplied variables,
+     * plus some generic ones (prism context, actor).
+     */
+    @NotNull
+    protected ExpressionVariables createVariables(VariablesMap externalVariables) {
+        ExpressionVariables variables = new ExpressionVariables();
+
+        variables.put(ExpressionConstants.VAR_PRISM_CONTEXT, prismContext, PrismContext.class);
+        ExpressionUtil.addActorVariable(variables, securityContextManager, prismContext);
+
+        //noinspection unchecked
+        externalVariables.forEach((k, v) -> variables.put(k, cloneIfNecessary(k, v)));
+        variables.registerAliasesFrom(externalVariables);
+
+        return variables;
+    }
 }

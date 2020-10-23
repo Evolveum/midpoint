@@ -1,0 +1,44 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="472d5fcb-1632-46c1-8c81-eea90dcd6b28">
+    <name>external-user</name>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <description>Generate employee number via the defined sequence</description>
+                <strength>weak</strength>
+                <expression>
+                    <sequentialValue>
+                        <sequenceRef oid="4ebf1b7b-95ea-4277-8eac-97f05c0b0300"/>
+                    </sequentialValue>
+                </expression>
+                <target>
+                    <path>employeeNumber</path>
+                </target>
+            </mapping>
+            <mapping>
+                <description>Generate name based on employee number</description>
+                <strength>weak</strength>
+                <source>
+                    <path>employeeNumber</path>
+                </source>
+                <expression>
+                    <script>
+                        <code>
+                            "ext_$employeeNumber"
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>name</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+</archetype>

@@ -489,7 +489,7 @@ public class ColumnUtils {
 
         });
 
-        columns.add(new LinkColumn<PrismContainerValueWrapper<CaseWorkItemType>>(createStringResource("WorkItemsPanel.object")) {
+        columns.add(new AjaxLinkColumn<PrismContainerValueWrapper<CaseWorkItemType>>(createStringResource("WorkItemsPanel.object")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -544,7 +544,7 @@ public class ColumnUtils {
                         Collections.singletonList(caseType.getObjectRef()), "loadCaseWorkItemObjectRef", pageBase));
             }
         });
-        columns.add(new LinkColumn<PrismContainerValueWrapper<CaseWorkItemType>>(createStringResource("WorkItemsPanel.target")) {
+        columns.add(new AjaxLinkColumn<PrismContainerValueWrapper<CaseWorkItemType>>(createStringResource("WorkItemsPanel.target")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -796,6 +796,16 @@ public class ColumnUtils {
             public String getCssClass() {
                 return isDashboard ? "col-md-1 col-sm-2" : super.getCssClass();
             }
+
+            @Override
+            public IModel<?> getDataModel(IModel<SelectableBean<CaseType>> rowModel) {
+                IModel<String> dataModel = (IModel<String>) super.getDataModel(rowModel);
+                if (StringUtils.isNotBlank(dataModel.getObject())) {
+                    String key = CaseType.COMPLEX_TYPE.getLocalPart() + "." + CaseType.F_STATE.getLocalPart() + "." + dataModel.getObject();
+                    return new StringResourceModel(key, pageBase).setModel(new Model<String>()).setDefaultValue(dataModel.getObject());
+                }
+                return dataModel;
+            }
         };
         columns.add(column);
 
@@ -839,7 +849,7 @@ public class ColumnUtils {
         multilineLinkPanel.setOutputMarkupId(true);
         if (referencesList != null) {
             referencesList.forEach(reference -> {
-                LinkPanel referenceLinkPanel = new LinkPanel(multilineLinkPanel.newChildId(),
+                AjaxLinkPanel referenceAjaxLinkPanel = new AjaxLinkPanel(multilineLinkPanel.newChildId(),
                         Model.of(WebModelServiceUtils.resolveReferenceName(reference, pageBase))) {
                     private static final long serialVersionUID = 1L;
 
@@ -854,8 +864,8 @@ public class ColumnUtils {
                                 Collections.singletonList(reference), "loadCaseReferenceObject", pageBase));
                     }
                 };
-                referenceLinkPanel.setOutputMarkupId(true);
-                multilineLinkPanel.add(referenceLinkPanel);
+                referenceAjaxLinkPanel.setOutputMarkupId(true);
+                multilineLinkPanel.add(referenceAjaxLinkPanel);
             });
         }
         return multilineLinkPanel;

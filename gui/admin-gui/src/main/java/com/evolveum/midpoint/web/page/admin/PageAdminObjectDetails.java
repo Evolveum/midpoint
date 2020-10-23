@@ -286,6 +286,10 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         };
     }
 
+    protected boolean isChangeArchetypeAllowed() {
+        return true;
+    }
+
     private ObjectReferenceType getObjectArchetypeRef() {
         ObjectReferenceType archetypeReference = null;
         if (getObjectWrapper() != null && getObjectWrapper().getObject() != null
@@ -442,12 +446,10 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                 changeArchetypeButtonClicked(target);
             }
         };
-        changeArchetype.add(new VisibleBehaviour(() -> getObjectArchetypeRef() != null && CollectionUtils.isNotEmpty(getArchetypeOidsListToAssign())));
+        changeArchetype.add(new VisibleBehaviour(() -> isChangeArchetypeAllowed() &&
+                getObjectArchetypeRef() != null && CollectionUtils.isNotEmpty(getArchetypeOidsListToAssign())));
         changeArchetype.add(AttributeAppender.append("class", "btn-default"));
         repeatingView.add(changeArchetype);
-//        if (getObjectArchextypeRef() != null && CollectionUtils.isNotEmpty(getArchetypeOidsListToAssign())) {
-//
-//        }
     }
 
     protected OperationalButtonsPanel getOperationalButtonsPanel() {
@@ -1137,7 +1139,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
             return;
         }
         if (result.isSuccess() && getDelta() != null && SecurityUtils.getPrincipalUser().getOid().equals(getDelta().getOid())) {
-            Session.get().setLocale(WebModelServiceUtils.getLocale());
+            Session.get().setLocale(WebComponentUtil.getLocale());
             LOGGER.debug("Using {} as locale", getLocale());
             WebSession.get().getClientInfo().getProperties().
                     setTimeZone(WebModelServiceUtils.getTimezone());
