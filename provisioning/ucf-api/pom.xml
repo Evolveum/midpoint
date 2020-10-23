@@ -11,7 +11,7 @@
     <parent>
         <artifactId>provisioning</artifactId>
         <groupId>com.evolveum.midpoint.provisioning</groupId>
-        <version>4.2</version>
+        <version>4.2.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>ucf-api</artifactId>

@@ -1,5 +1,5 @@
-MidPoint 4.2 "Maxwell"
-----------------------
+MidPoint 4.2 Support Branch
+---------------------------
 
 General information:
 
