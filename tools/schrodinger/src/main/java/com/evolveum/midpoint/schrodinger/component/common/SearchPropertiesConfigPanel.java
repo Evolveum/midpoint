@@ -47,4 +47,28 @@ public class SearchPropertiesConfigPanel<T> extends Component<T> {
         Table propertiesTable = new Table(this, tableElement);
         return propertiesTable;
     }
+
+    public SearchPropertiesConfigPanel<T> setPropertyTextValue(String propertyName, String value, boolean addPropertyIfAbsent) {
+        TableRow propertyRow = getTableRowForProperty(propertyName, addPropertyIfAbsent);
+        propertyRow.setTextToInputFieldByColumnName("Value", value);
+        return this;
+    }
+
+    public SearchPropertiesConfigPanel<T> clickNegotiateCheckbox(String propertyName, boolean addPropertyIfAbsent) {
+        TableRow propertyRow = getTableRowForProperty(propertyName, addPropertyIfAbsent);
+        propertyRow.clickCheckBoxByColumnName("Negotiate");
+        return this;
+    }
+
+    private TableRow getTableRowForProperty(String propertyName, boolean addPropertyIfAbsent) {
+        TableRow propertyRow = getPropertiesTable().rowByColumnLabel("Property", propertyName);
+        if (propertyRow == null && !addPropertyIfAbsent) {
+            return null;
+        }
+        if (propertyRow == null && addPropertyIfAbsent) {
+            addPropertyToTable(propertyName);
+            propertyRow = getPropertiesTable().rowByColumnLabel("Property", propertyName);
+        }
+        return propertyRow;
+    }
 }
