@@ -12,7 +12,7 @@
     <parent>
         <artifactId>tools</artifactId>
         <groupId>com.evolveum.midpoint.tools</groupId>
-        <version>4.2</version>
+        <version>4.3-SNAPSHOT</version>
     </parent>
 
     <artifactId>xjc-plugin</artifactId>
@@ -28,12 +28,12 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-api</artifactId>
-            <version>4.2</version>
+            <version>4.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-impl</artifactId>
-            <version>4.2</version>
+            <version>4.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>

@@ -14,7 +14,7 @@
     <parent>
         <artifactId>tools</artifactId>
         <groupId>com.evolveum.midpoint.tools</groupId>
-        <version>4.2</version>
+        <version>4.3-SNAPSHOT</version>
     </parent>
 
     <artifactId>midpoint-war-layout</artifactId>

@@ -13,7 +13,7 @@
     <parent>
         <artifactId>dist</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>4.2</version>
+        <version>4.3-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -30,27 +30,27 @@
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-api</artifactId>
-            <version>4.2</version>
+            <version>4.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>common</artifactId>
-            <version>4.2</version>
+            <version>4.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>schema</artifactId>
-            <version>4.2</version>
+            <version>4.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-api</artifactId>
-            <version>4.2</version>
+            <version>4.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
-            <version>4.2</version>
+            <version>4.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>jakarta.servlet</groupId>
