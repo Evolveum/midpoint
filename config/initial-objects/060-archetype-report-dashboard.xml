@@ -1,0 +1,40 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype oid="00000000-0000-0000-0000-000000000170"
+           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+    <name>Dashboard report</name>
+    <archetypePolicy>
+        <display>
+            <label>Dashboard report</label>
+            <pluralLabel>
+                <orig>Dashboard reports</orig>
+                <translation>
+                    <key>DashboardReports.title</key>
+                </translation>
+            </pluralLabel>
+            <icon>
+                <cssClass>fa fa-dashboard</cssClass>
+                <color>#001F3F</color>
+            </icon>
+        </display>
+        <itemConstraint>
+            <path>objectCollection</path>
+            <visibility>hidden</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>jasper</path>
+            <visibility>hidden</visibility>
+        </itemConstraint>
+    </archetypePolicy>
+    <assignment>
+        <assignmentRelation>
+            <holderType>ReportType</holderType>
+        </assignmentRelation>
+    </assignment>
+</archetype>
