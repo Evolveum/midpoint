@@ -28439,4 +28439,217 @@
     </xsd:complexType>
     <xsd:element name="triggerCreation" type="tns:TriggerCreationType" />
 
+    <xsd:complexType name="LiveSyncErrorHandlingStrategyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies a strategy for handling errors during Live Synchronization.
+                TEMPORARY. EXPERIMENTAL.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="entry" type="tns:LiveSyncErrorHandlingStrategyEntryType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A single entry of the strategy: describes a reaction on particular error situation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="liveSyncErrorHandlingStrategy" type="tns:LiveSyncErrorHandlingStrategyEntryType"/>
+
+    <xsd:complexType name="LiveSyncErrorHandlingStrategyEntryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies a reaction when a given error during Live Synchronization occurs.
+                TEMPORARY. EXPERIMENTAL.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="situation" type="tns:LiveSyncErrorSituationSelectorType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A situation that can occur.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="reaction" type="tns:LiveSyncErrorReactionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reaction to the situation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="liveSyncErrorHandlingStrategyEntry" type="tns:LiveSyncErrorHandlingStrategyEntryType"/>
+
+    <xsd:complexType name="LiveSyncErrorSituationSelectorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Description of an error condition to act on.
+                TEMPORARY. EXPERIMENTAL.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="status" type="tns:OperationResultStatusType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Operation result status to match. Can be either PARTIAL_ERROR or FATAL_ERROR.
+                        If not specified, any error matches.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- Maybe better specification e.g. exception class can be added here? -->
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="liveSyncErrorSituationSelector" type="tns:LiveSyncErrorSituationSelectorType"/>
+
+    <xsd:complexType name="LiveSyncErrorReactionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                What should live sync task when an error of given type is encountered?
+                Only some combinations of values are allowed: ignore (+ stopAfter),
+                retryLater (+ stopAfter), stop.
+                TEMPORARY. EXPERIMENTAL.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="ignore" type="tns:LiveSyncIgnoreErrorReactionType" minOccurs="0"/>
+            <xsd:element name="stop" type="tns:LiveSyncStopProcessingReactionType" minOccurs="0"/>
+            <xsd:element name="retryLater" type="tns:LiveSyncRetryLaterReactionType" minOccurs="0"/>
+            <xsd:element name="stopAfter" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Live sync process is stopped after seeing this number of errors.
+                        TEMPORARY. Most probably will be replaced by the thresholds mechanism.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="liveSyncErrorReaction" type="tns:LiveSyncErrorReactionType"/>
+
+    <xsd:complexType name="LiveSyncIgnoreErrorReactionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Error should be ignored. The token is advanced to the next one.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:complexType>
+    <xsd:element name="liveSyncIgnoreErrorReaction" type="tns:LiveSyncIgnoreErrorReactionType"/>
+
+    <xsd:complexType name="LiveSyncStopProcessingReactionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The processing should be stopped. This is the default strategy.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:complexType>
+    <xsd:element name="liveSyncStopProcessingReaction" type="tns:LiveSyncStopProcessingReactionType"/>
+
+    <xsd:complexType name="LiveSyncRetryLaterReactionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Processing of the specified account should be retried later.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="initialInterval" type="xsd:duration" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Initial retry interval.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="nextInterval" type="xsd:duration" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        "Next" retry interval, after initial attempt.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="retryLimit" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Maximal number of retries to attempt. (Null means unlimited.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="liveSyncRetryLaterReaction" type="tns:LiveSyncStopProcessingReactionType"/>
+
+    <xsd:complexType name="PlannedOperationAttemptType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes an attempt that is to be made. Useful e.g. for shadow synchronization triggers
+                where it counts attempts that are to be made.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="number" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Number of the next scheduled attempt.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="interval" type="xsd:duration" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Interval to be used after the next scheduled attempt fails.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="limit" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Maximal number of attempts.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="plannedOperationAttempt" type="tns:PlannedOperationAttemptType"/>
 </xsd:schema>

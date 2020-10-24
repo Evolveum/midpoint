@@ -10,6 +10,7 @@ package com.evolveum.midpoint.schema.util;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -934,8 +935,64 @@ public class ObjectTypeUtil {
         return customColumnsList;
     }
 
+    public static PrismContainerValue<ExtensionType> getExtensionContainerValue(Containerable containerable) {
+        if (containerable == null) {
+            return null;
+        }
+        PrismContainer extensionContainer = containerable.asPrismContainerValue().findContainer(ObjectType.F_EXTENSION);
+        if (extensionContainer == null) {
+            return null;
+        }
+        // note that here we create empty extension if there's none
+        //noinspection unchecked
+        return ((PrismContainerValue<ExtensionType>) extensionContainer.getValue());
+    }
+
+    @FunctionalInterface
+    private interface ExtensionItemRemover {
+        // Removes item (known from the context) from the extension
+        void removeFrom(PrismContainerValue<?> extension);
+    }
+
+    @FunctionalInterface
+    private interface ExtensionItemCreator {
+        // Creates item (known from the context) holding specified real values
+        Item<?, ?> create(List<?> realValues) throws SchemaException;
+    }
+
     public static void setExtensionPropertyRealValues(PrismContext prismContext, PrismContainerValue<?> parent, ItemName propertyName,
             Object... values) throws SchemaException {
+        setExtensionItemRealValues(parent,
+                extension -> extension.removeProperty(propertyName),
+                (realValues) -> {
+                    //noinspection unchecked
+                    PrismProperty<Object> property = prismContext.getSchemaRegistry()
+                            .findPropertyDefinitionByElementName(propertyName)
+                            .instantiate();
+                    realValues.forEach(property::addRealValue);
+                    return property;
+                }, values);
+    }
+
+    public static void setExtensionContainerRealValues(PrismContext prismContext, PrismContainerValue<?> parent, ItemName containerName,
+            Object... values) throws SchemaException {
+        setExtensionItemRealValues(parent,
+                extension -> extension.removeContainer(containerName),
+                (realValues) -> {
+                    PrismContainer<Containerable> container = prismContext.getSchemaRegistry()
+                            .findContainerDefinitionByElementName(containerName)
+                            .instantiate();
+                    for (Object realValue : realValues) {
+                        //noinspection unchecked
+                        container.add(((Containerable) realValue).asPrismContainerValue());
+                    }
+                    return container;
+                }, values);
+    }
+
+    private static void setExtensionItemRealValues(PrismContainerValue<?> parent, ExtensionItemRemover itemRemover,
+            ExtensionItemCreator itemCreator, Object... values) throws SchemaException {
+
         // To cater for setExtensionPropertyRealValues(..., null)
         List<?> refinedValues = Arrays.stream(values)
                 .filter(Objects::nonNull)
@@ -954,14 +1011,23 @@ public class ObjectTypeUtil {
         }
 
         if (refinedValues.isEmpty()) {
-            extension.removeProperty(propertyName);
+            itemRemover.removeFrom(extension);
         } else {
+            extension.addReplaceExisting(itemCreator.create(refinedValues));
+        }
+    }
+
+//    public static <T> T getExtensionItemRealValue(Containerable parent, ItemName name) {
+//        return getExtensionItemRealValue(parent.asPrismContainerValue(), name);
+//    }
+
+    public static <T> T getExtensionItemRealValue(PrismContainerValue<?> parent, ItemName name) {
+        Item<?, ?> item = parent.findItem(ItemPath.create(ObjectType.F_EXTENSION, name));
+        if (item != null) {
             //noinspection unchecked
-            PrismProperty<Object> property =
-                    prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(propertyName)
-                            .instantiate();
-            refinedValues.forEach(property::addRealValue);
-            extension.addReplaceExisting(property);
+            return (T) item.getRealValue();
+        } else {
+            return null;
         }
     }
 

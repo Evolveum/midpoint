@@ -68,6 +68,12 @@ public class TriggerAsserter<R> extends AbstractAsserter<R> {
         return this;
     }
 
+    public ExtensionAsserter extension() {
+        ExtensionAsserter<TriggerType, TriggerAsserter<R>> asserter = new ExtensionAsserter<>(trigger, this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
     public TriggerAsserter<R> assertTimestampFutureBetween(XMLGregorianCalendar start, XMLGregorianCalendar end, String durationOffset) {
         TestUtil.assertBetween("Wrong timestamp in " + desc(),
                 XmlTypeConverter.addDuration(start, durationOffset),

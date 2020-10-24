@@ -353,7 +353,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         assertTrue("Last sync token definition is NOT dynamic", lastTokenDef.isDynamic());
 
         // WHEN
-        CollectingChangeHandler handler = new CollectingChangeHandler();
+        CollectingChangeListener handler = new CollectingChangeListener();
         cc.fetchChanges(accountDefinition, lastToken, null, null, null, handler, result);
 
         AssertJUnit.assertEquals(0, handler.getChanges().size());
@@ -376,7 +376,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         dummyResource.addAccount(newAccount);
 
         // WHEN
-        CollectingChangeHandler handler = new CollectingChangeHandler();
+        CollectingChangeListener handler = new CollectingChangeListener();
         cc.fetchChanges(accountDefinition, lastToken, null, null, null, handler, result);
         List<Change> changes = handler.getChanges();
 

@@ -205,6 +205,10 @@ public class XmlTypeConverter {
         return rv;
     }
 
+    public static XMLGregorianCalendar fromNow(long now, String timeSpec) {
+        return fromNow(now, createDuration(timeSpec));
+    }
+
     public static long toMillis(Duration duration) {
         long now = System.currentTimeMillis();
         return toMillis(fromNow(now, duration)) - now;

@@ -327,15 +327,15 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         }
     }
 
-    protected <T> void assertPropertyEquals(QName propName, T expected) {
-        PrismProperty<T> prop = getObject().findProperty(ItemName.fromQName(propName));
+    protected <T> void assertPropertyEquals(ItemPath propPath, T expected) {
+        PrismProperty<T> prop = getObject().findProperty(propPath);
         if (prop == null && expected == null) {
             return;
         }
-        assertNotNull("No "+propName.getLocalPart()+" in "+desc(), prop);
+        assertNotNull("No "+propPath+" in "+desc(), prop);
         T realValue = prop.getRealValue();
-        assertNotNull("No value in "+propName.getLocalPart()+" in "+desc(), realValue);
-        assertEquals("Wrong "+propName.getLocalPart()+" in "+desc(), expected, realValue);
+        assertNotNull("No value in "+propPath+" in "+desc(), realValue);
+        assertEquals("Wrong "+propPath+" in "+desc(), expected, realValue);
     }
 
     public PrismObjectAsserter<O,RA> assertNoItem(ItemPath itemPath) {
@@ -376,8 +376,8 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         return object;
     }
 
-    public ExtensionAsserter<O, ? extends PrismObjectAsserter<O,RA>, RA> extension() {
-        ExtensionAsserter<O, ? extends PrismObjectAsserter<O,RA>, RA> asserter = new ExtensionAsserter<>(this, getDetails());
+    public ExtensionAsserter<O, ? extends PrismObjectAsserter<O, RA>> extension() {
+        ExtensionAsserter<O, PrismObjectAsserter<O, RA>> asserter = new ExtensionAsserter<>(getObjectable(), this, getDetails());
         copySetupTo(asserter);
         return asserter;
     }

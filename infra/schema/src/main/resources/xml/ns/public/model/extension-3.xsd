@@ -57,6 +57,7 @@
             <xsd:element ref="tns:freshnessInterval" minOccurs="0"/>
             <xsd:element ref="tns:dryRun" minOccurs="0"/>
             <xsd:element ref="tns:retryLiveSyncErrors" minOccurs="0"/>
+            <xsd:element ref="tns:liveSyncErrorHandlingStrategy" minOccurs="0"/>
             <xsd:element ref="tns:updateLiveSyncTokenInDryRun" minOccurs="0"/>
             <xsd:element ref="tns:finishOperationsOnly" minOccurs="0"/>
             <xsd:element ref="tns:lastScanTimestamp" minOccurs="0"/>
@@ -131,6 +132,20 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:displayName>TaskExtension.retryLiveSyncErrors</a:displayName>
+                <a:displayOrder>801</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="liveSyncErrorHandlingStrategy" type="c:LiveSyncErrorHandlingStrategyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies a strategy for handling errors during Live Synchronization.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>TaskExtension.liveSyncErrorHandlingStrategy</a:displayName>
                 <a:displayOrder>801</a:displayOrder>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
@@ -532,6 +547,17 @@
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
                 <a:since>3.6</a:since>
+                <a:indexed>false</a:indexed>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="plannedOperationAttempt" type="c:PlannedOperationAttemptType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+                <a:since>4.3</a:since>
                 <a:indexed>false</a:indexed>
             </xsd:appinfo>
         </xsd:annotation>
