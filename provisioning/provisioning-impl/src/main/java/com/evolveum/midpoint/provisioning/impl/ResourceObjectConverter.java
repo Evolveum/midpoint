@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
-import com.evolveum.midpoint.provisioning.ucf.api.async.ChangeListener;
+import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncChangeListener;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.*;
@@ -1827,7 +1827,7 @@ public class ResourceObjectConverter {
         return ShadowType.F_ATTRIBUTES.equivalent(itemDelta.getParentPath());
     }
 
-    public void fetchChanges(ProvisioningContext ctx, @NotNull PrismProperty<?> initialToken, ChangeHandler changeHandler,
+    public void fetchChanges(ProvisioningContext ctx, @NotNull PrismProperty<?> initialToken, LiveSyncChangeListener upstreamListener,
             OperationResult parentResult) throws SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, GenericFrameworkException, ObjectNotFoundException, ExpressionEvaluationException {
 
@@ -1846,9 +1846,9 @@ public class ResourceObjectConverter {
         Holder<PrismProperty<?>> finalTokenHolder = new Holder<>();         // for diag purposes
 
         AtomicInteger processed = new AtomicInteger(0);
-        ChangeHandler localHandler = new ChangeHandler() {
+        LiveSyncChangeListener localListener = new LiveSyncChangeListener() {
             @Override
-            public boolean handleChange(Change change, OperationResult parentResult) {
+            public boolean onChange(Change change, OperationResult parentResult) {
                 int changeNumber = processed.getAndIncrement();
 
                 Task task = ctx.getTask();
@@ -1872,7 +1872,7 @@ public class ResourceObjectConverter {
                         tracingRequested = setTracingInOperationResultIfRequested(resultBuilder,
                                 TracingRootType.LIVE_SYNC_CHANGE_PROCESSING, task, parentResult);
                     } catch (Throwable t) {
-                        return changeHandler.handleError(change.getToken(), change, t, parentResult);
+                        return upstreamListener.onChangePreparationError(change.getToken(), change, t, parentResult);
                     }
                     OperationResult result = resultBuilder.build();
 
@@ -1884,9 +1884,9 @@ public class ResourceObjectConverter {
                             }
                         } catch (Throwable t) {
                             result.addReturn("status", "failed: " + t);
-                            return changeHandler.handleError(change.getToken(), change, t, result);
+                            return upstreamListener.onChangePreparationError(change.getToken(), change, t, result);
                         }
-                        boolean cont = changeHandler.handleChange(change, result);
+                        boolean cont = upstreamListener.onChange(change, result);
                         result.addReturn("status", "handled with continue=" + cont);
 
                         return cont;
@@ -1907,21 +1907,21 @@ public class ResourceObjectConverter {
             }
 
             @Override
-            public boolean handleError(PrismProperty<?> token, @Nullable Change change,
+            public boolean onChangePreparationError(PrismProperty<?> token, @Nullable Change change,
                     @NotNull Throwable exception, @NotNull OperationResult result) {
-                return changeHandler.handleError(token, change, exception, result);
+                return upstreamListener.onChangePreparationError(token, change, exception, result);
             }
 
             @Override
-            public void handleAllChangesFetched(PrismProperty<?> finalToken, OperationResult result) {
+            public void onAllChangesFetched(PrismProperty<?> finalToken, OperationResult result) {
                 allChangesFetchedHolder.setValue(true);
                 finalTokenHolder.setValue(finalToken);
-                changeHandler.handleAllChangesFetched(finalToken, result);
+                upstreamListener.onAllChangesFetched(finalToken, result);
             }
         };
 
         // get changes from the connector
-        connector.fetchChanges(ctx.getObjectClassDefinition(), initialToken, attrsToReturn, maxChanges, ctx, localHandler, parentResult);
+        connector.fetchChanges(ctx.getObjectClassDefinition(), initialToken, attrsToReturn, maxChanges, ctx, localListener, parentResult);
 
         computeResultStatus(parentResult);
 
@@ -2022,13 +2022,13 @@ public class ResourceObjectConverter {
     }
 
     public void listenForAsynchronousUpdates(@NotNull ProvisioningContext ctx,
-            @NotNull ChangeListener outerListener, @NotNull OperationResult parentResult) throws SchemaException,
+            @NotNull AsyncChangeListener outerListener, @NotNull OperationResult parentResult) throws SchemaException,
             CommunicationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
 
         LOGGER.trace("Listening for async updates, objectClass: {}", ctx.getObjectClassDefinition());
         ConnectorInstance connector = ctx.getConnector(AsyncUpdateCapabilityType.class, parentResult);
 
-        ChangeListener innerListener = (change, listenerTask, listenerResult) -> {
+        AsyncChangeListener innerListener = (change, listenerTask, listenerResult) -> {
             try {
                 LOGGER.trace("Start processing change:\n{}", change.debugDumpLazily());
                 setResourceOidIfMissing(change, ctx.getResourceOid());

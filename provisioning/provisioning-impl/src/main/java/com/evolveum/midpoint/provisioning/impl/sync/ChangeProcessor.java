@@ -105,8 +105,8 @@ public class ChangeProcessor {
 
             ProvisioningContext ctx = determineProvisioningContext(globalCtx, change, workerTask, result);
             if (ctx == null) {
-                request.setSuccess(true);
-                request.onSuccess();
+                request.setSuccessfullyProcessed(true);
+                request.onSuccessfullyProcessed();
                 return;
             }
 
@@ -157,8 +157,8 @@ public class ChangeProcessor {
                 assert change.isDelete();
                 LOGGER.debug("Skipping processing change. Can't find appropriate shadow (e.g. the object was "
                         + "deleted on the resource meantime).");
-                request.setSuccess(true);
-                request.onSuccess();
+                request.setSuccessfullyProcessed(true);
+                request.onSuccessfullyProcessed();
                 // Are we OK with the result being automatically computed here? (i.e. most probably SUCCESS?)
                 return;
             }
@@ -184,7 +184,9 @@ public class ChangeProcessor {
 
             notifyChangeResult.computeStatus("Error in notify change operation.");
 
-            if (notifyChangeResult.isSuccess() || notifyChangeResult.isHandledError() || notifyChangeResult.isNotApplicable()) {
+            //noinspection RedundantIfStatement
+            if (notifyChangeResult.isSuccess() || notifyChangeResult.isHandledError()
+                    || notifyChangeResult.isNotApplicable() || notifyChangeResult.isInProgress()) {
                 // Do not delete dead shadows. Keep dead shadow around because they contain results
                 // of the synchronization. Usual shadow refresh process should delete them eventually.
                 // TODO: review. Maybe make this configuration later on.
@@ -193,9 +195,9 @@ public class ChangeProcessor {
                 // And we need to modify ResourceObjectChangeListener for that. Keeping all dead
                 // shadows is much easier.
                 //                deleteShadowFromRepoIfNeeded(change, result);
-                request.setSuccess(true);
+                request.setSuccessfullyProcessed(true);
             } else {
-                request.setSuccess(false);
+                request.setSuccessfullyProcessed(false);
             }
 
             try {
@@ -208,10 +210,10 @@ public class ChangeProcessor {
                 result.computeStatus();
             }
 
-            if (request.isSuccess()) {
-                request.onSuccess();
+            if (request.isSuccessfullyProcessed()) {
+                request.onSuccessfullyProcessed();
             } else {
-                request.onError(result);
+                request.onProcessingError(notifyChangeResult);
             }
             workerTask.recordIterativeOperationEnd(objectName, objectDisplayName, ShadowType.COMPLEX_TYPE, objectOid, started, null);
 
@@ -219,10 +221,13 @@ public class ChangeProcessor {
                 ConfigurationException | ExpressionEvaluationException | SecurityViolationException | EncryptionException |
                 PolicyViolationException | RuntimeException | Error e) {
             result.recordFatalError(e);
-            request.setSuccess(false);
-            request.onError(e, result);
-            if (started > 0) {
-                workerTask.recordIterativeOperationEnd(objectName, objectDisplayName, ShadowType.COMPLEX_TYPE, objectOid, started, e);
+            request.setSuccessfullyProcessed(false);
+            try {
+                request.onProcessingError(e, result);
+            } finally {
+                if (started > 0) {
+                    workerTask.recordIterativeOperationEnd(objectName, objectDisplayName, ShadowType.COMPLEX_TYPE, objectOid, started, e);
+                }
             }
         } finally {
             request.setDone(true);
@@ -398,12 +403,20 @@ public class ChangeProcessor {
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException,
             PreconditionViolationException {
 
-        if (result.isSuccess() || result.isHandledError() || result.isNotApplicable()) {
+        if (result.isSuccess() || result.isHandledError() || result.isNotApplicable() || result.isInProgress()) {
+            return;
+        }
+
+        ErrorSelectorType selector = partition != null ? partition.getErrorCriticality() : null;
+        if (selector == null) {
+            // We have no information of how to adapt the criticality of the error.
+            // So, let us continue with what we know from the model operation.
+            // We certainly do not want to modify the operation result (e.g. by switching from
+            // FATAL_ERROR to PARTIAL_ERROR).
             return;
         }
 
         Throwable ex = RepoCommonUtils.getResultException(result);
-        ErrorSelectorType selector = partition != null ? partition.getErrorCriticality() : null;
         CriticalityType criticality = ExceptionUtil.getCriticality(selector, ex, CriticalityType.PARTIAL);
         RepoCommonUtils.processErrorCriticality(task, criticality, ex, result);
     }

@@ -223,8 +223,8 @@ public class AbstractRoleAsserter<F extends AbstractRoleType, RA> extends FocusA
     }
 
     @Override
-    public ExtensionAsserter<F, ? extends  AbstractRoleAsserter<F,RA>, RA> extension() {
-        ExtensionAsserter<F, ? extends AbstractRoleAsserter<F,RA>, RA> asserter = new ExtensionAsserter<>(this, getDetails());
+    public ExtensionAsserter<F, ? extends AbstractRoleAsserter<F, RA>> extension() {
+        ExtensionAsserter<F, AbstractRoleAsserter<F, RA>> asserter = new ExtensionAsserter<>(getObjectable(), this, getDetails());
         copySetupTo(asserter);
         return asserter;
     }

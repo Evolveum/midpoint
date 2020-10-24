@@ -225,8 +225,8 @@ public class RoleAsserter<RA> extends AbstractRoleAsserter<RoleType,RA> {
     }
 
     @Override
-    public ExtensionAsserter<RoleType, ? extends RoleAsserter<RA>, RA> extension() {
-        ExtensionAsserter<RoleType, ? extends RoleAsserter<RA>, RA> asserter = new ExtensionAsserter<>(this, getDetails());
+    public ExtensionAsserter<RoleType, ? extends RoleAsserter<RA>> extension() {
+        ExtensionAsserter<RoleType, RoleAsserter<RA>> asserter = new ExtensionAsserter<>(getObjectable(), this, getDetails());
         copySetupTo(asserter);
         return asserter;
     }

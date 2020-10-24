@@ -38,7 +38,7 @@ class ConnectorListeningHelper {
     @NotNull private final List<AsyncUpdateSource> sources = new ArrayList<>();
     @NotNull private final List<ListeningActivity> activities = new ArrayList<>();
 
-    @NotNull private final ChangeListener changeListener;
+    @NotNull private final AsyncChangeListener changeListener;
     private AsyncUpdateMessageListener messageListener;
 
     @Nullable private final Authentication authentication;
@@ -46,7 +46,7 @@ class ConnectorListeningHelper {
     private boolean stopped;
 
     ConnectorListeningHelper(@NotNull AsyncUpdateConnectorInstance connectorInstance,
-            @NotNull ChangeListener changeListener,
+            @NotNull AsyncChangeListener changeListener,
             @Nullable Authentication authentication) {
         this.connectorInstance = connectorInstance;
         this.changeListener = changeListener;

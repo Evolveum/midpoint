@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.intest.sync;
 
+import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.fromNow;
 import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME;
 
 import static com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType.*;
@@ -14,11 +15,14 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.ConnectException;
 import java.util.ArrayList;
 
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.icf.dummy.resource.DummySyncStyle;
+import com.evolveum.icf.dummy.resource.*;
+import com.evolveum.midpoint.model.impl.trigger.ShadowReconcileTriggerHandler;
+import com.evolveum.midpoint.model.intest.CommonTasks;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 
 import com.evolveum.midpoint.test.DummyTestResource;
@@ -53,6 +57,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrationTest {
 
     private static final File TEST_DIR = new File("src/test/resources/sync");
+    private static final int ERRORS_ACCOUNTS = 30;
 
     private DummyInterruptedSyncResource interruptedSyncResource;
     private DummyInterruptedSyncImpreciseResource interruptedSyncImpreciseResource;
@@ -69,12 +74,23 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
             "resource-dummy-xfer2-target-not-deletable.xml", "60a5f2d4-1abc-4178-a687-4a9627779676", "xfer2-target-not-deletable");
     private static final DummyTestResource RESOURCE_DUMMY_MULTI_CHANGES = new DummyTestResource(TEST_DIR,
             "resource-dummy-multi-changes.xml", "5448264d-cf1a-497e-bfa1-7aa8972247de", "multi-changes");
+    private static final DummyTestResource RESOURCE_DUMMY_ERRORS_SOURCE_PRECISE = new DummyTestResource(TEST_DIR,
+            "resource-dummy-errors-source-precise.xml", "a20bb7b7-c5e9-4bbb-94e0-79e7866362e6", "errors-source-precise");
+    private static final DummyTestResource RESOURCE_DUMMY_ERRORS_TARGET = new DummyTestResource(TEST_DIR,
+            "resource-dummy-errors-target.xml", "10079e05-b98e-4630-92aa-26fa4ed8d0eb", "errors-target");
 
     private static final TestResource<RoleType> ROLE_XFER1 = new TestResource<>(TEST_DIR, "role-xfer1.xml", "4b141ca2-3172-4d8a-8614-97e01ece5a9e");
     private static final TestResource<RoleType> ROLE_XFER2 = new TestResource<>(TEST_DIR, "role-xfer2.xml", "59fdad1b-45fa-4a8c-bda4-d8a6ab980671");
     private static final TestResource<TaskType> TASK_XFER1 = new TestResource<>(TEST_DIR, "task-xfer1.xml", "c9306381-efa8-499e-8b16-6d071d680451");
     private static final TestResource<TaskType> TASK_XFER2 = new TestResource<>(TEST_DIR, "task-xfer2.xml", "d4f8b735-dfdb-450e-a680-dacfac4fafb0");
     private static final TestResource<TaskType> TASK_MULTI_CHANGES = new TestResource<>(TEST_DIR, "task-multi-changes.xml", "33d6642a-6251-4b53-b78a-0cf44460e5c9");
+
+    private static final TestResource<RoleType> ROLE_ERRORS_TARGET = new TestResource<>(TEST_DIR, "role-errors-target.xml", "582af892-2490-4fb1-bc83-368ade2c5eb4");
+    private static final TestResource<TaskType> TASK_ERRORS_PRECISE_IGNORE = new TestResource<>(TEST_DIR, "task-errors-precise-ignore.xml", "ac52f0fd-9ff9-4699-87fb-c81b0b290d9f");
+    private static final TestResource<TaskType> TASK_ERRORS_PRECISE_IGNORE_PARTIAL_STOP_ON_FATAL = new TestResource<>(TEST_DIR, "task-errors-precise-ignore-partial-stop-on-fatal.xml", "6873df7b-e663-4070-868f-c75aa19c391c");
+    private static final TestResource<TaskType> TASK_ERRORS_PRECISE_STOP_ON_ANY = new TestResource<>(TEST_DIR, "task-errors-precise-stop-on-any.xml", "0e015e1e-aa68-4190-ba4f-adf88c58b162");
+    private static final TestResource<TaskType> TASK_ERRORS_PRECISE_RETRY_LATER_ON_ANY = new TestResource<>(TEST_DIR, "task-errors-precise-retry-later-on-any.xml", "2d7f0709-3e9b-4b92-891f-c5e1428b6458");
+    private static final TestResource<TaskType> TASK_ERRORS_PRECISE_RETRY_LATER_MAX_4 = new TestResource<>(TEST_DIR, "task-errors-precise-retry-later-max-4.xml", "0bdfdb9c-ccae-4202-a060-f9aab35bd211");
 
     private static final TestResource<TaskType> TASK_SLOW_RESOURCE = new TestResource<>(TEST_DIR, "task-intsync-slow-resource.xml", "ca51f209-1ef5-42b3-84e7-5f639ee8e300");
     private static final TestResource<TaskType> TASK_SLOW_MODEL = new TestResource<>(TEST_DIR, "task-intsync-slow-model.xml", "c37dda96-e547-41c2-b343-b890bc7fade9");
@@ -98,6 +114,11 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
 
     private static final int XFER_ACCOUNTS = 10;
 
+    /**
+     * Checked on "errors" resources/roles.
+     */
+    public static boolean produceErrors = true;
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -117,6 +138,10 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         initDummyResource(RESOURCE_DUMMY_XFER2_SOURCE, initTask, initResult).setSyncStyle(DummySyncStyle.DUMB);
         initDummyResource(RESOURCE_DUMMY_XFER2_TARGET_NOT_DELETABLE, initTask, initResult);
         repoAdd(ROLE_XFER2, initResult);
+
+        initDummyResource(RESOURCE_DUMMY_ERRORS_SOURCE_PRECISE, initTask, initResult).setSyncStyle(DummySyncStyle.DUMB);
+        initDummyResource(RESOURCE_DUMMY_ERRORS_TARGET, initTask, initResult);
+        repoAdd(ROLE_ERRORS_TARGET, initResult);
 
         initDummyResource(RESOURCE_DUMMY_MULTI_CHANGES, initTask, initResult)
                 .setSyncStyle(DummySyncStyle.DUMB);
@@ -138,6 +163,13 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         initLiveSyncTask(TASK_XFER1, initTask, initResult);
         initLiveSyncTask(TASK_XFER2, initTask, initResult);
         initLiveSyncTask(TASK_MULTI_CHANGES, initTask, initResult);
+        initLiveSyncTask(TASK_ERRORS_PRECISE_IGNORE, initTask, initResult);
+        initLiveSyncTask(TASK_ERRORS_PRECISE_IGNORE_PARTIAL_STOP_ON_FATAL, initTask, initResult);
+        initLiveSyncTask(TASK_ERRORS_PRECISE_STOP_ON_ANY, initTask, initResult);
+        initLiveSyncTask(TASK_ERRORS_PRECISE_RETRY_LATER_ON_ANY, initTask, initResult);
+        initLiveSyncTask(TASK_ERRORS_PRECISE_RETRY_LATER_MAX_4, initTask, initResult);
+
+        addObject(CommonTasks.TASK_TRIGGER_SCANNER_ON_DEMAND, initTask, initResult);
 
         assertUsers(getNumberOfUsers());
         for (int i = 0; i < USERS; i++) {
@@ -145,13 +177,17 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
             interruptedSyncImpreciseResource.getController().addAccount(getUserName(i, false));
         }
 
-        //setGlobalTracingOverride(createModelLoggingTracingProfile());
+//        setGlobalTracingOverride(createModelLoggingTracingProfile());
     }
 
     private void initLiveSyncTask(TestResource<TaskType> testResource, Task initTask, OperationResult initResult)
             throws java.io.IOException, CommonException {
-        addObject(testResource.file, initTask, initResult, workerThreadsCustomizer(getWorkerThreads()));
-        waitForTaskFinish(testResource.oid, false);
+        PrismObject<TaskType> task = addObject(testResource.file, initTask, initResult, workerThreadsCustomizer(getWorkerThreads()));
+        if (task.asObjectable().getRecurrence() != TaskRecurrenceType.RECURRING) {
+            waitForTaskFinish(testResource.oid, false);
+        } else {
+            rerunTask(testResource.oid, initResult);
+        }
     }
 
     int getWorkerThreads() {
@@ -951,8 +987,257 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
                 .assertClosed();
     }
 
+    @Test
+    public void test300ErrorsPreciseIgnore() throws Exception {
+        given();
+        prepareErrorsScenario(RESOURCE_DUMMY_ERRORS_SOURCE_PRECISE, RESOURCE_DUMMY_ERRORS_TARGET);
+
+        when();
+        waitForTaskNextRun(TASK_ERRORS_PRECISE_IGNORE.oid, false, 60000, true);
+
+        then();
+        stabilize();
+        assertTask(TASK_ERRORS_PRECISE_IGNORE.oid, "after")
+                .display()
+                .assertProgress(ERRORS_ACCOUNTS)
+                .assertToken(ERRORS_ACCOUNTS);
+    }
+
+    @Test
+    public void test310ErrorsPreciseIgnorePartialStopOnFatal() throws Exception {
+        given();
+        prepareErrorsScenario(RESOURCE_DUMMY_ERRORS_SOURCE_PRECISE, RESOURCE_DUMMY_ERRORS_TARGET);
+
+        when();
+        waitForTaskNextRun(TASK_ERRORS_PRECISE_IGNORE_PARTIAL_STOP_ON_FATAL.oid, false, 600000 /* TODO */, true);
+
+        then();
+        stabilize();
+        assertTask(TASK_ERRORS_PRECISE_IGNORE_PARTIAL_STOP_ON_FATAL.oid, "after")
+                .display()
+                .assertToken(8); // won't assert process because of multithreaded case
+    }
+
+    @Test
+    public void test320ErrorsPreciseStopOnAny() throws Exception {
+        given();
+        prepareErrorsScenario(RESOURCE_DUMMY_ERRORS_SOURCE_PRECISE, RESOURCE_DUMMY_ERRORS_TARGET);
+
+        when();
+        waitForTaskNextRun(TASK_ERRORS_PRECISE_STOP_ON_ANY.oid, false, 60000, true);
+
+        then();
+        stabilize();
+        assertTask(TASK_ERRORS_PRECISE_STOP_ON_ANY.oid, "after")
+                .display()
+                .assertToken(2); // won't assert process because of multithreaded case
+    }
+
+    @Test
+    public void test330ErrorsPreciseRetryLaterOnAny() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        prepareErrorsScenario(RESOURCE_DUMMY_ERRORS_SOURCE_PRECISE, RESOURCE_DUMMY_ERRORS_TARGET);
+
+        when();
+        long start = System.currentTimeMillis();
+        waitForTaskNextRun(TASK_ERRORS_PRECISE_RETRY_LATER_ON_ANY.oid, false, 600000 /* TODO */, true);
+        long end = System.currentTimeMillis();
+
+        then();
+        stabilize();
+        assertTask(TASK_ERRORS_PRECISE_RETRY_LATER_ON_ANY.oid, "after")
+                .display()
+                .assertProgress(30)
+                .assertToken(30);
+
+        PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_ERRORS_SOURCE_PRECISE.oid, null, task, result);
+        PrismObject<ResourceType> targetResource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_ERRORS_TARGET.oid, null, task, result);
+        assertShadow("e-000003", resource)
+                .display()
+                .triggers()
+                    .single()
+                    .assertHandlerUri(ShadowReconcileTriggerHandler.HANDLER_URI)
+                    .assertTimestampBetween(fromNow(start, "PT5M"), fromNow(end, "PT5M"))
+                    .extension()
+                        .assertItems(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
+                        .containerSingle(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
+                            .assertPropertyEquals(PlannedOperationAttemptType.F_NUMBER, 1)
+                            .assertPropertyEquals(PlannedOperationAttemptType.F_LIMIT, 3)
+                            .assertPropertyEquals(PlannedOperationAttemptType.F_INTERVAL, XmlTypeConverter.createDuration("PT1H"));
+
+        assertShadow("e-000009", resource)
+                .display()
+                .triggers()
+                    .single()
+                    .assertHandlerUri(ShadowReconcileTriggerHandler.HANDLER_URI)
+                    .assertTimestampBetween(fromNow(start, "PT30M"), fromNow(end, "PT30M"))
+                    .extension()
+                        .assertItems(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
+                        .containerSingle(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
+                            .assertPropertyEquals(PlannedOperationAttemptType.F_NUMBER, 1)
+                            .assertNoItem(PlannedOperationAttemptType.F_LIMIT)
+                            .assertPropertyEquals(PlannedOperationAttemptType.F_INTERVAL, XmlTypeConverter.createDuration("PT1H"));
+        assertNoShadow("e-000009", targetResource, result);
+
+        when("retrying partial errors (each 3th except for 9th)");
+
+        clock.overrideDuration("PT5M");
+        long triggerFirstStart = System.currentTimeMillis();
+        runTriggerScannerOnDemandErrorsOk(result);
+        long triggerFirstEnd = System.currentTimeMillis();
+
+        then("retrying partial errors (each 3th except for 9th)");
+        stabilize();
+        assertTask(CommonTasks.TASK_TRIGGER_SCANNER_ON_DEMAND.oid, "after")
+                .assertProgress(7) // 3, 6, 12, 15, 21, 24, 30
+                .display()
+                .iterativeTaskInformation()
+                    .assertSuccessCount(0)
+                    .assertFailureCount(7)
+                    .display();
+
+        assertShadow("e-000003", resource)
+                .display()
+                .triggers()
+                    .single()
+                    .assertHandlerUri(ShadowReconcileTriggerHandler.HANDLER_URI)
+                    .assertTimestampBetween(fromNow(triggerFirstStart, "PT1H"), fromNow(triggerFirstEnd, "PT1H")) // from current or from clock.current (overridden)?
+                    .extension()
+                        .assertItems(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
+                        .containerSingle(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
+                            .assertPropertyEquals(PlannedOperationAttemptType.F_NUMBER, 2)
+                            .assertPropertyEquals(PlannedOperationAttemptType.F_LIMIT, 3)
+                            .assertPropertyEquals(PlannedOperationAttemptType.F_INTERVAL, XmlTypeConverter.createDuration("PT1H"));
+
+        when("retrying fatal errors (each 9th)");
+
+        clock.resetOverride();
+        clock.overrideDuration("PT30M");
+        long triggerSecondStart = System.currentTimeMillis();
+        runTriggerScannerOnDemandErrorsOk(result);
+        long triggerSecondEnd = System.currentTimeMillis();
+
+        then("retrying fatal errors (each 9th)");
+        stabilize();
+        assertTask(CommonTasks.TASK_TRIGGER_SCANNER_ON_DEMAND.oid, "after")
+                .assertProgress(3) // 9, 18, 27
+                .display()
+                .iterativeTaskInformation()
+                    .assertSuccessCount(0)
+                    .assertFailureCount(10) // counters are not cleared between runs (for now)
+                    .display();
+
+        assertShadow("e-000009", resource)
+                .display()
+                .triggers()
+                    .single()
+                    .assertHandlerUri(ShadowReconcileTriggerHandler.HANDLER_URI)
+                    .assertTimestampBetween(fromNow(triggerSecondStart, "PT1H"), fromNow(triggerSecondEnd, "PT1H")) // from current or from clock.current (overridden)?
+                    .extension()
+                        .assertItems(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
+                        .containerSingle(SchemaConstants.MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT)
+                            .assertPropertyEquals(PlannedOperationAttemptType.F_NUMBER, 2)
+                            .assertPropertyEquals(PlannedOperationAttemptType.F_INTERVAL, XmlTypeConverter.createDuration("PT1H"));
+        assertNoShadow("e-000009", targetResource, result);
+
+        when("retrying everything, errors turned off");
+        produceErrors = false;
+        try {
+            clock.resetOverride();
+            clock.overrideDuration("P1D");
+            runTriggerScannerOnDemand(result);
+        } finally {
+            produceErrors = true;
+        }
+
+        then("retrying everything, errors turned off");
+        stabilize();
+        assertTask(CommonTasks.TASK_TRIGGER_SCANNER_ON_DEMAND.oid, "after")
+                .assertProgress(10) // each 3rd
+                .display()
+                .iterativeTaskInformation()
+                    .assertSuccessCount(10)
+                    .assertFailureCount(10) // counters are not cleared between runs (for now)
+                    .display();
+
+        for (int i = 3; i <= 30; i+=3) {
+            assertShadow(String.format("e-%06d", i), resource)
+                    .display()
+                    .assertNoTrigger();
+            assertShadow(String.format("e-%06d", i), targetResource)
+                    .display()
+                    .assertLife();
+                    //.assertLifecycleState(null); // For many account we have here "proposed" ... why?!
+        }
+    }
+
+    @Test
+    public void test340ErrorsPreciseRetryLaterMax4() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        prepareErrorsScenario(RESOURCE_DUMMY_ERRORS_SOURCE_PRECISE, RESOURCE_DUMMY_ERRORS_TARGET);
+
+        when();
+        waitForTaskNextRun(TASK_ERRORS_PRECISE_RETRY_LATER_MAX_4.oid, false, 600000 /* TODO */, true);
+
+        then();
+        stabilize();
+        assertTask(TASK_ERRORS_PRECISE_RETRY_LATER_MAX_4.oid, "after")
+                .display()
+                .assertToken(11) // won't assert progress because of multithreaded case
+                .assertExecutionStatus(TaskExecutionStatusType.SUSPENDED);
+
+        PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_ERRORS_SOURCE_PRECISE.oid, null, task, result);
+        PrismObject<ResourceType> targetResource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_ERRORS_TARGET.oid, null, task, result);
+        assertShadow("e-000003", resource)
+                .display()
+                .triggers()
+                .single()
+                    .assertHandlerUri(ShadowReconcileTriggerHandler.HANDLER_URI);
+
+        assertShadow("e-000009", resource)
+                .display()
+                .triggers()
+                .single()
+                    .assertHandlerUri(ShadowReconcileTriggerHandler.HANDLER_URI);
+
+        assertNoShadow("e-000009", targetResource, result);
+    }
+
+    private void prepareErrorsScenario(DummyTestResource source, DummyTestResource target) throws ConnectException,
+            ObjectAlreadyExistsException, ConflictException, FileNotFoundException, SchemaViolationException,
+            InterruptedException, SchemaException, ObjectNotFoundException {
+        deleteEUsers();
+        deleteEShadows();
+        recreateSourceEAccounts(source);
+        deleteTargetEAccounts(target);
+    }
+
+    private void deleteTargetEAccounts(DummyTestResource resource) {
+        resource.controller.getDummyResource().clear();
+    }
+
+    private void recreateSourceEAccounts(DummyTestResource resource) throws ConnectException, FileNotFoundException,
+            SchemaViolationException, ConflictException, InterruptedException, ObjectAlreadyExistsException {
+        resource.controller.getDummyResource().clear();
+        for (int i = 1; i <= ERRORS_ACCOUNTS; i++) {
+            resource.controller.addAccount(String.format("e-%06d", i));
+        }
+    }
+
+    private void deleteEUsers() throws SchemaException, ObjectNotFoundException {
+        deleteUsers(getStartsWithQuery("e-"), getTestOperationResult());
+    }
+
+    private void deleteEShadows() throws SchemaException, ObjectNotFoundException {
+        deleteShadows(getStartsWithQuery("e-"), getTestOperationResult());
+    }
+
     private ObjectQuery getStartsWithQuery(String s) {
-        return prismContext.queryFor(UserType.class)
+        return prismContext.queryFor(ObjectType.class)
                 .item(UserType.F_NAME).startsWith(s)
                 .build();
     }
@@ -961,6 +1246,13 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         for (PrismObject<UserType> user: repositoryService.searchObjects(UserType.class, query, null, result)) {
             System.out.println("Deleting " + user);
             repositoryService.deleteObject(UserType.class, user.getOid(), result);
+        }
+    }
+
+    private void deleteShadows(ObjectQuery query, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        for (PrismObject<ShadowType> shadow: repositoryService.searchObjects(ShadowType.class, query, null, result)) {
+            System.out.println("Deleting " + shadow);
+            repositoryService.deleteObject(ShadowType.class, shadow.getOid(), result);
         }
     }
 }
