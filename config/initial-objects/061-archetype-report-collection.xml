@@ -1,0 +1,40 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype oid="00000000-0000-0000-0000-000000000171"
+           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+    <name>Collection report</name>
+    <archetypePolicy>
+        <display>
+            <label>Collection report</label>
+            <pluralLabel>
+                <orig>Collection reports</orig>
+                <translation>
+                    <key>CollectionReports.title</key>
+                </translation>
+            </pluralLabel>
+            <icon>
+                <cssClass>fa fa-filter</cssClass>
+                <color>#001F3F</color>
+            </icon>
+        </display>
+        <itemConstraint>
+            <path>dashboard</path>
+            <visibility>hidden</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>jasper</path>
+            <visibility>hidden</visibility>
+        </itemConstraint>
+    </archetypePolicy>
+    <assignment>
+        <assignmentRelation>
+            <holderType>ReportType</holderType>
+        </assignmentRelation>
+    </assignment>
+</archetype>

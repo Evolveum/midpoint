@@ -51,7 +51,12 @@
             <dataField>
                 <fieldType>unit</fieldType>
                 <expression>
-                    <value>up</value>
+                    <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType
+                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.up'))
+                        </code>
+                    </script>
                 </expression>
             </dataField>
             <variation>
@@ -101,7 +106,12 @@
             <dataField>
                 <fieldType>unit</fieldType>
                 <expression>
-                    <value>failed</value>
+                    <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType
+                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.failed'))
+                        </code>
+                    </script>
                 </expression>
             </dataField>
             <variation>
@@ -149,7 +159,12 @@
             <dataField>
                 <fieldType>unit</fieldType>
                 <expression>
-                    <value>modifications</value>
+                    <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType
+                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.modifications'))
+                        </code>
+                    </script>
                 </expression>
             </dataField>
         </presentation>
@@ -186,7 +201,12 @@
             <dataField>
                 <fieldType>unit</fieldType>
                 <expression>
-                    <value>runnable</value>
+                    <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ScriptExpressionEvaluatorType">
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType
+                            return midpoint.translate(new SingleLocalizableMessageType().key('AdminDashboard.dataField.runnable'))
+                        </code>
+                    </script>
                 </expression>
             </dataField>
             <variation>
