@@ -54,10 +54,29 @@ public class SearchPropertiesConfigPanel<T> extends Component<T> {
         return this;
     }
 
+    public SearchPropertiesConfigPanel<T> setPropertyFilterValue(String propertyName, String filterValue, boolean addPropertyIfAbsent) {
+        TableRow propertyRow = getTableRowForProperty(propertyName, addPropertyIfAbsent);
+        propertyRow.setValueToDropDownByColumnName("Filter", filterValue);
+        return this;
+    }
+
+    public SearchPropertiesConfigPanel<T> setPropertyMatchingTuleValue(String propertyName, String filterValue, boolean addPropertyIfAbsent) {
+        TableRow propertyRow = getTableRowForProperty(propertyName, addPropertyIfAbsent);
+        propertyRow.setValueToDropDownByColumnName("Filter", filterValue);
+        return this;
+    }
+
     public SearchPropertiesConfigPanel<T> clickNegotiateCheckbox(String propertyName, boolean addPropertyIfAbsent) {
         TableRow propertyRow = getTableRowForProperty(propertyName, addPropertyIfAbsent);
         propertyRow.clickCheckBoxByColumnName("Negotiate");
         return this;
+    }
+
+    public T confirmConfiguration() {
+        getParentElement().$(Schrodinger.byDataId("okButton"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        getParentElement().waitUntil(Condition.disappears, MidPoint.TIMEOUT_DEFAULT_2_S);
+        return getParent();
     }
 
     private TableRow getTableRowForProperty(String propertyName, boolean addPropertyIfAbsent) {
