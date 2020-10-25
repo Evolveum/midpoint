@@ -34,12 +34,10 @@ public class SearchPropertiesConfigPanel<T> extends Component<T> {
         return this;
     }
 
-    private DropDown<SearchPropertiesConfigPanel> getPropertyChoiceElement(){
-        SelenideElement propertyChoiceElement = getParentElement().$(Schrodinger.bySelfOrAncestorElementAttributeValue("select",
+    private SelenideElement getPropertyChoiceElement(){
+        return getParentElement().$(Schrodinger.bySelfOrAncestorElementAttributeValue("select",
                 "class", "form-control input-sm", "data-s-id", "propertyChoice"))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
-        DropDown<SearchPropertiesConfigPanel> dropDown = new DropDown<>(this, propertyChoiceElement);
-        return dropDown;
     }
 
     public Table<SearchPropertiesConfigPanel> getPropertiesTable() {

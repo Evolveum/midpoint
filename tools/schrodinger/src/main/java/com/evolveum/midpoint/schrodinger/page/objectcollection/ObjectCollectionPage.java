@@ -11,6 +11,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
 import com.evolveum.midpoint.schrodinger.component.common.SearchPropertiesConfigPanel;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
@@ -33,4 +34,13 @@ public class ObjectCollectionPage extends AssignmentHolderDetailsPage {
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_SHORT_4_S);
         return new SearchPropertiesConfigPanel<>(this, popupWindow);
     }
+
+    @Override
+    public AssignmentHolderBasicTab<ObjectCollectionPage> selectTabBasic() {
+        SelenideElement element = getTabPanel().clickTab("pageObjectCollection.basic.title")
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
+
+        return new AssignmentHolderBasicTab<>(this, element);
+    }
+
 }
