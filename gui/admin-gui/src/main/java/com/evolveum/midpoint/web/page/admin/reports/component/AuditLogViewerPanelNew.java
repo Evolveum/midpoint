@@ -32,6 +32,9 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.AuditLogStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 
+import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -121,8 +124,13 @@ public class AuditLogViewerPanelNew extends BasePanel {
             }
 
             @Override
-            protected PageStorage getPageStorage(String storageKey){
-                return getAuditLogViewerStorage();
+            protected UserProfileStorage.TableId getTableId() {
+                return UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER;
+            }
+
+            @Override
+            protected String getStorageKey() {
+                return SessionStorage.KEY_AUDIT_LOG;
             }
 
             @Override

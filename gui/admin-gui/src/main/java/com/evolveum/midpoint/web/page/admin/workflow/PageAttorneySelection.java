@@ -28,6 +28,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.error.PageError;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.RestartResponseException;
@@ -92,6 +93,11 @@ public class PageAttorneySelection extends PageBase {
 
 
         ObjectListPanel<UserType> table = new ObjectListPanel<UserType>(ID_TABLE, UserType.class, Collections.emptyList()) {
+
+            @Override
+            protected UserProfileStorage.TableId getTableId() {
+                return UserProfileStorage.TableId.PAGE_USER_SELECTION;
+            }
 
 //            @Override
 //            protected boolean isRefreshEnabled() {

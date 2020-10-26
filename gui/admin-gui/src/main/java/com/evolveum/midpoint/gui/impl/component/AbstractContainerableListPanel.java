@@ -30,7 +30,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.util.lang.Classes;
 
 import java.io.Serializable;
 import java.util.List;
@@ -44,10 +43,8 @@ import java.util.List;
  *     the container of displayed objects in table
  * @param <PO>
  *     the type of the object processed by provider
- * @param <T>
- *     the type of the model object
  */
-public abstract class AbstractContainerableListPanel<C extends Containerable, PO extends Serializable, T> extends BasePanel<T> {
+public abstract class AbstractContainerableListPanel<C extends Containerable, PO extends Serializable> extends BasePanel {
 
     private static final long serialVersionUID = 1L;
 
@@ -58,8 +55,8 @@ public abstract class AbstractContainerableListPanel<C extends Containerable, PO
 
     private Class<? extends C> type;
 
-    public AbstractContainerableListPanel(String id, Class<? extends C> type, IModel<T> model) {
-        super(id, model);
+    public AbstractContainerableListPanel(String id, Class<? extends C> type) {
+        super(id);
         this.type = type;
     }
 
@@ -118,10 +115,10 @@ public abstract class AbstractContainerableListPanel<C extends Containerable, PO
     protected BoxedTablePanel<PO> initItemTable() {
 
         List<IColumn<PO, String>> columns = createColumns();
-        int itemPerPage = getTableIdKeyValue() == null ? UserProfileStorage.DEFAULT_PAGING_SIZE : (int) getPageBase().getItemsPerPage(getTableIdKeyValue());
-        ISelectableDataProvider provider = createProvider();
+        int itemPerPage = getTableId() == null ? UserProfileStorage.DEFAULT_PAGING_SIZE : (int) getPageBase().getItemsPerPage(getTableId());
+        ISelectableDataProvider<C, PO> provider = createProvider();
         BoxedTablePanel<PO> itemTable = new BoxedTablePanel<PO>(ID_ITEMS_TABLE,
-                provider, columns, getTableIdKeyValue(), itemPerPage) {
+                provider, columns, getTableId(), itemPerPage) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -181,28 +178,29 @@ public abstract class AbstractContainerableListPanel<C extends Containerable, PO
             }
         };
         itemTable.setOutputMarkupId(true);
-        ObjectPaging pageStorage = getPageStorage().getPaging();
-        if (pageStorage != null) {
-            itemTable.setCurrentPage(pageStorage);
+        if (getPageStorage() != null) {
+            ObjectPaging pageStorage = getPageStorage().getPaging();
+            if (pageStorage != null) {
+                itemTable.setCurrentPage(pageStorage);
+            }
         }
         return itemTable;
     }
 
-    protected String getTableIdKeyValue() {
-        String key;
-        if (getParent() == null) {
-            key = Classes.simpleName(getPageBase().getClass()) + "." + getId();
-        } else {
-            key = Classes.simpleName(getParent().getClass()) + "." + getId();
-        }
-
-        return key;
-//
-//        if (tableId == null) {
-//            return null;
+//    protected String getTableIdKeyValue() {
+//        String key;
+//        if (getParent() == null) {
+//            key = Classes.simpleName(getPageBase().getClass()) + "." + getId();
+//        } else {
+//            key = Classes.simpleName(getParent().getClass()) + "." + getId();
 //        }
-//        return tableId.name();
-    }
+//
+//        return key;
+//    }
+
+    protected abstract String getTableIdStringValue();
+
+    protected abstract UserProfileStorage.TableId getTableId();
 
     protected abstract WebMarkupContainer initButtonToolbar(String id);
 
@@ -224,10 +222,10 @@ public abstract class AbstractContainerableListPanel<C extends Containerable, PO
 
     protected String getStorageKey(){
 
-        String key = WebComponentUtil.getContainerListPageStorageKey(getType().getSimpleName());
-        if (key == null) {
-            key = getTableIdKeyValue();
-        }
+        String key = WebComponentUtil.getObjectListPageStorageKey(getType().getSimpleName());
+//        if (key == null) {
+//            key = getTableIdKeyValue();
+//        }
 
         return key;
     }
@@ -248,7 +246,7 @@ public abstract class AbstractContainerableListPanel<C extends Containerable, PO
         return null;
     }
 
-    protected abstract ISelectableDataProvider createProvider();
+    protected abstract ISelectableDataProvider<C, PO> createProvider();
 
     protected List<MultiFunctinalButtonDto> createNewButtonDescription() {
         return null;
@@ -278,17 +276,6 @@ public abstract class AbstractContainerableListPanel<C extends Containerable, PO
         return true;
     }
 
-    protected IModel<String> createStyleClassModelForNewObjectIcon() {
-        return new IModel<String>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                return "btn btn-success btn-sm";
-            }
-        };
-    }
-
     protected abstract List<IColumn<PO, String>> createColumns();
 
     public BoxedTablePanel getTable() {
@@ -296,11 +283,11 @@ public abstract class AbstractContainerableListPanel<C extends Containerable, PO
     }
 
     public void refreshTable(AjaxRequestTarget ajaxRequestTarget) {
-        ajaxRequestTarget.add(getItemContainer().addOrReplace(initItemTable()));
+        ajaxRequestTarget.add(getItemTable());
     }
 
-    public WebMarkupContainer getItemContainer() {
-        return (WebMarkupContainer) get(ID_ITEMS);
+    public BoxedTablePanel<PO> getItemTable() {
+        return (BoxedTablePanel<PO>) get(ID_ITEMS).get(ID_ITEMS_TABLE);
     }
 
     public Class<C> getType() {

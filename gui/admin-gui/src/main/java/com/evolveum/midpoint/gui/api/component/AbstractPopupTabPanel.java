@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -25,7 +24,6 @@ import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
@@ -149,7 +147,7 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
         if (objectListPanel == null) {
             return new ArrayList<>();
         }
-        return objectListPanel.getSelectedObjects();
+        return objectListPanel.getSelectedRealObjects();
     }
 
     protected PopupObjectListPanel getObjectListPanel() {

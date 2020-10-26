@@ -11,6 +11,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
@@ -121,6 +123,11 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
             protected boolean isObjectDetailsEnabled(IModel<SelectableBean<F>> rowModel) {
                 return false;
             }
+
+                    @Override
+                    protected UserProfileStorage.TableId getTableId() {
+                        return null;
+                    }
 
                     @Override
                     protected boolean enableSavePageSize() {

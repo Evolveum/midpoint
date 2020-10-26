@@ -17,7 +17,7 @@ import javax.xml.namespace.QName;
 /**
  * @author skublik
  */
-public class ObjectTabStorage implements PageStorage{
+public class ContainerTabStorage implements PageStorage{
 
     private static final long serialVersionUID = 1L;
 

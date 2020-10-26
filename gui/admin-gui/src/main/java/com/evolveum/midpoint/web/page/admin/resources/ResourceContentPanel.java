@@ -29,6 +29,7 @@ import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -189,28 +190,65 @@ public abstract class ResourceContentPanel extends Panel {
 
     }
 
-    private String getTableIdKey() {
+    private UserProfileStorage.TableId getTableId() {
         if (kind == null) {
-            return SessionStorage.KEY_RESOURCE_OBJECT_CLASS_CONTENT;
+            return UserProfileStorage.TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
         }
 
         if (searchMode == null) {
             searchMode = SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT;
         }
 
-//        if (searchMode.equals(SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT)) {
+        if (searchMode.equals(SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT)) {
             switch (kind) {
                 case ACCOUNT:
-                    return SessionStorage.KEY_RESOURCE_ACCOUNT_CONTENT + searchMode;
+                    return UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL_REPOSITORY_MODE;
                 case GENERIC:
-                    return SessionStorage.KEY_RESOURCE_GENERIC_CONTENT + searchMode;
+                    return UserProfileStorage.TableId.PAGE_RESOURCE_GENERIC_PANEL_REPOSITORY_MODE;
                 case ENTITLEMENT:
-                    return SessionStorage.KEY_RESOURCE_ENTITLEMENT_CONTENT + searchMode;
+                    return UserProfileStorage.TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL_REPOSITORY_MODE;
 
                 default:
-                    return SessionStorage.KEY_RESOURCE_OBJECT_CLASS_CONTENT;
+                    return UserProfileStorage.TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
             }
+        } else if (searchMode.equals(SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT)) {
+            switch (kind) {
+                case ACCOUNT:
+                    return UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL_RESOURCE_MODE;
+                case GENERIC:
+                    return UserProfileStorage.TableId.PAGE_RESOURCE_GENERIC_PANEL_RESOURCE_MODE;
+                case ENTITLEMENT:
+                    return UserProfileStorage.TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL_RESOURCE_MODE;
+
+                default:
+                    return UserProfileStorage.TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
+            }
+        }
+        return UserProfileStorage.TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
     }
+
+//    private String getTableIdKey() {
+//        if (kind == null) {
+//            return SessionStorage.KEY_RESOURCE_OBJECT_CLASS_CONTENT;
+//        }
+//
+//        if (searchMode == null) {
+//            searchMode = SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT;
+//        }
+//
+////        if (searchMode.equals(SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT)) {
+//            switch (kind) {
+//                case ACCOUNT:
+//                    return SessionStorage.KEY_RESOURCE_ACCOUNT_CONTENT + searchMode;
+//                case GENERIC:
+//                    return SessionStorage.KEY_RESOURCE_GENERIC_CONTENT + searchMode;
+//                case ENTITLEMENT:
+//                    return SessionStorage.KEY_RESOURCE_ENTITLEMENT_CONTENT + searchMode;
+//
+//                default:
+//                    return SessionStorage.KEY_RESOURCE_OBJECT_CLASS_CONTENT;
+//            }
+//    }
 
     private void initLayout() {
 
@@ -243,6 +281,16 @@ public abstract class ResourceContentPanel extends Panel {
                     @Override
                     protected boolean isCreateNewObjectEnabled() {
                         return false;
+                    }
+
+                    @Override
+                    protected UserProfileStorage.TableId getTableId() {
+                        return ResourceContentPanel.this.getTableId();
+                    }
+
+                    @Override
+                    protected PageStorage getPageStorage() {
+                        return getPageBase().getSessionStorage().getResourceContentStorage(kind, searchMode);
                     }
 
                     @Override
@@ -311,11 +359,6 @@ public abstract class ResourceContentPanel extends Panel {
                                 return search;
                             }
                         };
-                    }
-
-                    @Override
-                    protected String getTableIdKeyValue() {
-                        return getTableIdKey();
                     }
                 };
         shadowListPanel.setOutputMarkupId(true);
@@ -900,7 +943,7 @@ public abstract class ResourceContentPanel extends Panel {
             selectedShadows = new ArrayList<>();
             selectedShadows.add(selected);
         } else {
-            selectedShadows = getTable().getSelectedObjects();
+            selectedShadows = getTable().getSelectedRealObjects();
         }
 
         OperationResult result = new OperationResult(OPERATION_IMPORT_OBJECT);
@@ -1154,7 +1197,7 @@ public abstract class ResourceContentPanel extends Panel {
             selectedShadow.add(shadow);
         } else {
             provider.clearSelectedObjects();
-            selectedShadow = getTable().getSelectedObjects();
+            selectedShadow = getTable().getSelectedRealObjects();
         }
         return selectedShadow;
     }

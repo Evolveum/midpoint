@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +17,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
@@ -108,6 +108,11 @@ public class ResourceTasksPanel extends Panel implements Popupable {
                     private static final long serialVersionUID = 1L;
 
                     @Override
+                    protected UserProfileStorage.TableId getTableId() {
+                        return UserProfileStorage.TableId.PAGE_RESOURCE_TASKS_PANEL;
+                    }
+
+                    @Override
                     protected ISelectableDataProvider createProvider() {
                         return new SelectableListDataProvider<>(pageBase, tasks);
                     }
@@ -177,7 +182,7 @@ public class ResourceTasksPanel extends Panel implements Popupable {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                List<String> oids = createOidList(getTaskListPanel().getSelectedObjects());
+                List<String> oids = createOidList(getTaskListPanel().getSelectedRealObjects());
                 if (!oids.isEmpty()) {
                     OperationResult result = TaskOperationUtils.runNowPerformed(oids, pageBase);
                     pageBase.showResult(result);
@@ -194,7 +199,7 @@ public class ResourceTasksPanel extends Panel implements Popupable {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                List<TaskType> tasks = getTaskListPanel().getSelectedObjects();
+                List<TaskType> tasks = getTaskListPanel().getSelectedRealObjects();
                 if (!tasks.isEmpty()) {
                     OperationResult result = TaskOperationUtils.resumeTasks(tasks, pageBase);
                     pageBase.showResult(result);
@@ -211,7 +216,7 @@ public class ResourceTasksPanel extends Panel implements Popupable {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                List<TaskType> tasks = getTaskListPanel().getSelectedObjects();
+                List<TaskType> tasks = getTaskListPanel().getSelectedRealObjects();
                 if (!tasks.isEmpty()) {
                     OperationResult result = TaskOperationUtils.suspendTasks(tasks, pageBase);
                     pageBase.showResult(result);

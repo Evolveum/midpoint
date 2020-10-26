@@ -14,7 +14,6 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -23,6 +22,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -74,7 +74,12 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
             }
 
             @Override
-            protected ISelectableDataProvider<SelectableBean<F>, SelectableBean<F>> createProvider() {
+            protected UserProfileStorage.TableId getTableId() {
+                return null;
+            }
+
+            @Override
+            protected ISelectableDataProvider<UserSessionManagementType, SelectableBean<F>> createProvider() {
                 LoadableModel<List<UserSessionManagementType>> principals = new LoadableModel<List<UserSessionManagementType>>(true) {
 
                     @Override
@@ -189,7 +194,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
             return Arrays.asList(selectedObject.getOid());
         }
 
-        List<F> selectedObjects = table.getSelectedObjects();
+        List<F> selectedObjects = table.getSelectedRealObjects();
         if (selectedObject != null || !selectedObjects.isEmpty()) {
             return selectedObjects.stream().map(o -> o.getOid()).collect(Collectors.toList());
         }

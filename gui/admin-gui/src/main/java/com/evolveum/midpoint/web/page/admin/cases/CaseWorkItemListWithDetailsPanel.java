@@ -25,7 +25,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
-import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
+import com.evolveum.midpoint.gui.impl.session.ContainerTabStorage;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
@@ -37,7 +37,6 @@ import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.workflow.WorkItemDetailsPanel;
-import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -126,8 +125,8 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
 
     @Override
     protected void initPaging() {
-        getWorkitemsTabStorage().setPaging(getPrismContext().queryFactory()
-                .createPaging(0, ((int) CaseWorkItemListWithDetailsPanel.this.getPageBase().getItemsPerPage(getTableId()))));
+//        getWorkitemsTabStorage().setPaging(getPrismContext().queryFactory()
+//                .createPaging(0, ((int) CaseWorkItemListWithDetailsPanel.this.getPageBase().getItemsPerPage(getTableId()))));
     }
 
     protected abstract UserProfileStorage.TableId getTableId();
@@ -181,9 +180,9 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
 //    @Override
 //    public void itemDetailsPerformed(AjaxRequestTarget target,  IModel<PrismContainerValueWrapper<CaseWorkItemType>> model){}
 
-    private ObjectTabStorage getWorkitemsTabStorage() {
-        return getPageBase().getSessionStorage().getCaseWorkitemsTabStorage();
-    }
+//    private ContainerTabStorage getWorkitemsTabStorage() {
+//        return getPageBase().getSessionStorage().getCaseWorkitemsTabStorage();
+//    }
 
     private MultivalueContainerDetailsPanel<CaseWorkItemType> createWorkItemDetailsPanel(
             ListItem<PrismContainerValueWrapper<CaseWorkItemType>> item) {

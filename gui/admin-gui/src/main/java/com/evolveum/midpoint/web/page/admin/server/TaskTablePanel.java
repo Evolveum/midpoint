@@ -64,7 +64,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -79,7 +78,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TASKS_URL,
                         label = "PageTasks.auth.tasks.label",
                         description = "PageTasks.auth.tasks.description") })
-public class TaskTablePanel extends MainObjectListPanel<TaskType> {
+public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskTablePanel.class);
 
@@ -733,7 +732,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         if (selectedTask != null) {
             selectedTasks.add(selectedTask.getObject().getValue());
         } else {
-            selectedTasks = getSelectedObjects();
+            selectedTasks = getSelectedRealObjects();
         }
 
         if (selectedTasks.isEmpty()) {
@@ -926,12 +925,12 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
             return createStringResource("pageTasks.message.confirmationMessageForSingleTaskObject", actionName, objectName);
         }
 
-        if (CollectionUtils.isEmpty(getSelectedObjects())) {
+        if (CollectionUtils.isEmpty(getSelectedRealObjects())) {
             getSession().warn(getString("pageTasks.message.confirmationMessageForNoTaskObject", actionName));
             return null; //confirmation popup should not be shown
         }
 
-        return createStringResource("pageTasks.message.confirmationMessageForMultipleTaskObject", actionName, getSelectedObjects().size());
+        return createStringResource("pageTasks.message.confirmationMessageForMultipleTaskObject", actionName, getSelectedRealObjects().size());
     }
 
     // must be static, otherwise JVM crashes (probably because of some wicket serialization issues)

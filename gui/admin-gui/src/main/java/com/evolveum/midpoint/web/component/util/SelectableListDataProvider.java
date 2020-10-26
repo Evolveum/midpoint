@@ -28,12 +28,13 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lazyman
  */
 public class SelectableListDataProvider<W extends Serializable, T extends Serializable>
-        extends BaseSortableDataProvider<W> implements ISelectableDataProvider<W, W> {
+        extends BaseSortableDataProvider<W> implements ISelectableDataProvider<T, W> {
 
     private final IModel<List<T>> model;
 
@@ -83,17 +84,30 @@ public class SelectableListDataProvider<W extends Serializable, T extends Serial
     }
 
     @Override
-    public List<W> getSelectedObjects() {
-        List<W> allSelected = new ArrayList<>();
+    public List<T> getSelectedRealObjects() {
+        List<T> allSelected = new ArrayList<>();
         for (Serializable s : super.getAvailableData()) {
             if (s instanceof Selectable) {
-                Selectable<W> selectable = (Selectable<W>) s;
+                Selectable<T> selectable = (Selectable<T>) s;
                 if (selectable.isSelected() && selectable.getValue() != null) {
                     allSelected.add(selectable.getValue());
                 }
             }
         }
+        return allSelected;
+    }
 
+    @Override
+    public @NotNull List<W> getSelectedObjects() {
+        List<W> allSelected = new ArrayList<>();
+        for (Serializable s : super.getAvailableData()) {
+            if (s instanceof Selectable) {
+                Selectable selectable = (Selectable) s;
+                if (selectable.isSelected()) {
+                    allSelected.add((W)selectable);
+                }
+            }
+        }
         return allSelected;
     }
 }

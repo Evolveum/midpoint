@@ -33,6 +33,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
@@ -87,7 +88,13 @@ public class PageCertDefinitions extends PageAdminWorkItems {
         MainObjectListPanel<AccessCertificationDefinitionType> mainPanel =
                 new MainObjectListPanel<AccessCertificationDefinitionType>(
                 ID_TABLE, AccessCertificationDefinitionType.class, null) {
+
             private static final long serialVersionUID = 1L;
+
+            @Override
+            protected UserProfileStorage.TableId getTableId() {
+                return UserProfileStorage.TableId.PAGE_CERT_DEFINITIONS_PANEL;
+            }
 
             @Override
             protected IColumn<SelectableBean<AccessCertificationDefinitionType>, String> createCheckboxColumn() {

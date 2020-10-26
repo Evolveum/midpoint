@@ -344,7 +344,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
     }
 
     private List<T> getSelectedData(String id){
-        return ((ObjectListPanel) get(createComponentPath(ID_TABLES_CONTAINER, id))).getSelectedObjects();
+        return ((ObjectListPanel) get(createComponentPath(ID_TABLES_CONTAINER, id))).getSelectedRealObjects();
     }
 
     private QName getSelectedRelation(){
@@ -382,7 +382,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
     }
 
     private Label  createCountLabel(String id, ObjectListPanel panel){
-        Label label = new Label(id, panel.getSelectedObjects().size());
+        Label label = new Label(id, panel.getSelectedRealObjects().size());
         label.setOutputMarkupId(true);
         return label;
     }
@@ -506,7 +506,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
             protected List<String> load(){
                 List<String> availableIntentValues = new ArrayList<>();
                 if (getResourceTable() != null) {
-                    List<T> selectedResources = getResourceTable().getSelectedObjects();
+                    List<T> selectedResources = getResourceTable().getSelectedRealObjects();
                     if (selectedResources != null && selectedResources.size() > 0) {
                         ResourceType selectedResource = (ResourceType) selectedResources.get(0);
 

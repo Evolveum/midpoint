@@ -13,6 +13,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.web.session.SessionStorage;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -110,6 +112,15 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
             }
 
             @Override
+            protected String getStorageKey() {
+                return SessionStorage.KEY_OBJECT_POLICIES_TAB;
+            }
+
+            @Override
+            protected TableId getTableId() {
+                return UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE;            }
+
+            @Override
             protected List<IColumn<PrismContainerValueWrapper<GlobalPolicyRuleType>, String>> createColumns() {
                 return initBasicColumns();
             }
@@ -182,8 +193,8 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
     }
 
     private void initPaging() {
-        getPageBase().getSessionStorage().getGlobalPolicyRulesTabStorage()
-                .setPaging(getPrismContext().queryFactory().createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.GLOBAL_POLICY_RULES_TAB_TABLE)));
+//        getPageBase().getSessionStorage().getGlobalPolicyRulesTabStorage()
+//                .setPaging(getPrismContext().queryFactory().createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.GLOBAL_POLICY_RULES_TAB_TABLE)));
     }
 
     private List<IColumn<PrismContainerValueWrapper<GlobalPolicyRuleType>, String>> initBasicColumns() {

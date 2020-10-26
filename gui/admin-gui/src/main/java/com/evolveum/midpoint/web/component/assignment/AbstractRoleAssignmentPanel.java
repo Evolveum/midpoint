@@ -99,8 +99,8 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     }
 
     protected void initCustomPaging() {
-        getAssignmentsTabStorage().setPaging(getPrismContext().queryFactory()
-                .createPaging(0, (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)));
+//        getAssignmentsTabStorage().setPaging(getPrismContext().queryFactory()
+//                .createPaging(0, (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)));
     }
 
 //    @Override

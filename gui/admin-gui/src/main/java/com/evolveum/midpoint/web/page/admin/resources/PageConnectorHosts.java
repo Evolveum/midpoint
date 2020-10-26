@@ -39,7 +39,6 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
@@ -199,7 +198,7 @@ public class PageConnectorHosts extends PageAdminObjectList<ConnectorHostType> {
     }
 
     private void deleteHostPerformed(AjaxRequestTarget target) {
-        List<ConnectorHostType> selected = getObjectListPanel().getSelectedObjects();
+        List<ConnectorHostType> selected = getObjectListPanel().getSelectedRealObjects();
         if (selected.isEmpty()) {
             warn(getString("pageResources.message.noHostSelected"));
             target.add(getFeedbackPanel());
@@ -233,7 +232,7 @@ public class PageConnectorHosts extends PageAdminObjectList<ConnectorHostType> {
             private static final long serialVersionUID = 1L;
             @Override
             public String getObject() {
-                List<ConnectorHostType> selected = getObjectListPanel().getSelectedObjects();
+                List<ConnectorHostType> selected = getObjectListPanel().getSelectedRealObjects();
 
                 switch (selected.size()) {
                     case 1:
@@ -249,7 +248,7 @@ public class PageConnectorHosts extends PageAdminObjectList<ConnectorHostType> {
     }
 
     private void deleteHostConfirmedPerformed(AjaxRequestTarget target) {
-        List<ConnectorHostType> selected = getObjectListPanel().getSelectedObjects();
+        List<ConnectorHostType> selected = getObjectListPanel().getSelectedRealObjects();
 
         OperationResult result = new OperationResult(OPERATION_DELETE_HOSTS);
         for (ConnectorHostType selectable : selected) {
@@ -285,7 +284,7 @@ public class PageConnectorHosts extends PageAdminObjectList<ConnectorHostType> {
         PageBase page = (PageBase) getPage();
         Task task = page.createSimpleTask(OPERATION_CONNECTOR_DISCOVERY);
         OperationResult result = task.getResult();
-        List<ConnectorHostType> selected = getObjectListPanel().getSelectedObjects();
+        List<ConnectorHostType> selected = getObjectListPanel().getSelectedRealObjects();
         if (selected.isEmpty()) {
             warn(getString("pageResources.message.noHostSelected"));
             return;

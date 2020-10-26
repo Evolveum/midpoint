@@ -116,7 +116,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 itemDetailsVisible = false;
-                refreshTable(ajaxRequestTarget);
+                getListPanel().refreshTable(ajaxRequestTarget);
                 ajaxRequestTarget.add(MultivalueContainerListPanelWithDetailsPanel.this);
             }
         };

@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.session.SessionStorage;
+
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -114,10 +116,10 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
             private static final long serialVersionUID = 1L;
 
-                    @Override
-                    protected PageStorage getPageStorage() {
-                        return getPageBase().getSessionStorage().getFocusProjectionTableStorage();
-                    }
+//                    @Override
+//                    protected PageStorage getPageStorage() {
+//                        return getPageBase().getSessionStorage().getFocusProjectionTableStorage();
+//                    }
 
                     @Override
                     protected IModel<List<PrismContainerValueWrapper<ShadowType>>> loadValuesModel() {
@@ -185,6 +187,16 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                     }
 
                     @Override
+                    protected String getStorageKey() {
+                        return SessionStorage.KEY_FOCUS_PROJECTION_TABLE;
+                    }
+
+                    @Override
+                    protected TableId getTableId() {
+                        return UserProfileStorage.TableId.FOCUS_PROJECTION_TABLE;
+                    }
+
+                    @Override
                     protected List<IColumn<PrismContainerValueWrapper<ShadowType>, String>> createColumns() {
                         return initBasicColumns();
                     }
@@ -230,8 +242,8 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
     }
 
     private void initPaging() {
-        getPageBase().getSessionStorage().getFocusProjectionTableStorage().setPaging(
-                getPrismContext().queryFactory().createPaging(0, (int) ((PageBase) getPage()).getItemsPerPage(UserProfileStorage.TableId.FOCUS_PROJECTION_TABLE)));
+//        getPageBase().getSessionStorage().getFocusProjectionTableStorage().setPaging(
+//                getPrismContext().queryFactory().createPaging(0, (int) ((PageBase) getPage()).getItemsPerPage(UserProfileStorage.TableId.FOCUS_PROJECTION_TABLE)));
     }
 
     private MultivalueContainerDetailsPanel<ShadowType> getMultivalueContainerDetailsPanel(

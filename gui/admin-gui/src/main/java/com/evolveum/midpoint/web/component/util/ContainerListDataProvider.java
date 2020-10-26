@@ -34,11 +34,13 @@ import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.page.error.PageError;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Created by honchar
  */
 public class ContainerListDataProvider<C extends Containerable> extends BaseSortableDataProvider<PrismContainerValueWrapper<C>>
-        implements ISelectableDataProvider<PrismContainerValueWrapper<C>, PrismContainerValueWrapper<C>> {
+        implements ISelectableDataProvider<C, PrismContainerValueWrapper<C>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerListDataProvider.class);
     private static final String DOT_CLASS = ContainerListDataProvider.class.getName() + ".";
@@ -106,26 +108,6 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSort
         return getAvailableData().iterator();
     }
 
-//    @SuppressWarnings("unchecked")
-//    protected <V extends Comparable<V>> void sort(List<PrismContainerValueWrapper<C>> list) {
-//        Collections.sort(list, new Comparator<PrismContainerValueWrapper<C>>() {
-//            @Override
-//            public int compare(PrismContainerValueWrapper<C> o1, PrismContainerValueWrapper<C> o2) {
-//                SortParam<String> sortParam = getSort();
-//                String propertyName = sortParam.getProperty();
-//                V prop1, prop2;
-//                try {
-//                    prop1 = (V) PropertyUtils.getProperty(o1.getRealValue(), propertyName);
-//                    prop2 = (V) PropertyUtils.getProperty(o2.getRealValue(), propertyName);
-//                } catch (RuntimeException|IllegalAccessException|InvocationTargetException |NoSuchMethodException e) {
-//                    throw new SystemException("Couldn't sort the object list: " + e.getMessage(), e);
-//                }
-//                int comparison = ObjectUtils.compare(prop1, prop2, true);
-//                return sortParam.isAscending() ? comparison : -comparison;
-//            }
-//        });
-//    }
-
     @Override
     protected int internalSize() {
         LOGGER.trace("begin::internalSize()");
@@ -153,6 +135,11 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSort
     @Override
     public List<PrismContainerValueWrapper<C>> getSelectedObjects() {
         return getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
+    }
+
+    @Override
+    public @NotNull List<C> getSelectedRealObjects() {
+        return getAvailableData().stream().filter(a -> a.isSelected()).map(w -> w.getRealValue()).collect(Collectors.toList());
     }
 
     public void setType(Class<C> type) {

@@ -263,7 +263,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
             @Override
             public int getItemsPerPage() {
                 return getPageBase().getSessionStorage().getUserProfile().getTables()
-                        .get(getTableIdKey());
+                        .get(getTableId());
             }
 
             @Override

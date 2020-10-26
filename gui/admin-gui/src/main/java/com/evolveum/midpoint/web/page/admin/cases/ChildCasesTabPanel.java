@@ -133,6 +133,11 @@ public class ChildCasesTabPanel extends AbstractObjectTabPanel<CaseType> {
             }
 
             @Override
+            protected UserProfileStorage.TableId getTableId() {
+                return UserProfileStorage.TableId.PAGE_CASE_CHILD_CASES_TAB;
+            }
+
+            @Override
             protected WebMarkupContainer initButtonToolbar(String id) {
                 return null;
             }
@@ -142,6 +147,10 @@ public class ChildCasesTabPanel extends AbstractObjectTabPanel<CaseType> {
                 return new ArrayList<>();
             }
 
+            @Override
+            protected IColumn<SelectableBean<CaseType>, String> createCheckboxColumn() {
+                return null;
+            }
         };
         table.setOutputMarkupId(true);
         add(table);

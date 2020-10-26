@@ -13,7 +13,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -23,7 +22,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -34,7 +32,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -335,7 +332,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
             return Collections.singletonList(selectedObject);
         } else {
             List<F> objects;
-            objects = focusListComponent.getObjectListPanel().getSelectedObjects();
+            objects = focusListComponent.getObjectListPanel().getSelectedRealObjects();
             if (objects.isEmpty()) {
                 parentPage.warn(parentPage.getString("FocusListInlineMenuHelper.message.nothingSelected"));
                 target.add(parentPage.getFeedbackPanel());

@@ -100,6 +100,11 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
             }
 
             @Override
+            protected UserProfileStorage.TableId getTableId() {
+                return UserProfileStorage.TableId.TABLE_SUBTASKS;
+            }
+
+            @Override
             protected WebMarkupContainer initButtonToolbar(String id) {
                 return null;
             }
@@ -115,6 +120,11 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
             @Override
             protected ISelectableDataProvider createProvider() {
                 return new SelectableListDataProvider<>(TaskSubtasksAndThreadsTabPanel.this, createWorkersModel());
+            }
+
+            @Override
+            protected UserProfileStorage.TableId getTableId() {
+                return UserProfileStorage.TableId.TABLE_WORKERS;
             }
 
             @Override

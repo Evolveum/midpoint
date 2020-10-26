@@ -117,6 +117,11 @@ public class CasesListPanel extends BasePanel<CaseType> {
             }
 
             @Override
+            protected UserProfileStorage.TableId getTableId() {
+                return UserProfileStorage.TableId.PAGE_CASE_CHILD_CASES_TAB;
+            }
+
+            @Override
             protected boolean hideFooterIfSinglePage(){
                 return CasesListPanel.this.isDashboard();
             }

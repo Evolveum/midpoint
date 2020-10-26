@@ -18,7 +18,7 @@ public interface Table {
 
     DataTable getDataTable();
 
-    String getTableIdKey();
+    UserProfileStorage.TableId getTableId();
 
     boolean enableSavePageSize();
 

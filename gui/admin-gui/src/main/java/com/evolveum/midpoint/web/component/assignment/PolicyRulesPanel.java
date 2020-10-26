@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.web.session.SessionStorage;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
@@ -68,15 +70,15 @@ public class PolicyRulesPanel extends AssignmentPanel {
 
     @Override
     protected void initCustomPaging() {
-        getAssignmentsTabStorage().setPaging(getPrismContext().queryFactory()
-                .createPaging(0, ((int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.POLICY_RULES_TAB_TABLE))));
+//        getAssignmentsTabStorage().setPaging(getPrismContext().queryFactory()
+//                .createPaging(0, ((int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.POLICY_RULES_TAB_TABLE))));
 
     }
 
-//    @Override
-//    protected TableId getTableId() {
-//        return UserProfileStorage.TableId.POLICY_RULES_TAB_TABLE;
-//    }
+    @Override
+    protected TableId getTableId() {
+        return UserProfileStorage.TableId.POLICY_RULES_TAB_TABLE;
+    }
 
     @Override
     protected void newAssignmentClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation assignmentTargetRelation) {

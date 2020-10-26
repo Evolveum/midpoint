@@ -20,7 +20,10 @@ import java.util.List;
 public interface ISelectableDataProvider<O, S> extends ISortableDataProvider<S, String> {
 
     @NotNull
-    List<O> getSelectedObjects();
+    List<S> getSelectedObjects();
+
+    @NotNull
+    List<O> getSelectedRealObjects();
 
     void setQuery(ObjectQuery query);
 }

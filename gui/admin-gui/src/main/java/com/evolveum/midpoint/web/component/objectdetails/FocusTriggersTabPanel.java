@@ -19,6 +19,7 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -81,6 +82,16 @@ public class FocusTriggersTabPanel<F extends FocusType> extends AbstractObjectTa
 
                     protected boolean isSearchEnabled(){
                         return false;
+                    }
+
+                    @Override
+                    protected String getStorageKey() {
+                        return SessionStorage.KEY_TRIGGERS_TAB;
+                    }
+
+                    @Override
+                    protected UserProfileStorage.TableId getTableId() {
+                        return UserProfileStorage.TableId.TRIGGERS_TAB_TABLE;
                     }
 
                     @Override

@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.component;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -43,6 +42,7 @@ import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.component.util.*;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -73,7 +73,7 @@ import java.util.stream.Collectors;
 /**
  * @author katkav
  */
-public abstract class ContainerableListPanel<C extends Containerable, SO extends Serializable> extends AbstractContainerableListPanel<C, SO, C> {
+public abstract class ContainerableListPanel<C extends Containerable, SO extends Serializable> extends AbstractContainerableListPanel<C, SO> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerableListPanel.class);
@@ -96,7 +96,7 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
     }
 
     public ContainerableListPanel(String id, Class<? extends C> defaultType, Collection<SelectorOptions<GetOperationOptions>> options) {
-        super(id, defaultType, null);
+        super(id, defaultType);
         this.options = options;
     }
 
@@ -157,7 +157,7 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
     protected List<IColumn<SO, String>> createColumns() {
         List<IColumn<SO, String>> columns;
         if (isCustomColumnsListConfigured()) {
-            columns = initCustomViewColumns();
+            columns = initViewColumns();
         } else {
             columns = initColumns();
         }
@@ -165,7 +165,7 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
         if (menuItems == null) {
             menuItems = new ArrayList<>();
         }
-        addCustomActions(menuItems, () -> getSelectedObjects());
+        addCustomActions(menuItems, () -> getSelectedRealObjects());
 
         if (!menuItems.isEmpty()) {
             InlineMenuButtonColumn<SO> actionsColumn = new InlineMenuButtonColumn<>(menuItems, getPageBase());
@@ -174,7 +174,7 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
         return columns;
     }
 
-    protected List<IColumn<SO, String>> initCustomViewColumns() {
+    protected List<IColumn<SO, String>> initViewColumns() {
         LOGGER.trace("Start to init custom columns for table of type {}", getType());
         List<IColumn<SO, String>> columns = new ArrayList<>();
         List<GuiObjectColumnType> customColumns = getGuiObjectColumnTypeList();
@@ -299,7 +299,9 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
                         }
                     };
                 }
-                columns.add(column);
+                if (column != null) {
+                    columns.add(column);
+                }
             }
         }
         return columns;
@@ -351,7 +353,10 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
             }
             others = getViewColumnsTransformed(defaultView.getColumn());
         } else {
-            columns.add(createNameColumn(null, null, null));
+            IColumn<SO, String> nameColumn = createNameColumn(null, null, null);
+            if (nameColumn != null) {
+                columns.add(nameColumn);
+            }
         }
 
         if (others != null) {
@@ -369,20 +374,20 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
         return (IColumn<SO, String>) ColumnUtils.createIconColumn(getPageBase());
     }
 
-    protected abstract IColumn<SO, String> createNameColumn(IModel<String> columnNameModel, String itemPath,
-            ExpressionType expression);
+    protected IColumn<SO, String> createNameColumn(IModel<String> columnNameModel, String itemPath,
+            ExpressionType expression) {
+        return null;
+    }
 
     protected List<IColumn<SO, String>> createDefaultColumns() {
         return null;
     }
 
-    protected abstract List<InlineMenuItem> createInlineMenu();
-
-    protected WebMarkupContainer createHeader(String headerId) {
-        return initSearch(headerId);
+    protected List<InlineMenuItem> createInlineMenu() {
+        return null;
     }
 
-    protected ISelectableDataProvider<PrismContainerValueWrapper<C>, PrismContainerValueWrapper<C>> createProvider() {
+    protected ISelectableDataProvider<C, SO> createProvider() {
         ContainerListDataProvider<C> provider = new ContainerListDataProvider<C>(this,
                 getType(), createOptions()) {
             private static final long serialVersionUID = 1L;
@@ -417,18 +422,23 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
 
         };
         setDefaultSorting(provider);
-        return provider;
+        return (ISelectableDataProvider<C, SO>) provider;
     }
 
     public int getSelectedObjectsCount(){
-        List<C> selectedList = getSelectedObjects();
+        List<SO> selectedList = getSelectedObjects();
         return selectedList.size();
     }
 
 
-    public List getSelectedObjects() {
+    public List<SO> getSelectedObjects() {
         ISelectableDataProvider dataProvider = getDataProvider();
         return dataProvider.getSelectedObjects();
+    }
+
+    public List<C> getSelectedRealObjects() {
+        ISelectableDataProvider dataProvider = getDataProvider();
+        return dataProvider.getSelectedRealObjects();
     }
 
     protected Collection<SelectorOptions<GetOperationOptions>> createOptions() {
@@ -449,28 +459,6 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
             }
         }
         return options;
-    }
-
-    protected String getTableIdKeyValue(){
-
-        String key;
-        if (getParent() == null) {
-            key = Classes.simpleName(getPageBase().getClass()) + "." + getId();
-        } else {
-            key = Classes.simpleName(getPageBase().getClass()) + "." + Classes.simpleName(getParent().getClass()) + "." + getId();
-        }
-        if (!isCollectionViewPanelForCompiledView()) {
-            return key;
-        }
-        return key + "." + getCollectionNameParameterValue().toString();
-
-//        if (tableId == null) {
-//            return null;
-//        }
-//        if (!isCollectionViewPanelForCompiledView()) {
-//            return tableId.name();
-//        }
-//        return tableId.name() + "." + getCollectionNameParameterValue().toString();
     }
 
     protected List<C> getPreselectedObjectList(){
@@ -544,7 +532,7 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
         if (isCollectionViewPanelForCompiledView()) {
             StringValue collectionName = getCollectionNameParameterValue();
             String collectionNameValue = collectionName != null ? collectionName.toString() : "";
-            return WebComponentUtil.getContainerListPageStorageKey(collectionNameValue);
+            return WebComponentUtil.getObjectListPageStorageKey(collectionNameValue);
         }
 
         return super.getStorageKey();
@@ -692,7 +680,7 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
             }
         }
 
-        target.add((Component) table);
+        target.add(table);
         target.add(getPageBase().getFeedbackPanel());
 
     }
@@ -797,6 +785,25 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
 
     @Override
     protected void initPaging() {
+    }
 
+    protected String getTableIdStringValue() {
+        UserProfileStorage.TableId tableId = getTableId();
+        if (tableId == null) {
+            String key;
+            if (getParent() == null) {
+                key = Classes.simpleName(getPageBase().getClass()) + "." + getId();
+            } else {
+                key = Classes.simpleName(getPageBase().getClass()) + "." + Classes.simpleName(getParent().getClass()) + "." + getId();
+            }
+            if (!isCollectionViewPanelForCompiledView()) {
+                return key;
+            }
+            return key + "." + getCollectionNameParameterValue().toString();
+        }
+        if (!isCollectionViewPanelForCompiledView()) {
+            return tableId.name();
+        }
+        return tableId.name() + "." + getCollectionNameParameterValue().toString();
     }
 }

@@ -234,7 +234,7 @@ public class PageCases extends PageAdminObjectList<CaseType> {
     }
 
     private void deleteCaseObjectsConfirmed(AjaxRequestTarget target) {
-        deleteCaseObjectsConfirmed(target, getObjectListPanel().getSelectedObjects());
+        deleteCaseObjectsConfirmed(target, getObjectListPanel().getSelectedRealObjects());
     }
 
     private void deleteCaseObjectsConfirmed(AjaxRequestTarget target, List<CaseType> casesToDelete) {
@@ -256,7 +256,7 @@ public class PageCases extends PageAdminObjectList<CaseType> {
     }
 
     private void stopCaseProcessConfirmed(AjaxRequestTarget target) {
-        stopCaseProcessConfirmed(target, getObjectListPanel().getSelectedObjects());
+        stopCaseProcessConfirmed(target, getObjectListPanel().getSelectedRealObjects());
     }
 
     private void stopCaseProcessConfirmed(AjaxRequestTarget target, List<CaseType> casesToStop) {
@@ -282,10 +282,10 @@ public class PageCases extends PageAdminObjectList<CaseType> {
     }
 
     private boolean warnIfNoCaseSelected(AjaxRequestTarget target) {
-        if (CollectionUtils.isEmpty(getObjectListPanel().getSelectedObjects())) {
+        if (CollectionUtils.isEmpty(getObjectListPanel().getSelectedRealObjects())) {
             warn(getString("PageCases.noCaseSelected"));
             target.add(getFeedbackPanel());
         }
-        return CollectionUtils.isEmpty(getObjectListPanel().getSelectedObjects());
+        return CollectionUtils.isEmpty(getObjectListPanel().getSelectedRealObjects());
     }
 }

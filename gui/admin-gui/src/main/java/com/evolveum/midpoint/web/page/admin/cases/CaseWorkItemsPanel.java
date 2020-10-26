@@ -13,6 +13,9 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 
+import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -91,10 +94,10 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
         ContainerableListPanel workItemsPanel =
                 new ContainerableListPanel<CaseWorkItemType, PrismContainerValueWrapper<CaseWorkItemType>>(ID_WORKITEMS_TABLE, CaseWorkItemType.class) {
 
-            @Override
-            protected PageStorage getPageStorage() {
-                return CaseWorkItemsPanel.this.getPageBase().getSessionStorage().getWorkItemStorage();
-            }
+//            @Override
+//            protected PageStorage getPageStorage() {
+//                return CaseWorkItemsPanel.this.getPageBase().getSessionStorage().getWorkItemStorage();
+//            }
 
             @Override
             protected List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> createDefaultColumns() {
@@ -122,6 +125,11 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
                         .item(PrismConstants.T_PARENT, CaseType.F_OBJECT_REF).resolve()
                         .item(PrismConstants.T_PARENT, CaseType.F_TARGET_REF).resolve()
                         .build();
+            }
+
+            @Override
+            protected UserProfileStorage.TableId getTableId() {
+                return UserProfileStorage.TableId.PAGE_CASE_WORK_ITEMS_PANEL;
             }
 
             @Override
@@ -154,6 +162,10 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
                 return CaseWorkItemsPanel.this.createNameColumn();
             }
 
+            @Override
+            protected String getStorageKey() {
+                return SessionStorage.KEY_WORK_ITEMS;
+            }
         };
         workItemsPanel.setOutputMarkupId(true);
         add(workItemsPanel);

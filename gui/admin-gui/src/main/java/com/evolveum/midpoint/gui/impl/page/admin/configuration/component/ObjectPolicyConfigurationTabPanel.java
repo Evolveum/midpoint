@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -109,6 +110,16 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<PrismContainerW
             @Override
             protected ObjectQuery createQuery() {
                     return ObjectPolicyConfigurationTabPanel.this.createQuery();
+            }
+
+            @Override
+            protected String getStorageKey() {
+                return SessionStorage.KEY_OBJECT_POLICIES_TAB;
+            }
+
+            @Override
+            protected UserProfileStorage.TableId getTableId() {
+                return UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE;
             }
 
             @Override
@@ -206,8 +217,8 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<PrismContainerW
     }
 
     private void initPaging() {
-        getPageBase().getSessionStorage().getObjectPoliciesConfigurationTabStorage().setPaging(
-                getPrismContext().queryFactory().createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE)));
+//        getPageBase().getSessionStorage().getObjectPoliciesConfigurationTabStorage().setPaging(
+//                getPrismContext().queryFactory().createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE)));
     }
 
     private List<IColumn<PrismContainerValueWrapper<ObjectPolicyConfigurationType>, String>> initBasicColumns() {

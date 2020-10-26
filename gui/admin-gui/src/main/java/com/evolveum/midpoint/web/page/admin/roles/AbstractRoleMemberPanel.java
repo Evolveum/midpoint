@@ -31,6 +31,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -116,13 +117,13 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     protected static final String ID_SEARCH_BY_RELATION = "searchByRelation";
 
     private static final Map<QName, Map<String, String>> AUTHORIZATIONS = new HashMap<>();
-    private static final Map<QName, String> TABLES_ID_KEYS = new HashMap<>();
+    private static final Map<QName, UserProfileStorage.TableId> TABLES_ID = new HashMap<>();
 
     static {
-        TABLES_ID_KEYS.put(RoleType.COMPLEX_TYPE, SessionStorage.KEY_ROLE_MEMBER_PANEL);
-        TABLES_ID_KEYS.put(ServiceType.COMPLEX_TYPE, SessionStorage.KEY_SERVICE_MEMBER_PANEL);
-        TABLES_ID_KEYS.put(OrgType.COMPLEX_TYPE, SessionStorage.KEY_ORG_MEMBER_PANEL);
-        TABLES_ID_KEYS.put(ArchetypeType.COMPLEX_TYPE, SessionStorage.KEY_SERVICE_ARCHETYPE_PANEL);
+        TABLES_ID.put(RoleType.COMPLEX_TYPE, UserProfileStorage.TableId.ROLE_MEMBER_PANEL);
+        TABLES_ID.put(ServiceType.COMPLEX_TYPE, UserProfileStorage.TableId.SERVICE_MEMBER_PANEL);
+        TABLES_ID.put(OrgType.COMPLEX_TYPE, UserProfileStorage.TableId.ORG_MEMBER_PANEL);
+        TABLES_ID.put(ArchetypeType.COMPLEX_TYPE, UserProfileStorage.TableId.ARCHETYPE_MEMBER_PANEL);
     }
 
     static {
@@ -193,6 +194,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 ID_MEMBER_TABLE, type, getSearchOptions()) {
 
             private static final long serialVersionUID = 1L;
+
+            @Override
+            protected UserProfileStorage.TableId getTableId() {
+                return AbstractRoleMemberPanel.this.getTableId(getComplexTypeQName());
+            }
 
             @Override
             protected void objectDetailsPerformed(AjaxRequestTarget target, ObjectType object) {
@@ -291,11 +297,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             protected boolean isTypeChanged(Class<ObjectType> newTypeClass) {
                 return true;
             }
-
-            @Override
-            protected String getTableIdKeyValue() {
-                return getTableIdKey(getComplexTypeQName());
-            }
         };
         childrenListPanel.setOutputMarkupId(true);
         memberContainer.add(childrenListPanel);
@@ -386,8 +387,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
     }
 
-    protected String getTableIdKey(QName complextType) {
-        return TABLES_ID_KEYS.get(complextType);
+    protected UserProfileStorage.TableId getTableId(QName complextType) {
+        return TABLES_ID.get(complextType);
     }
 
     protected Map<String, String> getAuthorizations(QName complexType) {
@@ -759,7 +760,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             case ALL_DIRECT:
                 return MemberOperationsHelper.createDirectMemberQuery(getModelObject(), getSearchType().getTypeQName(), relations, getParameter(ID_TENANT), getParameter(ID_PROJECT), getPrismContext());
             case SELECTED:
-                return MemberOperationsHelper.createSelectedObjectsQuery(getMemberTable().getSelectedObjects(), getPrismContext());
+                return MemberOperationsHelper.createSelectedObjectsQuery(getMemberTable().getSelectedRealObjects(), getPrismContext());
         }
 
         return null;
@@ -948,7 +949,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     }
 
     protected QueryScope getQueryScope() {
-        if (CollectionUtils.isNotEmpty(MemberOperationsHelper.getFocusOidToRecompute(getMemberTable().getSelectedObjects()))) {
+        if (CollectionUtils.isNotEmpty(MemberOperationsHelper.getFocusOidToRecompute(getMemberTable().getSelectedRealObjects()))) {
             return QueryScope.SELECTED;
         }
 

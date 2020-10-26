@@ -50,7 +50,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     private static final String ID_FOOTER_CONTAINER = "footerContainer";
     private static final String ID_BUTTON_TOOLBAR = "buttonToolbar";
 
-    private String tableIdKey;
+    private UserProfileStorage.TableId tableId;
     private boolean showPaging;
     private String additionalBoxCssClasses = null;
     private boolean isRefreshEnabled;
@@ -59,12 +59,12 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     private static final int DEFAULT_REFRESH_INTERVAL = 60;
 
     public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns) {
-        this(id, provider, columns, (String) null, UserProfileStorage.DEFAULT_PAGING_SIZE);
+        this(id, provider, columns, null, UserProfileStorage.DEFAULT_PAGING_SIZE);
     }
 
     public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
-            String tableIdKey) {
-        this(id, provider, columns, tableIdKey, UserProfileStorage.DEFAULT_PAGING_SIZE);
+            UserProfileStorage.TableId tableId) {
+        this(id, provider, columns, tableId, UserProfileStorage.DEFAULT_PAGING_SIZE);
     }
 
     public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
@@ -73,19 +73,14 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     }
 
     public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
-            String tableIdKey, int pageSize) {
-        this(id, provider, columns, tableIdKey, pageSize, false);
-    }
-
-    public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
             UserProfileStorage.TableId tableId, int pageSize) {
-        this(id, provider, columns, tableId != null ? tableId.name() : null, pageSize, false);
+        this(id, provider, columns, tableId, pageSize, false);
     }
 
     public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
-            String tableIdKey, int pageSize, boolean isRefreshEnabled) {
+            UserProfileStorage.TableId tableId, int pageSize, boolean isRefreshEnabled) {
         super(id);
-        this.tableIdKey = tableIdKey;
+        this.tableId = tableId;
         this.isRefreshEnabled = isRefreshEnabled;
 
         initLayout(columns, provider, pageSize);
@@ -184,8 +179,8 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     }
 
     @Override
-    public String getTableIdKey() {
-        return tableIdKey;
+    public UserProfileStorage.TableId getTableId() {
+        return tableId;
     }
 
     @Override
@@ -312,11 +307,11 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
                 @Override
                 protected void pageSizeChanged(AjaxRequestTarget target) {
                     Table table = findParent(Table.class);
-                    String tableIdKey = table.getTableIdKey();
+                    UserProfileStorage.TableId tableId = table.getTableId();
 
-                    if (tableIdKey != null && table.enableSavePageSize()) {
+                    if (tableId != null && table.enableSavePageSize()) {
                         PageBase page = (PageBase) getPage();
-                        Integer pageSize = page.getSessionStorage().getUserProfile().getPagingSize(tableIdKey);
+                        Integer pageSize = page.getSessionStorage().getUserProfile().getPagingSize(tableId);
 
                         table.setItemsPerPage(pageSize);
                     }

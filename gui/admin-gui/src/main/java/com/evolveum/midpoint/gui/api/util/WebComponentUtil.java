@@ -2677,7 +2677,7 @@ public final class WebComponentUtil {
             ColumnMenuAction action, MainObjectListPanel<AR> abstractRoleTable, PageBase pageBase) {
         List<AR> selectedRoles = new ArrayList<>();
         if (action.getRowModel() == null) {
-            selectedRoles.addAll(abstractRoleTable.getSelectedObjects());
+            selectedRoles.addAll(abstractRoleTable.getSelectedRealObjects());
         } else {
             selectedRoles.add(((SelectableBeanImpl<AR>) action.getRowModel().getObject()).getValue());
         }
@@ -4507,11 +4507,11 @@ public final class WebComponentUtil {
         return sb.toString();
     }
 
-    public static String getContainerListPageStorageKey(String additionalKeyValue){
+    public static String getObjectListPageStorageKey(String additionalKeyValue){
         if (StringUtils.isEmpty(additionalKeyValue)){
-            return SessionStorage.KEY_CONTAINER_LIST;
+            return null;
         }
-        return SessionStorage.KEY_CONTAINER_LIST + "." + additionalKeyValue;
+        return SessionStorage.KEY_OBJECT_LIST + "." + additionalKeyValue;
     }
 
     public static AssignmentHolderType getObjectFromAddDeltyForCase(CaseType aCase) {

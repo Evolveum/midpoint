@@ -134,7 +134,7 @@ public class ExportingPanel extends BasePanel<ExportingPanel> implements Popupab
 
     private void performSelectedColumns(BoxedTablePanel<SelectableBean<Integer>> table) {
         exportedColumnsIndex.clear();
-        List<Integer> availableData = ((SelectableListDataProvider) table.getDataTable().getDataProvider()).getSelectedObjects();
+        List<Integer> availableData = ((SelectableListDataProvider) table.getDataTable().getDataProvider()).getSelectedRealObjects();
         exportedColumnsIndex.addAll(availableData);
     }
 

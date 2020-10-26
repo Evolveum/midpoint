@@ -155,7 +155,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                List<O> selected = ((PopupObjectListPanel) getParent().get(ID_TABLE)).getSelectedObjects();
+                List<O> selected = ((PopupObjectListPanel) getParent().get(ID_TABLE)).getSelectedRealObjects();
                 ObjectTypes type = ObjectBrowserPanel.this.typeModel.getObject();
                 QName qname = type != null ? type.getTypeQName() : null;
                 ObjectBrowserPanel.this.addPerformed(target, qname, selected);

@@ -148,7 +148,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
     @Override
     protected MemberPanelStorage getMemberPanelStorage(){
-        String storageKey = getTableIdKey(getComplexTypeQName());
+        String storageKey = getTableId(getComplexTypeQName()) != null ? getTableId(getComplexTypeQName()).name() : null;
         PageStorage storage = null;
         if (StringUtils.isNotEmpty(storageKey)) {
             storage = getPageBase().getSessionStorage().getPageStorageMap().get(storageKey);

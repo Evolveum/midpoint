@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -123,24 +124,24 @@ public class TableConfigurationPanel extends BasePanel {
             @Override
             public Integer getObject() {
                 Table tablePanel = findParent(Table.class);
-                String tableIdKey = tablePanel.getTableIdKey();
-                if (tableIdKey == null || !tablePanel.enableSavePageSize()) {
+                UserProfileStorage.TableId tableId = tablePanel.getTableId();
+                if (tableId == null || !tablePanel.enableSavePageSize()) {
                     return tablePanel.getItemsPerPage();
                 }
 
-                return getPageBase().getSessionStorage().getUserProfile().getPagingSize(tableIdKey);
+                return getPageBase().getSessionStorage().getUserProfile().getPagingSize(tableId);
             }
 
             @Override
             public void setObject(Integer o) {
                 Table tablePanel = findParent(Table.class);
-                String tableIdKey = tablePanel.getTableIdKey();
-                if (tableIdKey == null || !tablePanel.enableSavePageSize()) {
+                UserProfileStorage.TableId tableId = tablePanel.getTableId();
+                if (tableId == null || !tablePanel.enableSavePageSize()) {
                     tablePanel.setItemsPerPage(o);
                     return;
                 }
 
-                getPageBase().getSessionStorage().getUserProfile().setPagingSize(tableIdKey, o);
+                getPageBase().getSessionStorage().getUserProfile().setPagingSize(tableId, o);
             }
 
             @Override

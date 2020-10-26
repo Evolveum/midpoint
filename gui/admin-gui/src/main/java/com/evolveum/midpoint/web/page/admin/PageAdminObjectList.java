@@ -110,6 +110,11 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
             }
 
             @Override
+            protected UserProfileStorage.TableId getTableId() {
+                return PageAdminObjectList.this.getTableId();
+            }
+
+            @Override
             protected String getStorageKey() {
                 return super.getStorageKey();
             }

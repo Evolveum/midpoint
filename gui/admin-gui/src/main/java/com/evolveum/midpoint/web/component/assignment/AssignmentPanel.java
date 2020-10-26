@@ -12,7 +12,9 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.web.session.SessionStorage;
+
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -50,7 +52,6 @@ import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ConstructionValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
-import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.*;
@@ -78,8 +79,6 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentType>> {
@@ -156,10 +155,10 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                         return newButtonDescription();
                     }
 
-                    @Override
-                    protected PageStorage getPageStorage() {
-                        return getAssignmentsTabStorage();
-                    }
+//                    @Override
+//                    protected PageStorage getPageStorage() {
+//                        return getAssignmentsTabStorage();
+//                    }
 
                     @Override
                     protected boolean getNewObjectGenericButtonVisibility(){
@@ -209,8 +208,18 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                     }
 
                     @Override
+                    protected String getStorageKey() {
+                        return getAssignmentsTabStorageKey();
+                    }
+
+                    @Override
                     protected WebMarkupContainer getSearchPanel(String contentAreaId) {
                         return getCustomSearchPanel(contentAreaId);
+                    }
+
+                    @Override
+                    protected UserProfileStorage.TableId getTableId() {
+                        return AssignmentPanel.this.getTableId();
                     }
 
                     @Override
@@ -335,18 +344,22 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
         if (getModel() == null || getModelObject() == null) {
             return;
         }
-        getAssignmentsTabStorage().setPaging(getPrismContext().queryFactory().createPaging(0, (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)));
+//        getAssignmentsTabStorage().setPaging(getPrismContext().queryFactory().createPaging(0, (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)));
     }
 
-    protected ObjectTabStorage getAssignmentsTabStorage() {
+    protected String getAssignmentsTabStorageKey() {
         if (getModel() == null || getModelObject() == null) {
             return null;
         }
         if (isInducement()) {
-            return getParentPage().getSessionStorage().getInducementsTabStorage();
+            return SessionStorage.KEY_INDUCEMENTS_TAB;
         } else {
-            return getParentPage().getSessionStorage().getAssignmentsTabStorage();
+            return SessionStorage.KEY_ASSIGNMENTS_TAB;
         }
+    }
+
+    protected UserProfileStorage.TableId getTableId() {
+        return UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE;
     }
 
     protected List<PrismContainerValueWrapper<AssignmentType>> customPostSearch(List<PrismContainerValueWrapper<AssignmentType>> assignments) {
@@ -624,7 +637,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
             }
             getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newAssignment, getModelObject(),
                     target);
-            getMultivalueContainerListPanel().refreshTable(target);
+            getMultivalueContainerListPanel().getListPanel().refreshTable(target);
             getMultivalueContainerListPanel().reloadSavePreviewButtons(target);
 
         });

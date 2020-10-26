@@ -27,6 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.*;
@@ -80,7 +81,19 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
     }
 
     @Override
-    public List<C> getSelectedObjects() {
+    public List<SelectableBean<C>> getSelectedObjects() {
+        preprocessSelectedDataInternal();
+        List<SelectableBean<C>> ret = new ArrayList<SelectableBean<C>>();
+        for (SelectableBean<C> selectable : super.getAvailableData()) {
+            if (selectable.isSelected()) {
+                (ret).add(selectable);
+            }
+        }
+        return ret;
+    }
+
+    @Override
+    public @NotNull List<C> getSelectedRealObjects() {
         preprocessSelectedDataInternal();
         for (SelectableBean<C> selectable : super.getAvailableData()) {
             if (selectable.isSelected() && selectable.getValue() != null) {

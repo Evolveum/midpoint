@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
@@ -48,7 +50,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PageDescriptor(
@@ -78,6 +79,11 @@ public class PageNodes extends PageAdmin {
 
     private void initLayout() {
         MainObjectListPanel<NodeType> table = new MainObjectListPanel<NodeType>(ID_TABLE, NodeType.class, null) {
+
+            @Override
+            protected UserProfileStorage.TableId getTableId() {
+                return UserProfileStorage.TableId.PAGE_TASKS_NODES_PANEL;
+            }
 
             @Override
             protected void objectDetailsPerformed(AjaxRequestTarget target, NodeType object) {
@@ -464,7 +470,7 @@ public class PageNodes extends PageAdmin {
     }
 
     private List<NodeType> getSelectedNodes() {
-        return getTable().getSelectedObjects();
+        return getTable().getSelectedRealObjects();
     }
 
     @SuppressWarnings("unchecked")

@@ -12,6 +12,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -223,5 +225,10 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
     @Override
     protected boolean enableSavePageSize() {
         return false;
+    }
+
+    @Override
+    protected UserProfileStorage.TableId getTableId() {
+        return null;
     }
 }

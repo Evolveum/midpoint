@@ -331,7 +331,7 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
     private List<ResourceType> isAnyResourceSelected(AjaxRequestTarget target, ResourceType single) {
         return single != null
                 ? Collections.singletonList(single)
-                : getResourceTable().getSelectedObjects();
+                : getResourceTable().getSelectedRealObjects();
 
     }
 
@@ -389,7 +389,7 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
                 if (singleDelete != null) {
                     selected.add(singleDelete);
                 } else {
-                    selected = getResourceTable().getSelectedObjects();
+                    selected = getResourceTable().getSelectedRealObjects();
                 }
 
                 if (selected.size() == 1) {
@@ -407,7 +407,7 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
         if (singleDelete != null) {
             selected.add(singleDelete);
         } else {
-            selected = getResourceTable().getSelectedObjects();
+            selected = getResourceTable().getSelectedRealObjects();
         }
 
         OperationResult result = new OperationResult(OPERATION_DELETE_RESOURCES);

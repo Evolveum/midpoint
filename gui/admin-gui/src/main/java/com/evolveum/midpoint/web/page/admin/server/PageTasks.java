@@ -84,6 +84,7 @@ public class PageTasks extends PageAdmin {
         super(params);
 
         TaskTablePanel tablePanel = new TaskTablePanel(ID_TABLE, createOperationOptions()) {
+
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -109,6 +110,11 @@ public class PageTasks extends PageAdmin {
                 List<IColumn<SelectableBean<TaskType>, String>> columns = super.createDefaultColumns();
                 addCustomColumns(columns);
                 return columns;
+            }
+
+            @Override
+            protected UserProfileStorage.TableId getTableId() {
+                return UserProfileStorage.TableId.TABLE_TASKS;
             }
         };
         add(tablePanel);

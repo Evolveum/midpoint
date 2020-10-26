@@ -6,11 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.web.session.SessionStorage;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -63,9 +64,7 @@ import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -129,7 +128,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<PrismContainerWrappe
 
             @Override
             protected void initPaging() {
-                initLoggerPaging();
+//                initLoggerPaging();
             }
 
             @Override
@@ -140,6 +139,16 @@ public class LoggingConfigurationTabPanel extends BasePanel<PrismContainerWrappe
             @Override
             protected ObjectQuery createQuery() {
                 return null;
+            }
+
+            @Override
+            protected String getStorageKey() {
+                return SessionStorage.KEY_LOGGING_TAB_LOGGER_TABLE;
+            }
+
+            @Override
+            protected UserProfileStorage.TableId getTableId() {
+                return UserProfileStorage.TableId.LOGGING_TAB_LOGGER_TABLE;
             }
 
             @Override
@@ -184,7 +193,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<PrismContainerWrappe
 
             @Override
             protected void initPaging() {
-                initAppenderPaging();
+//                initAppenderPaging();
             }
 
             @Override
@@ -195,6 +204,16 @@ public class LoggingConfigurationTabPanel extends BasePanel<PrismContainerWrappe
             @Override
             protected ObjectQuery createQuery() {
                 return null;
+            }
+
+            @Override
+            protected String getStorageKey() {
+                return SessionStorage.KEY_LOGGING_TAB_APPENDER_TABLE;
+            }
+
+            @Override
+            protected UserProfileStorage.TableId getTableId() {
+                return UserProfileStorage.TableId.LOGGING_TAB_APPENDER_TABLE;
             }
 
             @Override
@@ -348,7 +367,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<PrismContainerWrappe
     protected void newAppendersClickPerformed(AjaxRequestTarget target) {
         MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType> appenders
                 = (MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType>) get(ID_APPENDERS);
-        DropDownChoicePanel<QName> appendersChoice = (DropDownChoicePanel<QName>) getAppendersMultivalueContainerListPanel().getTable().getFooterButtonToolbar().get(createComponentPath(ID_CHOICE_APPENDER_TYPE_FORM, ID_APPENDERS_CHOICE));
+        DropDownChoicePanel<QName> appendersChoice = (DropDownChoicePanel<QName>) getAppendersMultivalueContainerListPanel().getListPanel().getTable().getFooterButtonToolbar().get(createComponentPath(ID_CHOICE_APPENDER_TYPE_FORM, ID_APPENDERS_CHOICE));
         PrismContainerValue<AppenderConfigurationType> newObjectPolicy = null;
         if (QNameUtil.match(appendersChoice.getModel().getObject(), FileAppenderConfigurationType.COMPLEX_TYPE)) {
             newObjectPolicy = new FileAppenderConfigurationType().asPrismContainerValue();
@@ -422,15 +441,15 @@ public class LoggingConfigurationTabPanel extends BasePanel<PrismContainerWrappe
         return ((MultivalueContainerListPanel<ClassLoggerConfigurationType>) get(ID_LOGGERS));
     }
 
-    private void initAppenderPaging() {
-        getPageBase().getSessionStorage().getLoggingConfigurationTabAppenderTableStorage().setPaging(
-                getPrismContext().queryFactory().createPaging(0, (int) ((PageBase) getPage()).getItemsPerPage(UserProfileStorage.TableId.LOGGING_TAB_APPENDER_TABLE)));
-    }
-
-    private void initLoggerPaging() {
-        getPageBase().getSessionStorage().getLoggingConfigurationTabLoggerTableStorage().setPaging(
-                getPrismContext().queryFactory().createPaging(0, (int) ((PageBase) getPage()).getItemsPerPage(UserProfileStorage.TableId.LOGGING_TAB_APPENDER_TABLE)));
-    }
+//    private void initAppenderPaging() {
+//        getPageBase().getSessionStorage().getLoggingConfigurationTabAppenderTableStorage().setPaging(
+//                getPrismContext().queryFactory().createPaging(0, (int) ((PageBase) getPage()).getItemsPerPage(UserProfileStorage.TableId.LOGGING_TAB_APPENDER_TABLE)));
+//    }
+//
+//    private void initLoggerPaging() {
+//        getPageBase().getSessionStorage().getLoggingConfigurationTabLoggerTableStorage().setPaging(
+//                getPrismContext().queryFactory().createPaging(0, (int) ((PageBase) getPage()).getItemsPerPage(UserProfileStorage.TableId.LOGGING_TAB_APPENDER_TABLE)));
+//    }
 
     private List<IColumn<PrismContainerValueWrapper<AppenderConfigurationType>, String>> initAppendersBasicColumns(IModel<PrismContainerWrapper<AppenderConfigurationType>> appenderModel) {
         List<IColumn<PrismContainerValueWrapper<AppenderConfigurationType>, String>> columns = new ArrayList<>();

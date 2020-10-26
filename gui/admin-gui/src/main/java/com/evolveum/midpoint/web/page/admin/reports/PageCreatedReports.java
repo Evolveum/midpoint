@@ -463,7 +463,7 @@ public class PageCreatedReports extends PageAdminObjectList<ReportDataType> {
     }
 
     private List<ReportDataType> getSelectedData() {
-        return getObjectListPanel().getSelectedObjects();
+        return getObjectListPanel().getSelectedRealObjects();
     }
 
     private ConfirmationPanel getDeleteDialogPanel() {

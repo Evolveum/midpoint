@@ -91,12 +91,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
         return value.toString();
     }
 
-    @Override
-    public List<O> getSelectedObjects() {
-        ISelectableDataProvider dataProvider = getDataProvider();
-        return dataProvider.getSelectedObjects();
-    }
-
     protected Search createSearch() {
         return SearchFactory.createSearch(type.getClassDefinition(), isCollectionViewPanelForCompiledView() ? getCollectionNameParameterValue().toString() : null,
                 getFixedSearchItems(), null, getPageBase(), true);

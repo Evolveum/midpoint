@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
+import com.evolveum.midpoint.gui.impl.session.ContainerTabStorage;
 import com.evolveum.midpoint.gui.impl.session.WorkItemsStorage;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -53,12 +53,12 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_LOGGING_TAB_LOGGER_TABLE = "loggingTabLoggerTable";
     public static final String KEY_FOCUS_PROJECTION_TABLE = "focusProjectionTable";
     public static final String KEY_NOTIFICATION_TAB_MAIL_SERVER_TABLE = "notificationTabMailServerTable";
-    public static final String KEY_ROLE_MEMBER_PANEL = "roleMemberPanel";
-    public static final String KEY_ORG_MEMBER_PANEL = "orgMemberPanel";
-    public static final String KEY_SERVICE_MEMBER_PANEL = "serviceMemberPanel";
-    public static final String KEY_SERVICE_ARCHETYPE_PANEL = "archetypeMemberPanel";
+    public static final String KEY_ROLE_MEMBER_PANEL = UserProfileStorage.TableId.ROLE_MEMBER_PANEL.name();
+    public static final String KEY_ORG_MEMBER_PANEL = UserProfileStorage.TableId.ORG_MEMBER_PANEL.name();
+    public static final String KEY_SERVICE_MEMBER_PANEL = UserProfileStorage.TableId.SERVICE_MEMBER_PANEL.name();
+    public static final String KEY_SERVICE_ARCHETYPE_PANEL = UserProfileStorage.TableId.ARCHETYPE_MEMBER_PANEL.name();
     public static final String KEY_WORK_ITEMS = "workItems";
-    public static final String KEY_CONTAINER_LIST = "containerListPage";
+    public static final String KEY_OBJECT_LIST = "containerListPage";
     public static final String KEY_CASE_WORKITEMS_TAB = "workitemsTab";
     public static final String KEY_CASE_EVENTS_TAB = "caseEventsTab";
     public static final String KEY_ORG_STRUCTURE_PANEL_STORAGE = "orgStructurePanelStorage";
@@ -150,59 +150,59 @@ public class SessionStorage implements Serializable, DebugDumpable {
 
     }
 
-    private ObjectTabStorage getObjectTabStorage(String key) {
+    private ContainerTabStorage getContainerTabStorage(String key) {
         if (pageStorageMap.get(key) == null) {
-            pageStorageMap.put(key, new ObjectTabStorage());
+            pageStorageMap.put(key, new ContainerTabStorage());
         }
-        return (ObjectTabStorage) pageStorageMap.get(key);
+        return (ContainerTabStorage) pageStorageMap.get(key);
     }
 
-    public ObjectTabStorage getAssignmentsTabStorage() {
-        return getObjectTabStorage(KEY_ASSIGNMENTS_TAB);
-    }
+//    public ContainerTabStorage getAssignmentsTabStorage() {
+//        return getContainerTabStorage(KEY_ASSIGNMENTS_TAB);
+//    }
+//
+//    public ContainerTabStorage getInducementsTabStorage() {
+//        return getContainerTabStorage(KEY_INDUCEMENTS_TAB);
+//    }
+//
+//    public ContainerTabStorage getTriggersTabStorage() {
+//        return getContainerTabStorage(KEY_TRIGGERS_TAB);
+//    }
+//
+//    public ContainerTabStorage getInducedEntitlementsTabStorage() {
+//        return getContainerTabStorage(KEY_INDUCED_ENTITLEMENTS_TAB);
+//    }
+//
+//    public ContainerTabStorage getCaseWorkitemsTabStorage() {
+//        return getContainerTabStorage(KEY_CASE_WORKITEMS_TAB);
+//    }
+//
+//    public ContainerTabStorage getCaseEventsTabStorage() {
+//        return getContainerTabStorage(KEY_CASE_EVENTS_TAB);
+//    }
+//
+//    public ContainerTabStorage getObjectPoliciesConfigurationTabStorage() {
+//        return getContainerTabStorage(KEY_OBJECT_POLICIES_TAB);
+//    }
+//
+//    public ContainerTabStorage getGlobalPolicyRulesTabStorage() {
+//        return getContainerTabStorage(KEY_GLOBAL_POLICY_RULES_TAB);
+//    }
+//
+//    public ContainerTabStorage getLoggingConfigurationTabAppenderTableStorage() {
+//        return getContainerTabStorage(KEY_LOGGING_TAB_APPENDER_TABLE);
+//    }
+//
+//    public ContainerTabStorage getLoggingConfigurationTabLoggerTableStorage() {
+//        return getContainerTabStorage(KEY_LOGGING_TAB_LOGGER_TABLE);
+//    }
+//
+//    public ContainerTabStorage getFocusProjectionTableStorage() {
+//        return getContainerTabStorage(KEY_FOCUS_PROJECTION_TABLE);
+//    }
 
-    public ObjectTabStorage getInducementsTabStorage() {
-        return getObjectTabStorage(KEY_INDUCEMENTS_TAB);
-    }
-
-    public ObjectTabStorage getTriggersTabStorage() {
-        return getObjectTabStorage(KEY_TRIGGERS_TAB);
-    }
-
-    public ObjectTabStorage getInducedEntitlementsTabStorage() {
-        return getObjectTabStorage(KEY_INDUCED_ENTITLEMENTS_TAB);
-    }
-
-    public ObjectTabStorage getCaseWorkitemsTabStorage() {
-        return getObjectTabStorage(KEY_CASE_WORKITEMS_TAB);
-    }
-
-    public ObjectTabStorage getCaseEventsTabStorage() {
-        return getObjectTabStorage(KEY_CASE_EVENTS_TAB);
-    }
-
-    public ObjectTabStorage getObjectPoliciesConfigurationTabStorage() {
-        return getObjectTabStorage(KEY_OBJECT_POLICIES_TAB);
-    }
-
-    public ObjectTabStorage getGlobalPolicyRulesTabStorage() {
-        return getObjectTabStorage(KEY_GLOBAL_POLICY_RULES_TAB);
-    }
-
-    public ObjectTabStorage getLoggingConfigurationTabAppenderTableStorage() {
-        return getObjectTabStorage(KEY_LOGGING_TAB_APPENDER_TABLE);
-    }
-
-    public ObjectTabStorage getLoggingConfigurationTabLoggerTableStorage() {
-        return getObjectTabStorage(KEY_LOGGING_TAB_LOGGER_TABLE);
-    }
-
-    public ObjectTabStorage getFocusProjectionTableStorage() {
-        return getObjectTabStorage(KEY_FOCUS_PROJECTION_TABLE);
-    }
-
-    public ObjectTabStorage getNotificationConfigurationTabMailServerTableStorage() {
-        return getObjectTabStorage(KEY_NOTIFICATION_TAB_MAIL_SERVER_TABLE);
+    public ContainerTabStorage getNotificationConfigurationTabMailServerTableStorage() {
+        return getContainerTabStorage(KEY_NOTIFICATION_TAB_MAIL_SERVER_TABLE);
     }
 
     private String getContentStorageKey(ShadowKindType kind, String searchMode) {
@@ -258,18 +258,26 @@ public class SessionStorage implements Serializable, DebugDumpable {
         if (key == null) {
             return pageStorage;
         }
-        if (key.startsWith(KEY_CONTAINER_LIST)) {
+        if (key.startsWith(KEY_OBJECT_LIST)) {
             pageStorage = new ObjectListStorage();
             pageStorageMap.put(key, pageStorage);
-        } else if (KEY_ORG_MEMBER_PANEL.equals(key)) {
+        } else if (KEY_ORG_MEMBER_PANEL.equals(key)
+                || KEY_ROLE_MEMBER_PANEL.equals(key)
+                || KEY_SERVICE_MEMBER_PANEL.equals(key)) {
             pageStorage = new MemberPanelStorage();
-            pageStorageMap.put(KEY_ORG_MEMBER_PANEL, pageStorage);
-        } else if (KEY_ROLE_MEMBER_PANEL.equals(key)) {
-            pageStorage = new MemberPanelStorage();
-            pageStorageMap.put(KEY_ROLE_MEMBER_PANEL, pageStorage);
-        } else if (KEY_SERVICE_MEMBER_PANEL.equals(key)) {
-            pageStorage = new MemberPanelStorage();
-            pageStorageMap.put(KEY_SERVICE_MEMBER_PANEL, pageStorage);
+            pageStorageMap.put(key, pageStorage);
+        } else if (KEY_ASSIGNMENTS_TAB.equals(key)
+                || KEY_INDUCEMENTS_TAB.equals(key)
+                || KEY_CASE_EVENTS_TAB.equals(key)
+                || KEY_TRIGGERS_TAB.equals(key)
+                || KEY_INDUCED_ENTITLEMENTS_TAB.equals(key)
+                || KEY_CASE_WORKITEMS_TAB.equals(key)
+                || KEY_OBJECT_POLICIES_TAB.equals(key)
+                || KEY_GLOBAL_POLICY_RULES_TAB.equals(key)
+                || KEY_LOGGING_TAB_APPENDER_TABLE.equals(key)
+                || KEY_LOGGING_TAB_LOGGER_TABLE.equals(key)
+                || KEY_FOCUS_PROJECTION_TABLE.equals(key)){
+            pageStorage = getContainerTabStorage(key);
         }
         return pageStorage;
         //TODO: fixme

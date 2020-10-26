@@ -29,11 +29,13 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author katkav
  */
 public class MultivalueContainerListDataProvider<C extends Containerable> extends BaseSortableDataProvider<PrismContainerValueWrapper<C>>
-        implements ISelectableDataProvider<PrismContainerValueWrapper<C>, PrismContainerValueWrapper<C>> {
+        implements ISelectableDataProvider<C, PrismContainerValueWrapper<C>> {
 
     private final IModel<List<PrismContainerValueWrapper<C>>> model;
     private final boolean sortable; // just to ensure backward compatibility with existing usages
@@ -104,6 +106,11 @@ public class MultivalueContainerListDataProvider<C extends Containerable> extend
     @Override
     public List<PrismContainerValueWrapper<C>> getSelectedObjects() {
         return getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
+    }
+
+    @Override
+    public @NotNull List<C> getSelectedRealObjects() {
+        return getAvailableData().stream().filter(a -> a.isSelected()).map(w -> w.getRealValue()).collect(Collectors.toList());
     }
 
     protected List<PrismContainerValueWrapper<C>> searchThroughList() {
