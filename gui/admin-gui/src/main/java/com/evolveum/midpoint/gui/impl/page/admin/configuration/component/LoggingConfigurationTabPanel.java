@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.session.SessionStorage;
 
 import org.apache.commons.lang3.StringUtils;
@@ -161,14 +162,6 @@ public class LoggingConfigurationTabPanel extends BasePanel<PrismContainerWrappe
                     IModel<PrismContainerValueWrapper<ClassLoggerConfigurationType>> rowModel,
                     List<PrismContainerValueWrapper<ClassLoggerConfigurationType>> listItems) {
                 loggerEditPerformed(target, rowModel, listItems);
-            }
-
-            @Override
-            protected List<SearchItemDefinition> initSearchableItems(
-                    PrismContainerDefinition<ClassLoggerConfigurationType> containerDef) {
-                List<SearchItemDefinition> defs = new ArrayList<>();
-
-                return defs;
             }
         };
         add(loggersMultivalueContainerListPanel);

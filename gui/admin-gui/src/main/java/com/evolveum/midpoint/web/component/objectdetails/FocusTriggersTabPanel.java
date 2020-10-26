@@ -80,7 +80,7 @@ public class FocusTriggersTabPanel<F extends FocusType> extends AbstractObjectTa
                         return null;
                     }
 
-                    protected boolean isSearchEnabled(){
+                    protected boolean isSearchVisible(){
                         return false;
                     }
 

@@ -552,18 +552,20 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
 
     protected int getAutoRefreshInterval() {
 
-       CompiledObjectCollectionView view = getObjectCollectionView();
-        if (view == null) {
-            return 0;
+        if (isCollectionViewPanel()) {
+            CompiledObjectCollectionView view = getObjectCollectionView();
+            if (view == null) {
+                return 0;
+            }
+
+            Integer autoRefreshInterval = view.getRefreshInterval();
+            if (autoRefreshInterval == null) {
+                return 0;
+            }
+
+            return autoRefreshInterval.intValue();
         }
-
-        Integer autoRefreshInterval = view.getRefreshInterval();
-        if (autoRefreshInterval == null) {
-            return 0;
-        }
-
-        return autoRefreshInterval.intValue();
-
+        return 0;
     }
 
     protected CompiledObjectCollectionView getObjectCollectionView() {

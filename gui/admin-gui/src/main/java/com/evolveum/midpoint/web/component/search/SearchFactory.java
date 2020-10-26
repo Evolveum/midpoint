@@ -171,9 +171,16 @@ public class SearchFactory {
     }
 
     public static <C extends Containerable> Search createContainerSearch(Class<C> type, ItemPath defaultSearchItem, ModelServiceLocator modelServiceLocator) {
+        return createContainerSearch(type, defaultSearchItem, null, modelServiceLocator);
+    }
+    public static <C extends Containerable> Search createContainerSearch(Class<C> type, ItemPath defaultSearchItem, List<SearchItemDefinition> defaultAvailableDefs,
+            ModelServiceLocator modelServiceLocator) {
 
         PrismContainerDefinition<C> containerDef = modelServiceLocator.getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
-        List<SearchItemDefinition> availableDefs = getAvailableDefinitions(containerDef, true);
+        List<SearchItemDefinition> availableDefs = defaultAvailableDefs;
+        if (CollectionUtils.isEmpty(defaultAvailableDefs)) {
+            availableDefs = getAvailableDefinitions(containerDef, true);
+        }
 
         Search search = new Search(type, availableDefs);
         if (defaultSearchItem != null) {

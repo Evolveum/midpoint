@@ -73,11 +73,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Specia
 
             @Override
             protected Class<O> getReferenceTargetObjectType() {
-                List<QName> supportedTypes = getSupportedTargetList();
-                if (CollectionUtils.isNotEmpty(supportedTypes)) {
-                    return (Class<O>) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), supportedTypes.get(0));
-                }
-                return (Class<O>) ObjectType.class;
+                return (Class<O>) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), getModelObject().getType());
             }
         };
 
@@ -92,7 +88,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Specia
                     return;
                 }
                 ReferenceValueSearchPopupPanel.this.getModel().setObject(ort);
-                target.add(ReferenceValueSearchPopupPanel.this.get(ID_OID));
+                target.add(midpointForm.get(ID_OID));
             }
         });
         nameField.setOutputMarkupId(true);

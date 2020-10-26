@@ -21,6 +21,7 @@ import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeMainPanel;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -140,7 +141,12 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
 
             @Override
             protected ISelectableDataProvider<C, PrismContainerValueWrapper<C>> createProvider() {
-                return MultivalueContainerListPanel.this.createProvider();
+                return MultivalueContainerListPanel.this.createProvider(getSearchModel());
+            }
+
+            protected Search createSearch() {
+                PrismContainerDefinition<C> containerDefinition = getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(getType());
+                return SearchFactory.createContainerSearch(getType(), null, initSearchableItems(containerDefinition), getPageBase());
             }
 
             @Override
@@ -155,11 +161,12 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
 
             @Override
             protected WebMarkupContainer getSearchPanel(String contentAreaId) {
-                WebMarkupContainer search = MultivalueContainerListPanel.this.getSearchPanel(contentAreaId);
-                if (search == null) {
+                WebMarkupContainer searchPanel = MultivalueContainerListPanel.this.getSearchPanel(contentAreaId);
+                if (searchPanel == null) {
                     return super.getSearchPanel(contentAreaId);
                 }
-                return search;
+                searchPanel.add(new VisibleBehaviour(() -> isSearchEnabled()));
+                return searchPanel;
             }
 
             @Override
@@ -187,7 +194,9 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
 
     protected abstract List<IColumn<PrismContainerValueWrapper<C>, String>> createColumns();
 
-    protected abstract List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<C> containerDef);
+    protected List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<C> containerDef){
+        return null;
+    }
 
     protected abstract void initPaging();
 
@@ -199,13 +208,13 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         return new PropertyModel<>(getModel(), "values");
     }
 
-    protected ISelectableDataProvider<C, PrismContainerValueWrapper<C>> createProvider() {
+    protected ISelectableDataProvider<C, PrismContainerValueWrapper<C>> createProvider(LoadableModel<Search> searchModel) {
         MultivalueContainerListDataProvider<C> containersProvider = new MultivalueContainerListDataProvider<C>(this, loadValuesModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public ObjectQuery getQuery() {
-                return MultivalueContainerListPanel.this.createProviderQuery();
+                return MultivalueContainerListPanel.this.createProviderQuery(searchModel);
             }
 
             @Override
@@ -306,11 +315,11 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
                 MultivalueContainerListPanel.this.searchPerformed(query, target);
             }
         };
-        searchPanel.add(new VisibleBehaviour(() -> isSearchEnabled()));
+        searchPanel.add(new VisibleBehaviour(() -> isSearchVisible()));
         return searchPanel;
     }
 
-    protected boolean isSearchEnabled(){
+    protected boolean isSearchVisible(){
         return true;
     }
 
@@ -328,10 +337,21 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         return query;
     }
 
+    private ObjectQuery getQuery(LoadableModel<Search> searchModel) {
+        ObjectQuery query = null;
+        if (searchModel != null) {
+            Search search = searchModel.getObject();
+            if (search != null) {
+                query = search.createObjectQuery(getPageBase().getPrismContext());
+            }
+        }
+        return query;
+    }
+
     protected abstract List<PrismContainerValueWrapper<C>> postSearch(List<PrismContainerValueWrapper<C>> items);
 
-    private ObjectQuery createProviderQuery() {
-        ObjectQuery searchQuery = isSearchEnabled() ? getQuery() : null;
+    private ObjectQuery createProviderQuery(LoadableModel<Search> searchModel) {
+        ObjectQuery searchQuery = isSearchVisible() ? getQuery(searchModel) : null;
 
         ObjectQuery customQuery = createQuery();
 
