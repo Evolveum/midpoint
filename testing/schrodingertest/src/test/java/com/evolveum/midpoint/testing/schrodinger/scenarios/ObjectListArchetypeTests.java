@@ -8,6 +8,8 @@ package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
 import static com.codeborne.selenide.Selenide.$;
 
+import static com.evolveum.midpoint.schrodinger.util.ConstantsUtil.*;
+
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
@@ -40,14 +42,7 @@ public class ObjectListArchetypeTests extends AbstractSchrodingerTest {
     private static final String ARCHETYPE_ICON_CSS_STYLE = "fa fa-male";
     private static final String EMPLOYEE_USER_NAME_VALUE = "TestEmployee";
 
-    private static final String COLLECTION_REF_ATTRIBUTE_NAME = "Collection ref";
-    private static final String OBJECT_COLLECTION_VIEWS_HEADER = "Object collection views";
-    private static final String OBJECT_COLLECTION_VIEW_HEADER = "Object collection view";
-    private static final String NEW_GUI_OBJECT_LIST_VIEW_HEADER = "New gui object list view";
-    private static final String NEW_OBJECT_LIST_VIEW_CONTAINER_KEY = "GuiObjectListViewType.details";
-    private static final String NEW_OBJECT_LIST_VIEW_CONTAINER_NEW_VALUE_KEY = "GuiObjectListViewType.details.newValue";
-    private static final String COLLECTION_HEADER = "Collection";
-    public static final String OBJECT_LIST_ARCHETYPE_TESTS_GROUP = "bjectListArchetypeTests";
+    public static final String OBJECT_LIST_ARCHETYPE_TESTS_GROUP = "ObjectListArchetypeTests";
 
     @Override
     protected List<File> getObjectListToImport() {

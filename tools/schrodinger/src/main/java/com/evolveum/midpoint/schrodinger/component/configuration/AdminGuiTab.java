@@ -6,10 +6,14 @@
  */
 package com.evolveum.midpoint.schrodinger.component.configuration;
 
+import static com.evolveum.midpoint.schrodinger.util.ConstantsUtil.*;
+
 import com.codeborne.selenide.SelenideElement;
+
 import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.page.configuration.SystemPage;
+import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -21,8 +25,42 @@ public class AdminGuiTab extends Component<SystemPage> {
     }
 
     public PrismForm<AdminGuiTab> form() {
+        return new PrismForm<>(this, getParentElement().$(Schrodinger.byElementAttributeValue("div", "class", "tab-content")));
+    }
 
-        SelenideElement element = null;
-        return new PrismForm<>(this, element);
+    public SystemPage addNewObjectCollection(String identifier, String type, String objectCollectionType, String objectCollectionName) {
+        this.form()
+                .expandContainerPropertiesPanel(OBJECT_COLLECTION_VIEWS_HEADER)
+                .addNewContainerValue(OBJECT_COLLECTION_VIEW_HEADER, NEW_GUI_OBJECT_LIST_VIEW_HEADER)
+                    .getPrismContainerPanel(NEW_GUI_OBJECT_LIST_VIEW_HEADER)
+                        .getContainerFormFragment()
+                        .addAttributeValue("Identifier", identifier)
+                        .setDropDownAttributeValue("Type", type)
+                            .getPrismContainerPanel("Display")
+                                .getContainerFormFragment()
+                                .addAttributeValue("Label", identifier)
+                                .addAttributeValue("Singular label", identifier)
+                                .addAttributeValue("Plural label", identifier)
+                            .and()
+                        .and()
+                            .getPrismContainerPanel("Collection")
+                                .getContainerFormFragment()
+                                .editRefValue("Collection ref")
+                                    .selectType(objectCollectionType)
+                                    .table()
+                                        .search()
+                                            .byName()
+                                            .inputValue(objectCollectionName)
+                                        .updateSearch()
+                                    .and()
+                                    .clickByName(objectCollectionName)
+                                .and()
+                            .and()
+                        .and()
+                    .and()
+                .and()
+                .and()
+                .save();
+        return getParent();
     }
 }

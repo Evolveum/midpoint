@@ -59,8 +59,8 @@ public class SystemPage extends BasicPage {
     }
 
     public AdminGuiTab adminGuiTab() {
-        //todo implement
-        SelenideElement element = null;
+        SelenideElement element = getTabPanel().clickTab("pageSystemConfiguration.adminGui.title")
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
         return new AdminGuiTab(this, element);
     }
 

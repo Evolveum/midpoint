@@ -7,24 +7,24 @@
 
 package com.evolveum.midpoint.schrodinger.component.common;
 
-import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.ElementsCollection;
-import com.codeborne.selenide.Selenide;
-import com.codeborne.selenide.SelenideElement;
-import com.evolveum.midpoint.schrodinger.MidPoint;
-import com.evolveum.midpoint.schrodinger.component.Component;
-import com.evolveum.midpoint.schrodinger.component.modal.ObjectBrowserModal;
-import com.evolveum.midpoint.schrodinger.util.Schrodinger;
-import org.openqa.selenium.By;
-
-import javax.xml.namespace.QName;
+import static com.codeborne.selenide.Selenide.$;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javax.xml.namespace.QName;
 
-import static com.codeborne.selenide.Selenide.$;
+import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
+import com.codeborne.selenide.SelenideElement;
+import org.openqa.selenium.By;
+
+import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.component.Component;
+import com.evolveum.midpoint.schrodinger.component.modal.ObjectBrowserModal;
+import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -40,7 +40,7 @@ public class PrismForm<T> extends Component<T> {
     public PrismForm<T> addAttributeValue(String name, String value) {
         SelenideElement property = findProperty(name);
 
-        $(By.className("prism-properties")).waitUntil(Condition.appears,MidPoint.TIMEOUT_MEDIUM_6_S);
+        getParentElement().$(By.className("prism-properties")).waitUntil(Condition.appears,MidPoint.TIMEOUT_MEDIUM_6_S);
 
         ElementsCollection values = property.$$(By.className("prism-property-value"));
         if (values.size() == 1) {
@@ -54,9 +54,9 @@ public class PrismForm<T> extends Component<T> {
     public PrismForm<T> addProtectedAttributeValue(String protectedAttributeName, String value) {
         SelenideElement property = findProperty(protectedAttributeName);
 
-        boolean existValue = $(Schrodinger.byDataId("changePasswordLink")).exists();
+        boolean existValue = getParentElement().$(Schrodinger.byDataId("changePasswordLink")).exists();
         if (existValue) {
-            $(Schrodinger.byDataId("changePasswordLink")).click();
+            getParentElement().$(Schrodinger.byDataId("changePasswordLink")).click();
         }
 
         ElementsCollection values = property.$$(By.xpath(".//input[contains(@class,\"form-control\")]"));
@@ -73,9 +73,9 @@ public class PrismForm<T> extends Component<T> {
     }
 
     public PrismForm<T> changeAttributeValue(String name, String oldValue, String newValue) {
-        SelenideElement property = $(Schrodinger.byDataResourceKey(name));
+        SelenideElement property = getParentElement().$(Schrodinger.byDataResourceKey(name));
 
-        $(By.className("prism-properties")).waitUntil(Condition.appears,MidPoint.TIMEOUT_MEDIUM_6_S);
+        getParentElement().$(By.className("prism-properties")).waitUntil(Condition.appears,MidPoint.TIMEOUT_MEDIUM_6_S);
 
         ElementsCollection values = property.$$(By.className("prism-property-value"));
         if (values.size() == 1) {
@@ -88,7 +88,7 @@ public class PrismForm<T> extends Component<T> {
 
 
     public PrismForm<T> setFileForUploadAsAttributeValue(String name, File file) {
-        $(By.cssSelector("input.form-object-value-binary-file-input")).uploadFile(file);
+        getParentElement().$(By.cssSelector("input.form-object-value-binary-file-input")).uploadFile(file);
 
         return this;
     }
@@ -101,7 +101,7 @@ public class PrismForm<T> extends Component<T> {
     }
 
     public PrismForm<T> showEmptyAttributes(String containerName) {
-        $(Schrodinger.byAncestorPrecedingSiblingDescendantOrSelfElementEnclosedValue("div", "data-s-id", "showEmptyButton", "data-s-id", "valueContainer", containerName))
+        getParentElement().$(Schrodinger.byAncestorPrecedingSiblingDescendantOrSelfElementEnclosedValue("div", "data-s-id", "showEmptyButton", "data-s-id", "valueContainer", containerName))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return this;
@@ -266,9 +266,17 @@ public class PrismForm<T> extends Component<T> {
         return this;
     }
 
+    public PrismForm<T> setDropDownAttributeValue(String name, String value) {
+        SelenideElement property = findProperty(name);
+        return setDropDownAttributeValue(property, value);
+    }
+
     public PrismForm<T> setDropDownAttributeValue(QName name, String value) {
         SelenideElement property = findProperty(name);
+        return setDropDownAttributeValue(property, value);
+    }
 
+    private PrismForm<T> setDropDownAttributeValue(SelenideElement property, String value) {
         ElementsCollection values = property.$$(By.className("prism-property-value"));
         if (values.size() > 0) {
             SelenideElement dropDown = values.first().$(By.tagName("select"));
@@ -312,7 +320,7 @@ public class PrismForm<T> extends Component<T> {
     private SelenideElement findPropertyValueInput(String name) {
         Selenide.sleep(5000);
 
-        return  $(Schrodinger.byElementAttributeValue("div", "contains",
+        return  getParentElement().$(Schrodinger.byElementAttributeValue("div", "contains",
                 Schrodinger.DATA_S_QNAME, "#" + name)).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
 
     }
@@ -323,15 +331,15 @@ public class PrismForm<T> extends Component<T> {
 
         SelenideElement element = null;
 
-        boolean doesElementAttrValueExist = $(Schrodinger.byElementAttributeValue(null, "contains",
+        boolean doesElementAttrValueExist = getParentElement().$(Schrodinger.byElementAttributeValue(null, "contains",
                 Schrodinger.DATA_S_QNAME, "#" + name)).exists();
 
         if (doesElementAttrValueExist) {
-            element = $(Schrodinger.byElementAttributeValue(null, "contains",
+            element = getParentElement().$(Schrodinger.byElementAttributeValue(null, "contains",
                     Schrodinger.DATA_S_QNAME, "#" + name)).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         } else {
-            element = $(By.xpath("//span[@data-s-id=\"label\"][contains(.,\"" + name + "\")]/..")).waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S)
+            element = getParentElement().$(By.xpath("//span[@data-s-id=\"label\"][contains(.,\"" + name + "\")]/..")).waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S)
                     .parent().waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S);
         }
 
@@ -340,7 +348,7 @@ public class PrismForm<T> extends Component<T> {
 
     private SelenideElement findProperty(QName qname) {
         String name = Schrodinger.qnameToString(qname);
-        return $(Schrodinger.byDataQName(name));
+        return getParentElement().$(Schrodinger.byDataQName(name));
     }
 
     public PrismForm<T> selectOption(String attributeName, String option) {
@@ -354,7 +362,7 @@ public class PrismForm<T> extends Component<T> {
     }
 
     public PrismForm<T> expandContainerPropertiesPanel(String containerHeaderKey){
-        SelenideElement panelHeader = $(Schrodinger.byElementAttributeValue("a", "data-s-resource-key", containerHeaderKey))
+        SelenideElement panelHeader = getParentElement().$(Schrodinger.byElementAttributeValue("a", "data-s-resource-key", containerHeaderKey))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
                 .parent()
                 .parent();
@@ -374,7 +382,7 @@ public class PrismForm<T> extends Component<T> {
     }
 
     public PrismForm<T> addNewContainerValue(String containerHeaderKey, String newContainerHeaderKey){
-        SelenideElement panelHeader = $(By.linkText(containerHeaderKey))
+        SelenideElement panelHeader = getParentElement().$(By.linkText(containerHeaderKey))
                 .parent()
                 .parent();
         panelHeader.scrollTo();
@@ -400,7 +408,7 @@ public class PrismForm<T> extends Component<T> {
     public SelenideElement getPrismPropertiesPanel(String containerHeaderKey){
         expandContainerPropertiesPanel(containerHeaderKey);
 
-        SelenideElement containerHeaderPanel = $(Schrodinger.byDataResourceKey("a", containerHeaderKey));
+        SelenideElement containerHeaderPanel = getParentElement().$(Schrodinger.byDataResourceKey("a", containerHeaderKey));
         return containerHeaderPanel
                 .parent()
                 .parent()
@@ -412,12 +420,12 @@ public class PrismForm<T> extends Component<T> {
 
     public PrismForm<T> collapseAllChildrenContainers(String parentContainerHeraderKey){
         SelenideElement parentContainerPanel = null;
-        if  ($(Schrodinger.byElementAttributeValue("a", "data-s-resource-key", parentContainerHeraderKey))
+        if  (getParentElement().$(Schrodinger.byElementAttributeValue("a", "data-s-resource-key", parentContainerHeraderKey))
                 .is(Condition.exist)) {
-            parentContainerPanel = $(Schrodinger.byElementAttributeValue("a", "data-s-resource-key", parentContainerHeraderKey))
+            parentContainerPanel = getParentElement().$(Schrodinger.byElementAttributeValue("a", "data-s-resource-key", parentContainerHeraderKey))
                     .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
         } else {
-            parentContainerPanel = $(By.linkText(parentContainerHeraderKey))
+            parentContainerPanel = getParentElement().$(By.linkText(parentContainerHeraderKey))
                     .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
         }
         if (parentContainerPanel == null){
@@ -454,5 +462,14 @@ public class PrismForm<T> extends Component<T> {
         ObjectBrowserModal objectBrowserModal = new ObjectBrowserModal<>(this, modalWindow);
 
         return objectBrowserModal;
+    }
+
+    public PrismContainerPanel<PrismForm<T>> getPrismContainerPanel(String containerName) {
+        SelenideElement containerPanel = getParentElement().$(By.linkText(containerName))
+                .parent()
+                .parent()
+                .parent();
+        containerPanel.scrollTo();
+        return new PrismContainerPanel<PrismForm<T>>(this, containerPanel);
     }
 }

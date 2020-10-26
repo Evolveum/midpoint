@@ -6,18 +6,12 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.component;
 
-import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schrodinger.component.user.UsersPageTable;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.schrodinger.page.objectcollection.ObjectCollectionPage;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
@@ -29,15 +23,16 @@ public class FilterConfigPanelTest extends AbstractSchrodingerTest {
 
     private static final File TEST_OBJECT_COLLECTION = new File("./src/test/resources/component/objects/objectCollections/filter-config-test-object-collection.xml");
     private static final File OBJECT_COLLECTION_TEST_USER = new File("./src/test/resources/component/objects/users/object-collection-test-user.xml");
+    private static final File NEW_OBJECT_COLLECTION_TEST_USER = new File("./src/test/resources/component/objects/users/new-object-collection-test-user.xml");
     private static final File SYSTEM_CONFIG_WITH_OBJ_COLLECTION = new File("./src/test/resources/configuration/objects/systemconfig/system-configuration-user-obj-collection.xml");
 
     @Override
     protected List<File> getObjectListToImport(){
-        return Arrays.asList(TEST_OBJECT_COLLECTION, OBJECT_COLLECTION_TEST_USER, SYSTEM_CONFIG_WITH_OBJ_COLLECTION);
+        return Arrays.asList(TEST_OBJECT_COLLECTION, OBJECT_COLLECTION_TEST_USER, SYSTEM_CONFIG_WITH_OBJ_COLLECTION, NEW_OBJECT_COLLECTION_TEST_USER);
     }
 
     @Test
-    public void createNewObjectCollectionWithConfiguredFilter() {
+    public void configureFilterForObjectCollection() {
         basicPage
                 .listObjectCollections()
                 .table()
@@ -61,7 +56,38 @@ public class FilterConfigPanelTest extends AbstractSchrodingerTest {
         UsersPageTable usersPageTable = basicPage.listUsers("FilterTestUsers").table();
         Assert.assertEquals(1, usersPageTable.countTableObjects());
         Assert.assertTrue(usersPageTable.containsText("FilterConfigTest"));
+    }
 
+    @Test
+    public void createNewObjectCollectionWithConfiguredFilter() {
+        Assert.assertTrue(basicPage
+                .newObjectCollection()
+                    .selectTabBasic()
+                        .form()
+                        .addAttributeValue("Name", "NewObjCollectionTest")
+                        .setDropDownAttributeValue("Type", "User")
+                    .and()
+                .and()
+                    .configSearch()
+                    .setPropertyTextValue("Name", "UserForNewObj", true)
+                    .setPropertyFilterValue("Name", "Starts with", true)
+                .confirmConfiguration()
+                .clickSave()
+                .feedback()
+                .isSuccess());
+
+        Assert.assertTrue(basicPage
+                .adminGui()
+                .addNewObjectCollection("NewObjCollectionTest", "User", "Object collection", "NewObjCollectionTest")
+                .feedback()
+                .isSuccess());
+
+        midPoint.logout();
+        midPoint.formLogin().login(username, password);
+
+        UsersPageTable usersPageTable = basicPage.listUsers("NewObjCollectionTest").table();
+        Assert.assertEquals(1, usersPageTable.countTableObjects());
+        Assert.assertTrue(usersPageTable.containsText("NewObjCollectionTestUser"));
     }
 
 }
