@@ -29,7 +29,6 @@ public class ObjectBrowserModalTable<T, M extends ModalBox<T>> extends Table<M>{
         getParent()
                 .getParentElement()
                 .waitUntil(Condition.disappears, MidPoint.TIMEOUT_DEFAULT_2_S);
-
         return getParent().getParent();
     }
 

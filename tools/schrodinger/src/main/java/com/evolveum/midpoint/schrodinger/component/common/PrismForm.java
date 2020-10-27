@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schrodinger.component.common;
 
+import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.$;
 
 import java.io.File;
@@ -40,7 +41,7 @@ public class PrismForm<T> extends Component<T> {
     public PrismForm<T> addAttributeValue(String name, String value) {
         SelenideElement property = findProperty(name);
 
-        getParentElement().$(By.className("prism-properties")).waitUntil(Condition.appears,MidPoint.TIMEOUT_MEDIUM_6_S);
+//        getParentElement().$(By.className("prism-properties")).waitUntil(Condition.appears,MidPoint.TIMEOUT_MEDIUM_6_S);
 
         ElementsCollection values = property.$$(By.className("prism-property-value"));
         if (values.size() == 1) {
@@ -339,8 +340,11 @@ public class PrismForm<T> extends Component<T> {
                     Schrodinger.DATA_S_QNAME, "#" + name)).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         } else {
-            element = getParentElement().$(By.xpath("//span[@data-s-id=\"label\"][contains(.,\"" + name + "\")]/..")).waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S)
-                    .parent().waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S);
+            //the problem with xpath is that it looks not in the parent element but on the whole page, so we get
+            //the first found element on the page. usual byText looks in the parent element
+//            element = getParentElement().$(By.xpath("//span[@data-s-id=\"label\"][contains(.,\"" + name + "\")]/..")).waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S)
+//                    .parent().waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S);
+            element = getParentElement().$(byText(name)).parent().parent();
         }
 
         return element;

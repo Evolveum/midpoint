@@ -69,8 +69,8 @@ public class FilterConfigPanelTest extends AbstractSchrodingerTest {
                     .and()
                 .and()
                     .configSearch()
-                    .setPropertyTextValue("Name", "UserForNewObj", true)
-                    .setPropertyFilterValue("Name", "Starts with", true)
+                    .setPropertyTextValue("Name", "NewObjCollectionTestUser", true)
+                    .setPropertyFilterValue("Name", "Equal", true)
                 .confirmConfiguration()
                 .clickSave()
                 .feedback()
@@ -86,7 +86,7 @@ public class FilterConfigPanelTest extends AbstractSchrodingerTest {
         midPoint.formLogin().login(username, password);
 
         UsersPageTable usersPageTable = basicPage.listUsers("NewObjCollectionTest").table();
-        Assert.assertEquals(1, usersPageTable.countTableObjects());
+        Assert.assertEquals(usersPageTable.countTableObjects(), 1);
         Assert.assertTrue(usersPageTable.containsText("NewObjCollectionTestUser"));
     }
 

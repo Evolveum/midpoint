@@ -25,7 +25,8 @@ public class AdminGuiTab extends Component<SystemPage> {
     }
 
     public PrismForm<AdminGuiTab> form() {
-        return new PrismForm<>(this, getParentElement().$(Schrodinger.byElementAttributeValue("div", "class", "tab-content")));
+        SelenideElement element = getParentElement().$(Schrodinger.byElementAttributeValue("div", "class", "tab-content"));
+        return new PrismForm<>(this, element);
     }
 
     public SystemPage addNewObjectCollection(String identifier, String type, String objectCollectionType, String objectCollectionName) {
