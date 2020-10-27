@@ -35,13 +35,6 @@ public class TasksPageTable extends AssignmentHolderObjectListTable<ListTasksPag
     }
 
     @Override
-    public TableWithPageRedirect selectCheckboxByName(String name) {
-        //TODO implement
-
-        return null;
-    }
-
-    @Override
     public TableHeaderDropDownMenu<TasksPageTable> clickHeaderActionDropDown() {
         return null;
     }

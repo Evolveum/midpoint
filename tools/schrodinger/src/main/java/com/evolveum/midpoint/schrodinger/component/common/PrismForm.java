@@ -69,7 +69,11 @@ public class PrismForm<T> extends Component<T> {
     }
 
     public PrismForm<T> removeAttributeValue(String name, String value) {
-        // todo implement
+        SelenideElement property = findProperty(name);
+        if (property != null && property.$(Schrodinger.byDataResourceKey("removeButton")).exists()) {
+            property.$(Schrodinger.byDataResourceKey("removeButton"))
+                    .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        }
         return this;
     }
 

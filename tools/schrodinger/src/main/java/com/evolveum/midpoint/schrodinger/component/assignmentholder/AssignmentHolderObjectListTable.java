@@ -31,10 +31,9 @@ public abstract class AssignmentHolderObjectListTable<P, PD extends AssignmentHo
 
 
     @Override
-    public TableWithPageRedirect<P> selectCheckboxByName(String name) {
-
-        //TODO implement
-        return null;
+    public AssignmentHolderObjectListTable<P, PD> selectCheckboxByName(String name) {
+        rowByColumnLabel(getNameColumnLabel(), name).clickCheckBox();
+        return this;
     }
 
     @Override
@@ -95,4 +94,8 @@ public abstract class AssignmentHolderObjectListTable<P, PD extends AssignmentHo
     }
 
     public abstract PD getObjectDetailsPage();
+
+    protected String getNameColumnLabel() {
+        return "Name";
+    }
 }

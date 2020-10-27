@@ -11,6 +11,7 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.TabPanel;
 import com.evolveum.midpoint.schrodinger.component.configuration.*;
+import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
@@ -19,17 +20,7 @@ import static com.codeborne.selenide.Selenide.$;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class SystemPage extends BasicPage {
-
-    public SystemPage cancel() {
-        //todo implement
-        return this;
-    }
-
-    public SystemPage save() {
-        $(Schrodinger.byDataId("save")).click();
-        return this;
-    }
+public class SystemPage extends AssignmentHolderDetailsPage {
 
     public SystemTab systemTab() {
         SelenideElement element = getTabPanel().clickTab("pageSystemConfiguration.system.title");
@@ -77,9 +68,4 @@ public class SystemPage extends BasicPage {
         return new RoleManagementTab(this, element);
     }
 
-    protected TabPanel getTabPanel() {
-        SelenideElement tabPanelElement = $(Schrodinger.byDataId("div", "tabPanel"))
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-        return new TabPanel<>(this, tabPanelElement);
-    }
 }

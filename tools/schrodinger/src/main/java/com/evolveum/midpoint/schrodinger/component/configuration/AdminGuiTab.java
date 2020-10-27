@@ -61,7 +61,7 @@ public class AdminGuiTab extends Component<SystemPage> {
                     .and()
                 .and()
                 .and()
-                .save();
+                .clickSave();
         return getParent();
     }
 }

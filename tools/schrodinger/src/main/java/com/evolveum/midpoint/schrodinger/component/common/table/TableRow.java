@@ -38,8 +38,8 @@ public class TableRow<X, T extends Table<X>> extends Component<T> {
     }
 
     public TableRow clickCheckBox() {
-        getParentElement().find("input[type=checkbox]").click();
-        // todo implement
+        getParentElement().find("input[type=checkbox]")
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         return this;
     }
 
