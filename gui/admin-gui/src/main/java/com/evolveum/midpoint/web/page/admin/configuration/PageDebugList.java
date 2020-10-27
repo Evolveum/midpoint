@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.session.PageStorage;
+
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -222,9 +224,8 @@ public class PageDebugList extends PageAdminConfiguration {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
-                ConfigurationStorage storage = getSessionStorage().getConfiguration();
-                storage.setPaging(paging);
+            protected PageStorage getPageStorage() {
+                return getSessionStorage().getConfiguration();
             }
         };
         DebugSearchDto search = searchModel.getObject();

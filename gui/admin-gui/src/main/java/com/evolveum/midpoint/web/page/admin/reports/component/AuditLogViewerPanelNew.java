@@ -135,15 +135,13 @@ public class AuditLogViewerPanelNew extends BasePanel {
 
             @Override
             protected ISelectableDataProvider createProvider() {
+                PageStorage pageStorage = getPageStorage();
                 SelectableBeanContainerDataProvider<AuditEventRecordType> provider = new SelectableBeanContainerDataProvider<AuditEventRecordType>(
                         AuditLogViewerPanelNew.this, AuditEventRecordType.class, null,false) {
 
                     @Override
-                    protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
-                        PageStorage storage = getPageStorage();
-                        if (storage != null) {
-                            storage.setPaging(paging);
-                        }
+                    protected PageStorage getPageStorage() {
+                        return pageStorage;
                     }
 
                     @Override

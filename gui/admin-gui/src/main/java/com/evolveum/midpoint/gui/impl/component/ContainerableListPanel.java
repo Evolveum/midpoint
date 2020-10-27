@@ -578,11 +578,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 //        SelectableBeanContainerDataProvider<C> provider = new SelectableBeanContainerDataProvider<C>(this,
 //                getType(), null, false){
 //            @Override
-//            protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
-//                PageStorage storage = getPageStorage();
-//                if (storage != null) {
-//                    storage.setPaging(paging);
-//                }
+//            protected PageStorage getPageStorage() {
+//                return ContainerableListPanel.this.getPageStorage();
 //            }
 //
 //            @Override
@@ -611,11 +608,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
-                PageStorage storage = getPageStorage();
-                if (storage != null) {
-                    storage.setPaging(paging);
-                }
+            protected PageStorage getPageStorage() {
+                return ContainerableListPanel.this.getPageStorage();
             }
 
             @Override

@@ -107,13 +107,9 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
             }
 
             @Override
-            protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
-                PageStorage storage = getPageStorage();
-                if (storage != null) {
-                    storage.setPaging(paging);
-                }
+            protected PageStorage getPageStorage() {
+                return MultivalueContainerListPanel.this.getPageStorage();
             }
-
         };
         return containersProvider;
     }

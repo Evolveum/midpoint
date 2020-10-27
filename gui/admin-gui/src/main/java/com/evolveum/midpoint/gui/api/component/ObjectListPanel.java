@@ -109,14 +109,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
-                String storageKey = getStorageKey();
-                if (StringUtils.isNotEmpty(storageKey)) {
-                    PageStorage storage = getPageStorage(storageKey);
-                    if (storage != null) {
-                        storage.setPaging(paging);
-                    }
-                }
+            protected PageStorage getPageStorage() {
+                return ObjectListPanel.this.getPageStorage();
             }
 
             @Override

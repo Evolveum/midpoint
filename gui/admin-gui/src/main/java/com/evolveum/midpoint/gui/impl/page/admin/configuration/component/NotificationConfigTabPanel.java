@@ -248,10 +248,9 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
-                pageStorage.setPaging(paging);
+            protected PageStorage getPageStorage() {
+                return pageStorage;
             }
-
         };
 
         UserProfileStorage userProfile = getPageBase().getSessionStorage().getUserProfile();
