@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.component.objectdetails;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
@@ -56,23 +57,18 @@ public class FocusTriggersTabPanel<F extends FocusType> extends AbstractObjectTa
                 getObjectWrapperModel(), FocusType.F_TRIGGER);
 
         MultivalueContainerListPanel<TriggerType> multivalueContainerListPanel =
-                new MultivalueContainerListPanel<TriggerType>(ID_TRIGGERS_PANEL, triggersModel) {
+                new MultivalueContainerListPanel<TriggerType>(ID_TRIGGERS_PANEL, TriggerType.class) {
 
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected void initPaging() {
-//                        initCustomPaging();
-                    }
-
-                    @Override
-                    protected List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<TriggerType> containerDef) {
-                        return new ArrayList<>();
-                    }
-
-                    @Override
                     protected boolean isCreateNewObjectVisible() {
                         return false;
+                    }
+
+                    @Override
+                    protected IModel<PrismContainerWrapper<TriggerType>> getContainerModel() {
+                        return triggersModel;
                     }
 
                     @Override

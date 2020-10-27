@@ -30,10 +30,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
-import com.evolveum.midpoint.web.component.data.Table;
+import com.evolveum.midpoint.web.component.data.*;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
@@ -388,6 +385,37 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
     }
 
     protected ISelectableDataProvider<C, SO> createProvider() {
+//        SelectableBeanContainerDataProvider<C> provider = new SelectableBeanContainerDataProvider<C>(this,
+//                getType(), null, false){
+//            @Override
+//            protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
+//                PageStorage storage = getPageStorage();
+//                if (storage != null) {
+//                    storage.setPaging(paging);
+//                }
+//            }
+//
+//            @Override
+//            public ObjectQuery getQuery() {
+//                return ContainerableListPanel.this.createQuery();
+//            }
+//
+//            @NotNull
+//            @Override
+//            protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+//                List<ObjectOrdering> customOrdering =  createCustomOrdering(sortParam);
+//                if (customOrdering != null) {
+//                    return customOrdering;
+//                }
+//                return super.createObjectOrderings(sortParam);
+//            }
+//
+//            @Override
+//            public boolean isOrderingDisabled() {
+//                return ContainerableListPanel.this.isOrderingDisabled();
+//            }
+//        };
+//        provider.setOptions(createOptions());
         ContainerListDataProvider<C> provider = new ContainerListDataProvider<C>(this,
                 getType(), createOptions()) {
             private static final long serialVersionUID = 1L;
@@ -491,7 +519,7 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
 
     protected SearchFormPanel initSearch(String headerId) {
 
-        return new SearchFormPanel(headerId, searchModel) {
+        SearchFormPanel searchPanel = new SearchFormPanel(headerId, searchModel) {
 
             private static final long serialVersionUID = 1L;
 
@@ -507,8 +535,13 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
                     storage.setSearch(search);
                 }
             }
-
         };
+        searchPanel.add(new VisibleBehaviour(() -> this.isSearchVisible()));
+        return searchPanel;
+    }
+
+    protected boolean isSearchVisible(){
+        return true;
     }
 
     public String getAdditionalBoxCssClasses() {
@@ -783,10 +816,6 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
 
     protected LoadableModel<Search> getSearchModel() {
         return searchModel;
-    }
-
-    @Override
-    protected void initPaging() {
     }
 
     protected String getTableIdStringValue() {

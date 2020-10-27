@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.session.SessionStorage;
 
@@ -18,7 +19,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
@@ -62,15 +62,9 @@ public class CaseEventsTabPanel extends AbstractObjectTabPanel<CaseType> {
 
         PrismContainerWrapperModel<CaseType, CaseEventType> eventsModel = PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), CaseType.F_EVENT);
         MultivalueContainerListPanel<CaseEventType> multivalueContainerListPanel =
-                new MultivalueContainerListPanel<CaseEventType>(ID_EVENTS_PANEL, eventsModel) {
+                new MultivalueContainerListPanel<CaseEventType>(ID_EVENTS_PANEL, CaseEventType.class) {
 
                     private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected void initPaging() {
-//                        getWorkitemsTabStorage().setPaging(getPrismContext().queryFactory()
-//                                .createPaging(0, ((int) CaseWorkItemsTableWithDetailsPanel.this.getPageBase().getItemsPerPage(getTableId()))));
-                    }
 
                     @Override
                     protected ObjectQuery createQuery() {
@@ -80,6 +74,11 @@ public class CaseEventsTabPanel extends AbstractObjectTabPanel<CaseType> {
                     @Override
                     protected boolean isCreateNewObjectVisible() {
                         return false;
+                    }
+
+                    @Override
+                    protected IModel<PrismContainerWrapper<CaseEventType>> getContainerModel() {
+                        return eventsModel;
                     }
 
                     @Override
@@ -96,11 +95,6 @@ public class CaseEventsTabPanel extends AbstractObjectTabPanel<CaseType> {
                     protected void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<CaseEventType>> rowModel,
                                                                  List<PrismContainerValueWrapper<CaseEventType>> listItems) {
 
-                    }
-
-                    @Override
-                    protected WebMarkupContainer getSearchPanel(String contentAreaId) {
-                        return new WebMarkupContainer(contentAreaId);
                     }
 
                     @Override

@@ -151,6 +151,8 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
                 LOGGER.trace("Query {} with {}", type.getSimpleName(), query.debugDump());
             }
 
+            Collection<SelectorOptions<GetOperationOptions>> options = getOptions();
+
             if (ResourceType.class.equals(type) && (options == null || options.isEmpty())) {
                 options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
             }

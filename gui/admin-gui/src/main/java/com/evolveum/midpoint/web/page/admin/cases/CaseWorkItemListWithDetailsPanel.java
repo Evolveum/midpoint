@@ -52,8 +52,8 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
     private static final String ID_CANCEL_BUTTON = "cancelButton";
     private WorkItemDetailsPanel workItemDetails = null;
 
-    public CaseWorkItemListWithDetailsPanel(String id, IModel<PrismContainerWrapper<CaseWorkItemType>> model){
-        super(id, model);
+    public CaseWorkItemListWithDetailsPanel(String id){
+        super(id, CaseWorkItemType.class);
     }
 
     @Override
@@ -123,12 +123,6 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
         getDetailsPanelContainer().add(actionsPanel);
     }
 
-    @Override
-    protected void initPaging() {
-//        getWorkitemsTabStorage().setPaging(getPrismContext().queryFactory()
-//                .createPaging(0, ((int) CaseWorkItemListWithDetailsPanel.this.getPageBase().getItemsPerPage(getTableId()))));
-    }
-
     protected abstract UserProfileStorage.TableId getTableId();
 
     @Override
@@ -147,11 +141,6 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
     @Override
     protected List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> createColumns() {
         return getWorkItemColumns();
-    }
-
-    @Override
-    protected WebMarkupContainer getSearchPanel(String contentAreaId) {
-        return new WebMarkupContainer(contentAreaId);
     }
 
     @Override

@@ -81,15 +81,9 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
 
     protected void initLayout() {
         MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType> multivalueContainerListPanel =
-                new MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType>(ID_GLOBAL_POLICY_RULE, getModel()) {
+                new MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType>(ID_GLOBAL_POLICY_RULE, GlobalPolicyRuleType.class) {
 
             private static final long serialVersionUID = 1L;
-
-            @Override
-            protected List<PrismContainerValueWrapper<GlobalPolicyRuleType>> postSearch(
-                    List<PrismContainerValueWrapper<GlobalPolicyRuleType>> items) {
-                return getObjects();
-            }
 
             @Override
             protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation) {
@@ -97,13 +91,13 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
             }
 
             @Override
-            protected void initPaging() {
-                GlobalPolicyRuleTabPanel.this.initPaging();
+            protected boolean isCreateNewObjectVisible() {
+                return true;
             }
 
             @Override
-            protected boolean isCreateNewObjectVisible() {
-                return true;
+            protected IModel<PrismContainerWrapper<GlobalPolicyRuleType>> getContainerModel() {
+                return GlobalPolicyRuleTabPanel.this.getModel();
             }
 
             @Override
@@ -151,10 +145,6 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
         add(multivalueContainerListPanel);
 
         setOutputMarkupId(true);
-    }
-
-    private List<PrismContainerValueWrapper<GlobalPolicyRuleType>> getObjects() {
-        return getModelObject().getValues();
     }
 
     protected void newGlobalPolicuRuleClickPerformed(AjaxRequestTarget target) {

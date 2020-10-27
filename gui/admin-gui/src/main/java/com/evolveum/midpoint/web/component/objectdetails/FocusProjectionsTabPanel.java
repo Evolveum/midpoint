@@ -112,14 +112,9 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
     private void initLayout() {
         MultivalueContainerListPanelWithDetailsPanel<ShadowType> multivalueContainerListPanel =
-                new MultivalueContainerListPanelWithDetailsPanel<ShadowType>(ID_SHADOW_TABLE, getShadowDefinition()) {
+                new MultivalueContainerListPanelWithDetailsPanel<ShadowType>(ID_SHADOW_TABLE, ShadowType.class) {
 
             private static final long serialVersionUID = 1L;
-
-//                    @Override
-//                    protected PageStorage getPageStorage() {
-//                        return getPageBase().getSessionStorage().getFocusProjectionTableStorage();
-//                    }
 
                     @Override
                     protected IModel<List<PrismContainerValueWrapper<ShadowType>>> loadValuesModel() {
@@ -170,15 +165,15 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                     }
 
                     @Override
-                    protected void initPaging() {
-                        FocusProjectionsTabPanel.this.initPaging();
-                    }
-
-                    @Override
                     protected boolean isCreateNewObjectVisible() {
                         PrismObjectDefinition<F> def = getObjectWrapper().getObject().getDefinition();
                         PrismReferenceDefinition ref = def.findReferenceDefinition(UserType.F_LINK_REF);
                         return (ref.canRead() && ref.canAdd());
+                    }
+
+                    @Override
+                    protected IModel<PrismContainerWrapper<ShadowType>> getContainerModel() {
+                        return null;
                     }
 
                     @Override

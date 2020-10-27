@@ -94,11 +94,6 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
         ContainerableListPanel workItemsPanel =
                 new ContainerableListPanel<CaseWorkItemType, PrismContainerValueWrapper<CaseWorkItemType>>(ID_WORKITEMS_TABLE, CaseWorkItemType.class) {
 
-//            @Override
-//            protected PageStorage getPageStorage() {
-//                return CaseWorkItemsPanel.this.getPageBase().getSessionStorage().getWorkItemStorage();
-//            }
-
             @Override
             protected List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> createDefaultColumns() {
                 return CaseWorkItemsPanel.this.createDefaultColumns();

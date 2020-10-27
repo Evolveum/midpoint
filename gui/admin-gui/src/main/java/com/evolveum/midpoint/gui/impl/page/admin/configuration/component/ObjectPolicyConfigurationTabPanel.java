@@ -82,15 +82,9 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<PrismContainerW
 
     protected void initLayout() {
         MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType> multivalueContainerListPanel
-                = new MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType>(ID_OBJECTS_POLICY, getModel()) {
+                = new MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType>(ID_OBJECTS_POLICY, ObjectPolicyConfigurationType.class) {
 
             private static final long serialVersionUID = 1L;
-
-            @Override
-            protected List<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> postSearch(
-                    List<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> items) {
-                return getObjects();
-            }
 
             @Override
             protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation) {
@@ -98,13 +92,13 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<PrismContainerW
             }
 
             @Override
-            protected void initPaging() {
-                ObjectPolicyConfigurationTabPanel.this.initPaging();
+            protected boolean isCreateNewObjectVisible() {
+                return true;
             }
 
             @Override
-            protected boolean isCreateNewObjectVisible() {
-                return true;
+            protected IModel<PrismContainerWrapper<ObjectPolicyConfigurationType>> getContainerModel() {
+                return ObjectPolicyConfigurationTabPanel.this.getModel();
             }
 
             @Override
@@ -148,10 +142,6 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<PrismContainerW
         };
         add(multivalueContainerListPanel);
         setOutputMarkupId(true);
-    }
-
-    private List<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> getObjects() {
-        return getModelObject().getValues();
     }
 
     protected void newObjectPolicyClickPerformed(AjaxRequestTarget target) {

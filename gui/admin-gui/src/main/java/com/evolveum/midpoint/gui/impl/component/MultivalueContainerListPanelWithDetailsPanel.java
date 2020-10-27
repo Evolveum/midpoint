@@ -47,12 +47,8 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
     private final List<PrismContainerValueWrapper<C>> detailsPanelItemsList = new ArrayList<>();
     private boolean itemDetailsVisible;
 
-    public MultivalueContainerListPanelWithDetailsPanel(String id, IModel<PrismContainerWrapper<C>> model) {
-        super(id, model);
-    }
-
-    public MultivalueContainerListPanelWithDetailsPanel(String id, PrismContainerDefinition<C> def) {
-        super(id, def);
+    public MultivalueContainerListPanelWithDetailsPanel(String id, Class<C> type) {
+        super(id, type);
     }
 
     @Override
@@ -116,7 +112,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 itemDetailsVisible = false;
-                getListPanel().refreshTable(ajaxRequestTarget);
+                refreshTable(ajaxRequestTarget);
                 ajaxRequestTarget.add(MultivalueContainerListPanelWithDetailsPanel.this);
             }
         };

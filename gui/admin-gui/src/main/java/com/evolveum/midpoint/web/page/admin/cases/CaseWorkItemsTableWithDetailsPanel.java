@@ -38,17 +38,17 @@ public abstract class CaseWorkItemsTableWithDetailsPanel extends BasePanel<Prism
         setOutputMarkupId(true);
 
         CaseWorkItemListWithDetailsPanel caseWorkItems =
-                new CaseWorkItemListWithDetailsPanel(ID_WORKITEMS_TABLE, getModel()) {
+                new CaseWorkItemListWithDetailsPanel(ID_WORKITEMS_TABLE) {
                     private static final long serialVersionUID = 1L;
-
-//                    @Override
-//                    protected PageStorage getPageStorage() {
-//                        return getPageBase().getSessionStorage().getCaseWorkitemsTabStorage();
-//                    }
 
                     @Override
                     protected ObjectQuery createQuery() {
                         return CaseWorkItemsTableWithDetailsPanel.this.createQuery();
+                    }
+
+                    @Override
+                    protected IModel<PrismContainerWrapper<CaseWorkItemType>> getContainerModel() {
+                        return CaseWorkItemsTableWithDetailsPanel.this.getModel();
                     }
 
                     @Override

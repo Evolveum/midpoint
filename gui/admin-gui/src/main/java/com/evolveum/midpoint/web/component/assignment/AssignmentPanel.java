@@ -113,18 +113,18 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
     private void initLayout() {
 
         MultivalueContainerListPanelWithDetailsPanel<AssignmentType> multivalueContainerListPanel =
-                new MultivalueContainerListPanelWithDetailsPanel<AssignmentType>(ID_ASSIGNMENTS, getModel() != null ? getModel() : Model.of()) {
+                new MultivalueContainerListPanelWithDetailsPanel<AssignmentType>(ID_ASSIGNMENTS, AssignmentType.class) {
 
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected void initPaging() {
-                        initCustomPaging();
+                    protected boolean isCreateNewObjectVisible() {
+                        return isNewObjectButtonVisible(getFocusObject());
                     }
 
                     @Override
-                    protected boolean isCreateNewObjectVisible() {
-                        return isNewObjectButtonVisible(getFocusObject());
+                    protected IModel<PrismContainerWrapper<AssignmentType>> getContainerModel() {
+                        return AssignmentPanel.this.getModel();
                     }
 
                     @Override
@@ -154,11 +154,6 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                     protected List<MultiFunctinalButtonDto> createNewButtonDescription() {
                         return newButtonDescription();
                     }
-
-//                    @Override
-//                    protected PageStorage getPageStorage() {
-//                        return getAssignmentsTabStorage();
-//                    }
 
                     @Override
                     protected boolean getNewObjectGenericButtonVisibility(){
@@ -210,11 +205,6 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                     @Override
                     protected String getStorageKey() {
                         return getAssignmentsTabStorageKey();
-                    }
-
-                    @Override
-                    protected WebMarkupContainer getSearchPanel(String contentAreaId) {
-                        return getCustomSearchPanel(contentAreaId);
                     }
 
                     @Override
@@ -637,15 +627,11 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
             }
             getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newAssignment, getModelObject(),
                     target);
-            getMultivalueContainerListPanel().getListPanel().refreshTable(target);
+            getMultivalueContainerListPanel().refreshTable(target);
             getMultivalueContainerListPanel().reloadSavePreviewButtons(target);
 
         });
 
-    }
-
-    protected WebMarkupContainer getCustomSearchPanel(String contentAreaId) {
-        return new WebMarkupContainer(contentAreaId);
     }
 
     private MultivalueContainerDetailsPanel<AssignmentType> createMultivalueContainerDetailsPanel(ListItem<PrismContainerValueWrapper<AssignmentType>> item) {

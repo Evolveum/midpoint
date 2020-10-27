@@ -10,10 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerWrapperImpl;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.web.component.MultiCompositedButtonPanel;
 import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
 
@@ -27,13 +28,14 @@ import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -56,139 +58,45 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchFormPanel;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.MultivalueContainerListDataProvider;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
-import org.jetbrains.annotations.NotNull;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 /**
  * @author skublik
  */
 
 public abstract class MultivalueContainerListPanel<C extends Containerable>
-        extends BasePanel<PrismContainerWrapper<C>> {
+        extends ContainerableListPanel<C, PrismContainerValueWrapper<C>> {
 
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(MultivalueContainerListPanel.class);
 
-    private static final String ID_LIST_PANEL = "listPanel";
-
-    private LoadableModel<Search> searchModel = null;
-    private IModel<PrismContainerWrapper<C>> model;
-    private Class<C> type;
-
-    public MultivalueContainerListPanel(String id, IModel<PrismContainerWrapper<C>> model) {
-        super(id, model);
-
-        this.model = model;
-        searchModel = new LoadableModel<Search>(false) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected Search load() {
-                if (model == null || model.getObject() == null){
-                    return null;
-                }
-                List<SearchItemDefinition> availableDefs = initSearchableItems(model.getObject());
-
-                Search search = new Search(model.getObject().getCompileTimeClass(), availableDefs);
-                search.setCanConfigure(true);
-                return search;
-            }
-        };
-        type = model.getObject().getTypeClass();
-    }
-
-    public MultivalueContainerListPanel(String id, @NotNull PrismContainerDefinition<C> def) {
-//        super(id, def.getCompileTimeClass());
-        super(id);
-
-        searchModel = new LoadableModel<Search>(false) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected Search load() {
-                List<SearchItemDefinition> availableDefs = initSearchableItems(def);
-
-                Search search = new Search(def.getCompileTimeClass(), availableDefs);
-                search.setCanConfigure(true);
-                return search;
-            }
-
-        };
-        type = def.getTypeClass();
+    public MultivalueContainerListPanel(String id, Class<C> type) {
+        super(id, type);
     }
 
     @Override
-    protected void onInitialize() {
-        super.onInitialize();
-        initLayout();
+    protected ISelectableDataProvider<C, PrismContainerValueWrapper<C>> createProvider() {
+        return createProvider(getSearchModel());
     }
 
-    private void initLayout(){
-        ContainerableListPanel<C, PrismContainerValueWrapper<C>> table =
-                new ContainerableListPanel<C, PrismContainerValueWrapper<C>>(ID_LIST_PANEL, type) {
-            @Override
-            protected List<IColumn<PrismContainerValueWrapper<C>, String>> createColumns() {
-                return MultivalueContainerListPanel.this.createColumns();
-            }
-
-            @Override
-            protected ISelectableDataProvider<C, PrismContainerValueWrapper<C>> createProvider() {
-                return MultivalueContainerListPanel.this.createProvider(getSearchModel());
-            }
-
-            protected Search createSearch() {
-                PrismContainerDefinition<C> containerDefinition = getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(getType());
-                return SearchFactory.createContainerSearch(getType(), null, initSearchableItems(containerDefinition), getPageBase());
-            }
-
-            @Override
-            protected WebMarkupContainer initButtonToolbar(String id) {
-                return MultivalueContainerListPanel.this.initButtonToolbar(id);
-            }
-
-            @Override
-            protected boolean isListPanelVisible() {
-                return MultivalueContainerListPanel.this.isListPanelVisible();
-            }
-
-            @Override
-            protected WebMarkupContainer getSearchPanel(String contentAreaId) {
-                WebMarkupContainer searchPanel = MultivalueContainerListPanel.this.getSearchPanel(contentAreaId);
-                if (searchPanel == null) {
-                    return super.getSearchPanel(contentAreaId);
-                }
-                searchPanel.add(new VisibleBehaviour(() -> isSearchEnabled()));
-                return searchPanel;
-            }
-
-            @Override
-            protected UserProfileStorage.TableId getTableId() {
-                return MultivalueContainerListPanel.this.getTableId();
-            }
-
-            @Override
-            protected String getStorageKey() {
-                return MultivalueContainerListPanel.this.getStorageKey();
-            }
-        };
-        table.setOutputMarkupId(true);
-        table.getPageStorage().setPaging(getPrismContext().queryFactory().createPaging(0, (int) getPageBase().getItemsPerPage(getTableId())));
-        add(table);
+    protected Search createSearch() {
+        PrismContainerDefinition<C> containerDefinition = getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(getType());
+//        if (containerDefinition == null && getContainerModel() != null) {
+//            PrismContainerWrapper<C> wrapper = getContainerModel().getObject();
+//            if (wrapper != null && wrapper instanceof PrismContainerWrapperImpl) {
+//                containerDefinition = ((PrismContainerWrapperImpl<C>) wrapper).getItemDefinition();
+//            }
+//        }
+        return SearchFactory.createContainerSearch(getType(), null, initSearchableItems(containerDefinition), getPageBase());
     }
 
     protected abstract String getStorageKey();
-
-    protected WebMarkupContainer getSearchPanel(String contentAreaId){
-        return null;
-    }
 
     protected abstract UserProfileStorage.TableId getTableId();
 
@@ -198,14 +106,8 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         return null;
     }
 
-    protected abstract void initPaging();
-
     protected IModel<List<PrismContainerValueWrapper<C>>> loadValuesModel() {
-        if (getModel() == null) {
-            LOGGER.info("Parent model is null. Cannot load model for values for table: {}", getListPanel().getTableId());
-        }
-
-        return new PropertyModel<>(getModel(), "values");
+        return getContainerModel() != null ? new PropertyModel<>(getContainerModel(), "values") : Model.ofList(new ArrayList<>());
     }
 
     protected ISelectableDataProvider<C, PrismContainerValueWrapper<C>> createProvider(LoadableModel<Search> searchModel) {
@@ -233,14 +135,6 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
 
         };
         return containersProvider;
-    }
-
-    public ContainerableListPanel getListPanel() {
-        return (ContainerableListPanel) get(ID_LIST_PANEL);
-    }
-
-    private PageStorage getPageStorage() {
-        return getListPanel().getPageStorage();
     }
 
     protected WebMarkupContainer initButtonToolbar(String id) {
@@ -305,38 +199,6 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         return WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", createStringResource("MainObjectListPanel.newObject").getString());
     }
 
-    protected WebMarkupContainer initSearch(String headerId) {
-        SearchFormPanel searchPanel = new SearchFormPanel(headerId, searchModel) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
-                MultivalueContainerListPanel.this.searchPerformed(query, target);
-            }
-        };
-        searchPanel.add(new VisibleBehaviour(() -> isSearchVisible()));
-        return searchPanel;
-    }
-
-    protected boolean isSearchVisible(){
-        return true;
-    }
-
-    private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
-        ContainerableListPanel table = getListPanel();
-        table.getTable().setCurrentPage(null);
-        target.add((Component) table);
-        target.add(getPageBase().getFeedbackPanel());
-
-    }
-
-    private ObjectQuery getQuery() {
-        Search search = searchModel.getObject();
-        ObjectQuery query = search.createObjectQuery(getPageBase().getPrismContext());
-        return query;
-    }
-
     private ObjectQuery getQuery(LoadableModel<Search> searchModel) {
         ObjectQuery query = null;
         if (searchModel != null) {
@@ -348,7 +210,9 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         return query;
     }
 
-    protected abstract List<PrismContainerValueWrapper<C>> postSearch(List<PrismContainerValueWrapper<C>> items);
+    protected List<PrismContainerValueWrapper<C>> postSearch(List<PrismContainerValueWrapper<C>> items){
+        return items;
+    }
 
     private ObjectQuery createProviderQuery(LoadableModel<Search> searchModel) {
         ObjectQuery searchQuery = isSearchVisible() ? getQuery(searchModel) : null;
@@ -371,10 +235,10 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     };
 
     public List<PrismContainerValueWrapper<C>> getSelectedItems() {
-        BoxedTablePanel<PrismContainerValueWrapper<C>> itemsTable = getListPanel().getTable();
-        MultivalueContainerListDataProvider<C> itemsProvider = (MultivalueContainerListDataProvider<C>) itemsTable.getDataTable()
-                .getDataProvider();
-        return itemsProvider.getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
+        BoxedTablePanel<PrismContainerValueWrapper<C>> itemsTable = getTable();
+        ISelectableDataProvider<C, PrismContainerValueWrapper<C>> itemsProvider = (ISelectableDataProvider<C, PrismContainerValueWrapper<C>>) itemsTable.
+                getDataTable().getDataProvider();
+        return itemsProvider.getSelectedObjects();
     }
 
     public void reloadSavePreviewButtons(AjaxRequestTarget target){
@@ -495,16 +359,11 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
             }
             value.setSelected(false);
         });
-        getListPanel().refreshTable(target);
+        refreshTable(target);
         reloadSavePreviewButtons(target);
     }
 
     protected abstract boolean isCreateNewObjectVisible();
-
-    @Override
-    public IModel<PrismContainerWrapper<C>> getModel() {
-        return model;
-    }
 
     public boolean isListPanelVisible(){
         return true;
@@ -520,4 +379,6 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
             }
         };
     }
+
+    protected abstract IModel<PrismContainerWrapper<C>> getContainerModel();
 }

@@ -64,7 +64,6 @@ public abstract class AbstractContainerableListPanel<C extends Containerable, PO
     protected void onInitialize() {
         super.onInitialize();
 
-        initPaging();
         initLayout();
     }
 
@@ -74,8 +73,6 @@ public abstract class AbstractContainerableListPanel<C extends Containerable, PO
         setOutputMarkupId(true);
 
     }
-
-    protected abstract void initPaging();
 
     private void initListPanel() {
         WebMarkupContainer itemsContainer = new WebMarkupContainer(ID_ITEMS);
@@ -102,10 +99,6 @@ public abstract class AbstractContainerableListPanel<C extends Containerable, PO
 
     protected boolean isListPanelVisible() {
         return true;
-    }
-
-    protected WebMarkupContainer getSearchPanel(String contentAreaId) {
-        return new WebMarkupContainer(contentAreaId);
     }
 
     protected WebMarkupContainer createHeader(String headerId) {
@@ -271,10 +264,6 @@ public abstract class AbstractContainerableListPanel<C extends Containerable, PO
 
 
     protected abstract WebMarkupContainer initSearch(String headerId);
-
-    protected boolean isSearchEnabled(){
-        return true;
-    }
 
     protected abstract List<IColumn<PO, String>> createColumns();
 
