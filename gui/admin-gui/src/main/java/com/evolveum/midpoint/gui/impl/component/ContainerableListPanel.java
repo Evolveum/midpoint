@@ -575,41 +575,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected ISelectableDataProvider<C, PO> createProvider() {
-//        SelectableBeanContainerDataProvider<C> provider = new SelectableBeanContainerDataProvider<C>(this,
-//                getType(), null, false){
-//            @Override
-//            protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
-//                PageStorage storage = getPageStorage();
-//                if (storage != null) {
-//                    storage.setPaging(paging);
-//                }
-//            }
-//
-//            @Override
-//            public ObjectQuery getQuery() {
-//                return ContainerableListPanel.this.createQuery();
-//            }
-//
-//            @NotNull
-//            @Override
-//            protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
-//                List<ObjectOrdering> customOrdering =  createCustomOrdering(sortParam);
-//                if (customOrdering != null) {
-//                    return customOrdering;
-//                }
-//                return super.createObjectOrderings(sortParam);
-//            }
-//
-//            @Override
-//            public boolean isOrderingDisabled() {
-//                return ContainerableListPanel.this.isOrderingDisabled();
-//            }
-//        };
-//        provider.setOptions(createOptions());
-        ContainerListDataProvider<C> provider = new ContainerListDataProvider<C>(this,
-                getType(), createOptions()) {
-            private static final long serialVersionUID = 1L;
-
+        SelectableBeanContainerDataProvider<C> provider = new SelectableBeanContainerDataProvider<C>(this,
+                getType(), null, false){
             @Override
             protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
                 PageStorage storage = getPageStorage();
@@ -637,9 +604,42 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             public boolean isOrderingDisabled() {
                 return ContainerableListPanel.this.isOrderingDisabled();
             }
-
         };
-        setDefaultSorting(provider);
+        provider.setOptions(createOptions());
+//        ContainerListDataProvider<C> provider = new ContainerListDataProvider<C>(this,
+//                getType(), createOptions()) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
+//                PageStorage storage = getPageStorage();
+//                if (storage != null) {
+//                    storage.setPaging(paging);
+//                }
+//            }
+//
+//            @Override
+//            public ObjectQuery getQuery() {
+//                return ContainerableListPanel.this.createQuery();
+//            }
+//
+//            @NotNull
+//            @Override
+//            protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+//                List<ObjectOrdering> customOrdering =  createCustomOrdering(sortParam);
+//                if (customOrdering != null) {
+//                    return customOrdering;
+//                }
+//                return super.createObjectOrderings(sortParam);
+//            }
+//
+//            @Override
+//            public boolean isOrderingDisabled() {
+//                return ContainerableListPanel.this.isOrderingDisabled();
+//            }
+//
+//        };
+//        setDefaultSorting(provider);
         return (ISelectableDataProvider<C, PO>) provider;
     }
 

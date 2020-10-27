@@ -100,6 +100,9 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
 
             @Override
             protected List<InlineMenuItem> createInlineMenu() {
+                if (View.FULL_LIST.equals(view)) {
+                    return createRowActions();
+                }
                 return null;
             }
 
@@ -212,13 +215,7 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
     }
 
     private List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> createDefaultColumns(){
-        List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> columns = new ArrayList<>();
-        columns.add(createNameColumn());
-        columns.addAll(ColumnUtils.getDefaultWorkItemColumns(getPageBase(), View.FULL_LIST.equals(view)));
-        if (View.FULL_LIST.equals(view)) {
-            columns.add(new InlineMenuButtonColumn<>(createRowActions(), getPageBase()));
-        }
-        return columns;
+        return ColumnUtils.getDefaultWorkItemColumns(getPageBase(), View.FULL_LIST.equals(view));
     }
 
     protected List<InlineMenuItem> createRowActions() {
