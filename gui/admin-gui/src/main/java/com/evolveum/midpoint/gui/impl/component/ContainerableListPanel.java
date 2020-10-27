@@ -6,10 +6,13 @@
  */
 package com.evolveum.midpoint.gui.impl.component;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.*;
@@ -30,6 +33,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
 import com.evolveum.midpoint.web.component.data.*;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
@@ -45,6 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -68,12 +73,24 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * @author katkav
+ * @author skublik
+ *
+ * Abstract class for List panels with table.
+ *
+ * @param <C>
+ *     the container of displayed objects in table
+ * @param <PO>
+ *     the type of the object processed by provider
  */
-public abstract class ContainerableListPanel<C extends Containerable, SO extends Serializable> extends AbstractContainerableListPanel<C, SO> {
+public abstract class ContainerableListPanel<C extends Containerable, PO extends Serializable> extends BasePanel {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerableListPanel.class);
+
+    public static final String ID_ITEMS = "items";
+    private static final String ID_ITEMS_TABLE = "itemsTable";
+
+    private Class<? extends C> type;
 
     private LoadableModel<Search> searchModel;
 
@@ -93,14 +110,16 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
     }
 
     public ContainerableListPanel(String id, Class<? extends C> defaultType, Collection<SelectorOptions<GetOperationOptions>> options) {
-        super(id, defaultType);
+        super(id);
+        this.type = type;
         this.options = options;
     }
 
     @Override
     protected void onInitialize() {
-        initSearchModel();
         super.onInitialize();
+        initSearchModel();
+        initLayout();
     }
 
     private void initSearchModel(){
@@ -151,8 +170,179 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
         return SearchFactory.createContainerSearch(getType(), getPageBase());
     }
 
-    protected List<IColumn<SO, String>> createColumns() {
-        List<IColumn<SO, String>> columns;
+    private void initLayout() {
+
+        WebMarkupContainer itemsContainer = new WebMarkupContainer(ID_ITEMS);
+        itemsContainer.setOutputMarkupId(true);
+        itemsContainer.setOutputMarkupPlaceholderTag(true);
+        add(itemsContainer);
+
+        BoxedTablePanel<PO> itemTable = initItemTable();
+        itemTable.setOutputMarkupId(true);
+        itemTable.setOutputMarkupPlaceholderTag(true);
+        itemsContainer.add(itemTable);
+
+        itemsContainer.add(new VisibleEnableBehaviour() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return isListPanelVisible();
+            }
+        });
+        setOutputMarkupId(true);
+
+    }
+
+    protected boolean isListPanelVisible() {
+        return true;
+    }
+
+    protected WebMarkupContainer createHeader(String headerId) {
+        return initSearch(headerId);
+    }
+
+    protected BoxedTablePanel<PO> initItemTable() {
+
+        List<IColumn<PO, String>> columns = createColumns();
+        int itemPerPage = getTableId() == null ? UserProfileStorage.DEFAULT_PAGING_SIZE : (int) getPageBase().getItemsPerPage(getTableId());
+        ISelectableDataProvider<C, PO> provider = createProvider();
+        BoxedTablePanel<PO> itemTable = new BoxedTablePanel<PO>(ID_ITEMS_TABLE,
+                provider, columns, getTableId(), itemPerPage) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected WebMarkupContainer createHeader(String headerId) {
+                WebMarkupContainer header = ContainerableListPanel.this.createHeader(headerId);
+                header.add(new VisibleBehaviour(() -> isHeaderVisible()));
+                return header;
+
+            }
+
+            @Override
+            protected org.apache.wicket.markup.repeater.Item customizeNewRowItem(org.apache.wicket.markup.repeater.Item item, IModel model) {
+                String status = GuiImplUtil.getObjectStatus(model.getObject());
+                if (status != null) {
+                    item.add(AttributeModifier.append("class", new IModel<String>() {
+
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public String getObject() {
+                            return status;
+                        }
+                    }));
+                }
+                return item;
+            }
+
+            @Override
+            protected WebMarkupContainer createButtonToolbar(String id) {
+                WebMarkupContainer bar = initButtonToolbar(id);
+                return bar != null ? bar : super.createButtonToolbar(id);
+            }
+
+            @Override
+            public String getAdditionalBoxCssClasses() {
+                return ContainerableListPanel.this.getAdditionalBoxCssClasses();
+            }
+
+            @Override
+            protected boolean hideFooterIfSinglePage(){
+                return ContainerableListPanel.this.hideFooterIfSinglePage();
+            }
+
+            @Override
+            public int getAutoRefreshInterval() {
+                return ContainerableListPanel.this.getAutoRefreshInterval();
+            }
+
+            @Override
+            public boolean isAutoRefreshEnabled() {
+                return ContainerableListPanel.this.isRefreshEnabled();
+            }
+
+            @Override
+            public boolean enableSavePageSize() {
+                return ContainerableListPanel.this.enableSavePageSize();
+            }
+        };
+        itemTable.setOutputMarkupId(true);
+        if (getPageStorage() != null) {
+            ObjectPaging pageStorage = getPageStorage().getPaging();
+            if (pageStorage != null) {
+                itemTable.setCurrentPage(pageStorage);
+            }
+        }
+        return itemTable;
+    }
+
+    protected abstract UserProfileStorage.TableId getTableId();
+
+    protected boolean isHeaderVisible() {
+        return true;
+    }
+
+    protected PageStorage getPageStorage(String storageKey){
+        PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(storageKey);
+        if (storage == null) {
+            storage = getSession().getSessionStorage().initPageStorage(storageKey);
+        }
+        return storage;
+    }
+
+    protected PageStorage getPageStorage() {
+        String storageKey = getStorageKey();
+        if (StringUtils.isNotEmpty(storageKey)) {
+            return getPageStorage(storageKey);
+        }
+        return null;
+    }
+
+    protected List<MultiFunctinalButtonDto> createNewButtonDescription() {
+        return null;
+    }
+
+    protected boolean isNewObjectButtonEnabled(){
+        return true;
+    }
+
+    protected boolean getNewObjectGenericButtonVisibility(){
+        return true;
+    }
+
+
+    protected DisplayType getNewObjectButtonDisplayType(){
+        return WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", createStringResource("MainObjectListPanel.newObject").getString());
+    }
+
+    public BoxedTablePanel getTable() {
+        return (BoxedTablePanel) get(createComponentPath(ID_ITEMS, ID_ITEMS_TABLE));
+    }
+
+    public void refreshTable(AjaxRequestTarget ajaxRequestTarget) {
+        ajaxRequestTarget.add(getItemTable());
+    }
+
+    public BoxedTablePanel<PO> getItemTable() {
+        return (BoxedTablePanel<PO>) get(ID_ITEMS).get(ID_ITEMS_TABLE);
+    }
+
+    public Class<C> getType() {
+        return (Class<C>) type;
+    }
+
+    protected void setType(Class<? extends C> type) {
+        this.type = type;
+    }
+
+    protected boolean enableSavePageSize() {
+        return true;
+    }
+
+    protected List<IColumn<PO, String>> createColumns() {
+        List<IColumn<PO, String>> columns;
         if (isCustomColumnsListConfigured()) {
             columns = initViewColumns();
         } else {
@@ -165,15 +355,15 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
         addCustomActions(menuItems, () -> getSelectedRealObjects());
 
         if (!menuItems.isEmpty()) {
-            InlineMenuButtonColumn<SO> actionsColumn = new InlineMenuButtonColumn<>(menuItems, getPageBase());
+            InlineMenuButtonColumn<PO> actionsColumn = new InlineMenuButtonColumn<>(menuItems, getPageBase());
             columns.add(actionsColumn);
         }
         return columns;
     }
 
-    protected List<IColumn<SO, String>> initViewColumns() {
+    protected List<IColumn<PO, String>> initViewColumns() {
         LOGGER.trace("Start to init custom columns for table of type {}", getType());
-        List<IColumn<SO, String>> columns = new ArrayList<>();
+        List<IColumn<PO, String>> columns = new ArrayList<>();
         List<GuiObjectColumnType> customColumns = getGuiObjectColumnTypeList();
         if (customColumns == null){
             return columns;
@@ -185,24 +375,24 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
         LOGGER.trace("Finished to init custom columns, created columns {}", columns);
         return columns;
     }
-    private void addingCheckAndIconColumnIfExists(List<IColumn<SO, String>> columns){
-        IColumn<SO, String> checkboxColumn = createCheckboxColumn();
+    private void addingCheckAndIconColumnIfExists(List<IColumn<PO, String>> columns){
+        IColumn<PO, String> checkboxColumn = createCheckboxColumn();
         if (checkboxColumn != null) {
             columns.add(checkboxColumn);
         }
 
-        IColumn<SO, String> iconColumn = createIconColumn();
+        IColumn<PO, String> iconColumn = createIconColumn();
         if (iconColumn != null) {
             columns.add(iconColumn);
         }
     }
 
-    protected List<IColumn<SO, String>> getViewColumnsTransformed(List<GuiObjectColumnType> customColumns){
-        List<IColumn<SO, String>> columns = new ArrayList<>();
+    protected List<IColumn<PO, String>> getViewColumnsTransformed(List<GuiObjectColumnType> customColumns){
+        List<IColumn<PO, String>> columns = new ArrayList<>();
         if (customColumns == null || customColumns.isEmpty()) {
             return columns;
         }
-        IColumn<SO, String> column;
+        IColumn<PO, String> column;
         for (GuiObjectColumnType customColumn : customColumns) {
             if (customColumn.getPath() == null && (customColumn.getExport() == null || customColumn.getExport().getExpression() == null)) {
                 continue;
@@ -230,17 +420,17 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
                     // TODO what if a complex path is provided here?
                     column = createNameColumn(columnDisplayModel, customColumn.getPath() == null ? "" : customColumn.getPath().toString(), null); //TODO check expression
                 } else {
-                    column = new AbstractExportableColumn<SO, String>(columnDisplayModel, customColumn.getSortProperty()) {
+                    column = new AbstractExportableColumn<PO, String>(columnDisplayModel, customColumn.getSortProperty()) {
                         private static final long serialVersionUID = 1L;
 
                         @Override
-                        public void populateItem(org.apache.wicket.markup.repeater.Item<ICellPopulator<SO>> item,
-                                String componentId, IModel<SO> rowModel) {
+                        public void populateItem(org.apache.wicket.markup.repeater.Item<ICellPopulator<PO>> item,
+                                String componentId, IModel<PO> rowModel) {
                             item.add(new Label(componentId, getDataModel(rowModel)));
                         }
 
                         @Override
-                        public IModel<?> getDataModel(IModel<SO> rowModel) {
+                        public IModel<?> getDataModel(IModel<PO> rowModel) {
                             PropertyModel<C> valueModel = new PropertyModel<>(rowModel, "value");
                             C value = valueModel.getObject();
                             if (value == null) {
@@ -336,13 +526,13 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
                 .collect(Collectors.joining(", ")));
     }
 
-    protected List<IColumn<SO, String>> initColumns() {
+    protected List<IColumn<PO, String>> initColumns() {
         LOGGER.trace("Start to init columns for table of type {}", getType());
-        List<IColumn<SO, String>> columns = new ArrayList<>();
+        List<IColumn<PO, String>> columns = new ArrayList<>();
 
         addingCheckAndIconColumnIfExists(columns);
 
-        List<IColumn<SO, String>> others = createDefaultColumns();
+        List<IColumn<PO, String>> others = createDefaultColumns();
         if (others == null) {
             GuiObjectListViewType defaultView = DefaultColumnUtils.getDefaultView(getType());
             if (defaultView == null) {
@@ -350,7 +540,7 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
             }
             others = getViewColumnsTransformed(defaultView.getColumn());
         } else {
-            IColumn<SO, String> nameColumn = createNameColumn(null, null, null);
+            IColumn<PO, String> nameColumn = createNameColumn(null, null, null);
             if (nameColumn != null) {
                 columns.add(nameColumn);
             }
@@ -363,20 +553,20 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
         return columns;
     }
 
-    protected IColumn<SO, String> createCheckboxColumn(){
+    protected IColumn<PO, String> createCheckboxColumn(){
         return new CheckBoxHeaderColumn<>();
     }
 
-    protected IColumn<SO, String> createIconColumn(){
-        return (IColumn<SO, String>) ColumnUtils.createIconColumn(getPageBase());
+    protected IColumn<PO, String> createIconColumn(){
+        return (IColumn<PO, String>) ColumnUtils.createIconColumn(getPageBase());
     }
 
-    protected IColumn<SO, String> createNameColumn(IModel<String> columnNameModel, String itemPath,
+    protected IColumn<PO, String> createNameColumn(IModel<String> columnNameModel, String itemPath,
             ExpressionType expression) {
         return null;
     }
 
-    protected List<IColumn<SO, String>> createDefaultColumns() {
+    protected List<IColumn<PO, String>> createDefaultColumns() {
         return null;
     }
 
@@ -384,7 +574,7 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
         return null;
     }
 
-    protected ISelectableDataProvider<C, SO> createProvider() {
+    protected ISelectableDataProvider<C, PO> createProvider() {
 //        SelectableBeanContainerDataProvider<C> provider = new SelectableBeanContainerDataProvider<C>(this,
 //                getType(), null, false){
 //            @Override
@@ -450,16 +640,16 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
 
         };
         setDefaultSorting(provider);
-        return (ISelectableDataProvider<C, SO>) provider;
+        return (ISelectableDataProvider<C, PO>) provider;
     }
 
     public int getSelectedObjectsCount(){
-        List<SO> selectedList = getSelectedObjects();
+        List<PO> selectedList = getSelectedObjects();
         return selectedList.size();
     }
 
 
-    public List<SO> getSelectedObjects() {
+    public List<PO> getSelectedObjects() {
         ISelectableDataProvider dataProvider = getDataProvider();
         return dataProvider.getSelectedObjects();
     }
@@ -568,7 +758,7 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
             return WebComponentUtil.getObjectListPageStorageKey(collectionNameValue);
         }
 
-        return super.getStorageKey();
+        return WebComponentUtil.getObjectListPageStorageKey(getType().getSimpleName());
     }
 
     protected boolean isRefreshEnabled() {
@@ -666,7 +856,7 @@ public abstract class ContainerableListPanel<C extends Containerable, SO extends
 
     @SuppressWarnings("unchecked")
     protected ISelectableDataProvider getDataProvider() {
-        BoxedTablePanel<SO> table = getTable();
+        BoxedTablePanel<PO> table = getTable();
         ISelectableDataProvider provider = (ISelectableDataProvider) table
                 .getDataTable().getDataProvider();
         return provider;
