@@ -47,14 +47,12 @@ public class SystemPage extends BasicPage {
     }
 
     public LoggingTab loggingTab() {
-        //todo implement
-        SelenideElement element = null;
+        SelenideElement element = getTabPanel().clickTab("pageSystemConfiguration.logging.title");
         return new LoggingTab(this, element);
     }
 
     public ProfilingTab profilingTab() {
-        //todo implement
-        SelenideElement element = null;
+        SelenideElement element = getTabPanel().clickTab("pageSystemConfiguration.profiling.title");
         return new ProfilingTab(this, element);
     }
 
@@ -75,7 +73,8 @@ public class SystemPage extends BasicPage {
     }
 
     public RoleManagementTab roleManagementTab(){
-        return new RoleManagementTab(this, null);
+        SelenideElement element = getTabPanel().clickTab("pageSystemConfiguration.roleManagement.title");
+        return new RoleManagementTab(this, element);
     }
 
     protected TabPanel getTabPanel() {
