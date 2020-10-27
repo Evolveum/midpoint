@@ -25,6 +25,9 @@ import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -74,27 +77,10 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         super(id, type);
     }
 
-    @Override
-    protected ISelectableDataProvider<C, PrismContainerValueWrapper<C>> createProvider() {
-        return createProvider(getSearchModel());
-    }
-
     protected Search createSearch() {
         PrismContainerDefinition<C> containerDefinition = getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(getType());
-//        if (containerDefinition == null && getContainerModel() != null) {
-//            PrismContainerWrapper<C> wrapper = getContainerModel().getObject();
-//            if (wrapper != null && wrapper instanceof PrismContainerWrapperImpl) {
-//                containerDefinition = ((PrismContainerWrapperImpl<C>) wrapper).getItemDefinition();
-//            }
-//        }
         return SearchFactory.createContainerSearch(getType(), null, initSearchableItems(containerDefinition), getPageBase());
     }
-
-    protected abstract String getStorageKey();
-
-    protected abstract UserProfileStorage.TableId getTableId();
-
-    protected abstract List<IColumn<PrismContainerValueWrapper<C>, String>> createColumns();
 
     protected List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<C> containerDef){
         return null;
@@ -104,13 +90,14 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         return getContainerModel() != null ? new PropertyModel<>(getContainerModel(), "values") : Model.ofList(new ArrayList<>());
     }
 
-    protected ISelectableDataProvider<C, PrismContainerValueWrapper<C>> createProvider(LoadableModel<Search> searchModel) {
+    @Override
+    protected ISelectableDataProvider<C, PrismContainerValueWrapper<C>> createProvider() {
         MultivalueContainerListDataProvider<C> containersProvider = new MultivalueContainerListDataProvider<C>(this, loadValuesModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public ObjectQuery getQuery() {
-                return MultivalueContainerListPanel.this.createProviderQuery(searchModel);
+                return MultivalueContainerListPanel.this.createProviderQuery(getSearchModel());
             }
 
             @Override
@@ -375,4 +362,14 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     }
 
     protected abstract IModel<PrismContainerWrapper<C>> getContainerModel();
+
+    @Override
+    protected IColumn<PrismContainerValueWrapper<C>, String> createIconColumn() {
+        return null;
+    }
+
+    @Override
+    protected IColumn<PrismContainerValueWrapper<C>, String> createCheckboxColumn() {
+        return null;
+    }
 }

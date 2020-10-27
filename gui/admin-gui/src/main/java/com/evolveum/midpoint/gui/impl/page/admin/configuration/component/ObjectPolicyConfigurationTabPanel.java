@@ -117,7 +117,7 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<PrismContainerW
             }
 
             @Override
-            protected List<IColumn<PrismContainerValueWrapper<ObjectPolicyConfigurationType>, String>> createColumns() {
+            protected List<IColumn<PrismContainerValueWrapper<ObjectPolicyConfigurationType>, String>> createDefaultColumns() {
                 return initBasicColumns();
             }
 

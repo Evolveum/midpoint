@@ -341,7 +341,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return true;
     }
 
-    protected List<IColumn<PO, String>> createColumns() {
+    private List<IColumn<PO, String>> createColumns() {
         List<IColumn<PO, String>> columns;
         if (isCustomColumnsListConfigured()) {
             columns = initViewColumns();
@@ -361,7 +361,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return columns;
     }
 
-    protected List<IColumn<PO, String>> initViewColumns() {
+    private List<IColumn<PO, String>> initViewColumns() {
         LOGGER.trace("Start to init custom columns for table of type {}", getType());
         List<IColumn<PO, String>> columns = new ArrayList<>();
         List<GuiObjectColumnType> customColumns = getGuiObjectColumnTypeList();
@@ -387,7 +387,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         }
     }
 
-    protected List<IColumn<PO, String>> getViewColumnsTransformed(List<GuiObjectColumnType> customColumns){
+    private List<IColumn<PO, String>> getViewColumnsTransformed(List<GuiObjectColumnType> customColumns){
         List<IColumn<PO, String>> columns = new ArrayList<>();
         if (customColumns == null || customColumns.isEmpty()) {
             return columns;
@@ -526,7 +526,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 .collect(Collectors.joining(", ")));
     }
 
-    protected List<IColumn<PO, String>> initColumns() {
+    private List<IColumn<PO, String>> initColumns() {
         LOGGER.trace("Start to init columns for table of type {}", getType());
         List<IColumn<PO, String>> columns = new ArrayList<>();
 

@@ -87,7 +87,7 @@ public class CaseEventsTabPanel extends AbstractObjectTabPanel<CaseType> {
                     }
 
                     @Override
-                    protected List<IColumn<PrismContainerValueWrapper<CaseEventType>, String>> createColumns() {
+                    protected List<IColumn<PrismContainerValueWrapper<CaseEventType>, String>> createDefaultColumns() {
                         return createCaseEventsColumns();
                     }
 
@@ -95,12 +95,6 @@ public class CaseEventsTabPanel extends AbstractObjectTabPanel<CaseType> {
                     protected void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<CaseEventType>> rowModel,
                                                                  List<PrismContainerValueWrapper<CaseEventType>> listItems) {
 
-                    }
-
-                    @Override
-                    protected List<PrismContainerValueWrapper<CaseEventType>> postSearch(
-                            List<PrismContainerValueWrapper<CaseEventType>> workItems) {
-                        return workItems;
                     }
 
                     @Override

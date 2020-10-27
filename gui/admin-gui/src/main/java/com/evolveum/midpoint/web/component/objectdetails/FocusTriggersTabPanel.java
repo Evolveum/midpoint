@@ -91,14 +91,8 @@ public class FocusTriggersTabPanel<F extends FocusType> extends AbstractObjectTa
                     }
 
                     @Override
-                    protected List<IColumn<PrismContainerValueWrapper<TriggerType>, String>> createColumns() {
+                    protected List<IColumn<PrismContainerValueWrapper<TriggerType>, String>> createDefaultColumns() {
                         return createTriggersColumns();
-                    }
-
-                    @Override
-                    protected List<PrismContainerValueWrapper<TriggerType>> postSearch(
-                            List<PrismContainerValueWrapper<TriggerType>> triggersList) {
-                        return triggersList;
                     }
 
                     @Override

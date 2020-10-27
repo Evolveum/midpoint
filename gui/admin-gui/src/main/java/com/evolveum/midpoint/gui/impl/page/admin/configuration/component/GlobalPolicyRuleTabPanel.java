@@ -113,7 +113,7 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
                 return UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE;            }
 
             @Override
-            protected List<IColumn<PrismContainerValueWrapper<GlobalPolicyRuleType>, String>> createColumns() {
+            protected List<IColumn<PrismContainerValueWrapper<GlobalPolicyRuleType>, String>> createDefaultColumns() {
                 return initBasicColumns();
             }
 

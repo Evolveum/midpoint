@@ -159,7 +159,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<PrismContainerWrappe
             }
 
             @Override
-            protected List<IColumn<PrismContainerValueWrapper<ClassLoggerConfigurationType>, String>> createColumns() {
+            protected List<IColumn<PrismContainerValueWrapper<ClassLoggerConfigurationType>, String>> createDefaultColumns() {
                 return initLoggersBasicColumns(loggerModel);
             }
 
@@ -215,7 +215,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<PrismContainerWrappe
             }
 
             @Override
-            protected List<IColumn<PrismContainerValueWrapper<AppenderConfigurationType>, String>> createColumns() {
+            protected List<IColumn<PrismContainerValueWrapper<AppenderConfigurationType>, String>> createDefaultColumns() {
                 return initAppendersBasicColumns(appenderModel);
             }
 

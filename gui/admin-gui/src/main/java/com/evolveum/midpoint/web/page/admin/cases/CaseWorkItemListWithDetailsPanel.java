@@ -139,15 +139,10 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
     }
 
     @Override
-    protected List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> createColumns() {
+    protected List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> createDefaultColumns() {
         return getWorkItemColumns();
     }
 
-    @Override
-    protected List<PrismContainerValueWrapper<CaseWorkItemType>> postSearch(
-            List<PrismContainerValueWrapper<CaseWorkItemType>> workItems) {
-        return workItems;
-    }
 
     @Override
     protected boolean isButtonPanelVisible() {

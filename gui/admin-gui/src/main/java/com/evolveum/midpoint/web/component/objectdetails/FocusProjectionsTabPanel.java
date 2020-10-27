@@ -133,13 +133,6 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                     }
 
                     @Override
-                    protected List<PrismContainerValueWrapper<ShadowType>> postSearch(
-                            List<PrismContainerValueWrapper<ShadowType>> items) {
-
-                        return items;
-                    }
-
-                    @Override
                     protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation) {
                         List<QName> supportedTypes = new ArrayList<>(1);
                         supportedTypes.add(ResourceType.COMPLEX_TYPE);
@@ -190,7 +183,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                     }
 
                     @Override
-                    protected List<IColumn<PrismContainerValueWrapper<ShadowType>, String>> createColumns() {
+                    protected List<IColumn<PrismContainerValueWrapper<ShadowType>, String>> createDefaultColumns() {
                         return initBasicColumns();
                     }
 

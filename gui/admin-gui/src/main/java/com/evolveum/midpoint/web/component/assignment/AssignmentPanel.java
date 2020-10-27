@@ -137,12 +137,21 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                         return createObjectQuery();
                     }
 
-                    @Override
-                    protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createColumns() {
+                    protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createDefaultColumns() {
                         if (AssignmentPanel.this.getModelObject() == null) {
                             return new ArrayList<>();
                         }
                         return initBasicColumns();
+                    }
+
+                    @Override
+                    protected IColumn<PrismContainerValueWrapper<AssignmentType>, String> createIconColumn() {
+                        return null;
+                    }
+
+                    @Override
+                    protected IColumn<PrismContainerValueWrapper<AssignmentType>, String> createCheckboxColumn() {
+                        return null;
                     }
 
                     @Override
