@@ -334,7 +334,6 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
         if (getModel() == null || getModelObject() == null) {
             return;
         }
-//        getAssignmentsTabStorage().setPaging(getPrismContext().queryFactory().createPaging(0, (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)));
     }
 
     protected String getAssignmentsTabStorageKey() {

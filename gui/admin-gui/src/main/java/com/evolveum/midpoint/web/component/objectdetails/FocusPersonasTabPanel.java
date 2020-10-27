@@ -106,12 +106,12 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
             protected void objectDetailsPerformed(AjaxRequestTarget target, F object) {
             }
 
-                    @Override
-                    protected boolean isCreateNewObjectEnabled() {
+            @Override
+            protected boolean isCreateNewObjectEnabled() {
                         return false;
                     }
 
-                    @Override
+            @Override
             protected ObjectQuery createQuery() {
                 List<String> personaOidsList = getPersonasOidsList();
                 QueryFactory factory = FocusPersonasTabPanel.this.getPageBase().getPrismContext().queryFactory();
@@ -124,16 +124,16 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
                 return false;
             }
 
-                    @Override
-                    protected UserProfileStorage.TableId getTableId() {
-                        return null;
-                    }
+            @Override
+            protected UserProfileStorage.TableId getTableId() {
+                return null;
+            }
 
-                    @Override
-                    protected boolean enableSavePageSize() {
+            @Override
+            protected boolean enableSavePageSize() {
                         return false;
                     }
-                };
+        };
         userListPanel.setOutputMarkupId(true);
         add(userListPanel);
     }

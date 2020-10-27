@@ -206,11 +206,6 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<PrismContainerW
                 .build();
     }
 
-    private void initPaging() {
-//        getPageBase().getSessionStorage().getObjectPoliciesConfigurationTabStorage().setPaging(
-//                getPrismContext().queryFactory().createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE)));
-    }
-
     private List<IColumn<PrismContainerValueWrapper<ObjectPolicyConfigurationType>, String>> initBasicColumns() {
         List<IColumn<PrismContainerValueWrapper<ObjectPolicyConfigurationType>, String>> columns = new ArrayList<>();
 

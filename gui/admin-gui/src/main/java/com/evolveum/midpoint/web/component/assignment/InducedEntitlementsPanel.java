@@ -30,7 +30,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.session.ContainerTabStorage;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -149,21 +148,6 @@ public class InducedEntitlementsPanel extends InducementsPanel {
     }
 
     @Override
-    protected void initCustomPaging() {
-//        getInducedEntitlementsTabStorage().setPaging(getPrismContext().queryFactory()
-//                .createPaging(0, ((int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.INDUCED_ENTITLEMENTS_TAB_TABLE))));
-    }
-
-//    @Override
-//    protected UserProfileStorage.TableId getTableId() {
-//        return UserProfileStorage.TableId.INDUCED_ENTITLEMENTS_TAB_TABLE;
-//    }
-
-//    private ContainerTabStorage getInducedEntitlementsTabStorage() {
-//        return getParentPage().getSessionStorage().getInducedEntitlementsTabStorage();
-//    }
-
-    @Override
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
@@ -241,25 +225,6 @@ public class InducedEntitlementsPanel extends InducementsPanel {
     protected Panel getBasicContainerPanel(String idPanel, IModel<PrismContainerValueWrapper<AssignmentType>> model) {
         return getConstructionAssociationPanel(idPanel, model);
     }
-
-//    @Override
-//    protected void addCustomSpecificContainers(Fragment specificContainers, IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
-//        specificContainers.add(getConstructionAssociationPanel(modelObject));
-//
-//    }
-
-//    @Override
-//    protected Panel getBasicContainerPanel(String idPanel,
-//            IModel<PrismContainerValueWrapper<AssignmentType>> model) {
-//        Panel panel = super.getBasicContainerValuePanel(idPanel, model);
-//        panel.add(new VisibleEnableBehaviour() {
-//            @Override
-//            public boolean isVisible() {
-//                return false;
-//            }
-//        });
-//        return panel;
-//    }
 
     private ConstructionAssociationPanel getConstructionAssociationPanel(String idPanel, IModel<PrismContainerValueWrapper<AssignmentType>> model) {
         IModel<PrismContainerWrapper<ConstructionType>> constructionModel = PrismContainerWrapperModel.fromContainerValueWrapper(model, AssignmentType.F_CONSTRUCTION);

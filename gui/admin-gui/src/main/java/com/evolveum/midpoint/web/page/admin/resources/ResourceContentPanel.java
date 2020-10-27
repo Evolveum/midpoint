@@ -227,29 +227,6 @@ public abstract class ResourceContentPanel extends Panel {
         return UserProfileStorage.TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
     }
 
-//    private String getTableIdKey() {
-//        if (kind == null) {
-//            return SessionStorage.KEY_RESOURCE_OBJECT_CLASS_CONTENT;
-//        }
-//
-//        if (searchMode == null) {
-//            searchMode = SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT;
-//        }
-//
-////        if (searchMode.equals(SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT)) {
-//            switch (kind) {
-//                case ACCOUNT:
-//                    return SessionStorage.KEY_RESOURCE_ACCOUNT_CONTENT + searchMode;
-//                case GENERIC:
-//                    return SessionStorage.KEY_RESOURCE_GENERIC_CONTENT + searchMode;
-//                case ENTITLEMENT:
-//                    return SessionStorage.KEY_RESOURCE_ENTITLEMENT_CONTENT + searchMode;
-//
-//                default:
-//                    return SessionStorage.KEY_RESOURCE_OBJECT_CLASS_CONTENT;
-//            }
-//    }
-
     private void initLayout() {
 
         WebMarkupContainer totals = new WebMarkupContainer(ID_TOTALS);

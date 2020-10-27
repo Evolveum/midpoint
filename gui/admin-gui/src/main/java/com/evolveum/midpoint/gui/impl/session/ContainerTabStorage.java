@@ -10,7 +10,6 @@ package com.evolveum.midpoint.gui.impl.session;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 import javax.xml.namespace.QName;
 

@@ -111,7 +111,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     public ContainerableListPanel(String id, Class<? extends C> defaultType, Collection<SelectorOptions<GetOperationOptions>> options) {
         super(id);
-        this.type = type;
+        this.type = defaultType;
         this.options = options;
     }
 

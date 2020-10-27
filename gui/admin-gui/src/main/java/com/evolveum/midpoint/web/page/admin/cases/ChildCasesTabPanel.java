@@ -59,11 +59,6 @@ public class ChildCasesTabPanel extends AbstractObjectTabPanel<CaseType> {
         MainObjectListPanel<CaseType> table = new MainObjectListPanel<CaseType>(ID_CHILD_CASES_PANEL,
                 CaseType.class, Collections.emptyList()) {
 
-//            @Override
-//            protected IColumn<SelectableBean<CaseType>, String> createCheckboxColumn() {
-//                return null;
-//            }
-
             @Override
             protected void objectDetailsPerformed(AjaxRequestTarget target, CaseType caseInstance) {
                 PageParameters pageParameters = new PageParameters();

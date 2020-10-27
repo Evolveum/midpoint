@@ -63,8 +63,7 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
     }
 
     private void initTable(Form mainForm) {
-//        StringValue collectionNameParameter = getCollectionNameParameterValue();
-        MainObjectListPanel<O> userListPanel = new  MainObjectListPanel<O>(ID_TABLE,
+        MainObjectListPanel<O> userListPanel = new MainObjectListPanel<O>(ID_TABLE,
                 getType(), getQueryOptions()) {
             private static final long serialVersionUID = 1L;
 
@@ -112,11 +111,6 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
             @Override
             protected UserProfileStorage.TableId getTableId() {
                 return PageAdminObjectList.this.getTableId();
-            }
-
-            @Override
-            protected String getStorageKey() {
-                return super.getStorageKey();
             }
 
             @Override
