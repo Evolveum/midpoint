@@ -74,7 +74,7 @@ public class M11SystemConfiguration extends AbstractLabTest {
         basicPage.notifications()
                 .setRedirectToFile(notificationFile.getAbsolutePath())
                 .and()
-            .save()
+            .clickSave()
                 .feedback()
                     .isSuccess();
 
@@ -138,7 +138,7 @@ public class M11SystemConfiguration extends AbstractLabTest {
                     .addAttributeValue("headerColor", "lightblue")
                     .and()
                 .and()
-            .save()
+            .clickSave()
                 .feedback()
                     .isSuccess();
 
@@ -150,7 +150,7 @@ public class M11SystemConfiguration extends AbstractLabTest {
                     .addAttributeValue("headerColor", "#30ae30")
                     .and()
                 .and()
-            .save()
+            .clickSave()
                 .feedback()
                     .isSuccess();
         Assert.assertTrue($(Schrodinger.byDataId("header", "mainHeader"))

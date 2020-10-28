@@ -52,55 +52,9 @@ public class ObjectListArchetypeTests extends AbstractSchrodingerTest {
     @Test(priority = 1, groups = OBJECT_LIST_ARCHETYPE_TESTS_GROUP)
     public void configureArchetypeObjectListView(){
         AdminGuiTab adminGuiTab = basicPage.adminGui();
-        PrismForm<AdminGuiTab> prismForm = adminGuiTab.form();
-        prismForm
-                .expandContainerPropertiesPanel(OBJECT_COLLECTION_VIEWS_HEADER)
-                .addNewContainerValue(OBJECT_COLLECTION_VIEW_HEADER, NEW_GUI_OBJECT_LIST_VIEW_HEADER)
-                .collapseAllChildrenContainers(OBJECT_COLLECTION_VIEW_HEADER)
-                .expandContainerPropertiesPanel(NEW_OBJECT_LIST_VIEW_CONTAINER_NEW_VALUE_KEY)
-                .expandContainerPropertiesPanel(COLLECTION_HEADER);
-
-        //set UserType
-        SelenideElement newGuiObjectListViewPropertiesPanel = prismForm.getPrismPropertiesPanel(NEW_OBJECT_LIST_VIEW_CONTAINER_NEW_VALUE_KEY);
-        newGuiObjectListViewPropertiesPanel
-                .find(Schrodinger.byDataResourceKey("Type"))
-                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
-                .find(By.tagName("select"))
-                .sendKeys("User");
-
-        //set archetypeRef
-        newGuiObjectListViewPropertiesPanel
-                .find(Schrodinger.byElementValue("span", COLLECTION_REF_ATTRIBUTE_NAME))
-                .parent()
-                .parent()
-                .parent()
-                .$(Schrodinger.byDataId("edit"))
-                .click();
-
-        Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
-
-        SelenideElement modalWindow = $(By.className("wicket-modal"))
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        ObjectBrowserModal objectBrowserModal = new ObjectBrowserModal<>(prismForm, modalWindow);
-        SearchItemField<Search<ObjectBrowserModal>> nameSearchField = objectBrowserModal
-                .selectType("Archetype")
-                .table()
-                    .search()
-                        .byName();
-        nameSearchField
-                .inputValue(ARCHETYPE_OBJECT_NAME)
-                .updateSearch();
-        objectBrowserModal
-                .table()
-                    .clickByName(ARCHETYPE_OBJECT_NAME);
-
-        Assert.assertTrue(prismForm
-                .compareInputAttributeValueInNewContainer(COLLECTION_REF_ATTRIBUTE_NAME, ARCHETYPE_OBJECT_NAME + ": ArchetypeType"));
-
         adminGuiTab
-                .getParent()
-                .save()
+                .addNewObjectCollection(ARCHETYPE_OBJECT_NAME, "User", "Archetype", ARCHETYPE_OBJECT_NAME)
+                .clickSave()
                 .feedback()
                 .isSuccess();
     }

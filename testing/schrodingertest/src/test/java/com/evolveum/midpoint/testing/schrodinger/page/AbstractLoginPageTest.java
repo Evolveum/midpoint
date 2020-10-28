@@ -76,7 +76,7 @@ public abstract class AbstractLoginPageTest extends AbstractSchrodingerTest {
         }
         NotificationsTab notificationTab = systemPage.notificationsTab();
         notificationTab.setRedirectToFile(notificationFile.getAbsolutePath());
-        systemPage.save();
+        systemPage.clickSave();
         Assert.assertTrue(systemPage.feedback().isSuccess());
     }
 

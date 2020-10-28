@@ -55,7 +55,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
                             .clickByName("ExAmPLE User Template"))
                     .clickDone()
                     .and()
-                .save()
+                .clickSave()
                     .feedback()
                         .isSuccess();
 
