@@ -166,9 +166,15 @@ public class SynchronizationUtils {
         ObjectClassComplexTypeDefinition policyObjectClass = null;
         if (StringUtils.isEmpty(policyIntent)) {
             policyObjectClass = schema.findDefaultObjectClassDefinition(policyKind);
-            policyIntent = policyObjectClass.getIntent();
+            if (policyObjectClass != null) {
+                policyIntent = policyObjectClass.getIntent();
+            }
         } else {
             policyObjectClass = schema.findObjectClassDefinition(policyKind, policyIntent);
+        }
+
+        if (policyObjectClass == null) {
+            return false;
         }
 
         // re-check objctClass if wasn't defined
