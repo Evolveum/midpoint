@@ -23,49 +23,39 @@ import static com.codeborne.selenide.Selenide.$;
 public class SystemPage extends AssignmentHolderDetailsPage {
 
     public SystemTab systemTab() {
-        SelenideElement element = getTabPanel().clickTab("pageSystemConfiguration.system.title");
-        return new SystemTab(this, element);
+        return new SystemTab(this, getTabSelenideElement("pageSystemConfiguration.system.title"));
     }
 
     public ObjectPolicyTab objectPolicyTab() {
-        SelenideElement element = getTabPanel().clickTab("pageSystemConfiguration.objectPolicy.title");
-        return new ObjectPolicyTab(this, element);
+        return new ObjectPolicyTab(this, getTabSelenideElement("pageSystemConfiguration.objectPolicy.title"));
     }
 
     public NotificationsTab notificationsTab() {
-        SelenideElement element = getTabPanel().clickTab("pageSystemConfiguration.notifications.title");
-        return new NotificationsTab(this, element);
+        return new NotificationsTab(this, getTabSelenideElement("pageSystemConfiguration.notifications.title"));
     }
 
     public LoggingTab loggingTab() {
-        SelenideElement element = getTabPanel().clickTab("pageSystemConfiguration.logging.title");
-        return new LoggingTab(this, element);
+        return new LoggingTab(this, getTabSelenideElement("pageSystemConfiguration.logging.title"));
     }
 
     public ProfilingTab profilingTab() {
-        SelenideElement element = getTabPanel().clickTab("pageSystemConfiguration.profiling.title");
-        return new ProfilingTab(this, element);
+        return new ProfilingTab(this, getTabSelenideElement("pageSystemConfiguration.profiling.title"));
     }
 
     public AdminGuiTab adminGuiTab() {
-        SelenideElement element = getTabPanel().clickTab("pageSystemConfiguration.adminGui.title")
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-        return new AdminGuiTab(this, element);
+        return new AdminGuiTab(this, getTabSelenideElement("pageSystemConfiguration.adminGui.title"));
     }
 
     public DeploymentInformationTab deploymentInformationTab() {
-        SelenideElement element = getTabPanel().clickTab("pageSystemConfiguration.deploymentInformation.title");
-        return new DeploymentInformationTab(this, element);
+        return new DeploymentInformationTab(this, getTabSelenideElement("pageSystemConfiguration.deploymentInformation.title"));
     }
 
     public InfrastructureTab infrastructureTab() {
-        SelenideElement element = getTabPanel().clickTab("pageSystemConfiguration.infrastructure.title");
-        return new InfrastructureTab(this, element);
+        return new InfrastructureTab(this, getTabSelenideElement("pageSystemConfiguration.infrastructure.title"));
     }
 
     public RoleManagementTab roleManagementTab(){
-        SelenideElement element = getTabPanel().clickTab("pageSystemConfiguration.roleManagement.title");
-        return new RoleManagementTab(this, element);
+        return new RoleManagementTab(this, getTabSelenideElement("pageSystemConfiguration.roleManagement.title"));
     }
 
 }

@@ -58,15 +58,15 @@ public abstract class AssignmentHolderDetailsPage<P extends AssignmentHolderDeta
     }
 
     public AssignmentHolderBasicTab<P> selectTabBasic() {
-        SelenideElement element = getTabPanel().clickTab("pageAdminFocus.basic")
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new AssignmentHolderBasicTab<>((P) this, element);
+        return new AssignmentHolderBasicTab<>((P) this, getTabSelenideElement("pageAdminFocus.basic"));
     }
 
     public AssignmentsTab<P> selectTabAssignments() {
-        SelenideElement element = getTabPanel().clickTab("pageAdminFocus.assignments");
+        return new AssignmentsTab<>((P) this, getTabSelenideElement("pageAdminFocus.assignments"));
+    }
 
-        return new AssignmentsTab<>((P) this, element);
+    protected SelenideElement getTabSelenideElement(String tabTitleKey) {
+        return getTabPanel().clickTab(tabTitleKey)
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
     }
 }

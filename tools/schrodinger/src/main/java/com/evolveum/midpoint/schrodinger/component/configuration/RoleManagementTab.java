@@ -11,6 +11,7 @@ import com.codeborne.selenide.SelenideElement;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
+import com.evolveum.midpoint.schrodinger.component.TabWithContainerWrapper;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.page.configuration.SystemPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
@@ -18,15 +19,9 @@ import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 /**
  * Created by honchar
  */
-public class RoleManagementTab extends Component<SystemPage> {
+public class RoleManagementTab extends TabWithContainerWrapper<SystemPage> {
 
     public RoleManagementTab(SystemPage parent, SelenideElement parentElement) {
         super(parent, parentElement);
-    }
-
-    public PrismForm<RoleManagementTab> form(){
-        SelenideElement element = getParentElement().$(Schrodinger.byElementAttributeValue("div", "class", "tab-content"))
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-        return new PrismForm<>(this, element);
     }
 }

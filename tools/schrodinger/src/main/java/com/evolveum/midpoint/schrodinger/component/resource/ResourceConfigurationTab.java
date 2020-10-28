@@ -11,6 +11,7 @@ import com.codeborne.selenide.SelenideElement;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
+import com.evolveum.midpoint.schrodinger.component.TabWithContainerWrapper;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.component.common.TabPanel;
 import com.evolveum.midpoint.schrodinger.page.resource.EditResourceConfigurationPage;
@@ -19,13 +20,9 @@ import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 /**
  * Created by matus on 3/28/2018.
  */
-public class ResourceConfigurationTab extends Component<EditResourceConfigurationPage> {
+public class ResourceConfigurationTab extends TabWithContainerWrapper<EditResourceConfigurationPage> {
     public ResourceConfigurationTab(EditResourceConfigurationPage parent, SelenideElement parentElement) {
         super(parent, parentElement);
-    }
-
-    public ResourceConfigurationTab(EditResourceConfigurationPage parent) {
-        super(parent);
     }
 
     public PrismForm<ResourceConfigurationTab> form() {

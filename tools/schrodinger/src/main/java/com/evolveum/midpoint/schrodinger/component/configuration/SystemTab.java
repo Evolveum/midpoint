@@ -17,7 +17,7 @@ import com.evolveum.midpoint.schrodinger.page.configuration.SystemPage;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class SystemTab extends TabWithContainerWrapper<SystemTab, SystemPage> {
+public class SystemTab extends TabWithContainerWrapper<SystemPage> {
 
     public SystemTab(SystemPage parent, SelenideElement parentElement) {
         super(parent, parentElement);

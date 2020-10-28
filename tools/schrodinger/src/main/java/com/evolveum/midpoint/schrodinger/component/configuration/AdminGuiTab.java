@@ -10,23 +10,16 @@ import static com.evolveum.midpoint.schrodinger.util.ConstantsUtil.*;
 
 import com.codeborne.selenide.SelenideElement;
 
-import com.evolveum.midpoint.schrodinger.component.Component;
-import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
+import com.evolveum.midpoint.schrodinger.component.TabWithContainerWrapper;
 import com.evolveum.midpoint.schrodinger.page.configuration.SystemPage;
-import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class AdminGuiTab extends Component<SystemPage> {
+public class AdminGuiTab extends TabWithContainerWrapper<SystemPage> {
 
     public AdminGuiTab(SystemPage parent, SelenideElement parentElement) {
         super(parent, parentElement);
-    }
-
-    public PrismForm<AdminGuiTab> form() {
-        SelenideElement element = getParentElement().$(Schrodinger.byElementAttributeValue("div", "class", "tab-content"));
-        return new PrismForm<>(this, element);
     }
 
     public SystemPage addNewObjectCollection(String identifier, String type, String objectCollectionType, String objectCollectionName) {
@@ -59,7 +52,6 @@ public class AdminGuiTab extends Component<SystemPage> {
                             .and()
                         .and()
                     .and()
-                .and()
                 .and()
                 .clickSave();
         return getParent();

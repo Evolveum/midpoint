@@ -17,15 +17,10 @@ import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class AssignmentHolderBasicTab<P extends AssignmentHolderDetailsPage> extends Component<P> {
+public class AssignmentHolderBasicTab<P> extends TabWithContainerWrapper<P> {
 
     public AssignmentHolderBasicTab(P parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
 
-    public PrismForm<AssignmentHolderBasicTab<P>> form() {
-        SelenideElement element = getParentElement().$(Schrodinger.byElementAttributeValue("div", "class", "tab-content"))
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-        return new PrismForm<AssignmentHolderBasicTab<P>>(this, element);
-    }
 }
