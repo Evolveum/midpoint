@@ -22,11 +22,7 @@ import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeMai
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -44,7 +40,6 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -206,10 +201,8 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         return customQuery;
     }
 
-    protected abstract ObjectQuery createQuery();
-
     protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc){
-    };
+    }
 
     public List<PrismContainerValueWrapper<C>> getSelectedItems() {
         BoxedTablePanel<PrismContainerValueWrapper<C>> itemsTable = getTable();

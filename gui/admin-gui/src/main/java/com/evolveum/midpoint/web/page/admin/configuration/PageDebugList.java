@@ -254,8 +254,7 @@ public class PageDebugList extends PageAdminConfiguration {
         Form mainForm = (Form) get(ID_MAIN_FORM);
 
         BoxedTablePanel<DebugObjectItem> table = new BoxedTablePanel<DebugObjectItem>(ID_TABLE, provider, createColumns(),
-                UserProfileStorage.TableId.CONF_DEBUG_LIST_PANEL,
-                (int) getItemsPerPage(UserProfileStorage.TableId.CONF_DEBUG_LIST_PANEL)) {
+                UserProfileStorage.TableId.CONF_DEBUG_LIST_PANEL) {
             private static final long serialVersionUID = 1L;
 
             @Override

@@ -206,10 +206,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     protected BoxedTablePanel<PO> initItemTable() {
 
         List<IColumn<PO, String>> columns = createColumns();
-        int itemPerPage = getTableId() == null ? UserProfileStorage.DEFAULT_PAGING_SIZE : (int) getPageBase().getItemsPerPage(getTableId());
         ISelectableDataProvider<C, PO> provider = createProvider();
         BoxedTablePanel<PO> itemTable = new BoxedTablePanel<PO>(ID_ITEMS_TABLE,
-                provider, columns, getTableId(), itemPerPage) {
+                provider, columns, getTableId()) {
             private static final long serialVersionUID = 1L;
 
             @Override

@@ -190,7 +190,7 @@ public class ExportingPanel extends BasePanel<ExportingPanel> implements Popupab
                 };
 
         BoxedTablePanel<SelectableBean<Integer>> table =
-                new BoxedTablePanel<SelectableBean<Integer>>(id, provider, columns, 20) {
+                new BoxedTablePanel<SelectableBean<Integer>>(id, provider, columns) {
                     private static final long serialVersionUID = 1L;
 
                     @Override

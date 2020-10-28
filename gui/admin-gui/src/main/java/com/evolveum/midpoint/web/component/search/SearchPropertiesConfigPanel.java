@@ -158,7 +158,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
     private void initTable(WebMarkupContainer configPanel) {
         List<IColumn<SelectableBean<ValueSearchFilterItem>, String>> columns = getTableColumns();
         BoxedTablePanel<SelectableBean<ValueSearchFilterItem>> table =
-                new BoxedTablePanel<SelectableBean<ValueSearchFilterItem>>(ID_PROPERTIES_TABLE, provider, columns, 20) {
+                new BoxedTablePanel<SelectableBean<ValueSearchFilterItem>>(ID_PROPERTIES_TABLE, provider, columns) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
