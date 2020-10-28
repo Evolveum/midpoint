@@ -31,7 +31,6 @@ import org.apache.xml.resolver.CatalogManager;
 import org.apache.xml.resolver.tools.CatalogResolver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.EntityResolver;
@@ -62,48 +61,153 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
-    private static final String DEFAULT_RUNTIME_CATALOG_RESOURCE = "META-INF/catalog-runtime.xml";
-
-    private File[] catalogFiles;                                                        // overrides catalog resource name
-    private String catalogResourceName = DEFAULT_RUNTIME_CATALOG_RESOURCE;
-
-    private javax.xml.validation.Schema javaxSchema;
-    private EntityResolver builtinSchemaResolver;
-
-    private final List<SchemaDescriptionImpl> schemaDescriptions = new ArrayList<>();
-    // namespace -> schemas; in case of extension schemas there could be more of them with the same namespace!
-    private final MultiValuedMap<String, SchemaDescription> parsedSchemas = new ArrayListValuedHashMap<>();
-    // base type name -> CTD with (merged) extension definition
-    private final Map<QName, ComplexTypeDefinition> extensionSchemas = new HashMap<>();
-
-    private boolean initialized = false;
-    private DynamicNamespacePrefixMapper namespacePrefixMapper;
-    private String defaultNamespace;
-
-    private final ConcurrentHashMap<QName, IsList> isListByXsiType = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<QName, IsList> isListByElementName = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<QName, Class<?>> classForTypeIncludingXsd = new ConcurrentHashMap<>();    // TODO better name, probably unify with the latter
-    private final ConcurrentHashMap<QName, Class<?>> classForTypeExcludingXsd = new ConcurrentHashMap<>();    // TODO better name, probably unify with the former
-    private final ConcurrentHashMap<Class<?>, PrismObjectDefinition<?>> objectDefinitionForClass = new ConcurrentHashMap<>();     // experimental
-    private final ConcurrentHashMap<QName, PrismObjectDefinition<?>> objectDefinitionForType = new ConcurrentHashMap<>();     // experimental
-
-    private static final Class<?> NO_CLASS = Void.class;
-    private static final PrismObjectDefinition<?> NO_OBJECT_DEFINITION = new DummyPrismObjectDefinition();
-
-    private final XmlEntityResolver entityResolver = new XmlEntityResolverImpl(this);
-
-    @Autowired        // TODO does this work?
-    private PrismContext prismContext;
-
     private static final Trace LOGGER = TraceManager.getTrace(SchemaRegistryImpl.class);
 
+    private static final String DEFAULT_RUNTIME_CATALOG_RESOURCE = "META-INF/catalog-runtime.xml";
+
+    /**
+     * Catalog files to look for when resolving schemas by URI.
+     * This has precedence over catalogResourceName.
+     */
+    private File[] catalogFiles;
+
+    /**
+     * Catalog resource to look for when resolving schemas by URI.
+     * Overridden by catalog files, if specified.
+     */
+    private String catalogResourceName = DEFAULT_RUNTIME_CATALOG_RESOURCE;
+
+    /**
+     * Schema that is used for "native" validation of XML files.
+     * It is set up during initialization. So any schemas added after that will not be reflected here.
+     */
+    private javax.xml.validation.Schema javaxSchema;
+
+    /**
+     * Resolver for schema files based on catalog files or catalog resource.
+     * Created during early stages of the initialization.
+     */
+    private EntityResolver builtinSchemaResolver;
+
+    /**
+     * Advanced entity resolver that uses all registered schemas and built-in catalog-based schema resolver.
+     */
+    private final XmlEntityResolver entityResolver = new XmlEntityResolverImpl(this);
+
+    /**
+     * Registered schema descriptions.
+     * When the registry is in initialized state, all schema descriptions in this list are frozen.
+     */
+    private final List<SchemaDescriptionImpl> schemaDescriptions = new ArrayList<>();
+
+    /**
+     * Schema descriptions for a given namespace.
+     * In case of extension schemas there can be more schema descriptions with the same namespace!
+     */
+    private final MultiValuedMap<String, SchemaDescription> parsedSchemas = new ArrayListValuedHashMap<>();
+
+    /**
+     * Extension CTDs for base types.
+     * Key is the type being extended: UserType, RoleType, and so on.
+     * Value is (merged) extension complex type definition.
+     */
+    private final Map<QName, ComplexTypeDefinition> extensionSchemas = new HashMap<>();
+
+    /**
+     * Was the schema registry initialized?
+     */
+    private boolean initialized = false;
+
+    /**
+     * "Registry" for namespace prefixes. It is used when serializing data as well as schemas.
+     * For historical reasons it is kept here -- along with the schemas.
+     */
+    private DynamicNamespacePrefixMapper namespacePrefixMapper;
+
+    /**
+     * What namespace is considered "default" for the schema registry. The meaning of this field is unknown.
+     * Currently we use this information to provide namespace for "_value" and "_metadata" elements in XML
+     * serialization.
+     */
+    private String defaultNamespace;
+
+    /**
+     * Cached value of "isList" for given type.
+     */
+    private final ConcurrentHashMap<QName, IsList> isListByXsiType = new ConcurrentHashMap<>();
+
+    /**
+     * Cached value of "isList" for given item.
+     */
+    private final ConcurrentHashMap<QName, IsList> isListByElementName = new ConcurrentHashMap<>();
+
+    /**
+     * Cached class for given type for {@link #determineClassForType(QName)} method.
+     * TODO better name, probably unify with the latter
+     */
+    @Experimental
+    private final ConcurrentHashMap<QName, Class<?>> classForTypeIncludingXsd = new ConcurrentHashMap<>();
+
+    /**
+     * Cached class for given type for {@link #determineCompileTimeClass(QName)} method.
+     * TODO better name, probably unify with the former
+     */
+    @Experimental
+    private final ConcurrentHashMap<QName, Class<?>> classForTypeExcludingXsd = new ConcurrentHashMap<>();
+
+    /**
+     * Cached object definition for given compile-time class.
+     */
+    @Experimental
+    private final ConcurrentHashMap<Class<?>, PrismObjectDefinition<?>> objectDefinitionForClass = new ConcurrentHashMap<>();
+
+    /**
+     * Cached object definition for given type name.
+     */
+    @Experimental
+    private final ConcurrentHashMap<QName, PrismObjectDefinition<?>> objectDefinitionForType = new ConcurrentHashMap<>();
+
+    /**
+     * Marker value for "no such class": cached value that indicates that we have executed the search but found
+     * no matching class.
+     */
+    private static final Class<?> NO_CLASS = Void.class;
+
+    /**
+     * Marker value for "no object definition": cached value that indicates that we have executed the search
+     * but found no matching definition.
+     */
+    private static final PrismObjectDefinition<?> NO_OBJECT_DEFINITION = new DummyPrismObjectDefinition();
+
+    /**
+     * A prism context this schema registry is part of.
+     * Should be non-null.
+     */
+    private PrismContext prismContext;
+
+    /**
+     * Listeners to be called when schema-related caches have to be invalidated.
+     * This occurs when the registry is initialized or when a new schema is added to the registry.
+     * See {@link #invalidateCaches()} method.
+     */
     private final Collection<InvalidationListener> invalidationListeners = new ArrayList<>();
 
+    /**
+     * Type name for value metadata container. It is set by the application. For example,
+     * for midPoint it is c:ValueMetadataType.
+     */
     private QName valueMetadataTypeName;
 
-    // lazily evaluated (because we need be initialized to resolve value metadata type to the definition)
+    /**
+     * Definition of the value metadata container.
+     * It is lazily evaluated, because the schema registry has to be initialized to resolve type name to definition.
+     */
     private PrismContainerDefinition<?> valueMetadataDefinition;
 
+    /**
+     * Default name for value metadata container. Used to construct ad-hoc definition when no value metadata
+     * type name is specified.
+     */
     private static final QName DEFAULT_VALUE_METADATA_NAME = new QName("valueMetadata");
 
     @Override
@@ -375,8 +479,6 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
     }
 
     protected void parseAdditionalSchemas() throws SchemaException {
-        // TODO Auto-generated method stub
-
     }
 
     private void invalidateCaches() {
@@ -956,15 +1058,6 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         return resolveUnqualifiedTypeName(typeName);
     }
 
-//    private class ParentChildPair {
-//        final ComplexTypeDefinition parentDef;
-//        final ItemDefinition childDef;
-//        public ParentChildPair(ComplexTypeDefinition parentDef, ItemDefinition childDef) {
-//            this.parentDef = parentDef;
-//            this.childDef = childDef;
-//        }
-//    }
-
     // current implementation tries to find all references to the child CTD and select those that are able to resolve path of 'rest'
     // fails on ambiguity
     // it's a bit fragile, as adding new references to child CTD in future may break existing code
@@ -1105,22 +1198,6 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         }
         return found;
     }
-
-//    private QName resolveElementNameIfNeeded(QName elementName) {
-//        return resolveElementNameIfNeeded(elementName, true);
-//    }
-
-//    private QName resolveElementNameIfNeeded(QName elementName, boolean exceptionIfAmbiguous) {
-//        if (StringUtils.isNotEmpty(elementName.getNamespaceURI())) {
-//            return elementName;
-//        }
-//        ItemDefinition itemDef = resolveGlobalItemDefinitionWithoutNamespace(elementName.getLocalPart(), ItemDefinition.class, exceptionIfAmbiguous, null);
-//        if (itemDef != null) {
-//            return itemDef.getName();
-//        } else {
-//            return null;
-//        }
-//    }
 
     //endregion
 
@@ -1389,16 +1466,6 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
             return (Class<T>) computed;
         }
     }
-
-//    @NotNull
-//    public <T> Class<T> determineClassForTypeNotNull(QName typeName) {
-//        Class<T> clazz = determineClassForType(typeName);
-//        if (clazz != null) {
-//            return clazz;
-//        } else {
-//            throw new IllegalStateException("No class for " + typeName);
-//        }
-//    }
 
     @Override
     public Class<?> determineClassForItemDefinition(ItemDefinition<?> itemDefinition) {
