@@ -25,7 +25,8 @@ import static com.codeborne.selenide.Selenide.$;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ProjectionsTab<P extends AssignmentHolderDetailsPage> extends Component<FocusPage> {
+public class ProjectionsTab<P extends AssignmentHolderDetailsPage> extends TabWithTableAndPrismView<FocusPage> {
+
     public ProjectionsTab(FocusPage parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
@@ -125,4 +126,10 @@ public class ProjectionsTab<P extends AssignmentHolderDetailsPage> extends Compo
                 .$(Schrodinger.byDataId("displayName"));
         return assignmentName.equals(assignmentSummaryDisplayName.getText());
     }
+
+    @Override
+    protected String getPrismViewPanelId() {
+        return "itemDetails";
+    }
+
 }
