@@ -157,50 +157,6 @@ public class SessionStorage implements Serializable, DebugDumpable {
         return (ContainerTabStorage) pageStorageMap.get(key);
     }
 
-//    public ContainerTabStorage getAssignmentsTabStorage() {
-//        return getContainerTabStorage(KEY_ASSIGNMENTS_TAB);
-//    }
-//
-//    public ContainerTabStorage getInducementsTabStorage() {
-//        return getContainerTabStorage(KEY_INDUCEMENTS_TAB);
-//    }
-//
-//    public ContainerTabStorage getTriggersTabStorage() {
-//        return getContainerTabStorage(KEY_TRIGGERS_TAB);
-//    }
-//
-//    public ContainerTabStorage getInducedEntitlementsTabStorage() {
-//        return getContainerTabStorage(KEY_INDUCED_ENTITLEMENTS_TAB);
-//    }
-//
-//    public ContainerTabStorage getCaseWorkitemsTabStorage() {
-//        return getContainerTabStorage(KEY_CASE_WORKITEMS_TAB);
-//    }
-//
-//    public ContainerTabStorage getCaseEventsTabStorage() {
-//        return getContainerTabStorage(KEY_CASE_EVENTS_TAB);
-//    }
-//
-//    public ContainerTabStorage getObjectPoliciesConfigurationTabStorage() {
-//        return getContainerTabStorage(KEY_OBJECT_POLICIES_TAB);
-//    }
-//
-//    public ContainerTabStorage getGlobalPolicyRulesTabStorage() {
-//        return getContainerTabStorage(KEY_GLOBAL_POLICY_RULES_TAB);
-//    }
-//
-//    public ContainerTabStorage getLoggingConfigurationTabAppenderTableStorage() {
-//        return getContainerTabStorage(KEY_LOGGING_TAB_APPENDER_TABLE);
-//    }
-//
-//    public ContainerTabStorage getLoggingConfigurationTabLoggerTableStorage() {
-//        return getContainerTabStorage(KEY_LOGGING_TAB_LOGGER_TABLE);
-//    }
-//
-//    public ContainerTabStorage getFocusProjectionTableStorage() {
-//        return getContainerTabStorage(KEY_FOCUS_PROJECTION_TABLE);
-//    }
-
     public ContainerTabStorage getNotificationConfigurationTabMailServerTableStorage() {
         return getContainerTabStorage(KEY_NOTIFICATION_TAB_MAIL_SERVER_TABLE);
     }

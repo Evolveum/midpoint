@@ -299,40 +299,6 @@ public abstract class ResourceContentPanel extends Panel {
                         return queryFactory.createQuery(queryFactory.createAnd(filters));
                     }
 
-//                    @Override
-//                    protected LoadableModel<Search> createSearchModel() {
-//                        Search searchModel = super.createSearchModel().getObject();
-//                        return new LoadableModel<Search>(false) {
-//
-//                            private static final long serialVersionUID = 1L;
-//
-//                            @Override
-//                            public Search load() {
-//                                Search search = null;
-//                                PageStorage storage = getPageStorage();
-//                                if (storage != null) {
-//                                    search = storage.getSearch();
-//                                }
-//                                Search newSearch = createSearch();
-//                                if (search == null
-//                                        || !search.getAvailableDefinitions().containsAll(newSearch.getAvailableDefinitions())) {
-//                                    search = newSearch;
-//                                }
-//
-//                                String searchByName = getSearchByNameParameterValue();
-//                                if (searchByName != null) {
-//                                    for (PropertySearchItem item : search.getPropertyItems()) {
-//                                        if (ItemPath.create(ObjectType.F_NAME).equivalent(item.getPath())) {
-//                                            item.setValue(new SearchValue<>(searchByName));
-//                                        }
-//                                    }
-//                                }
-//                                LoadableModel<Search> searchModel = super.createSearchModel();
-//                                return search;
-//                            }
-//                        };
-//                    }
-
                     @Override
                     protected Search createSearch() {
                         return ResourceContentPanel.this.createSearch();

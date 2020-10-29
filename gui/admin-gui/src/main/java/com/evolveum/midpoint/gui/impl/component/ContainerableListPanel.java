@@ -715,7 +715,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
             @Override
             protected void saveSearch(Search search, AjaxRequestTarget target) {
-                PageStorage storage = getPageStorage(getStorageKey());
+                PageStorage storage = getPageStorage();
                 if (storage != null) {
                     storage.setSearch(search);
                 }
@@ -910,9 +910,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     public void resetSearchModel(){
-        String storageKey = getStorageKey();
-        if (StringUtils.isNotEmpty(storageKey)) {
-            PageStorage storage = getPageStorage(storageKey);
+        PageStorage storage = getPageStorage();
+        if (storage != null) {
             storage.setSearch(null);
             storage.setPaging(null);
         }
@@ -921,15 +920,11 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected void saveSearchModel(ObjectPaging paging) {
-        String storageKey = getStorageKey();
-        if (StringUtils.isNotEmpty(storageKey)) {
-            PageStorage storage = getPageStorage(storageKey);
-            if (storage != null) {
-                storage.setSearch(searchModel.getObject());
-                storage.setPaging(paging);
-            }
+        PageStorage storage = getPageStorage();
+        if (storage != null) {
+            storage.setSearch(searchModel.getObject());
+            storage.setPaging(paging);
         }
-
     }
 
     public void clearCache() {
@@ -1020,11 +1015,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     public ObjectPaging getCurrentTablePaging(){
-        String storageKey = getStorageKey();
-        if (StringUtils.isEmpty(storageKey)){
-            return null;
-        }
-        PageStorage storage = getPageStorage(storageKey);
+        PageStorage storage = getPageStorage();
         if (storage == null) {
             return null;
         }
