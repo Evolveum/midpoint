@@ -168,11 +168,6 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                     }
 
                     @Override
-                    protected ObjectQuery createQuery() {
-                        return null;
-                    }
-
-                    @Override
                     protected String getStorageKey() {
                         return SessionStorage.KEY_FOCUS_PROJECTION_TABLE;
                     }

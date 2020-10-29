@@ -71,11 +71,6 @@ public class FocusTriggersTabPanel<F extends FocusType> extends AbstractObjectTa
                         return triggersModel;
                     }
 
-                    @Override
-                    protected ObjectQuery createQuery() {
-                        return null;
-                    }
-
                     protected boolean isSearchVisible(){
                         return false;
                     }

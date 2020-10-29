@@ -679,9 +679,11 @@ public class SearchPanel extends BasePanel<Search> {
         List<Property> list = new ArrayList<>();
 
         Search search = getModelObject();
-        List<ItemDefinition> defs = search.getAllDefinitions();
-        for (ItemDefinition def : defs) {
-            list.add(new Property(def, def.getItemName()));
+        List<SearchItemDefinition> defs = search.getAllDefinitions();
+        for (SearchItemDefinition def : defs) {
+            Property property = new Property(def.getDef(), def.getDef().getItemName());
+            property.setDisplayName(def.getDisplayName());
+            list.add(property);
         }
 
         Collections.sort(list);

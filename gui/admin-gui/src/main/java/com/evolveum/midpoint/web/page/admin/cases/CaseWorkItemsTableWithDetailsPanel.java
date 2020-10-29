@@ -42,11 +42,6 @@ public abstract class CaseWorkItemsTableWithDetailsPanel extends BasePanel<Prism
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected ObjectQuery createQuery() {
-                        return CaseWorkItemsTableWithDetailsPanel.this.createQuery();
-                    }
-
-                    @Override
                     protected IModel<PrismContainerWrapper<CaseWorkItemType>> getContainerModel() {
                         return CaseWorkItemsTableWithDetailsPanel.this.getModel();
                     }
@@ -60,16 +55,6 @@ public abstract class CaseWorkItemsTableWithDetailsPanel extends BasePanel<Prism
                     protected UserProfileStorage.TableId getTableId() {
                         return CaseWorkItemsTableWithDetailsPanel.this.getTableId();
                     }
-
-//                    @Override
-//                    public void itemDetailsPerformed(AjaxRequestTarget target,  IModel<PrismContainerValueWrapper<CaseWorkItemType>> model){
-//                        getCaseWorkItemsTablePanel().itemDetailsPerformed(target, model);
-//                    }
-
-//                    @Override
-//                    protected String getTableIdKeyValue() {
-//                        return CaseWorkItemsTableWithDetailsPanel.this.getTableId().name();
-//                    }
                 };
         caseWorkItems.setOutputMarkupId(true);
         add(caseWorkItems);
@@ -81,8 +66,6 @@ public abstract class CaseWorkItemsTableWithDetailsPanel extends BasePanel<Prism
     protected MultivalueContainerListPanelWithDetailsPanel<CaseWorkItemType> getCaseWorkItemsTablePanel() {
         return ((MultivalueContainerListPanelWithDetailsPanel<CaseWorkItemType>)get(ID_WORKITEMS_TABLE));
     }
-
-    protected abstract ObjectQuery createQuery();
 
     protected abstract UserProfileStorage.TableId getTableId();
 }

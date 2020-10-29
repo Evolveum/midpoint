@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.web.session.SessionStorage;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -98,10 +99,14 @@ public class PolicyRulesPanel extends AssignmentPanel {
     }
 
     @Override
-    protected ObjectQuery createObjectQuery() {
-        return getParentPage().getPrismContext().queryFor(AssignmentType.class)
-                .exists(AssignmentType.F_POLICY_RULE)
-                .build();
+    protected ObjectQuery customizeContentQuery(ObjectQuery query) {
+        if (query == null) {
+            query = getPrismContext().queryFor(AssignmentType.class).build();
+        }
+        ObjectFilter filter = getParentPage().getPrismContext().queryFor(AssignmentType.class)
+                .exists(AssignmentType.F_POLICY_RULE).buildFilter();
+        query.addFilter(filter);
+        return query;
     }
 
     @Override
@@ -110,7 +115,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
 
         SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), defs);
         SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), defs);
-        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME), defs);
+        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME), defs, "AssignmentPanel.search.policyRule.name");
         SearchFactory.addSearchRefDef(containerDef,
                 ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS,
                         PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF), defs, AreaCategoryType.POLICY, getPageBase());

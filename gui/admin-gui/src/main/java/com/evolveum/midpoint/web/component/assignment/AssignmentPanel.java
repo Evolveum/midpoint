@@ -16,6 +16,9 @@ import com.evolveum.midpoint.web.session.SessionStorage;
 
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -133,8 +136,8 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                     }
 
                     @Override
-                    protected ObjectQuery createQuery() {
-                        return createObjectQuery();
+                    protected ObjectQuery customizeContentQuery(ObjectQuery query) {
+                        return AssignmentPanel.this.customizeContentQuery(query);
                     }
 
                     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createDefaultColumns() {
@@ -321,7 +324,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
         if (getAssignmentType() == null) {
             SearchFactory.addSearchRefDef(containerDef, ItemPath.create(AssignmentType.F_TARGET_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
             SearchFactory.addSearchRefDef(containerDef, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
-            SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME), defs);
+            SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME), defs, "AssignmentPanel.search.policyRule.name");
             SearchFactory.addSearchRefDef(containerDef,
                     ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS,
                             PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF), defs, AreaCategoryType.POLICY, getPageBase());
@@ -374,7 +377,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
         }
     }
 
-    protected ObjectQuery createObjectQuery() {
+    protected ObjectQuery customizeContentQuery(ObjectQuery query) {
         Collection<QName> delegationRelations = getParentPage().getRelationRegistry()
                 .getAllRelationsFor(RelationKindType.DELEGATION);
 
@@ -389,11 +392,16 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
         archetypeFilter.setOidNullAsAny(true);
         archetypeFilter.setRelationNullAsAny(true);
 
-        ObjectQuery query = getParentPage().getPrismContext().queryFor(AssignmentType.class)
+        ObjectFilter relationFilter = getParentPage().getPrismContext().queryFor(AssignmentType.class)
                 .not()
                 .item(AssignmentType.F_TARGET_REF)
                 .refRelation(delegationRelations.toArray(new QName[0]))
-                .build();
+                .buildFilter();
+
+        if (query == null) {
+            query = getPrismContext().queryFor(AssignmentType.class).build();
+        }
+        query.addFilter(relationFilter);
         query.addFilter(getPrismContext().queryFactory().createNot(archetypeFilter));
         return query;
     }

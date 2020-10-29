@@ -110,10 +110,8 @@ public class Search implements Serializable, DebugDumpable {
         return Collections.unmodifiableList(availableDefinitions);
     }
 
-    public List<ItemDefinition> getAllDefinitions() {
-        List<ItemDefinition> allDefs = new ArrayList<>();
-        allDefinitions.forEach(searchItemDef -> allDefs.add(searchItemDef.getDef()));
-        return allDefs;
+    public List<SearchItemDefinition> getAllDefinitions() {
+        return Collections.unmodifiableList(allDefinitions);
     }
 
     public SearchItem addItem(ItemDefinition def) {

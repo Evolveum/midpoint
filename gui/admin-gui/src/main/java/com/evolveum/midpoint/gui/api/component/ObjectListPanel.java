@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
-import java.io.Serializable;
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -21,7 +20,6 @@ import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import static java.util.Collections.singleton;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
@@ -33,7 +31,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -176,38 +173,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
 
     public void clearCache() {
         WebComponentUtil.clearProviderCache(getDataProvider());
-    }
-
-    protected ObjectQuery createQuery() {
-        Search search = getSearchModel().getObject();
-        ObjectQuery query = search.createObjectQuery(getPageBase().getPrismContext());
-        query = addArchetypeFilter(query);
-        query = customizeContentQuery(query);
-        return query;
-    }
-
-    private ObjectQuery addArchetypeFilter(ObjectQuery query) {
-        if (!isCollectionViewPanel()) {
-            return query;
-        }
-        CompiledObjectCollectionView view = getObjectCollectionView();
-        if (view == null) {
-            getFeedbackMessages().add(ObjectListPanel.this, "Unable to load collection view list", 0);
-            return query;
-        }
-
-        if (view.getFilter() == null) {
-            return query;
-        }
-
-        if (query == null) {
-            query = getPrismContext().queryFactory().createQuery();
-        }
-        query.addFilter(view.getFilter());
-        OperationResult result = new OperationResult(DOT_CLASS + "evaluateExpressionsInFilter");
-        query.addFilter(WebComponentUtil.evaluateExpressionsInFilter(view.getFilter(), result, getPageBase()));
-        return query;
-
     }
 
     protected void addCustomActions(@NotNull List<InlineMenuItem> actionsList, SerializableSupplier<Collection<? extends O>> objectsSupplier) {

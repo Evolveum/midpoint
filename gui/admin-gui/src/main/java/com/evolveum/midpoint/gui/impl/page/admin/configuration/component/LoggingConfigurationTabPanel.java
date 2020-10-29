@@ -143,11 +143,6 @@ public class LoggingConfigurationTabPanel extends BasePanel<PrismContainerWrappe
                 return loggerModel;
             }
 
-                    @Override
-            protected ObjectQuery createQuery() {
-                return null;
-            }
-
             @Override
             protected String getStorageKey() {
                 return SessionStorage.KEY_LOGGING_TAB_LOGGER_TABLE;
@@ -197,11 +192,6 @@ public class LoggingConfigurationTabPanel extends BasePanel<PrismContainerWrappe
             @Override
             protected boolean isSearchVisible() {
                 return false;
-            }
-
-            @Override
-            protected ObjectQuery createQuery() {
-                return null;
             }
 
             @Override

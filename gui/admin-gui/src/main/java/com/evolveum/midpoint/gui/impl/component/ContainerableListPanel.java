@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -89,6 +90,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     public static final String ID_ITEMS = "items";
     private static final String ID_ITEMS_TABLE = "itemsTable";
+    private static final String DOT_CLASS = ContainerableListPanel.class.getName() + ".";
 
     private Class<? extends C> type;
 
@@ -935,11 +937,38 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected ObjectQuery createQuery() {
-        Search search = searchModel.getObject();
-        ObjectQuery query = search != null ? search.createObjectQuery(getPageBase().getPrismContext()) :
-                getPrismContext().queryFor(getType()).build();
-                customizeContentQuery(query);
+        ObjectQuery query = getPrismContext().queryFor(getType()).build();
+        if (isSearchVisible()) {
+            Search search = searchModel.getObject();
+            if (search != null){
+               query = search.createObjectQuery(getPageBase().getPrismContext());
+            }
+        }
+        addArchetypeFilter(query);
+        customizeContentQuery(query);
         return query;
+    }
+
+    private ObjectQuery addArchetypeFilter(ObjectQuery query) {
+        if (!isCollectionViewPanel()) {
+            return query;
+        }
+        CompiledObjectCollectionView view = getObjectCollectionView();
+        if (view == null) {
+            getFeedbackMessages().add(ContainerableListPanel.this, "Unable to load collection view list", 0);
+            return query;
+        }
+        if (view.getFilter() == null) {
+            return query;
+        }
+        if (query == null) {
+            query = getPrismContext().queryFor(getType()).build();
+        }
+        query.addFilter(view.getFilter());
+        OperationResult result = new OperationResult(DOT_CLASS + "evaluateExpressionsInFilter");
+        query.addFilter(WebComponentUtil.evaluateExpressionsInFilter(view.getFilter(), result, getPageBase()));
+        return query;
+
     }
 
     protected ObjectQuery customizeContentQuery(ObjectQuery query) {

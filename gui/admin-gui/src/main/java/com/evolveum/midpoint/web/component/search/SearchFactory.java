@@ -9,7 +9,11 @@ package com.evolveum.midpoint.web.component.search;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.cxf.common.util.CollectionUtils;
 
@@ -445,11 +449,24 @@ public class SearchFactory {
     }
 
     public static <C extends Containerable> void addSearchPropertyDef(PrismContainerDefinition<C> containerDef, ItemPath path, List<SearchItemDefinition> defs) {
+        addSearchPropertyDef(containerDef, path, defs, null);
+    }
+
+    public static <C extends Containerable> void addSearchPropertyDef(PrismContainerDefinition<C> containerDef, ItemPath path, List<SearchItemDefinition> defs, String key) {
         PrismPropertyDefinition propDef = containerDef.findPropertyDefinition(path);
         if (propDef == null) {
             return;
         }
-        defs.add(new SearchItemDefinition(path, propDef, null));
+        SearchItemDefinition searchItem = new SearchItemDefinition(path, propDef, null);
+        if (key != null) {
+            PolyStringType displayName = new PolyStringType(propDef.getItemName().getLocalPart());
+            PolyStringTranslationType translation = new PolyStringTranslationType();
+            translation.setFallback(propDef.getItemName().getLocalPart());
+            translation.setKey(key);
+            displayName.setTranslation(translation);
+            searchItem.setDisplayName(displayName);
+        }
+        defs.add(searchItem);
     }
 
     private static boolean isIndexed(ItemDefinition def) {

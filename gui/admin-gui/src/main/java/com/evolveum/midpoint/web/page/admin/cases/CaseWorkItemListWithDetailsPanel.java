@@ -126,9 +126,6 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
     protected abstract UserProfileStorage.TableId getTableId();
 
     @Override
-    protected abstract ObjectQuery createQuery();
-
-    @Override
     protected boolean isCreateNewObjectVisible() {
         return false;
     }

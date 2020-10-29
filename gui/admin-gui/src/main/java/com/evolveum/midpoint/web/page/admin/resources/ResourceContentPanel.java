@@ -281,8 +281,7 @@ public abstract class ResourceContentPanel extends Panel {
                     }
 
                     @Override
-                    protected ObjectQuery createQuery() {
-                        ObjectQuery parentQuery = super.createQuery();
+                    protected ObjectQuery customizeContentQuery(ObjectQuery parentQuery) {
                         QueryFactory queryFactory = pageBase.getPrismContext().queryFactory();
 
                         List<ObjectFilter> filters = new ArrayList<>();

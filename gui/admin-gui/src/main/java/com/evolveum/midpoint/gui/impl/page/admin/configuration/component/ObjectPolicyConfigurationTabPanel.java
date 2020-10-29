@@ -102,11 +102,6 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<PrismContainerW
             }
 
             @Override
-            protected ObjectQuery createQuery() {
-                    return ObjectPolicyConfigurationTabPanel.this.createQuery();
-            }
-
-            @Override
             protected String getStorageKey() {
                 return SessionStorage.KEY_OBJECT_POLICIES_TAB;
             }
@@ -197,13 +192,6 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<PrismContainerW
 
     private MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType> getMultivalueContainerListPanel(){
         return ((MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType>)get(ID_OBJECTS_POLICY));
-    }
-
-
-    private ObjectQuery createQuery() {
-        return getPageBase().getPrismContext().queryFor(ObjectPolicyConfigurationType.class)
-                .all()
-                .build();
     }
 
     private List<IColumn<PrismContainerValueWrapper<ObjectPolicyConfigurationType>, String>> initBasicColumns() {

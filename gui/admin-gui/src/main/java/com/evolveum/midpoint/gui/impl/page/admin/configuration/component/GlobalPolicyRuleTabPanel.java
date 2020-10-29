@@ -99,11 +99,6 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
             }
 
             @Override
-            protected ObjectQuery createQuery() {
-                    return GlobalPolicyRuleTabPanel.this.createQuery();
-            }
-
-            @Override
             protected String getStorageKey() {
                 return SessionStorage.KEY_OBJECT_POLICIES_TAB;
             }
@@ -172,12 +167,6 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
 
     private MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType> getMultivalueContainerListPanel(){
         return ((MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType>)get(ID_GLOBAL_POLICY_RULE));
-    }
-
-    private ObjectQuery createQuery() {
-        QueryFactory factory = getPrismContext().queryFactory();
-        TypeFilter filter = factory.createType(GlobalPolicyRuleType.COMPLEX_TYPE, factory.createAll());
-        return factory.createQuery(filter);
     }
 
     private List<IColumn<PrismContainerValueWrapper<GlobalPolicyRuleType>, String>> initBasicColumns() {

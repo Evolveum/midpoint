@@ -92,7 +92,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
 
             @Override
             public ObjectQuery getQuery() {
-                return MultivalueContainerListPanel.this.createProviderQuery(getSearchModel());
+                return createQuery();
             }
 
             @Override
@@ -186,20 +186,20 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         return items;
     }
 
-    private ObjectQuery createProviderQuery(LoadableModel<Search> searchModel) {
-        ObjectQuery searchQuery = isSearchVisible() ? getQuery(searchModel) : null;
-
-        ObjectQuery customQuery = createQuery();
-
-        if (searchQuery != null && searchQuery.getFilter() != null) {
-            if (customQuery != null && customQuery.getFilter() != null) {
-                return getPrismContext().queryFactory().createQuery(getPrismContext().queryFactory().createAnd(customQuery.getFilter(), searchQuery.getFilter()));
-            }
-            return searchQuery;
-
-        }
-        return customQuery;
-    }
+//    private ObjectQuery createProviderQuery(LoadableModel<Search> searchModel) {
+//        ObjectQuery searchQuery = isSearchVisible() ? getQuery(searchModel) : null;
+//
+//        ObjectQuery customQuery = createQuery();
+//
+//        if (searchQuery != null && searchQuery.getFilter() != null) {
+//            if (customQuery != null && customQuery.getFilter() != null) {
+//                return getPrismContext().queryFactory().createQuery(getPrismContext().queryFactory().createAnd(customQuery.getFilter(), searchQuery.getFilter()));
+//            }
+//            return searchQuery;
+//
+//        }
+//        return customQuery;
+//    }
 
     protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc){
     }

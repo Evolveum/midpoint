@@ -30,7 +30,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
-import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -263,6 +262,29 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             protected Search createSearch() {
                 return getMemberPanelStorage() != null && getMemberPanelStorage().getSearch() != null ?
                         getMemberPanelStorage().getSearch() : SearchFactory.createSearch(getDefaultObjectType(), pageBase);
+            }
+
+            @Override
+            protected ObjectQuery customizeContentQuery(ObjectQuery query) {
+
+                ObjectQuery members = AbstractRoleMemberPanel.this.createContentQuery();
+
+                List<ObjectFilter> filters = new ArrayList<>();
+
+                if (query != null && query.getFilter() != null) {
+                    filters.add(query.getFilter());
+                }
+
+                if (members != null && members.getFilter() != null) {
+                    filters.add(members.getFilter());
+                }
+
+                QueryFactory queryFactory = pageBase.getPrismContext().queryFactory();
+                if (filters.size() == 1) {
+                    return queryFactory.createQuery(filters.iterator().next());
+                } else {
+                    return queryFactory.createQuery(queryFactory.createAnd(filters));
+                }
             }
 
             @Override

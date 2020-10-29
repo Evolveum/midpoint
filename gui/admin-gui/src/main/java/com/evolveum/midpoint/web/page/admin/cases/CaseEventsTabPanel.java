@@ -67,11 +67,6 @@ public class CaseEventsTabPanel extends AbstractObjectTabPanel<CaseType> {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected ObjectQuery createQuery() {
-                        return null;
-                    }
-
-                    @Override
                     protected boolean isCreateNewObjectVisible() {
                         return false;
                     }
