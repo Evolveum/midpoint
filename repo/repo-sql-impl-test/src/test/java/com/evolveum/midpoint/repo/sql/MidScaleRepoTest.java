@@ -14,6 +14,7 @@ import org.javasimon.EnabledManager;
 import org.javasimon.Manager;
 import org.javasimon.Split;
 import org.javasimon.Stopwatch;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.AfterMethod;
@@ -21,10 +22,12 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -38,8 +41,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class MidScaleRepoTest extends BaseSQLRepoTest {
 
     public static final int RESOURCE_COUNT = 10;
-    public static final int BASE_USER_COUNT = 10000;
-    public static final int MORE_USER_COUNT = 20000;
+    public static final int BASE_USER_COUNT = 1000;
+    public static final int MORE_USER_COUNT = 2000;
     public static final int PEAK_USER_COUNT = 1000;
 
     public static final int FIND_COUNT = 1000;
@@ -55,13 +58,14 @@ public class MidScaleRepoTest extends BaseSQLRepoTest {
     private final List<String> memInfo = new ArrayList<>();
 
     @BeforeMethod
-    public void memInfoBefore() {
+    public void reportBeforeTest() {
         memInfo.add(String.format("%-40.40s before: %,15d",
                 contextName(), Runtime.getRuntime().totalMemory()));
+        queryListener.clear();
     }
 
     @AfterMethod
-    public void memInfoAfter() {
+    public void reportAfterTest() {
         memInfo.add(String.format("%-40.40s  after: %,15d",
                 contextName(), Runtime.getRuntime().totalMemory()));
     }
@@ -70,88 +74,168 @@ public class MidScaleRepoTest extends BaseSQLRepoTest {
     public void test010InitResources() throws ObjectAlreadyExistsException, SchemaException {
         OperationResult operationResult = createOperationResult();
         Stopwatch stopwatch = simonManager.getStopwatch("resource-add");
-        for (int i = 1; i <= RESOURCE_COUNT; i++) {
+        for (int resourceIndex = 1; resourceIndex <= RESOURCE_COUNT; resourceIndex++) {
             ResourceType resourceType = new ResourceType(prismContext);
-            String name = String.format("resource-%03d", i);
+            String name = String.format("resource-%03d", resourceIndex);
             resourceType.setName(PolyStringType.fromOrig(name));
+            if (resourceIndex == RESOURCE_COUNT) {
+                queryListener.start();
+            }
             try (Split ignored = stopwatch.start()) {
                 repositoryService.addObject(resourceType.asPrismObject(), null, operationResult);
             }
             resources.put(name, resourceType.getOid());
         }
+        queryListener.dumpAndStop();
     }
 
     @Test
     public void test020AddBaseUsers() throws ObjectAlreadyExistsException, SchemaException {
         OperationResult operationResult = createOperationResult();
         Stopwatch stopwatch = simonManager.getStopwatch("user-add");
-        for (int i = 1; i <= BASE_USER_COUNT; i++) {
+        for (int userIndex = 1; userIndex <= BASE_USER_COUNT; userIndex++) {
             UserType userType = new UserType(prismContext);
-            String name = String.format("user-%07d", i);
+            String name = String.format("user-%07d", userIndex);
             userType.setName(PolyStringType.fromOrig(name));
+            if (userIndex == BASE_USER_COUNT) {
+                queryListener.start();
+            }
             try (Split ignored = stopwatch.start()) {
                 repositoryService.addObject(userType.asPrismObject(), null, operationResult);
             }
             users.put(name, userType.getOid());
         }
+        queryListener.dumpAndStop();
     }
 
     @Test
-    public void test110FindUsers() throws SchemaException, ObjectNotFoundException {
+    public void test030AddBaseShadows() throws ObjectAlreadyExistsException, SchemaException {
         OperationResult operationResult = createOperationResult();
-        Stopwatch stopwatch = simonManager.getStopwatch("user-find1");
+        Stopwatch stopwatch = simonManager.getStopwatch("shadow-add");
+        for (int userIndex = 1; userIndex <= BASE_USER_COUNT; userIndex++) {
+            for (Map.Entry<String, String> resourceEntry : resources.entrySet()) {
+                String name = String.format("shadow-%07d-at-%s", userIndex, resourceEntry.getKey());
+                ShadowType shadowType = createShadow(name, resourceEntry.getValue());
+                // for the last user, but only once for a single resource
+                if (userIndex == BASE_USER_COUNT && queryListener.hasNoEntries()) {
+                    queryListener.start();
+                }
+                try (Split ignored = stopwatch.start()) {
+                    repositoryService.addObject(shadowType.asPrismObject(), null, operationResult);
+                }
+                if (queryListener.isStarted()) {
+                    // stop does not clear entries, so it will not be started again
+                    queryListener.stop();
+                }
+            }
+        }
+        queryListener.dumpAndStop();
+    }
+
+    @NotNull
+    private ShadowType createShadow(String shadowName, String resourceOid) {
+        ShadowType shadowType = new ShadowType(prismContext);
+        shadowType.setName(PolyStringType.fromOrig(shadowName));
+        shadowType.setResourceRef(MiscSchemaUtil.createObjectReference(
+                resourceOid, ResourceType.COMPLEX_TYPE));
+        return shadowType;
+    }
+
+    @Test
+    public void test110GetUser() throws SchemaException, ObjectNotFoundException {
+        OperationResult operationResult = createOperationResult();
+        Stopwatch stopwatch = simonManager.getStopwatch("user-get1");
         for (int i = 1; i <= FIND_COUNT; i++) {
             String randomName = String.format("user-%07d", RND.nextInt(BASE_USER_COUNT) + 1);
+            if (i == FIND_COUNT) {
+                queryListener.start();
+            }
             try (Split ignored = stopwatch.start()) {
                 assertThat(repositoryService.getObject(
                         UserType.class, users.get(randomName), null, operationResult))
                         .isNotNull();
             }
         }
+        queryListener.dumpAndStop();
     }
 
     @Test
     public void test210AddMoreUsers() throws ObjectAlreadyExistsException, SchemaException {
         OperationResult operationResult = createOperationResult();
         Stopwatch stopwatch = simonManager.getStopwatch("user-add-more");
-        for (int i = 1; i <= MORE_USER_COUNT; i++) {
+        for (int userIndex = 1; userIndex <= MORE_USER_COUNT; userIndex++) {
             UserType userType = new UserType(prismContext);
+            String name = String.format("user-more-%07d", userIndex);
+            userType.setName(PolyStringType.fromOrig(name));
+            if (userIndex == MORE_USER_COUNT) {
+                queryListener.start();
+            }
             try (Split ignored = stopwatch.start()) {
-                String name = String.format("user-more-%07d", i);
-                userType.setName(PolyStringType.fromOrig(name));
                 repositoryService.addObject(userType.asPrismObject(), null, operationResult);
-                users.put(name, userType.getOid());
+            }
+            users.put(name, userType.getOid());
+        }
+        queryListener.dumpAndStop();
+    }
+
+    @Test
+    public void test230AddMoreShadows() throws ObjectAlreadyExistsException, SchemaException {
+        OperationResult operationResult = createOperationResult();
+        Stopwatch stopwatch = simonManager.getStopwatch("shadow-add-more");
+        for (int userIndex = 1; userIndex <= MORE_USER_COUNT; userIndex++) {
+            for (Map.Entry<String, String> resourceEntry : resources.entrySet()) {
+                String name = String.format("shadow-more-%07d-at-%s", userIndex, resourceEntry.getKey());
+                ShadowType shadowType = createShadow(name, resourceEntry.getValue());
+                // for the last user, but only once for a single resource
+                if (userIndex == MORE_USER_COUNT && queryListener.hasNoEntries()) {
+                    queryListener.start();
+                }
+                try (Split ignored = stopwatch.start()) {
+                    repositoryService.addObject(shadowType.asPrismObject(), null, operationResult);
+                }
+                if (queryListener.isStarted()) {
+                    queryListener.stop();
+                }
             }
         }
+        queryListener.dumpAndStop();
     }
 
     @Test
     public void test610PeakMoreUsers() throws ObjectAlreadyExistsException, SchemaException {
         OperationResult operationResult = createOperationResult();
         Stopwatch stopwatch = simonManager.getStopwatch("user-add-peak");
-        for (int i = 1; i <= PEAK_USER_COUNT; i++) {
+        for (int userIndex = 1; userIndex <= PEAK_USER_COUNT; userIndex++) {
             UserType userType = new UserType(prismContext);
-            try (Split ignored = stopwatch.start()) {
-                String name = String.format("user-peak-%07d", i);
-                userType.setName(PolyStringType.fromOrig(name));
-                repositoryService.addObject(userType.asPrismObject(), null, operationResult);
-                users.put(name, userType.getOid());
+            String name = String.format("user-peak-%07d", userIndex);
+            userType.setName(PolyStringType.fromOrig(name));
+            if (userIndex == PEAK_USER_COUNT) {
+                queryListener.start();
             }
+            try (Split ignored = stopwatch.start()) {
+                repositoryService.addObject(userType.asPrismObject(), null, operationResult);
+            }
+            users.put(name, userType.getOid());
         }
+        queryListener.dumpAndStop();
     }
 
     @Test
-    public void test710FindUsers() throws SchemaException, ObjectNotFoundException {
+    public void test710GetUserMore() throws SchemaException, ObjectNotFoundException {
         OperationResult operationResult = createOperationResult();
-        Stopwatch stopwatch = simonManager.getStopwatch("user-find2");
+        Stopwatch stopwatch = simonManager.getStopwatch("user-get2");
         for (int i = 1; i <= FIND_COUNT; i++) {
             String randomName = String.format("user-more-%07d", RND.nextInt(MORE_USER_COUNT) + 1);
+            if (i == FIND_COUNT) {
+                queryListener.start();
+            }
             try (Split ignored = stopwatch.start()) {
                 assertThat(repositoryService.getObject(
                         UserType.class, users.get(randomName), null, operationResult))
                         .isNotNull();
             }
         }
+        queryListener.dumpAndStop();
     }
 
     @Test
