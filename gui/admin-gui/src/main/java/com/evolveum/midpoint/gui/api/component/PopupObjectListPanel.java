@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
+import com.evolveum.midpoint.web.component.data.column.*;
 
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
@@ -37,9 +37,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
-import com.evolveum.midpoint.web.component.data.column.PolyStringPropertyColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
@@ -99,73 +96,22 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 
     @Override
     protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> columnNameModel, String itemPath, ExpressionType expression) {
-        if (!isMultiselect()) {
-            String propertyExpression = SelectableBeanImpl.F_VALUE + "." + (StringUtils.isEmpty(itemPath) ? "name" : itemPath);
-            String sortProperty = StringUtils.isEmpty(itemPath) ? ObjectType.F_NAME.getLocalPart() : itemPath;
-            if (expression != null) {
-                propertyExpression = SelectableBeanImpl.F_VALUE + (StringUtils.isEmpty(itemPath) ? "" : ("." + itemPath));
-                sortProperty = StringUtils.isEmpty(itemPath) ? "" : itemPath;
+
+        return new ObjectNameColumn<O>(columnNameModel == null ? createStringResource("ObjectType.name") : columnNameModel,
+                itemPath, expression, getPageBase(), StringUtils.isEmpty(itemPath)) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {
+                O object = rowModel.getObject().getValue();
+                onSelectPerformed(target, object);
             }
-            return new AjaxLinkColumn<SelectableBean<O>>(
-                    columnNameModel == null ? createStringResource("ObjectType.name") : columnNameModel,
-                    sortProperty, propertyExpression) {
-                private static final long serialVersionUID = 1L;
 
-                @Override
-                protected IModel createLinkModel(IModel<SelectableBean<O>> rowModel) {
-                    IModel linkModel = new PropertyModel(rowModel, getPropertyExpression());
-                    if (linkModel.getObject() != null && linkModel.getObject() instanceof PolyStringType) {
-                        return Model.of(WebComponentUtil.getTranslatedPolyString((PolyStringType) linkModel.getObject()));
-                    }
-                    return linkModel;
-                }
-
-                @Override
-                public void onClick(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {
-                    O object = rowModel.getObject().getValue();
-                    onSelectPerformed(target, object);
-                }
-
-                @Override
-                public IModel<String> getDataModel(IModel<SelectableBean<O>> rowModel) {
-                    if (expression != null) {
-                        Object object = new PropertyModel<>(rowModel, getPropertyExpression()).getObject();
-                        return evaluateColumnExpression(object, expression);
-                    } else {
-                        return super.getDataModel(rowModel);
-                    }
-                }
-            };
-        } else {
-            if ((StringUtils.isEmpty(itemPath) || ObjectType.F_NAME.getLocalPart().equals(itemPath)) && expression == null) {
-                return new PolyStringPropertyColumn<>(
-                        columnNameModel == null
-                                ? createStringResource("userBrowserDialog.name")
-                                : columnNameModel,
-                        ObjectType.F_NAME.getLocalPart(), "value.name");
-            } else {
-                String propertyExpression = SelectableBeanImpl.F_VALUE + "." + itemPath;
-                String sortProperty = itemPath;
-                if (expression != null) {
-                    propertyExpression = SelectableBeanImpl.F_VALUE + (StringUtils.isEmpty(itemPath) ? "" : ("." + itemPath));
-                    sortProperty = StringUtils.isEmpty(itemPath) ? "" : itemPath;
-                }
-                return new PropertyColumn(
-                        columnNameModel == null ? createStringResource("userBrowserDialog.name") : columnNameModel,
-                        sortProperty, propertyExpression) {
-
-                    @Override
-                    public IModel<?> getDataModel(IModel rowModel) {
-                        if (expression != null) {
-                            Object object = new PropertyModel<>(rowModel, getPropertyExpression()).getObject();
-                            return evaluateColumnExpression(object, expression);
-                        } else {
-                            return super.getDataModel(rowModel);
-                        }
-                    }
-                };
+            @Override
+            public boolean isClickable(IModel<SelectableBean<O>> rowModel) {
+                return !isMultiselect();
             }
-        }
+        };
     }
 
     private IModel<String> evaluateColumnExpression(Object object, ExpressionType expression) {

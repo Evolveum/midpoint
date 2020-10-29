@@ -88,38 +88,21 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
     @Override
     protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> columnNameModel, String itemPath, ExpressionType expression) {
-        if (StringUtils.isEmpty(itemPath) && expression == null) {
-            return new ObjectNameColumn<O>(columnNameModel == null ? createStringResource("ObjectType.name") : columnNameModel) {
-                private static final long serialVersionUID = 1L;
+        return new ObjectNameColumn<O>(columnNameModel == null ? createStringResource("ObjectType.name") : columnNameModel,
+                itemPath, expression, getPageBase(), StringUtils.isEmpty(itemPath)) {
+            private static final long serialVersionUID = 1L;
 
-                @Override
-                public void onClick(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {
-                    O object = rowModel.getObject().getValue();
-                    MainObjectListPanel.this.objectDetailsPerformed(target, object);
-                }
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {
+                O object = rowModel.getObject().getValue();
+                MainObjectListPanel.this.objectDetailsPerformed(target, object);
+            }
 
-                @Override
-                public boolean isClickable(IModel<SelectableBean<O>> rowModel) {
-                    return MainObjectListPanel.this.isObjectDetailsEnabled(rowModel);
-                }
-            };
-        } else {
-            return new ObjectNameColumn<O>(columnNameModel == null ? createStringResource("ObjectType.name") : columnNameModel,
-                    itemPath, expression, getPageBase()) {
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public void onClick(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {
-                    O object = rowModel.getObject().getValue();
-                    MainObjectListPanel.this.objectDetailsPerformed(target, object);
-                }
-
-                @Override
-                public boolean isClickable(IModel<SelectableBean<O>> rowModel) {
-                    return MainObjectListPanel.this.isObjectDetailsEnabled(rowModel);
-                }
-            };
-        }
+            @Override
+            public boolean isClickable(IModel<SelectableBean<O>> rowModel) {
+                return MainObjectListPanel.this.isObjectDetailsEnabled(rowModel);
+            }
+        };
     }
 
     protected boolean isObjectDetailsEnabled(IModel<SelectableBean<O>> rowModel) {
