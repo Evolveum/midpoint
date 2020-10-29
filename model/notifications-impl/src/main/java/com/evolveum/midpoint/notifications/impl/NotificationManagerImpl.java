@@ -33,7 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 public class NotificationManagerImpl implements NotificationManager {
 
     private static final Trace LOGGER = TraceManager.getTrace(NotificationManager.class);
-    private static final String OP_PROCESS_EVENT = NotificationManager.class + ".processEvent";
+    private static final String OP_PROCESS_EVENT = NotificationManager.class.getName() + ".processEvent";
 
     @Autowired
     @Qualifier("cacheRepositoryService")

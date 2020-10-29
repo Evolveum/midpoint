@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+~ Copyright (c) 2010-2020 Evolveum and contributors
+~
+~ This work is dual-licensed under the Apache License 2.0
+~ and European Union Public License. See LICENSE file for details.
+-->
+
+<user oid="4462fd5e-f7f7-4ols-94sd-ace8cd6ed4aa"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>search by family name user</name>
+    <familyName>searchByFamilyNameUser</familyName>
+</user>
+

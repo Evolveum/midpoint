@@ -270,6 +270,20 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     }
 
     @Test
+    public void test116SearchByOutcomeIsNotNull() throws SchemaException {
+        when("searching audit filtered by not null outcome (enum)");
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .not()
+                .item(AuditEventRecordType.F_OUTCOME).isNull()
+                .build());
+
+        then("only audit events with not null outcome are returned");
+        assertThat(result).hasSize(2);
+        assertThat(result).allMatch(aer -> aer.getOutcome() != null);
+    }
+
+    @Test
     public void test117SearchByResult() throws SchemaException {
         when("searching audit filtered by result");
         SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
@@ -293,6 +307,20 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         then("only audit events without any result are returned");
         assertThat(result).hasSize(2);
         assertThat(result).allMatch(aer -> aer.getResult() == null);
+    }
+
+    @Test
+    public void test119SearchByResultIsNotNull() throws SchemaException {
+        when("searching audit filtered by not null result (string)");
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .not()
+                .item(AuditEventRecordType.F_RESULT).isNull()
+                .build());
+
+        then("only audit events without not null result are returned");
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getResult()).isNotNull();
     }
 
     @Test
@@ -1373,9 +1401,12 @@ public class AuditSearchTest extends BaseSQLRepoTest {
             SelectorOptions<GetOperationOptions>... selectorOptions)
             throws SchemaException {
         QueryType queryType = prismContext.getQueryConverter().createQueryType(query);
-        System.out.println("queryType = " +
-                prismContext.xmlSerializer().serializeAnyData(
-                        queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY));
+        String serializedQuery = prismContext.xmlSerializer().serializeAnyData(
+                queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
+        System.out.println("queryType = " + serializedQuery);
+        // sanity check if it's re-parsable
+        assertThat(prismContext.parserFor(serializedQuery).parseRealValue(QueryType.class))
+                .isNotNull();
         return auditService.searchObjects(
                 query,
                 Arrays.asList(selectorOptions),
@@ -1395,9 +1426,12 @@ public class AuditSearchTest extends BaseSQLRepoTest {
             SelectorOptions<GetOperationOptions>... selectorOptions)
             throws SchemaException {
         QueryType queryType = prismContext.getQueryConverter().createQueryType(query);
-        System.out.println("queryType = " +
-                prismContext.xmlSerializer().serializeAnyData(
-                        queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY));
+        String serializedQuery = prismContext.xmlSerializer().serializeAnyData(
+                queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
+        System.out.println("queryType = " + serializedQuery);
+        // sanity check if it's re-parsable
+        assertThat(prismContext.parserFor(serializedQuery).parseRealValue(QueryType.class))
+                .isNotNull();
         return auditService.countObjects(
                 query,
                 Arrays.asList(selectorOptions),

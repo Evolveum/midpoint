@@ -13,6 +13,9 @@ import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
 import com.codeborne.selenide.ex.ElementShould;
+
+import com.evolveum.midpoint.schrodinger.page.service.ServicePage;
+
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 
@@ -41,7 +44,6 @@ import com.evolveum.midpoint.schrodinger.page.self.HomePage;
 import com.evolveum.midpoint.schrodinger.page.self.ProfilePage;
 import com.evolveum.midpoint.schrodinger.page.self.RequestRolePage;
 import com.evolveum.midpoint.schrodinger.page.service.ListServicesPage;
-import com.evolveum.midpoint.schrodinger.page.service.NewServicePage;
 import com.evolveum.midpoint.schrodinger.page.task.ListTasksPage;
 import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 import com.evolveum.midpoint.schrodinger.page.user.FormSubmittablePage;
@@ -127,9 +129,9 @@ public class BasicPage {
         return new ListServicesPage();
     }
 
-    public NewServicePage newService() {
+    public ServicePage newService() {
         clickAdministrationMenu("PageAdmin.menu.top.services", "PageAdmin.menu.top.services.new");
-        return new NewServicePage();
+        return new ServicePage();
     }
 
     public ListArchetypesPage listArchetypes() {

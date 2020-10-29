@@ -10,8 +10,7 @@ package com.evolveum.midpoint.task.quartzimpl;
 import ch.qos.logback.classic.Level;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
+import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
@@ -228,7 +227,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
         Thread taskThread = getExecutingThread();
         if (taskThread != null) {
             if (Thread.currentThread().getId() == taskThread.getId()) {
-                statistics.refreshLowLevelStatistics(getRepositoryService(), taskManager);
+                statistics.refreshLowLevelStatistics(taskManager);
             }
         } else {
             LOGGER.warn("Task thread is null for {}; current thread = {}", this, Thread.currentThread());
@@ -302,23 +301,25 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 
     @Override
     public void startCollectingOperationStats(@NotNull StatisticsCollectionStrategy strategy, boolean initialExecution) {
-        PerformanceMonitor performanceMonitor = repositoryService.getPerformanceMonitor();
+        SqlPerformanceMonitorsCollection sqlPerformanceMonitors = taskManager.getSqlPerformanceMonitorsCollection();
         if (initialExecution && strategy.isStartFromZero()) {
             statistics.startCollectingOperationStatsFromZero(strategy.isMaintainIterationStatistics(),
                     strategy.isMaintainSynchronizationStatistics(), strategy.isMaintainActionsExecutedStatistics(),
-                    performanceMonitor);
+                    sqlPerformanceMonitors);
             setProgress(0L);
             storeOperationStats();
         } else {
             OperationStatsType stored = getStoredOperationStats();
             statistics.startCollectingOperationStatsFromStoredValues(stored, strategy.isMaintainIterationStatistics(),
                     strategy.isMaintainSynchronizationStatistics(), strategy.isMaintainActionsExecutedStatistics(),
-                    initialExecution, performanceMonitor);
+                    initialExecution, sqlPerformanceMonitors);
         }
     }
 
     void startCollectingLowLevelStatistics() {
-        statistics.startCollectingLowLevelStatistics(repositoryService.getPerformanceMonitor());
+        if (taskManager.getSqlPerformanceMonitorsCollection() != null) {
+            statistics.startCollectingLowLevelStatistics(taskManager.getSqlPerformanceMonitorsCollection());
+        }
     }
 
     Statistics getStatistics() {

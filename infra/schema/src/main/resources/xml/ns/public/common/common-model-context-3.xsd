@@ -2330,6 +2330,16 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="measureCpuTime" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether to measure CPU time per operation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="collectLogEntries" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

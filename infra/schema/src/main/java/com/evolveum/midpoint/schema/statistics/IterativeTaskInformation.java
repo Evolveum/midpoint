@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 import org.apache.commons.collections.buffer.CircularFifoBuffer;
 import org.jetbrains.annotations.NotNull;
@@ -18,11 +17,7 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
-/**
- * @author Pavol Mederly
- */
 public class IterativeTaskInformation {
 
     public static final int LAST_FAILURES_KEPT = 30;
@@ -217,36 +212,11 @@ public class IterativeTaskInformation {
     }
 
     public static String format(IterativeTaskInformationType source) {
-        IterativeTaskInformationType i = source != null ? source : new IterativeTaskInformationType();
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format(Locale.US, "  Successfully processed: %6d in %10d ms = %8.1f ms per object", i.getTotalSuccessCount(),
-                i.getTotalSuccessDuration(), div(i.getTotalSuccessDuration(), i.getTotalSuccessCount())));
-        if (i.getLastSuccessEndTimestamp() != null) {
-            sb.append(String.format(Locale.US, ", last: %s:%s (%s, %s) on %tc in %d ms",
-                    QNameUtil.getLocalPart(i.getLastSuccessObjectType()),
-                    i.getLastSuccessObjectName(), i.getLastSuccessObjectDisplayName(), i.getLastSuccessObjectOid(),
-                    XmlTypeConverter.toDate(i.getLastSuccessEndTimestamp()), i.getLastSuccessDuration()));
-        }
-        sb.append("\n");
-        sb.append(String.format(Locale.US, "  Failed:                 %6d in %10d ms = %8.1f ms per object", i.getTotalFailureCount(),
-                i.getTotalFailureDuration(), div(i.getTotalFailureDuration(), i.getTotalFailureCount())));
-        if (i.getLastFailureEndTimestamp() != null) {
-            sb.append(String.format(Locale.US, ", last: %s:%s (%s, %s) on %tc in %d ms: %s",
-                    QNameUtil.getLocalPart(i.getLastFailureObjectType()),
-                    i.getLastFailureObjectName(), i.getLastFailureObjectDisplayName(), i.getLastFailureObjectOid(),
-                    XmlTypeConverter.toDate(i.getLastFailureEndTimestamp()), i.getLastFailureDuration(),
-                    i.getLastFailureExceptionMessage()));
-        }
-        sb.append("\n");
-        if (i.getCurrentObjectStartTimestamp() != null) {
-            sb.append(String.format(Locale.US, "  Current: %s:%s (%s, %s) started at %tc\n", QNameUtil.getLocalPart(i.getCurrentObjectType()),
-                    i.getCurrentObjectName(), i.getCurrentObjectDisplayName(), i.getCurrentObjectOid(),
-                    XmlTypeConverter.toDate(i.getCurrentObjectStartTimestamp())));
-        }
-        return sb.toString();
+        return format(source, null);
     }
 
-    private static float div(long duration, int count) {
-        return count != 0 ? (float) duration / count : 0;
+    public static String format(IterativeTaskInformationType source, AbstractStatisticsPrinter.Options options) {
+        IterativeTaskInformationType information = source != null ? source : new IterativeTaskInformationType();
+        return new IterativeTaskInformationPrinter(information, null).print();
     }
 }

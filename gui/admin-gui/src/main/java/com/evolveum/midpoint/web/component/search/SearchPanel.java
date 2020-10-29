@@ -162,7 +162,7 @@ public class SearchPanel extends BasePanel<Search> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                moreDialogModel.reset();
+                resetMoreDialogModel();
                 Component button = SearchPanel.this.get(createComponentPath(ID_FORM, ID_MORE_GROUP, ID_MORE));
                 Component popover = SearchPanel.this.get(createComponentPath(ID_POPOVER));
                 togglePopover(target, button, popover, 14);
@@ -766,5 +766,9 @@ public class SearchPanel extends BasePanel<Search> {
 
     private boolean isFullTextSearchEnabled() {
         return getModelObject().isFullTextSearchEnabled();
+    }
+
+    public void resetMoreDialogModel() {
+        moreDialogModel.reset();
     }
 }

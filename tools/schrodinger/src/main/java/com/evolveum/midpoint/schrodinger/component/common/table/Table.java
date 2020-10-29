@@ -136,4 +136,16 @@ public class Table<T> extends Component<T> {
         return $(Schrodinger.byDataId("buttonToolbar"));
     }
 
+    public int countTableObjects() {
+        String countStringValue = $(Schrodinger.bySelfOrAncestorElementAttributeValue("div", "class", "dataTables_info", "data-s-id", "count"))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).text();
+        if (countStringValue == null) {
+            return 0;
+        }
+        int lastSpaceIndex = countStringValue.lastIndexOf(" ");
+        if (lastSpaceIndex < 0) {
+            return 0;
+        }
+        return Integer.parseInt(countStringValue.substring(lastSpaceIndex + 1));
+    }
 }

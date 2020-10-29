@@ -31,7 +31,7 @@ public class Search<T> extends Component<T> {
         choiceBasicSearch();
         SelenideElement nameElement = getItemByName("Name");
         if (nameElement == null){
-            addSearchItem("Name");
+            addSearchItemByNameLinkClick("Name");
             nameElement = getItemByName("Name");
         }
         SelenideElement nameInput = nameElement.parent().$x(".//input[@" + Schrodinger.DATA_S_ID + "='input']")
@@ -40,15 +40,19 @@ public class Search<T> extends Component<T> {
     }
 
     public SearchItemField<Search<T>> byItemName(String itemName) {
+        return byItemName(itemName, true);
+    }
+
+    public SearchItemField<Search<T>> byItemName(String itemName, boolean addIfAbsent) {
         choiceBasicSearch();
         SelenideElement itemElement = getItemByName(itemName);
-        if (itemElement == null){
-            addSearchItem(itemName);
+        if (itemElement == null && addIfAbsent){
+            addSearchItemByNameLinkClick(itemName);
             itemElement = getItemByName(itemName);
         }
-//        if (itemElement == null){
-//            return new SearchItemField(this, null);
-//        }
+        if (itemElement == null){
+            return null;
+        }
 //        SelenideElement itemElementInput = itemElement.parent().$x(".//input[@" + Schrodinger.DATA_S_ID + "='input']")
 //                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
         return new SearchItemField(this, itemElement);
@@ -86,7 +90,7 @@ public class Search<T> extends Component<T> {
         return new InputBox<> (this, fullTextField);
     }
 
-    public Search<T> addSearchItem(String name) {
+    public Search<T> addSearchItemByNameLinkClick(String name) {
         choiceBasicSearch();
         getParentElement().$x(".//a[@"+Schrodinger.DATA_S_ID+"='more']").waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
@@ -101,24 +105,18 @@ public class Search<T> extends Component<T> {
         return this;
     }
 
-//    public Popover<Search<T>> byItem(String name) {
-//
-//        choiceBasicSearch();
-//
-//        SelenideElement item = getItemByName(name);
-//        if (item == null) {
-//            addSearchItem(name);
-//            Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
-//        }
-//        item = getItemByName(name);
-//        if (item == null) {
-//            throw new IllegalStateException("Couldn't find search item for name " + name);
-//        }
-//
-//        item.waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-//        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
-//        return new Popover<>(this, getDisplayedPopover());
-//    }
+    public Search<T> addSearchItemByAddButtonClick(String name) {
+        choiceBasicSearch();
+        getParentElement().$x(".//a[@"+Schrodinger.DATA_S_ID+"='more']").waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        SelenideElement popover = getDisplayedPopover();
+        popover.$(Schrodinger.byElementValue("a", name))            //click checkbox next to search attribute
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .parent().$(By.tagName("input")).click();
+        popover.$x(".//a[@"+Schrodinger.DATA_S_ID+"='add']").waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click(); //click Add button
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        return this;
+    }
 
     public SelenideElement getItemByName(String name) {
         ElementsCollection items = getParentElement().findAll(By.className("search-item"));
@@ -172,6 +170,18 @@ public class Search<T> extends Component<T> {
             }
         }
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        return this;
+    }
+
+    public Search<T> clearTextSearchItemByNameAndUpdate(String itemName) {
+        choiceBasicSearch();
+        SelenideElement itemElement = getItemByName(itemName);
+        if (itemElement == null){
+            return this;
+        }
+        SearchItemField searchField = new SearchItemField(this, itemElement);
+        searchField.inputValue("");
+        updateSearch();
         return this;
     }
 }

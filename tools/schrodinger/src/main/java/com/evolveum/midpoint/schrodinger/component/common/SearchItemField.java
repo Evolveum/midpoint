@@ -44,4 +44,14 @@ public class SearchItemField<T> extends Component<T> {
         confirmButton.waitUntil(Condition.hidden, MidPoint.TIMEOUT_DEFAULT_2_S);
         return getParent();
     }
+
+    public T inputDropDownValue(String value) {
+        if (getParentElement() == null){
+            return getParent();
+        }
+        SelenideElement inputField = getParentElement().parent().$x(".//select[@" + Schrodinger.DATA_S_ID + "='input']")
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+        inputField.selectOptionContainingText(value);
+        return getParent();
+    }
 }

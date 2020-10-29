@@ -6,10 +6,11 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
+import static java.util.Collections.singletonList;
+
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -72,8 +73,6 @@ import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import static java.util.Collections.singletonList;
 
 @PageDescriptor(
         urls = {
@@ -419,7 +418,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                ConfirmationPanel dialog = new ConfirmationPanel(getMainPopupBodyId(), createStringResource("operationalButtonsPanel.cleanupEnvironmentalPerformance.confirmation")) {
+                ConfirmationPanel dialog = new ConfirmationPanel(getMainPopupBodyId(), createStringResource("operationalButtonsPanel.cleanupResults.confirmation")) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -456,11 +455,14 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             return null;
         }
 
-        PrismValue oldValue = itemValue.getOldValue().clone();
+        PrismValue newValue = itemValue.getNewValue();
+        if (newValue == null || newValue.isEmpty()) {
+            return null;
+        }
 
         return getPrismContext().deltaFor(TaskType.class)
                 .item(itemName)
-                .delete(oldValue)
+                .replace()
                 .asItemDelta();
 
     }

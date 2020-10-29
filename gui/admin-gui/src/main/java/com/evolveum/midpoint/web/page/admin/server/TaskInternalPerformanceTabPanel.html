@@ -20,7 +20,18 @@
 <body>
 <wicket:panel>
 
-    <textarea wicket:id="information"></textarea>
+    <div class="form-group">
+        <label for="sortBy" class="col-md-1"><wicket:message key="TaskInternalPerformanceTabPanel.sortBy"/></label>
+        <div id="sortBy" wicket:id="sortBy" class="col-md-1"></div>
+        <label for="format" class="col-md-1"><wicket:message key="TaskInternalPerformanceTabPanel.format"/></label>
+        <div id="format" wicket:id="format" class="col-md-1"></div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <textarea wicket:id="information"></textarea>
+        </div>
+    </div>
 
 </wicket:panel>
 </body>

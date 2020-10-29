@@ -134,9 +134,7 @@ public class SequenceHelper {
             session = baseHelper.beginTransaction();
 
             PrismObject<SequenceType> prismObject = objectRetriever.getObjectInternal(session, SequenceType.class, oid, null, true);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("OBJECT before:\n{}", prismObject.debugDump());
-            }
+            LOGGER.trace("OBJECT before:\n{}", prismObject.debugDumpLazily());
             SequenceType sequence = prismObject.asObjectable();
             int maxUnusedValues = sequence.getMaxUnusedValues() != null ? sequence.getMaxUnusedValues() : 0;
             Iterator<Long> valuesToReturnIterator = unusedValues.iterator();

@@ -1,0 +1,12 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<sequence xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="4ebf1b7b-95ea-4277-8eac-97f05c0b0300">
+    <name>external-users</name>
+    <maxUnusedValues>10</maxUnusedValues>
+</sequence>

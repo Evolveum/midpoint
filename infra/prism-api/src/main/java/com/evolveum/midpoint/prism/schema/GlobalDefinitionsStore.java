@@ -15,47 +15,42 @@ import java.util.Collection;
 import java.util.List;
 
 /**
+ * FIXME Creation of this interface was most probably a design mistake. We should decide
+ *  what its future should be.
+ *
  * Used to retrieve definition from 'global definition store' - i.e. store that contains a group of related definition(s),
  * sharing e.g. a common namespace. Such stores are prism schemas and schema registry itself.
  *
  * Note: although all of these methods are '@Nullable', we don't mark them as such, to avoid false 'may produce NPE'
  * warnings for cases that will never produce nulls (like searching for known items/CTDs).
- *
- * @author mederly
  */
 @SuppressWarnings("unused")
 public interface GlobalDefinitionsStore extends DefinitionsStore {
 
-    // new API
-
-//    @Override
-//    GlobalDefinitionSearchContext<ItemDefinition<?>> findItemDefinition();
-//
-//    @Override
-//    <T> GlobalDefinitionSearchContext<PrismPropertyDefinition<T>> findPropertyDefinition();
-//
-//    @Override
-//    GlobalDefinitionSearchContext<PrismReferenceDefinition> findReferenceDefinition();
-//
-//    @Override
-//    GlobalDefinitionSearchContext<PrismContainerDefinition<? extends Containerable>> findContainerDefinition();
-//
-//    GlobalDefinitionSearchContext<PrismObjectDefinition<? extends Objectable>> findObjectDefinition();
-//
-//    GlobalDefinitionSearchContext<ComplexTypeDefinition> findComplexTypeDefinition();
-
-    // old API
-
-    // PrismObject-related
-
     // core methods
 
+    /**
+     * Looking up item definitions by compile-time class. So, for example having AssignmentType.class
+     * we try to find a definition of "assignment" item.
+     *
+     * BEWARE. This method is unsound. There might be many items of AssignmentType.class.
+     */
     @NotNull
     <ID extends ItemDefinition> List<ID> findItemDefinitionsByCompileTimeClass(
             @NotNull Class<?> compileTimeClass, @NotNull Class<ID> definitionClass);
 
+    /**
+     * Looking up item definition by type name. So, for example having c:AssignmentType
+     * we try to find a definition of "assignment" item.
+     *
+     * BEWARE. This method is unsound. There might be many items with c:AssignmentType type.
+     */
     <ID extends ItemDefinition> ID findItemDefinitionByType(@NotNull QName typeName, @NotNull Class<ID> definitionClass);
 
+    /**
+     * Looking up item definitions by element name. The name can be qualified or unqualified.
+     * In the latter case there can be more than one definition returned.
+     */
     @NotNull
     <ID extends ItemDefinition> List<ID> findItemDefinitionsByElementName(@NotNull QName elementName, @NotNull Class<ID> definitionClass);
 
