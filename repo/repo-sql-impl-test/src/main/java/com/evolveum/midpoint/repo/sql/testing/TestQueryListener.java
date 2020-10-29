@@ -1,20 +1,20 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.testing;
+
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import net.ttddyy.dsproxy.ExecutionInfo;
 import net.ttddyy.dsproxy.QueryInfo;
 import net.ttddyy.dsproxy.listener.QueryExecutionListener;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * This inspector is instantiated by Hibernate.
@@ -33,8 +33,8 @@ public class TestQueryListener implements QueryExecutionListener {
         }
     }
 
-    private ThreadLocal<Boolean> running = new ThreadLocal<>();
-    private ThreadLocal<List<Entry>> entries = new ThreadLocal<>();
+    private final ThreadLocal<Boolean> running = new ThreadLocal<>();
+    private final ThreadLocal<List<Entry>> entries = new ThreadLocal<>();
 
     public void start() {
         entries.set(new ArrayList<>());
@@ -61,6 +61,11 @@ public class TestQueryListener implements QueryExecutionListener {
         return entries.get();
     }
 
+    public boolean hasNoEntries() {
+        List<Entry> entries = getEntries();
+        return entries == null || entries.isEmpty();
+    }
+
     public void clear() {
         entries.remove();
     }
@@ -74,13 +79,22 @@ public class TestQueryListener implements QueryExecutionListener {
         running.set(false);
     }
 
+    public boolean isStarted() {
+        Boolean runningValue = running.get();
+        return runningValue != null && runningValue;
+    }
+
     public void dump() {
+        dump(System.out);
+    }
+
+    public void dump(PrintStream out) {
         List<Entry> entries = getEntries();
         if (entries != null) {
-            System.out.println("Queries collected (" + entries.size() + "/" + getExecutionCount() + "):");
-            entries.forEach(e -> System.out.println(" [" + e.batchSize + "] " + e.query));
+            out.println("Queries collected (" + entries.size() + "/" + getExecutionCount() + "):");
+            entries.forEach(e -> out.println(" [" + e.batchSize + "] " + e.query));
         } else {
-            System.out.println("Query collection was not started for this thread.");
+            out.println("Query collection was not started for this thread.");
         }
     }
 
