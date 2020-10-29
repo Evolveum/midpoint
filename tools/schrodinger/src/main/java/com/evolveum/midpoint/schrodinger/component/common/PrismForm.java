@@ -20,6 +20,9 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
+
+import com.evolveum.midpoint.schrodinger.util.Utils;
+
 import org.openqa.selenium.By;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
@@ -464,10 +467,7 @@ public class PrismForm<T> extends Component<T> {
         property.$x(".//button[@" + Schrodinger.DATA_S_ID + "='edit']")
                 .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
-        SelenideElement modalWindow = $(By.className("wicket-modal"))
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        ObjectBrowserModal objectBrowserModal = new ObjectBrowserModal<>(this, modalWindow);
+        ObjectBrowserModal objectBrowserModal = new ObjectBrowserModal<>(this, Utils.getModalWindowSelenideElement());
 
         return objectBrowserModal;
     }

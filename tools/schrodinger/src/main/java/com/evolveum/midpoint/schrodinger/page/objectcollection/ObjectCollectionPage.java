@@ -15,6 +15,7 @@ import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
 import com.evolveum.midpoint.schrodinger.component.common.SearchPropertiesConfigPanel;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import com.evolveum.midpoint.schrodinger.util.Utils;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -30,9 +31,7 @@ public class ObjectCollectionPage extends AssignmentHolderDetailsPage {
                 .$(Schrodinger.byDataId("configureButton"))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
                 .click();
-        SelenideElement popupWindow = $(Schrodinger.byElementAttributeValue("div", "class", "wicket-modal"))
-                .waitUntil(Condition.visible, MidPoint.TIMEOUT_SHORT_4_S);
-        return new SearchPropertiesConfigPanel<>(this, popupWindow);
+        return new SearchPropertiesConfigPanel<>(this, Utils.getModalWindowSelenideElement());
     }
 
     @Override
