@@ -89,8 +89,8 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 
 
             @Override
-            protected ObjectQuery customizeContentQuery(ObjectQuery query) {
-                return PageAdminObjectList.this.addCustomFilterToContentQuery(query);
+            protected ObjectQuery getCustomizeContentQuery() {
+                return PageAdminObjectList.this.getCustomizeQuery();
             }
 
             @Override
@@ -159,8 +159,8 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
         return null;
     }
 
-    protected ObjectQuery addCustomFilterToContentQuery(ObjectQuery query){
-        return query;
+    protected ObjectQuery getCustomizeQuery(){
+        return null;
     }
 
     protected void setDefaultSorting(BaseSortableDataProvider<SelectableBean<O>> provider){

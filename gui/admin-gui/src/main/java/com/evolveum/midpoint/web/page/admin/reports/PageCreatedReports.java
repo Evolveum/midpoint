@@ -210,8 +210,8 @@ public class PageCreatedReports extends PageAdminObjectList<ReportDataType> {
     }
 
     @Override
-    protected ObjectQuery addCustomFilterToContentQuery(ObjectQuery query) {
-        return appendTypeFilter(query);
+    protected ObjectQuery getCustomizeQuery() {
+        return appendTypeFilter();
     }
 
     @Override
@@ -540,7 +540,7 @@ public class PageCreatedReports extends PageAdminObjectList<ReportDataType> {
         target.add(getFeedbackPanel());
     }
 
-    private ObjectQuery appendTypeFilter(ObjectQuery query) {
+    private ObjectQuery appendTypeFilter() {
         DropDownChoicePanel<String> typeSelect = (DropDownChoicePanel<String>) getMainForm().get(ID_REPORT_TYPE_SELECT);
         String typeRef = typeSelect == null
                 ? reportTypeMal.get(getReportType())
@@ -552,15 +552,10 @@ public class PageCreatedReports extends PageAdminObjectList<ReportDataType> {
             Entry<String, String> typeRefFilter = reportTypeMal.entrySet().stream().filter(e -> e.getValue().equals(typeRef)).findFirst().get();
             if (typeRefFilter != null) {
                 refF = q.item(ReportDataType.F_REPORT_REF).ref(typeRefFilter.getKey());
-                if (query == null) {
-                    query = refF.build();
-                } else {
-                    query.addFilter(refF.buildFilter());
-                }
+                    return refF.build();
             }
         }
-
-        return query;
+        return null;
     }
 
     private InputStream createReport() {

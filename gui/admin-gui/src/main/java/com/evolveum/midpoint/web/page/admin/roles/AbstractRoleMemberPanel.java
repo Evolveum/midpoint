@@ -31,6 +31,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -265,21 +266,20 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             @Override
-            protected ObjectQuery customizeContentQuery(ObjectQuery query) {
+            protected ObjectQuery getCustomizeContentQuery() {
 
                 ObjectQuery members = AbstractRoleMemberPanel.this.createContentQuery();
 
                 List<ObjectFilter> filters = new ArrayList<>();
-
-                if (query != null && query.getFilter() != null) {
-                    filters.add(query.getFilter());
-                }
 
                 if (members != null && members.getFilter() != null) {
                     filters.add(members.getFilter());
                 }
 
                 QueryFactory queryFactory = pageBase.getPrismContext().queryFactory();
+                if (filters.size() == 0) {
+                    return null;
+                }
                 if (filters.size() == 1) {
                     return queryFactory.createQuery(filters.iterator().next());
                 } else {

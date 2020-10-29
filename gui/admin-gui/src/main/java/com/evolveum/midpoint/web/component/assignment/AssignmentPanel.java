@@ -16,9 +16,6 @@ import com.evolveum.midpoint.web.session.SessionStorage;
 
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -136,8 +133,8 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                     }
 
                     @Override
-                    protected ObjectQuery customizeContentQuery(ObjectQuery query) {
-                        return AssignmentPanel.this.customizeContentQuery(query);
+                    protected ObjectQuery getCustomizeContentQuery() {
+                        return AssignmentPanel.this.getCustomizeQuery();
                     }
 
                     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createDefaultColumns() {
@@ -377,7 +374,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
         }
     }
 
-    protected ObjectQuery customizeContentQuery(ObjectQuery query) {
+    protected ObjectQuery getCustomizeQuery() {
         Collection<QName> delegationRelations = getParentPage().getRelationRegistry()
                 .getAllRelationsFor(RelationKindType.DELEGATION);
 
@@ -398,10 +395,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                 .refRelation(delegationRelations.toArray(new QName[0]))
                 .buildFilter();
 
-        if (query == null) {
-            query = getPrismContext().queryFor(AssignmentType.class).build();
-        }
-        query.addFilter(relationFilter);
+        ObjectQuery query = getPrismContext().queryFactory().createQuery(relationFilter);
         query.addFilter(getPrismContext().queryFactory().createNot(archetypeFilter));
         return query;
     }

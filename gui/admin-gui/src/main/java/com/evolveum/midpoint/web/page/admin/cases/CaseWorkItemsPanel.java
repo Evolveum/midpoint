@@ -107,11 +107,12 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
             }
 
             @Override
-            protected ObjectQuery customizeContentQuery(ObjectQuery query) {
-                if (query == null){
-                    query = getPrismContext().queryFor(getType()).build();
+            protected ObjectQuery getCustomizeContentQuery() {
+                ObjectQuery query = null;
+                ObjectFilter filter = getCaseWorkItemsFilter();
+                if (filter != null) {
+                    query = getPrismContext().queryFactory().createQuery(getCaseWorkItemsFilter());
                 }
-                query.addFilter(getCaseWorkItemsFilter());
                 return query;
             }
 

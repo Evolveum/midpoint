@@ -427,7 +427,8 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
             }
 
             @Override
-            protected ObjectQuery customizeContentQuery(ObjectQuery query) {
+            protected ObjectQuery getCustomizeContentQuery() {
+                ObjectQuery query = null;
                 if (type.equals(RoleType.COMPLEX_TYPE)) {
                     LOGGER.debug("Loading roles which the current user has right to assign");
                     Task task = TypedAssignablePanel.this.getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);
@@ -435,10 +436,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
                     ObjectFilter filter = WebComponentUtil.getAssignableRolesFilter(SecurityUtils.getPrincipalUser().getFocus().asPrismObject(), AbstractRoleType.class,
                             WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, TypedAssignablePanel.this.getPageBase());
-                    if (query == null){
-                        query = getPrismContext().queryFactory().createQuery();
-                    }
-                    query.addFilter(filter);
+                    query = getPrismContext().queryFactory().createQuery(filter);
                 }
                 return query;
             }

@@ -135,6 +135,11 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
             }
 
             @Override
+            public ObjectQuery getQuery() {
+                return createQuery();
+            }
+
+            @Override
             public boolean isOrderingDisabled() {
                 return ObjectListPanel.this.isOrderingDisabled();
             }
@@ -146,7 +151,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
         };
         provider.setOptions(createOptions());
         setDefaultSorting(provider);
-        provider.setQuery(createQuery());
 
         return provider;
     }

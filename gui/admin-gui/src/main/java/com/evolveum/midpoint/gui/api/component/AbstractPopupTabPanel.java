@@ -93,10 +93,10 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
             }
 
             @Override
-            protected ObjectQuery customizeContentQuery(ObjectQuery query) {
-                ObjectQuery queryWithFilters = AbstractPopupTabPanel.this.addFilterToContentQuery(query);
-                if (queryWithFilters == null) {
-                    queryWithFilters = AbstractPopupTabPanel.this.getPageBase().getPrismContext().queryFactory().createQuery();
+            protected ObjectQuery getCustomizeContentQuery() {
+                ObjectQuery customQuery = AbstractPopupTabPanel.this.addFilterToContentQuery();
+                if (customQuery == null) {
+                    customQuery = AbstractPopupTabPanel.this.getPageBase().getPrismContext().queryFactory().createQuery();
                 }
                 List<ObjectReferenceType> archetypeRefList = getArchetypeRefList();
                 if (!CollectionUtils.isEmpty(archetypeRefList)) {
@@ -113,15 +113,15 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
                     if (!CollectionUtils.isEmpty(archetypeRefFilterList)) {
                         OrFilter archetypeRefOrFilter =
                                 AbstractPopupTabPanel.this.getPageBase().getPrismContext().queryFactory().createOr(archetypeRefFilterList);
-                        queryWithFilters.addFilter(archetypeRefOrFilter);
+                        customQuery.addFilter(archetypeRefOrFilter);
                     }
                 }
 
                 ObjectFilter subTypeFilter = getSubtypeFilter();
                 if (subTypeFilter != null) {
-                    queryWithFilters.addFilter(subTypeFilter);
+                    customQuery.addFilter(subTypeFilter);
                 }
-                return queryWithFilters;
+                return customQuery;
             }
 
         };
@@ -161,8 +161,8 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
         return Model.of(true);
     }
 
-    protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
-        return query;
+    protected ObjectQuery addFilterToContentQuery() {
+        return null;
     }
 
     protected List<ObjectReferenceType> getArchetypeRefList() {

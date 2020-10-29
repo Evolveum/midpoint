@@ -130,7 +130,7 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
                 return columns;
             }
 
-            protected ObjectQuery addFilterToContentQuery(ObjectQuery query, PageStorage pageStorage){
+            protected ObjectQuery getCustomizeContentQuery(ObjectQuery query, PageStorage pageStorage){
                 ObjectFilter historyTabFilter = getPageBase().getPrismContext().queryFor(AuditEventRecordType.class)
                         .item(AuditEventRecordType.F_TARGET_REF)
                         .ref(getObjectWrapper().getOid())

@@ -83,14 +83,11 @@ public class CasesListPanel extends BasePanel<CaseType> {
             }
 
             @Override
-            protected ObjectQuery customizeContentQuery(ObjectQuery query) {
-                if (query == null) {
-                    query = CasesListPanel.this.getPageBase().getPrismContext().queryFor(CaseType.class)
-                            .build();
-                }
+            protected ObjectQuery getCustomizeContentQuery() {
                 ObjectFilter casesFilter = getCasesFilter();
+                ObjectQuery query = null;
                 if (casesFilter != null){
-                    query.addFilter(casesFilter);
+                    query = CasesListPanel.this.getPageBase().getPrismContext().queryFactory().createQuery(casesFilter);
                 }
                 return query;
             }

@@ -132,7 +132,8 @@ public class PageAttorneySelection extends PageBase {
             }
 
             @Override
-            protected ObjectQuery customizeContentQuery(ObjectQuery query) {
+            protected ObjectQuery createQuery() {
+                ObjectQuery query = super.createQuery();
                 if (query == null) {
                     query = PageAttorneySelection.this.getPrismContext().queryFactory().createQuery();
                 }
@@ -146,8 +147,7 @@ public class PageAttorneySelection extends PageBase {
                     filter = service.getDonorFilter(UserType.class, filter, null,
                             task, task.getResult());
 
-                    query.setFilter(filter);
-
+                    query.addFilter(filter);
                     return query;
                 } catch (CommonException ex) {
                     LOGGER.error("Couldn't get donor filter, reason: {}", ex.getMessage());

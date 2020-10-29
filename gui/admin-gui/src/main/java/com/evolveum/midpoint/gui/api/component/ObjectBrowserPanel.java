@@ -197,12 +197,10 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
             }
 
             @Override
-            protected ObjectQuery customizeContentQuery(ObjectQuery query) {
+            protected ObjectQuery getCustomizeContentQuery() {
+                ObjectQuery query = null;
                 if (queryFilter != null) {
-                    if (query == null) {
-                        query = parentPage.getPrismContext().queryFactory().createQuery();
-                    }
-                    query.addFilter(queryFilter);
+                    query = parentPage.getPrismContext().queryFactory().createQuery(queryFilter);
                 }
                 return query;
             }

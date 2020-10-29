@@ -99,14 +99,9 @@ public class PolicyRulesPanel extends AssignmentPanel {
     }
 
     @Override
-    protected ObjectQuery customizeContentQuery(ObjectQuery query) {
-        if (query == null) {
-            query = getPrismContext().queryFor(AssignmentType.class).build();
-        }
-        ObjectFilter filter = getParentPage().getPrismContext().queryFor(AssignmentType.class)
-                .exists(AssignmentType.F_POLICY_RULE).buildFilter();
-        query.addFilter(filter);
-        return query;
+    protected ObjectQuery getCustomizeQuery() {
+        return getParentPage().getPrismContext().queryFor(AssignmentType.class)
+                .exists(AssignmentType.F_POLICY_RULE).build();
     }
 
     @Override

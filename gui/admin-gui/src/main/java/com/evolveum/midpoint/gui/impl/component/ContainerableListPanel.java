@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -143,8 +142,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 if (storage != null) {
                     search = storage.getSearch();
                 }
-                if (search == null) {
-                    search = createSearch();
+                Search newSearch = createSearch();
+                if (search == null || !search.getAvailableDefinitions().containsAll(newSearch.getAvailableDefinitions())) {
+                    search = newSearch;
                 }
 
                 String searchByName = getSearchByNameParameterValue();
@@ -944,35 +944,48 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                query = search.createObjectQuery(getPageBase().getPrismContext());
             }
         }
-        addArchetypeFilter(query);
-        customizeContentQuery(query);
+        ObjectQuery archetypeQuery = getArchetypeQuery();
+        query = mergeQueries(query, archetypeQuery);
+
+        ObjectQuery customQuery = getCustomizeContentQuery();
+        query = mergeQueries(query, customQuery);
+
         return query;
     }
 
-    private ObjectQuery addArchetypeFilter(ObjectQuery query) {
+    private ObjectQuery mergeQueries(ObjectQuery origQuery, ObjectQuery query) {
+        if (query != null) {
+            if (origQuery == null) {
+                return query;
+            } else {
+                origQuery.addFilter(query.getFilter());
+            }
+        }
+        return origQuery;
+    }
+
+    private ObjectQuery getArchetypeQuery() {
         if (!isCollectionViewPanel()) {
-            return query;
+            return null;
         }
         CompiledObjectCollectionView view = getObjectCollectionView();
         if (view == null) {
             getFeedbackMessages().add(ContainerableListPanel.this, "Unable to load collection view list", 0);
-            return query;
+            return null;
         }
         if (view.getFilter() == null) {
-            return query;
+            return null;
         }
-        if (query == null) {
-            query = getPrismContext().queryFor(getType()).build();
-        }
+
+        ObjectQuery query = getPrismContext().queryFor(getType()).build();
         query.addFilter(view.getFilter());
         OperationResult result = new OperationResult(DOT_CLASS + "evaluateExpressionsInFilter");
         query.addFilter(WebComponentUtil.evaluateExpressionsInFilter(view.getFilter(), result, getPageBase()));
         return query;
-
     }
 
-    protected ObjectQuery customizeContentQuery(ObjectQuery query) {
-        return query;
+    protected ObjectQuery getCustomizeContentQuery() {
+        return null;
     }
 
     protected void setDefaultSorting(BaseSortableDataProvider provider){

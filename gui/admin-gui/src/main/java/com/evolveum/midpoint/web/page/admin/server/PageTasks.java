@@ -88,20 +88,17 @@ public class PageTasks extends PageAdmin {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected ObjectQuery customizeContentQuery(ObjectQuery query) {
+            protected ObjectQuery getCustomizeContentQuery() {
                 if (isCollectionViewPanel()) {
-                    return query;
+                    return null;
                 }
-                if (query == null) {
-                    query = getPrismContext().queryFactory().createQuery();
-                }
+                ObjectQuery query = getPrismContext().queryFor(TaskType.class)
+                        .item(TaskType.F_PARENT)
+                        .isNull()
+                        .build();
                 if (predefinedQuery != null) {
                     query.addFilter(predefinedQuery.getFilter());
                 }
-                query.addFilter(getPrismContext().queryFor(TaskType.class)
-                        .item(TaskType.F_PARENT)
-                        .isNull()
-                        .buildFilter());
                 return query;
             }
 

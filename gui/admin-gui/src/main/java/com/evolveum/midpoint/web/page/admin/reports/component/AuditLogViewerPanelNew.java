@@ -93,8 +93,19 @@ public class AuditLogViewerPanelNew extends BasePanel {
             }
 
             @Override
-            protected ObjectQuery customizeContentQuery(ObjectQuery query) {
-                return AuditLogViewerPanelNew.this.addFilterToContentQuery(query, getPageStorage());
+            protected ObjectQuery getCustomizeContentQuery() {
+                ObjectQuery query = null;
+                PageStorage pageStorage = getPageStorage();
+                if (pageStorage != null && pageStorage.getSearch() == null) {
+                    Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
+                    XMLGregorianCalendar todayStartTimestamp = XmlTypeConverter.createXMLGregorianCalendar(todayDate);
+                    ObjectFilter todayTimestampFilter = getPageBase().getPrismContext().queryFor(AuditEventRecordType.class)
+                            .item(AuditEventRecordType.F_TIMESTAMP)
+                            .gt(todayStartTimestamp)
+                            .buildFilter();
+                    query = getPageBase().getPrismContext().queryFactory().createQuery(todayTimestampFilter);
+                }
+                return query;
             }
 
             @Override
@@ -137,7 +148,7 @@ public class AuditLogViewerPanelNew extends BasePanel {
             protected ISelectableDataProvider createProvider() {
                 PageStorage pageStorage = getPageStorage();
                 SelectableBeanContainerDataProvider<AuditEventRecordType> provider = new SelectableBeanContainerDataProvider<AuditEventRecordType>(
-                        AuditLogViewerPanelNew.this, AuditEventRecordType.class, null,false) {
+                        AuditLogViewerPanelNew.this, AuditEventRecordType.class, null, false) {
 
                     @Override
                     protected PageStorage getPageStorage() {
@@ -345,22 +356,6 @@ public class AuditLogViewerPanelNew extends BasePanel {
                 getPageBase().navigateToNext(new PageAuditLogDetails(record));
             }
         };
-    }
-
-    protected ObjectQuery addFilterToContentQuery(ObjectQuery query, PageStorage pageStorage){
-        if (pageStorage != null && pageStorage.getSearch() == null) {
-            Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
-            XMLGregorianCalendar todayStartTimestamp = XmlTypeConverter.createXMLGregorianCalendar(todayDate);
-            ObjectFilter todayTimestampFilter = getPageBase().getPrismContext().queryFor(AuditEventRecordType.class)
-                    .item(AuditEventRecordType.F_TIMESTAMP)
-                    .gt(todayStartTimestamp)
-                    .buildFilter();
-            if (query == null) {
-                query = getPageBase().getPrismContext().queryFor(AuditEventRecordType.class).build();
-            }
-            query.addFilter(todayTimestampFilter);
-        }
-        return query;
     }
 
     protected AuditEventRecordType unwrapModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {

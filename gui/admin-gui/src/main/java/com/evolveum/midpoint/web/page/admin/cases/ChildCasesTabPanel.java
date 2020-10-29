@@ -115,16 +115,12 @@ public class ChildCasesTabPanel extends AbstractObjectTabPanel<CaseType> {
             }
 
             @Override
-            protected ObjectQuery customizeContentQuery(ObjectQuery query) {
-                if (query == null) {
-                    query = ChildCasesTabPanel.this.getPageBase().getPrismContext().queryFactory().createQuery();
-                }
+            protected ObjectQuery getCustomizeContentQuery() {
                 ObjectQuery queryFilter = ChildCasesTabPanel.this.getPageBase().getPrismContext().queryFor(CaseType.class)
                         .item(CaseType.F_PARENT_REF)
                         .ref(getObjectWrapper().getOid())
                         .build();
-                query.addFilter(queryFilter.getFilter());
-                return query;
+                return ChildCasesTabPanel.this.getPageBase().getPrismContext().queryFactory().createQuery(queryFilter.getFilter());
             }
 
             @Override

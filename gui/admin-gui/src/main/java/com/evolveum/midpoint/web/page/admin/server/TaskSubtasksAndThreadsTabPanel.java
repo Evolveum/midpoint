@@ -67,23 +67,15 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
 
         TaskTablePanel subtasksPanel = new TaskTablePanel(ID_SUBTASKS_PANEL, createOperationOptions()) {
             @Override
-            protected ObjectQuery customizeContentQuery(ObjectQuery query) {
-
+            protected ObjectQuery getCustomizeContentQuery() {
                 String parent = getParentIdentifier();
                 if (parent == null) {
-                    return query;
+                    return null;
                 }
-
-                if (query == null) {
-                    query = getPrismContext().queryFactory().createQuery();
-                }
-
-                query.addFilter(getPrismContext().queryFor(TaskType.class)
+                return getPrismContext().queryFor(TaskType.class)
                         .item(TaskType.F_PARENT)
                         .eq(parent)
-                        .buildFilter());
-
-                return query;
+                        .build();
             }
 
             @Override
