@@ -21,8 +21,8 @@ public class TabWithContainerWrapper<P> extends Component<P> {
         super(parent, parentElement);
     }
 
-    public PrismForm<? extends TabWithContainerWrapper> form() {
+    public <T extends TabWithContainerWrapper<P>> PrismForm<T> form() {
         SelenideElement element = getParentElement().$(Schrodinger.byElementAttributeValue("div", "class", "tab-content"));
-        return new PrismForm<>(this, element);
+        return new PrismForm<T>((T) this, element);
     }
 }

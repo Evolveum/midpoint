@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import com.evolveum.midpoint.schrodinger.util.Utils;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -41,15 +42,52 @@ public class UsersPageTable extends AssignmentHolderObjectListTable<ListUsersPag
 
     }
 
-    public ConfirmationModal<UsersPageTable> clickEnable() {
+    public ConfirmationModal<UsersPageTable> enableUser() {
+        return enableUser(null, null);
+    }
 
-        $(Schrodinger.bySelfOrAncestorElementAttributeValue("i", "class", "fa fa-user fa-fw", "data-s-id", "topToolbars"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+    public ConfirmationModal<UsersPageTable> enableUser(String columnTitleKey, String rowValue) {
+        return clickMenuItem(columnTitleKey, rowValue, "pageUsers.menu.enable");
+    }
 
-        SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Confirm action"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+    public ConfirmationModal<UsersPageTable> disableUser() {
+        return enableUser(null, null);
+    }
 
-        return new ConfirmationModal<>(this, actualModal);
+    public ConfirmationModal<UsersPageTable> disableUser(String columnTitleKey, String rowValue) {
+        return clickMenuItem(columnTitleKey, rowValue, "pageUsers.menu.disable");
+    }
+
+    public ConfirmationModal<UsersPageTable> reconcileUser() {
+        return enableUser(null, null);
+    }
+
+    public ConfirmationModal<UsersPageTable> reconcileUser(String columnTitleKey, String rowValue) {
+        return clickMenuItem(columnTitleKey, rowValue, "pageUsers.menu.reconcile");
+    }
+
+    public ConfirmationModal<UsersPageTable> unlockUser() {
+        return enableUser(null, null);
+    }
+
+    public ConfirmationModal<UsersPageTable> unlockUser(String columnTitleKey, String rowValue) {
+        return clickMenuItem(columnTitleKey, rowValue, "pageUsers.menu.unlock");
+    }
+
+    public ConfirmationModal<UsersPageTable> deleteUser() {
+        return enableUser(null, null);
+    }
+
+    public ConfirmationModal<UsersPageTable> deleteUser(String columnTitleKey, String rowValue) {
+        return clickMenuItem(columnTitleKey, rowValue, "pageUsers.menu.delete");
+    }
+
+    public ConfirmationModal<UsersPageTable> mergeUser() {
+        return enableUser(null, null);
+    }
+
+    public ConfirmationModal<UsersPageTable> mergeUser(String columnTitleKey, String rowValue) {
+        return clickMenuItem(columnTitleKey, rowValue, "pageUsers.menu.merge");
     }
 
     @Override

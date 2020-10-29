@@ -18,6 +18,7 @@ import com.evolveum.midpoint.schrodinger.component.common.table.AbstractTableWit
 import com.evolveum.midpoint.schrodinger.component.table.DirectIndirectAssignmentTable;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import com.evolveum.midpoint.schrodinger.util.Utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,8 +55,9 @@ public class AssignmentsTab<P extends AssignmentHolderDetailsPage> extends TabWi
     }
 
     private SelenideElement getNewAssignmentModal() {
-        return $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Select object(s)"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+        return Utils.getModalWindowSelenideElement();
+//        return $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Select object(s)"))
+//                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
     }
 
 

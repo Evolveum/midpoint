@@ -53,6 +53,7 @@ public class AdminGuiTab extends TabWithContainerWrapper<SystemPage> {
                         .and()
                     .and()
                 .and()
+                .and()
                 .clickSave();
         return getParent();
     }

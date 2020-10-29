@@ -17,8 +17,10 @@ import org.openqa.selenium.By;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.Search;
 import com.evolveum.midpoint.schrodinger.component.common.table.TableWithPageRedirect;
+import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import com.evolveum.midpoint.schrodinger.util.Utils;
 
 /**
  * Created by honchar
@@ -97,5 +99,20 @@ public abstract class AssignmentHolderObjectListTable<P, PD extends AssignmentHo
 
     protected String getNameColumnLabel() {
         return "Name";
+    }
+
+    protected  <T extends AssignmentHolderObjectListTable> ConfirmationModal<T> clickMenuItem(String columnTitleKey, String rowValue, String menuItemKey) {
+        if (columnTitleKey == null && rowValue == null) {
+            clickAndGetHeaderDropDownMenu()
+                    .$(Schrodinger.byDataResourceKey(menuItemKey))
+                    .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                    .click();
+        } else {
+            rowByColumnResourceKey(columnTitleKey, rowValue)
+                    .getInlineMenu()
+                    .clickItemByKey(menuItemKey);
+
+        }
+        return new ConfirmationModal<T>((T) this, Utils.getModalWindowSelenideElement());
     }
 }

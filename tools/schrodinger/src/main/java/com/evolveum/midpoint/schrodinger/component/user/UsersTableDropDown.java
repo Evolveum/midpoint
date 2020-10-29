@@ -24,73 +24,73 @@ public class UsersTableDropDown<T> extends TableHeaderDropDownMenu<T> {
         super(parent, parentElement);
     }
 
-    public ConfirmationModal<UsersTableDropDown<T>> clickEnable() {
-
-        $(Schrodinger.byElementValue("a", "data-s-id", "menuItemLink", "\n" +
-                "        Enable")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
-        SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Confirm action"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new ConfirmationModal<>(this, actualModal);
-    }
-
-    public ConfirmationModal<UsersTableDropDown<T>> clickDisable() {
-
-        $(Schrodinger.byElementValue("a", "data-s-id", "menuItemLink", "\n" +
-                "        Disable")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
-        SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Confirm action"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new ConfirmationModal<>(this, actualModal);
-    }
-
-    public ConfirmationModal<UsersTableDropDown<T>> clickReconcile() {
-
-        $(Schrodinger.byElementValue("a", "data-s-id", "menuItemLink", "\n" +
-                "        Reconcile")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
-        SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Confirm action"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new ConfirmationModal<>(this, actualModal);
-    }
-
-
-    public ConfirmationModal<UsersTableDropDown<T>> clickUnlock() {
-
-        $(Schrodinger.byElementValue("a", "data-s-id", "menuItemLink", "\n" +
-                "        Unlock")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
-        SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Confirm action"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new ConfirmationModal<>(this, actualModal);
-    }
-
-
-    public ConfirmationModal<UsersTableDropDown<T>> clickDelete() {
-
-        $(Schrodinger.byElementValue("a", "data-s-id", "menuItemLink", "\n" +
-                "        Delete")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
-        SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Confirm action"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new ConfirmationModal<>(this, actualModal);
-    }
-
-    public ConfirmationModal<UsersTableDropDown<T>> clickMerge() {
-
-        $(Schrodinger.byElementValue("a", "data-s-id", "menuItemLink", "\n" +
-                "        Merge")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
-        SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Confirm action"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new ConfirmationModal<>(this, actualModal);
-    }
+//    public ConfirmationModal<UsersTableDropDown<T>> clickEnable() {
+//
+//        $(Schrodinger.byElementValue("a", "data-s-id", "menuItemLink", "\n" +
+//                "        Enable")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+//
+//        SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Confirm action"))
+//                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+//
+//        return new ConfirmationModal<>(this, actualModal);
+//    }
+//
+//    public ConfirmationModal<UsersTableDropDown<T>> clickDisable() {
+//
+//        $(Schrodinger.byElementValue("a", "data-s-id", "menuItemLink", "\n" +
+//                "        Disable")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+//
+//        SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Confirm action"))
+//                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+//
+//        return new ConfirmationModal<>(this, actualModal);
+//    }
+//
+//    public ConfirmationModal<UsersTableDropDown<T>> clickReconcile() {
+//
+//        $(Schrodinger.byElementValue("a", "data-s-id", "menuItemLink", "\n" +
+//                "        Reconcile")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+//
+//        SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Confirm action"))
+//                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+//
+//        return new ConfirmationModal<>(this, actualModal);
+//    }
+//
+//
+//    public ConfirmationModal<UsersTableDropDown<T>> clickUnlock() {
+//
+//        $(Schrodinger.byElementValue("a", "data-s-id", "menuItemLink", "\n" +
+//                "        Unlock")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+//
+//        SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Confirm action"))
+//                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+//
+//        return new ConfirmationModal<>(this, actualModal);
+//    }
+//
+//
+//    public ConfirmationModal<UsersTableDropDown<T>> clickDelete() {
+//
+//        $(Schrodinger.byElementValue("a", "data-s-id", "menuItemLink", "\n" +
+//                "        Delete")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+//
+//        SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Confirm action"))
+//                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+//
+//        return new ConfirmationModal<>(this, actualModal);
+//    }
+//
+//    public ConfirmationModal<UsersTableDropDown<T>> clickMerge() {
+//
+//        $(Schrodinger.byElementValue("a", "data-s-id", "menuItemLink", "\n" +
+//                "        Merge")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+//
+//        SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Confirm action"))
+//                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+//
+//        return new ConfirmationModal<>(this, actualModal);
+//    }
 
 
 }
