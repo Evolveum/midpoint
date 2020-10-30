@@ -54,7 +54,7 @@ public class ResourceShadowTable<T> extends TableWithPageRedirect<T> {
     }
 
     @Override
-    public ResourceShadowTableHeaderDropDown<ResourceShadowTable<T>> clickHeaderActionDropDown() {
+    protected ResourceShadowTableHeaderDropDown<ResourceShadowTable<T>> clickHeaderActionDropDown() {
         $(Schrodinger.byElementAttributeValue("button", "data-toggle", "dropdown"))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 

@@ -12,6 +12,9 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
+
+import com.evolveum.midpoint.schrodinger.component.modal.FocusSetAssignmentsModal;
+
 import org.openqa.selenium.By;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
@@ -101,7 +104,24 @@ public abstract class AssignmentHolderObjectListTable<P, PD extends AssignmentHo
         return "Name";
     }
 
-    protected  <T extends AssignmentHolderObjectListTable> ConfirmationModal<T> clickMenuItem(String columnTitleKey, String rowValue, String menuItemKey) {
+    protected  <T extends AssignmentHolderObjectListTable> ConfirmationModal<T> clickMenuItemWithConfirmation(String columnTitleKey, String rowValue, String menuItemKey) {
+        clickMenuItem(columnTitleKey, rowValue, menuItemKey);
+        return new ConfirmationModal<T>((T) this, Utils.getModalWindowSelenideElement());
+    }
+
+    protected  <T extends AssignmentHolderObjectListTable> FocusSetAssignmentsModal<T> clickMenuItemWithFocusSetAssignmentsModal(String columnTitleKey, String rowValue, String menuItemKey) {
+        clickMenuItem(columnTitleKey, rowValue, menuItemKey);
+        return new FocusSetAssignmentsModal<T>((T) this, Utils.getModalWindowSelenideElement());
+    }
+
+    /**
+     * click menu item for the row specified by columnTitleKey and rowValue
+     * or click menu item from header menu drop down if no row is specified
+     * @param columnTitleKey
+     * @param rowValue
+     * @param menuItemKey
+     */
+    private void clickMenuItem(String columnTitleKey, String rowValue, String menuItemKey){
         if (columnTitleKey == null && rowValue == null) {
             clickAndGetHeaderDropDownMenu()
                     .$(Schrodinger.byDataResourceKey(menuItemKey))
@@ -113,6 +133,5 @@ public abstract class AssignmentHolderObjectListTable<P, PD extends AssignmentHo
                     .clickItemByKey(menuItemKey);
 
         }
-        return new ConfirmationModal<T>((T) this, Utils.getModalWindowSelenideElement());
     }
 }

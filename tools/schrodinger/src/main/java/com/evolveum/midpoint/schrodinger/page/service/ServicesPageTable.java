@@ -22,7 +22,7 @@ public class ServicesPageTable extends AssignmentHolderObjectListTable<ListServi
     }
 
     @Override
-    public TableHeaderDropDownMenu<ServicesPageTable> clickHeaderActionDropDown() {
+    protected TableHeaderDropDownMenu<ServicesPageTable> clickHeaderActionDropDown() {
         //todo implement if needed or move implementation in AssignmentHolderObjectListTable
         return null;
     }

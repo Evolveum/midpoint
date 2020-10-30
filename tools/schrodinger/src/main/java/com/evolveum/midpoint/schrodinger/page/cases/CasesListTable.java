@@ -26,7 +26,7 @@ public class CasesListTable extends AssignmentHolderObjectListTable<CasesPage, C
     }
 
     @Override
-    public TableHeaderDropDownMenu<CasesListTable> clickHeaderActionDropDown() {
+    protected TableHeaderDropDownMenu<CasesListTable> clickHeaderActionDropDown() {
         return null;
     }
 

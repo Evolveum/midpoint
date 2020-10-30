@@ -26,7 +26,7 @@ public class ObjectCollectionsListTable extends AssignmentHolderObjectListTable<
     }
 
     @Override
-    public TableHeaderDropDownMenu<ObjectCollectionsListTable> clickHeaderActionDropDown() {
+    protected TableHeaderDropDownMenu<ObjectCollectionsListTable> clickHeaderActionDropDown() {
         return null;
     }
 

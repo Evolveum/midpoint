@@ -35,7 +35,7 @@ public class TasksPageTable extends AssignmentHolderObjectListTable<ListTasksPag
     }
 
     @Override
-    public TableHeaderDropDownMenu<TasksPageTable> clickHeaderActionDropDown() {
+    protected TableHeaderDropDownMenu<TasksPageTable> clickHeaderActionDropDown() {
         return null;
     }
 

@@ -14,6 +14,7 @@ import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
 import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
 import com.evolveum.midpoint.schrodinger.component.modal.FocusSetAssignmentsModal;
+import com.evolveum.midpoint.schrodinger.component.table.TableHeaderDropDownMenu;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import com.evolveum.midpoint.schrodinger.util.Utils;
@@ -36,7 +37,7 @@ public class MemberTable<T> extends AssignmentHolderObjectListTable<T, Assignmen
     }
 
     @Override
-    public MemberTableDropDown<MemberTable<T>> clickHeaderActionDropDown() {
+    protected TableHeaderDropDownMenu<MemberTable<T>> clickHeaderActionDropDown() {
         SelenideElement dropDownButton = $(Schrodinger.bySelfOrAncestorElementAttributeValue("button", "data-toggle", "dropdown",
                 "class", "sortableLabel"));
         dropDownButton.waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
@@ -44,21 +45,23 @@ public class MemberTable<T> extends AssignmentHolderObjectListTable<T, Assignmen
         SelenideElement dropDown = dropDownButton.parent().$x(".//ul[@"+Schrodinger.DATA_S_ID+"='dropDownMenu']")
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
-        return new MemberTableDropDown<MemberTable<T>>(this, dropDown);
+        return new TableHeaderDropDownMenu<MemberTable<T>>(this, dropDown);
     }
 
-    public FocusSetAssignmentsModal<T> assign(){
-        getParentElement().$x(".//schrodinger[@"+ Schrodinger.DATA_S_RESOURCE_KEY +"='abstractRoleMemberPanel.menu.assign']").parent()
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
-        return new FocusSetAssignmentsModal<T>((T) this.getParent(), Utils.getModalWindowSelenideElement());
+    public FocusSetAssignmentsModal<MemberTable<T>> assign(){
+        return assign(null, null);
     }
 
-    public ConfirmationModal<T> recompute(){
-        getParentElement().$x(".//schrodinger[@"+ Schrodinger.DATA_S_RESOURCE_KEY +"='abstractRoleMemberPanel.menu.recompute']").parent()
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+    public FocusSetAssignmentsModal<MemberTable<T>> assign(String columnTitleKey, String rowValue){
+        return clickMenuItemWithFocusSetAssignmentsModal(columnTitleKey, rowValue, "abstractRoleMemberPanel.menu.assign");
+    }
 
-        return new ConfirmationModal<>(this.getParent(), Utils.getModalWindowSelenideElement());
+    public ConfirmationModal<MemberTable<T>> recompute(){
+        return recompute(null, null);
+    }
+
+    public ConfirmationModal<MemberTable<T>> recompute(String columnTitleKey, String rowValue){
+        return clickMenuItemWithConfirmation(columnTitleKey, rowValue, "abstractRoleMemberPanel.menu.recompute");
     }
 
 }
