@@ -17,6 +17,7 @@ import com.evolveum.midpoint.schrodinger.component.modal.FocusSetAssignmentsModa
 import com.evolveum.midpoint.schrodinger.component.table.TableHeaderDropDownMenu;
 import com.evolveum.midpoint.schrodinger.page.org.OrgPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import com.evolveum.midpoint.schrodinger.util.Utils;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -33,19 +34,13 @@ public class MemberTableDropDown<T> extends TableHeaderDropDownMenu<T> {
         getParentElement().$x(".//schrodinger[@"+ Schrodinger.DATA_S_RESOURCE_KEY +"='abstractRoleMemberPanel.menu.assign']").parent()
                 .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
-        SelenideElement modalElement = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Select object(s)"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new FocusSetAssignmentsModal<T>((T) this.getParent(), modalElement);
+        return new FocusSetAssignmentsModal<T>((T) this.getParent(), Utils.getModalWindowSelenideElement());
     }
 
     public ConfirmationModal<T> recompute(){
         getParentElement().$x(".//schrodinger[@"+ Schrodinger.DATA_S_RESOURCE_KEY +"='abstractRoleMemberPanel.menu.recompute']").parent()
                 .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
-        SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Confirm action"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new ConfirmationModal<>(this.getParent(), actualModal);
+        return new ConfirmationModal<>(this.getParent(), Utils.getModalWindowSelenideElement());
     }
 }

@@ -13,6 +13,7 @@ import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
 import com.evolveum.midpoint.schrodinger.component.common.DropDown;
 import com.evolveum.midpoint.schrodinger.component.table.TableHeaderDropDownMenu;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import com.evolveum.midpoint.schrodinger.util.Utils;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -43,10 +44,7 @@ public class ResourceShadowTableHeaderDropDown<T> extends TableHeaderDropDownMen
         $(Schrodinger.byDataResourceKey("pageContentAccounts.menu.deleteAccount"))
                 .waitUntil(Condition.exist, MidPoint.TIMEOUT_DEFAULT_2_S).parent().click();
 
-        SelenideElement modalBox = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Confirm deletion"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new ConfirmationModal<>(this.getParent(), modalBox);
+        return new ConfirmationModal<>(this.getParent(), Utils.getModalWindowSelenideElement());
     }
 
     public T clickImport() {

@@ -17,6 +17,8 @@ import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
+import com.evolveum.midpoint.schrodinger.util.Utils;
+
 import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -56,9 +58,7 @@ public class MemberPanel<T> extends Component<T> {
 
     public FocusSetAssignmentsModal<T> assignMember() {
         $(By.xpath("//button[@type='button'][@title='Assign  member ']")).waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-        SelenideElement modalElement = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Select object(s)"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
-        return new FocusSetAssignmentsModal<T>((T) this.getParent(), modalElement);
+        return new FocusSetAssignmentsModal<T>((T) this.getParent(),  Utils.getModalWindowSelenideElement());
     }
 
     public MemberPanel<T> selectType(String type) {

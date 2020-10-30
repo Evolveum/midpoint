@@ -12,8 +12,11 @@ import com.codeborne.selenide.SelenideElement;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
+import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
+import com.evolveum.midpoint.schrodinger.component.modal.FocusSetAssignmentsModal;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import com.evolveum.midpoint.schrodinger.util.Utils;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -43,4 +46,19 @@ public class MemberTable<T> extends AssignmentHolderObjectListTable<T, Assignmen
 
         return new MemberTableDropDown<MemberTable<T>>(this, dropDown);
     }
+
+    public FocusSetAssignmentsModal<T> assign(){
+        getParentElement().$x(".//schrodinger[@"+ Schrodinger.DATA_S_RESOURCE_KEY +"='abstractRoleMemberPanel.menu.assign']").parent()
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+
+        return new FocusSetAssignmentsModal<T>((T) this.getParent(), Utils.getModalWindowSelenideElement());
+    }
+
+    public ConfirmationModal<T> recompute(){
+        getParentElement().$x(".//schrodinger[@"+ Schrodinger.DATA_S_RESOURCE_KEY +"='abstractRoleMemberPanel.menu.recompute']").parent()
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+
+        return new ConfirmationModal<>(this.getParent(), Utils.getModalWindowSelenideElement());
+    }
+
 }

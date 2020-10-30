@@ -18,6 +18,8 @@ import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.page.FocusPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import com.evolveum.midpoint.schrodinger.util.Utils;
+
 import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -112,11 +114,7 @@ public class ProjectionsTab<P extends AssignmentHolderDetailsPage> extends TabWi
         $(Schrodinger.byElementAttributeValue("i", "class", "fa fa-plus "))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
-        SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Choose object"))
-                .waitUntil(Condition.exist, MidPoint.TIMEOUT_LONG_1_M)
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new FocusSetProjectionModal<ProjectionsTab<P>>(this, actualModal);
+        return new FocusSetProjectionModal<ProjectionsTab<P>>(this, Utils.getModalWindowSelenideElement());
     }
 
     public boolean projectionExists(String assignmentName){

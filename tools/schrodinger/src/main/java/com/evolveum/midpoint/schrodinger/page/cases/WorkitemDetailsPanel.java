@@ -55,10 +55,7 @@ public class WorkitemDetailsPanel<P extends BasicPage> extends Component<P> {
     }
 
     public ConfirmationModal<P> forwardOperationUserSelectionPerformed(){
-        SelenideElement modalWindow = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Confirm forwarding"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
-        ConfirmationModal<P> confirmationModal = new ConfirmationModal<P>(getParent(), modalWindow);
-        return confirmationModal;
+        return new ConfirmationModal<P>(getParent(), Utils.getModalWindowSelenideElement());
     }
 
     public void claimButtonClick(){
