@@ -50,6 +50,10 @@ public abstract class TableWithPageRedirect<T> extends Table<T> {
         return dropDownMenu;
     }
 
+    protected  void clickMenu(String columnTitleKey, String rowValue, String menuItemKey) {
+        clickMenuItem(columnTitleKey, rowValue, menuItemKey);
+    }
+
     protected  <P extends TableWithPageRedirect<T>> ConfirmationModal<P> clickMenuItemWithConfirmation(String columnTitleKey, String rowValue, String menuItemKey) {
         clickMenuItem(columnTitleKey, rowValue, menuItemKey);
         return new ConfirmationModal<P>((P) this, Utils.getModalWindowSelenideElement());

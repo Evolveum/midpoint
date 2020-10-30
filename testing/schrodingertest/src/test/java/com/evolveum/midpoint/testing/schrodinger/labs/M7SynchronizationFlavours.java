@@ -50,7 +50,6 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         accountTab.table()
                 .selectCheckboxByName("001212")
-                    .clickHeaderActionDropDown()
                     .clickImport()
                     .and()
                 .and()

@@ -112,8 +112,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         accountTab.table()
                 .selectCheckboxByName("001212")
-                    .clickHeaderActionDropDown()
-                        .clickImport()
+                    .clickImport()
                     .and()
                 .and()
             .feedback()

@@ -72,43 +72,47 @@ public class ResourceShadowTable<T> extends TableWithPageRedirect<T> {
         return (Search<? extends ResourceShadowTable<T>>) super.search();
     }
 
-    public ConfirmationModal<ResourceShadowTable<T>> clickEnable() {
+    public ResourceShadowTable<T> clickEnable() {
         return clickEnable(null, null);
     }
 
-    public ConfirmationModal<ResourceShadowTable<T>> clickEnable(String columnTitleKey, String rowValue) {
-        return clickMenuItemWithConfirmation(columnTitleKey, rowValue, "pageContentAccounts.menu.enableAccount");
+    public ResourceShadowTable<T> clickEnable(String columnTitleKey, String rowValue) {
+        clickMenuItemWithConfirmation(columnTitleKey, rowValue, "pageContentAccounts.menu.enableAccount");
+        return this;
     }
 
-    public ConfirmationModal<ResourceShadowTable<T>> clickDisable() {
-        return clickEnable(null, null);
+    public ResourceShadowTable<T> clickDisable() {
+        return clickDisable(null, null);
     }
 
-    public ConfirmationModal<ResourceShadowTable<T>> clickDisable(String columnTitleKey, String rowValue) {
-        return clickMenuItemWithConfirmation(columnTitleKey, rowValue, "pageContentAccounts.menu.disableAccount");
+    public ResourceShadowTable<T> clickDisable(String columnTitleKey, String rowValue) {
+        clickMenuItemWithConfirmation(columnTitleKey, rowValue, "pageContentAccounts.menu.disableAccount");
+        return this;
     }
 
     public ConfirmationModal<ResourceShadowTable<T>> clickDelete() {
-        return clickEnable(null, null);
+        return clickDelete(null, null);
     }
 
     public ConfirmationModal<ResourceShadowTable<T>> clickDelete(String columnTitleKey, String rowValue) {
         return clickMenuItemWithConfirmation(columnTitleKey, rowValue, "pageContentAccounts.menu.deleteAccount");
     }
 
-    public ConfirmationModal<ResourceShadowTable<T>> clickImport() {
-        return clickEnable(null, null);
+    public ResourceShadowTable<T> clickImport() {
+        return clickImport(null, null);
     }
 
-    public ConfirmationModal<ResourceShadowTable<T>> clickImport(String columnTitleKey, String rowValue) {
-        return clickMenuItemWithConfirmation(columnTitleKey, rowValue, "pageContentAccounts.menu.importAccount");
+    public ResourceShadowTable<T> clickImport(String columnTitleKey, String rowValue) {
+        clickMenuItemWithConfirmation(columnTitleKey, rowValue, "pageContentAccounts.menu.importAccount");
+        return this;
     }
 
-    public ConfirmationModal<ResourceShadowTable<T>> clickRemoveOwner() {
-        return clickEnable(null, null);
+    public ResourceShadowTable<T> clickRemoveOwner() {
+        return clickRemoveOwner(null, null);
     }
 
-    public ConfirmationModal<ResourceShadowTable<T>> clickRemoveOwner(String columnTitleKey, String rowValue) {
-        return clickMenuItemWithConfirmation(columnTitleKey, rowValue, "pageContentAccounts.menu.removeOwner");
+    public ResourceShadowTable<T> clickRemoveOwner(String columnTitleKey, String rowValue) {
+        clickMenuItemWithConfirmation(columnTitleKey, rowValue, "pageContentAccounts.menu.removeOwner");
+        return this;
     }
 }
