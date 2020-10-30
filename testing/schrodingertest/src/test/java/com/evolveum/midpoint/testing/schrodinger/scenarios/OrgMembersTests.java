@@ -50,14 +50,11 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
     @Test
     public void createOrgWithinMenuItem(){
         OrgPage newOrgPage = basicPage.newOrgUnit();
-        AssignmentHolderBasicTab<OrgPage> basicTab = newOrgPage
+        newOrgPage
                 .selectTabBasic()
                     .form()
                     .addAttributeValue("name", ORG_NAME)
-                    .and();
-
-
-        basicTab
+                    .and()
                 .and()
                 .clickSave();
         Selenide.sleep(2000);

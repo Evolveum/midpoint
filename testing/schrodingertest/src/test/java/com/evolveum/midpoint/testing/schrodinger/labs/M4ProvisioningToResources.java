@@ -103,8 +103,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                 .selectAll()
                 .and()
                 .table()
-                    .clickHeaderActionDropDown()
-                        .clickEnable()
+                        .enableUser()
                             .clickYes();
 
         showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
