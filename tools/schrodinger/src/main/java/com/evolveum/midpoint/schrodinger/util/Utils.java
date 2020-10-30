@@ -88,7 +88,7 @@ public class Utils {
     }
 
     public static SelenideElement getModalWindowSelenideElement() {
-        if ($(By.className("wicket-modal")).exists()) {
+        if ($(By.className("wicket-modal")).waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S).exists()) {
             return $(By.className("wicket-modal"))
                     .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
         } else {
