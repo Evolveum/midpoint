@@ -104,34 +104,4 @@ public abstract class AssignmentHolderObjectListTable<P, PD extends AssignmentHo
         return "Name";
     }
 
-    protected  <T extends AssignmentHolderObjectListTable> ConfirmationModal<T> clickMenuItemWithConfirmation(String columnTitleKey, String rowValue, String menuItemKey) {
-        clickMenuItem(columnTitleKey, rowValue, menuItemKey);
-        return new ConfirmationModal<T>((T) this, Utils.getModalWindowSelenideElement());
-    }
-
-    protected  <T extends AssignmentHolderObjectListTable> FocusSetAssignmentsModal<T> clickMenuItemWithFocusSetAssignmentsModal(String columnTitleKey, String rowValue, String menuItemKey) {
-        clickMenuItem(columnTitleKey, rowValue, menuItemKey);
-        return new FocusSetAssignmentsModal<T>((T) this, Utils.getModalWindowSelenideElement());
-    }
-
-    /**
-     * click menu item for the row specified by columnTitleKey and rowValue
-     * or click menu item from header menu drop down if no row is specified
-     * @param columnTitleKey
-     * @param rowValue
-     * @param menuItemKey
-     */
-    private void clickMenuItem(String columnTitleKey, String rowValue, String menuItemKey){
-        if (columnTitleKey == null && rowValue == null) {
-            clickAndGetHeaderDropDownMenu()
-                    .$(Schrodinger.byDataResourceKey(menuItemKey))
-                    .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
-                    .click();
-        } else {
-            rowByColumnResourceKey(columnTitleKey, rowValue)
-                    .getInlineMenu()
-                    .clickItemByKey(menuItemKey);
-
-        }
-    }
 }
