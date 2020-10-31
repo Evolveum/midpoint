@@ -10,6 +10,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
+import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
 import com.evolveum.midpoint.schrodinger.component.table.TableHeaderDropDownMenu;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
@@ -34,5 +35,29 @@ public class CasesListTable extends AssignmentHolderObjectListTable<CasesPage, C
         $(Schrodinger.byDataId("mainPanel"))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
         return new CasePage();
+    }
+
+    public ConfirmationModal<CasesListTable> stopCase() {
+        return stopCase(null, null);
+    }
+
+    public ConfirmationModal<CasesListTable> stopCaseByName(String name) {
+        return stopCase("ObjectType.name", null);
+    }
+
+    public ConfirmationModal<CasesListTable> stopCase(String columnTitleKey, String rowValue) {
+        return clickButtonMenuItemWithConfirmation(columnTitleKey, rowValue, "fa.fa-stop");
+    }
+
+    public ConfirmationModal<CasesListTable> deleteCase() {
+        return stopCase(null, null);
+    }
+
+    public ConfirmationModal<CasesListTable> deleteCaseByName(String name) {
+        return stopCase("ObjectType.name", null);
+    }
+
+    public ConfirmationModal<CasesListTable> deleteCase(String columnTitleKey, String rowValue) {
+        return clickButtonMenuItemWithConfirmation(columnTitleKey, rowValue, "fa.fa-minus");
     }
 }

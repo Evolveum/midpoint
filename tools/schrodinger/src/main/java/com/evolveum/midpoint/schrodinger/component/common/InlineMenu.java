@@ -28,6 +28,8 @@ import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
+import org.openqa.selenium.By;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -114,6 +116,12 @@ public class InlineMenu<T> extends Component<T> {
 
     public InlineMenu<T> clickInlineMenuButtonByTitle(String title) {
         getParentElement().$(Schrodinger.byElementAttributeValue("button", "title", title))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        return this;
+    }
+
+    public InlineMenu<T> clickInlineMenuButtonByIconClass(String iconClass) {
+        getParentElement().$(By.cssSelector(iconClass))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         return this;
     }
