@@ -94,31 +94,6 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         return new CheckBoxHeaderColumn<>();
     }
 
-    @Override
-    protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> columnNameModel, String itemPath, ExpressionType expression) {
-        return new ObjectNameColumn<O>(columnNameModel == null ? createStringResource("ObjectType.name") : columnNameModel,
-                itemPath, expression, getPageBase(), StringUtils.isEmpty(itemPath)) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {
-                O object = rowModel.getObject().getValue();
-                MainObjectListPanel.this.objectDetailsPerformed(target, object);
-            }
-
-            @Override
-            public boolean isClickable(IModel<SelectableBean<O>> rowModel) {
-                return MainObjectListPanel.this.isObjectDetailsEnabled(rowModel);
-            }
-        };
-    }
-
-    protected boolean isObjectDetailsEnabled(IModel<SelectableBean<O>> rowModel) {
-        return true;
-    }
-
-    protected abstract void objectDetailsPerformed(AjaxRequestTarget target, O object);
-
     protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
         if (collectionView == null) {
             collectionView = getObjectCollectionView();

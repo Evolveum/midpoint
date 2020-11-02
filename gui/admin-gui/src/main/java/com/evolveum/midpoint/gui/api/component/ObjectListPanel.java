@@ -13,15 +13,18 @@ import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
+import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import static java.util.Collections.singleton;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
@@ -189,4 +192,29 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
     public void addPerformed(AjaxRequestTarget target, List<O> selected) {
         getPageBase().hideMainPopup(target);
     }
+
+    @Override
+    protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> columnNameModel, String itemPath, ExpressionType expression) {
+        return new ObjectNameColumn<O>(columnNameModel == null ? createStringResource("ObjectType.name") : columnNameModel,
+                itemPath, expression, getPageBase(), StringUtils.isEmpty(itemPath)) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {
+                O object = rowModel.getObject().getValue();
+                ObjectListPanel.this.objectDetailsPerformed(target, object);
+            }
+
+            @Override
+            public boolean isClickable(IModel<SelectableBean<O>> rowModel) {
+                return ObjectListPanel.this.isObjectDetailsEnabled(rowModel);
+            }
+        };
+    }
+
+    protected boolean isObjectDetailsEnabled(IModel<SelectableBean<O>> rowModel) {
+        return true;
+    }
+
+    protected void objectDetailsPerformed(AjaxRequestTarget target, O object){};
 }

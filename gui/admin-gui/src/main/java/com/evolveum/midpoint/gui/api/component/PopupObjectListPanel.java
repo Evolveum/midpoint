@@ -95,23 +95,13 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
     }
 
     @Override
-    protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> columnNameModel, String itemPath, ExpressionType expression) {
+    protected void objectDetailsPerformed(AjaxRequestTarget target, O object) {
+        onSelectPerformed(target, object);
+    }
 
-        return new ObjectNameColumn<O>(columnNameModel == null ? createStringResource("ObjectType.name") : columnNameModel,
-                itemPath, expression, getPageBase(), StringUtils.isEmpty(itemPath)) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {
-                O object = rowModel.getObject().getValue();
-                onSelectPerformed(target, object);
-            }
-
-            @Override
-            public boolean isClickable(IModel<SelectableBean<O>> rowModel) {
-                return !isMultiselect();
-            }
-        };
+    @Override
+    protected boolean isObjectDetailsEnabled(IModel<SelectableBean<O>> rowModel) {
+        return !isMultiselect();
     }
 
     private IModel<String> evaluateColumnExpression(Object object, ExpressionType expression) {
