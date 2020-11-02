@@ -125,9 +125,9 @@ public class OrganizationStructureTests extends AbstractSchrodingerTest {
 
 //    @Test (dependsOnMethods ={ASSIGN_ORG_UNIT_DEPENDENCY})
     public void orgUnitAccountInducement(){
-        importObject(CSV_RESOURCE_ADVANCED_SYNC,true);
-        importObject(ORG_ACCOUNT_INDUCEMENT_FILE);
-        importObject(ScenariosCommons.USER_TEST_RAPHAEL_FILE, true);
+        addObjectFromFile(CSV_RESOURCE_ADVANCED_SYNC);
+        addObjectFromFile(ORG_ACCOUNT_INDUCEMENT_FILE);
+        addObjectFromFile(ScenariosCommons.USER_TEST_RAPHAEL_FILE);
 
         changeResourceFilePath();
 

@@ -11,7 +11,6 @@ import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
-import com.evolveum.midpoint.schrodinger.component.ProjectionsTab;
 import com.evolveum.midpoint.schrodinger.component.user.ProjectionsDropDown;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;

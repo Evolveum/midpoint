@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -8,19 +8,124 @@
 
 <report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         oid="00000000-0000-0000-0000-000000000130">
-   <name>Certification definitions report</name>
-   <description>All certification definitions with basic information on related campaigns.</description>
-   <reportEngine>jasper</reportEngine>
-   <jasper>
-       <parent>true</parent>
-       <template>PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPGphc3BlclJlcG9ydCB4bWxucz0iaHR0cDovL2phc3BlcnJlcG9ydHMuc291cmNlZm9yZ2UubmV0L2phc3BlcnJlcG9ydHMiIHhtbG5zOnhzaT0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEtaW5zdGFuY2UiIHhzaTpzY2hlbWFMb2NhdGlvbj0iaHR0cDovL2phc3BlcnJlcG9ydHMuc291cmNlZm9yZ2UubmV0L2phc3BlcnJlcG9ydHMgaHR0cDovL2phc3BlcnJlcG9ydHMuc291cmNlZm9yZ2UubmV0L3hzZC9qYXNwZXJyZXBvcnQueHNkIiBuYW1lPSJyZXBvcnRVc2VyTGlzdCIgcGFnZVdpZHRoPSIxMjAwIiBwYWdlSGVpZ2h0PSI1OTUiIG9yaWVudGF0aW9uPSJMYW5kc2NhcGUiIHdoZW5Ob0RhdGFUeXBlPSJBbGxTZWN0aW9uc05vRGV0YWlsIiBjb2x1bW5XaWR0aD0iMTE2MCIgbGVmdE1hcmdpbj0iMjAiIHJpZ2h0TWFyZ2luPSIyMCIgdG9wTWFyZ2luPSIzMCIgYm90dG9tTWFyZ2luPSIzMCIgdXVpZD0iNjdlNDY1YzUtNDZlYS00MGQyLWJlYTAtNDY5YzZjZjM4OTM3Ij4KCTxwcm9wZXJ0eSBuYW1lPSJuZXQuc2YuamFzcGVycmVwb3J0cy5wcmludC5rZWVwLmZ1bGwudGV4dCIgdmFsdWU9InRydWUiLz4KCTxwcm9wZXJ0eSBuYW1lPSJuZXQuc2YuamFzcGVycmVwb3J0cy5leHBvcnQueGxzLnJlbW92ZS5lbXB0eS5zcGFjZS5iZXR3ZWVuLmNvbHVtbnMiIHZhbHVlPSJ0cnVlIi8+Cgk8cHJvcGVydHkgbmFtZT0ibmV0LnNmLmphc3BlcnJlcG9ydHMuZXhwb3J0Lnhscy5yZW1vdmUuZW1wdHkuc3BhY2UuYmV0d2Vlbi5yb3dzIiB2YWx1ZT0idHJ1ZSIvPgoJPHByb3BlcnR5IG5hbWU9Im5ldC5zZi5qYXNwZXJyZXBvcnRzLmV4cG9ydC5wZGYuZm9yY2UubGluZWJyZWFrLnBvbGljeSIgdmFsdWU9InRydWUiLz4KCTxwcm9wZXJ0eSBuYW1lPSJuZXQuc2YuamFzcGVycmVwb3J0cy5leHBvcnQuY3N2LmV4Y2x1ZGUub3JpZ2luLmJhbmQuMSIgdmFsdWU9InRpdGxlIi8+Cgk8cHJvcGVydHkgbmFtZT0ibmV0LnNmLmphc3BlcnJlcG9ydHMuZXhwb3J0LmNzdi5leGNsdWRlLm9yaWdpbi5iYW5kLjIiIHZhbHVlPSJwYWdlRm9vdGVyIi8+Cgk8cHJvcGVydHkgbmFtZT0ibmV0LnNmLmphc3BlcnJlcG9ydHMuZXhwb3J0Lnhscy5leGNsdWRlLm9yaWdpbi5iYW5kLjEiIHZhbHVlPSJwYWdlSGVhZGVyIi8+Cgk8cHJvcGVydHkgbmFtZT0ibmV0LnNmLmphc3BlcnJlcG9ydHMuZXhwb3J0Lnhscy5leGNsdWRlLm9yaWdpbi5iYW5kLjIiIHZhbHVlPSJwYWdlRm9vdGVyIi8+Cgk8cHJvcGVydHkgbmFtZT0ibmV0LnNmLmphc3BlcnJlcG9ydHMuZXhwb3J0Lnhscy5leGNsdWRlLm9yaWdpbi5rZWVwLmZpcnN0LmJhbmQuMiIgdmFsdWU9ImNvbHVtbkhlYWRlciIvPgoJPHByb3BlcnR5IG5hbWU9Im5ldC5zZi5qYXNwZXJyZXBvcnRzLmV4cG9ydC54bHMuZGV0ZWN0LmNlbGwudHlwZSIgdmFsdWU9InRydWUiLz4KCTxwcm9wZXJ0eSBuYW1lPSJuZXQuc2YuamFzcGVycmVwb3J0cy5leHBvcnQueGxzLndyYXAudGV4dCIgdmFsdWU9InRydWUiLz4KCTxwcm9wZXJ0eSBuYW1lPSJuZXQuc2YuamFzcGVycmVwb3J0cy5leHBvcnQueGxzLmF1dG8uZml0LnJvdyIgdmFsdWU9InRydWUiLz4KCTxwcm9wZXJ0eSBuYW1lPSJuZXQuc2YuamFzcGVycmVwb3J0cy5leHBvcnQueGxzLmF1dG8uZml0LmNvbHVtbiIgdmFsdWU9InRydWUiLz4KCTxwcm9wZXJ0eSBuYW1lPSJuZXQuc2YuamFzcGVycmVwb3J0cy5hd3QuaWdub3JlLm1pc3NpbmcuZm9udCIgdmFsdWU9InRydWUiLz4KCTxwcm9wZXJ0eSBuYW1lPSJpcmVwb3J0Lnpvb20iIHZhbHVlPSIxLjAiLz4KCTxwcm9wZXJ0eSBuYW1lPSJpcmVwb3J0LngiIHZhbHVlPSIxNiIvPgoJPHByb3BlcnR5IG5hbWU9ImlyZXBvcnQueSIgdmFsdWU9IjE0Ii8+Cgk8cHJvcGVydHkgbmFtZT0iY29tLmphc3BlcnNvZnQuc3R1ZGlvLmRhdGEuZGVmYXVsdGRhdGFhZGFwdGVyIiB2YWx1ZT0ibXFsLnhtbCIvPgoJPHN0eWxlIG5hbWU9IkJhc2UiIGlzRGVmYXVsdD0idHJ1ZSIgaFRleHRBbGlnbj0iTGVmdCIgaEltYWdlQWxpZ249IkxlZnQiIHZUZXh0QWxpZ249Ik1pZGRsZSIgdkltYWdlQWxpZ249Ik1pZGRsZSIgZm9udE5hbWU9IkRlamFWdSBTYW5zIiBmb250U2l6ZT0iMTAiIHBkZkZvbnROYW1lPSJEZWphVnVTYW5zLnR0ZiIgcGRmRW5jb2Rpbmc9IklkZW50aXR5LUgiIGlzUGRmRW1iZWRkZWQ9InRydWUiLz4KCTxzdHlsZSBuYW1lPSJUaXRsZSIgc3R5bGU9IkJhc2UiIG1vZGU9Ik9wYXF1ZSIgZm9yZWNvbG9yPSIjRkZGRkZGIiBiYWNrY29sb3I9IiMyNjc5OTQiIGZvbnRTaXplPSIyNiIvPgoJPHN0eWxlIG5hbWU9IlBhZ2UgaGVhZGVyIiBzdHlsZT0iQmFzZSIgZm9yZWNvbG9yPSIjMDAwMDAwIiBmb250U2l6ZT0iMTIiLz4KCTxzdHlsZSBuYW1lPSJDb2x1bW4gaGVhZGVyIiBzdHlsZT0iQmFzZSIgbW9kZT0iT3BhcXVlIiBmb3JlY29sb3I9IiNGRkZGRkYiIGJhY2tjb2xvcj0iIzMzMzMzMyIgaFRleHRBbGlnbj0iQ2VudGVyIiBoSW1hZ2VBbGlnbj0iQ2VudGVyIiBmb250U2l6ZT0iMTIiLz4KCTxzdHlsZSBuYW1lPSJEZXRhaWwiIHN0eWxlPSJCYXNlIiBpc0JvbGQ9ImZhbHNlIi8+Cgk8c3R5bGUgbmFtZT0iQ29kZSIgc3R5bGU9IkJhc2UiIGZvbnRTaXplPSI5IiBpc0JvbGQ9ImZhbHNlIi8+Cgk8c3R5bGUgbmFtZT0iUGFnZSBmb290ZXIiIHN0eWxlPSJCYXNlIiBmb3JlY29sb3I9IiMwMDAwMDAiIGZvbnRTaXplPSI5Ii8+Cgk8cXVlcnlTdHJpbmcgbGFuZ3VhZ2U9Im1xbCI+CgkJPCFbQ0RBVEFbPGNvZGU+ICAgICAgICANCiAgICByZXBvcnQuc2VhcmNoQ2VydGlmaWNhdGlvbkRlZmluaXRpb25zKCkNCjwvY29kZT5dXT4KCTwvcXVlcnlTdHJpbmc+Cgk8ZmllbGQgbmFtZT0ib2lkIiBjbGFzcz0iamF2YS5sYW5nLlN0cmluZyIvPgoJPGZpZWxkIG5hbWU9Im5hbWUiIGNsYXNzPSJqYXZhLmxhbmcuU3RyaW5nIi8+Cgk8ZmllbGQgbmFtZT0ib3duZXJSZWYiIGNsYXNzPSJjb20uZXZvbHZldW0ubWlkcG9pbnQueG1sLm5zLl9wdWJsaWMuY29tbW9uLmNvbW1vbl8zLk9iamVjdFJlZmVyZW5jZVR5cGUiLz4KCTxmaWVsZCBuYW1lPSJsYXN0Q2FtcGFpZ25TdGFydGVkVGltZXN0YW1wIiBjbGFzcz0iamF2YXgueG1sLmRhdGF0eXBlLlhNTEdyZWdvcmlhbkNhbGVuZGFyIi8+Cgk8ZmllbGQgbmFtZT0ibGFzdENhbXBhaWduQ2xvc2VkVGltZXN0YW1wIiBjbGFzcz0iamF2YXgueG1sLmRhdGF0eXBlLlhNTEdyZWdvcmlhbkNhbGVuZGFyIi8+Cgk8ZmllbGQgbmFtZT0iY2FtcGFpZ25zIiBjbGFzcz0iamF2YS5sYW5nLkludGVnZXIiLz4KCTxmaWVsZCBuYW1lPSJvcGVuQ2FtcGFpZ25zIiBjbGFzcz0iamF2YS5sYW5nLkludGVnZXIiLz4KCTxiYWNrZ3JvdW5kPgoJCTxiYW5kIGhlaWdodD0iMzAiIHNwbGl0VHlwZT0iU3RyZXRjaCIvPgoJPC9iYWNrZ3JvdW5kPgoJPHRpdGxlPgoJCTxiYW5kIGhlaWdodD0iMTIzIiBzcGxpdFR5cGU9IlN0cmV0Y2giPgoJCQk8ZnJhbWU+CgkJCQk8cmVwb3J0RWxlbWVudCBzdHlsZT0iVGl0bGUiIG1vZGU9Ik9wYXF1ZSIgeD0iMCIgeT0iMCIgd2lkdGg9IjExNjAiIGhlaWdodD0iNjciIGJhY2tjb2xvcj0iIzI2Nzk5NCIgdXVpZD0iNDRiZWRhY2MtZmEyMy00ZmUxLWI3MWYtZTVhZmE5NDNmNTUzIi8+CgkJCQk8c3RhdGljVGV4dD4KCQkJCQk8cmVwb3J0RWxlbWVudCBzdHlsZT0iVGl0bGUiIHg9IjEwIiB5PSIxNCIgd2lkdGg9IjExNDAiIGhlaWdodD0iMzgiIHV1aWQ9ImYyZDk5Y2FkLTlkODQtNGY1MC1iNDU1LTQ1M2M4N2Y2MmM0YyIvPgoJCQkJCTx0ZXh0RWxlbWVudCB2ZXJ0aWNhbEFsaWdubWVudD0iTWlkZGxlIi8+CgkJCQkJPHRleHQ+PCFbQ0RBVEFbQ2VydGlmaWNhdGlvbiBEZWZpbml0aW9ucyBSZXBvcnRdXT48L3RleHQ+CgkJCQk8L3N0YXRpY1RleHQ+CgkJCTwvZnJhbWU+CgkJPC9iYW5kPgoJPC90aXRsZT4KCTxwYWdlSGVhZGVyPgoJCTxiYW5kIHNwbGl0VHlwZT0iU3RyZXRjaCIvPgoJPC9wYWdlSGVhZGVyPgoJPGNvbHVtbkhlYWRlcj4KCQk8YmFuZCBoZWlnaHQ9IjIwIiBzcGxpdFR5cGU9IlN0cmV0Y2giPgoJCQk8cHJvcGVydHkgbmFtZT0iY29tLmphc3BlcnNvZnQuc3R1ZGlvLnVuaXQuaGVpZ2h0IiB2YWx1ZT0icGl4ZWwiLz4KCQkJPHByb3BlcnR5IG5hbWU9ImNvbS5qYXNwZXJzb2Z0LnN0dWRpby5sYXlvdXQiIHZhbHVlPSJjb20uamFzcGVyc29mdC5zdHVkaW8uZWRpdG9yLmxheW91dC5Ib3Jpem9udGFsUm93TGF5b3V0Ii8+CgkJCTxzdGF0aWNUZXh0PgoJCQkJPHJlcG9ydEVsZW1lbnQgc3R5bGU9IkNvbHVtbiBoZWFkZXIiIHg9IjAiIHk9IjAiIHdpZHRoPSI1NjAiIGhlaWdodD0iMjAiIHV1aWQ9IjA0OTg5MDliLWQzYzUtNGVlMy1iOGM5LWYwMGE4MDhlZmE3YSIvPgoJCQkJPHRleHRFbGVtZW50IHZlcnRpY2FsQWxpZ25tZW50PSJNaWRkbGUiLz4KCQkJCTx0ZXh0PjwhW0NEQVRBW05hbWVdXT48L3RleHQ+CgkJCTwvc3RhdGljVGV4dD4KCQkJPHN0YXRpY1RleHQ+CgkJCQk8cmVwb3J0RWxlbWVudCBzdHlsZT0iQ29sdW1uIGhlYWRlciIgeD0iNTYwIiB5PSIwIiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjIwIiB1dWlkPSJjNTMwNTU2Yi1lNjc0LTQ3YzYtYTc5OS02ZjFkNWI1YmNlNjEiPgoJCQkJCTxwcm9wZXJ0eSBuYW1lPSJjb20uamFzcGVyc29mdC5zdHVkaW8udW5pdC53aWR0aCIgdmFsdWU9InBpeGVsIi8+CgkJCQk8L3JlcG9ydEVsZW1lbnQ+CgkJCQk8dGV4dEVsZW1lbnQgdmVydGljYWxBbGlnbm1lbnQ9Ik1pZGRsZSIvPgoJCQkJPHRleHQ+PCFbQ0RBVEFbT3duZXJdXT48L3RleHQ+CgkJCTwvc3RhdGljVGV4dD4KCQkJPHN0YXRpY1RleHQ+CgkJCQk8cmVwb3J0RWxlbWVudCBzdHlsZT0iQ29sdW1uIGhlYWRlciIgeD0iNzEwIiB5PSIwIiB3aWR0aD0iMTEwIiBoZWlnaHQ9IjIwIiB1dWlkPSI2NDJhNmMwNS0zZmQ0LTRkMDgtODc0NS1lZDM3ZDkwMzQ0NzMiPgoJCQkJCTxwcm9wZXJ0eSBuYW1lPSJjb20uamFzcGVyc29mdC5zdHVkaW8udW5pdC54IiB2YWx1ZT0icGl4ZWwiLz4KCQkJCQk8cHJvcGVydHkgbmFtZT0iY29tLmphc3BlcnNvZnQuc3R1ZGlvLnVuaXQud2lkdGgiIHZhbHVlPSJwaXhlbCIvPgoJCQkJPC9yZXBvcnRFbGVtZW50PgoJCQkJPHRleHRFbGVtZW50IHZlcnRpY2FsQWxpZ25tZW50PSJNaWRkbGUiLz4KCQkJCTx0ZXh0PjwhW0NEQVRBW0NhbXBhaWduc11dPjwvdGV4dD4KCQkJPC9zdGF0aWNUZXh0PgoJCQk8c3RhdGljVGV4dD4KCQkJCTxyZXBvcnRFbGVtZW50IHN0eWxlPSJDb2x1bW4gaGVhZGVyIiB4PSI4MjAiIHk9IjAiIHdpZHRoPSIxMTAiIGhlaWdodD0iMjAiIHV1aWQ9Ijg4ZmUzMDk0LTE0NGMtNDU1MS04NjdhLTNlN2NmOWU0Njg1YyI+CgkJCQkJPHByb3BlcnR5IG5hbWU9ImNvbS5qYXNwZXJzb2Z0LnN0dWRpby51bml0LndpZHRoIiB2YWx1ZT0icGl4ZWwiLz4KCQkJCTwvcmVwb3J0RWxlbWVudD4KCQkJCTx0ZXh0RWxlbWVudCB2ZXJ0aWNhbEFsaWdubWVudD0iTWlkZGxlIi8+CgkJCQk8dGV4dD48IVtDREFUQVtPcGVuIGNhbXBhaWduc11dPjwvdGV4dD4KCQkJPC9zdGF0aWNUZXh0PgoJCQk8c3RhdGljVGV4dD4KCQkJCTxyZXBvcnRFbGVtZW50IHN0eWxlPSJDb2x1bW4gaGVhZGVyIiB4PSI5MzAiIHk9IjAiIHdpZHRoPSIxMTUiIGhlaWdodD0iMjAiIHV1aWQ9ImJiZjk0ZjBkLTUzNWYtNGI3Zi1hMmYyLTdhZDNlYzUwZjBlZiI+CgkJCQkJPHByb3BlcnR5IG5hbWU9ImNvbS5qYXNwZXJzb2Z0LnN0dWRpby51bml0LndpZHRoIiB2YWx1ZT0icGl4ZWwiLz4KCQkJCTwvcmVwb3J0RWxlbWVudD4KCQkJCTx0ZXh0RWxlbWVudCB2ZXJ0aWNhbEFsaWdubWVudD0iTWlkZGxlIi8+CgkJCQk8dGV4dD48IVtDREFUQVtMYXN0IHN0YXJ0ZWRdXT48L3RleHQ+CgkJCTwvc3RhdGljVGV4dD4KCQkJPHN0YXRpY1RleHQ+CgkJCQk8cmVwb3J0RWxlbWVudCBzdHlsZT0iQ29sdW1uIGhlYWRlciIgeD0iMTA0NSIgeT0iMCIgd2lkdGg9IjExNSIgaGVpZ2h0PSIyMCIgdXVpZD0iM2I1NDcyMmEtOTliZi00YzdjLWI2NDktYmIwM2VjNTMzMjllIj4KCQkJCQk8cHJvcGVydHkgbmFtZT0iY29tLmphc3BlcnNvZnQuc3R1ZGlvLnVuaXQud2lkdGgiIHZhbHVlPSJwaXhlbCIvPgoJCQkJCTxwcm9wZXJ0eSBuYW1lPSJjb20uamFzcGVyc29mdC5zdHVkaW8udW5pdC54IiB2YWx1ZT0icGl4ZWwiLz4KCQkJCTwvcmVwb3J0RWxlbWVudD4KCQkJCTx0ZXh0RWxlbWVudCB2ZXJ0aWNhbEFsaWdubWVudD0iTWlkZGxlIi8+CgkJCQk8dGV4dD48IVtDREFUQVtMYXN0IGNsb3NlZF1dPjwvdGV4dD4KCQkJPC9zdGF0aWNUZXh0PgoJCTwvYmFuZD4KCTwvY29sdW1uSGVhZGVyPgoJPGRldGFpbD4KCQk8YmFuZCBoZWlnaHQ9IjI0IiBzcGxpdFR5cGU9IlN0cmV0Y2giPgoJCQk8cHJvcGVydHkgbmFtZT0iY29tLmphc3BlcnNvZnQuc3R1ZGlvLnVuaXQuaGVpZ2h0IiB2YWx1ZT0icGl4ZWwiLz4KCQkJPHByb3BlcnR5IG5hbWU9ImNvbS5qYXNwZXJzb2Z0LnN0dWRpby5sYXlvdXQiIHZhbHVlPSJjb20uamFzcGVyc29mdC5zdHVkaW8uZWRpdG9yLmxheW91dC5Ib3Jpem9udGFsUm93TGF5b3V0Ii8+CgkJCTxmcmFtZT4KCQkJCTxyZXBvcnRFbGVtZW50IHN0eWxlPSJEZXRhaWwiIHN0cmV0Y2hUeXBlPSJSZWxhdGl2ZVRvVGFsbGVzdE9iamVjdCIgbW9kZT0iT3BhcXVlIiB4PSIwIiB5PSIwIiB3aWR0aD0iMTE2MCIgaGVpZ2h0PSIyNCIgdXVpZD0iODZkYjY1MzctODFmMC00MmIxLWI3NGEtZDJiZTcwOTI3MWNkIj4KCQkJCQk8cHJvcGVydHkgbmFtZT0iY29tLmphc3BlcnNvZnQuc3R1ZGlvLmxheW91dCIgdmFsdWU9ImNvbS5qYXNwZXJzb2Z0LnN0dWRpby5lZGl0b3IubGF5b3V0Lkhvcml6b250YWxSb3dMYXlvdXQiLz4KCQkJCTwvcmVwb3J0RWxlbWVudD4KCQkJCTx0ZXh0RmllbGQ+CgkJCQkJPHJlcG9ydEVsZW1lbnQgeD0iMCIgeT0iMCIgd2lkdGg9IjU2MCIgaGVpZ2h0PSIyNCIgdXVpZD0iYzg5NDhjODUtZWMzMS00YjM5LTg4OWEtNDNjYmNlNzBmN2Y4Ij4KCQkJCQkJPHByb3BlcnR5IG5hbWU9ImNvbS5qYXNwZXJzb2Z0LnN0dWRpby51bml0LndpZHRoIiB2YWx1ZT0icGl4ZWwiLz4KCQkJCQk8L3JlcG9ydEVsZW1lbnQ+CgkJCQkJPHRleHRGaWVsZEV4cHJlc3Npb24+PCFbQ0RBVEFbJEZ7bmFtZX1dXT48L3RleHRGaWVsZEV4cHJlc3Npb24+CgkJCQk8L3RleHRGaWVsZD4KCQkJCTx0ZXh0RmllbGQ+CgkJCQkJPHJlcG9ydEVsZW1lbnQgeD0iNTYwIiB5PSIwIiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjI0IiB1dWlkPSI3NWJmZDRhMC01ODAwLTQ3YTUtYTUzYy00NTgwMjU3MzBiYjMiPgoJCQkJCQk8cHJvcGVydHkgbmFtZT0iY29tLmphc3BlcnNvZnQuc3R1ZGlvLnVuaXQueCIgdmFsdWU9InBpeGVsIi8+CgkJCQkJCTxwcm9wZXJ0eSBuYW1lPSJjb20uamFzcGVyc29mdC5zdHVkaW8udW5pdC53aWR0aCIgdmFsdWU9InBpeGVsIi8+CgkJCQkJPC9yZXBvcnRFbGVtZW50PgoJCQkJCTx0ZXh0RmllbGRFeHByZXNzaW9uPjwhW0NEQVRBWygkRntvd25lclJlZn0gIT0gbnVsbCkgPyBjb20uZXZvbHZldW0ubWlkcG9pbnQucmVwb3J0LmltcGwuUmVwb3J0VXRpbHMucHJldHR5UHJpbnRGb3JSZXBvcnQoJEZ7b3duZXJSZWZ9LCBmYWxzZSkgOiAiIl1dPjwvdGV4dEZpZWxkRXhwcmVzc2lvbj4KCQkJCTwvdGV4dEZpZWxkPgoJCQkJPHRleHRGaWVsZD4KCQkJCQk8cmVwb3J0RWxlbWVudCB4PSI3MTAiIHk9IjAiIHdpZHRoPSIxMTAiIGhlaWdodD0iMjQiIHV1aWQ9Ijc2M2Q2NWIzLTExODYtNGMxYy1hZGI5LTVmMDQxZmNhNTNmNiI+CgkJCQkJCTxwcm9wZXJ0eSBuYW1lPSJjb20uamFzcGVyc29mdC5zdHVkaW8udW5pdC54IiB2YWx1ZT0icGl4ZWwiLz4KCQkJCQkJPHByb3BlcnR5IG5hbWU9ImNvbS5qYXNwZXJzb2Z0LnN0dWRpby51bml0LndpZHRoIiB2YWx1ZT0icGl4ZWwiLz4KCQkJCQk8L3JlcG9ydEVsZW1lbnQ+CgkJCQkJPHRleHRFbGVtZW50IHRleHRBbGlnbm1lbnQ9IkNlbnRlciIvPgoJCQkJCTx0ZXh0RmllbGRFeHByZXNzaW9uPjwhW0NEQVRBWyRGe2NhbXBhaWduc31dXT48L3RleHRGaWVsZEV4cHJlc3Npb24+CgkJCQk8L3RleHRGaWVsZD4KCQkJCTx0ZXh0RmllbGQ+CgkJCQkJPHJlcG9ydEVsZW1lbnQgeD0iODIwIiB5PSIwIiB3aWR0aD0iMTEwIiBoZWlnaHQ9IjI0IiB1dWlkPSJkOGIzZWQ0Yy1lMDhiLTRiYWItODNhYS1jNzJhYjg3OTBiMmIiPgoJCQkJCQk8cHJvcGVydHkgbmFtZT0iY29tLmphc3BlcnNvZnQuc3R1ZGlvLnVuaXQueCIgdmFsdWU9InBpeGVsIi8+CgkJCQkJCTxwcm9wZXJ0eSBuYW1lPSJjb20uamFzcGVyc29mdC5zdHVkaW8udW5pdC53aWR0aCIgdmFsdWU9InBpeGVsIi8+CgkJCQkJPC9yZXBvcnRFbGVtZW50PgoJCQkJCTx0ZXh0RWxlbWVudCB0ZXh0QWxpZ25tZW50PSJDZW50ZXIiLz4KCQkJCQk8dGV4dEZpZWxkRXhwcmVzc2lvbj48IVtDREFUQVskRntvcGVuQ2FtcGFpZ25zfV1dPjwvdGV4dEZpZWxkRXhwcmVzc2lvbj4KCQkJCTwvdGV4dEZpZWxkPgoJCQkJPHRleHRGaWVsZD4KCQkJCQk8cmVwb3J0RWxlbWVudCB4PSI5MzAiIHk9IjAiIHdpZHRoPSIxMTUiIGhlaWdodD0iMjQiIHV1aWQ9ImY5YjhiYjY4LTdkYzMtNDdiZi04NjExLTgwMmI4MzY4ZjIyNCI+CgkJCQkJCTxwcm9wZXJ0eSBuYW1lPSJjb20uamFzcGVyc29mdC5zdHVkaW8udW5pdC54IiB2YWx1ZT0icGl4ZWwiLz4KCQkJCQkJPHByb3BlcnR5IG5hbWU9ImNvbS5qYXNwZXJzb2Z0LnN0dWRpby51bml0LndpZHRoIiB2YWx1ZT0icGl4ZWwiLz4KCQkJCQk8L3JlcG9ydEVsZW1lbnQ+CgkJCQkJPHRleHRFbGVtZW50IHRleHRBbGlnbm1lbnQ9IkNlbnRlciIvPgoJCQkJCTx0ZXh0RmllbGRFeHByZXNzaW9uPjwhW0NEQVRBW2NvbS5ldm9sdmV1bS5taWRwb2ludC5yZXBvcnQuaW1wbC5SZXBvcnRVdGlscy5wcmV0dHlQcmludEZvclJlcG9ydCgkRntsYXN0Q2FtcGFpZ25TdGFydGVkVGltZXN0YW1wfSldXT48L3RleHRGaWVsZEV4cHJlc3Npb24+CgkJCQk8L3RleHRGaWVsZD4KCQkJCTx0ZXh0RmllbGQ+CgkJCQkJPHJlcG9ydEVsZW1lbnQgeD0iMTA0NSIgeT0iMCIgd2lkdGg9IjExNSIgaGVpZ2h0PSIyNCIgdXVpZD0iYjVkZTYwMDMtY2M2NC00ZWU0LTliMjUtOTkyN2U3Mzc5ZjU3Ij4KCQkJCQkJPHByb3BlcnR5IG5hbWU9ImNvbS5qYXNwZXJzb2Z0LnN0dWRpby51bml0LngiIHZhbHVlPSJwaXhlbCIvPgoJCQkJCQk8cHJvcGVydHkgbmFtZT0iY29tLmphc3BlcnNvZnQuc3R1ZGlvLnVuaXQud2lkdGgiIHZhbHVlPSJwaXhlbCIvPgoJCQkJCTwvcmVwb3J0RWxlbWVudD4KCQkJCQk8dGV4dEVsZW1lbnQgdGV4dEFsaWdubWVudD0iQ2VudGVyIi8+CgkJCQkJPHRleHRGaWVsZEV4cHJlc3Npb24+PCFbQ0RBVEFbY29tLmV2b2x2ZXVtLm1pZHBvaW50LnJlcG9ydC5pbXBsLlJlcG9ydFV0aWxzLnByZXR0eVByaW50Rm9yUmVwb3J0KCRGe2xhc3RDYW1wYWlnbkNsb3NlZFRpbWVzdGFtcH0pXV0+PC90ZXh0RmllbGRFeHByZXNzaW9uPgoJCQkJPC90ZXh0RmllbGQ+CgkJCTwvZnJhbWU+CgkJPC9iYW5kPgoJPC9kZXRhaWw+Cgk8cGFnZUZvb3Rlcj4KCQk8YmFuZCBoZWlnaHQ9IjMyIiBzcGxpdFR5cGU9IlN0cmV0Y2giPgoJCQk8ZnJhbWU+CgkJCQk8cmVwb3J0RWxlbWVudCBzdHlsZT0iUGFnZSBmb290ZXIiIG1vZGU9IlRyYW5zcGFyZW50IiB4PSIwIiB5PSIxIiB3aWR0aD0iMTEyMCIgaGVpZ2h0PSIyNCIgZm9yZWNvbG9yPSIjMDAwMDAwIiBiYWNrY29sb3I9IiMyNjc5OTQiIHV1aWQ9ImZiZThhYWU0LTY1MDAtNDY4YS1iMWU4LTcwMGI1NjkxMzlhMSIvPgoJCQkJPHRleHRGaWVsZCBwYXR0ZXJuPSJFRUVFRSBkZCBNTU1NTSB5eXl5Ij4KCQkJCQk8cmVwb3J0RWxlbWVudCBzdHlsZT0iUGFnZSBmb290ZXIiIHg9IjIiIHk9IjEiIHdpZHRoPSIxOTciIGhlaWdodD0iMjAiIHV1aWQ9IjI4YmI5YjQ3LWE2OWMtNDhlMS05MDczLWQ1NGQ5MjYyNDJlOCIvPgoJCQkJCTx0ZXh0RWxlbWVudCB2ZXJ0aWNhbEFsaWdubWVudD0iTWlkZGxlIi8+CgkJCQkJPHRleHRGaWVsZEV4cHJlc3Npb24+PCFbQ0RBVEFbbmV3IGphdmEudXRpbC5EYXRlKCldXT48L3RleHRGaWVsZEV4cHJlc3Npb24+CgkJCQk8L3RleHRGaWVsZD4KCQkJCTx0ZXh0RmllbGQ+CgkJCQkJPHJlcG9ydEVsZW1lbnQgc3R5bGU9IlBhZ2UgZm9vdGVyIiB4PSIxMDAwIiB5PSIxIiB3aWR0aD0iODAiIGhlaWdodD0iMjAiIHV1aWQ9IjVjMDYyYzY2LWJhNDUtNDI4OC05ZGNkLTI0NmUyOGM1YWY3NSIvPgoJCQkJCTx0ZXh0RWxlbWVudCB0ZXh0QWxpZ25tZW50PSJSaWdodCIgdmVydGljYWxBbGlnbm1lbnQ9Ik1pZGRsZSIvPgoJCQkJCTx0ZXh0RmllbGRFeHByZXNzaW9uPjwhW0NEQVRBWyJQYWdlICIrJFZ7UEFHRV9OVU1CRVJ9KyIgb2YiXV0+PC90ZXh0RmllbGRFeHByZXNzaW9uPgoJCQkJPC90ZXh0RmllbGQ+CgkJCQk8dGV4dEZpZWxkIGV2YWx1YXRpb25UaW1lPSJSZXBvcnQiPgoJCQkJCTxyZXBvcnRFbGVtZW50IHN0eWxlPSJQYWdlIGZvb3RlciIgeD0iMTA4MCIgeT0iMSIgd2lkdGg9IjQwIiBoZWlnaHQ9IjIwIiB1dWlkPSI5MzRiMTZlOC1jM2ViLTQwMTctODY2YS0wYjc3MzViZjI5MTciLz4KCQkJCQk8dGV4dEVsZW1lbnQgdmVydGljYWxBbGlnbm1lbnQ9Ik1pZGRsZSIvPgoJCQkJCTx0ZXh0RmllbGRFeHByZXNzaW9uPjwhW0NEQVRBWyIgIiArICRWe1BBR0VfTlVNQkVSfV1dPjwvdGV4dEZpZWxkRXhwcmVzc2lvbj4KCQkJCTwvdGV4dEZpZWxkPgoJCQk8L2ZyYW1lPgoJCTwvYmFuZD4KCTwvcGFnZUZvb3Rlcj4KPC9qYXNwZXJSZXBvcnQ+Cg==</template>
-       <export>html</export>
-       <virtualizer>JRSwapFileVirtualizer</virtualizer>
-       <virtualizerKickOn>300</virtualizerKickOn>
-       <maxPages>10000</maxPages>
-       <timeout>300000</timeout>
-    </jasper>
-    <defaultScriptConfiguration>
-        <objectVariableMode>prismReference</objectVariableMode>
-    </defaultScriptConfiguration>
+    <name>Certification definitions report</name>
+    <description>All certification definitions with basic information on related campaigns.</description>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000171" type="ArchetypeType" />
+    </assignment>
+    <objectCollection>
+        <collection>
+            <collectionRef oid="00000000-0000-0000-0001-000000000255" type="ObjectCollectionType"/>
+        </collection>
+        <view>
+            <column>
+                <name>nameColumn</name>
+                <path>name</path>
+                <display>
+                    <label>Name</label>
+                </display>
+            </column>
+            <column>
+                <name>ownerColumn</name>
+                <path>ownerRef</path>
+                <display>
+                    <label>Owner</label>
+                </display>
+                <previousColumn>nameColumn</previousColumn>
+            </column>
+            <column>
+                <name>campaignsColumn</name>
+                <display>
+                    <label>Campaigns</label>
+                </display>
+                <previousColumn>ownerColumn</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType
+
+                                oid = object.getOid();
+                                numberOfCampaigns = 0;
+                                campaigns = midpoint.searchObjects(AccessCertificationCampaignType.class, prismContext.queryFor(AccessCertificationCampaignType.class).build(), null);
+                                for (AccessCertificationCampaignType campaign : campaigns) {
+                                    if (oid.equals(campaign.getDefinitionRef().getOid())) {
+                                        numberOfCampaigns++
+                                    }
+                                }
+                                return numberOfCampaigns;
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>openCampaignsColumn</name>
+                <display>
+                    <label>Open campaigns</label>
+                </display>
+                <previousColumn>campaignsColumn</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType
+
+                                oid = object.getOid();
+                                numberOfCampaigns = 0;
+                                campaigns = midpoint.searchObjects(AccessCertificationCampaignType.class, prismContext.queryFor(AccessCertificationCampaignType.class).build(), null);
+                                for (AccessCertificationCampaignType campaign : campaigns) {
+                                    if (oid.equals(campaign.getDefinitionRef().getOid())) {
+                                        AccessCertificationCampaignStateType state = campaign.getState();
+                                            if (state != AccessCertificationCampaignStateType.CREATED
+                                                &amp;&amp; state != AccessCertificationCampaignStateType.CLOSED) {
+                                                numberOfCampaigns++
+                                            }
+                                    }
+                                }
+                                return numberOfCampaigns;
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>lastStartedColumn</name>
+                <path>lastCampaignStartedTimestamp</path>
+                <display>
+                    <label>Last started</label>
+                </display>
+                <previousColumn>openCampaignsColumn</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                com.evolveum.midpoint.report.impl.ReportUtils.prettyPrintForReport(object)
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>lastClosedColumn</name>
+                <path>lastCampaignClosedTimestamp</path>
+                <display>
+                    <label>Last closed</label>
+                </display>
+                <previousColumn>lastStartedColumn</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                com.evolveum.midpoint.report.impl.ReportUtils.prettyPrintForReport(object)
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <type>AccessCertificationDefinitionType</type>
+        </view>
+        <useOnlyReportView>true</useOnlyReportView>
+    </objectCollection>
 </report>

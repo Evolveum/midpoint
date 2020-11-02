@@ -9,12 +9,15 @@ package com.evolveum.midpoint.schrodinger.component.resource;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
 import com.evolveum.midpoint.schrodinger.component.common.Search;
 import com.evolveum.midpoint.schrodinger.component.common.table.TableWithPageRedirect;
+import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
 import com.evolveum.midpoint.schrodinger.component.table.TableHeaderDropDownMenu;
 import com.evolveum.midpoint.schrodinger.page.resource.AccountPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import com.evolveum.midpoint.schrodinger.util.Utils;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -54,14 +57,14 @@ public class ResourceShadowTable<T> extends TableWithPageRedirect<T> {
     }
 
     @Override
-    public ResourceShadowTableHeaderDropDown<ResourceShadowTable<T>> clickHeaderActionDropDown() {
+    protected TableHeaderDropDownMenu<ResourceShadowTable<T>> clickHeaderActionDropDown() {
         $(Schrodinger.byElementAttributeValue("button", "data-toggle", "dropdown"))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         SelenideElement cog = $(Schrodinger.byElementAttributeValue("ul","role","menu"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
-        return new ResourceShadowTableHeaderDropDown<>(this, cog);
+        return new TableHeaderDropDownMenu<>(this, cog);
     }
 
     @Override
@@ -69,4 +72,47 @@ public class ResourceShadowTable<T> extends TableWithPageRedirect<T> {
         return (Search<? extends ResourceShadowTable<T>>) super.search();
     }
 
+    public ResourceShadowTable<T> clickEnable() {
+        return clickEnable(null, null);
+    }
+
+    public ResourceShadowTable<T> clickEnable(String columnTitleKey, String rowValue) {
+        clickMenuItemWithConfirmation(columnTitleKey, rowValue, "pageContentAccounts.menu.enableAccount");
+        return this;
+    }
+
+    public ResourceShadowTable<T> clickDisable() {
+        return clickDisable(null, null);
+    }
+
+    public ResourceShadowTable<T> clickDisable(String columnTitleKey, String rowValue) {
+        clickMenuItemWithConfirmation(columnTitleKey, rowValue, "pageContentAccounts.menu.disableAccount");
+        return this;
+    }
+
+    public ConfirmationModal<ResourceShadowTable<T>> clickDelete() {
+        return clickDelete(null, null);
+    }
+
+    public ConfirmationModal<ResourceShadowTable<T>> clickDelete(String columnTitleKey, String rowValue) {
+        return clickMenuItemWithConfirmation(columnTitleKey, rowValue, "pageContentAccounts.menu.deleteAccount");
+    }
+
+    public ResourceShadowTable<T> clickImport() {
+        return clickImport(null, null);
+    }
+
+    public ResourceShadowTable<T> clickImport(String columnTitleKey, String rowValue) {
+        clickMenuItemWithConfirmation(columnTitleKey, rowValue, "pageContentAccounts.menu.importAccount");
+        return this;
+    }
+
+    public ResourceShadowTable<T> clickRemoveOwner() {
+        return clickRemoveOwner(null, null);
+    }
+
+    public ResourceShadowTable<T> clickRemoveOwner(String columnTitleKey, String rowValue) {
+        clickMenuItemWithConfirmation(columnTitleKey, rowValue, "pageContentAccounts.menu.removeOwner");
+        return this;
+    }
 }

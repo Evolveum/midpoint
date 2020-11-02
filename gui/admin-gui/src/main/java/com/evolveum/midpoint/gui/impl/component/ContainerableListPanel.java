@@ -438,12 +438,12 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                                 return Model.of("");
                             }
                             Item<?, ?> item = null;
+                            if (columnPath != null) {
+                                item = value.asPrismContainerValue().findItem(columnPath);
+                            }
                             if (expression != null) {
                                 Task task = getPageBase().createSimpleTask("evaluate column expression");
                                 try {
-                                    if (columnPath != null) {
-                                        item = value.asPrismContainerValue().findItem(columnPath);
-                                    }
                                     Item object = value.asPrismContainerValue().getContainer();
                                     if (item != null) {
                                         object = item;

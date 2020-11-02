@@ -14,6 +14,8 @@ import com.evolveum.midpoint.schrodinger.component.common.table.ReadOnlyTable;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import com.evolveum.midpoint.schrodinger.util.Utils;
+
 import org.openqa.selenium.By;
 
 import java.util.ArrayList;
@@ -130,10 +132,7 @@ public class AboutPage extends BasicPage {
 
     public ConfirmationModal<FormLoginPage> clickSwitchToFactoryDefaults() {
         $(Schrodinger.byDataResourceKey("PageAbout.button.factoryDefault")).waitUntil(Condition.visible,MidPoint.TIMEOUT_DEFAULT_2_S).click();
-        SelenideElement confirmBox =$(Schrodinger.byElementAttributeValue("div","aria-labelledby","Confirm deletion"))
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new ConfirmationModal<>(new FormLoginPage(),confirmBox);
+        return new ConfirmationModal<>(new FormLoginPage(), Utils.getModalWindowSelenideElement());
     }
 
     public String getSystemProperty(String propertyNameUserHome) {

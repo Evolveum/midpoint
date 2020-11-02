@@ -16330,6 +16330,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="cpuMicroseconds" type="xsd:long" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How much CPU time the operation took (if known).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="invocationId" type="xsd:long" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

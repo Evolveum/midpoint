@@ -56,9 +56,7 @@ public class HttpAuthenticationEntryPoint implements AuthenticationEntryPoint {
                 response.setHeader("WWW-Authenticate", sb.toString());
             }
         }
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-        response.getWriter().flush();
-        response.getWriter().close();
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     }
 
     private String getRealm(ModuleAuthentication moduleAuthentication) {

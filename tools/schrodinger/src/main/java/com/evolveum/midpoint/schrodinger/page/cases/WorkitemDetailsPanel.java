@@ -15,6 +15,8 @@ import com.evolveum.midpoint.schrodinger.component.modal.ForwardWorkitemModal;
 import com.evolveum.midpoint.schrodinger.component.modal.ObjectBrowserModal;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import com.evolveum.midpoint.schrodinger.util.Utils;
+
 import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Selectors.byText;
@@ -48,17 +50,12 @@ public class WorkitemDetailsPanel<P extends BasicPage> extends Component<P> {
                 .$(Schrodinger.byDataId("workItemForwardButton"))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
                 .click();
-        SelenideElement modalWindow = $(By.className("wicket-modal"))
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-        ForwardWorkitemModal<P> forwardWorkitemModal = new ForwardWorkitemModal<P>(getParent(), modalWindow);
+        ForwardWorkitemModal<P> forwardWorkitemModal = new ForwardWorkitemModal<P>(getParent(), Utils.getModalWindowSelenideElement());
         return forwardWorkitemModal;
     }
 
     public ConfirmationModal<P> forwardOperationUserSelectionPerformed(){
-        SelenideElement modalWindow = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Confirm forwarding"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
-        ConfirmationModal<P> confirmationModal = new ConfirmationModal<P>(getParent(), modalWindow);
-        return confirmationModal;
+        return new ConfirmationModal<P>(getParent(), Utils.getModalWindowSelenideElement());
     }
 
     public void claimButtonClick(){

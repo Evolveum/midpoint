@@ -98,10 +98,6 @@ public class Search<T> extends Component<T> {
         popover.$(Schrodinger.byElementValue("a", name))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
-
-//        popover.$x(".//input[@"+Schrodinger.DATA_S_ID+"='addText']").setValue(name);
-//        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
-//        popover.$x(".//a[@"+Schrodinger.DATA_S_ID+"='propLink']").click();
         return this;
     }
 
@@ -145,13 +141,6 @@ public class Search<T> extends Component<T> {
 
     public Search<T> resetBasicSearch() {
         choiceBasicSearch();
-//        SelenideElement nameItem = getItemByName("Name");
-//        if (nameItem != null) {
-//            nameItem.waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-//            Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
-//            new SearchItemField<>(this, nameItem).inputValue("").updateSearch();
-//        }
-
         ElementsCollection deleteButtons = getParentElement().$$(Schrodinger.byDataId("removeButton"));
         int i = 0;
         int size = deleteButtons.size();

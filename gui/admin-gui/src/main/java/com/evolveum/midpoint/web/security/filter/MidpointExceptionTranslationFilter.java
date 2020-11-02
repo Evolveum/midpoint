@@ -10,6 +10,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -44,7 +46,9 @@ public class MidpointExceptionTranslationFilter extends ExceptionTranslationFilt
     protected void sendStartAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, AuthenticationException reason) throws ServletException, IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 //        SecurityContextHolder.getContext().setAuthentication(null);
-        requestCache.saveRequest(request, response);
+        if (!SecurityUtils.isRecordSessionlessAccessChannel(request)) {
+            requestCache.saveRequest(request, response);
+        }
         LOGGER.debug("Calling Authentication entry point.");
         getAuthenticationEntryPoint().commence(request, response, reason);
         if (authentication instanceof MidpointAuthentication){

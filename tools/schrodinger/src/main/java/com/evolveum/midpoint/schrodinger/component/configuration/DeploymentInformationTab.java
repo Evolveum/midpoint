@@ -15,7 +15,7 @@ import com.evolveum.midpoint.schrodinger.page.configuration.SystemPage;
  * @author skublik
  */
 
-public class DeploymentInformationTab extends TabWithContainerWrapper<DeploymentInformationTab, SystemPage> {
+public class DeploymentInformationTab extends TabWithContainerWrapper<SystemPage> {
     public DeploymentInformationTab(SystemPage parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }

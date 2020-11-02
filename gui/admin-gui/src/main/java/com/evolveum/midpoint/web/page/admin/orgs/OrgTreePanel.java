@@ -40,10 +40,7 @@ import org.apache.wicket.markup.repeater.ReuseIfModelsEqualStrategy;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class OrgTreePanel extends AbstractTreeTablePanel {
     private static final long serialVersionUID = 1L;
@@ -447,8 +444,17 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
     }
 
     public void addExpandedItem(TreeSelectableBean<OrgType> item, OrgTreeStateStorage storage){
-        if (storage != null && storage.getExpandedItems() != null){
-            storage.getExpandedItems().add(item);
+        if (storage == null) {
+            return;
+        }
+
+        Set<TreeSelectableBean<OrgType>> expandedItems = storage.getExpandedItems();
+        if (expandedItems == null) {
+            TreeStateSet<TreeSelectableBean<OrgType>> expanded = new TreeStateSet<>();
+            expanded.add(item);
+            storage.setExpandedItems(expanded);
+        } else {
+            expandedItems.add(item);
         }
     }
 
