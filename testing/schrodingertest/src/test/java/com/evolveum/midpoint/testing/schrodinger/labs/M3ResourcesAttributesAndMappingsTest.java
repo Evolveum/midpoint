@@ -53,7 +53,7 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
         csv1TargetFile = new File(getTestTargetDir(), CSV_1_FILE_SOURCE_NAME);
         FileUtils.copyFile(CSV_1_SOURCE_FILE, csv1TargetFile);
 
-        importObject(CSV_1_SIMPLE_RESOURCE_FILE,true);
+        addObjectFromFile(CSV_1_SIMPLE_RESOURCE_FILE);
 
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
 
@@ -123,19 +123,19 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
                         .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
                         .exists()));
 
-        importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE,true);
+        addObjectFromFile(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE);
 
         csv2TargetFile = new File(getTestTargetDir(), CSV_2_FILE_SOURCE_NAME);
         FileUtils.copyFile(CSV_2_SOURCE_FILE, csv2TargetFile);
 
-        importObject(CSV_2_RESOURCE_FILE,true);
+        addObjectFromFile(CSV_2_RESOURCE_FILE);
 
         changeResourceAttribute(CSV_2_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv2TargetFile.getAbsolutePath(), true);
 
         csv3TargetFile = new File(getTestTargetDir(), CSV_3_FILE_SOURCE_NAME);
         FileUtils.copyFile(CSV_3_SOURCE_FILE, csv3TargetFile);
 
-        importObject(CSV_3_RESOURCE_FILE,true);
+        addObjectFromFile(CSV_3_RESOURCE_FILE);
 
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
     }

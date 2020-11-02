@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
@@ -44,9 +46,9 @@ public class CaseTests extends AbstractSchrodingerTest {
     public static final String FORWARD_WORKITEM_TEST_USER_NAME = "forwardWorkitemTestUser";
     public static final String FORWARD_WORKITEM_TO_USER_NAME = "forwardToUser";
 
-    @BeforeMethod
-    private void importRoleWithApprovement() {
-        importObject(ROLE_WITH_ADMIN_APPROVER_XML,true);
+    @Override
+    protected List<File> getObjectListToImport(){
+        return Collections.singletonList(ROLE_WITH_ADMIN_APPROVER_XML);
     }
 
     @Test //covers mid-5813

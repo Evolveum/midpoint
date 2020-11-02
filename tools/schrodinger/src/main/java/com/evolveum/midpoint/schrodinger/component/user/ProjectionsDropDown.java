@@ -15,6 +15,7 @@ import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
 import com.evolveum.midpoint.schrodinger.component.table.TableHeaderDropDownMenu;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import com.evolveum.midpoint.schrodinger.util.Utils;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -56,9 +57,6 @@ public class ProjectionsDropDown<T> extends TableHeaderDropDownMenu<T> {
         $(Schrodinger.byElementValue("a", "data-s-id", "menuItemLink", "\n" +
                 "        Delete")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
-        SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Confirm deletion"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new ConfirmationModal<>(this, actualModal);
+        return new ConfirmationModal<>(this, Utils.getModalWindowSelenideElement());
     }
 }

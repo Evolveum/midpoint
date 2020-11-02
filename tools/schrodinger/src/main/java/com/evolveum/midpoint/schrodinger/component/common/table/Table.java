@@ -35,21 +35,7 @@ public class Table<T> extends Component<T> {
 
     public TableRow rowByColumnLabel(String label, String rowValue) {
         int index = findColumnByLabel(label);
-
-        ElementsCollection rows = getParentElement().findAll("tbody tr");
-        for (SelenideElement row : rows) {
-            String value = row.find("td:nth-child(" + index + ")").text();
-            if (value == null) {
-                continue;
-            }
-            value = value.trim();
-
-            if (Objects.equals(rowValue, value)) {
-                return new TableRow(this, row);
-            }
-        }
-
-        return null;
+        return getTableRowByIndex(index, rowValue);
     }
 
     public int findColumnByLabel(String label) {
@@ -71,8 +57,43 @@ public class Table<T> extends Component<T> {
         return index;
     }
 
+    public int findColumnByResourceKey(String key) {
+        ElementsCollection headers = getParentElement().findAll("thead th div span[data-s-id=label]");
+        int index = 1;
+        for (SelenideElement header : headers) {
+            String headerResourceKey = header.getAttribute("data-s-resource-key");
+            if (headerResourceKey == null) {
+                index++;
+                continue;
+            }
+
+            if (Objects.equals(headerResourceKey, key)) {
+                break;
+            }
+            index++;
+        }
+
+        return index;
+    }
+
     public TableRow rowByColumnResourceKey(String key, String rowValue) {
-        // todo implement
+        int index = findColumnByLabel(key);
+        return getTableRowByIndex(index, rowValue);
+    }
+
+    private TableRow getTableRowByIndex(int index, String rowValue) {
+        ElementsCollection rows = getParentElement().findAll("tbody tr");
+        for (SelenideElement row : rows) {
+            String value = row.find("td:nth-child(" + index + ")").text();
+            if (value == null) {
+                continue;
+            }
+            value = value.trim();
+
+            if (Objects.equals(rowValue, value)) {
+                return new TableRow(this, row);
+            }
+        }
         return null;
     }
 
@@ -140,6 +161,9 @@ public class Table<T> extends Component<T> {
         String countStringValue = $(Schrodinger.bySelfOrAncestorElementAttributeValue("div", "class", "dataTables_info", "data-s-id", "count"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).text();
         if (countStringValue == null) {
+            return 0;
+        }
+        if (countStringValue.equals("No matching result found.")) {
             return 0;
         }
         int lastSpaceIndex = countStringValue.lastIndexOf(" ");

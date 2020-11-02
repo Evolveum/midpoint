@@ -12,14 +12,12 @@ import com.codeborne.selenide.SelenideElement;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
-import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
-import com.evolveum.midpoint.schrodinger.component.common.table.TableWithPageRedirect;
-import com.evolveum.midpoint.schrodinger.component.table.TableHeaderDropDownMenu;
-import com.evolveum.midpoint.schrodinger.component.user.UsersPageTable;
-import com.evolveum.midpoint.schrodinger.component.user.UsersTableDropDown;
+import com.evolveum.midpoint.schrodinger.component.modal.FocusSetAssignmentsModal;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+
+import com.evolveum.midpoint.schrodinger.util.Utils;
 
 import org.openqa.selenium.By;
 
@@ -56,6 +54,11 @@ public class MemberPanel<T> extends Component<T> {
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return new AssignmentHolderDetailsPage(){};
+    }
+
+    public FocusSetAssignmentsModal<T> assignMember() {
+        $(By.xpath("//button[@type='button'][@title='Assign  member ']")).waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        return new FocusSetAssignmentsModal<T>((T) this.getParent(),  Utils.getModalWindowSelenideElement());
     }
 
     public MemberPanel<T> selectType(String type) {
