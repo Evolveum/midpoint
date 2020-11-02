@@ -27,26 +27,22 @@ public class InternalsConfigurationPage extends BasicPage {
     }
 
     public DebugUtilTab debugUtilTab() {
-        //todo implement
-        SelenideElement element = null;
+        SelenideElement element = findTabPanel().clickTab("PageInternals.tab.debugUtil");
         return new DebugUtilTab(this, element);
     }
 
     public InternalConfigurationTab internalConfigurationTab() {
-        //todo implement
-        SelenideElement element = null;
+        SelenideElement element = findTabPanel().clickTab("PageInternals.tab.internalConfig");
         return new InternalConfigurationTab(this, element);
     }
 
     public TracesTab tracesTab() {
-        //todo implement
-        SelenideElement element = null;
+        SelenideElement element = findTabPanel().clickTab("PageInternals.tab.traces");
         return new TracesTab(this, element);
     }
 
     public CountersTab countersTab() {
-        //todo implement
-        SelenideElement element = null;
+        SelenideElement element = findTabPanel().clickTab("PageInternals.tab.counters");
         return new CountersTab(this, element);
     }
 

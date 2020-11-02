@@ -42,6 +42,7 @@ public class ListRolesPage extends AssignmentHolderObjectListPage<RolesPageTable
         return new RolePage();
     }
 
+    @Override
     public RolePage getObjectDetailsPage() {
         return new RolePage();
     }

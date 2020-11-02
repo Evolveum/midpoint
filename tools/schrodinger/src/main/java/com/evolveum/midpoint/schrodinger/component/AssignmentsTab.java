@@ -18,6 +18,7 @@ import com.evolveum.midpoint.schrodinger.component.common.table.AbstractTableWit
 import com.evolveum.midpoint.schrodinger.component.table.DirectIndirectAssignmentTable;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import com.evolveum.midpoint.schrodinger.util.Utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,47 +29,12 @@ import static com.codeborne.selenide.Selenide.$;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class AssignmentsTab<P extends AssignmentHolderDetailsPage> extends Component<P> {
+public class AssignmentsTab<P extends AssignmentHolderDetailsPage> extends TabWithTableAndPrismView<P> {
 
     public AssignmentsTab(P parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
 
-    public <A extends AssignmentsTab<P>> AbstractTableWithPrismView<A> table() {
-
-        SelenideElement tableBox = $(Schrodinger.byDataId("div", "assignmentsTable"));
-
-        return new AbstractTableWithPrismView<A>((A) this, tableBox) {
-            @Override
-            public PrismFormWithActionButtons<AbstractTableWithPrismView<A>> clickByName(String name) {
-
-                $(Schrodinger.byElementValue("span", "data-s-id", "label", name))
-                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
-                SelenideElement prismElement = $(Schrodinger.byDataId("div", "assignmentsContainer"))
-                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-                return new PrismFormWithActionButtons<>(this, prismElement);
-            }
-
-            @Override
-            public AbstractTableWithPrismView<A> selectCheckboxByName(String name) {
-
-                $(Schrodinger.byFollowingSiblingEnclosedValue("td", "class", "check", "data-s-id", "3", name))
-                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
-                return this;
-            }
-
-            public AbstractTableWithPrismView<A> removeByName(String name) {
-
-                $(Schrodinger.byAncestorPrecedingSiblingDescendantOrSelfElementEnclosedValue("button", "title", "Unassign", null, null, name))
-                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
-                return this;
-            }
-        };
-    }
 
     public <A extends AssignmentsTab<P>> FocusSetAssignmentsModal<A> clickAddAssignemnt() {
         $(Schrodinger.byElementAttributeValue("i", "class", "fe fe-assignment "))
@@ -89,8 +55,9 @@ public class AssignmentsTab<P extends AssignmentHolderDetailsPage> extends Compo
     }
 
     private SelenideElement getNewAssignmentModal() {
-        return $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Select object(s)"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+        return Utils.getModalWindowSelenideElement();
+//        return $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Select object(s)"))
+//                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
     }
 
 
@@ -152,5 +119,10 @@ public class AssignmentsTab<P extends AssignmentHolderDetailsPage> extends Compo
             }
         }
         return indirectAssignments.containsAll(Arrays.asList(expectedAssignments));
+    }
+
+    @Override
+    protected String getPrismViewPanelId() {
+        return "assignmentsContainer";
     }
 }

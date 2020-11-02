@@ -8,6 +8,7 @@ package com.evolveum.midpoint.schrodinger.component.configuration;
 
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.component.Component;
+import com.evolveum.midpoint.schrodinger.component.TabWithContainerWrapper;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.page.configuration.SystemPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
@@ -17,7 +18,7 @@ import static com.codeborne.selenide.Selenide.$;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class InfrastructureTab extends Component<SystemPage> {
+public class InfrastructureTab extends TabWithContainerWrapper<SystemPage> {
 
     public InfrastructureTab(SystemPage parent, SelenideElement parentElement) {
         super(parent, parentElement);

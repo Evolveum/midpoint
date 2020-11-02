@@ -6,10 +6,15 @@
  */
 package com.evolveum.midpoint.schrodinger.util;
 
+import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.SelenideElement;
+
+import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.AssignmentsTab;
 import com.evolveum.midpoint.schrodinger.component.FocusTableWithChoosableElements;
 import com.evolveum.midpoint.schrodinger.component.common.table.AbstractTableWithPrismView;
 import com.evolveum.midpoint.schrodinger.component.modal.FocusSetAssignmentsModal;
+import com.evolveum.midpoint.schrodinger.component.modal.ModalBox;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
@@ -80,5 +85,14 @@ public class Utils {
                 .clickSave()
                     .feedback()
                         .isSuccess();
+    }
+
+    public static SelenideElement getModalWindowSelenideElement() {
+        if ($(By.className("wicket-modal")).waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S).exists()) {
+            return $(By.className("wicket-modal"))
+                    .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
+        } else {
+            return null;
+        }
     }
 }

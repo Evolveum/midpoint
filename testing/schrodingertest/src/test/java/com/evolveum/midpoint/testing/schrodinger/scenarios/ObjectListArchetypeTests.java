@@ -6,9 +6,21 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
+import static com.codeborne.selenide.Selenide.$;
+
+import static com.evolveum.midpoint.schrodinger.util.ConstantsUtil.*;
+
+import java.io.File;
+import java.util.Collections;
+import java.util.List;
+
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
+import org.openqa.selenium.By;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.component.common.Search;
@@ -18,13 +30,6 @@ import com.evolveum.midpoint.schrodinger.component.modal.ObjectBrowserModal;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
-import org.openqa.selenium.By;
-import org.testng.Assert;
-import org.testng.annotations.Test;
-
-import java.io.File;
-
-import static com.codeborne.selenide.Selenide.$;
 
 /**
  * Created by honchar
@@ -37,72 +42,19 @@ public class ObjectListArchetypeTests extends AbstractSchrodingerTest {
     private static final String ARCHETYPE_ICON_CSS_STYLE = "fa fa-male";
     private static final String EMPLOYEE_USER_NAME_VALUE = "TestEmployee";
 
-    private static final String COLLECTION_REF_ATTRIBUTE_NAME = "Collection ref";
-    private static final String OBJECT_COLLECTION_VIEWS_HEADER = "Object collection views";
-    private static final String OBJECT_COLLECTION_VIEW_HEADER = "Object collection view";
-    private static final String NEW_GUI_OBJECT_LIST_VIEW_HEADER = "New gui object list view";
-    private static final String NEW_OBJECT_LIST_VIEW_CONTAINER_KEY = "GuiObjectListViewType.details";
-    private static final String NEW_OBJECT_LIST_VIEW_CONTAINER_NEW_VALUE_KEY = "GuiObjectListViewType.details.newValue";
-    private static final String COLLECTION_HEADER = "Collection";
-    public static final String OBJECT_LIST_ARCHETYPE_TESTS_GROUP = "bjectListArchetypeTests";
+    public static final String OBJECT_LIST_ARCHETYPE_TESTS_GROUP = "ObjectListArchetypeTests";
 
-    @Test(priority = 0, groups = OBJECT_LIST_ARCHETYPE_TESTS_GROUP)
-    public void importEmployeeArchetype() {
-        importObject(EMPLOYEE_ARCHETYPE_FILE, true);
+    @Override
+    protected List<File> getObjectListToImport() {
+        return Collections.singletonList(EMPLOYEE_ARCHETYPE_FILE);
     }
 
-    @Test(priority = 1, dependsOnMethods ={"importEmployeeArchetype"}, groups = OBJECT_LIST_ARCHETYPE_TESTS_GROUP)
+    @Test(priority = 1, groups = OBJECT_LIST_ARCHETYPE_TESTS_GROUP)
     public void configureArchetypeObjectListView(){
         AdminGuiTab adminGuiTab = basicPage.adminGui();
-        PrismForm<AdminGuiTab> prismForm = adminGuiTab.form();
-        prismForm
-                .expandContainerPropertiesPanel(OBJECT_COLLECTION_VIEWS_HEADER)
-                .addNewContainerValue(OBJECT_COLLECTION_VIEW_HEADER, NEW_GUI_OBJECT_LIST_VIEW_HEADER)
-                .collapseAllChildrenContainers(OBJECT_COLLECTION_VIEW_HEADER)
-                .expandContainerPropertiesPanel(NEW_OBJECT_LIST_VIEW_CONTAINER_NEW_VALUE_KEY)
-                .expandContainerPropertiesPanel(COLLECTION_HEADER);
-
-        //set UserType
-        SelenideElement newGuiObjectListViewPropertiesPanel = prismForm.getPrismPropertiesPanel(NEW_OBJECT_LIST_VIEW_CONTAINER_NEW_VALUE_KEY);
-        newGuiObjectListViewPropertiesPanel
-                .find(Schrodinger.byDataResourceKey("Type"))
-                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
-                .find(By.tagName("select"))
-                .sendKeys("User");
-
-        //set archetypeRef
-        newGuiObjectListViewPropertiesPanel
-                .find(Schrodinger.byElementValue("span", COLLECTION_REF_ATTRIBUTE_NAME))
-                .parent()
-                .parent()
-                .parent()
-                .$(Schrodinger.byDataId("edit"))
-                .click();
-
-        Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
-
-        SelenideElement modalWindow = $(By.className("wicket-modal"))
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        ObjectBrowserModal objectBrowserModal = new ObjectBrowserModal<>(prismForm, modalWindow);
-        SearchItemField<Search<ObjectBrowserModal>> nameSearchField = objectBrowserModal
-                .selectType("Archetype")
-                .table()
-                    .search()
-                        .byName();
-        nameSearchField
-                .inputValue(ARCHETYPE_OBJECT_NAME)
-                .updateSearch();
-        objectBrowserModal
-                .table()
-                    .clickByName(ARCHETYPE_OBJECT_NAME);
-
-        Assert.assertTrue(prismForm
-                .compareInputAttributeValueInNewContainer(COLLECTION_REF_ATTRIBUTE_NAME, ARCHETYPE_OBJECT_NAME + ": ArchetypeType"));
-
         adminGuiTab
-                .getParent()
-                .save()
+                .addNewObjectCollection(ARCHETYPE_OBJECT_NAME, "User", "Archetype", ARCHETYPE_OBJECT_NAME)
+                .clickSave()
                 .feedback()
                 .isSuccess();
     }

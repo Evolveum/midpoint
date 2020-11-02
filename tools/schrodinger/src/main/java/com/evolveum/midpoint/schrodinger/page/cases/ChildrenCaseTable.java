@@ -38,7 +38,7 @@ public class ChildrenCaseTable extends TableWithPageRedirect<CasePage> {
     }
 
     @Override
-    public TableHeaderDropDownMenu<ChildrenCaseTable> clickHeaderActionDropDown() {
+    protected TableHeaderDropDownMenu<ChildrenCaseTable> clickHeaderActionDropDown() {
         return null;
     }
 

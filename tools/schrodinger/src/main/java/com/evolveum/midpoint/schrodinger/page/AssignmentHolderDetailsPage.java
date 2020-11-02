@@ -8,6 +8,8 @@ package com.evolveum.midpoint.schrodinger.page;
 
 import static com.codeborne.selenide.Selenide.$;
 
+import static com.evolveum.midpoint.schrodinger.util.Utils.getModalWindowSelenideElement;
+
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
@@ -16,6 +18,7 @@ import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
 import com.evolveum.midpoint.schrodinger.component.AssignmentsTab;
 import com.evolveum.midpoint.schrodinger.component.common.TabPanel;
+import com.evolveum.midpoint.schrodinger.component.modal.ObjectBrowserModal;
 import com.evolveum.midpoint.schrodinger.page.user.ProgressPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
@@ -58,15 +61,24 @@ public abstract class AssignmentHolderDetailsPage<P extends AssignmentHolderDeta
     }
 
     public AssignmentHolderBasicTab<P> selectTabBasic() {
-        SelenideElement element = getTabPanel().clickTab("pageAdminFocus.basic")
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new AssignmentHolderBasicTab<>((P) this, element);
+        return new AssignmentHolderBasicTab<>((P) this, getTabSelenideElement("pageAdminFocus.basic"));
     }
 
     public AssignmentsTab<P> selectTabAssignments() {
-        SelenideElement element = getTabPanel().clickTab("pageAdminFocus.assignments");
+        return new AssignmentsTab<>((P) this, getTabSelenideElement("pageAdminFocus.assignments"));
+    }
 
-        return new AssignmentsTab<>((P) this, element);
+    protected SelenideElement getTabSelenideElement(String tabTitleKey) {
+        return getTabPanel().clickTab(tabTitleKey)
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
+    }
+
+    public ObjectBrowserModal<AssignmentHolderDetailsPage<P>> changeArchetype() {
+        if ($(Schrodinger.byDataResourceKey("PageAdminObjectDetails.button.changeArchetype")).exists()) {
+            $(Schrodinger.byDataResourceKey("PageAdminObjectDetails.button.changeArchetype"))
+                    .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+            return new ObjectBrowserModal<AssignmentHolderDetailsPage<P>>(this, getModalWindowSelenideElement());
+        }
+        return null;
     }
 }

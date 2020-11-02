@@ -25,6 +25,8 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import static com.codeborne.selenide.Selenide.screenshot;
 
@@ -37,14 +39,9 @@ public class UsersTest extends AbstractSchrodingerTest {
     private static final File OT_FOR_LOOKUP_TABLE_SUBTYPES = new File("src/test/resources/configuration/objects/objecttemplate/object-template-for-lookup-table-subtypes.xml");
     private static final File SYSTEM_CONFIG_WITH_LOOKUP_TABLE = new File("src/test/resources/configuration/objects/systemconfig/system-configuration-with-lookup-table.xml");
 
-    @BeforeClass
     @Override
-    public void beforeClass() throws IOException {
-        super.beforeClass();
-        importObject(LOOKUP_TABLE_SUBTYPES, true);
-        importObject(OT_FOR_LOOKUP_TABLE_SUBTYPES, true);
-        importObject(SYSTEM_CONFIG_WITH_LOOKUP_TABLE, true);
-
+    protected List<File> getObjectListToImport(){
+        return Arrays.asList(LOOKUP_TABLE_SUBTYPES, OT_FOR_LOOKUP_TABLE_SUBTYPES, SYSTEM_CONFIG_WITH_LOOKUP_TABLE);
     }
 
     @Test
