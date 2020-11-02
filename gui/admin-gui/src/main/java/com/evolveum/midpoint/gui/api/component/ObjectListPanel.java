@@ -389,16 +389,17 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
                                 return Model.of("");
                             }
                             Item<?, ?> item = null;
+                            if (columnPath != null) {
+                                item = value.asPrismContainerValue().findItem(columnPath);
+                            }
+                            Item object = value.asPrismObject();
+                            if (item != null) {
+                                object = item;
+                            }
+
                             if (expression != null) {
                                 Task task = getPageBase().createSimpleTask("evaluate column expression");
                                 try {
-                                    if (columnPath != null) {
-                                        item = value.asPrismContainerValue().findItem(columnPath);
-                                    }
-                                    Item object = value.asPrismObject();
-                                    if (item != null) {
-                                        object = item;
-                                    }
                                     ExpressionVariables expressionVariables = new ExpressionVariables();
                                     expressionVariables.put(ExpressionConstants.VAR_OBJECT, object, object.getClass());
                                     String stringValue = ExpressionUtil.evaluateStringExpression(expressionVariables, getPageBase().getPrismContext(), expression,
