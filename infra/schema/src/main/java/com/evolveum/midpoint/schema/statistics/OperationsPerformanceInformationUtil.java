@@ -11,14 +11,11 @@ import com.evolveum.midpoint.util.statistics.SingleOperationPerformanceInformati
 import com.evolveum.midpoint.util.statistics.OperationsPerformanceInformation;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationsPerformanceInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleOperationPerformanceInformationType;
-import org.apache.commons.lang3.StringUtils;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  *
@@ -88,46 +85,21 @@ public class OperationsPerformanceInformationUtil {
     }
 
     public static String format(OperationsPerformanceInformationType i) {
+        return format(i, null, null, null);
+    }
+
+    public static String format(OperationsPerformanceInformationType i, AbstractStatisticsPrinter.Options options,
+            Integer iterations, Integer seconds) {
         StringBuilder sb = new StringBuilder();
-        List<SingleOperationPerformanceInformationType> methods = new ArrayList<>(i.getOperation());
 
-        List<SingleOperationPerformanceInformationType> viaAspect = methods.stream()
-                .filter(e -> e.getName().endsWith("#"))
-                .collect(Collectors.toList());
-        List<SingleOperationPerformanceInformationType> viaOpResult = methods.stream()
-                .filter(e -> !e.getName().endsWith("#"))
-                .collect(Collectors.toList());
+        String viaOpResult = new OperationsPerformanceInformationPrinter(i, options, iterations, seconds, false).print(false);
+        String viaAspect = new OperationsPerformanceInformationPrinter(i, options, iterations, seconds, true).print(true);
 
-        viaAspect.sort(Comparator.comparing(SingleOperationPerformanceInformationType::getName));
-        viaOpResult.sort(Comparator.comparing(SingleOperationPerformanceInformationType::getName));
-        int max = methods.stream().mapToInt(op -> op.getName().length()).max().orElse(0);
-
-        if (!viaAspect.isEmpty()) {
-            sb.append(" Data from OperationResult objects:\n");
-        }
-        format(sb, viaOpResult, max);
-        if (!viaAspect.isEmpty()) {
-            sb.append(" Data obtained using method interceptor:\n");
-            format(sb, viaAspect, max);
+        sb.append(viaOpResult);
+        if (viaAspect != null) {
+            sb.append("\nObtained using method interceptor:\n\n");
+            sb.append(viaAspect);
         }
         return sb.toString();
     }
-
-    private static void format(StringBuilder sb, List<SingleOperationPerformanceInformationType> viaOpResult, int max) {
-        for (SingleOperationPerformanceInformationType op : viaOpResult) {
-            long totalTime = defaultIfNull(op.getTotalTime(), 0L);
-            int invocationCount = defaultIfNull(op.getInvocationCount(), 0);
-            String name = StringUtils.stripEnd(op.getName(), "#");
-            sb.append(String.format("  %-" + (max+2) + "s count:%7d, total time: %s", name +":", invocationCount,
-                    timeInfo(totalTime, op.getMinTime(), op.getMaxTime(), invocationCount)));
-            sb.append("\n");
-        }
-    }
-
-    private static String timeInfo(long total, Long min, Long max, int count) {
-        return String.format(Locale.US, "%11.1f ms [min: %9.1f, max: %9.1f, avg: %9.1f]", total / 1000.0,
-                defaultIfNull(min, 0L) / 1000.0, defaultIfNull(max, 0L) / 1000.0,
-                count > 0 ? total/1000.0 / count : 0);
-    }
-
 }

@@ -9,12 +9,18 @@ package com.evolveum.midpoint.schema.traces;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+import java.io.Serializable;
+
 @Experimental
-public class PerformanceCategoryInfo {
+public class PerformanceCategoryInfo implements Serializable {
+
+    private static final long serialVersionUID = -5470613343339388018L;
+
     private long ownTime;
     private long totalTime;
     private int ownCount;
     private int totalCount;
+
     public long getOwnTime() {
         return ownTime;
     }
@@ -39,5 +45,4 @@ public class PerformanceCategoryInfo {
     public void setTotalCount(int totalCount) {
         this.totalCount = totalCount;
     }
-
 }

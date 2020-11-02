@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -12,6 +12,7 @@
                      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
                      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>SystemConfiguration</name>
+    <indestructible>true</indestructible>
     <!--         <globalAccountSynchronizationSettings> -->
     <!--         <assignmentPolicyEnforcement>relative</assignmentPolicyEnforcement> -->
     <!--         </globalAccountSynchronizationSettings> -->
@@ -20,6 +21,12 @@
         <classLogger>
             <level>ERROR</level>
             <package>ro.isdc.wro.extensions.processor.css.Less4jProcessor</package>
+        </classLogger>
+        <classLogger>
+            <!-- disabled because INFO log during of creating
+            new authentication filter chain -->
+            <level>OFF</level>
+            <package>org.springframework.security.web.DefaultSecurityFilterChain</package>
         </classLogger>
         <classLogger>
             <!-- disabled because of MID-744, helper insert messages on ERROR
@@ -42,7 +49,7 @@
             <level>WARN</level>
             <package>org.hibernate.engine.jdbc.batch.internal.AbstractBatchImpl</package>
         </classLogger>
-        <!-- Diesabled because of MID-4636 -->
+        <!-- Disabled because of MID-4636 -->
         <classLogger>
             <level>OFF</level>
             <package>org.hibernate.internal.ExceptionMapperStandardImpl</package>
@@ -400,6 +407,20 @@
                 <type>TaskType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0000-000000000529" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>dashboard-reports-view</identifier>
+                <type>ReportType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000170" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>collection-reports-view</identifier>
+                <type>ReportType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000171" relation="org:default" type="c:ArchetypeType"/>
                 </collection>
             </objectCollectionView>
         </objectCollectionViews>

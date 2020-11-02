@@ -13,7 +13,7 @@
     <parent>
         <artifactId>repo</artifactId>
         <groupId>com.evolveum.midpoint.repo</groupId>
-        <version>4.2-SNAPSHOT</version>
+        <version>4.3-SNAPSHOT</version>
     </parent>
 
     <artifactId>repo-sql-impl-test</artifactId>
@@ -185,6 +185,12 @@
         <dependency>
             <groupId>com.querydsl</groupId>
             <artifactId>querydsl-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.javasimon</groupId>
+            <artifactId>javasimon-core</artifactId>
+            <version>4.2.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

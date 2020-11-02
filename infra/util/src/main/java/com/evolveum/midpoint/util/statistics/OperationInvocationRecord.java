@@ -15,6 +15,8 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.slf4j.MDC;
 
 import java.io.Serializable;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,26 +32,33 @@ public final class OperationInvocationRecord implements Serializable {
 
     private static final long serialVersionUID = 6805648677427302932L;
 
-    private static AtomicInteger idCounter = new AtomicInteger(0);
+    private static final AtomicInteger ID_COUNTER = new AtomicInteger(0);
 
-    private long startTime = System.nanoTime();
+    private final long startTime = System.nanoTime();
+    private final Long startCpuTime; // null if not measured
+    private final boolean measureCpuTime;
+
     private long elapsedTime;
+    private Long cpuTime; // null if not measured
     private int invocationId;
     private String formattedReturnValue;            // present only if traceEnabled=true
     private boolean gotException;
     private String exceptionName;
 
-    private ProfilingDataManager.Subsystem subsystem;
+    private final ProfilingDataManager.Subsystem subsystem;
     private String previousSubsystem;
-    private String fullClassName;
-    private String shortenedClassName;
-    private String methodName;
+    private final String fullClassName;
+    private final String shortenedClassName;
+    private final String methodName;
     private int callDepth;
 
-    private boolean debugEnabled;
-    private boolean traceEnabled;
+    private final boolean debugEnabled;
+    private final boolean traceEnabled;
 
-    private OperationInvocationRecord(String fullClassName, String methodName) {
+    private OperationInvocationRecord(String fullClassName, String methodName, boolean measureCpuTime) {
+        this.measureCpuTime = measureCpuTime;
+        this.startCpuTime = measureCpuTime ? getCurrentCpuTime() : null;
+
         this.fullClassName = fullClassName;
         shortenedClassName = getClassName(fullClassName);
         subsystem = getSubsystem(fullClassName);
@@ -65,12 +74,12 @@ public final class OperationInvocationRecord implements Serializable {
     }
 
     public static OperationInvocationRecord create(MethodInvocation invocation) {
-        OperationInvocationRecord ctx = new OperationInvocationRecord(getFullClassName(invocation), invocation.getMethod().getName() + "#");
+        OperationInvocationRecord ctx = new OperationInvocationRecord(getFullClassName(invocation), invocation.getMethod().getName() + "#", true);
         ctx.beforeCall(invocation.getArguments());
         return ctx;
     }
 
-    public static OperationInvocationRecord create(String operationName, Object[] arguments) {
+    public static OperationInvocationRecord create(String operationName, Object[] arguments, boolean measureCpuTime) {
         int i = operationName.lastIndexOf('.');
         String className, methodName;
         if (i < 0) {
@@ -80,7 +89,7 @@ public final class OperationInvocationRecord implements Serializable {
             className = operationName.substring(0, i);
             methodName = operationName.substring(i+1);
         }
-        OperationInvocationRecord ctx = new OperationInvocationRecord(className, methodName);
+        OperationInvocationRecord ctx = new OperationInvocationRecord(className, methodName, measureCpuTime);
         ctx.beforeCall(arguments);
         return ctx;
     }
@@ -133,7 +142,7 @@ public final class OperationInvocationRecord implements Serializable {
         previousSubsystem = swapSubsystemMark(subsystem != null ? subsystem.name() : null);
 
         StringBuilder infoLog = new StringBuilder("#### Entry: ");
-        invocationId = idCounter.incrementAndGet();
+        invocationId = ID_COUNTER.incrementAndGet();
 
         if (debugEnabled) {
             infoLog.append(invocationId);
@@ -200,6 +209,12 @@ public final class OperationInvocationRecord implements Serializable {
 
     public void afterCall(MethodInvocation invocation) {
         elapsedTime = System.nanoTime() - startTime;
+        if (measureCpuTime && startCpuTime != null) {
+            Long currentCpuTime = getCurrentCpuTime();
+            if (currentCpuTime != null) {
+                cpuTime = currentCpuTime - startCpuTime;
+            }
+        }
 
         OperationsPerformanceMonitorImpl.INSTANCE.registerInvocationCompletion(this);
 
@@ -225,6 +240,12 @@ public final class OperationInvocationRecord implements Serializable {
             sb.append(" etime: ");
             formatExecutionTime(sb, elapsedTime);
             sb.append(" ms");
+
+            if (cpuTime != null) {
+                sb.append(", cputime: ");
+                formatExecutionTime(sb, cpuTime);
+                sb.append(" ms");
+            }
 
             OperationExecutionLogger.LOGGER_PROFILING.debug(sb.toString());
             if (traceEnabled) {
@@ -279,7 +300,6 @@ public final class OperationInvocationRecord implements Serializable {
         }
     }
 
-    @SuppressWarnings("WeakerAccess")
     public String getFullClassName() {
         return fullClassName;
     }
@@ -292,7 +312,16 @@ public final class OperationInvocationRecord implements Serializable {
         return elapsedTime / 1000;
     }
 
+    public Long getCpuTimeMicros() {
+        return cpuTime != null ? cpuTime / 1000 : null;
+    }
+
     public long getInvocationId() {
         return invocationId;
+    }
+
+    private Long getCurrentCpuTime() {
+        ThreadMXBean bean = ManagementFactory.getThreadMXBean();
+        return bean.isCurrentThreadCpuTimeSupported() ? bean.getCurrentThreadCpuTime() : null;
     }
 }

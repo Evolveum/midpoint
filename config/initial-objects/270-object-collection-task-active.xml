@@ -30,10 +30,15 @@
     </assignment>
     <type>TaskType</type>
     <filter>
-        <q:equal>
-            <q:path>executionStatus</q:path>
-            <q:value>runnable</q:value>
-        </q:equal>
+        <q:and>
+            <q:equal>
+                <q:path>executionStatus</q:path>
+                <q:value>runnable</q:value>
+            </q:equal>
+            <q:equal>
+                <q:path>parent</q:path>
+            </q:equal>
+        </q:and>
     </filter>
     <domain>
         <collectionRef oid="00000000-0000-0000-0001-000000000007" type="c:ObjectCollectionType"/>

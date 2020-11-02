@@ -217,19 +217,19 @@ public class StringWorkSegmentationStrategy extends BaseWorkSegmentationStrategy
     }
 
     private static class Scanner {
-        final String string;
-        int index;
+        private final String string;
+        private int index;
 
-        Scanner(String string) {
+        private Scanner(String string) {
             this.string = string;
         }
 
-        boolean hasNext() {
+        private boolean hasNext() {
             return index < string.length();
         }
 
         // @pre hasNext()
-        boolean isDash() {
+        private boolean isDash() {
             return string.charAt(index) == '-';
         }
 

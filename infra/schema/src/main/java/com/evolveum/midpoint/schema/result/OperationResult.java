@@ -143,6 +143,7 @@ public class OperationResult
     private Long start;
     private Long end;
     private Long microseconds;
+    private Long cpuMicroseconds;
     private Long invocationId;
 
     private final List<LogSegmentType> logSegments = new ArrayList<>();
@@ -265,20 +266,19 @@ public class OperationResult
     }
 
     private static void recordStart(OperationResult result, String operation, Object[] arguments) {
-        result.collectingLogEntries = result.tracingProfile != null && result.tracingProfile.isCollectingLogEntries();
-        if (result.collectingLogEntries) {
-            LoggingLevelOverrideConfiguration loggingOverrideConfiguration = result.tracingProfile.getLoggingLevelOverrideConfiguration();
-            if (loggingOverrideConfiguration != null && !LevelOverrideTurboFilter.isActive()) {
-                LevelOverrideTurboFilter.overrideLogging(loggingOverrideConfiguration);
-                result.startedLoggingOverride = true;
+        if (result.isTraced()) {
+            result.collectingLogEntries = result.tracingProfile.isCollectingLogEntries();
+            if (result.collectingLogEntries) {
+                LoggingLevelOverrideConfiguration loggingOverrideConfiguration = result.tracingProfile.getLoggingLevelOverrideConfiguration();
+                if (loggingOverrideConfiguration != null && !LevelOverrideTurboFilter.isActive()) {
+                    LevelOverrideTurboFilter.overrideLogging(loggingOverrideConfiguration);
+                    result.startedLoggingOverride = true;
+                }
+                TracingAppender.openSink(result::appendLoggedEvents);
             }
-            TracingAppender.openSink(result::appendLoggedEvents);
+            result.invocationRecord = OperationInvocationRecord.create(operation, arguments, result.tracingProfile.isMeasureCpuTime());
+            result.invocationId = result.invocationRecord.getInvocationId();
         }
-        // TODO for very minor operation results (e.g. those dealing with mapping and script execution)
-        //  we should consider skipping creation of invocationRecord. It includes some string manipulation(s)
-        //  and a call to System.nanoTime that could unnecessarily slow down midPoint operation.
-        result.invocationRecord = OperationInvocationRecord.create(operation, arguments);
-        result.invocationId = result.invocationRecord.getInvocationId();
         result.start = System.currentTimeMillis();
     }
 
@@ -336,6 +336,7 @@ public class OperationResult
             invocationRecord.processReturnValue(getReturns(), cause);
             invocationRecord.afterCall();
             microseconds = invocationRecord.getElapsedTimeMicros();
+            cpuMicroseconds = invocationRecord.getCpuTimeMicros();
             if (collectingLogEntries) {
                 TracingAppender.closeCurrentSink();
                 collectingLogEntries = false;
@@ -1634,6 +1635,7 @@ public class OperationResult
             opResult.setEnd(XmlTypeConverter.toMillis(result.getEnd()));
         }
         opResult.setMicroseconds(result.getMicroseconds());
+        opResult.setCpuMicroseconds(result.getCpuMicroseconds());
         opResult.setInvocationId(result.getInvocationId());
         opResult.logSegments.addAll(result.getLog());
         return opResult;
@@ -1710,6 +1712,7 @@ public class OperationResult
         resultType.setStart(XmlTypeConverter.createXMLGregorianCalendar(opResult.start));
         resultType.setEnd(XmlTypeConverter.createXMLGregorianCalendar(opResult.end));
         resultType.setMicroseconds(opResult.microseconds);
+        resultType.setCpuMicroseconds(opResult.cpuMicroseconds);
         resultType.setInvocationId(opResult.invocationId);
         resultType.getLog().addAll(opResult.logSegments);           // consider cloning here
         resultType.getTrace().addAll(opResult.traces);           // consider cloning here
@@ -2227,6 +2230,7 @@ public class OperationResult
         clone.start = start;
         clone.end = end;
         clone.microseconds = microseconds;
+        clone.cpuMicroseconds = cpuMicroseconds;
         clone.invocationId = invocationId;
         clone.traces.addAll(CloneUtil.cloneCollectionMembers(traces));
 
@@ -2339,6 +2343,7 @@ public class OperationResult
                 Objects.equals(start, result.start) &&
                 Objects.equals(end, result.end) &&
                 Objects.equals(microseconds, result.microseconds) &&
+                Objects.equals(cpuMicroseconds, result.cpuMicroseconds) &&
                 Objects.equals(invocationId, result.invocationId) &&
                 Objects.equals(tracingProfile, result.tracingProfile) &&
                 Objects.equals(operation, result.operation) &&
@@ -2363,7 +2368,7 @@ public class OperationResult
                 operation, qualifiers, status, params, context, returns, token, messageCode,
                 message, userFriendlyMessage, cause, count, hiddenRecordsCount, subresults, details,
                 summarizeErrors, summarizePartialErrors, summarizeSuccesses, building, start, end,
-                microseconds, invocationId, traces, asynchronousOperationReference);
+                microseconds, cpuMicroseconds, invocationId, traces, asynchronousOperationReference);
     }
 
     public Long getStart() {
@@ -2388,6 +2393,14 @@ public class OperationResult
 
     public void setMicroseconds(Long microseconds) {
         this.microseconds = microseconds;
+    }
+
+    public Long getCpuMicroseconds() {
+        return cpuMicroseconds;
+    }
+
+    public void setCpuMicroseconds(Long cpuMicroseconds) {
+        this.cpuMicroseconds = cpuMicroseconds;
     }
 
     public Long getInvocationId() {

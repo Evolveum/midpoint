@@ -77,5 +77,4 @@
         <item>roleMembershipRef</item>
         <item>delegatedRef</item>
     </authorization>
-    <subtype>system</subtype>
 </role>
