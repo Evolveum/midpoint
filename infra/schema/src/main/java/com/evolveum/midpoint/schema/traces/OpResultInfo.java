@@ -85,33 +85,26 @@ public class OpResultInfo {
     private PerformanceCategoryInfo determinePerformanceForCategory(PerformanceCategory category,
             IdentityHashMap<OperationResultType, OpResultInfo> infoMap) {
         PerformanceCategoryInfo rv = new PerformanceCategoryInfo();
-        int count = 0;
-        long time = 0;
-        if (category.isDerived()) {
-            for (PerformanceCategory plus : category.getPlus()) {
-                count += performanceByCategory.get(plus).getOwnCount();
-                time += performanceByCategory.get(plus).getOwnTime();
-            }
-            for (PerformanceCategory minus : category.getMinus()) {
-                count -= performanceByCategory.get(minus).getOwnCount();
-                time -= performanceByCategory.get(minus).getOwnTime();
-            }
+        boolean matches = category.matches(result);
+        int ownCount = matches ? 1 : 0;
+        long ownTime = matches && result.getMicroseconds() != null ? result.getMicroseconds() : 0;
+        rv.setOwnCount(ownCount);
+        rv.setOwnTime(ownTime);
+        if (ownCount > 0) {
+            // We do not want to resort to children regarding this category
+            rv.setTotalCount(ownCount);
+            rv.setTotalTime(ownTime);
         } else {
-            boolean matches = category.matches(result);
-            if (matches) {
-                count = 1;
-                time = result.getMicroseconds() != null ? result.getMicroseconds() : 0;
+            int totalCount = 0;
+            long totalTime = 0;
+            for (OperationResultType subresult : result.getPartialResults()) {
+                OpResultInfo subInfo = getInfo(subresult, infoMap);
+                PerformanceCategoryInfo subPerf = subInfo.getPerformanceFor(category);
+                totalCount += subPerf.getTotalCount();
+                totalTime += subPerf.getTotalTime();
             }
-        }
-        rv.setOwnCount(count);
-        rv.setOwnTime(time);
-        rv.setTotalCount(count);
-        rv.setTotalTime(time);
-        for (OperationResultType subresult : result.getPartialResults()) {
-            OpResultInfo subInfo = getInfo(subresult, infoMap);
-            PerformanceCategoryInfo subPerf = subInfo.getPerformanceFor(category);
-            rv.setTotalCount(rv.getTotalCount() + subPerf.getTotalCount());
-            rv.setTotalTime(rv.getTotalTime() + subPerf.getTotalTime());
+            rv.setTotalCount(totalCount);
+            rv.setTotalTime(totalTime);
         }
         return rv;
     }
