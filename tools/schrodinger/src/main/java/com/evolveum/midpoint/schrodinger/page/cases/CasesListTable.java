@@ -41,8 +41,8 @@ public class CasesListTable extends AssignmentHolderObjectListTable<CasesPage, C
         return stopCase(null, null);
     }
 
-    public ConfirmationModal<CasesListTable> stopCaseByName(String name) {
-        return stopCase("ObjectType.name", null);
+    public ConfirmationModal<CasesListTable> stopCaseByName(String nameValue) {
+        return stopCase("ObjectType.name", nameValue);
     }
 
     public ConfirmationModal<CasesListTable> stopCase(String columnTitleKey, String rowValue) {
@@ -53,8 +53,8 @@ public class CasesListTable extends AssignmentHolderObjectListTable<CasesPage, C
         return stopCase(null, null);
     }
 
-    public ConfirmationModal<CasesListTable> deleteCaseByName(String name) {
-        return stopCase("ObjectType.name", null);
+    public ConfirmationModal<CasesListTable> deleteCaseByName(String nameValue) {
+        return stopCase("ObjectType.name", nameValue);
     }
 
     public ConfirmationModal<CasesListTable> deleteCase(String columnTitleKey, String rowValue) {
