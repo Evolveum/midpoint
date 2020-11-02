@@ -246,7 +246,7 @@ public class MidScaleRepoTest extends BaseSQLRepoTest {
         System.out.println("resources = " + resources.size());
         System.out.println("users = " + users.size());
         memInfo.forEach(System.out::println);
-        testMonitor.dumpReport();
+        testMonitor.dumpReport(getClass().getSimpleName());
 //        simonManager.getSimons(null).stream().sorted(Comparator.comparing(s -> s.getName()))
 //                .forEach(System.out::println);
     }
@@ -295,17 +295,21 @@ class TestMonitor {
         return stopwatch(name).start();
     }
 
-    public void dumpReport() {
-        dumpReport(System.out);
+    // TODO not sure what "testName" is, it's some kind of "bundle of monitors".
+    //  Currently it is tied to the dump call, so it can't be test method name unless it's called
+    //  in each method. Scoping/grouping of monitors is to be determined yet.
+    public void dumpReport(String testName) {
+        dumpReport(testName, System.out);
     }
 
-    public void dumpReport(PrintStream out) {
+    public void dumpReport(String testName, PrintStream out) {
         // millis are more practical, but sometimes too big for avg and min and we don't wanna mix ms/us
-        out.println("name|count|total(us)|avg(us)|min(us)|max(us)");
+        out.println("test|name|count|total(us)|avg(us)|min(us)|max(us)");
         for (Map.Entry<String, Stopwatch> stopwatchEntry : stopwatches.entrySet()) {
             String name = stopwatchEntry.getKey();
             Stopwatch stopwatch = stopwatchEntry.getValue();
-            out.printf("%s|%d|%d|%d|%d|%d\n", name, stopwatch.getCounter(),
+            out.printf("%s|%s|%d|%d|%d|%d|%d\n", testName, name,
+                    stopwatch.getCounter(),
                     TimeUnit.NANOSECONDS.toMicros(stopwatch.getTotal()),
                     TimeUnit.NANOSECONDS.toMicros((long) stopwatch.getMean()),
                     TimeUnit.NANOSECONDS.toMicros(stopwatch.getMin()),
