@@ -131,7 +131,7 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
     }
 
     @Override
-    protected boolean isSearchVisible() {
+    protected boolean isHeaderVisible() {
         return false;
     }
 

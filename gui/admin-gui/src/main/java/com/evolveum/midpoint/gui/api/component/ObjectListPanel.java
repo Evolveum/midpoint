@@ -12,7 +12,6 @@ import java.util.function.Supplier;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -141,7 +140,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
 
             @Override
             public boolean isOrderingDisabled() {
-                return ObjectListPanel.this.isOrderingDisabled();
+                return ObjectListPanel.this.isContainerOrderingDisabled();
             }
 
             @Override
@@ -189,10 +188,5 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
 
     public void addPerformed(AjaxRequestTarget target, List<O> selected) {
         getPageBase().hideMainPopup(target);
-    }
-
-    @Override
-    protected List<IColumn<SelectableBean<O>, String>> createDefaultColumns() {
-        return super.createDefaultColumns();
     }
 }

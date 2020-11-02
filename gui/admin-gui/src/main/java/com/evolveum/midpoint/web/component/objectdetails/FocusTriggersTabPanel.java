@@ -71,7 +71,8 @@ public class FocusTriggersTabPanel<F extends FocusType> extends AbstractObjectTa
                         return triggersModel;
                     }
 
-                    protected boolean isSearchVisible(){
+                    @Override
+                    protected boolean isHeaderVisible(){
                         return false;
                     }
 

@@ -75,10 +75,18 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     private static final String ID_BUTTON = "button";
     private static final Trace LOGGER = TraceManager.getTrace(MainObjectListPanel.class);
 
-//    private Boolean manualRefreshEnabled;
+    public MainObjectListPanel(String id, Class<O> type) {
+        this(id, type, null);
+    }
 
     public MainObjectListPanel(String id, Class<O> type, Collection<SelectorOptions<GetOperationOptions>> options) {
         super(id, type, options);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        setAdditionalBoxCssClasses(WebComponentUtil.getBoxCssClasses(WebComponentUtil.classToQName(getPrismContext(), getType())));
     }
 
     @Override
@@ -549,5 +557,4 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             add(buttonsView);
         }
     }
-
 }

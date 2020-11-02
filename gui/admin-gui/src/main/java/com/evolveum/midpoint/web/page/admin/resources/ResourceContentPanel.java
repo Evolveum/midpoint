@@ -267,7 +267,7 @@ public abstract class ResourceContentPanel extends Panel {
                     }
 
                     @Override
-                    protected PageStorage getPageStorage() {
+                    public PageStorage getPageStorage() {
                         return getPageBase().getSessionStorage().getResourceContentStorage(kind, searchMode);
                     }
 

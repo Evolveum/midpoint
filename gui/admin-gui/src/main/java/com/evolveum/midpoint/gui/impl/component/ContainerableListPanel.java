@@ -293,7 +293,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return storage;
     }
 
-    protected PageStorage getPageStorage() {
+    public PageStorage getPageStorage() {
         String storageKey = getStorageKey();
         if (StringUtils.isNotEmpty(storageKey)) {
             return getPageStorage(storageKey);
@@ -630,7 +630,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
             @Override
             public boolean isOrderingDisabled() {
-                return ContainerableListPanel.this.isOrderingDisabled();
+                return ContainerableListPanel.this.isContainerOrderingDisabled();
             }
 
         };
@@ -682,7 +682,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return null;
     }
 
-    protected boolean isOrderingDisabled(){
+    protected boolean isContainerOrderingDisabled(){
         CompiledObjectCollectionView guiObjectListViewType = getObjectCollectionView();
         if (isAdditionalPanel()){
             if (guiObjectListViewType != null && guiObjectListViewType.getAdditionalPanels() != null &&
@@ -721,12 +721,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 }
             }
         };
-        searchPanel.add(new VisibleBehaviour(() -> this.isSearchVisible()));
         return searchPanel;
-    }
-
-    protected boolean isSearchVisible(){
-        return true;
     }
 
     public String getAdditionalBoxCssClasses() {
@@ -933,11 +928,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     protected ObjectQuery createQuery() {
         ObjectQuery query = getPrismContext().queryFor(getType()).build();
-        if (isSearchVisible()) {
-            Search search = searchModel.getObject();
-            if (search != null){
-               query = search.createObjectQuery(getPageBase().getPrismContext());
-            }
+        Search search = searchModel.getObject();
+        if (search != null){
+            query = search.createObjectQuery(getPageBase().getPrismContext());
         }
         ObjectQuery archetypeQuery = getArchetypeQuery();
         query = mergeQueries(query, archetypeQuery);

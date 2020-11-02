@@ -77,7 +77,7 @@ public class CaseEventsTabPanel extends AbstractObjectTabPanel<CaseType> {
                     }
 
                     @Override
-                    protected boolean isSearchVisible(){
+                    protected boolean isHeaderVisible(){
                         return false;
                     }
 

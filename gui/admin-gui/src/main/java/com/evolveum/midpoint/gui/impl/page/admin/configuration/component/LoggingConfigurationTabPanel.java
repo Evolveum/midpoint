@@ -190,7 +190,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<PrismContainerWrappe
             }
 
             @Override
-            protected boolean isSearchVisible() {
+            protected boolean isHeaderVisible() {
                 return false;
             }
 
