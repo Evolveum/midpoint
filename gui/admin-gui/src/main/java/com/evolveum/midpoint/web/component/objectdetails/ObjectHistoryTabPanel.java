@@ -11,7 +11,7 @@ import java.util.List;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPanelNew;
+import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPanel;
 
 import com.evolveum.midpoint.web.session.PageStorage;
 
@@ -74,7 +74,7 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
     }
 
     private void initLayout() {
-        AuditLogViewerPanelNew panel = new AuditLogViewerPanelNew(ID_MAIN_PANEL) {
+        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_MAIN_PANEL) {
             private static final long serialVersionUID = 1L;
 
             @Override

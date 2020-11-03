@@ -1982,7 +1982,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl())) {
             addMenuItem(item, "PageAuditLogViewer.menuName", PageAuditLogViewer.class);
-            addMenuItem(item, "PageAuditLogViewer.menuName", PageAuditLogViewerNew.class);
         }
 
         return item;
