@@ -6,13 +6,27 @@
  */
 package com.evolveum.midpoint.schrodinger.page.self;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+
+import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.component.org.OrgHierarchyPanel;
+import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 /**
  * Created by honchar
  */
 public class RoleCatalogViewTab extends RequestRoleTab {
+
     public RoleCatalogViewTab(RequestRolePage parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
+
+    public OrgHierarchyPanel<RoleCatalogViewTab> getRoleCatalogHierarchyPanel() {
+        SelenideElement treePanel = getParentElement().$(Schrodinger.byDataId("div", "treePanel"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+        return new OrgHierarchyPanel<>(this, treePanel);
+    }
+
+
 }
