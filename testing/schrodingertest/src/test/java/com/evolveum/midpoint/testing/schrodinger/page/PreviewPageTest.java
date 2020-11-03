@@ -173,7 +173,7 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
 
     }
 
-    @Test
+    @Test (dependsOnMethods = {"test001createUser", "test003assignRolePreview"})
     public void test005unassignRolePreview() {
         //@formatter:off
         ProgressPage previewPage = basicPage.listUsers()
@@ -181,6 +181,7 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
                     .clickByName("jack")
                         .selectTabAssignments()
                             .table()
+                                .selectCheckboxByName(ROLE_USER_PREVIEW_NAME)
                                 .removeByName(ROLE_USER_PREVIEW_NAME)
                             .and()
                         .and()
