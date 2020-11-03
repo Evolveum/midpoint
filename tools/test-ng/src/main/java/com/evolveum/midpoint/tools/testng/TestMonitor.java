@@ -70,11 +70,11 @@ public class TestMonitor {
 
     public void dumpReport(String testName, PrintStream out) {
         // millis are more practical, but sometimes too big for avg and min and we don't wanna mix ms/us
-        out.println("test|name|count|total(us)|avg(us)|min(us)|max(us)");
+        out.println("test,name,count,total(us),avg(us),min(us),max(us)");
         for (Map.Entry<String, Stopwatch> stopwatchEntry : stopwatches.entrySet()) {
             String name = stopwatchEntry.getKey();
             Stopwatch stopwatch = stopwatchEntry.getValue();
-            out.printf("%s|%s|%d|%d|%d|%d|%d\n", testName, name,
+            out.printf("%s,%s,%d,%d,%d,%d,%d\n", testName, name,
                     stopwatch.getCounter(),
                     TimeUnit.NANOSECONDS.toMicros(stopwatch.getTotal()),
                     TimeUnit.NANOSECONDS.toMicros((long) stopwatch.getMean()),
