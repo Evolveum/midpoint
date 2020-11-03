@@ -12,6 +12,8 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.QNameUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -790,6 +792,25 @@ public class ColumnUtils {
             };
             columns.add(column);
         }
+
+        column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("CaseType.outcome"), CaseType.F_OUTCOME.getLocalPart(), "value.outcome") {
+            @Override
+            public String getCssClass() {
+                return isDashboard ? "col-md-1 col-sm-2" : super.getCssClass();
+            }
+
+            @Override
+            public IModel<?> getDataModel(IModel<SelectableBean<CaseType>> rowModel) {
+                IModel<String> dataModel = (IModel<String>) super.getDataModel(rowModel);
+                if (StringUtils.isNotBlank(dataModel.getObject())) {
+                    QName value = QNameUtil.uriToQName(dataModel.getObject(), true);
+                    String key = CaseType.COMPLEX_TYPE.getLocalPart() + "." + CaseType.F_OUTCOME.getLocalPart() + "." + value.getLocalPart();
+                    return new StringResourceModel(key, pageBase).setModel(new Model<String>()).setDefaultValue(value.getLocalPart());
+                }
+                return dataModel;
+            }
+        };
+        columns.add(column);
 
         column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.state"), CaseType.F_STATE.getLocalPart(), "value.state") {
             @Override
