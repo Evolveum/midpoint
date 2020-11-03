@@ -9,20 +9,20 @@ package com.evolveum.midpoint.schrodinger.component;
 import com.codeborne.selenide.SelenideElement;
 
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
-import com.evolveum.midpoint.schrodinger.component.configuration.SystemTab;
+import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 /**
  * @author skublik
  */
 
-public class TabWithContainerWrapper<T extends TabWithContainerWrapper, P> extends Component<P> {
+public class TabWithContainerWrapper<P> extends Component<P> {
 
     public TabWithContainerWrapper(P parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
 
-    public PrismForm<T> form() {
-        SelenideElement element = null;
+    public <T extends TabWithContainerWrapper<P>> PrismForm<T> form() {
+        SelenideElement element = getParentElement().$(Schrodinger.byElementAttributeValue("div", "class", "tab-content"));
         return new PrismForm<T>((T) this, element);
     }
 }

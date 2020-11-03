@@ -14,6 +14,8 @@ import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
 import com.codeborne.selenide.ex.ElementShould;
 
+import com.evolveum.midpoint.schrodinger.page.objectcollection.ListObjectCollectionsPage;
+import com.evolveum.midpoint.schrodinger.page.objectcollection.ObjectCollectionPage;
 import com.evolveum.midpoint.schrodinger.page.service.ServicePage;
 
 import org.apache.commons.lang3.StringUtils;
@@ -265,6 +267,16 @@ public class BasicPage {
     public AuditLogViewerPage auditLogViewer() {
         clickAdministrationMenu("PageAdmin.menu.top.reports", "PageAuditLogViewer.menuName");
         return new AuditLogViewerPage();
+    }
+
+    public ListObjectCollectionsPage listObjectCollections() {
+        clickAdministrationMenu("PageAdmin.menu.top.objectCollections", "PageAdmin.menu.top.objectCollections.list");
+        return new ListObjectCollectionsPage();
+    }
+
+    public ObjectCollectionPage newObjectCollection() {
+        clickAdministrationMenu("PageAdmin.menu.top.objectCollections", "PageAdmin.menu.top.objectCollections.new");
+        return new ObjectCollectionPage();
     }
 
     public ImportResourceDefinitionPage importResourceDefinition() {

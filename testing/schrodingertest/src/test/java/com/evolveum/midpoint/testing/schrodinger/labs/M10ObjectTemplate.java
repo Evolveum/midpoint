@@ -44,7 +44,8 @@ public class M10ObjectTemplate extends AbstractLabTest{
 
     @Test(groups={"M10"}, dependsOnGroups={"M9"})
     public void mod10test01SimpleObjectTemplate() throws IOException {
-        importObject(OBJECT_TEMPLATE_USER_SIMPLE_FILE, true);
+        addObjectFromFile(OBJECT_TEMPLATE_USER_SIMPLE_FILE);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
 
         ((PrismFormWithActionButtons<ObjectPolicyTab>)basicPage.objectPolicy()
                 .clickAddObjectPolicy()
@@ -54,7 +55,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
                             .clickByName("ExAmPLE User Template"))
                     .clickDone()
                     .and()
-                .save()
+                .clickSave()
                     .feedback()
                         .isSuccess();
 
@@ -100,7 +101,8 @@ public class M10ObjectTemplate extends AbstractLabTest{
 
     @Test(dependsOnMethods = {"mod10test01SimpleObjectTemplate"}, groups={"M10"}, dependsOnGroups={"M9"})
     public void mod10test02AutomaticAssignments() throws IOException {
-        importObject(OBJECT_TEMPLATE_USER_FILE, true);
+        addObjectFromFile(OBJECT_TEMPLATE_USER_FILE);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
 
         ResourceAccountsTab<ViewResourcePage> accountTab = basicPage.listResources()
                 .table()
@@ -110,8 +112,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         accountTab.table()
                 .selectCheckboxByName("001212")
-                    .clickHeaderActionDropDown()
-                        .clickImport()
+                    .clickImport()
                     .and()
                 .and()
             .feedback()
@@ -193,8 +194,9 @@ public class M10ObjectTemplate extends AbstractLabTest{
                 $x(".//i[contains(@data-original-title, 'Mobile Telephone Number')]").exists());
         Assert.assertTrue(form.isPropertyEnabled("honorificSuffix"));
 
-        importObject(LOOKUP_EMP_STATUS_FILE, true);
-        importObject(OBJECT_TEMPLATE_USER_FILE_10_3, true);
+        addObjectFromFile(LOOKUP_EMP_STATUS_FILE);
+        addObjectFromFile(OBJECT_TEMPLATE_USER_FILE_10_3);
+        Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
 
         form = showUser("kirk")
                 .selectTabBasic()
@@ -300,7 +302,8 @@ public class M10ObjectTemplate extends AbstractLabTest{
                     .clickByName("cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com")
                         .compareInputAttributeValue("manager", "picard"));
 
-        importObject(CSV_3_RESOURCE_FILE_10_4,true);
+        addObjectFromFile(CSV_3_RESOURCE_FILE_10_4);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
 
         showUser("kirk").checkReconcile()

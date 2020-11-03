@@ -6,7 +6,10 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.labs;
 
+import com.codeborne.selenide.Selenide;
+
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.page.configuration.AboutPage;
 
 import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
@@ -53,7 +56,8 @@ public class M12Authorizations extends AbstractLabTest{
 
     @Test(groups={"M12"}, dependsOnGroups={"M11"})
     public void mod12test01BasicUserAuthorization() {
-        importObject(ROLE_BASIC_USER_FILE, true);
+        addObjectFromFile(ROLE_BASIC_USER_FILE);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         showUser("X000005").selectTabBasic()
                 .form()
                     .setPasswordFieldsValues(new QName(SchemaConstantsGenerated.NS_COMMON, "value"), "qwerty12345XXXX")
@@ -90,7 +94,8 @@ public class M12Authorizations extends AbstractLabTest{
         basicPage.loggedUser().logoutIfUserIsLogin();
         login.login(getUsername(), getPassword());
 
-        importObject(ROLE_BASIC_USER_FILE_12_1, true);
+        addObjectFromFile(ROLE_BASIC_USER_FILE_12_1);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
 
         basicPage.loggedUser().logoutIfUserIsLogin();
         login.login("X000005", "qwerty12345ZZZZ");
