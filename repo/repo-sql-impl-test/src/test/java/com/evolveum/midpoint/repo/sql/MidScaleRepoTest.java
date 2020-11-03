@@ -22,7 +22,6 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.tools.testng.PerformanceTestMixin;
-import com.evolveum.midpoint.tools.testng.TestMonitor;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -49,8 +48,6 @@ public class MidScaleRepoTest extends BaseSQLRepoTest
     public static final int FIND_COUNT = 1000;
 
     private static final Random RND = new Random();
-
-    private final TestMonitor testMonitor = new TestMonitor();
 
     // maps name -> oid
     private final Map<String, String> resources = new LinkedHashMap<>();
@@ -245,9 +242,5 @@ public class MidScaleRepoTest extends BaseSQLRepoTest
         System.out.println("users = " + users.size());
         // WIP: memInfo is not serious yet
         memInfo.forEach(System.out::println);
-    }
-
-    public TestMonitor getTestMonitor() {
-        return testMonitor;
     }
 }

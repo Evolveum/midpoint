@@ -20,6 +20,7 @@ import org.testng.annotations.BeforeMethod;
 import com.evolveum.midpoint.tools.testng.MidpointTestContext;
 import com.evolveum.midpoint.tools.testng.MidpointTestMixin;
 import com.evolveum.midpoint.tools.testng.SimpleMidpointTestContext;
+import com.evolveum.midpoint.tools.testng.TestMonitor;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -35,6 +36,17 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
      * Hides parent's logger, but that one is from commons-logging and we don't want that.
      */
     protected final Trace logger = TraceManager.getTrace(getClass());
+
+    private TestMonitor testMonitor;
+
+    // called only by tests that need it
+    public void initializeTestMonitor() {
+        testMonitor = new TestMonitor();
+    }
+
+    public TestMonitor testMonitor() {
+        return testMonitor;
+    }
 
     @BeforeClass
     public void displayTestClassTitle() {

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.tools.testng;
 
 import org.javasimon.Stopwatch;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 
 /**
  * Mixin supporting work with {@link TestMonitor}.
@@ -16,17 +17,24 @@ import org.testng.annotations.AfterClass;
  */
 public interface PerformanceTestMixin extends MidpointTestMixin {
 
-    TestMonitor getTestMonitor();
+    TestMonitor testMonitor();
+
+    void initializeTestMonitor();
+
+    @BeforeClass
+    default void initTestMonitor() {
+        initializeTestMonitor();
+    }
 
     @AfterClass
     default void dumpReport() {
         // TODO output to files, how?
-        TestMonitor testMonitor = getTestMonitor();
+        TestMonitor testMonitor = testMonitor();
         testMonitor.dumpReport(getClass().getSimpleName());
         // TODO more output types
     }
 
     default Stopwatch stopwatch(String name) {
-        return getTestMonitor().stopwatch(name);
+        return testMonitor().stopwatch(name);
     }
 }
