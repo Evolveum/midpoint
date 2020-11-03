@@ -92,7 +92,7 @@ public class FeedbackBox<T> extends Component<T> {
     public TaskBasicTab clickShowTask() {
 
         $(Schrodinger.byDataId("backgroundTask")).click();
-        SelenideElement taskBasicTab = $(Schrodinger.byDataResourceKey("pageTaskEdit.basic"));
+        SelenideElement taskBasicTab = $(Schrodinger.byDataResourceKey("pageTask.basic.title"));
         return new TaskBasicTab(new TaskPage(), taskBasicTab);
     }
 

@@ -47,7 +47,7 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
         return Arrays.asList(ROLE_USER_PREVIEW_FILE, ROLE_USER_NO_PREVIEW_FILE);
     }
 
-    @Test
+    @Test (priority = 1)
     public void test001createUser() {
 
         //@formatter:off
@@ -81,7 +81,7 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
         assertTrue(progressPage.feedback().isSuccess());
     }
 
-    @Test
+    @Test (priority = 2, dependsOnMethods = {"test001createUser"})
     public void test002modifyUser() {
 
         //@formatter:off
@@ -114,7 +114,7 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
         assertTrue(progressPage.feedback().isSuccess());
     }
 
-    @Test
+    @Test (priority = 3, dependsOnMethods = {"test001createUser"})
     public void test003assignRolePreview() {
         //@formatter:off
         ProgressPage previewPage = basicPage.listUsers()
@@ -140,7 +140,7 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
 
     }
 
-    @Test
+    @Test (priority = 4, dependsOnMethods = {"test001createUser"})
     public void test004loginWithUserJack() {
 
         midPoint.logout();
@@ -173,7 +173,7 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
 
     }
 
-    @Test (dependsOnMethods = {"test001createUser", "test003assignRolePreview"})
+    @Test (priority = 5, dependsOnMethods = {"test001createUser", "test003assignRolePreview"})
     public void test005unassignRolePreview() {
         //@formatter:off
         ProgressPage previewPage = basicPage.listUsers()
@@ -192,7 +192,7 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
 
     }
 
-    @Test
+    @Test (priority = 6, dependsOnMethods = {"test001createUser"})
     public void test006assignRoleNoPreview() {
         //@formatter:off
         ProgressPage previewPage = basicPage.listUsers()
@@ -218,7 +218,7 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
 
     }
 
-    @Test
+    @Test (priority = 7, dependsOnMethods = {"test001createUser", "test003assignRolePreview", "test005unassignRolePreview", "test006assignRoleNoPreview"})
     public void test007loginWithUserJack() {
 
         midPoint.logout();
