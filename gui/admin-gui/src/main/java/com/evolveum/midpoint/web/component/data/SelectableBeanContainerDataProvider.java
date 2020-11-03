@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -276,11 +277,11 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
     }
 
     protected boolean isUseObjectCounting() {
-        return useObjectCounting;
-    }
-
-    public void setUseObjectCounting(boolean useCounting) {
-        this.useObjectCounting = useCounting;
+        CompiledObjectCollectionView guiObjectListViewType = getCompiledObjectCollectionView();
+        if (guiObjectListViewType != null && guiObjectListViewType.isDisableCounting() != null) {
+            return !guiObjectListViewType.isDisableCounting();
+        }
+        return true;
     }
 
     public Collection<SelectorOptions<GetOperationOptions>> getOptions() {
@@ -313,5 +314,18 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
 
     protected Set<? extends C> getSelected() {
         return selected;
+    }
+
+    @Override
+    public boolean isOrderingDisabled() {
+        CompiledObjectCollectionView guiObjectListViewType = getCompiledObjectCollectionView();
+        if (guiObjectListViewType != null && guiObjectListViewType.isDisableSorting() != null) {
+            return guiObjectListViewType.isDisableSorting();
+        }
+        return false;
+    }
+
+    protected CompiledObjectCollectionView getCompiledObjectCollectionView() {
+        return null;
     }
 }

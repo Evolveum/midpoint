@@ -13,6 +13,7 @@ import java.util.Map.Entry;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.schema.util.DiagnosticContextHolder;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
@@ -203,8 +204,8 @@ public class PageCreatedReports extends PageAdmin {
                     }
 
                     @Override
-                    public boolean isOrderingDisabled() {
-                        return isContainerOrderingDisabled();
+                    protected CompiledObjectCollectionView getCompiledObjectCollectionView() {
+                        return getObjectCollectionView();
                     }
                 };
                 provider.setOptions(createOptions());

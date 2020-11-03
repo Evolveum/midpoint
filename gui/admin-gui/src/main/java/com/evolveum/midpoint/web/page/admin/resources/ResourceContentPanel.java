@@ -276,7 +276,6 @@ public abstract class ResourceContentPanel extends Panel {
                         provider = (SelectableBeanObjectDataProvider<ShadowType>) super.createProvider();
                         provider.setEmptyListOnNullQuery(true);
                         provider.setSort(null);
-                        provider.setUseObjectCounting(isUseObjectCounting());
                         provider.setDefaultCountIfNull(Integer.MAX_VALUE);
                         return provider;
                     }

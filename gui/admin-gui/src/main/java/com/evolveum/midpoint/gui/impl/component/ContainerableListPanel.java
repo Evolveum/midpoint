@@ -630,9 +630,12 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
             @Override
             public boolean isOrderingDisabled() {
-                return ContainerableListPanel.this.isContainerOrderingDisabled();
+                CompiledObjectCollectionView guiObjectListViewType = getObjectCollectionView();
+                if (guiObjectListViewType != null && guiObjectListViewType.isDisableSorting() != null) {
+                    return guiObjectListViewType.isDisableSorting();
+                }
+                return false;
             }
-
         };
         setDefaultSorting(provider);
         return (ISelectableDataProvider<C, PO>) provider;
@@ -680,26 +683,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     protected List<ObjectOrdering> createCustomOrdering(SortParam<String> sortParam) {
         return null;
-    }
-
-    protected boolean isContainerOrderingDisabled(){
-        CompiledObjectCollectionView guiObjectListViewType = getObjectCollectionView();
-        if (isAdditionalPanel()){
-            if (guiObjectListViewType != null && guiObjectListViewType.getAdditionalPanels() != null &&
-                    guiObjectListViewType.getAdditionalPanels().getMemberPanel() != null &&
-                    guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableSorting() != null){
-                return guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableSorting();
-            }
-        } else {
-            if (guiObjectListViewType != null && guiObjectListViewType.isDisableSorting() != null){
-                return guiObjectListViewType.isDisableSorting();
-            }
-        }
-        return false;
-    }
-
-    protected boolean isAdditionalPanel(){
-        return false;
     }
 
     protected SearchFormPanel initSearch(String headerId) {

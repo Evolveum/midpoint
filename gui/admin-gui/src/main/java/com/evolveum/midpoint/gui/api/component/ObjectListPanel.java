@@ -142,35 +142,14 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
             }
 
             @Override
-            public boolean isOrderingDisabled() {
-                return ObjectListPanel.this.isContainerOrderingDisabled();
-            }
-
-            @Override
-            public boolean isUseObjectCounting() {
-                return isCountingEnabled();
+            protected CompiledObjectCollectionView getCompiledObjectCollectionView() {
+                return getObjectCollectionView();
             }
         };
         provider.setOptions(createOptions());
         setDefaultSorting(provider);
 
         return provider;
-    }
-
-    protected boolean isCountingEnabled(){
-        CompiledObjectCollectionView guiObjectListViewType = getObjectCollectionView();
-        if (isAdditionalPanel()) {
-            if (guiObjectListViewType != null && guiObjectListViewType.getAdditionalPanels() != null &&
-                    guiObjectListViewType.getAdditionalPanels().getMemberPanel() != null &&
-                    guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableCounting() != null) {
-                return !guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableCounting();
-            }
-        } else {
-            if (guiObjectListViewType != null && guiObjectListViewType.isDisableCounting() != null) {
-                return !guiObjectListViewType.isDisableCounting();
-            }
-        }
-        return true;
     }
 
     protected List<CompiledObjectCollectionView> getAllApplicableArchetypeViews() {

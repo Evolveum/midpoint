@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.component.data;
 
 import java.util.*;
 
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.apache.wicket.Component;
@@ -33,6 +34,8 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(SelectableBeanObjectDataProvider.class);
+
+    private boolean isMemberPanel = false;
 
     public SelectableBeanObjectDataProvider(Component component, Class<? extends O> type, Set<? extends O> selected) {
         super(component, type, selected, true);
@@ -80,5 +83,50 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
     @Override
     protected Integer countObjects(Class<? extends O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         return getModel().countObjects(type, getQuery(), currentOptions, task, result);
+    }
+
+    @Override
+    public boolean isOrderingDisabled() {
+        CompiledObjectCollectionView guiObjectListViewType = getCompiledObjectCollectionView();
+        if (guiObjectListViewType != null) {
+            if (isMemberPanel()) {
+                if (guiObjectListViewType.getAdditionalPanels() != null &&
+                        guiObjectListViewType.getAdditionalPanels().getMemberPanel() != null &&
+                        guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableSorting() != null){
+                    return guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableSorting();
+                }
+            } else {
+                if (guiObjectListViewType.isDisableSorting() != null) {
+                    return guiObjectListViewType.isDisableSorting();
+                }
+            }
+        }
+        return false;
+    }
+
+    protected boolean isUseObjectCounting() {
+        CompiledObjectCollectionView guiObjectListViewType = getCompiledObjectCollectionView();
+        if (guiObjectListViewType != null) {
+            if (isMemberPanel()) {
+                if (guiObjectListViewType.getAdditionalPanels() != null &&
+                        guiObjectListViewType.getAdditionalPanels().getMemberPanel() != null &&
+                        guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableCounting() != null) {
+                    return !guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableCounting();
+                }
+            } else {
+                if (guiObjectListViewType.isDisableCounting() != null) {
+                    return !guiObjectListViewType.isDisableCounting();
+                }
+            }
+        }
+        return true;
+    }
+
+    protected boolean isMemberPanel() {
+        return isMemberPanel;
+    }
+
+    public void setIsMemberPanel(boolean isMemberPanel) {
+        this.isMemberPanel = isMemberPanel;
     }
 }

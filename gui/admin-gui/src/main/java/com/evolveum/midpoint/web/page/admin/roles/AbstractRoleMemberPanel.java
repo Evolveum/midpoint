@@ -23,6 +23,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
 import com.evolveum.midpoint.web.component.MultifunctionalButton;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
+import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.dialog.ConfigureTaskConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -312,8 +314,10 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             @Override
-            protected boolean isAdditionalPanel() {
-                return true;
+            protected ISelectableDataProvider createProvider() {
+                SelectableBeanObjectDataProvider provider = (SelectableBeanObjectDataProvider) super.createProvider();
+                provider.setIsMemberPanel(true);
+                return provider;
             }
 
             protected boolean isTypeChanged(Class<ObjectType> newTypeClass) {
