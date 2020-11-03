@@ -8,12 +8,8 @@ package com.evolveum.midpoint.repo.sql;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.PrintStream;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
-import org.javasimon.EnabledManager;
-import org.javasimon.Manager;
 import org.javasimon.Split;
 import org.javasimon.Stopwatch;
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +21,8 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.tools.testng.PerformanceTestMixin;
+import com.evolveum.midpoint.tools.testng.TestMonitor;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -40,7 +38,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class MidScaleRepoTest extends BaseSQLRepoTest {
+public class MidScaleRepoTest extends BaseSQLRepoTest
+        implements PerformanceTestMixin {
 
     public static final int RESOURCE_COUNT = 10;
     public static final int BASE_USER_COUNT = 1000;
@@ -51,7 +50,6 @@ public class MidScaleRepoTest extends BaseSQLRepoTest {
 
     private static final Random RND = new Random();
 
-    //    private final Manager simonManager = new EnabledManager();
     private final TestMonitor testMonitor = new TestMonitor();
 
     // maps name -> oid
@@ -76,7 +74,7 @@ public class MidScaleRepoTest extends BaseSQLRepoTest {
     @Test
     public void test010InitResources() throws ObjectAlreadyExistsException, SchemaException {
         OperationResult operationResult = createOperationResult();
-        Stopwatch stopwatch = testMonitor.stopwatch("resource-add");
+        Stopwatch stopwatch = stopwatch("resource-add");
         for (int resourceIndex = 1; resourceIndex <= RESOURCE_COUNT; resourceIndex++) {
             ResourceType resourceType = new ResourceType(prismContext);
             String name = String.format("resource-%03d", resourceIndex);
@@ -95,7 +93,7 @@ public class MidScaleRepoTest extends BaseSQLRepoTest {
     @Test
     public void test020AddBaseUsers() throws ObjectAlreadyExistsException, SchemaException {
         OperationResult operationResult = createOperationResult();
-        Stopwatch stopwatch = testMonitor.stopwatch("user-add");
+        Stopwatch stopwatch = stopwatch("user-add");
         for (int userIndex = 1; userIndex <= BASE_USER_COUNT; userIndex++) {
             UserType userType = new UserType(prismContext);
             String name = String.format("user-%07d", userIndex);
@@ -114,7 +112,7 @@ public class MidScaleRepoTest extends BaseSQLRepoTest {
     @Test
     public void test030AddBaseShadows() throws ObjectAlreadyExistsException, SchemaException {
         OperationResult operationResult = createOperationResult();
-        Stopwatch stopwatch = testMonitor.stopwatch("shadow-add");
+        Stopwatch stopwatch = stopwatch("shadow-add");
         for (int userIndex = 1; userIndex <= BASE_USER_COUNT; userIndex++) {
             for (Map.Entry<String, String> resourceEntry : resources.entrySet()) {
                 String name = String.format("shadow-%07d-at-%s", userIndex, resourceEntry.getKey());
@@ -147,7 +145,7 @@ public class MidScaleRepoTest extends BaseSQLRepoTest {
     @Test
     public void test110GetUser() throws SchemaException, ObjectNotFoundException {
         OperationResult operationResult = createOperationResult();
-        Stopwatch stopwatch = testMonitor.stopwatch("user-get1");
+        Stopwatch stopwatch = stopwatch("user-get1");
         for (int i = 1; i <= FIND_COUNT; i++) {
             String randomName = String.format("user-%07d", RND.nextInt(BASE_USER_COUNT) + 1);
             if (i == FIND_COUNT) {
@@ -165,7 +163,7 @@ public class MidScaleRepoTest extends BaseSQLRepoTest {
     @Test
     public void test210AddMoreUsers() throws ObjectAlreadyExistsException, SchemaException {
         OperationResult operationResult = createOperationResult();
-        Stopwatch stopwatch = testMonitor.stopwatch("user-add-more");
+        Stopwatch stopwatch = stopwatch("user-add-more");
         for (int userIndex = 1; userIndex <= MORE_USER_COUNT; userIndex++) {
             UserType userType = new UserType(prismContext);
             String name = String.format("user-more-%07d", userIndex);
@@ -184,7 +182,7 @@ public class MidScaleRepoTest extends BaseSQLRepoTest {
     @Test
     public void test230AddMoreShadows() throws ObjectAlreadyExistsException, SchemaException {
         OperationResult operationResult = createOperationResult();
-        Stopwatch stopwatch = testMonitor.stopwatch("shadow-add-more");
+        Stopwatch stopwatch = stopwatch("shadow-add-more");
         for (int userIndex = 1; userIndex <= MORE_USER_COUNT; userIndex++) {
             for (Map.Entry<String, String> resourceEntry : resources.entrySet()) {
                 String name = String.format("shadow-more-%07d-at-%s", userIndex, resourceEntry.getKey());
@@ -207,7 +205,7 @@ public class MidScaleRepoTest extends BaseSQLRepoTest {
     @Test
     public void test610PeakMoreUsers() throws ObjectAlreadyExistsException, SchemaException {
         OperationResult operationResult = createOperationResult();
-        Stopwatch stopwatch = testMonitor.stopwatch("user-add-peak");
+        Stopwatch stopwatch = stopwatch("user-add-peak");
         for (int userIndex = 1; userIndex <= PEAK_USER_COUNT; userIndex++) {
             UserType userType = new UserType(prismContext);
             String name = String.format("user-peak-%07d", userIndex);
@@ -226,7 +224,7 @@ public class MidScaleRepoTest extends BaseSQLRepoTest {
     @Test
     public void test710GetUserMore() throws SchemaException, ObjectNotFoundException {
         OperationResult operationResult = createOperationResult();
-        Stopwatch stopwatch = testMonitor.stopwatch("user-get2");
+        Stopwatch stopwatch = stopwatch("user-get2");
         for (int i = 1; i <= FIND_COUNT; i++) {
             String randomName = String.format("user-more-%07d", RND.nextInt(MORE_USER_COUNT) + 1);
             if (i == FIND_COUNT) {
@@ -245,75 +243,11 @@ public class MidScaleRepoTest extends BaseSQLRepoTest {
     public void test900PrintObjects() {
         System.out.println("resources = " + resources.size());
         System.out.println("users = " + users.size());
+        // WIP: memInfo is not serious yet
         memInfo.forEach(System.out::println);
-        testMonitor.dumpReport(getClass().getSimpleName());
-//        simonManager.getSimons(null).stream().sorted(Comparator.comparing(s -> s.getName()))
-//                .forEach(System.out::println);
-    }
-}
-
-/**
- * Object can hold various monitors (stopwatches, counters) and dump a report for them.
- * Use for a single report unit, e.g. a test class, then throw away.
- */
-class TestMonitor {
-
-    /**
-     * Order of creation/addition is the order in the final report.
-     * Stopwatches are stored under specific names, but their names are null, always use the key.
-     */
-    private final Map<String, Stopwatch> stopwatches = new LinkedHashMap<>();
-
-    /** Simon manager used for monitor creations, otherwise ignored. */
-    private final Manager simonManager = new EnabledManager();
-
-    /** If you want to register already existing Stopwatch, e.g. from production code. */
-    public synchronized void register(Stopwatch stopwatch) {
-        stopwatches.put(stopwatch.getName(), stopwatch);
     }
 
-    /**
-     * Returns {@link Stopwatch} for specified name, registers a new one if needed.
-     */
-    public synchronized Stopwatch stopwatch(String name) {
-        Stopwatch stopwatch = stopwatches.get(name);
-        if (stopwatch == null) {
-            // internally the stopwatch is not named to avoid registration with Simon Manager
-            stopwatch = simonManager.getStopwatch(null);
-            stopwatches.put(name, stopwatch);
-        }
-        return stopwatch;
-    }
-
-    /**
-     * Starts measurement (represented by {@link Split}) on a stopwatch with specified name.
-     * Stopwatch is created and registered with this object if needed (no Simon manager is used).
-     * Returned {@link Split} is {@link AutoCloseable}, so it can be used in try-with-resource
-     * and the actual variable can be completely ignored.
-     */
-    public Split stopwatchStart(String name) {
-        return stopwatch(name).start();
-    }
-
-    // TODO not sure what "testName" is, it's some kind of "bundle of monitors".
-    //  Currently it is tied to the dump call, so it can't be test method name unless it's called
-    //  in each method. Scoping/grouping of monitors is to be determined yet.
-    public void dumpReport(String testName) {
-        dumpReport(testName, System.out);
-    }
-
-    public void dumpReport(String testName, PrintStream out) {
-        // millis are more practical, but sometimes too big for avg and min and we don't wanna mix ms/us
-        out.println("test|name|count|total(us)|avg(us)|min(us)|max(us)");
-        for (Map.Entry<String, Stopwatch> stopwatchEntry : stopwatches.entrySet()) {
-            String name = stopwatchEntry.getKey();
-            Stopwatch stopwatch = stopwatchEntry.getValue();
-            out.printf("%s|%s|%d|%d|%d|%d|%d\n", testName, name,
-                    stopwatch.getCounter(),
-                    TimeUnit.NANOSECONDS.toMicros(stopwatch.getTotal()),
-                    TimeUnit.NANOSECONDS.toMicros((long) stopwatch.getMean()),
-                    TimeUnit.NANOSECONDS.toMicros(stopwatch.getMin()),
-                    TimeUnit.NANOSECONDS.toMicros(stopwatch.getMax()));
-        }
+    public TestMonitor getTestMonitor() {
+        return testMonitor;
     }
 }
