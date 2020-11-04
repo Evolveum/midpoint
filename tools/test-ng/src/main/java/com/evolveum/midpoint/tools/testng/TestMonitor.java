@@ -6,11 +6,19 @@
  */
 package com.evolveum.midpoint.tools.testng;
 
+import java.io.BufferedOutputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang3.StringUtils;
 import org.javasimon.EnabledManager;
 import org.javasimon.Manager;
 import org.javasimon.Split;
@@ -21,6 +29,14 @@ import org.javasimon.Stopwatch;
  * Use for a single report unit, e.g. a test class, then throw away.
  */
 public class TestMonitor {
+
+    /**
+     * Name of a system property that specifies file name prefix for report.
+     * If system property is null, report is dumped to standard output.
+     * Specified file name prefix can be absolute or relative from working directory,
+     * e.g. {@code target/perf-report}.
+     */
+    public static final String PERF_REPORT_PREFIX_PROPERTY_NAME = "mp.perf.report.prefix";
 
     /**
      * Order of creation/addition is the order in the final report.
@@ -61,25 +77,101 @@ public class TestMonitor {
         return stopwatch(name).start();
     }
 
-    // TODO not sure what "testName" is, it's some kind of "bundle of monitors".
-    //  Currently it is tied to the dump call, so it can't be test method name unless it's called
-    //  in each method. Scoping/grouping of monitors is to be determined yet.
     public void dumpReport(String testName) {
-        dumpReport(testName, System.out);
+        ReportMetadata reportMetadata = new ReportMetadata(testName);
+        String perfReportPrefix = System.getProperty(PERF_REPORT_PREFIX_PROPERTY_NAME);
+        if (perfReportPrefix == null) {
+            dumpReportToStdout(reportMetadata);
+            return;
+        }
+
+        // we want to report to a file
+        String filename = String.format("%s-%s-%s-%s.txt",
+                perfReportPrefix, testName, reportMetadata.commitIdShort, reportMetadata.timestamp);
+        try (PrintStream out = new PrintStream(
+                new BufferedOutputStream(
+                        new FileOutputStream(filename)))) {
+            dumpReport(reportMetadata, out);
+        } catch (FileNotFoundException e) {
+            System.out.println("Creating report file failed with: " + e.toString());
+            System.out.println("Falling back to stdout dump:");
+            dumpReportToStdout(reportMetadata);
+        }
+    }
+
+    private void dumpReportToStdout(ReportMetadata reportMetadata) {
+        System.out.println(">>>> PERF REPORT");
+        dumpReport(reportMetadata, System.out);
+        System.out.println("<<<<");
     }
 
     public void dumpReport(String testName, PrintStream out) {
+        dumpReport(new ReportMetadata(testName), out);
+    }
+
+    private void dumpReport(ReportMetadata reportMetadata, PrintStream out) {
+        out.println("Commit: " + reportMetadata.commitId);
+        out.println("Timestamp: " + reportMetadata.timestamp);
+        out.println("Branch: " + reportMetadata.branch);
+        out.println("Test: " + reportMetadata.testName);
+
         // millis are more practical, but sometimes too big for avg and min and we don't wanna mix ms/us
-        out.println("test,name,count,total(us),avg(us),min(us),max(us)");
+        out.println("\n[stopwatch]\ntest,monitor,count,total(us),avg(us),min(us),max(us)");
         for (Map.Entry<String, Stopwatch> stopwatchEntry : stopwatches.entrySet()) {
-            String name = stopwatchEntry.getKey();
+            String monitorName = stopwatchEntry.getKey();
             Stopwatch stopwatch = stopwatchEntry.getValue();
-            out.printf("%s,%s,%d,%d,%d,%d,%d\n", testName, name,
+            out.printf("%s,%s,%d,%d,%d,%d,%d\n", reportMetadata.testName, monitorName,
                     stopwatch.getCounter(),
                     TimeUnit.NANOSECONDS.toMicros(stopwatch.getTotal()),
                     TimeUnit.NANOSECONDS.toMicros((long) stopwatch.getMean()),
                     TimeUnit.NANOSECONDS.toMicros(stopwatch.getMin()),
                     TimeUnit.NANOSECONDS.toMicros(stopwatch.getMax()));
+        }
+    }
+
+    private static class ReportMetadata {
+
+        public final String testName;
+        public final String buildNumber;
+        public final String branch;
+        public final String commitId;
+        public final String commitIdShort;
+        public final String date;
+        public final String timestamp;
+
+        public ReportMetadata(String testName) {
+            this.testName = testName;
+            /*
+             * Various Jenkins related environment variables are available:
+             * Git related: BRANCH (local), GIT_BRANCH, GIT_COMMIT (full), GIT_PREVIOUS_COMMIT,
+             * GIT_PREVIOUS_SUCCESSFUL_COMMIT, GIT_URL
+             * Job related: BUILD_DISPLAY_NAME, BUILD_ID, BUILD_NUMBER, BUILD_TAG, BUILD_URL,
+             * JOB_BASE_NAME, JOB_DISPLAY_URL, JOB_NAME, JOB_URL
+             * Other Jenkins: JENKINS_HOME, JENKINS_SERVER_COOKIE, JENKINS_URL, NODE_LABELS, NODE_NAME
+             * See also: https://www.jenkins.io/doc/book/pipeline/jenkinsfile/#using-environment-variables
+             */
+            Map<String, String> env = System.getenv();
+            buildNumber = env.getOrDefault("BUILD_NUMBER", "unknown");
+            branch = env.getOrDefault("BRANCH", "unknown");
+            commitId = env.getOrDefault("GIT_COMMIT", "unknown");
+            commitIdShort = StringUtils.truncate(commitId, 8);
+
+            date = LocalDate.now().toString();
+            timestamp = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")
+                    .withZone(ZoneId.systemDefault())
+                    .format(Instant.now());
+        }
+
+        @Override
+        public String toString() {
+            return "ReportMetadata{" +
+                    "testName='" + testName + '\'' +
+                    ", buildNumber='" + buildNumber + '\'' +
+                    ", commitId='" + commitId + '\'' +
+                    ", commitIdShort='" + commitIdShort + '\'' +
+                    ", date='" + date + '\'' +
+                    ", timestamp='" + timestamp + '\'' +
+                    '}';
         }
     }
 }
