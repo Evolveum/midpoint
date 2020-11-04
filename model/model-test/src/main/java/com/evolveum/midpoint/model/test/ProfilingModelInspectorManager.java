@@ -40,16 +40,16 @@ public class ProfilingModelInspectorManager implements DiagnosticContextManager,
 
     @Override
     public void processFinishedContext(DiagnosticContext ctx) {
-        LOGGER.info("Model diagnostics:{}", ctx.debugDump(1));
         if (ctx instanceof ProfilingModelInspector) {
             lastInspector = (ProfilingModelInspector)ctx;
             lastInspector.recordFinish();
         } else {
             lastInspector = null;
         }
+        LOGGER.info("Model diagnostics:{}", ctx.debugDump(1));
     }
 
-    public ModelContext getLastLensContext() {
+    public ModelContext<?> getLastLensContext() {
         if (lastInspector == null) {
             return null;
         }
