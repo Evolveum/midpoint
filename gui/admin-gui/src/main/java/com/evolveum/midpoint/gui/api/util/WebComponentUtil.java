@@ -93,6 +93,7 @@ import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
@@ -3390,7 +3391,16 @@ public final class WebComponentUtil {
         return createDisplayType(iconCssClass, "", "");
     }
 
-    public static DisplayType createDisplayType(String iconCssClass, String iconColor, String title){
+    public static DisplayType createDisplayType(ApprovalOutcomeIcon caseIcon) {
+        return createDisplayType(caseIcon.getIcon(), "", caseIcon.getTitle());
+    }
+
+    public static DisplayType createDisplayType(OperationResultStatusPresentationProperties OperationIcon) {
+        return createDisplayType(OperationIcon.getIcon(), "", OperationIcon.getStatusLabelKey());
+    }
+
+
+    public static DisplayType createDisplayType(String iconCssClass, String iconColor, String title) {
         DisplayType displayType = new DisplayType();
         IconType icon = new IconType();
         icon.setCssClass(iconCssClass);
