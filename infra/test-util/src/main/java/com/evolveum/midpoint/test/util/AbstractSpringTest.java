@@ -6,9 +6,6 @@
  */
 package com.evolveum.midpoint.test.util;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-
 import org.jetbrains.annotations.Nullable;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.ITestResult;
@@ -20,6 +17,7 @@ import org.testng.annotations.BeforeMethod;
 import com.evolveum.midpoint.tools.testng.MidpointTestContext;
 import com.evolveum.midpoint.tools.testng.MidpointTestMixin;
 import com.evolveum.midpoint.tools.testng.SimpleMidpointTestContext;
+import com.evolveum.midpoint.tools.testng.TestMonitor;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -35,6 +33,17 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
      * Hides parent's logger, but that one is from commons-logging and we don't want that.
      */
     protected final Trace logger = TraceManager.getTrace(getClass());
+
+    private TestMonitor testMonitor;
+
+    // called only by tests that need it
+    public void initializeTestMonitor() {
+        testMonitor = new TestMonitor();
+    }
+
+    public TestMonitor testMonitor() {
+        return testMonitor;
+    }
 
     @BeforeClass
     public void displayTestClassTitle() {
@@ -70,7 +79,8 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
         return SimpleMidpointTestContext.get();
     }
 
-    /**
+    /* TODO temporarily disabled, I want to see the effect - otherwise it collides with testMonitor,
+        that is nulled before @AfterClass in mixin interface is called.
      * This method null all fields which are not static, final or primitive type.
      * <p>
      * All this is just to make GC work during DirtiesContext after every test class,
@@ -80,37 +90,37 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
      * <p>
      * Note that this does not work for components injected through constructor into
      * final fields - if we need this cleanup, make the field non-final.
+     @AfterClass(alwaysRun = true)
+     protected void clearClassFields() throws Exception {
+     logger.trace("Clearing all fields for test class {}", getClass().getName());
+     clearClassFields(this, getClass());
+     }
+
+     private void clearClassFields(Object object, Class<?> forClass) throws Exception {
+     if (forClass.getSuperclass() != null) {
+     clearClassFields(object, forClass.getSuperclass());
+     }
+
+     for (Field field : forClass.getDeclaredFields()) {
+     if (Modifier.isFinal(field.getModifiers())
+     || Modifier.isStatic(field.getModifiers())
+     || field.getType().isPrimitive()) {
+     continue;
+     }
+
+     nullField(object, field);
+     }
+     }
+
+     private void nullField(Object obj, Field field) throws Exception {
+     logger.info("Setting {} to null on {}.", field.getName(), obj.getClass().getSimpleName());
+     boolean accessible = field.isAccessible();
+     //        boolean accessible = field.canAccess(obj); // TODO: after ditching JDK 8
+     if (!accessible) {
+     field.setAccessible(true);
+     }
+     field.set(obj, null);
+     field.setAccessible(accessible);
+     }
      */
-    @AfterClass(alwaysRun = true)
-    protected void clearClassFields() throws Exception {
-        logger.trace("Clearing all fields for test class {}", getClass().getName());
-        clearClassFields(this, getClass());
-    }
-
-    private void clearClassFields(Object object, Class<?> forClass) throws Exception {
-        if (forClass.getSuperclass() != null) {
-            clearClassFields(object, forClass.getSuperclass());
-        }
-
-        for (Field field : forClass.getDeclaredFields()) {
-            if (Modifier.isFinal(field.getModifiers())
-                    || Modifier.isStatic(field.getModifiers())
-                    || field.getType().isPrimitive()) {
-                continue;
-            }
-
-            nullField(object, field);
-        }
-    }
-
-    private void nullField(Object obj, Field field) throws Exception {
-        logger.info("Setting {} to null on {}.", field.getName(), obj.getClass().getSimpleName());
-        boolean accessible = field.isAccessible();
-//        boolean accessible = field.canAccess(obj); // TODO: after ditching JDK 8
-        if (!accessible) {
-            field.setAccessible(true);
-        }
-        field.set(obj, null);
-        field.setAccessible(accessible);
-    }
 }

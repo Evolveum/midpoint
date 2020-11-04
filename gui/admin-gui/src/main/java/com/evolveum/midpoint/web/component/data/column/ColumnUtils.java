@@ -12,7 +12,15 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.util.QNameUtil;
+
+import com.evolveum.midpoint.web.page.admin.cases.ChildCasesTabPanel;
+import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
+import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -48,10 +56,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
-import com.evolveum.midpoint.schema.util.CaseTypeUtil;
-import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
@@ -59,6 +63,8 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
 
 public class ColumnUtils {
     private static final Trace LOGGER = TraceManager.getTrace(ColumnUtils.class);
@@ -793,21 +799,33 @@ public class ColumnUtils {
             columns.add(column);
         }
 
-        column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("CaseType.outcome"), CaseType.F_OUTCOME.getLocalPart(), "value.outcome") {
+        column = new CountIconColumn<SelectableBean<CaseType>>(createStringResource("CaseType.outcome")) {
+
             @Override
-            public String getCssClass() {
-                return isDashboard ? "col-md-1 col-sm-2" : super.getCssClass();
+            protected Map<DisplayType, Integer> getIconDisplayType(IModel<SelectableBean<CaseType>> rowModel) {
+                Map<DisplayType, Integer> map = new HashMap<>();
+                CaseType caseType = rowModel.getObject().getValue();
+                if(ObjectTypeUtil.hasArchetype(caseType, SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value())){
+                    ObjectQuery queryFilter = pageBase.getPrismContext().queryFor(CaseType.class)
+                            .item(CaseType.F_PARENT_REF)
+                            .ref(caseType.getOid())
+                            .build();
+                    List<PrismObject<CaseType>> childs =
+                            WebModelServiceUtils.searchObjects(CaseType.class, queryFilter, new OperationResult("search_case_child"), pageBase);
+
+                    for (PrismObject<CaseType> child : childs) {
+                        processCaseOutcome(child.asObjectable(), map, false);
+                    }
+                } else {
+                    processCaseOutcome(caseType, map, true);
+                }
+
+                return map;
             }
 
             @Override
-            public IModel<?> getDataModel(IModel<SelectableBean<CaseType>> rowModel) {
-                IModel<String> dataModel = (IModel<String>) super.getDataModel(rowModel);
-                if (StringUtils.isNotBlank(dataModel.getObject())) {
-                    QName value = QNameUtil.uriToQName(dataModel.getObject(), true);
-                    String key = CaseType.COMPLEX_TYPE.getLocalPart() + "." + CaseType.F_OUTCOME.getLocalPart() + "." + value.getLocalPart();
-                    return new StringResourceModel(key, pageBase).setModel(new Model<String>()).setDefaultValue(value.getLocalPart());
-                }
-                return dataModel;
+            public String getCssClass() {
+                return "col-lg-1";
             }
         };
         columns.add(column);
@@ -815,7 +833,7 @@ public class ColumnUtils {
         column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.state"), CaseType.F_STATE.getLocalPart(), "value.state") {
             @Override
             public String getCssClass() {
-                return isDashboard ? "col-md-1 col-sm-2" : super.getCssClass();
+                return "col-lg-1";
             }
 
             @Override
@@ -848,11 +866,68 @@ public class ColumnUtils {
                             Integer.toString(rowModel.getObject().getValue().getWorkItem().size()) : "");
                 }
 
+                @Override
+                public String getCssClass() {
+                    return "col-lg-1";
+                }
+
             };
             columns.add(column);
         }
 
         return columns;
+    }
+
+    private static void processCaseOutcome(CaseType caseType, Map<DisplayType, Integer> map, boolean useNullAsOne) {
+        if (caseType == null){
+            return;
+        }
+        Integer one = null;
+        if (!useNullAsOne) {
+            one = 1;
+        }
+        if(CaseTypeUtil.isApprovalCase(caseType)){
+            Boolean result = ApprovalUtils.approvalBooleanValueFromUri(caseType.getOutcome());
+            if (result == null) {
+                if (caseType.getCloseTimestamp() != null) {
+                    return;
+                } else {
+                    putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(ApprovalOutcomeIcon.IN_PROGRESS));
+                }
+            } else if (result){
+                putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(ApprovalOutcomeIcon.APPROVED));
+            } else {
+                putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(ApprovalOutcomeIcon.REJECTED));
+            }
+            return;
+        } if(CaseTypeUtil.isManualProvisioningCase(caseType)) {
+
+            if (StringUtils.isEmpty(caseType.getOutcome())) {
+                if (caseType.getCloseTimestamp() != null) {
+                    putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(OperationResultStatusPresentationProperties.UNKNOWN));
+                } else {
+                    putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(OperationResultStatusPresentationProperties.IN_PROGRESS));
+                }
+            } else {
+                OperationResultStatusType result;
+                try {
+                    result = OperationResultStatusType.fromValue(caseType.getOutcome());
+                } catch (IllegalArgumentException e) {
+                    putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(OperationResultStatusPresentationProperties.UNKNOWN));
+                    return;
+                }
+                OperationResultStatusPresentationProperties resultStatus = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result);
+                putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(resultStatus));
+            }
+        }
+    }
+
+    private static void putDisplayTypeToMapWithCount(Map<DisplayType, Integer> map, Integer one, DisplayType caseDisplayType){
+        if (map.containsKey(caseDisplayType)) {
+            map.merge(caseDisplayType, 1, Integer::sum);
+        } else {
+            map.put(caseDisplayType, one);
+        }
     }
 
     public static AbstractColumn<SelectableBean<CaseType>, String> createCaseActorsColumn(PageBase pageBase) {

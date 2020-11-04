@@ -47,7 +47,7 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
         return Arrays.asList(USER_ORG_MEMBER_FILE, USER_NOT_ORG_MEMBER_FILE, ORG_WITH_MEMBER_FILE);
     }
 
-    @Test
+    @Test (priority = 1)
     public void createOrgWithinMenuItem(){
         OrgPage newOrgPage = basicPage.newOrgUnit();
         newOrgPage
@@ -61,7 +61,7 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
         $(Schrodinger.byDataId("tabs-container")).find(By.linkText(ORG_NAME)).shouldBe(Condition.visible);
     }
 
-    @Test
+    @Test (dependsOnMethods = {"createOrgWithinMenuItem"}, priority = 2)
     public void assignDefaultRelationMember(){
         UserPage user = basicPage.newUser();
 
@@ -76,10 +76,28 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
                 .isSuccess());
 
         OrgTreePage orgTreePage = basicPage.orgStructure();
-
+        orgTreePage
+                .selectTabWithRootOrg(ORG_NAME)
+                    .getMemberPanel()
+                    .assignMember()
+                        .table()
+                            .search()
+                            .byName()
+                            .inputValue(USER_NAME)
+                            .updateSearch()
+                        .and()
+                        .selectCheckboxByName(USER_NAME)
+                    .and()
+                    .clickAdd();
+        orgTreePage = basicPage.orgStructure();
+        Assert.assertTrue(orgTreePage
+                .selectTabWithRootOrg(ORG_NAME)
+                    .getMemberPanel()
+                        .table()
+                        .containsLinksTextPartially(USER_NAME));
     }
 
-    @Test
+    @Test (priority = 3)
     public void assignExistingUserAsMember(){
         basicPage.orgStructure()
                     .selectTabWithRootOrg(ORG_WITH_MEMBER_NAME)

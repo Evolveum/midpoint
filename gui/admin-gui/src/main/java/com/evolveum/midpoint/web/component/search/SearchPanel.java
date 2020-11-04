@@ -12,6 +12,13 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+
+import com.evolveum.midpoint.prism.path.ItemPathComparatorUtil;
+import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
+
+import com.evolveum.midpoint.util.QNameUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -607,14 +614,18 @@ public class SearchPanel extends BasePanel<Search> {
 
                         MoreDialogDto dto = moreDialogModel.getObject();
 
-                        String propertyName = property.getName().toLowerCase();
+                        ItemPath propertyPath = property.getFullPath();
                         for (SearchItem searchItem : search.getItems()) {
-                            if (propertyName.equalsIgnoreCase(searchItem.getName())) {
+                            if (searchItem instanceof FilterSearchItem) {
+                                return true;
+                            }
+                            if (QNameUtil.match(propertyPath.lastName(), ((PropertySearchItem) searchItem).getPath().lastName())) {
                                 return false;
                             }
                         }
 
                         String nameFilter = dto.getNameFilter();
+                        String propertyName = property.getName().toLowerCase();
                         if (StringUtils.isNotEmpty(nameFilter)
                                 && !propertyName.contains(nameFilter.toLowerCase())) {
                             return false;

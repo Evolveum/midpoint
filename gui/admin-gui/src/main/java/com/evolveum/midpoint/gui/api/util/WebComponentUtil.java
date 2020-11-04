@@ -23,6 +23,7 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -735,12 +736,12 @@ public final class WebComponentUtil {
         return archetype.value().equals(archetypeRef.getOid());
     }
 
-    private static ObjectReferenceType getArchetypeReference(TaskType task) {
+    private static ObjectReferenceType getArchetypeReference(AssignmentHolderType assignmentHolder) {
         ObjectReferenceType archetypeRef = null;
-        if (task.getAssignment() == null || task.getAssignment().size() == 0) {
+        if (assignmentHolder.getAssignment() == null || assignmentHolder.getAssignment().size() == 0) {
             return archetypeRef;
         }
-        for (AssignmentType assignment : task.getAssignment()) {
+        for (AssignmentType assignment : assignmentHolder.getAssignment()) {
             if (StringUtils.isNotEmpty(assignment.getTargetRef().getOid())
                     && assignment.getTargetRef() != null && QNameUtil.match(assignment.getTargetRef().getType(), ArchetypeType.COMPLEX_TYPE)) {
                 archetypeRef = assignment.getTargetRef();
@@ -3755,6 +3756,15 @@ public final class WebComponentUtil {
     public static DisplayType createDisplayType(String iconCssClass) {
         return createDisplayType(iconCssClass, "", "");
     }
+
+    public static DisplayType createDisplayType(ApprovalOutcomeIcon caseIcon) {
+        return createDisplayType(caseIcon.getIcon(), "", caseIcon.getTitle());
+    }
+
+    public static DisplayType createDisplayType(OperationResultStatusPresentationProperties OperationIcon) {
+        return createDisplayType(OperationIcon.getIcon(), "", OperationIcon.getStatusLabelKey());
+    }
+
 
     public static DisplayType createDisplayType(String iconCssClass, String iconColor, String title) {
         DisplayType displayType = new DisplayType();
