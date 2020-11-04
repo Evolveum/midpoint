@@ -266,19 +266,22 @@ public class OperationResult
     }
 
     private static void recordStart(OperationResult result, String operation, Object[] arguments) {
-        if (result.isTraced()) {
-            result.collectingLogEntries = result.tracingProfile.isCollectingLogEntries();
-            if (result.collectingLogEntries) {
-                LoggingLevelOverrideConfiguration loggingOverrideConfiguration = result.tracingProfile.getLoggingLevelOverrideConfiguration();
-                if (loggingOverrideConfiguration != null && !LevelOverrideTurboFilter.isActive()) {
-                    LevelOverrideTurboFilter.overrideLogging(loggingOverrideConfiguration);
-                    result.startedLoggingOverride = true;
-                }
-                TracingAppender.openSink(result::appendLoggedEvents);
+        result.collectingLogEntries = result.tracingProfile != null && result.tracingProfile.isCollectingLogEntries();
+        if (result.collectingLogEntries) {
+            LoggingLevelOverrideConfiguration loggingOverrideConfiguration = result.tracingProfile.getLoggingLevelOverrideConfiguration();
+            if (loggingOverrideConfiguration != null && !LevelOverrideTurboFilter.isActive()) {
+                LevelOverrideTurboFilter.overrideLogging(loggingOverrideConfiguration);
+                result.startedLoggingOverride = true;
             }
-            result.invocationRecord = OperationInvocationRecord.create(operation, arguments, result.tracingProfile.isMeasureCpuTime());
-            result.invocationId = result.invocationRecord.getInvocationId();
+            TracingAppender.openSink(result::appendLoggedEvents);
         }
+        // TODO for very minor operation results (e.g. those dealing with mapping and script execution)
+        //  we should consider skipping creation of invocationRecord. It includes some string manipulation(s)
+        //  and a call to System.nanoTime that could unnecessarily slow down midPoint operation.
+        //  But beware, it would disable measurements of these operations e.g. in task internal performance info panel.
+        boolean measureCpuTime = result.tracingProfile != null && result.tracingProfile.isMeasureCpuTime();
+        result.invocationRecord = OperationInvocationRecord.create(operation, arguments, measureCpuTime);
+        result.invocationId = result.invocationRecord.getInvocationId();
         result.start = System.currentTimeMillis();
     }
 
