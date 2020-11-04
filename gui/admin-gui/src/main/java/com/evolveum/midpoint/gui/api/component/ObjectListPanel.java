@@ -140,12 +140,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
             public ObjectQuery getQuery() {
                 return createQuery();
             }
-
-            @Override
-            protected CompiledObjectCollectionView getCompiledObjectCollectionView() {
-                return getObjectCollectionView();
-            }
         };
+        provider.setCompiledObjectCollectionView(getObjectCollectionView());
         provider.setOptions(createOptions());
         setDefaultSorting(provider);
 

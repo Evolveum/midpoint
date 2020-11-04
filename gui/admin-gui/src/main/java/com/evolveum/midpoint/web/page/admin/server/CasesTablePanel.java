@@ -98,12 +98,8 @@ public abstract class CasesTablePanel extends MainObjectListPanel<CaseType> {
             public ObjectQuery getQuery() {
                 return createQuery();
             }
-
-            @Override
-            protected CompiledObjectCollectionView getCompiledObjectCollectionView() {
-                return getObjectCollectionView();
-            }
         };
+        provider.setCompiledObjectCollectionView(getObjectCollectionView());
         provider.setOptions(createOptions());
         provider.setSort(MetadataType.F_CREATE_TIMESTAMP.getLocalPart(), SortOrder.DESCENDING);
 

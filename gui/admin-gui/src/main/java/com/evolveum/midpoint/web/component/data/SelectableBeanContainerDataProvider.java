@@ -55,6 +55,7 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
 
     private boolean emptyListOnNullQuery = false;
     private boolean useObjectCounting = true;
+    private CompiledObjectCollectionView objectCollectionView;
 
     // we use special options when exporting to CSV (due to bulk nature of the operation)
     private boolean export;
@@ -326,6 +327,10 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
     }
 
     protected CompiledObjectCollectionView getCompiledObjectCollectionView() {
-        return null;
+        return objectCollectionView;
+    }
+
+    public void setCompiledObjectCollectionView(CompiledObjectCollectionView objectCollectionView) {
+        this.objectCollectionView = objectCollectionView;
     }
 }

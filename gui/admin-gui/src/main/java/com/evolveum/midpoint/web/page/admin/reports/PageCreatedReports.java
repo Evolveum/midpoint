@@ -202,12 +202,8 @@ public class PageCreatedReports extends PageAdmin {
                     public ObjectQuery getQuery() {
                         return createQuery();
                     }
-
-                    @Override
-                    protected CompiledObjectCollectionView getCompiledObjectCollectionView() {
-                        return getObjectCollectionView();
-                    }
                 };
+                provider.setCompiledObjectCollectionView(getObjectCollectionView());
                 provider.setOptions(createOptions());
                 return provider;
             }
