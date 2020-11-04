@@ -39,7 +39,7 @@ public class ObjectListArchetypeTests extends AbstractSchrodingerTest {
     private static final File EMPLOYEE_ARCHETYPE_FILE = new File("src/test/resources/configuration/objects/archetypes/archetype-employee.xml");
     private static final String ARCHETYPE_OBJECT_NAME = "Employee";
     private static final String ARCHETYPE_PLURAL_LABEL = "Employees";
-    private static final String ARCHETYPE_ICON_CSS_STYLE = "fa fa-male";
+    private static final String ARCHETYPE_ICON_CSS_STYLE = ".fa.fa-male";
     private static final String EMPLOYEE_USER_NAME_VALUE = "TestEmployee";
 
     public static final String OBJECT_LIST_ARCHETYPE_TESTS_GROUP = "ObjectListArchetypeTests";
@@ -118,24 +118,12 @@ public class ObjectListArchetypeTests extends AbstractSchrodingerTest {
     public void checkNewObjectButtonWithDropdown(){
         Selenide.sleep(5000);
         ListUsersPage userListPage = basicPage.listUsers();
-        Assert.assertTrue(userListPage
-                            .table()
-                                .getToolbarButton("fa fa-plus")
-                                .exists());
-
-        SelenideElement newObjectButton = userListPage
+        Assert.assertEquals(userListPage
                 .table()
-                    .getToolbarButton("fa fa-plus");
-
-        newObjectButton.waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
-        newObjectButton
-                    .$(Schrodinger.byElementAttributeValue("i", "class", ARCHETYPE_ICON_CSS_STYLE))
-                    .exists();
-
-        newObjectButton
-                .$(Schrodinger.byElementAttributeValue("i", "class", "fa fa-user")) //standard user icon
-                .exists();
+                .countDropdownButtonChildrenButtons("fa fa-plus"), 2);
+        userListPage
+                .table()
+                    .newObjectCollectionButtonClickPerformed("fa fa-plus", ARCHETYPE_ICON_CSS_STYLE);
     }
 
 }

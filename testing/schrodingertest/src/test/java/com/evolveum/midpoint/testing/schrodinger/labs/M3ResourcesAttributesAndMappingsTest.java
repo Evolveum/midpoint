@@ -14,6 +14,7 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
+import com.evolveum.midpoint.schrodinger.component.resource.ResourceConfigurationTab;
 import com.evolveum.midpoint.schrodinger.page.resource.AccountPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ResourceWizardPage;
@@ -59,30 +60,18 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
 
         ListResourcesPage resourcesList = basicPage.listResources();
 
-        resourcesList
+        PrismForm<ResourceConfigurationTab> configTab = resourcesList
                 .table()
-                    .clickByName(CSV_1_RESOURCE_NAME)
-                        .clickEditResourceConfiguration();
-
-        SelenideElement uniqueAttributeField = $(Schrodinger.byDataResourceKey(UNIQUE_ATTRIBUTE_RESOURCE_KEY))
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-
+                .clickByName(CSV_1_RESOURCE_NAME)
+                    .clickEditResourceConfiguration()
+                    .form();
         // Unique attribute name should be login
-        Assert.assertTrue(uniqueAttributeField
-                .$(By.tagName("input"))
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S)
-                .getValue()
-                .equals(CSV_1_UNIQUE_ATTRIBUTE_NAME));
-
-        SelenideElement passwordAttributeField = $(Schrodinger.byDataResourceKey(PASSWORD_ATTRIBUTE_RESOURCE_KEY))
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
+        Assert.assertTrue(configTab
+                            .compareInputAttributeValue(UNIQUE_ATTRIBUTE_NAME, CSV_1_UNIQUE_ATTRIBUTE_NAME));
 
         // Password attribute name should be password
-        Assert.assertTrue(passwordAttributeField
-                .$(By.tagName("input"))
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S)
-                .getValue()
-                .equals(CSV_1_PASSWORD_ATTRIBUTE_NAME));
+        Assert.assertTrue(configTab
+                .compareInputAttributeValue(PASSWORD_ATTRIBUTE_NAME, CSV_1_PASSWORD_ATTRIBUTE_NAME));
 
         ResourceWizardPage resourceWizard = basicPage.listResources()
                 .table()

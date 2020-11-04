@@ -25,12 +25,15 @@ public class BulkActionsTest extends AbstractSchrodingerTest {
     @Test
     public void wrongBulkActionXmlExecution(){
         BulkActionsPage bulkActionsPage = basicPage.bulkActions();
-        bulkActionsPage
+        Assert.assertTrue(bulkActionsPage
                 .insertOneLineTextIntoEditor("<objects></objects>")
-                .startButtonClick();
+                .startButtonClick()
+                .feedback()
+                .isError());
 
-        $(By.linkText(PARSING_ERROR_MESSAGE))
-                .shouldBe(Condition.visible);
+        Assert.assertTrue(bulkActionsPage
+                            .feedback()
+                            .doesMessageExist(PARSING_ERROR_MESSAGE));
 
         Assert.assertTrue(bulkActionsPage.isAceEditorVisible());
     }

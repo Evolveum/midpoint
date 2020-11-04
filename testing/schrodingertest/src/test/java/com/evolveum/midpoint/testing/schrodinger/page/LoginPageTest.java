@@ -62,14 +62,15 @@ public class LoginPageTest extends AbstractLoginPageTest {
     @Test
     public void test030resetPassowordMailNonce() throws IOException, InterruptedException {
         basicPage.loggedUser().logoutIfUserIsLogin();
+
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         FormLoginPage login = midPoint.formLogin();
         open("/login");
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         open("/");
-        login.forgotPassword();
-        $(Schrodinger.byDataId("email")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).setValue(MAIL_OF_ENABLED_USER);
-        $(Schrodinger.byDataId("submitButton")).click();
+        login.forgotPassword()
+                .setEmailValue(MAIL_OF_ENABLED_USER)
+                .clickSubmitButton();
         TimeUnit.SECONDS.sleep(6);
         String notification = readLastNotification();
         String bodyTag = "body='";
@@ -89,10 +90,10 @@ public class LoginPageTest extends AbstractLoginPageTest {
         login.loginWithReloadLoginPage("administrator", "5ecr3t");
         addObjectFromFile(SEC_QUES_RESET_PASS_SECURITY_POLICY);
         basicPage.loggedUser().logoutIfUserIsLogin();
-        login.forgotPassword();
-        $(Schrodinger.byDataId("username")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).setValue(NAME_OF_ENABLED_USER);
-        $(Schrodinger.byDataId("email")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).setValue(MAIL_OF_ENABLED_USER);
-        $(Schrodinger.byDataId("submitButton")).click();
+        login.forgotPassword()
+                .setUsernameValue(NAME_OF_ENABLED_USER)
+                .setEmailValue(MAIL_OF_ENABLED_USER)
+                .clickSubmitButton();
         $(Schrodinger.byDataId("answerTF")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).setValue("10");
         $(Schrodinger.byDataId("send")).click();
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);

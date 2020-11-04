@@ -56,9 +56,10 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
                     .addAttributeValue("name", ORG_NAME)
                     .and()
                 .and()
-                .clickSave();
-        Selenide.sleep(2000);
-        $(Schrodinger.byDataId("tabs-container")).find(By.linkText(ORG_NAME)).shouldBe(Condition.visible);
+                .clickSave()
+                .feedback()
+                .isSuccess();
+        Assert.assertTrue(basicPage.orgStructure().doesRootOrgExists(ORG_NAME));
     }
 
     @Test (dependsOnMethods = {"createOrgWithinMenuItem"}, priority = 2)

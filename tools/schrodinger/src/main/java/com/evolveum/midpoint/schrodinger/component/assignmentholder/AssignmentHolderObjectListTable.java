@@ -93,6 +93,31 @@ public abstract class AssignmentHolderObjectListTable<P, PD extends AssignmentHo
         return getObjectDetailsPage();
     }
 
+    public PD newObjectCollectionButtonClickPerformed(String mainButtonIconCssClass, String objCollectionButtonIconCssClass){
+        SelenideElement mainButtonElement = getToolbarButton(mainButtonIconCssClass)
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+        mainButtonElement.click();
+        mainButtonElement.parent().$(By.cssSelector(objCollectionButtonIconCssClass))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .click();
+        Selenide.sleep(2000);
+        return getObjectDetailsPage();
+    }
+
+    public int countDropdownButtonChildrenButtons(String mainButtonIconCssClass) {
+        SelenideElement mainButtonElement = getToolbarButton(mainButtonIconCssClass)
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+        mainButtonElement.click();
+        if (mainButtonElement.exists()) {
+            ElementsCollection childrenButtonCollection = mainButtonElement.parent()
+                    .$(By.cssSelector(".dropdown-menu.auto-width"))
+                    .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                    .findAll(By.tagName("i"));
+            return childrenButtonCollection != null ? childrenButtonCollection.size() : 0;
+        }
+        return 0;
+    }
+
     public abstract PD getObjectDetailsPage();
 
     protected String getNameColumnLabel() {
