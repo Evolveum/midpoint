@@ -16,6 +16,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.impl.match.MatchingRuleRegistryFactory;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+
 import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.BeforeSuite;
 import org.xml.sax.SAXException;
@@ -46,6 +49,8 @@ public class AbstractSchemaPerformanceTest extends AbstractUnitTest {
     protected static final String NS_FOO = "http://www.example.com/foo";
 
     private final long runId = System.currentTimeMillis();
+
+    MatchingRuleRegistry matchingRuleRegistry = MatchingRuleRegistryFactory.createRegistry();
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
