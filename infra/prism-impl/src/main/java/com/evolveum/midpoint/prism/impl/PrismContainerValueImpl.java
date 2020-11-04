@@ -1673,16 +1673,25 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
         if (ItemPath.isIdentifier(first)) {
             return singleton(new PrismPropertyValueImpl<>(getIdentifier()));
         } else if (ItemPath.isName(first)) {
-            Item<PrismValue, ItemDefinition> item = findItem(path.firstToName());
+            //noinspection unchecked
+            Item<?, ?> item = findItem(path.firstToName(), Item.class);
             if (item == null) {
                 return emptySet();
+            } else {
+                ItemPath rest = path.rest();
+                List<? extends PrismValue> values = item.getValues();
+                if (values.isEmpty()) {
+                    return emptySet();
+                } else if (values.size() == 1) {
+                    return values.get(0).getAllValues(rest); // unsafe but we avoid using unmodifiable collection because of performance
+                } else {
+                    List<PrismValue> rv = new ArrayList<>();
+                    for (PrismValue prismValue : values) {
+                        rv.addAll(prismValue.getAllValues(rest));
+                    }
+                    return rv;
+                }
             }
-            ItemPath rest = path.rest();
-            List<PrismValue> rv = new ArrayList<>();
-            for (PrismValue prismValue : item.getValues()) {
-                rv.addAll(prismValue.getAllValues(rest));
-            }
-            return rv;
         } else {
             throw new IllegalArgumentException("Item paths does not start with a name nor with '#': " + path);
         }

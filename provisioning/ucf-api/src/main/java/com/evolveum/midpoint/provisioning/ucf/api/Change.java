@@ -203,6 +203,15 @@ public final class Change implements DebugDumpable {
     }
 
     public String getOid() {
+        String oid = guessOid();
+        if (oid != null) {
+            return oid;
+        } else {
+            throw new IllegalArgumentException("No oid value defined for the object to synchronize.");
+        }
+    }
+
+    public String guessOid() {
         if (objectDelta != null && objectDelta.getOid() != null) {
             return objectDelta.getOid();
         } else if (currentResourceObject.getOid() != null) {
@@ -210,7 +219,7 @@ public final class Change implements DebugDumpable {
         } else if (oldRepoShadow.getOid() != null) {
             return oldRepoShadow.getOid();
         } else {
-            throw new IllegalArgumentException("No oid value defined for the object to synchronize.");
+            return null;
         }
     }
 

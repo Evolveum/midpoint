@@ -289,7 +289,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
     @Override
     public void fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
             AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter,
-            ChangeHandler changeHandler, OperationResult parentResult) {
+            LiveSyncChangeListener changeHandler, OperationResult parentResult) {
         // not supported
     }
 

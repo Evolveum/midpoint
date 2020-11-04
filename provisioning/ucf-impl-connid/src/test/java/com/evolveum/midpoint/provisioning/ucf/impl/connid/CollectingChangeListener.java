@@ -9,8 +9,10 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
-import com.evolveum.midpoint.provisioning.ucf.api.ChangeHandler;
+import com.evolveum.midpoint.provisioning.ucf.api.LiveSyncChangeListener;
 import com.evolveum.midpoint.schema.result.OperationResult;
+
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,25 +20,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
+ * A change listener that simply collects changes that arrive.
  */
-class CollectingChangeHandler implements ChangeHandler {
-    private List<Change> changes = new ArrayList<>();
+@VisibleForTesting
+class CollectingChangeListener implements LiveSyncChangeListener {
+    private final List<Change> changes = new ArrayList<>();
 
     @Override
-    public boolean handleChange(Change change, OperationResult result) {
+    public boolean onChange(Change change, OperationResult result) {
         changes.add(change);
         return true;
     }
 
     @Override
-    public boolean handleError(PrismProperty<?> token, @Nullable Change change,
+    public boolean onChangePreparationError(PrismProperty<?> token, @Nullable Change change,
             @NotNull Throwable exception, @NotNull OperationResult result) {
         return false;
     }
 
     @Override
-    public void handleAllChangesFetched(PrismProperty<?> finalToken, OperationResult result) {
+    public void onAllChangesFetched(PrismProperty<?> finalToken, OperationResult result) {
     }
 
     public List<Change> getChanges() {

@@ -242,54 +242,12 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
         return false;
     }
 
-    // TODO revise
     @Override
-    public boolean match(PrismContainerValue cvalue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-
-        Collection<PrismValue> objectItemValues = getObjectItemValues(cvalue);
-
-        boolean filterItemIsEmpty = getValues() == null || getValues().isEmpty();
-        boolean objectItemIsEmpty = objectItemValues.isEmpty();
-
-        if (filterItemIsEmpty && !objectItemIsEmpty) {
-            return false;
-        }
-
-        if (!filterItemIsEmpty && objectItemIsEmpty) {
-            return false;
-        }
-
-        return true;
-    }
+    public abstract boolean match(PrismContainerValue cvalue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException;
 
     @NotNull
     Collection<PrismValue> getObjectItemValues(PrismContainerValue value) {
-        return value.getAllValues(getFullPath());
-    }
-
-    // TODO revise
-    @NotNull
-    Item getFilterItem() throws SchemaException {
-        if (getDefinition() == null) {
-            throw new SchemaException("Could not find definition for item " + getPath());
-        }
-        Item filterItem = getDefinition().instantiate();
-        if (getValues() != null && !getValues().isEmpty()) {
-            try {
-                for (PrismValue v : getValues()) {
-                    filterItem.add(v.clone());
-                }
-            } catch (SchemaException e) {
-                throw new IllegalArgumentException(e.getMessage(), e);
-            }
-        }
-        return filterItem;
-    }
-
-    @NotNull
-    Collection<PrismValue> getFilterItemValues() throws SchemaException {
-        //noinspection unchecked
-        return getFilterItem().getValues();
+        return value.getAllValues(fullPath);
     }
 
     @Override

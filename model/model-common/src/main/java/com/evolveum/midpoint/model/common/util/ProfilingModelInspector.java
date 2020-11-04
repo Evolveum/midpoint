@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.model.common.util;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +18,6 @@ import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.util.ClockworkInspector;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryPerformanceMonitor;
 import com.evolveum.midpoint.schema.util.DiagnosticContext;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -35,7 +33,7 @@ public class ProfilingModelInspector implements DiagnosticContext, ClockworkInsp
 
     protected static final Trace LOGGER = TraceManager.getTrace(ProfilingModelInspector.class);
 
-    private Runtimes totalOperationTimes = new Runtimes();
+    private final Runtimes totalOperationTimes = new Runtimes();
     private Runtimes totalClockworkTimes = new Runtimes();
     private Map<ModelState, Runtimes> clockworkStateTimes = new HashMap<>();
     private Map<ModelState, Runtimes> projectorTimes = new HashMap<>();
@@ -43,32 +41,31 @@ public class ProfilingModelInspector implements DiagnosticContext, ClockworkInsp
     private long totalMappingTimeMillis = 0;
     private long projectorMappingTotalMillis = 0;
     private long projectorMappingTotalCount = 0;
-    private ModelContext lastLensContext;
+    private ModelContext<?> lastLensContext;
     private ModelState currentState = null;
     private long totalRepoTime = 0;
 
-    static class Runtimes {
-        long startTime = 0;
-        long finishTime = 0;
+    private static class Runtimes {
+        private long startTime = 0;
+        private long finishTime = 0;
 
-        long etime() {
+        private long etime() {
             return finishTime - startTime;
         }
 
-        String etimeStr() {
+        private String etimeStr() {
             return etime() + " ms";
         }
     }
 
-    static class PartRuntime {
+    private static class PartRuntime {
 
-        public PartRuntime(String part) {
-            super();
+        private PartRuntime(String part) {
             this.part = part;
         }
 
-        String part;
-        Runtimes runtimes = new Runtimes();
+        private final String part;
+        private final Runtimes runtimes = new Runtimes();
     }
 
     public void recordStart() {
@@ -170,8 +167,7 @@ public class ProfilingModelInspector implements DiagnosticContext, ClockworkInsp
         lastLensContext = context;
     }
 
-    @SuppressWarnings("unchecked")
-    public <F extends ObjectType> ModelContext<F> getLastLensContext() {
+    public ModelContext<?> getLastLensContext() {
         return lastLensContext;
     }
 
@@ -197,10 +193,10 @@ public class ProfilingModelInspector implements DiagnosticContext, ClockworkInsp
         }
     }
 
-    private PartRuntime findPartRuntime(List<PartRuntime> partList, String componenetName) {
+    private PartRuntime findPartRuntime(List<PartRuntime> partList, String componentName) {
         for (int i = partList.size() - 1; i >= 0; i--) {
             PartRuntime partRuntime = partList.get(i);
-            if (partRuntime.part.equals(componenetName)) {
+            if (partRuntime.part.equals(componentName)) {
                 return partRuntime;
             }
         }
@@ -209,8 +205,6 @@ public class ProfilingModelInspector implements DiagnosticContext, ClockworkInsp
 
     @Override
     public void projectorComponentSkip(String componentName) {
-        // TODO Auto-generated method stub
-
     }
 
     @Override

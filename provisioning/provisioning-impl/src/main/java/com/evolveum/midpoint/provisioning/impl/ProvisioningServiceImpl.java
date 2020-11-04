@@ -365,9 +365,12 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             throw new GenericConnectorException(e.getMessage(), e);
         }
 
-        if (liveSyncResult.isHaltingErrorEncountered()) {
+        if (liveSyncResult.isSuspendEncountered()) {
+            // FIXME Very dirty "solution". We want to make sure the task will be suspended/closed.
+            throw new SystemException("Object could not be processed and error handling strategy directed the task to suspend/close");
+        } else if (liveSyncResult.isHaltingErrorEncountered()) {
             // TODO MID-5514
-            result.recordPartialError("Object could not be processed and 'retryLiveSyncErrors' is true");
+            result.recordPartialError("Object could not be processed and error handling strategy directed the task to stop (but continue trying later)");
         } else if (liveSyncResult.getErrors() > 0) {
             result.recordPartialError("Errors while processing: " + liveSyncResult.getErrors() + " out of " + liveSyncResult.getChangesProcessed());
         } else {
@@ -377,6 +380,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         // This is a brutal hack for thresholds in LiveSync tasks: it propagates ThresholdPolicyViolationException to upper layers.
         // FIXME Get rid of this as soon as possible! MID-5940
+        // TODO reconcile thresholds and error handling strategy stopAfter property
         if (liveSyncResult.getExceptionEncountered() instanceof ThresholdPolicyViolationException) {
             throw (ThresholdPolicyViolationException) liveSyncResult.getExceptionEncountered();
         }

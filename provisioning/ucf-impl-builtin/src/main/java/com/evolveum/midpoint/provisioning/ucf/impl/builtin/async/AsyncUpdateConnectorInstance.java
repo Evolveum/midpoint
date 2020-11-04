@@ -11,7 +11,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncUpdateSource;
-import com.evolveum.midpoint.provisioning.ucf.api.async.ChangeListener;
+import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncChangeListener;
 import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManagedConnectorInstance;
 import com.evolveum.midpoint.repo.api.RepositoryAware;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -138,7 +138,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
     }
 
     @Override
-    public void listenForChanges(@NotNull ChangeListener changeListener, @NotNull Supplier<Boolean> canRunSupplier,
+    public void listenForChanges(@NotNull AsyncChangeListener changeListener, @NotNull Supplier<Boolean> canRunSupplier,
             @NotNull OperationResult parentResult) throws SchemaException {
 
         // TODO implement some synchronization here (but note that listeningState.stop() can take some time)
@@ -314,7 +314,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
     @Override
     public void fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
             AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter,
-            ChangeHandler changeHandler, OperationResult parentResult) {
+            LiveSyncChangeListener changeHandler, OperationResult parentResult) {
     }
 
     //endregion
