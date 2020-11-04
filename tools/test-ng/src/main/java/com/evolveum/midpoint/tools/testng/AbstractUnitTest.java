@@ -23,6 +23,17 @@ public abstract class AbstractUnitTest implements MidpointTestMixin {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
+    private TestMonitor testMonitor;
+
+    // called only by tests that need it
+    public void initializeTestMonitor() {
+        testMonitor = new TestMonitor();
+    }
+
+    public TestMonitor testMonitor() {
+        return testMonitor;
+    }
+
     @BeforeClass
     public void displayTestClassTitle() {
         displayTestTitle("Initializing TEST CLASS: " + getClass().getName());

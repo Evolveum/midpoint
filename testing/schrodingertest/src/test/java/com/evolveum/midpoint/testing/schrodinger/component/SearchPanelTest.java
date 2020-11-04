@@ -43,6 +43,9 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
     private static final File SEARCH_BY_ROLE_MEMBERSHIP_OID_ROLE_FILE = new File(COMPONENT_ROLES_DIRECTORY + "role-membership-search-by-oid.xml");
     private static final File SEARCH_BY_ROLE_MEMBERSHIP_TYPE_ORG_FILE = new File(COMPONENT_ORGS_DIRECTORY + "org-membership-search-by-type.xml");
     private static final File SEARCH_BY_ROLE_MEMBERSHIP_RELATIONS_ROLE_FILE = new File(COMPONENT_ROLES_DIRECTORY + "role-membership-search-by-relation.xml");
+    private static final File SYSTEM_CONFIG_WITH_CONFIGURED_USER_SEARCH = new File("./src/test/resources/configuration/objects/systemconfig/system-configuration-with-configured-user-search.xml");
+    private static final File USER_WITH_EMPLOYEE_NUMBER_FILE = new File(COMPONENT_USERS_DIRECTORY + "user-with-employee-number.xml");
+    private static final File USER_WITH_EMAIL_ADDRESS_FILE = new File(COMPONENT_USERS_DIRECTORY + "user-with-email-address.xml");
 
     private static final String NAME_ATTRIBUTE = "Name";
     private static final String GIVEN_NAME_ATTRIBUTE = "Given name";
@@ -57,7 +60,8 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
         return Arrays.asList(SEARCH_BY_NAME_USER_FILE, SEARCH_BY_GIVEN_NAME_USER_FILE, SEARCH_BY_FAMILY_NAME_USER_FILE,
                 REQUESTABLE_ROLE_FILE, DISABLED_ROLE_FILE, SEARCH_BY_ROLE_MEMBERSHIP_NAME_USER_FILE, SEARCH_BY_ROLE_MEMBERSHIP_OID_USER_FILE,
                 SEARCH_BY_ROLE_MEMBERSHIP_TYPE_USER_FILE, SEARCH_BY_ROLE_MEMBERSHIP_RELATION_USER_FILE, SEARCH_BY_ROLE_MEMBERSHIP_NAME_ROLE_FILE,
-                SEARCH_BY_ROLE_MEMBERSHIP_OID_ROLE_FILE, SEARCH_BY_ROLE_MEMBERSHIP_TYPE_ORG_FILE, SEARCH_BY_ROLE_MEMBERSHIP_RELATIONS_ROLE_FILE);
+                SEARCH_BY_ROLE_MEMBERSHIP_OID_ROLE_FILE, SEARCH_BY_ROLE_MEMBERSHIP_TYPE_ORG_FILE, SEARCH_BY_ROLE_MEMBERSHIP_RELATIONS_ROLE_FILE,
+                SYSTEM_CONFIG_WITH_CONFIGURED_USER_SEARCH, USER_WITH_EMPLOYEE_NUMBER_FILE, USER_WITH_EMAIL_ADDRESS_FILE);
     }
 
     @Test
@@ -181,6 +185,24 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
         Assert.assertEquals(1, table.countTableObjects());
         Assert.assertTrue(table.containsLinksTextPartially("testUserWithRoleMembershipSearchByName"));
         Assert.assertTrue(search.byItemName(ROLE_MEMBERSHIP_ATTRIBUTE).matchRefSearchFieldValue(REF_SEARCH_FIELD_VALUE));
+    }
+
+    @Test
+    public void test0090configuredAttributesSearch() {
+        UsersPageTable table = basicPage.listUsers().table();
+        Search<UsersPageTable> search = (Search<UsersPageTable>) table.search();
+        search.byItemName("By employee number", false)
+                .inputValue("544")
+                .updateSearch();
+        Assert.assertEquals(table.countTableObjects(), 1);
+        Assert.assertTrue(table.containsLinksTextPartially("searchByEmployeeNumberUser"));
+
+        search.clearTextSearchItemByNameAndUpdate("By employee number");
+        search.byItemName("By email", false)
+                .inputValue("testEmailAddress@test.com")
+                .updateSearch();
+        Assert.assertEquals(table.countTableObjects(), 1);
+        Assert.assertTrue(table.containsLinksTextPartially("searchByEmailAddressUser"));
     }
 
 }

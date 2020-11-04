@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+~ Copyright (c) 2010-2020 Evolveum and contributors
+~
+~ This work is dual-licensed under the Apache License 2.0
+~ and European Union Public License. See LICENSE file for details.
+-->
+
+<user oid="f3bbfd5e-f237-4772-94sd-18gr3d6e4gaa"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>searchByEmailAddressUser</name>
+    <emailAddress>testEmailAddress@test.com</emailAddress>
+</user>
+

@@ -50,8 +50,7 @@ abstract public class TabWithTableAndPrismView<P> extends Component<P> {
             }
 
             public AbstractTableWithPrismView<T> removeByName(String name) {
-                $(By.cssSelector(".fa.fa-minus")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
+                rowByColumnLabel("Name", name).getInlineMenu().clickInlineMenuButtonByIconClass(".fa.fa-minus");
                 return this;
             }
         };
