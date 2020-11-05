@@ -18,13 +18,9 @@ import javax.xml.datatype.XMLGregorianCalendar;
  */
 public class AuditLogStorage implements PageStorage {
     private AuditEventRecordType auditRecord;
-    private AuditSearchDto searchDto;
-    private long pageNumber = 0;
     private ObjectPaging auditLogPaging;
 
     private Search search;
-    private XMLGregorianCalendar fromDate;
-    private XMLGregorianCalendar toDate;
 
     public AuditLogStorage() {
     }
@@ -35,41 +31,6 @@ public class AuditLogStorage implements PageStorage {
 
     public void setSearch(Search search) {
         this.search = search;
-    }
-
-    public AuditSearchDto getSearchDto() {
-        if (searchDto == null){
-            searchDto = new AuditSearchDto();
-        }
-        return searchDto;
-    }
-
-    public void setSearchDto(AuditSearchDto searchDto) {
-        this.searchDto = searchDto;
-    }
-
-    public long getPageNumber() {
-        return pageNumber;
-    }
-
-    public void setPageNumber(long pageNumber) {
-        this.pageNumber = pageNumber;
-    }
-
-    public XMLGregorianCalendar getFromDate() {
-        return fromDate;
-    }
-
-    public void setFromDate(XMLGregorianCalendar fromDate) {
-        this.fromDate = fromDate;
-    }
-
-    public XMLGregorianCalendar getToDate() {
-        return toDate;
-    }
-
-    public void setToDate(XMLGregorianCalendar toDate) {
-        this.toDate = toDate;
     }
 
     @Override

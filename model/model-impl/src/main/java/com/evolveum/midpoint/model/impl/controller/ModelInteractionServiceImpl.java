@@ -1829,7 +1829,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Override
     @Experimental
     @NotNull
-    public CompiledObjectCollectionView compileObjectCollectionView(@NotNull CollectionRefSpecificationType collectionRef, @Nullable Class<? extends ObjectType> targetTypeClass, @NotNull Task task, @NotNull OperationResult result)
+    public CompiledObjectCollectionView compileObjectCollectionView(@NotNull CollectionRefSpecificationType collectionRef, @Nullable Class<? extends Containerable> targetTypeClass, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
         return collectionProcessor.compileObjectCollectionView(collectionRef, targetTypeClass, task, result);

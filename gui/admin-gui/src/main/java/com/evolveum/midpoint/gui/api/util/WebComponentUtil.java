@@ -4542,7 +4542,7 @@ public final class WebComponentUtil {
         }
 
         for (CompiledObjectCollectionView view : views) {
-            if (QNameUtil.match(type, view.getObjectType())) {
+            if (QNameUtil.match(type, view.getContainerType())) {
                 if (view.getRefreshInterval() != null) {
                     return true;
                 }

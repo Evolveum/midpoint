@@ -385,7 +385,7 @@ public class HtmlController extends FileFormatController {
         Class<ObjectType> type = resolveType(collection, compiledCollection);
         Collection<SelectorOptions<GetOperationOptions>> options = DefaultColumnUtils.createOption(type, getReportService().getSchemaHelper());
         List<PrismObject<ObjectType>> values = getReportService().getDashboardService()
-                .searchObjectFromCollection(collection, compiledCollection.getObjectType(), options, task, result);
+                .searchObjectFromCollection(collection, compiledCollection.getContainerType(), options, task, result);
         if (values == null || values.isEmpty()) {
             if (recordProgress) {
                 values = new ArrayList<>();

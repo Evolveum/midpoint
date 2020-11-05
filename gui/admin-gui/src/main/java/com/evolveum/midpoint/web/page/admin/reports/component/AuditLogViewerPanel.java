@@ -21,6 +21,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -130,11 +131,13 @@ public class AuditLogViewerPanel extends BasePanel {
 
             @Override
             protected Search createSearch() {
-                AuditLogStorage storage = (AuditLogStorage) getPageStorage(getStorageKey());
+                AuditLogStorage storage = (AuditLogStorage) getPageStorage();
                 Search search = SearchFactory.createContainerSearch(getType(), AuditEventRecordType.F_TIMESTAMP, getPageBase());
                 DateSearchItem timestampItem = (DateSearchItem) search.findPropertySearchItem(AuditEventRecordType.F_TIMESTAMP);
-                timestampItem.setFromDate(storage.getFromDate());
-                timestampItem.setToDate(storage.getToDate());
+                if (timestampItem.getFromDate() == null && timestampItem.getToDate() == null) {
+                    Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
+                    timestampItem.setFromDate(MiscUtil.asXMLGregorianCalendar(todayDate));
+                }
                 return search;
             }
 

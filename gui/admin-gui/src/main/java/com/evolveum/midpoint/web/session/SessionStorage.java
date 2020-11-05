@@ -216,12 +216,10 @@ public class SessionStorage implements Serializable, DebugDumpable {
         }
         if (key.startsWith(KEY_OBJECT_LIST)) {
             pageStorage = new ObjectListStorage();
-            pageStorageMap.put(key, pageStorage);
         } else if (KEY_ORG_MEMBER_PANEL.equals(key)
                 || KEY_ROLE_MEMBER_PANEL.equals(key)
                 || KEY_SERVICE_MEMBER_PANEL.equals(key)) {
             pageStorage = new MemberPanelStorage();
-            pageStorageMap.put(key, pageStorage);
         } else if (KEY_ASSIGNMENTS_TAB.equals(key)
                 || KEY_INDUCEMENTS_TAB.equals(key)
                 || KEY_CASE_EVENTS_TAB.equals(key)
@@ -234,6 +232,11 @@ public class SessionStorage implements Serializable, DebugDumpable {
                 || KEY_LOGGING_TAB_LOGGER_TABLE.equals(key)
                 || KEY_FOCUS_PROJECTION_TABLE.equals(key)){
             pageStorage = getContainerTabStorage(key);
+        } else if (KEY_AUDIT_LOG.equals(key)) {
+            pageStorage = new AuditLogStorage();
+        }
+        if (pageStorage != null) {
+            pageStorageMap.put(key, pageStorage);
         }
         return pageStorage;
         //TODO: fixme
