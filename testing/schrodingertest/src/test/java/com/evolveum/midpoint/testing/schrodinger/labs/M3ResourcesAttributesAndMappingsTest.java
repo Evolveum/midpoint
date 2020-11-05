@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.labs;
 
-import com.codeborne.selenide.Condition;
-
 import com.codeborne.selenide.Selenide;
-import com.codeborne.selenide.SelenideElement;
 
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schrodinger.MidPoint;
@@ -18,15 +15,14 @@ import com.evolveum.midpoint.schrodinger.component.resource.ResourceConfiguratio
 import com.evolveum.midpoint.schrodinger.page.resource.AccountPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ResourceWizardPage;
+import com.evolveum.midpoint.schrodinger.page.resource.SchemaStepSchemaTab;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
-import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.commons.io.FileUtils;
-import org.openqa.selenium.By;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -34,8 +30,6 @@ import org.testng.annotations.Test;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
-
-import static com.codeborne.selenide.Selenide.$;
 
 /**
  * @author skublik
@@ -78,39 +72,20 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
                     .clickByName(CSV_1_RESOURCE_NAME)
                         .clickShowUsingWizard();
 
-        //wizard should appear
-        Assert.assertTrue($(By.className("wizard"))
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S)
-                .exists());
-
-        Assert.assertTrue($(Schrodinger.byDataId("readOnlyNote"))
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S)
-                .exists());
+        Assert.assertTrue(resourceWizard.isReadonlyMode());
 
         //Configuration tab
-        resourceWizard.clickOnWizardTab("Configuration");
-        Assert.assertTrue($(Schrodinger.byDataId("configuration"))
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S)
-                .exists());
+        Assert.assertTrue(resourceWizard.selectConfigurationStep().getParentElement().exists());
 
         //Schema tab
-        resourceWizard.clickOnWizardTab("Schema");
-        Assert.assertTrue($(By.linkText("Schema"))
-                .shouldBe(Condition.visible)
-                .exists());
-        $(By.linkText(CSV_1_ACCOUNT_OBJECT_CLASS_LINK))
-                .shouldBe(Condition.visible)
-                .click();
-        //Attributes table visibility check
-        Assert.assertTrue($(Schrodinger.byDataId("attributeTable"))
-                .shouldBe(Condition.visible)
-                .exists());
+        SchemaStepSchemaTab schemaStepSchemaTab = resourceWizard
+                .selectSchemaStep()
+                .selectSchemaTab();
+        Assert.assertTrue(schemaStepSchemaTab.isObjectClassPresent(CSV_1_ACCOUNT_OBJECT_CLASS_LINK));
 
         //check resource attributes are present
         CSV_1_RESOURCE_ATTRIBUTES.forEach(attr ->
-                Assert.assertTrue($(Schrodinger.byElementValue("div", attr))
-                        .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
-                        .exists()));
+                Assert.assertTrue(schemaStepSchemaTab.getAttributesTable().containsText(attr)));
 
         addObjectFromFile(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE);
 
