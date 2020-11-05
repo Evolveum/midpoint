@@ -54,7 +54,8 @@ public class LoginPageTest extends AbstractLoginPageTest {
         String linkTag = "link='";
         String link = notification.substring(notification.indexOf(linkTag) + linkTag.length(), notification.lastIndexOf("''"));
         open(link);
-        $(Schrodinger.byDataId("successPanel")).waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S);
+        RegistrationConfirmationPage registrationConfirmationPage = new RegistrationConfirmationPage();
+        Assert.assertTrue(registrationConfirmationPage.successPanelExists());
         String actualUrl = basicPage.getCurrentUrl();
         Assert.assertTrue(actualUrl.endsWith("/registration"));
     }
@@ -94,8 +95,12 @@ public class LoginPageTest extends AbstractLoginPageTest {
                 .setUsernameValue(NAME_OF_ENABLED_USER)
                 .setEmailValue(MAIL_OF_ENABLED_USER)
                 .clickSubmitButton();
-        $(Schrodinger.byDataId("answerTF")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).setValue("10");
-        $(Schrodinger.byDataId("send")).click();
+        ForgetPasswordSecurityQuestionsPage securityQuestionsPage = new ForgetPasswordSecurityQuestionsPage();
+        securityQuestionsPage
+                .getPasswordQuestionsPanel()
+                .setMyPasswordTFValue("10")
+                .and()
+                .clickSendButton();
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         String actualUrl = basicPage.getCurrentUrl();
         Assert.assertTrue(actualUrl.endsWith("/resetpasswordsuccess"));
@@ -110,8 +115,7 @@ public class LoginPageTest extends AbstractLoginPageTest {
         open("/");
 
         login.changeLanguage("de");
-
-        $(By.cssSelector(".btn.btn-primary")).shouldHave(Condition.value("Anmelden"));
+        Assert.assertTrue(login.signInButtonTitleMatch("Anmelden"));
     }
 
     @Test
@@ -121,9 +125,7 @@ public class LoginPageTest extends AbstractLoginPageTest {
         login.goToUrl();
 
         login.changeLanguage("us");
-
-        $(By.xpath("/html/body/div[2]/div/section/div[2]/div/div/div/h4"))
-                .shouldHave(Condition.text("Select an Identity Provider"));
+        Assert.assertTrue(login.elementWithTextExists("Select an Identity Provider"));
     }
 
     @Override

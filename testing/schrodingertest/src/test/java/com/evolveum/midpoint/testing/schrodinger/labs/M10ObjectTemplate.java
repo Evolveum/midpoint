@@ -188,10 +188,10 @@ public class M10ObjectTemplate extends AbstractLabTest{
         boolean existFeedback = false;
         try { existFeedback = form.and().and().feedback().isError(); } catch (ElementNotFound e) { }
         Assert.assertFalse(existFeedback);
-        Assert.assertTrue(form.findProperty("telephoneNumber").
-                $x(".//i[contains(@data-original-title, 'Primary telephone number of the user, org. unit, etc.')]").exists());
-        Assert.assertFalse(form.findProperty("telephoneNumber").
-                $x(".//i[contains(@data-original-title, 'Mobile Telephone Number')]").exists());
+        Assert.assertTrue(form.propertyWithTitleTextExists("telephoneNumber",
+                "Primary telephone number of the user, org. unit, etc."));
+        Assert.assertTrue(form.propertyWithTitleTextExists("telephoneNumber",
+                "Mobile Telephone Number"));
         Assert.assertTrue(form.isPropertyEnabled("honorificSuffix"));
 
         addObjectFromFile(LOOKUP_EMP_STATUS_FILE);
@@ -206,10 +206,10 @@ public class M10ObjectTemplate extends AbstractLabTest{
         form.addAttributeValue("empStatus", "O");
         form.addAttributeValue("familyName", "kirk2");
         Assert.assertTrue(form.and().and().feedback().isError());
-        Assert.assertFalse(form.findProperty("telephoneNumber").
-                $x(".//i[contains(@data-original-title, 'Primary telephone number of the user, org. unit, etc.')]").exists());
-        Assert.assertTrue(form.findProperty("telephoneNumber").
-                $x(".//i[contains(@data-original-title, 'Mobile Telephone Number')]").exists());
+        Assert.assertTrue(form.propertyWithTitleTextExists("telephoneNumber",
+                "Primary telephone number of the user, org. unit, etc."));
+        Assert.assertTrue(form.propertyWithTitleTextExists("telephoneNumber",
+                "Mobile Telephone Number"));
         Assert.assertFalse(form.isPropertyEnabled("honorificSuffix"));
     }
 

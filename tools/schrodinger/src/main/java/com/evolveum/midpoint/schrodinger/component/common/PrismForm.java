@@ -108,6 +108,10 @@ public class PrismForm<T> extends Component<T> {
         return this;
     }
 
+    public boolean propertyWithTitleTextExists(String propertyName, String text) {
+        return findProperty(propertyName).$x(".//i[contains(@data-original-title, '" + text + "')]").exists();
+    }
+
     public PrismForm<T> showEmptyAttributes(String containerName) {
         getParentElement().$(Schrodinger.byAncestorPrecedingSiblingDescendantOrSelfElementEnclosedValue("div", "data-s-id", "showEmptyButton", "data-s-id", "valueContainer", containerName))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();

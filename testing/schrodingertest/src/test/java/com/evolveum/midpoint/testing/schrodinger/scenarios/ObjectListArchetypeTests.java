@@ -6,29 +6,18 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
-import static com.codeborne.selenide.Selenide.$;
-
-import static com.evolveum.midpoint.schrodinger.util.ConstantsUtil.*;
-
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
-import com.codeborne.selenide.SelenideElement;
-import org.openqa.selenium.By;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
-import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
-import com.evolveum.midpoint.schrodinger.component.common.Search;
-import com.evolveum.midpoint.schrodinger.component.common.SearchItemField;
 import com.evolveum.midpoint.schrodinger.component.configuration.AdminGuiTab;
-import com.evolveum.midpoint.schrodinger.component.modal.ObjectBrowserModal;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
-import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 
 /**

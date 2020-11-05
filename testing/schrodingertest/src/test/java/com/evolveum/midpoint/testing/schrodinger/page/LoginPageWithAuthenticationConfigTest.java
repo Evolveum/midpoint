@@ -13,10 +13,7 @@ import com.codeborne.selenide.Selenide;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
-import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
-import com.evolveum.midpoint.schrodinger.page.login.MailNoncePage;
-import com.evolveum.midpoint.schrodinger.page.login.SecurityQuestionsPage;
-import com.evolveum.midpoint.schrodinger.page.login.SelfRegistrationPage;
+import com.evolveum.midpoint.schrodinger.page.login.*;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -62,7 +59,7 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
         FormLoginPage login = midPoint.formLogin();
         login.login("administrator", "5ecr3t");
         basicPage.loggedUser().logout();
-        Assert.assertFalse($(".dropdown.user.user-menu").exists());
+        Assert.assertFalse(basicPage.userMenuExists());
     }
 
     @Test
@@ -121,7 +118,9 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
 //        String username = notification.substring(notification.indexOf(usernameTag) + usernameTag.length(), notification.lastIndexOf("', " + linkTag));
         String link = notification.substring(notification.indexOf(linkTag) + linkTag.length(), notification.lastIndexOf("''"));
         open(link);
-        $(Schrodinger.byDataId("successPanel")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+
+        RegistrationFinishPage registrationFinishPage = new RegistrationFinishPage();
+        Assert.assertTrue(registrationFinishPage.successPanelExists());
         String actualUrl = basicPage.getCurrentUrl();
         Assert.assertTrue(actualUrl.endsWith("/registration/result"));
     }
