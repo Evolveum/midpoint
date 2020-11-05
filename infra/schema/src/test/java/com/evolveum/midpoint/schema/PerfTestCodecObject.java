@@ -9,9 +9,6 @@ import java.util.List;
 
 import org.javasimon.Split;
 import org.javasimon.Stopwatch;
-import org.jetbrains.annotations.NotNull;
-
-
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismParser;
@@ -43,14 +40,13 @@ public class PerfTestCodecObject extends AbstractSchemaTest implements Performan
 
     void testCombination(String format, String ns) throws SchemaException, IOException {
         String inputStream = getCachedStream(Paths.get("common", format , ns ,"user-jack." + format));
-        Stopwatch timer = stopwatch("parse." + format + "." + ns);
-        @NotNull
+
+        Stopwatch timer = stopwatch("parse", format, ns);
         PrismObject<Objectable> result = null;
         for(int i = 1; i <=REPETITIONS;i++) {
-            @NotNull
-            PrismParser parser = PrismTestUtil.getPrismContext().parserFor(inputStream);
             try(Split parsingSplit = timer.start()) {
-               result  = parser.parse();
+                PrismParser parser = PrismTestUtil.getPrismContext().parserFor(inputStream);
+                result  = parser.parse();
             };
         }
         assertNotNull(result);
