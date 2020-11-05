@@ -19,7 +19,7 @@ import com.google.common.base.Joiner;
  */
 public interface PerformanceTestMixin extends MidpointTestMixin {
 
-    static final Joiner DOT_JOINER = Joiner.on(".");
+    Joiner MONITOR_JOINER = Joiner.on(".");
 
     TestMonitor testMonitor();
 
@@ -32,17 +32,18 @@ public interface PerformanceTestMixin extends MidpointTestMixin {
 
     @AfterClass
     default void dumpReport() {
-        // TODO output to files, how?
         TestMonitor testMonitor = testMonitor();
         testMonitor.dumpReport(getClass().getSimpleName());
-        // TODO more output types
     }
 
-    default Stopwatch stopwatch(String name) {
-        return testMonitor().stopwatch(name);
+    default Stopwatch stopwatch(String name, String description) {
+        return testMonitor().stopwatch(name, description);
     }
 
-    default Stopwatch stopwatch(String... path) {
-        return stopwatch(DOT_JOINER.join(path));
+    /**
+     * Returns final name from name parts, joined with predefined character (yes, it's a dot).
+     */
+    default String monitorName(String... nameParts) {
+        return MONITOR_JOINER.join(nameParts);
     }
 }

@@ -71,7 +71,7 @@ public class MidScaleRepoTest extends BaseSQLRepoTest
     @Test
     public void test010InitResources() throws ObjectAlreadyExistsException, SchemaException {
         OperationResult operationResult = createOperationResult();
-        Stopwatch stopwatch = stopwatch("resource-add");
+        Stopwatch stopwatch = stopwatch("resource.add", "Repository addObject(resource)");
         for (int resourceIndex = 1; resourceIndex <= RESOURCE_COUNT; resourceIndex++) {
             ResourceType resourceType = new ResourceType(prismContext);
             String name = String.format("resource-%03d", resourceIndex);
@@ -90,7 +90,7 @@ public class MidScaleRepoTest extends BaseSQLRepoTest
     @Test
     public void test020AddBaseUsers() throws ObjectAlreadyExistsException, SchemaException {
         OperationResult operationResult = createOperationResult();
-        Stopwatch stopwatch = stopwatch("user-add");
+        Stopwatch stopwatch = stopwatch("user.add", "Repository addObject(user) - 1st batch");
         for (int userIndex = 1; userIndex <= BASE_USER_COUNT; userIndex++) {
             UserType userType = new UserType(prismContext);
             String name = String.format("user-%07d", userIndex);
@@ -109,7 +109,7 @@ public class MidScaleRepoTest extends BaseSQLRepoTest
     @Test
     public void test030AddBaseShadows() throws ObjectAlreadyExistsException, SchemaException {
         OperationResult operationResult = createOperationResult();
-        Stopwatch stopwatch = stopwatch("shadow-add");
+        Stopwatch stopwatch = stopwatch("shadow.add", "Repository addObject(shadow) - 1st batch");
         for (int userIndex = 1; userIndex <= BASE_USER_COUNT; userIndex++) {
             for (Map.Entry<String, String> resourceEntry : resources.entrySet()) {
                 String name = String.format("shadow-%07d-at-%s", userIndex, resourceEntry.getKey());
@@ -142,7 +142,7 @@ public class MidScaleRepoTest extends BaseSQLRepoTest
     @Test
     public void test110GetUser() throws SchemaException, ObjectNotFoundException {
         OperationResult operationResult = createOperationResult();
-        Stopwatch stopwatch = stopwatch("user-get1");
+        Stopwatch stopwatch = stopwatch("user.get1", "Repository getObject() -> user, 1st test");
         for (int i = 1; i <= FIND_COUNT; i++) {
             String randomName = String.format("user-%07d", RND.nextInt(BASE_USER_COUNT) + 1);
             if (i == FIND_COUNT) {
@@ -160,7 +160,7 @@ public class MidScaleRepoTest extends BaseSQLRepoTest
     @Test
     public void test210AddMoreUsers() throws ObjectAlreadyExistsException, SchemaException {
         OperationResult operationResult = createOperationResult();
-        Stopwatch stopwatch = stopwatch("user-add-more");
+        Stopwatch stopwatch = stopwatch("user.addMore", "Repository addObject(user) - 2nd batch");
         for (int userIndex = 1; userIndex <= MORE_USER_COUNT; userIndex++) {
             UserType userType = new UserType(prismContext);
             String name = String.format("user-more-%07d", userIndex);
@@ -179,7 +179,7 @@ public class MidScaleRepoTest extends BaseSQLRepoTest
     @Test
     public void test230AddMoreShadows() throws ObjectAlreadyExistsException, SchemaException {
         OperationResult operationResult = createOperationResult();
-        Stopwatch stopwatch = stopwatch("shadow-add-more");
+        Stopwatch stopwatch = stopwatch("shadow.addMore", "Repository addObject(shadow) - 2nd batch");
         for (int userIndex = 1; userIndex <= MORE_USER_COUNT; userIndex++) {
             for (Map.Entry<String, String> resourceEntry : resources.entrySet()) {
                 String name = String.format("shadow-more-%07d-at-%s", userIndex, resourceEntry.getKey());
@@ -202,7 +202,7 @@ public class MidScaleRepoTest extends BaseSQLRepoTest
     @Test
     public void test610PeakMoreUsers() throws ObjectAlreadyExistsException, SchemaException {
         OperationResult operationResult = createOperationResult();
-        Stopwatch stopwatch = stopwatch("user-add-peak");
+        Stopwatch stopwatch = stopwatch("user.addPeak", "Repository addObject(user) - 3rd batch");
         for (int userIndex = 1; userIndex <= PEAK_USER_COUNT; userIndex++) {
             UserType userType = new UserType(prismContext);
             String name = String.format("user-peak-%07d", userIndex);
@@ -221,7 +221,7 @@ public class MidScaleRepoTest extends BaseSQLRepoTest
     @Test
     public void test710GetUserMore() throws SchemaException, ObjectNotFoundException {
         OperationResult operationResult = createOperationResult();
-        Stopwatch stopwatch = stopwatch("user-get2");
+        Stopwatch stopwatch = stopwatch("user.get2", "Repository getObject() -> user, 2nd test");
         for (int i = 1; i <= FIND_COUNT; i++) {
             String randomName = String.format("user-more-%07d", RND.nextInt(MORE_USER_COUNT) + 1);
             if (i == FIND_COUNT) {
