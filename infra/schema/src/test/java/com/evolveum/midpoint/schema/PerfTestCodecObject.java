@@ -47,7 +47,8 @@ public class PerfTestCodecObject extends AbstractSchemaTest implements Performan
     void testCombination(String format, String ns) throws SchemaException, IOException {
         String inputStream = getCachedStream(Paths.get("common", format, ns, "user-jack." + format));
 
-        Stopwatch timer = stopwatch(monitorName("parse", format, ns), "TODO");
+        Stopwatch timer = stopwatch(monitorName("parse", format, ns),
+                "Parsing user as " + format + " with " + ns);
         PrismObject<Objectable> result;
         for (int i = 1; i <= REPETITIONS; i++) {
             try (Split ignored = timer.start()) {
