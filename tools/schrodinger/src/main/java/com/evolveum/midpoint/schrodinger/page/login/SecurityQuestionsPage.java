@@ -36,6 +36,11 @@ public class SecurityQuestionsPage extends LoginPage {
         return new BasicPage();
     }
 
+    public MyPasswordQuestionsPanel<SecurityQuestionsPage> getPasswordQuestionsPanel() {
+        return new MyPasswordQuestionsPanel<>(this,
+                $(Schrodinger.byDataId("questionAnswerPanel")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S));
+    }
+
 //    public SecurityQuestionsPage register() {
 //        // todo implement
 //        return this;

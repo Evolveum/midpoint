@@ -60,7 +60,7 @@ public class ObjectListArchetypeTests extends AbstractSchrodingerTest {
         ListUsersPage collectionListPage = basicPage.listUsers(ARCHETYPE_PLURAL_LABEL);
 
         //check the icon class next to the Employee  menu item
-        Assert.assertTrue(ARCHETYPE_ICON_CSS_STYLE
+        Assert.assertTrue("fa fa-male"
                 .equals(basicPage.getAdministrationMenuItemIconClass("PageAdmin.menu.top.users", ARCHETYPE_PLURAL_LABEL)),
                 "Employee icon css style doesn't match to .fa.fa-male");
 
@@ -111,7 +111,7 @@ public class ObjectListArchetypeTests extends AbstractSchrodingerTest {
         ListUsersPage userListPage = basicPage.listUsers();
         Assert.assertEquals(userListPage
                 .table()
-                .countDropdownButtonChildrenButtons("fa fa-plus"), 2);
+                .countDropdownButtonChildrenButtons(".fa.fa-plus"), 2);
         userListPage
                 .table()
                     .newObjectCollectionButtonClickPerformed("fa fa-plus", ARCHETYPE_ICON_CSS_STYLE);

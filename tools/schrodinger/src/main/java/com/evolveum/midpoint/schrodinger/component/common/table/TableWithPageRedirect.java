@@ -89,8 +89,7 @@ public abstract class TableWithPageRedirect<T> extends Table<T> {
     private void clickMenuItem(String columnTitleKey, String rowValue, String menuItemKey){
         if (columnTitleKey == null && rowValue == null) {
             clickAndGetHeaderDropDownMenu()
-                    .$(Schrodinger.bySelfOrDescendantElementAttributeValue("a", "", "",
-                            Schrodinger.DATA_S_RESOURCE_KEY, menuItemKey))
+                    .$(Schrodinger.byDescendantElementAttributeValue("a", Schrodinger.DATA_S_RESOURCE_KEY, menuItemKey))
                     .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
                     .click();
         } else {

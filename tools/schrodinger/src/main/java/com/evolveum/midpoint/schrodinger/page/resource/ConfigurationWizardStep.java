@@ -25,18 +25,18 @@ public class ConfigurationWizardStep extends Component<ResourceWizardPage> {
         }
 
         public ConfigurationStepConfigurationTab selectConfigurationTab() {
-            return new ConfigurationStepConfigurationTab(this, getTabPanel().clickTab("Configuration"));
+            return new ConfigurationStepConfigurationTab(this, getTabPanel().clickTabWithName("Configuration"));
         }
 
         public ConfigurationStepConnectorPoolTab selectConnectorPoolTab() {
-            return new ConfigurationStepConnectorPoolTab(this, getTabPanel().clickTab("Connector pool"));
+            return new ConfigurationStepConnectorPoolTab(this, getTabPanel().clickTabWithName("Connector pool"));
         }
 
         public ConfigurationStepResultsHandlersTab selectResultsHandlerTab() {
-            return new ConfigurationStepResultsHandlersTab(this, getTabPanel().clickTab("Results handlers"));
+            return new ConfigurationStepResultsHandlersTab(this, getTabPanel().clickTabWithName("Results handlers"));
         }
 
         public ConfigurationStepTimeoutsTab selectTimeoutsTab() {
-            return new ConfigurationStepTimeoutsTab(this, getTabPanel().clickTab("Timeouts"));
+            return new ConfigurationStepTimeoutsTab(this, getTabPanel().clickTabWithName("Timeouts"));
         }
 }

@@ -72,17 +72,17 @@ public abstract class AssignmentHolderObjectListTable<P, PD extends AssignmentHo
     }
 
     public SelenideElement getToolbarButton(String iconCssClass){
-        SelenideElement buttonToolbar = getButtonToolbar();
-        SelenideElement buttonElement = null;
-        ElementsCollection toolbarButtonsList = buttonToolbar
-                .findAll(By.tagName("button"));
-        for (SelenideElement button : toolbarButtonsList) {
-            SelenideElement iconElement = button.$(By.tagName("i")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
-            if (iconElement != null && iconElement.exists() && iconElement.getAttribute("class") != null && iconElement.getAttribute("class").contains(iconCssClass)) {
-                buttonElement = button;
-            }
-        }
-        return buttonElement;
+//        SelenideElement buttonToolbar = getButtonToolbar();
+//        SelenideElement buttonElement = null;
+//        ElementsCollection toolbarButtonsList = buttonToolbar
+//                .findAll(By.tagName("button"));
+//        for (SelenideElement button : toolbarButtonsList) {
+//            SelenideElement iconElement = button.$(By.tagName("i")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+//            if (iconElement != null && iconElement.exists() && iconElement.getAttribute("class") != null && iconElement.getAttribute("class").contains(iconCssClass)) {
+//                buttonElement = button;
+//            }
+//        }
+        return getButtonToolbar().$(By.cssSelector(iconCssClass));
     }
 
     public PD newObjectButtonClickPerformed(String iconCssClass){

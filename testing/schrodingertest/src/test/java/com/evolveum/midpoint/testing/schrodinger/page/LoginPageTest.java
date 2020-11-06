@@ -7,21 +7,12 @@
 
 package com.evolveum.midpoint.testing.schrodinger.page;
 
-import com.codeborne.selenide.Condition;
-
 import com.codeborne.selenide.Selenide;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
-import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
-import com.evolveum.midpoint.schrodinger.component.configuration.InfrastructureTab;
-import com.evolveum.midpoint.schrodinger.component.configuration.NotificationsTab;
-import com.evolveum.midpoint.schrodinger.page.configuration.SystemPage;
 import com.evolveum.midpoint.schrodinger.page.login.*;
-import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
-import org.openqa.selenium.By;
 import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
