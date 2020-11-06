@@ -49,7 +49,10 @@ public class TestMonitor {
     /** Simon manager used for monitor creations, otherwise ignored. */
     private final Manager simonManager = new EnabledManager();
 
-    /** If you want to register already existing Stopwatch, e.g. from production code. */
+    /**
+     * If you want to register already existing Stopwatch, e.g. from production code.
+     * Note is taken from the {@link Stopwatch#getNote()}.
+     */
     public synchronized void register(Stopwatch stopwatch) {
         stopwatches.put(stopwatch.getName(), stopwatch);
     }
@@ -57,12 +60,13 @@ public class TestMonitor {
     /**
      * Returns {@link Stopwatch} for specified name, registers a new one if needed.
      */
-    public synchronized Stopwatch stopwatch(String name) {
+    public synchronized Stopwatch stopwatch(String name, String description) {
         Stopwatch stopwatch = stopwatches.get(name);
         if (stopwatch == null) {
             // internally the stopwatch is not named to avoid registration with Simon Manager
             stopwatch = simonManager.getStopwatch(null);
             stopwatches.put(name, stopwatch);
+            stopwatch.setNote(description);
         }
         return stopwatch;
     }
@@ -73,8 +77,8 @@ public class TestMonitor {
      * Returned {@link Split} is {@link AutoCloseable}, so it can be used in try-with-resource
      * and the actual variable can be completely ignored.
      */
-    public Split stopwatchStart(String name) {
-        return stopwatch(name).start();
+    public Split stopwatchStart(String name, String description) {
+        return stopwatch(name, description).start();
     }
 
     public void dumpReport(String testName) {
@@ -116,16 +120,17 @@ public class TestMonitor {
         out.println("Test: " + reportMetadata.testName);
 
         // millis are more practical, but sometimes too big for avg and min and we don't wanna mix ms/us
-        out.println("\n[stopwatch]\ntest,monitor,count,total(us),avg(us),min(us),max(us)");
+        out.println("\n[stopwatch]\ntest,monitor,count,total(us),avg(us),min(us),max(us),note");
         for (Map.Entry<String, Stopwatch> stopwatchEntry : stopwatches.entrySet()) {
             String monitorName = stopwatchEntry.getKey();
             Stopwatch stopwatch = stopwatchEntry.getValue();
-            out.printf("%s,%s,%d,%d,%d,%d,%d\n", reportMetadata.testName, monitorName,
+            out.printf("%s,%s,%d,%d,%d,%d,%d,%s\n", reportMetadata.testName, monitorName,
                     stopwatch.getCounter(),
                     TimeUnit.NANOSECONDS.toMicros(stopwatch.getTotal()),
                     TimeUnit.NANOSECONDS.toMicros((long) stopwatch.getMean()),
                     TimeUnit.NANOSECONDS.toMicros(stopwatch.getMin()),
-                    TimeUnit.NANOSECONDS.toMicros(stopwatch.getMax()));
+                    TimeUnit.NANOSECONDS.toMicros(stopwatch.getMax()),
+                    stopwatch.getNote());
         }
     }
 
