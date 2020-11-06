@@ -85,13 +85,14 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
     }
 
     @Test
-    public void test031resetPasswordSecurityQuestion() {
+    public void test031resetPasswordSecurityQuestion() throws InterruptedException {
         basicPage.loggedUser().logoutIfUserIsLogin();
         FormLoginPage login = midPoint.formLogin();
         open("/login");
         open("/");
         login.loginWithReloadLoginPage("administrator", "5ecr3t");
         addObjectFromFile(FLEXIBLE_AUTHENTICATION_SEC_QUES_RESET_PASS_SECURITY_POLICY);
+        TimeUnit.SECONDS.sleep(4);
         basicPage.loggedUser().logoutIfUserIsLogin();
         SecurityQuestionsPage securityQuestion = (SecurityQuestionsPage) login.forgotPassword();
         securityQuestion.setUsername(NAME_OF_ENABLED_USER)

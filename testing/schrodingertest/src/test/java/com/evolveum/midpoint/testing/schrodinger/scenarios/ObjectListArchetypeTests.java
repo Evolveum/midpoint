@@ -61,11 +61,13 @@ public class ObjectListArchetypeTests extends AbstractSchrodingerTest {
 
         //check the icon class next to the Employee  menu item
         Assert.assertTrue(ARCHETYPE_ICON_CSS_STYLE
-                .equals(basicPage.getAdministrationMenuItemIconClass("PageAdmin.menu.top.users", ARCHETYPE_PLURAL_LABEL)));
+                .equals(basicPage.getAdministrationMenuItemIconClass("PageAdmin.menu.top.users", ARCHETYPE_PLURAL_LABEL)),
+                "Employee icon css style doesn't match to .fa.fa-male");
 
         Assert.assertTrue(collectionListPage
                 .table()
-                .buttonToolBarExists());
+                .buttonToolBarExists(),
+                "Button toolbar is absent");
 
         //check new employee button exists on the toolbar
         collectionListPage
