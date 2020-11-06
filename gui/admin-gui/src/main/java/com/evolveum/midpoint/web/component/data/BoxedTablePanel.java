@@ -297,8 +297,8 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
                 @Override
                 protected boolean isCountingDisabled(){
-                    if (dataTable.getDataProvider() instanceof SelectableBeanObjectDataProvider){
-                        return !((SelectableBeanObjectDataProvider)dataTable.getDataProvider()).isUseObjectCounting();
+                    if (dataTable.getDataProvider() instanceof SelectableBeanContainerDataProvider){
+                        return !((SelectableBeanContainerDataProvider)dataTable.getDataProvider()).isUseObjectCounting();
                     }
                     return super.isCountingDisabled();
                 }

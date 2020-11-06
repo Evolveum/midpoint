@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -65,8 +66,6 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         extends ContainerableListPanel<C, PrismContainerValueWrapper<C>> {
 
     private static final long serialVersionUID = 1L;
-
-    private static final Trace LOGGER = TraceManager.getTrace(MultivalueContainerListPanel.class);
 
     public MultivalueContainerListPanel(String id, Class<C> type) {
         super(id, type);
@@ -109,13 +108,11 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         return containersProvider;
     }
 
-    protected WebMarkupContainer initButtonToolbar(String id) {
-        return getNewItemButton(id);
-    }
-
-    public MultiCompositedButtonPanel getNewItemButton(String id) {
+    @Override
+    protected List<Component> createToolbarButtonsList(String idButton) {
+        List<Component> bar = new ArrayList<>();
         MultiCompositedButtonPanel newObjectIcon =
-                new MultiCompositedButtonPanel(id, createNewButtonDescription()) {
+                new MultiCompositedButtonPanel(idButton, createNewButtonDescription()) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -152,7 +149,8 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
                 return isNewObjectButtonEnabled();
             }
         });
-        return newObjectIcon;
+        bar.add(newObjectIcon);
+        return bar;
     }
 
     protected List<MultiFunctinalButtonDto> createNewButtonDescription() {
@@ -176,7 +174,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         if (searchModel != null) {
             Search search = searchModel.getObject();
             if (search != null) {
-                query = search.createObjectQuery(getPageBase().getPrismContext());
+                query = search.createObjectQuery(getPageBase());
             }
         }
         return query;

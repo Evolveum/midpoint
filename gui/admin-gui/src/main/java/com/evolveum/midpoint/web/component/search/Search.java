@@ -13,9 +13,12 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -29,10 +32,11 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -61,6 +65,7 @@ public class Search implements Serializable, DebugDumpable {
 
     private final List<ItemDefinition> availableDefinitions = new ArrayList<>();
     private final List<SearchItem> items = new ArrayList<>();
+    private CompiledObjectCollectionView dashboardWidgetView;
 
     public Search(Class<? extends Containerable> type, List<SearchItemDefinition> allDefinitions) {
         this(type, allDefinitions, false, null);
@@ -84,6 +89,14 @@ public class Search implements Serializable, DebugDumpable {
 
     public List<SearchItem> getItems() {
         return Collections.unmodifiableList(items);
+    }
+
+    public void setCollectionView(CompiledObjectCollectionView compiledView) {
+        dashboardWidgetView = compiledView;
+    }
+
+    public CompiledObjectCollectionView getCollectionView() {
+        return dashboardWidgetView;
     }
 
     public List<PropertySearchItem> getPropertyItems() {
@@ -189,18 +202,18 @@ public class Search implements Serializable, DebugDumpable {
         return type;
     }
 
-    public ObjectQuery createObjectQuery(PrismContext ctx) {
+    public ObjectQuery createObjectQuery(PageBase pageBase) {
         LOGGER.debug("Creating query from {}", this);
         if (SearchBoxModeType.ADVANCED.equals(searchType)) {
-            return createObjectQueryAdvanced(ctx);
+            return createObjectQueryAdvanced(pageBase);
         } else if (SearchBoxModeType.FULLTEXT.equals(searchType)) {
-            return createObjectQueryFullText(ctx);
+            return createObjectQueryFullText(pageBase);
         } else {
-            return createObjectQuerySimple(ctx);
+            return createObjectQuerySimple(pageBase);
         }
     }
 
-    public ObjectQuery createObjectQuerySimple(PrismContext ctx) {
+    public ObjectQuery createObjectQuerySimple(PageBase pageBase) {
         List<SearchItem> searchItems = getItems();
         if (searchItems.isEmpty()) {
             return null;
@@ -208,7 +221,7 @@ public class Search implements Serializable, DebugDumpable {
 
         List<ObjectFilter> conditions = new ArrayList<>();
         for (PropertySearchItem item : getPropertyItems()) {
-            ObjectFilter filter = createFilterForSearchItem(item, ctx);
+            ObjectFilter filter = createFilterForSearchItem(item, pageBase.getPrismContext());
             if (filter != null) {
                 conditions.add(filter);
             }
@@ -218,7 +231,7 @@ public class Search implements Serializable, DebugDumpable {
             if (item.isApplyFilter()) {
                 SearchFilterType filter = item.getPredefinedFilter().getFilter();
                 try {
-                    ObjectFilter convertedFilter = ctx.getQueryConverter().parseFilter(filter, getType());
+                    ObjectFilter convertedFilter = pageBase.getQueryConverter().parseFilter(filter, getType());
                     if (convertedFilter != null) {
                         conditions.add(convertedFilter);
                     }
@@ -228,15 +241,20 @@ public class Search implements Serializable, DebugDumpable {
             }
         }
 
-        QueryFactory queryFactory = ctx.queryFactory();
+        QueryFactory queryFactory = pageBase.getPrismContext().queryFactory();
+        ObjectQuery query;
         switch (conditions.size()) {
             case 0:
-                return null;
+                query = null;
+                break;
             case 1:
-                return queryFactory.createQuery(conditions.get(0));
+                query = queryFactory.createQuery(conditions.get(0));
+                break;
             default:
-                return queryFactory.createQuery(queryFactory.createAnd(conditions));
+                query = queryFactory.createQuery(queryFactory.createAnd(conditions));
         }
+        query = mergeWithCollectionFilter(query, pageBase);
+        return query;
     }
 
     private ObjectFilter createFilterForSearchItem(PropertySearchItem item, PrismContext ctx) {
@@ -374,16 +392,17 @@ public class Search implements Serializable, DebugDumpable {
         this.fullText = fullText;
     }
 
-    public ObjectQuery createObjectQueryAdvanced(PrismContext ctx) {
+    public ObjectQuery createObjectQueryAdvanced(PageBase pageBase) {
         try {
             advancedError = null;
 
-            ObjectFilter filter = createAdvancedObjectFilter(ctx);
+            ObjectFilter filter = createAdvancedObjectFilter(pageBase.getPrismContext());
             if (filter == null) {
                 return null;
             }
-
-            return ctx.queryFactory().createQuery(filter);
+            @NotNull ObjectQuery query = pageBase.getPrismContext().queryFactory().createQuery(filter);
+            mergeWithCollectionFilter(query, pageBase);
+            return query;
         } catch (Exception ex) {
             advancedError = createErrorMessage(ex);
         }
@@ -391,13 +410,25 @@ public class Search implements Serializable, DebugDumpable {
         return null;
     }
 
-    public ObjectQuery createObjectQueryFullText(PrismContext ctx) {
+    private ObjectQuery mergeWithCollectionFilter(ObjectQuery query, PageBase pageBase) {
+        if (getCollectionView() != null && getCollectionView().getFilter() != null) {
+            if (query == null) {
+                query = pageBase.getPrismContext().queryFor(getType()).build();
+            }
+            OperationResult result = new OperationResult("Evaluate_view_filter");
+            query.addFilter(WebComponentUtil.evaluateExpressionsInFilter(getCollectionView().getFilter(), result, pageBase));
+        }
+        return query;
+    }
+
+    public ObjectQuery createObjectQueryFullText(PageBase pageBase) {
         if (StringUtils.isEmpty(fullText)) {
             return null;
         }
-        ObjectQuery query = ctx.queryFor(type)
+        ObjectQuery query = pageBase.getPrismContext().queryFor(type)
                 .fullText(fullText)
                 .build();
+        mergeWithCollectionFilter(query, pageBase);
         return query;
     }
 

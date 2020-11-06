@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -18,6 +19,7 @@ import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -26,8 +28,10 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -41,11 +45,13 @@ import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.component.util.*;
+import com.evolveum.midpoint.web.page.admin.reports.PageReport;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -58,6 +64,9 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.export.Abstr
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -89,6 +98,10 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     public static final String ID_ITEMS = "items";
     private static final String ID_ITEMS_TABLE = "itemsTable";
+    private static final String ID_BUTTON_BAR = "buttonBar";
+    private static final String ID_BUTTON_REPEATER = "buttonsRepeater";
+    private static final String ID_BUTTON = "button";
+
     private static final String DOT_CLASS = ContainerableListPanel.class.getName() + ".";
 
     private Class<? extends C> type;
@@ -159,6 +172,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                         }
                     }
                 }
+                search.setCollectionView(getWidgetCollectionView());
                 return search;
             }
         };
@@ -240,8 +254,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
-                WebMarkupContainer bar = initButtonToolbar(id);
-                return bar != null ? bar : super.createButtonToolbar(id);
+                return new ButtonBar(id, ID_BUTTON_BAR, ContainerableListPanel.this, createToolbarButtonsList(ID_BUTTON));
             }
 
             @Override
@@ -715,12 +728,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         this.additionalBoxCssClasses = boxCssClasses;
     }
 
-    /**
-     * there's no way to do it properly...
-     */
-    @Deprecated
-    protected WebMarkupContainer initButtonToolbar(String id) {
-        return null;
+    protected List<Component> createToolbarButtonsList(String idButton){
+        List<Component> components = new ArrayList<>();
+        return components;
     }
 
     protected String getStorageKey(){
@@ -765,14 +775,24 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected CompiledObjectCollectionView getObjectCollectionView() {
-        if (dashboardWidgetView != null) {
-            return dashboardWidgetView;
+        CompiledObjectCollectionView view = getWidgetCollectionView();
+        if (view != null) {
+            return view;
         }
+        String collectionName = getCollectionNameParameterValue().toString();
+        return getPageBase().getCompiledGuiProfile().findObjectCollectionView
+                (WebComponentUtil.containerClassToQName(getPageBase().getPrismContext(), getType()), collectionName);
+    }
+
+    private CompiledObjectCollectionView getWidgetCollectionView() {
         PageParameters parameters = getPageBase().getPageParameters();
         String dashboardOid = parameters == null ? null : parameters.get(PageBase.PARAMETER_DASHBOARD_TYPE_OID).toString();
         String dashboardWidgetName = parameters == null ? null : parameters.get(PageBase.PARAMETER_DASHBOARD_WIDGET_NAME).toString();
 
         if (!StringUtils.isEmpty(dashboardOid) && !StringUtils.isEmpty(dashboardWidgetName)) {
+            if (dashboardWidgetView != null) {
+                return dashboardWidgetView;
+            }
             Task task = getPageBase().createSimpleTask("Create view from dashboard");
             DashboardType dashboard = WebModelServiceUtils.loadObject(DashboardType.class, dashboardOid, getPageBase(), task, task.getResult()).getRealValue();
             if (dashboard != null) {
@@ -786,7 +806,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                             if (widget.getPresentation() != null && widget.getPresentation().getView() != null) {
                                 getPageBase().getModelInteractionService().applyView(compiledView, widget.getPresentation().getView());
                             }
-                            compiledView.setCollection(widget.getData().getCollection());
+                            compiledView.setCollection(collectionSpec);
                             dashboardWidgetView = compiledView;
                             return dashboardWidgetView;
                         } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException
@@ -798,9 +818,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 }
             }
         }
-        String collectionName = getCollectionNameParameterValue().toString();
-        return getPageBase().getCompiledGuiProfile().findObjectCollectionView
-                (WebComponentUtil.containerClassToQName(getPageBase().getPrismContext(), getType()), collectionName);
+        return null;
     }
 
     protected StringValue getCollectionNameParameterValue(){
@@ -913,8 +931,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         ObjectQuery query = getPrismContext().queryFor(getType()).build();
         Search search = searchModel.getObject();
         if (search != null){
-            query = search.createObjectQuery(getPageBase().getPrismContext());
+            query = search.createObjectQuery(getPageBase());
         }
+
         ObjectQuery archetypeQuery = getArchetypeQuery();
         query = mergeQueries(query, archetypeQuery);
 
@@ -949,7 +968,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         }
 
         ObjectQuery query = getPrismContext().queryFor(getType()).build();
-        query.addFilter(view.getFilter());
         OperationResult result = new OperationResult(DOT_CLASS + "evaluateExpressionsInFilter");
         query.addFilter(WebComponentUtil.evaluateExpressionsInFilter(view.getFilter(), result, getPageBase()));
         return query;
@@ -980,6 +998,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     private boolean isCustomColumnsListConfigured(){
+        if (!isCollectionViewPanel()){
+            return false;
+        }
         List<GuiObjectColumnType> columnList = getGuiObjectColumnTypeList();
         return columnList != null && !columnList.isEmpty();
     }
@@ -1028,5 +1049,104 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             return tableId.name();
         }
         return tableId.name() + "." + getCollectionNameParameterValue().toString();
+    }
+
+    private static class ButtonBar extends Fragment {
+
+        private static final long serialVersionUID = 1L;
+
+        public ButtonBar(String id, String markupId, ContainerableListPanel markupProvider, List<Component> buttonsList) {
+            super(id, markupId, markupProvider);
+
+            initLayout(buttonsList);
+        }
+
+        private void initLayout(final List<Component> buttonsList) {
+            ListView<Component> buttonsView = new ListView<Component>(ID_BUTTON_REPEATER, Model.ofList(buttonsList)) {
+                @Override
+                protected void populateItem(ListItem<Component> listItem) {
+                    listItem.add(listItem.getModelObject());
+                }
+            };
+            add(buttonsView);
+        }
+    }
+
+    protected void createReportPerformed(AjaxRequestTarget target) {
+        PrismContext prismContext = getPageBase().getPrismContext();
+        PrismObjectDefinition<ReportType> def = prismContext.getSchemaRegistry().findObjectDefinitionByType(ReportType.COMPLEX_TYPE);
+        PrismObject<ReportType> obj = null;
+        try {
+            obj = def.instantiate();
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't instantiate new report", e);
+            getPageBase().error(getString("MainObjectListPanel.message.error.instantiateNewReport"));
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+        ReportType report = obj.asObjectable();
+        ObjectCollectionReportEngineConfigurationType objectCollection = new ObjectCollectionReportEngineConfigurationType();
+        CompiledObjectCollectionView view = getObjectCollectionView();
+        CollectionRefSpecificationType collection = new CollectionRefSpecificationType();
+        objectCollection.setUseOnlyReportView(true);
+        if (view != null) {
+            objectCollection.setView(view.toGuiObjectListViewType());
+            if (view.getCollection() != null && view.getCollection().getCollectionRef() != null) {
+                if (!QNameUtil.match(view.getCollection().getCollectionRef().getType(), ArchetypeType.COMPLEX_TYPE)) {
+                    collection.setBaseCollectionRef(view.getCollection());
+                } else {
+                    OperationResult result = new OperationResult(MainObjectListPanel.class.getSimpleName() + "." + "evaluateExpressionsInFilter");
+                    CollectionRefSpecificationType baseCollection = new CollectionRefSpecificationType();
+                    try {
+                        baseCollection.setFilter(getPageBase().getQueryConverter().createSearchFilterType(
+                                WebComponentUtil.evaluateExpressionsInFilter(view.getFilter(), result, getPageBase())));
+                        collection.setBaseCollectionRef(baseCollection);
+                    } catch (SchemaException e) {
+                        LOGGER.error("Couldn't create filter for archetype");
+                        getPageBase().error(getString("MainObjectListPanel.message.error.createArchetypeFilter"));
+                        target.add(getPageBase().getFeedbackPanel());
+                    }
+                }
+            }
+        } else {
+            objectCollection.setView(getDefaultView());
+        }
+        SearchFilterType searchFilter = null;
+        ObjectQuery query = getSearchModel().getObject().createObjectQuery(getPageBase());
+        if (query != null) {
+            ObjectFilter filter = query.getFilter();
+            try {
+                searchFilter = getPageBase().getPrismContext().getQueryConverter().createSearchFilterType(filter);
+            } catch (Exception e) {
+                LOGGER.error("Couldn't create filter from search panel", e);
+                getPageBase().error(getString("ExportingFilterTabPanel.message.error.serializeFilterFromSearch"));
+            }
+        }
+        if (searchFilter != null) {
+            collection.setFilter(searchFilter);
+        } else {
+            try {
+                SearchFilterType allFilter = prismContext.getQueryConverter().createSearchFilterType(prismContext.queryFactory().createAll());
+                collection.setFilter(allFilter);
+            } catch (SchemaException e) {
+                LOGGER.error("Couldn't create all filter", e);
+                getPageBase().error(getString("MainObjectListPanel.message.error.createAllFilter"));
+                target.add(getPageBase().getFeedbackPanel());
+                return;
+            }
+        }
+        objectCollection.setCollection(collection);
+        report.setObjectCollection(objectCollection);
+        report.getAssignment()
+                .add(ObjectTypeUtil.createAssignmentTo(SystemObjectsType.ARCHETYPE_COLLECTION_REPORT.value(), ObjectTypes.ARCHETYPE, prismContext));
+        report.getArchetypeRef()
+                .add(ObjectTypeUtil.createObjectRef(SystemObjectsType.ARCHETYPE_COLLECTION_REPORT.value(), ObjectTypes.ARCHETYPE));
+
+        PageReport pageReport = new PageReport(report.asPrismObject(), true);
+        getPageBase().navigateToNext(pageReport);
+    }
+
+    protected GuiObjectListViewType getDefaultView() {
+        return DefaultColumnUtils.getDefaultView(getType());
     }
 }

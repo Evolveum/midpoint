@@ -226,15 +226,6 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                         return createSearchableItems(containerDef);
                     }
 
-                    @Override
-                    protected WebMarkupContainer initButtonToolbar(String id) {
-                        WebMarkupContainer buttonToolbar = initCustomButtonToolbar(id);
-                        if (buttonToolbar == null) {
-                            return super.initButtonToolbar(id);
-                        }
-                        return buttonToolbar;
-                    }
-
                 };
         multivalueContainerListPanel.add(new VisibleBehaviour(() -> getModel() != null && getModelObject() != null));
         add(multivalueContainerListPanel);
@@ -304,15 +295,6 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
             });
             return assignmentRelationsListFilteredByType;
         }
-    }
-
-    protected Fragment initCustomButtonToolbar(String contentAreaId) {
-        Fragment searchContainer = new Fragment(contentAreaId, ID_BUTTON_TOOLBAR_FRAGMENT, this);
-
-        MultiCompositedButtonPanel newObjectIcon = getMultivalueContainerListPanel().getNewItemButton(ID_NEW_ITEM_BUTTON);
-        searchContainer.add(newObjectIcon);
-
-        return searchContainer;
     }
 
     protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {

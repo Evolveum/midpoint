@@ -18,6 +18,7 @@ import com.evolveum.midpoint.web.session.SessionStorage;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -80,10 +81,10 @@ public class LoggingConfigurationTabPanel extends BasePanel<PrismContainerWrappe
     private static final String ID_APPENDERS = "appenders";
     private static final String ID_LOGGERS = "loggers";
     private static final String ID_AUDITING = "audit";
-    private static final String ID_NEW_ITEM_BUTTON = "newItemButton";
-    private static final String ID_BUTTON_TOOLBAR_FRAGMENT = "buttonToolbarFragment";
     private static final String ID_APPENDERS_CHOICE = "appendersChoice";
     private static final String ID_CHOICE_APPENDER_TYPE_FORM = "choiceAppenderTypeForm";
+
+    private DropDownChoicePanel<QName> appenderChoice;
 
     public LoggingConfigurationTabPanel(String id, IModel<PrismContainerWrapper<LoggingConfigurationType>> model) {
         super(id, model);
@@ -172,7 +173,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<PrismContainerWrappe
         MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType> appendersMultivalueContainerListPanel =
                 new MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType>(ID_APPENDERS, AppenderConfigurationType.class) {
 
-            private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
             @Override
             protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation) {
@@ -216,13 +217,11 @@ public class LoggingConfigurationTabPanel extends BasePanel<PrismContainerWrappe
             }
 
             @Override
-            protected WebMarkupContainer initButtonToolbar(String contentAreaId) {
-                Fragment searchContainer = new Fragment(contentAreaId, ID_BUTTON_TOOLBAR_FRAGMENT, LoggingConfigurationTabPanel.this);
+            protected List<Component> createToolbarButtonsList(String idButton) {
+                List<Component> bar = new ArrayList<>();
+//                MidpointForm appenderTypeForm = new MidpointForm(ID_CHOICE_APPENDER_TYPE_FORM);
 
-                MidpointForm appenderTypeForm = new MidpointForm(ID_CHOICE_APPENDER_TYPE_FORM);
-                searchContainer.add(appenderTypeForm);
-
-                AjaxSubmitButton newObjectIcon = new AjaxSubmitButton(ID_NEW_ITEM_BUTTON, new Model<>("<i class=\"fa fa-plus\"></i>")) {
+                AjaxSubmitButton newObjectIcon = new AjaxSubmitButton(idButton, new Model<>("<i class=\"fa fa-plus\"></i>")) {
 
                     private static final long serialVersionUID = 1L;
 
@@ -246,18 +245,22 @@ public class LoggingConfigurationTabPanel extends BasePanel<PrismContainerWrappe
                     }
                 });
                 newObjectIcon.add(AttributeModifier.append("class", createStyleClassModelForNewObjectIcon()));
-                appenderTypeForm.add(newObjectIcon);
+//                appenderTypeForm.add(newObjectIcon);
+                bar.add(newObjectIcon);
                 List<QName> appendersChoicesList = new ArrayList<>();
                 appendersChoicesList.add(FileAppenderConfigurationType.COMPLEX_TYPE);
                 appendersChoicesList.add(SyslogAppenderConfigurationType.COMPLEX_TYPE);
                 DropDownChoicePanel<QName> appenderChoice = new DropDownChoicePanel<>(
-                        ID_APPENDERS_CHOICE,
+                        idButton,
                         new Model<>(FileAppenderConfigurationType.COMPLEX_TYPE),
                         Model.ofList(appendersChoicesList),
-                        new QNameIChoiceRenderer("LoggingConfigurationTabPanel." + ID_APPENDERS_CHOICE));
+                        new QNameIChoiceRenderer("LoggingConfigurationTabPanel.appendersChoice"));
                 appenderChoice.setOutputMarkupId(true);
-                appenderTypeForm.addOrReplace(appenderChoice);
-                return searchContainer;
+                LoggingConfigurationTabPanel.this.appenderChoice = appenderChoice;
+                bar.add(appenderChoice);
+//                appenderTypeForm.addOrReplace(appenderChoice);
+//                bar.add(appenderTypeForm);
+                return bar;
             }
         };
         add(appendersMultivalueContainerListPanel);
@@ -345,7 +348,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<PrismContainerWrappe
     }
 
     protected void newAppendersClickPerformed(AjaxRequestTarget target, PrismContainerWrapperModel<LoggingConfigurationType, AppenderConfigurationType> appenderModel) {
-        DropDownChoicePanel<QName> appendersChoice = (DropDownChoicePanel<QName>) getAppendersMultivalueContainerListPanel().getTable().getFooterButtonToolbar().get(createComponentPath(ID_CHOICE_APPENDER_TYPE_FORM, ID_APPENDERS_CHOICE));
+        DropDownChoicePanel<QName> appendersChoice = appenderChoice;
         PrismContainerValue<AppenderConfigurationType> newObjectPolicy = null;
         if (QNameUtil.match(appendersChoice.getModel().getObject(), FileAppenderConfigurationType.COMPLEX_TYPE)) {
             newObjectPolicy = new FileAppenderConfigurationType().asPrismContainerValue();

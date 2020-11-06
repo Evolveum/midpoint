@@ -229,7 +229,7 @@ public class PageDebugList extends PageAdminConfiguration {
             }
         };
         DebugSearchDto search = searchModel.getObject();
-        ObjectQuery query = search.getSearch().createObjectQuery(getPrismContext());
+        ObjectQuery query = search.getSearch().createObjectQuery(this);
         provider.setQuery(createQuery(query));
 
         create(provider);
@@ -569,7 +569,7 @@ public class PageDebugList extends PageAdminConfiguration {
         setupSearchDto(dto);
 
         Search search = dto.getSearch();
-        ObjectQuery query = search.createObjectQuery(getPrismContext());
+        ObjectQuery query = search.createObjectQuery(this);
 
         listObjectsPerformed(query, isOidSearch, target);
     }

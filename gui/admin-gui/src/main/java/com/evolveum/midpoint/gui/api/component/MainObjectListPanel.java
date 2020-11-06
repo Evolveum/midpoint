@@ -6,20 +6,15 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
-import java.io.Serializable;
 import java.util.*;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -55,7 +50,6 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
 import com.evolveum.midpoint.web.component.MultifunctionalButton;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -70,9 +64,6 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectListPanel<O> {
     private static final long serialVersionUID = 1L;
 
-    private static final String ID_BUTTON_BAR = "buttonBar";
-    private static final String ID_BUTTON_REPEATER = "buttonsRepeater";
-    private static final String ID_BUTTON = "button";
     private static final Trace LOGGER = TraceManager.getTrace(MainObjectListPanel.class);
 
     public MainObjectListPanel(String id, Class<O> type) {
@@ -119,11 +110,6 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         return Arrays.asList(ref);
     }
 
-    @Override
-    protected WebMarkupContainer initButtonToolbar(String id) {
-        return new ButtonBar(id, ID_BUTTON_BAR, this, createToolbarButtonsList(ID_BUTTON));
-    }
-
     protected List<MultiFunctinalButtonDto> loadButtonDescriptions() {
         List<MultiFunctinalButtonDto> multiFunctinalButtonDtos = new ArrayList<>();
 
@@ -151,6 +137,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         return builder.build();
     }
 
+    @Override
     protected List<Component> createToolbarButtonsList(String buttonId) {
         List<Component> buttonsList = new ArrayList<>();
         MultifunctionalButton createNewObjectButton = new MultifunctionalButton(buttonId, loadButtonDescriptions()) {
@@ -272,7 +259,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             }
         };
         createReport.add(AttributeAppender.append("class", "btn btn-default btn-sm btn-margin-right"));
-        exportDataLink.add(new VisibleEnableBehaviour() {
+        createReport.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -321,80 +308,6 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         return true;
     }
 
-    private void createReportPerformed(AjaxRequestTarget target) {
-        PrismContext prismContext = getPageBase().getPrismContext();
-        PrismObjectDefinition<ReportType> def = prismContext.getSchemaRegistry().findObjectDefinitionByType(ReportType.COMPLEX_TYPE);
-        PrismObject<ReportType> obj = null;
-        try {
-            obj = def.instantiate();
-        } catch (SchemaException e) {
-            LOGGER.error("Couldn't instantiate new report", e);
-            getPageBase().error(getString("MainObjectListPanel.message.error.instantiateNewReport"));
-            target.add(getPageBase().getFeedbackPanel());
-            return;
-        }
-        ReportType report = obj.asObjectable();
-        ObjectCollectionReportEngineConfigurationType objectCollection = new ObjectCollectionReportEngineConfigurationType();
-        CompiledObjectCollectionView view = getObjectCollectionView();
-        CollectionRefSpecificationType collection = new CollectionRefSpecificationType();
-        objectCollection.setUseOnlyReportView(true);
-        if (view != null) {
-            objectCollection.setView(view.toGuiObjectListViewType());
-            if (view.getCollection() != null && view.getCollection().getCollectionRef() != null) {
-                if (!QNameUtil.match(view.getCollection().getCollectionRef().getType(), ArchetypeType.COMPLEX_TYPE)) {
-                    collection.setBaseCollectionRef(view.getCollection());
-                } else {
-                    OperationResult result = new OperationResult(MainObjectListPanel.class.getSimpleName() + "." + "evaluateExpressionsInFilter");
-                    CollectionRefSpecificationType baseCollection = new CollectionRefSpecificationType();
-                    try {
-                        baseCollection.setFilter(getPageBase().getQueryConverter().createSearchFilterType(
-                                WebComponentUtil.evaluateExpressionsInFilter(view.getFilter(), result, getPageBase())));
-                        collection.setBaseCollectionRef(baseCollection);
-                    } catch (SchemaException e) {
-                        LOGGER.error("Couldn't create filter for archetype");
-                        getPageBase().error(getString("MainObjectListPanel.message.error.createArchetypeFilter"));
-                        target.add(getPageBase().getFeedbackPanel());
-                    }
-                }
-            }
-        } else {
-            objectCollection.setView(getDefaultView());
-        }
-        SearchFilterType searchFilter = null;
-        ObjectQuery query = getSearchModel().getObject().createObjectQuery(getPageBase().getPrismContext());
-        if (query != null) {
-            ObjectFilter filter = query.getFilter();
-            try {
-                searchFilter = getPageBase().getPrismContext().getQueryConverter().createSearchFilterType(filter);
-            } catch (Exception e) {
-                LOGGER.error("Couldn't create filter from search panel", e);
-                getPageBase().error(getString("ExportingFilterTabPanel.message.error.serializeFilterFromSearch"));
-            }
-        }
-        if (searchFilter != null) {
-            collection.setFilter(searchFilter);
-        } else {
-            try {
-                SearchFilterType allFilter = prismContext.getQueryConverter().createSearchFilterType(prismContext.queryFactory().createAll());
-                collection.setFilter(allFilter);
-            } catch (SchemaException e) {
-                LOGGER.error("Couldn't create all filter", e);
-                getPageBase().error(getString("MainObjectListPanel.message.error.createAllFilter"));
-                target.add(getPageBase().getFeedbackPanel());
-                return;
-            }
-        }
-        objectCollection.setCollection(collection);
-        report.setObjectCollection(objectCollection);
-        report.getAssignment()
-                .add(ObjectTypeUtil.createAssignmentTo(SystemObjectsType.ARCHETYPE_COLLECTION_REPORT.value(), ObjectTypes.ARCHETYPE, prismContext));
-        report.getArchetypeRef()
-                .add(ObjectTypeUtil.createObjectRef(SystemObjectsType.ARCHETYPE_COLLECTION_REPORT.value(), ObjectTypes.ARCHETYPE));
-
-        PageReport pageReport = new PageReport(report.asPrismObject(), true);
-        getPageBase().navigateToNext(pageReport);
-    }
-
     private GuiObjectListViewType resolveSelectedColumn(List<Integer> indexOfColumns, GuiObjectListViewType view) {
         List<GuiObjectColumnType> newColumns = new ArrayList<>();
         List<GuiObjectColumnType> oldColumns;
@@ -409,10 +322,6 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         view.getColumn().clear();
         view.getColumn().addAll(newColumns);
         return view;
-    }
-
-    protected GuiObjectListViewType getDefaultView() {
-        return DefaultColumnUtils.getDefaultView(getType());
     }
 
     private IModel<String> getRefreshPausePlayButtonModel() {
@@ -510,26 +419,5 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
     protected CompositedIconBuilder getNewObjectButtonAdditionalIconBuilder(CompiledObjectCollectionView influencingObject, DisplayType additionalButtonDisplayType) {
         return null;
-    }
-
-    private static class ButtonBar extends Fragment {
-
-        private static final long serialVersionUID = 1L;
-
-        public <O extends ObjectType, S extends Serializable> ButtonBar(String id, String markupId, MainObjectListPanel<O> markupProvider, List<Component> buttonsList) {
-            super(id, markupId, markupProvider);
-
-            initLayout(buttonsList);
-        }
-
-        private <O extends ObjectType> void initLayout(final List<Component> buttonsList) {
-            ListView<Component> buttonsView = new ListView<Component>(ID_BUTTON_REPEATER, Model.ofList(buttonsList)) {
-                @Override
-                protected void populateItem(ListItem<Component> listItem) {
-                    listItem.add(listItem.getModelObject());
-                }
-            };
-            add(buttonsView);
-        }
     }
 }

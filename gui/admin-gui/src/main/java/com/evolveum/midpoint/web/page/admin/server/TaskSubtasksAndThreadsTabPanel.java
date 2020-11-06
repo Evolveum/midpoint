@@ -95,11 +95,6 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
             protected UserProfileStorage.TableId getTableId() {
                 return UserProfileStorage.TableId.TABLE_SUBTASKS;
             }
-
-            @Override
-            protected WebMarkupContainer initButtonToolbar(String id) {
-                return null;
-            }
         };
 
         add(subtasksPanel);
@@ -117,11 +112,6 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
             @Override
             protected UserProfileStorage.TableId getTableId() {
                 return UserProfileStorage.TableId.TABLE_WORKERS;
-            }
-
-            @Override
-            protected WebMarkupContainer initButtonToolbar(String id) {
-                return null;
             }
 
             @Override

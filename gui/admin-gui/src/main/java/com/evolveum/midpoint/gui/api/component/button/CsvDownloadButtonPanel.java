@@ -10,6 +10,8 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -62,8 +64,8 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
             @Override
             public <T> void exportData(IDataProvider<T> dataProvider,
                     List<IExportableColumn<T, ?>> columns, OutputStream outputStream) {
-                if (dataProvider instanceof SelectableBeanObjectDataProvider) {
-                    ((SelectableBeanObjectDataProvider) dataProvider).setExport(true);        // TODO implement more nicely
+                if (dataProvider instanceof SelectableBeanContainerDataProvider) {
+                    ((SelectableBeanContainerDataProvider) dataProvider).setExport(true);        // TODO implement more nicely
                 }
                 try {
                     ((BaseSortableDataProvider) dataProvider).setExportSize(true);
@@ -72,8 +74,8 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
                 } catch (Exception ex) {
                     LOGGER.error("Unable to export data,", ex);
                 } finally {
-                    if (dataProvider instanceof SelectableBeanObjectDataProvider) {
-                        ((SelectableBeanObjectDataProvider) dataProvider).setExport(false);
+                    if (dataProvider instanceof SelectableBeanContainerDataProvider) {
+                        ((SelectableBeanContainerDataProvider) dataProvider).setExport(false);
                     }
                 }
             }

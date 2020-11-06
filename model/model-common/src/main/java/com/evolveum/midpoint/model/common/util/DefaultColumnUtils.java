@@ -16,7 +16,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCustomColumnPropertyType;
 
 import com.google.common.collect.ImmutableMap;
@@ -46,26 +45,23 @@ public class DefaultColumnUtils {
     private static final Trace LOGGER = TraceManager.getTrace(DefaultColumnUtils.class);
 
     // Maps need to preserve iteration order (like LinkedHashMap)
-    private static final Map<Class<? extends ObjectType>, List<ColumnWrapper>> COLUMNS_DEF;
+    private static final Map<Class<? extends Containerable>, List<ColumnWrapper>> COLUMNS_DEF;
     private static final List<ColumnWrapper> OBJECT_COLUMNS_DEF;
-    private static final List<ItemPath> DEFAULT_AUDIT_COLUMNS_DEF;
 
     static {
 
         OBJECT_COLUMNS_DEF = Collections.singletonList(new ColumnWrapper(ObjectType.F_NAME));
 
-        DEFAULT_AUDIT_COLUMNS_DEF = Arrays.asList(
-                AuditEventRecordType.F_TIMESTAMP,
-                AuditEventRecordType.F_INITIATOR_REF,
-                AuditEventRecordType.F_EVENT_STAGE,
-                AuditEventRecordType.F_EVENT_TYPE,
-                AuditEventRecordType.F_TARGET_REF,
-                AuditEventRecordType.F_OUTCOME,
-                AuditEventRecordType.F_MESSAGE,
-                AuditEventRecordType.F_DELTA
-        );
-
-        COLUMNS_DEF = ImmutableMap.<Class<? extends ObjectType>, List<ColumnWrapper>>builder()
+        COLUMNS_DEF = ImmutableMap.<Class<? extends Containerable>, List<ColumnWrapper>>builder()
+                .put(AuditEventRecordType.class, Arrays.asList(
+                        new ColumnWrapper(AuditEventRecordType.F_TIMESTAMP, true),
+                        new ColumnWrapper(AuditEventRecordType.F_INITIATOR_REF),
+                        new ColumnWrapper(AuditEventRecordType.F_EVENT_STAGE),
+                        new ColumnWrapper(AuditEventRecordType.F_EVENT_TYPE),
+                        new ColumnWrapper(AuditEventRecordType.F_TARGET_REF),
+                        new ColumnWrapper(AuditEventRecordType.F_OUTCOME),
+                        new ColumnWrapper(AuditEventRecordType.F_MESSAGE),
+                        new ColumnWrapper(AuditEventRecordType.F_DELTA)))
                 .put(ResourceType.class, Arrays.asList(
                         new ColumnWrapper(ResourceType.F_NAME),
                         new ColumnWrapper(ItemPath.create(ResourceType.F_CONNECTOR_REF, ConnectorType.F_CONNECTOR_TYPE), "ConnectorType.connectorType"),
@@ -108,7 +104,7 @@ public class DefaultColumnUtils {
                 .build();
     }
 
-    private static List<ColumnWrapper> getColumnsForType(Class<? extends ObjectType> type) {
+    private static List<ColumnWrapper> getColumnsForType(Class<? extends Containerable> type) {
         if (type.equals(RoleType.class)
                 || type.equals(OrgType.class)
                 || type.equals(ServiceType.class)) {
@@ -141,6 +137,8 @@ public class DefaultColumnUtils {
             return getDefaultShadowView();
         } else if (AccessCertificationDefinitionType.class.equals(type)) {
             return getDefaultAccessCertificationDefinitionView();
+        } else if (AuditEventRecordType.class.equals(type)) {
+            return getDefaultAuditEventsView();
         } else if (ObjectType.class.isAssignableFrom(type)){
             return getDefaultObjectView();
         }
@@ -148,24 +146,7 @@ public class DefaultColumnUtils {
     }
 
     public static GuiObjectListViewType getDefaultAuditEventsView() {
-        GuiObjectListViewType view = new GuiObjectListViewType();
-        view.setType(AuditEventRecordType.COMPLEX_TYPE);
-        view.setIdentifier("default-audit-event");
-        view.createColumnList();
-        List<GuiObjectColumnType> columns = view.getColumn();
-        String previousColumn = null;
-        for (ItemPath defaultColumn : DEFAULT_AUDIT_COLUMNS_DEF) {
-            String columnName = defaultColumn.lastName().getLocalPart() + "Column";
-            GuiObjectColumnType column = new GuiObjectColumnType();
-            column.setName(columnName);
-            column.setPreviousColumn(previousColumn);
-            ItemPathType itemPathType = new ItemPathType();
-            itemPathType.setItemPath(defaultColumn);
-            column.setPath(itemPathType);
-            columns.add(column);
-            previousColumn = columnName;
-        }
-        return view;
+        return getDefaultView(AuditEventRecordType.COMPLEX_TYPE, "default-audit-event", AuditEventRecordType.class);
     }
 
     private static GuiObjectListViewType getDefaultAccessCertificationDefinitionView() {
@@ -204,8 +185,8 @@ public class DefaultColumnUtils {
         return getDefaultView(ObjectType.COMPLEX_TYPE, "default-object", ObjectType.class);
     }
 
-    private static <O extends ObjectType> GuiObjectListViewType getDefaultView(QName qname, String identifier, Class<? extends
-            O> type) {
+    private static <C extends Containerable> GuiObjectListViewType getDefaultView(QName qname, String identifier, Class<? extends
+            C> type) {
         GuiObjectListViewType view = new GuiObjectListViewType();
         view.setType(qname);
         view.setIdentifier(identifier);
@@ -213,7 +194,7 @@ public class DefaultColumnUtils {
         return view;
     }
 
-    private static <O extends ObjectType> void createColumns(GuiObjectListViewType view, Class<? extends O> type) {
+    private static <C extends Containerable> void createColumns(GuiObjectListViewType view, Class<? extends C> type) {
         view.createColumnList();
         List<GuiObjectColumnType> columns = view.getColumn();
         List<ColumnWrapper> defaultColumns = getColumnsForType(type);

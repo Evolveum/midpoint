@@ -16620,6 +16620,7 @@
 
     <xsd:element name="objectPolicyConfiguration" type="c:ObjectPolicyConfigurationType"/>
     <xsd:element name="classLoggerConfiguration" type="c:ClassLoggerConfigurationType"/>
+    <xsd:element name="appenderConfigurationType" type="c:AppenderConfigurationType"/>
     <xsd:element name="globalPolicyRule" type="c:GlobalPolicyRuleType"/>
 
     <xsd:complexType name="SystemConfigurationType">

@@ -68,7 +68,6 @@ public abstract class SpecialPopoverSearchPanel<T> extends BasePanel<T> {
         add(popover);
 
         WebMarkupContainer searchPopupPanel = createPopupPopoverPanel(ID_POPOVER_PANEL);
-        searchPopupPanel.setRenderBodyOnly(true);
         popover.add(searchPopupPanel);
 
     }

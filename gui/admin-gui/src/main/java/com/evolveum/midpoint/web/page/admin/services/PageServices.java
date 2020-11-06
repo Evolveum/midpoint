@@ -23,10 +23,12 @@ import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.util.FocusListInlineMenuHelper;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -69,27 +71,10 @@ public class PageServices extends PageAdmin {
         super();
     }
 
-    private FocusListInlineMenuHelper<ServiceType> listInlineMenuHelper;
-
     @Override
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
-        initListInlineMenuHelper();
-    }
-
-    private void initListInlineMenuHelper() {
-        listInlineMenuHelper = new FocusListInlineMenuHelper<ServiceType>(ServiceType.class, this, getObjectListPanel()) {
-            private static final long serialVersionUID = 1L;
-
-            protected boolean isShowConfirmationDialog(ColumnMenuAction action) {
-                return PageServices.this.isShowConfirmationDialog(action);
-            }
-
-            protected IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName) {
-                return PageServices.this.getConfirmationMessageModel(action, actionName);
-            }
-        };
     }
 
     protected void initLayout() {
@@ -110,6 +95,17 @@ public class PageServices extends PageAdmin {
 
             @Override
             protected List<InlineMenuItem> createInlineMenu() {
+                FocusListInlineMenuHelper<ServiceType> listInlineMenuHelper = new FocusListInlineMenuHelper<ServiceType>(ServiceType.class, PageServices.this, this) {
+                    private static final long serialVersionUID = 1L;
+
+                    protected boolean isShowConfirmationDialog(ColumnMenuAction action) {
+                        return PageServices.this.isShowConfirmationDialog(action);
+                    }
+
+                    protected IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName) {
+                        return PageServices.this.getConfirmationMessageModel(action, actionName);
+                    }
+                };
                 return listInlineMenuHelper.createRowActions(getType());
             }
 

@@ -23,6 +23,7 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -1701,8 +1702,8 @@ public final class WebComponentUtil {
         if (provider instanceof BaseSortableDataProvider) {
             ((BaseSortableDataProvider) provider).clearCache();
         }
-        if (provider instanceof SelectableBeanObjectDataProvider) {
-            ((SelectableBeanObjectDataProvider) provider).clearSelectedObjects();
+        if (provider instanceof SelectableBeanContainerDataProvider) {
+            ((SelectableBeanContainerDataProvider) provider).clearSelectedObjects();
         }
     }
 
@@ -4692,5 +4693,15 @@ public final class WebComponentUtil {
         collator.setStrength(Collator.SECONDARY);       // e.g. "a" should be different from "á"
         collator.setDecomposition(Collator.FULL_DECOMPOSITION);
         return collator;
+    }
+
+    public static CompositedIcon createCreateReportIcon() {
+        final CompositedIconBuilder builder = new CompositedIconBuilder();
+        builder.setBasicIcon(WebComponentUtil.createReportIcon(), IconCssStyle.IN_ROW_STYLE);
+        IconType plusIcon = new IconType();
+        plusIcon.setCssClass(GuiStyleConstants.CLASS_ADD_NEW_OBJECT);
+        plusIcon.setColor("green");
+        builder.appendLayerIcon(plusIcon, LayeredIconCssStyle.BOTTOM_RIGHT_STYLE);
+        return builder.build();
     }
 }

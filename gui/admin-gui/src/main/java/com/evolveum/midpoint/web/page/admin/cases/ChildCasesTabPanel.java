@@ -129,11 +129,6 @@ public class ChildCasesTabPanel extends AbstractObjectTabPanel<CaseType> {
             }
 
             @Override
-            protected WebMarkupContainer initButtonToolbar(String id) {
-                return null;
-            }
-
-            @Override
             protected List<InlineMenuItem> createInlineMenu(){
                 return new ArrayList<>();
             }

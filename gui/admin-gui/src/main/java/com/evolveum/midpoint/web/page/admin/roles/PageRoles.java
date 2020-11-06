@@ -65,28 +65,10 @@ public class PageRoles extends PageAdmin {
         super();
     }
 
-    private FocusListInlineMenuHelper<RoleType> listInlineMenuHelper;
-
     @Override
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
-        initListInlineMenuHelper();
-    }
-
-    private void initListInlineMenuHelper() {
-        listInlineMenuHelper = new FocusListInlineMenuHelper<RoleType>(RoleType.class, this, getObjectListPanel()){
-            private static final long serialVersionUID = 1L;
-
-            protected boolean isShowConfirmationDialog(ColumnMenuAction action){
-                return PageRoles.this.isShowConfirmationDialog(action);
-            }
-
-            protected IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
-                return PageRoles.this.getConfirmationMessageModel(action, actionName);
-            }
-
-        };
     }
 
     protected void initLayout() {
@@ -107,6 +89,18 @@ public class PageRoles extends PageAdmin {
 
             @Override
             protected List<InlineMenuItem> createInlineMenu() {
+                FocusListInlineMenuHelper<RoleType> listInlineMenuHelper = new FocusListInlineMenuHelper<RoleType>(RoleType.class, PageRoles.this, this){
+                    private static final long serialVersionUID = 1L;
+
+                    protected boolean isShowConfirmationDialog(ColumnMenuAction action){
+                        return PageRoles.this.isShowConfirmationDialog(action);
+                    }
+
+                    protected IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
+                        return PageRoles.this.getConfirmationMessageModel(action, actionName);
+                    }
+
+                };
                 return listInlineMenuHelper.createRowActions(getType());
             }
 
