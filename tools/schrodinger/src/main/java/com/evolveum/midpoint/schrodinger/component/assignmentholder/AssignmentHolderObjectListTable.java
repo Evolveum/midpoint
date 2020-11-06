@@ -109,7 +109,7 @@ public abstract class AssignmentHolderObjectListTable<P, PD extends AssignmentHo
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
         mainButtonElement.click();
         if (mainButtonElement.exists()) {
-            ElementsCollection childrenButtonCollection = mainButtonElement.parent()
+            ElementsCollection childrenButtonCollection = mainButtonElement.parent().parent()
                     .$(By.cssSelector(".dropdown-menu.auto-width"))
                     .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
                     .findAll(By.tagName("i"));

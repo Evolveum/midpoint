@@ -28,7 +28,8 @@ public class SchemaStepSchemaTab extends TabWithContainerWrapper<SchemaWizardSte
     }
 
     public SchemaStepSchemaTab clickObjectClass(String objectClassName) {
-        $(Schrodinger.byDataId("objectClassList"))
+        $(Schrodinger.bySelfOrDescendantElementAttributeValue("div", "class", "box box-solid box-primary",
+                "class", "box-title"))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
                 .$(By.linkText(objectClassName))
                 .click();
@@ -37,7 +38,8 @@ public class SchemaStepSchemaTab extends TabWithContainerWrapper<SchemaWizardSte
     }
 
     public boolean isObjectClassPresent(String objectClassName) {
-        return $(Schrodinger.byDataId("objectClassList"))
+        return $(Schrodinger.bySelfOrDescendantElementAttributeValue("div", "class", "box box-solid box-primary",
+                "class", "box-title"))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
                 .$(By.linkText(objectClassName))
                 .exists();
