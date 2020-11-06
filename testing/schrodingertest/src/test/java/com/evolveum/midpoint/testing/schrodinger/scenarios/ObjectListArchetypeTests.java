@@ -114,7 +114,7 @@ public class ObjectListArchetypeTests extends AbstractSchrodingerTest {
                 .countDropdownButtonChildrenButtons(".fa.fa-plus"), 2);
         userListPage
                 .table()
-                    .newObjectCollectionButtonClickPerformed("fa fa-plus", ARCHETYPE_ICON_CSS_STYLE);
+                    .newObjectCollectionButtonClickPerformed(".fa.fa-plus", ARCHETYPE_ICON_CSS_STYLE);
     }
 
 }

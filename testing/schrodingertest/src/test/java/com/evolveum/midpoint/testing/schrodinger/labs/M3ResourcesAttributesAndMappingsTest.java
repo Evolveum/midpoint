@@ -83,6 +83,7 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
                 .selectSchemaTab();
         Assert.assertTrue(schemaStepSchemaTab.isObjectClassPresent(CSV_1_ACCOUNT_OBJECT_CLASS_LINK));
 
+        schemaStepSchemaTab.clickObjectClass(CSV_1_ACCOUNT_OBJECT_CLASS_LINK);
         //check resource attributes are present
         CSV_1_RESOURCE_ATTRIBUTES.forEach(attr ->
                 Assert.assertTrue(schemaStepSchemaTab.getAttributesTable().containsText(attr)));
