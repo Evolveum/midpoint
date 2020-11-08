@@ -112,6 +112,7 @@ public class ObjectListArchetypeTests extends AbstractSchrodingerTest {
         Assert.assertEquals(userListPage
                 .table()
                 .countDropdownButtonChildrenButtons(".fa.fa-plus"), 2);
+        userListPage = basicPage.listUsers();
         userListPage
                 .table()
                     .newObjectCollectionButtonClickPerformed(".fa.fa-plus", ARCHETYPE_ICON_CSS_STYLE);

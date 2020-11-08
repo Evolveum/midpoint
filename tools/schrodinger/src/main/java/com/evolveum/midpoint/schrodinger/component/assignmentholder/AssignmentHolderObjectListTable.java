@@ -97,10 +97,15 @@ public abstract class AssignmentHolderObjectListTable<P, PD extends AssignmentHo
         SelenideElement mainButtonElement = getToolbarButton(mainButtonIconCssClass)
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
         mainButtonElement.click();
-        mainButtonElement.parent().$(By.cssSelector(objCollectionButtonIconCssClass))
-                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
-                .click();
-        Selenide.sleep(2000);
+        if (mainButtonElement.exists()) {
+            mainButtonElement.parent().parent()
+                    .$(By.cssSelector(".dropdown-menu.auto-width"))
+                    .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                    .$(By.cssSelector(objCollectionButtonIconCssClass))
+                    .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                    .click();
+            Selenide.sleep(2000);
+        }
         return getObjectDetailsPage();
     }
 
