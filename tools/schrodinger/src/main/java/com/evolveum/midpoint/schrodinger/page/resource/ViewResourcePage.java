@@ -32,7 +32,7 @@ public class ViewResourcePage extends BasicPage {
     public ResourceWizardPage clickShowUsingWizard() {
 
         $(Schrodinger.byDataResourceKey("a", "pageResource.button.wizardShow")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-        $(By.className("wizard"))
+        $(Schrodinger.byElementAttributeValue("form", "class", "form-horizontal"))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
         return new ResourceWizardPage();
     }
