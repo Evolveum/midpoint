@@ -48,7 +48,19 @@ public class SearchPropertiesConfigPanel<T> extends Component<T> {
 
     public SearchPropertiesConfigPanel<T> setPropertyTextValue(String propertyName, String value, boolean addPropertyIfAbsent) {
         TableRow propertyRow = getTableRowForProperty(propertyName, addPropertyIfAbsent);
-        propertyRow.setTextToInputFieldByColumnName("Value", value);
+        if (propertyRow != null) {
+            propertyRow.setTextToInputFieldByColumnName("Value", value);
+        }
+        return this;
+    }
+
+    public SearchPropertiesConfigPanel<T> setPropertyObjectReferenceValue(String propertyName, String objectReferenceOid, boolean addPropertyIfAbsent) {
+        TableRow propertyRow = getTableRowForProperty(propertyName, addPropertyIfAbsent);
+        if (propertyRow != null) {
+            SearchItemField<SearchPropertiesConfigPanel> refConfigPanel =
+                    new SearchItemField<>(this, propertyRow.getColumnCellElementByColumnName("Value"));
+            refConfigPanel.inputRefOid(objectReferenceOid);
+        }
         return this;
     }
 
@@ -58,7 +70,7 @@ public class SearchPropertiesConfigPanel<T> extends Component<T> {
         return this;
     }
 
-    public SearchPropertiesConfigPanel<T> setPropertyMatchingTuleValue(String propertyName, String filterValue, boolean addPropertyIfAbsent) {
+    public SearchPropertiesConfigPanel<T> setPropertyMatchingRuleValue(String propertyName, String filterValue, boolean addPropertyIfAbsent) {
         TableRow propertyRow = getTableRowForProperty(propertyName, addPropertyIfAbsent);
         propertyRow.setValueToDropDownByColumnName("Filter", filterValue);
         return this;
