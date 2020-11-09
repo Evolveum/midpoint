@@ -69,6 +69,15 @@ public class TableRow<X, T extends Table<X>> extends Component<T> {
         return this;
     }
 
+    public TableRow setValueToDropdownFieldByColumnName(String columnName, String textValue) {
+        int index = getParent().findColumnByLabel(columnName);
+
+        SelenideElement select = getParentElement().$(By.cssSelector("td:nth-child(" + index + ") select"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+        select.selectOption(textValue);
+        return this;
+    }
+
     public TableRow setValueToDropDownByColumnName(String columnName, String selectValue) {
         int index = getParent().findColumnByLabel(columnName);
         getParentElement().$(By.cssSelector("td:nth-child(" + index + ") select"))

@@ -230,6 +230,24 @@
                     </collectionRef>
                 </collection>
             </objectCollectionView>
+            <objectCollectionView>
+                <identifier>filter-dropdown-config-users</identifier>
+                <display>
+                    <label>DropdownPropertyConfigTest</label>
+                    <pluralLabel>
+                        <orig>DropdownPropertyConfigTest</orig>
+                        <translation>
+                            <key>DropdownPropertyConfigTest</key>
+                        </translation>
+                    </pluralLabel>
+                    <singularLabel>DropdownPropertyConfigTest</singularLabel>
+                </display>
+                <type>UserType</type>
+                <collection>
+                    <collectionRef oid="03rrv54k-l2lm-3320-3oh1-0lgll32slr37" relation="org:default" type="c:ObjectCollectionType">
+                    </collectionRef>
+                </collection>
+            </objectCollectionView>
         </objectCollectionViews>
     </adminGuiConfiguration>
 </systemConfiguration>

@@ -64,6 +64,14 @@ public class SearchPropertiesConfigPanel<T> extends Component<T> {
         return this;
     }
 
+    public SearchPropertiesConfigPanel<T> setPropertyDropdownValue(String propertyName, String value, boolean addPropertyIfAbsent) {
+        TableRow propertyRow = getTableRowForProperty(propertyName, addPropertyIfAbsent);
+        if (propertyRow != null) {
+            propertyRow.setValueToDropdownFieldByColumnName("Value", value);
+        }
+        return this;
+    }
+
     public SearchPropertiesConfigPanel<T> setPropertyFilterValue(String propertyName, String filterValue, boolean addPropertyIfAbsent) {
         TableRow propertyRow = getTableRowForProperty(propertyName, addPropertyIfAbsent);
         propertyRow.setValueToDropDownByColumnName("Filter", filterValue);
