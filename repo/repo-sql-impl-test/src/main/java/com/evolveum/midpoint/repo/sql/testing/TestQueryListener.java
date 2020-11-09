@@ -17,8 +17,7 @@ import net.ttddyy.dsproxy.listener.QueryExecutionListener;
 import org.springframework.stereotype.Component;
 
 /**
- * This inspector is instantiated by Hibernate.
- * However, the queries recorded are accessed statically, as we do not have access to Hibernate-created instances of this class.
+ * TODO
  */
 @Component
 public class TestQueryListener implements QueryExecutionListener {
