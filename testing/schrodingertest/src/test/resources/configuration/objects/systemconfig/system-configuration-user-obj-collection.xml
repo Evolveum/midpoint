@@ -212,6 +212,24 @@
                     </collectionRef>
                 </collection>
             </objectCollectionView>
+            <objectCollectionView>
+                <identifier>filter-obj-ref-config-users</identifier>
+                <display>
+                    <label>ObjRefAttributeConfigTest</label>
+                    <pluralLabel>
+                        <orig>ObjRefAttributeConfigTest</orig>
+                        <translation>
+                            <key>ObjRefAttributeConfigTest</key>
+                        </translation>
+                    </pluralLabel>
+                    <singularLabel>ObjRefAttributeConfigTest</singularLabel>
+                </display>
+                <type>UserType</type>
+                <collection>
+                    <collectionRef oid="04kk454k-0llm-3320-3401-0lgll32slr37" relation="org:default" type="c:ObjectCollectionType">
+                    </collectionRef>
+                </collection>
+            </objectCollectionView>
         </objectCollectionViews>
     </adminGuiConfiguration>
 </systemConfiguration>
