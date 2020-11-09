@@ -8,7 +8,6 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import java.util.*;
 
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
