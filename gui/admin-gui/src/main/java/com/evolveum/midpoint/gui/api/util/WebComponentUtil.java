@@ -1517,12 +1517,22 @@ public final class WebComponentUtil {
     }
 
     public static PolyStringType createPolyFromOrigString(String str) {
+        return createPolyFromOrigString(str, null);
+    }
+
+    public static PolyStringType createPolyFromOrigString(String str, String key) {
         if (str == null) {
             return null;
         }
 
         PolyStringType poly = new PolyStringType();
         poly.setOrig(str);
+
+        if (StringUtils.isNotEmpty(key)){
+            PolyStringTranslationType translation = new PolyStringTranslationType();
+            translation.setKey(key);
+            poly.setTranslation(translation);
+        }
 
         return poly;
     }
