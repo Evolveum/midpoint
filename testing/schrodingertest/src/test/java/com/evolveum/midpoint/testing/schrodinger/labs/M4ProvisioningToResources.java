@@ -49,7 +49,6 @@ public class M4ProvisioningToResources extends AbstractLabTest {
     @Test(groups={"M4"}, dependsOnGroups={"M3"})
     public void mod04test01BasicProvisioningToMultipleResources() {
         importObject(CSV_1_RESOURCE_FILE, true);
-        addObjectFromFile(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE);
 
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
 
