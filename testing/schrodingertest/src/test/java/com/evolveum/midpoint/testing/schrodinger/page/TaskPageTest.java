@@ -11,6 +11,7 @@ import com.codeborne.selenide.Selenide;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
+import com.evolveum.midpoint.schrodinger.component.task.OperationStatisticsTab;
 import com.evolveum.midpoint.schrodinger.page.task.ListTasksPage;
 import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
@@ -72,6 +73,22 @@ public class TaskPageTest extends AbstractSchrodingerTest {
 
     @Test
     public void test002cleanupOperationStatistics() {
+        TaskPage taskPage = basicPage.listTasks()
+                .table()
+                    .search()
+                        .byName()
+                        .inputValue("operation statistics clean up test")
+                        .updateSearch()
+                    .and()
+                    .clickByName("operation statistics clean up test");
+        OperationStatisticsTab operationStatisticsTab = taskPage
+                .selectTabOperationStatistics();
+        Assert.assertEquals(operationStatisticsTab.getSuccessfullyProcessed(), Integer.getInteger("30"),
+                "The count of successfully processed objects doesn't match");
+        Assert.assertEquals(operationStatisticsTab.getObjectsFailedToBeProcessed(), Integer.getInteger("3"),
+                "The count of failed objects doesn't match");
+        Assert.assertEquals(operationStatisticsTab.getObjectsTotalCount(), Integer.getInteger("33"),
+                "The total count of processed objects doesn't match");
         Assert.assertTrue(basicPage.listTasks()
                 .table()
                     .search()
@@ -84,5 +101,12 @@ public class TaskPageTest extends AbstractSchrodingerTest {
                 .clickYes()
                 .feedback()
                 .isSuccess());
+        Assert.assertNull(operationStatisticsTab.getSuccessfullyProcessed(),
+                "The count of successfully processed objects after cleanup is not null");
+        Assert.assertNull(operationStatisticsTab.getObjectsFailedToBeProcessed(),
+                "The count of failed objects after cleanup is not null");
+        Assert.assertNull(operationStatisticsTab.getObjectsTotalCount(),
+                "The total count of processed objects after cleanup is not null");
+
     }
 }

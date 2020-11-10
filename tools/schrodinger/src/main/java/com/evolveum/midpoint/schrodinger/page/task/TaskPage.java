@@ -12,6 +12,9 @@ import static com.evolveum.midpoint.schrodinger.util.Utils.getModalWindowSelenid
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+
+import com.evolveum.midpoint.schrodinger.component.task.*;
+
 import org.openqa.selenium.By;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
@@ -19,8 +22,6 @@ import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
 import com.evolveum.midpoint.schrodinger.component.AssignmentsTab;
 import com.evolveum.midpoint.schrodinger.component.common.SummaryPanel;
 import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
-import com.evolveum.midpoint.schrodinger.component.task.OperationStatisticsTab;
-import com.evolveum.midpoint.schrodinger.component.task.TaskBasicTab;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.page.PreviewPage;
 import com.evolveum.midpoint.schrodinger.page.user.ProgressPage;
@@ -127,11 +128,39 @@ public class TaskPage extends AssignmentHolderDetailsPage<TaskPage> {
         return new AssignmentHolderBasicTab<TaskPage>(this, element);
     }
 
-    public OperationStatisticsTab<TaskPage> selectTabOperationStatistics() {
+    public OperationStatisticsTab selectTabOperationStatistics() {
         SelenideElement element = getTabPanel().clickTab("pageTask.operationStats.title")
                 .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new OperationStatisticsTab(this, element);
+    }
+
+    public EnvironmentalPerformanceTab selectTabEnvironmentalPerformance() {
+        SelenideElement element = getTabPanel().clickTab("pageTask.environmentalPerformance.title")
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
+
+        return new EnvironmentalPerformanceTab(this, element);
+    }
+
+    public InternalPerformanceTab selectTabInternalPerformance() {
+        SelenideElement element = getTabPanel().clickTab("pageTask.internalPerformance.title")
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
+
+        return new InternalPerformanceTab(this, element);
+    }
+
+    public ResultTab selectTabResult() {
+        SelenideElement element = getTabPanel().clickTab("pageTask.result.title")
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
+
+        return new ResultTab(this, element);
+    }
+
+     public ErrorsTab selectTabErrors() {
+        SelenideElement element = getTabPanel().clickTab("pageTask.errors.title")
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
+
+        return new ErrorsTab(this, element);
     }
 
     public TaskPage setHandlerUriForNewTask(String handler) {
