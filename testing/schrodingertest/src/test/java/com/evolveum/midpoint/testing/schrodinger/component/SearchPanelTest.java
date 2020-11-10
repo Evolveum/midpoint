@@ -191,6 +191,7 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
     public void test0090configuredAttributesSearch() {
         UsersPageTable table = basicPage.listUsers().table();
         Search<UsersPageTable> search = (Search<UsersPageTable>) table.search();
+        search.resetBasicSearch();
         search.byItemName("By employee number", false)
                 .inputValue("544")
                 .updateSearch();
