@@ -30,11 +30,15 @@ public class TestDeltaPerformance extends AbstractSchemaPerformanceTest {
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_NAME).replace("jjj")
                 .asObjectDeltaCast(temp.getOid());
-        measure("delta.applyTo(jack)", () -> { delta.applyTo(temp); return true; });
+        measure("delta.applyTo.name",
+                "Applies name change delta to jack",
+                () -> { delta.applyTo(temp); return true; });
 
         PrismObject<UserType> jack2 = jack.clone();
         delta.applyTo(jack2);
-        measure("jack2.diff(jack)", () -> jack2.diff(jack));
+        measure("jack2.diff.name",
+                "Diffs jack and modified jack (name)",
+                () -> jack2.diff(jack));
     }
 
     @Test
@@ -44,10 +48,14 @@ public class TestDeltaPerformance extends AbstractSchemaPerformanceTest {
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE).replace("cleartext")
                 .asObjectDeltaCast(temp.getOid());
-        measure("delta.applyTo(jack)", () -> { delta.applyTo(temp); return true; });
+        measure("delta.applyTo.credentials",
+                "Applies credentials change delta to jack",
+                () -> { delta.applyTo(temp); return true; });
         PrismObject<UserType> jack2 = jack.clone();
         delta.applyTo(jack2);
-        measure("jack2.diff(jack)", () -> jack2.diff(jack));
+        measure("jack2.diff(jack)",
+                "Diffs jack and modified jack (credentials)",
+                () -> jack2.diff(jack));
     }
 
     @Test
@@ -57,10 +65,10 @@ public class TestDeltaPerformance extends AbstractSchemaPerformanceTest {
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(ItemPath.create(UserType.F_EXTENSION, "bar23"), def("bar23")).replace("bbb")
                 .asObjectDeltaCast(temp.getOid());
-        measure("delta.applyTo(jack)", () -> { delta.applyTo(temp); return true; });
+        measure("delta.applyTo(jack)", "", () -> { delta.applyTo(temp); return true; });
         PrismObject<UserType> jack2 = jack.clone();
         delta.applyTo(jack2);
-        measure("jack2.diff(jack)", () -> jack2.diff(jack));
+        measure("jack2.diff(jack)", "", () -> jack2.diff(jack));
     }
 
     @Test
@@ -74,10 +82,14 @@ public class TestDeltaPerformance extends AbstractSchemaPerformanceTest {
                 .item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE).replace("cleartext")
                 .item(UserType.F_ADMIN_GUI_CONFIGURATION).replace(new AdminGuiConfigurationType(getPrismContext()))
                 .asObjectDeltaCast(temp.getOid());
-        measure("delta.applyTo(jack)", () -> { delta.applyTo(temp); return true; });
+        measure("delta.applyTo.5mod",
+                "Applies 5 modification delta to jack",
+                () -> { delta.applyTo(temp); return true; });
         PrismObject<UserType> jack2 = jack.clone();
         delta.applyTo(jack2);
-        measure("jack2.diff(jack)", () -> jack2.diff(jack));
+        measure("jack2.diff.5mod",
+                "Diffs 5 modification delta from jack",
+                () -> jack2.diff(jack));
     }
 
     private PrismPropertyDefinition<String> def(String name) {
@@ -121,9 +133,13 @@ public class TestDeltaPerformance extends AbstractSchemaPerformanceTest {
                 .item(ItemPath.create(UserType.F_EXTENSION, "bar28"), def("bar28")).replace("bbb")
                 .item(ItemPath.create(UserType.F_EXTENSION, "bar29"), def("bar29")).replace("bbb")
                 .asObjectDeltaCast(temp.getOid());
-        measure("delta.applyTo(jack)", () -> { delta.applyTo(temp); return true; });
+        measure("delta.applyTo.30mod",
+                "Applies delta with 30 modifications",
+                () -> { delta.applyTo(temp); return true; });
         PrismObject<UserType> jack2 = jack.clone();
         delta.applyTo(jack2);
-        measure("jack2.diff(jack)", () -> jack2.diff(jack));
+        measure("jack2.diff.30mod",
+                "Diffs original with modified (30 items changed)",
+                () -> jack2.diff(jack));
     }
 }
