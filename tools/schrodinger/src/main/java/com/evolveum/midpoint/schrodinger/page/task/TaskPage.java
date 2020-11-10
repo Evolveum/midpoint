@@ -74,7 +74,7 @@ public class TaskPage extends AssignmentHolderDetailsPage<TaskPage> {
     }
 
     public boolean isRunNowVisible(){
-        return   $(Schrodinger.byDataResourceKey("span", "pageTaskEdit.button.runNow")).is(Condition.visible);
+        return $(Schrodinger.byDataResourceKey("span", "pageTaskEdit.button.runNow")).is(Condition.visible);
     }
 
     public TaskPage downloadReport() {
@@ -83,7 +83,7 @@ public class TaskPage extends AssignmentHolderDetailsPage<TaskPage> {
         return this;
     }
 
-    public ConfirmationModal<TaskPage> cleanupEnvironmentalPerformance() {
+    public ConfirmationModal<TaskPage> cleanupEnvironmentalPerformanceInfo() {
         $(Schrodinger.byDataResourceKey("operationalButtonsPanel.cleanupEnvironmentalPerformance"))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         return new ConfirmationModal<TaskPage>(this, getModalWindowSelenideElement());

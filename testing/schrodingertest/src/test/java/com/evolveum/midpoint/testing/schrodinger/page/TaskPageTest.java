@@ -11,22 +11,29 @@ import com.codeborne.selenide.Selenide;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
-import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.page.task.ListTasksPage;
 import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
-import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
-import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author skublik
  */
 
 public class TaskPageTest extends AbstractSchrodingerTest {
+
+    private static final File OPERATION_STATISTICS_CLEANUP_TASK_FILE = new File("./src/test/resources/configuration/objects/tasks/operation-statistics-clean-up.xml");
+
+    @Override
+    protected List<File> getObjectListToImport(){
+        return Arrays.asList(OPERATION_STATISTICS_CLEANUP_TASK_FILE);
+    }
 
     @Test
     public void test001createNewTask() {
@@ -61,5 +68,21 @@ public class TaskPageTest extends AbstractSchrodingerTest {
 
         Assert.assertTrue(taskForm.compareInputAttributeValue("name", name));
         Assert.assertTrue(taskForm.compareInputAttributeValue("handlerUri", handler));
+    }
+
+    @Test
+    public void test002cleanupOperationStatistics() {
+        Assert.assertTrue(basicPage.listTasks()
+                .table()
+                    .search()
+                        .byName()
+                        .inputValue("operation statistics clean up test")
+                        .updateSearch()
+                    .and()
+                    .clickByName("operation statistics clean up test")
+                .cleanupEnvironmentalPerformanceInfo()
+                .clickYes()
+                .feedback()
+                .isSuccess());
     }
 }
