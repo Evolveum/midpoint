@@ -85,7 +85,7 @@ public class TaskPage extends AssignmentHolderDetailsPage<TaskPage> {
     }
 
     public ConfirmationModal<TaskPage> cleanupEnvironmentalPerformanceInfo() {
-        $(Schrodinger.byDataResourceKey("operationalButtonsPanel.cleanupEnvironmentalPerformance"))
+        $(By.cssSelector(".fa.fa-area-chart"))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         return new ConfirmationModal<TaskPage>(this, getModalWindowSelenideElement());
     }
@@ -110,10 +110,7 @@ public class TaskPage extends AssignmentHolderDetailsPage<TaskPage> {
 
     @Override
     public AssignmentHolderBasicTab<TaskPage> selectTabBasic() {
-        SelenideElement element = getTabPanel().clickTab("pageTask.basic.title")
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new TaskBasicTab(this, element);
+        return new TaskBasicTab(this, getTabSelenideElement(("pageTask.basic.title")));
     }
 
     @Override
@@ -122,45 +119,27 @@ public class TaskPage extends AssignmentHolderDetailsPage<TaskPage> {
     }
 
     public AssignmentHolderBasicTab<TaskPage> selectScheduleTab(){
-        SelenideElement element = getTabPanel().clickTab("pageTask.schedule.title")
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new AssignmentHolderBasicTab<TaskPage>(this, element);
+        return new AssignmentHolderBasicTab<TaskPage>(this, getTabSelenideElement(("pageTask.schedule.title")));
     }
 
     public OperationStatisticsTab selectTabOperationStatistics() {
-        SelenideElement element = getTabPanel().clickTab("pageTask.operationStats.title")
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new OperationStatisticsTab(this, element);
+        return new OperationStatisticsTab(this, getTabSelenideElement(("pageTask.operationStats.title")));
     }
 
     public EnvironmentalPerformanceTab selectTabEnvironmentalPerformance() {
-        SelenideElement element = getTabPanel().clickTab("pageTask.environmentalPerformance.title")
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new EnvironmentalPerformanceTab(this, element);
+        return new EnvironmentalPerformanceTab(this, getTabSelenideElement(("pageTask.environmentalPerformance.title")));
     }
 
     public InternalPerformanceTab selectTabInternalPerformance() {
-        SelenideElement element = getTabPanel().clickTab("pageTask.internalPerformance.title")
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new InternalPerformanceTab(this, element);
+        return new InternalPerformanceTab(this, getTabSelenideElement(("pageTask.internalPerformance.title")));
     }
 
     public ResultTab selectTabResult() {
-        SelenideElement element = getTabPanel().clickTab("pageTask.result.title")
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new ResultTab(this, element);
+        return new ResultTab(this, getTabSelenideElement(("pageTask.result.title")));
     }
 
      public ErrorsTab selectTabErrors() {
-        SelenideElement element = getTabPanel().clickTab("pageTask.errors.title")
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new ErrorsTab(this, element);
+        return new ErrorsTab(this, getTabSelenideElement(("pageTask.errors.title")));
     }
 
     public TaskPage setHandlerUriForNewTask(String handler) {

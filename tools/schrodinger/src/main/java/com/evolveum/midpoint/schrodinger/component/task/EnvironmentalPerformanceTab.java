@@ -6,10 +6,15 @@
  */
 package com.evolveum.midpoint.schrodinger.component.task;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 
+import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
+import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+
+import static com.codeborne.selenide.Selenide.$;
 
 /**
  * @author honchar
@@ -18,5 +23,10 @@ public class EnvironmentalPerformanceTab extends Component<TaskPage> {
 
     public EnvironmentalPerformanceTab(TaskPage parent, SelenideElement parentElement) {
         super(parent, parentElement);
+    }
+
+    public StatisticsPanel<EnvironmentalPerformanceTab> getStatisticsPanel() {
+        return new StatisticsPanel<>(this, $(Schrodinger.byDataId("statisticsPanel"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S));
     }
 }

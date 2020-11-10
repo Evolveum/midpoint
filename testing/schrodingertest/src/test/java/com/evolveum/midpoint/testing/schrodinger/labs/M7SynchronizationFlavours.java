@@ -80,7 +80,7 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
 
         Assert.assertEquals(showTask("Initial import from HR")
                 .selectTabOperationStatistics()
-                    .getSuccessfullyProcessed(), 14);
+                    .getSuccessfullyProcessed(), Integer.valueOf(14));
         Assert.assertEquals(basicPage.listUsers(ARCHETYPE_EMPLOYEE_PLURAL_LABEL).getCountOfObjects(), 15);
     }
 

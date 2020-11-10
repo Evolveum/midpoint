@@ -11,6 +11,7 @@ import com.codeborne.selenide.Selenide;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
+import com.evolveum.midpoint.schrodinger.component.task.EnvironmentalPerformanceTab;
 import com.evolveum.midpoint.schrodinger.component.task.OperationStatisticsTab;
 import com.evolveum.midpoint.schrodinger.page.task.ListTasksPage;
 import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
@@ -30,10 +31,11 @@ import java.util.List;
 public class TaskPageTest extends AbstractSchrodingerTest {
 
     private static final File OPERATION_STATISTICS_CLEANUP_TASK_FILE = new File("./src/test/resources/configuration/objects/tasks/operation-statistics-clean-up.xml");
+    private static final File ENVIRONMENTAL_PERFORMANCE_CLEANUP_TASK_FILE = new File("./src/test/resources/configuration/objects/tasks/environmental-performance-clean-up.xml");
 
     @Override
     protected List<File> getObjectListToImport(){
-        return Arrays.asList(OPERATION_STATISTICS_CLEANUP_TASK_FILE);
+        return Arrays.asList(OPERATION_STATISTICS_CLEANUP_TASK_FILE, ENVIRONMENTAL_PERFORMANCE_CLEANUP_TASK_FILE);
     }
 
     @Test
@@ -77,30 +79,25 @@ public class TaskPageTest extends AbstractSchrodingerTest {
                 .table()
                     .search()
                         .byName()
-                        .inputValue("operation statistics clean up test")
+                        .inputValue("OperationStatisticsCleanupTest")
                         .updateSearch()
                     .and()
-                    .clickByName("operation statistics clean up test");
+                    .clickByName("OperationStatisticsCleanupTest");
         OperationStatisticsTab operationStatisticsTab = taskPage
                 .selectTabOperationStatistics();
-        Assert.assertEquals(operationStatisticsTab.getSuccessfullyProcessed(), Integer.getInteger("30"),
+        Assert.assertEquals(operationStatisticsTab.getSuccessfullyProcessed(), Integer.valueOf(30),
                 "The count of successfully processed objects doesn't match");
-        Assert.assertEquals(operationStatisticsTab.getObjectsFailedToBeProcessed(), Integer.getInteger("3"),
+        Assert.assertEquals(operationStatisticsTab.getObjectsFailedToBeProcessed(), Integer.valueOf(3),
                 "The count of failed objects doesn't match");
-        Assert.assertEquals(operationStatisticsTab.getObjectsTotalCount(), Integer.getInteger("33"),
+        Assert.assertEquals(operationStatisticsTab.getObjectsTotalCount(), Integer.valueOf(33),
                 "The total count of processed objects doesn't match");
-        Assert.assertTrue(basicPage.listTasks()
-                .table()
-                    .search()
-                        .byName()
-                        .inputValue("operation statistics clean up test")
-                        .updateSearch()
-                    .and()
-                    .clickByName("operation statistics clean up test")
+        Assert.assertTrue(taskPage
                 .cleanupEnvironmentalPerformanceInfo()
                 .clickYes()
                 .feedback()
                 .isSuccess());
+        operationStatisticsTab = taskPage
+                .selectTabOperationStatistics();
         Assert.assertNull(operationStatisticsTab.getSuccessfullyProcessed(),
                 "The count of successfully processed objects after cleanup is not null");
         Assert.assertNull(operationStatisticsTab.getObjectsFailedToBeProcessed(),
@@ -108,5 +105,42 @@ public class TaskPageTest extends AbstractSchrodingerTest {
         Assert.assertNull(operationStatisticsTab.getObjectsTotalCount(),
                 "The total count of processed objects after cleanup is not null");
 
+    }
+
+    @Test
+    public void test003cleanupEnvironmentalPerformance() {
+        TaskPage taskPage = basicPage.listTasks()
+                .table()
+                    .search()
+                        .byName()
+                        .inputValue("OperationStatisticsCleanupTest")
+                        .updateSearch()
+                    .and()
+                    .clickByName("OperationStatisticsCleanupTest");
+        EnvironmentalPerformanceTab environmentalPerformanceTab = taskPage
+                .selectTabEnvironmentalPerformance();
+        Assert.assertEquals(environmentalPerformanceTab.getStatisticsPanel().getMappingsEvaluationContainingObjectValue(), "ManRes",
+                "'Containing object' value doesn't match");
+        Assert.assertEquals(environmentalPerformanceTab.getStatisticsPanel().getMappingsEvaluationInvocationsCountValue(), "4",
+                "'Invocations count' value doesn't match");
+        Assert.assertEquals(environmentalPerformanceTab.getStatisticsPanel().getMappingsEvaluationMaxValue(), "1",
+                "'Max' value doesn't match");
+        Assert.assertEquals(environmentalPerformanceTab.getStatisticsPanel().getMappingsEvaluationTotalTimeValue(), "2",
+                "'Total time' value doesn't match");
+        Assert.assertTrue(taskPage
+                .cleanupEnvironmentalPerformanceInfo()
+                .clickYes()
+                .feedback()
+                .isSuccess());
+        environmentalPerformanceTab = taskPage
+                .selectTabEnvironmentalPerformance();
+        Assert.assertNull(environmentalPerformanceTab.getStatisticsPanel().getMappingsEvaluationContainingObjectValue(),
+                "'Containing object' value is not null after cleanup");
+        Assert.assertNull(environmentalPerformanceTab.getStatisticsPanel().getMappingsEvaluationInvocationsCountValue(),
+                "'Invocations count' value is not null after cleanup");
+        Assert.assertNull(environmentalPerformanceTab.getStatisticsPanel().getMappingsEvaluationMaxValue(),
+                "'Max' value is not null after cleanup");
+        Assert.assertNull(environmentalPerformanceTab.getStatisticsPanel().getMappingsEvaluationTotalTimeValue(),
+                "'Total time' value is not null after cleanup");
     }
 }
