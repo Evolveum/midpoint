@@ -7,17 +7,9 @@
 package com.evolveum.midpoint.web.component.search;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-
-import com.evolveum.midpoint.web.component.search.filter.SearchFilter;
-
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +32,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathComparatorUtil;
@@ -61,6 +54,7 @@ import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -149,7 +143,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
                 return selectedPropertyChoice;
             }
 
-            public void setObject(Property property){
+            public void setObject(Property property) {
                 selectedPropertyChoice = property;
             }
         };
@@ -367,11 +361,11 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
                     PrismContainerDefinition<AuditEventRecordType> auditDefs = getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AuditEventRecordType.class);
                     List<Property> propertiesList = auditDefs.getDefinitions()
                             .stream()
-                                .map(def -> new Property(def, def.getItemName()))
-                                .collect(Collectors.toList());
+                            .map(def -> new Property(def, def.getItemName()))
+                            .collect(Collectors.toList());
                     return propertiesList;
                 }
-                return Collections.EMPTY_LIST;
+                return Collections.emptyList();
             }
         };
     }

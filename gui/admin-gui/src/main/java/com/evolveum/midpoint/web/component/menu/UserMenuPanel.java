@@ -316,11 +316,11 @@ public class UserMenuPanel extends BasePanel<UserMenuPanel> {
 
             CredentialsPolicyType credentialsPolicyType = principal.getApplicableSecurityPolicy().getCredentials();
             if (credentialsPolicyType == null) {
-                return Collections.EMPTY_LIST;
+                return Collections.emptyList();
             }
             SecurityQuestionsCredentialsPolicyType securityQuestionsPolicy = credentialsPolicyType.getSecurityQuestions();
             if (securityQuestionsPolicy == null) {
-                return Collections.EMPTY_LIST;
+                return Collections.emptyList();
             }
 
             return securityQuestionsPolicy.getQuestion();

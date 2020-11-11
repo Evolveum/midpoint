@@ -308,7 +308,7 @@ public class ArchetypeManager implements Cache {
     private <C extends Containerable> List<C> mergeContainers(List<C> currentContainers, List<C> superContainers, Function<C, Predicate<C>> predicate, BiFunction<C, C, C> mergeFunction) {
         if (currentContainers.isEmpty()) {
             if (superContainers.isEmpty()) {
-                return Collections.EMPTY_LIST;
+                return Collections.emptyList();
             }
             return superContainers.stream().map(this::cloneComplex).collect(Collectors.toList());
         }
