@@ -10,6 +10,8 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -61,7 +63,7 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
                 REQUESTABLE_ROLE_FILE, DISABLED_ROLE_FILE, SEARCH_BY_ROLE_MEMBERSHIP_NAME_USER_FILE, SEARCH_BY_ROLE_MEMBERSHIP_OID_USER_FILE,
                 SEARCH_BY_ROLE_MEMBERSHIP_TYPE_USER_FILE, SEARCH_BY_ROLE_MEMBERSHIP_RELATION_USER_FILE, SEARCH_BY_ROLE_MEMBERSHIP_NAME_ROLE_FILE,
                 SEARCH_BY_ROLE_MEMBERSHIP_OID_ROLE_FILE, SEARCH_BY_ROLE_MEMBERSHIP_TYPE_ORG_FILE, SEARCH_BY_ROLE_MEMBERSHIP_RELATIONS_ROLE_FILE,
-                SYSTEM_CONFIG_WITH_CONFIGURED_USER_SEARCH, USER_WITH_EMPLOYEE_NUMBER_FILE, USER_WITH_EMAIL_ADDRESS_FILE);
+                USER_WITH_EMPLOYEE_NUMBER_FILE, USER_WITH_EMAIL_ADDRESS_FILE);
     }
 
     @Test
@@ -189,9 +191,13 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
 
     @Test
     public void test0090configuredAttributesSearch() {
+        addObjectFromFile(SYSTEM_CONFIG_WITH_CONFIGURED_USER_SEARCH);
+        basicPage.loggedUser().logout();
+        midPoint.formLogin()
+                .loginWithReloadLoginPage(getUsername(), getPassword());
+
         UsersPageTable table = basicPage.listUsers().table();
         Search<UsersPageTable> search = (Search<UsersPageTable>) table.search();
-        search.resetBasicSearch();
         search.byItemName("By employee number", false)
                 .inputValue("544")
                 .updateSearch();
