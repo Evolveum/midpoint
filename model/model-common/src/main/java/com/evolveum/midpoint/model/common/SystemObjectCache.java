@@ -22,7 +22,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
-import com.evolveum.midpoint.repo.api.Cacheable;
+import com.evolveum.midpoint.repo.api.Cache;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -55,7 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author semancik
  */
 @Component
-public class SystemObjectCache implements Cacheable {
+public class SystemObjectCache implements Cache {
 
     private static final Trace LOGGER = TraceManager.getTrace(SystemObjectCache.class);
     private static final Trace LOGGER_CONTENT = TraceManager.getTrace(SystemObjectCache.class.getName() + ".content");
@@ -78,12 +78,12 @@ public class SystemObjectCache implements Cacheable {
 
     @PostConstruct
     public void register() {
-        cacheRegistry.registerCacheableService(this);
+        cacheRegistry.registerCache(this);
     }
 
     @PreDestroy
     public void unregister() {
-        cacheRegistry.unregisterCacheableService(this);
+        cacheRegistry.unregisterCache(this);
     }
 
     private long getSystemConfigurationExpirationMillis() {

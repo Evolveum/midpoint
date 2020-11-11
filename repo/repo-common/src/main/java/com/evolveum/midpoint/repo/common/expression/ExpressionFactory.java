@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -25,7 +25,7 @@ import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
-import com.evolveum.midpoint.repo.api.Cacheable;
+import com.evolveum.midpoint.repo.api.Cache;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -40,7 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInfo
  *
  * @author semancik
  */
-public class ExpressionFactory implements Cacheable {
+public class ExpressionFactory implements Cache {
 
     private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
 
@@ -67,12 +67,12 @@ public class ExpressionFactory implements Cacheable {
 
     @PostConstruct
     public void register() {
-        cacheRegistry.registerCacheableService(this);
+        cacheRegistry.registerCache(this);
     }
 
     @PreDestroy
     public void unregister() {
-        cacheRegistry.unregisterCacheableService(this);
+        cacheRegistry.unregisterCache(this);
     }
 
     public void setObjectResolver(ObjectResolver objectResolver) {
