@@ -91,7 +91,7 @@ public class TaskPage extends AssignmentHolderDetailsPage<TaskPage> {
     }
 
     public ConfirmationModal<TaskPage> cleanupResults() {
-        $(Schrodinger.byDataResourceKey("operationalButtonsPanel.cleanupResults"))
+        $(By.cssSelector(".fa.fa-list-alt"))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         return new ConfirmationModal<TaskPage>(this, getModalWindowSelenideElement());
     }

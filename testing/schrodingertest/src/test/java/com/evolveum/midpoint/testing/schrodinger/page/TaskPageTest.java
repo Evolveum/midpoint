@@ -33,10 +33,11 @@ public class TaskPageTest extends AbstractSchrodingerTest {
 
     private static final File OPERATION_STATISTICS_CLEANUP_TASK_FILE = new File("./src/test/resources/configuration/objects/tasks/operation-statistics-clean-up.xml");
     private static final File ENVIRONMENTAL_PERFORMANCE_CLEANUP_TASK_FILE = new File("./src/test/resources/configuration/objects/tasks/environmental-performance-clean-up.xml");
+    private static final File RESULTS_CLEANUP_TASK_FILE = new File("./src/test/resources/configuration/objects/tasks/results-clean-up.xml");
 
     @Override
     protected List<File> getObjectListToImport(){
-        return Arrays.asList(OPERATION_STATISTICS_CLEANUP_TASK_FILE, ENVIRONMENTAL_PERFORMANCE_CLEANUP_TASK_FILE);
+        return Arrays.asList(OPERATION_STATISTICS_CLEANUP_TASK_FILE, ENVIRONMENTAL_PERFORMANCE_CLEANUP_TASK_FILE, RESULTS_CLEANUP_TASK_FILE);
     }
 
     @Test
@@ -161,13 +162,13 @@ public class TaskPageTest extends AbstractSchrodingerTest {
         Assert.assertTrue(resultTab.getResultsTable().containsText(tokenValue),
                 "'Token' value '" + tokenValue +"' is absent");
         Assert.assertEquals(resultTab.getOperationValueByToken(tokenValue), "run",
-                "'Operation' value doesn't match to 'run'");
+                "'Operation' value doesn't match");
         Assert.assertEquals(resultTab.getStatusValueByToken(tokenValue), "IN_PROGRESS",
-                "'Status' value doesn't match to 'IN_PROGRESS'");
-        Assert.assertEquals(resultTab.getTimestampValueByToken(tokenValue), "01/01/2020",
-                "'Timestamp' value doesn't match to '01/01/2020'");
+                "'Status' value doesn't match");
+        Assert.assertEquals(resultTab.getTimestampValueByToken(tokenValue), "1/1/20, 12:00:00 AM",
+                "'Timestamp' value doesn't match");
         Assert.assertEquals(resultTab.getMessageValueByToken(tokenValue), "Test results",
-                "'Message' value doesn't match to 'Test results'");
+                "'Message' value doesn't match");
         Assert.assertTrue(taskPage
                 .cleanupResults()
                 .clickYes()
@@ -175,5 +176,16 @@ public class TaskPageTest extends AbstractSchrodingerTest {
                 .isSuccess());
         resultTab = taskPage
                 .selectTabResult();
+        Assert.assertFalse(resultTab.getResultsTable().containsText(tokenValue),
+                "'Token' value '" + tokenValue +"' is present after cleanup");
+        Assert.assertNull(resultTab.getOperationValueByToken(tokenValue),
+                "'Operation' value is not null after cleanup");
+        Assert.assertNull(resultTab.getStatusValueByToken(tokenValue),
+                "'Status' value is not null after cleanup");
+        Assert.assertNull(resultTab.getTimestampValueByToken(tokenValue),
+                "'Timestamp' value is not null after cleanup");
+        Assert.assertNull(resultTab.getMessageValueByToken(tokenValue),
+                "'Message' value is not null after cleanup");
+
     }
 }

@@ -35,11 +35,17 @@ public class Table<T> extends Component<T> {
 
     public TableRow rowByColumnLabel(String label, String rowValue) {
         int index = findColumnByLabel(label);
+        if (index < 0) {
+            return null;
+        }
         return getTableRowByIndex(index, rowValue);
     }
 
     public int findColumnByLabel(String label) {
         ElementsCollection headers = getParentElement().findAll("thead th div span[data-s-id=label]");
+        if (headers == null) {
+            return -1;
+        }
         int index = 1;
         for (SelenideElement header : headers) {
             String value = header.text();
@@ -53,12 +59,17 @@ public class Table<T> extends Component<T> {
             }
             index++;
         }
-
+        if (index > headers.size()) {
+            return -1;
+        }
         return index;
     }
 
     public int findColumnByResourceKey(String key) {
         ElementsCollection headers = getParentElement().findAll("thead th div span[data-s-id=label]");
+        if (headers == null) {
+            return -1;
+        }
         int index = 1;
         for (SelenideElement header : headers) {
             String headerResourceKey = header.getAttribute("data-s-resource-key");
@@ -72,12 +83,17 @@ public class Table<T> extends Component<T> {
             }
             index++;
         }
-
+        if (index > headers.size()) {
+            return -1;
+        }
         return index;
     }
 
     public TableRow rowByColumnResourceKey(String key, String rowValue) {
-        int index = findColumnByLabel(key);
+        int index = findColumnByResourceKey(key);
+        if (index < 0) {
+            return null;
+        }
         return getTableRowByIndex(index, rowValue);
     }
 

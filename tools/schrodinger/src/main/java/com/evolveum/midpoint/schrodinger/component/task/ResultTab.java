@@ -28,23 +28,31 @@ public class ResultTab extends Component<TaskPage> {
     }
 
     public String getOperationValueByToken(String tokenValue){
-        TableRow row = getResultsTableRowByToken(tokenValue);
-        return row.getColumnCellElementByColumnName("Operation").getValue();
+        return getColumnValueByToken(tokenValue, "Operation");
     }
 
     public String getStatusValueByToken(String tokenValue){
-        TableRow row = getResultsTableRowByToken(tokenValue);
-        return row.getColumnCellElementByColumnName("Status").getValue();
+        return getColumnValueByToken(tokenValue, "Status");
     }
 
     public String getTimestampValueByToken(String tokenValue){
-        TableRow row = getResultsTableRowByToken(tokenValue);
-        return row.getColumnCellElementByColumnName("Timestamp").getValue();
+        return getColumnValueByToken(tokenValue, "Timestamp");
     }
 
     public String getMessageValueByToken(String tokenValue){
+        return getColumnValueByToken(tokenValue, "Message");
+    }
+
+    public String getColumnValueByToken(String tokenValue, String columnName) {
         TableRow row = getResultsTableRowByToken(tokenValue);
-        return row.getColumnCellElementByColumnName("Message").getValue();
+        if (row == null) {
+            return null;
+        }
+        SelenideElement cell = row.getColumnCellElementByColumnName(columnName);
+        if (cell == null) {
+            return null;
+        }
+        return cell.getText();
     }
 
     public TableRow<ResultTab, Table<ResultTab>> getResultsTableRowByToken(String tokenValue) {
