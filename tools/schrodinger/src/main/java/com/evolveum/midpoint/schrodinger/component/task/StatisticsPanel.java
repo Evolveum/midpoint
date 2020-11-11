@@ -32,32 +32,85 @@ public class StatisticsPanel<T> extends Component<T> {
         return getStatisticValueByFieldName("Provisioning.GetSuccess");
     }
 
-    public String getProvisioningOperationsFailValue() {
+    public String getProvisioningOperationsGetFailValue() {
         return getStatisticValueByFieldName("Provisioning.GetFailure");
     }
 
-    /* continue for fields
-     * <td><span wicket:id="Provisioning.SearchSuccess"/></td>
-                            <td><span wicket:id="Provisioning.SearchFailure"/></td>
-                            <td><span wicket:id="Provisioning.CreateSuccess"/></td>
-                            <td><span wicket:id="Provisioning.CreateFailure"/></td>
-                            <td><span wicket:id="Provisioning.UpdateSuccess"/></td>
-                            <td><span wicket:id="Provisioning.UpdateFailure"/></td>
-                            <td><span wicket:id="Provisioning.DeleteSuccess"/></td>
-                            <td><span wicket:id="Provisioning.DeleteFailure"/></td>
-                            <td><span wicket:id="Provisioning.SyncSuccess"/></td>
-                            <td><span wicket:id="Provisioning.SyncFailure"/></td>
-                            <td><span wicket:id="Provisioning.ScriptSuccess"/></td>
-                            <td><span wicket:id="Provisioning.ScriptFailure"/></td>
-                            <td><span wicket:id="Provisioning.OtherSuccess"/></td>
-                            <td><span wicket:id="Provisioning.OtherFailure"/></td>
-                            <td><span wicket:id="Provisioning.TotalOperationsCount"/></td>
-                            <td><span wicket:id="Provisioning.AverageTime"/></td>
-                            <td><span wicket:id="Provisioning.MinTime"/></td>
-                            <td><span wicket:id="Provisioning.MaxTime"/></td>
-                            <td><span wicket:id="Provisioning.TotalTime"/></td>
-     *
-     */
+    public String getProvisioningOperationsSearchOkValue() {
+        return getStatisticValueByFieldName("Provisioning.SearchSuccess");
+    }
+
+    public String getProvisioningOperationsSearchFailValue() {
+        return getStatisticValueByFieldName("Provisioning.SearchFailure");
+    }
+
+    public String getProvisioningOperationsCreateOkValue() {
+        return getStatisticValueByFieldName("Provisioning.CreateSuccess");
+    }
+
+    public String getProvisioningOperationsCreateFailValue() {
+        return getStatisticValueByFieldName("Provisioning.CreateFailure");
+    }
+
+    public String getProvisioningOperationsUpdateOkValue() {
+        return getStatisticValueByFieldName("Provisioning.UpdateSuccess");
+    }
+
+    public String getProvisioningOperationsUpdateFailValue() {
+        return getStatisticValueByFieldName("Provisioning.UpdateFailure");
+    }
+
+    public String getProvisioningOperationsDeleteOkValue() {
+        return getStatisticValueByFieldName("Provisioning.DeleteSuccess");
+    }
+
+    public String getProvisioningOperationsDeleteFailValue() {
+        return getStatisticValueByFieldName("Provisioning.DeleteFailure");
+    }
+
+    public String getProvisioningOperationsSyncOkValue() {
+        return getStatisticValueByFieldName("Provisioning.SyncSuccess");
+    }
+
+    public String getProvisioningOperationsSyncFailValue() {
+        return getStatisticValueByFieldName("Provisioning.SyncFailure");
+    }
+
+    public String getProvisioningOperationsScriptOkValue() {
+        return getStatisticValueByFieldName("Provisioning.ScriptSuccess");
+    }
+
+    public String getProvisioningOperationsScriptFailValue() {
+        return getStatisticValueByFieldName("Provisioning.ScriptFailure");
+    }
+
+    public String getProvisioningOperationsOtherOkValue() {
+        return getStatisticValueByFieldName("Provisioning.OtherSuccess");
+    }
+
+    public String getProvisioningOperationsOtherValue() {
+        return getStatisticValueByFieldName("Provisioning.OtherFailure");
+    }
+
+    public String getProvisioningOperationsAllOperationsValue() {
+        return getStatisticValueByFieldName("Provisioning.TotalOperationsCount");
+    }
+
+    public String getProvisioningOperationsAvgTimeValue() {
+        return getStatisticValueByFieldName("Provisioning.AverageTime");
+    }
+
+    public String getProvisioningOperationsMinValue() {
+        return getStatisticValueByFieldName("Provisioning.MinTime");
+    }
+
+    public String getProvisioningOperationsMaxValue() {
+        return getStatisticValueByFieldName("Provisioning.MaxTime");
+    }
+
+    public String getProvisioningOperationsTotalTimeValue() {
+        return getStatisticValueByFieldName("Provisioning.TotalTime");
+    }
 
     public String getMappingsEvaluationContainingObjectValue() {
         return getStatisticValueByFieldName("Mappings.Object");

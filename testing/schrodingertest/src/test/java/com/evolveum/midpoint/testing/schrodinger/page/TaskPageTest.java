@@ -13,6 +13,7 @@ import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.component.task.EnvironmentalPerformanceTab;
 import com.evolveum.midpoint.schrodinger.component.task.OperationStatisticsTab;
+import com.evolveum.midpoint.schrodinger.component.task.ResultTab;
 import com.evolveum.midpoint.schrodinger.page.task.ListTasksPage;
 import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
@@ -142,5 +143,37 @@ public class TaskPageTest extends AbstractSchrodingerTest {
                 "'Max' value is not null after cleanup");
         Assert.assertNull(environmentalPerformanceTab.getStatisticsPanel().getMappingsEvaluationTotalTimeValue(),
                 "'Total time' value is not null after cleanup");
+    }
+
+    @Test
+    public void test004cleanupTaskResults() {
+        TaskPage taskPage = basicPage.listTasks()
+                .table()
+                    .search()
+                        .byName()
+                        .inputValue("ResultCleanupTest")
+                        .updateSearch()
+                    .and()
+                    .clickByName("ResultCleanupTest");
+        String tokenValue = "1000000000000003831";
+        ResultTab resultTab = taskPage
+                .selectTabResult();
+        Assert.assertTrue(resultTab.getResultsTable().containsText(tokenValue),
+                "'Token' value '" + tokenValue +"' is absent");
+        Assert.assertEquals(resultTab.getOperationValueByToken(tokenValue), "run",
+                "'Operation' value doesn't match to 'run'");
+        Assert.assertEquals(resultTab.getStatusValueByToken(tokenValue), "IN_PROGRESS",
+                "'Status' value doesn't match to 'IN_PROGRESS'");
+        Assert.assertEquals(resultTab.getTimestampValueByToken(tokenValue), "01/01/2020",
+                "'Timestamp' value doesn't match to '01/01/2020'");
+        Assert.assertEquals(resultTab.getMessageValueByToken(tokenValue), "Test results",
+                "'Message' value doesn't match to 'Test results'");
+        Assert.assertTrue(taskPage
+                .cleanupResults()
+                .clickYes()
+                .feedback()
+                .isSuccess());
+        resultTab = taskPage
+                .selectTabResult();
     }
 }
