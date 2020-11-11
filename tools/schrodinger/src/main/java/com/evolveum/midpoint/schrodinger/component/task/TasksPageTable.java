@@ -46,6 +46,11 @@ public class TasksPageTable extends AssignmentHolderObjectListTable<ListTasksPag
         return new TaskPage();
     }
 
+    @Override
+    public long getDetailsPageLoadingTimeToWait() {
+        return MidPoint.TIMEOUT_MEDIUM_6_S;
+    }
+
     public ConfirmationModal<TasksPageTable> suspendTask() {
         return suspendTask(null, null);
     }

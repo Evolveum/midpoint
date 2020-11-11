@@ -113,10 +113,10 @@ public class TaskPageTest extends AbstractSchrodingerTest {
                 .table()
                     .search()
                         .byName()
-                        .inputValue("OperationStatisticsCleanupTest")
+                        .inputValue("EnvironmentalPerformanceCleanupTest")
                         .updateSearch()
                     .and()
-                    .clickByName("OperationStatisticsCleanupTest");
+                    .clickByName("EnvironmentalPerformanceCleanupTest");
         EnvironmentalPerformanceTab environmentalPerformanceTab = taskPage
                 .selectTabEnvironmentalPerformance();
         Assert.assertEquals(environmentalPerformanceTab.getStatisticsPanel().getMappingsEvaluationContainingObjectValue(), "ManRes",
