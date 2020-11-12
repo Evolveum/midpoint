@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -13,8 +13,6 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVA
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import javax.xml.bind.JAXBException;
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,16 +25,13 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
-import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -47,7 +42,6 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -70,7 +64,7 @@ public class TestClockwork extends AbstractLensTest {
     // tests specific bug dealing with preservation of null values in focus secondary deltas
     @Test
     public void test010SerializeAddUserBarbossa() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -78,7 +72,6 @@ public class TestClockwork extends AbstractLensTest {
         PrismObject<UserType> bill = prismContext.parseObject(USER_BARBOSSA_FILE);
         fillContextWithAddUserDelta(context, bill);
 
-        // WHEN
         when();
         clockwork.click(context, task, result);     // one round - compute projections
 
@@ -95,9 +88,10 @@ public class TestClockwork extends AbstractLensTest {
 
         displayDumpable("Context after deserialization", context2);
 
-        // THEN
         then();
-        assertEquals("Secondary deltas are not preserved - their number differs", context.getFocusContext().getSecondaryDeltas().size(), context2.getFocusContext().getSecondaryDeltas().size());
+        assertEquals("Secondary deltas are not preserved - their number differs",
+                context.getFocusContext().getSecondaryDeltas().size(),
+                context2.getFocusContext().getSecondaryDeltas().size());
         for (int i = 0; i < context.getFocusContext().getSecondaryDeltas().size(); i++) {
             assertEquals(
                     "Secondary delta #" + i + " is not preserved correctly, "
@@ -111,7 +105,7 @@ public class TestClockwork extends AbstractLensTest {
     @Test
     public void test020AssignAccountToJackSync() throws Exception {
         try {
-            // GIVEN
+            given();
             Task task = getTestTask();
             OperationResult result = task.getResult();
 
@@ -150,7 +144,7 @@ public class TestClockwork extends AbstractLensTest {
     }
 
     @Test
-    public void test030AssignAccountToJackAsyncNoserialize() throws Exception {
+    public void test030AssignAccountToJackAsyncNoSerialize() throws Exception {
         try {
             assignAccountToJackAsync(false);
         } finally {
@@ -175,12 +169,12 @@ public class TestClockwork extends AbstractLensTest {
 
     /**
      * User barbossa has a direct account assignment.
-     * This assignment has an expression for enabledisable flag.
+     * This assignment has an expression for enable/disable flag.
      * Let's disable user, the account should be disabled as well.
      */
     @Test
     public void test053ModifyUserBarbossaDisable() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -219,7 +213,7 @@ public class TestClockwork extends AbstractLensTest {
     }
 
     private void assignAccountToJackAsync(boolean serialize) throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -266,7 +260,6 @@ public class TestClockwork extends AbstractLensTest {
             }
         }
 
-        // THEN
         then();
         mockClockworkHook.setRecord(false);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
@@ -331,7 +324,7 @@ public class TestClockwork extends AbstractLensTest {
     }
 
     private LensContext<UserType> createJackAssignAccountContext(OperationResult result)
-            throws SchemaException, ObjectNotFoundException, IOException, JAXBException {
+            throws SchemaException, ObjectNotFoundException, IOException {
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
@@ -339,9 +332,9 @@ public class TestClockwork extends AbstractLensTest {
     }
 
     private void unassignJackAccount()
-            throws SchemaException, ObjectNotFoundException, IOException, JAXBException,
-            PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException,
-            CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
+            throws SchemaException, ObjectNotFoundException, IOException, PolicyViolationException,
+            ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException,
+            ConfigurationException, SecurityViolationException, PreconditionViolationException {
         Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + ".unassignJackAccount");
         LensContext<UserType> context = createUserLensContext();
         OperationResult result = task.getResult();

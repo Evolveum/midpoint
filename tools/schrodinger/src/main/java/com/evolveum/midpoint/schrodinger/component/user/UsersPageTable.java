@@ -51,7 +51,7 @@ public class UsersPageTable extends AssignmentHolderObjectListTable<ListUsersPag
     }
 
     public ConfirmationModal<UsersPageTable> disableUser() {
-        return enableUser(null, null);
+        return disableUser(null, null);
     }
 
     public ConfirmationModal<UsersPageTable> disableUser(String columnTitleKey, String rowValue) {
@@ -59,7 +59,7 @@ public class UsersPageTable extends AssignmentHolderObjectListTable<ListUsersPag
     }
 
     public ConfirmationModal<UsersPageTable> reconcileUser() {
-        return enableUser(null, null);
+        return reconcileUser(null, null);
     }
 
     public ConfirmationModal<UsersPageTable> reconcileUser(String columnTitleKey, String rowValue) {
@@ -67,7 +67,7 @@ public class UsersPageTable extends AssignmentHolderObjectListTable<ListUsersPag
     }
 
     public ConfirmationModal<UsersPageTable> unlockUser() {
-        return enableUser(null, null);
+        return unlockUser(null, null);
     }
 
     public ConfirmationModal<UsersPageTable> unlockUser(String columnTitleKey, String rowValue) {
@@ -75,7 +75,7 @@ public class UsersPageTable extends AssignmentHolderObjectListTable<ListUsersPag
     }
 
     public ConfirmationModal<UsersPageTable> deleteUser() {
-        return enableUser(null, null);
+        return deleteUser(null, null);
     }
 
     public ConfirmationModal<UsersPageTable> deleteUser(String columnTitleKey, String rowValue) {
@@ -83,7 +83,7 @@ public class UsersPageTable extends AssignmentHolderObjectListTable<ListUsersPag
     }
 
     public ConfirmationModal<UsersPageTable> mergeUser() {
-        return enableUser(null, null);
+        return mergeUser(null, null);
     }
 
     public ConfirmationModal<UsersPageTable> mergeUser(String columnTitleKey, String rowValue) {

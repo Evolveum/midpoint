@@ -24,7 +24,11 @@ import org.springframework.boot.loader.jar.JarFile;
  * <p>
  * It's unsure whether we can tie the path to dynamic midpoint.home,
  * but perhaps midpoint.sh can take care of that.
+ *
+ * TODO: This is to be deprecated, but is accidentally still used in service.bat (Windows Service support).
+ *  MP service should be launched via PropertyLauncher (see midpoint.sh or BAT).
  */
+@Deprecated
 public class MidPointWarLauncher extends WarLauncher {
 
     private static volatile MidPointWarLauncher warLauncher = null;
@@ -49,6 +53,7 @@ public class MidPointWarLauncher extends WarLauncher {
         }
     }
 
+    // start/stop was added to support Windows Service using https://commons.apache.org/proper/commons-daemon/procrun.html
     public static synchronized void start(String[] args) throws Exception {
         warLauncher = new MidPointWarLauncher();
 
@@ -62,6 +67,7 @@ public class MidPointWarLauncher extends WarLauncher {
         }
     }
 
+    // why stop calls warLauncher.launch is a mystery, Spring Boot should just as well handle simple System.exit()
     public static synchronized void stop(String[] args) throws Exception {
         try {
             if (warLauncher != null) {

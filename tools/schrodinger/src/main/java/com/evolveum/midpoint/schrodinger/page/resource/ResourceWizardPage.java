@@ -7,7 +7,13 @@
 package com.evolveum.midpoint.schrodinger.page.resource;
 
 import com.codeborne.selenide.Condition;
+
+import com.codeborne.selenide.SelenideElement;
+
+import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
+import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+
 import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -21,5 +27,23 @@ public class ResourceWizardPage extends BasicPage {
         $(By.linkText(tabName))
                 .shouldBe(Condition.visible)
                 .click();
+    }
+
+    public ConfigurationWizardStep selectConfigurationStep() {
+        clickOnWizardTab("Configuration");
+        SelenideElement tabElement = $(Schrodinger.byDataId("configuration")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+        return new ConfigurationWizardStep(this, tabElement);
+    }
+
+    public SchemaWizardStep selectSchemaStep() {
+        clickOnWizardTab("Schema");
+        SelenideElement tabElement = $(Schrodinger.byDataId("tabPanel")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+        return new SchemaWizardStep(this, tabElement);
+    }
+
+    public boolean isReadonlyMode() {
+        return $(By.className("wizard"))
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .exists();
     }
 }

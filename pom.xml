@@ -2091,6 +2091,13 @@
         </profile>
 
         <profile>
+            <id>perftest</id>
+            <properties>
+                <skipTests>true</skipTests>
+            </properties>
+        </profile>
+
+        <profile>
             <id>jdk-11</id>
             <!-- Don't change source level here, we still need the to support globally set level. -->
             <activation>

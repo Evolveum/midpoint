@@ -6,23 +6,15 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
-import static com.codeborne.selenide.Selenide.$;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.Selenide;
-import org.openqa.selenium.By;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
-import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
 import com.evolveum.midpoint.schrodinger.page.org.OrgPage;
 import com.evolveum.midpoint.schrodinger.page.org.OrgTreePage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
-import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 
 /**
@@ -56,9 +48,10 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
                     .addAttributeValue("name", ORG_NAME)
                     .and()
                 .and()
-                .clickSave();
-        Selenide.sleep(2000);
-        $(Schrodinger.byDataId("tabs-container")).find(By.linkText(ORG_NAME)).shouldBe(Condition.visible);
+                .clickSave()
+                .feedback()
+                .isSuccess();
+        Assert.assertTrue(basicPage.orgStructure().doesRootOrgExists(ORG_NAME));
     }
 
     @Test (dependsOnMethods = {"createOrgWithinMenuItem"}, priority = 2)

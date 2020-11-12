@@ -28,6 +28,8 @@ public class TestFilterPerformance extends AbstractSchemaPerformanceTest {
                 .or().item(ArchetypeType.F_COST_CENTER).eq("cc100").matchingCaseIgnore()
                 .buildFilter();
 
-        measure("filter.match(jack)", () -> { filter.match(jack.asObjectable().asPrismContainerValue(), matchingRuleRegistry); return true; });
+        measure("filter.match.jack",
+                "Filter (name = poly(orig,norm) OR (activation/administrativeStatus EXISTS) OR cost_center = cc100)",
+                () -> { filter.match(jack.asObjectable().asPrismContainerValue(), matchingRuleRegistry); return true; });
     }
 }

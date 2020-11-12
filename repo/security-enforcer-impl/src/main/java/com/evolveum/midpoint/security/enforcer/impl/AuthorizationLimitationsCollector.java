@@ -70,7 +70,7 @@ public class AuthorizationLimitationsCollector implements Consumer<Authorization
             }
         }
         if (limitedAutz.getAction().isEmpty()) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
         return Arrays.asList(limitedAutz);
     }

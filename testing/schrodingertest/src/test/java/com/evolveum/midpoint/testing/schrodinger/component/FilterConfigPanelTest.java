@@ -22,33 +22,39 @@ import java.util.List;
 public class FilterConfigPanelTest extends AbstractSchrodingerTest {
 
     private static final File TEST_OBJECT_COLLECTION = new File("./src/test/resources/component/objects/objectCollections/filter-config-test-object-collection.xml");
+    private static final File OBJ_REF_PROPERTY_CONFIG_COLLECTION_TEST = new File("./src/test/resources/component/objects/objectCollections/obj-ref-property-config-test.xml");
+    private static final File DROPDOWN_PROPERTY_CONFIG_COLLECTION_TEST = new File("./src/test/resources/component/objects/objectCollections/dropdown-property-config-test.xml");
     private static final File OBJECT_COLLECTION_TEST_USER = new File("./src/test/resources/component/objects/users/object-collection-test-user.xml");
+    private static final File OBJ_REF_PROPERTY_CONFIG_TEST_USER = new File("./src/test/resources/component/objects/users/obj-ref-property-config-test-user.xml");
+    private static final File DROPDOWN_PROPERTY_CONFIG_TEST_USER = new File("./src/test/resources/component/objects/users/dropdown-property-config-test-user.xml");
     private static final File NEW_OBJECT_COLLECTION_TEST_USER = new File("./src/test/resources/component/objects/users/new-object-collection-test-user.xml");
-    private static final File SYSTEM_CONFIG_WITH_OBJ_COLLECTION = new File("./src/test/resources/configuration/objects/systemconfig/system-configuration-user-obj-collection.xml");
+    private static final File SYSTEM_CONFIG_WITH_OBJ_COLLECTIONS = new File("./src/test/resources/configuration/objects/systemconfig/system-configuration-user-obj-collection.xml");
 
     @Override
     protected List<File> getObjectListToImport(){
-        return Arrays.asList(TEST_OBJECT_COLLECTION, OBJECT_COLLECTION_TEST_USER, SYSTEM_CONFIG_WITH_OBJ_COLLECTION, NEW_OBJECT_COLLECTION_TEST_USER);
+        return Arrays.asList(TEST_OBJECT_COLLECTION, OBJECT_COLLECTION_TEST_USER, SYSTEM_CONFIG_WITH_OBJ_COLLECTIONS,
+                NEW_OBJECT_COLLECTION_TEST_USER, OBJ_REF_PROPERTY_CONFIG_COLLECTION_TEST, OBJ_REF_PROPERTY_CONFIG_TEST_USER,
+                DROPDOWN_PROPERTY_CONFIG_COLLECTION_TEST, DROPDOWN_PROPERTY_CONFIG_TEST_USER);
     }
 
     @Test
     public void configureFilterForObjectCollection() {
         basicPage
                 .listObjectCollections()
-                .table()
-                .clickByName("FilterTestUsers")
-                .selectTabBasic()
-                .form()
-                .showEmptyAttributes("Properties")
-                .and()
-                .and()
-                .configSearch()
-                .setPropertyTextValue("Name", "FilterConfigTest", true)
-                .setPropertyFilterValue("Name", "Equal", true)
-                .confirmConfiguration()
-                .clickSave()
-                .feedback()
-                .isSuccess();
+                    .table()
+                    .clickByName("FilterTestUsers")
+                        .selectTabBasic()
+                            .form()
+                            .showEmptyAttributes("Properties")
+                        .and()
+                    .and()
+                    .configSearch()
+                        .setPropertyTextValue("Name", "FilterConfigTest", true)
+                        .setPropertyFilterValue("Name", "Equal", true)
+                            .confirmConfiguration()
+                    .clickSave()
+                    .feedback()
+                    .isSuccess();
 
         midPoint.logout();
         midPoint.formLogin().login(username, password);
@@ -88,6 +94,67 @@ public class FilterConfigPanelTest extends AbstractSchrodingerTest {
         UsersPageTable usersPageTable = basicPage.listUsers("NewObjCollectionTest").table();
         Assert.assertEquals(usersPageTable.countTableObjects(), 1);
         Assert.assertTrue(usersPageTable.containsText("NewObjCollectionTestUser"));
+    }
+
+    @Test
+    public void configureFilterWithObjectReferenceAttribute() {
+        basicPage
+                .listObjectCollections()
+                    .table()
+                        .search()
+                            .byName()
+                            .inputValue("ObjRefAttributeConfigTest")
+                            .updateSearch()
+                        .and()
+                        .clickByName("ObjRefAttributeConfigTest")
+                            .selectTabBasic()
+                                .form()
+                                .showEmptyAttributes("Properties")
+                                .and()
+                            .and()
+                            .configSearch()
+                                .setPropertyObjectReferenceValue("Role membership", "00000000-0000-0000-0000-000000000008", true)
+                                .confirmConfiguration()
+                            .clickSave()
+                        .feedback()
+                                .isSuccess();
+        midPoint.logout();
+        midPoint.formLogin().login(username, password);
+
+        UsersPageTable usersPageTable = basicPage.listUsers("ObjRefAttributeConfigTest").table();
+        Assert.assertEquals(1, usersPageTable.countTableObjects());
+        Assert.assertTrue(usersPageTable.containsText("ObjRefPropertyConfigUser"));
+    }
+
+    @Test
+    public void configureFilterWithDropdownAttribute() {
+        basicPage
+                .listObjectCollections()
+                    .table()
+                        .search()
+                            .byName()
+                            .inputValue("DropdownPropertyConfigTest")
+                            .updateSearch()
+                        .and()
+                        .clickByName("DropdownPropertyConfigTest")
+                            .selectTabBasic()
+                                .form()
+                                .showEmptyAttributes("Properties")
+                                .and()
+                            .and()
+                            .configSearch()
+                                .setPropertyDropdownValue("Administrative status", "DISABLED", true)
+                                .setPropertyFilterValue("Name", "Equal", true)
+                                .confirmConfiguration()
+                            .clickSave()
+                        .feedback()
+                                .isSuccess();
+        midPoint.logout();
+        midPoint.formLogin().login(username, password);
+
+        UsersPageTable usersPageTable = basicPage.listUsers("DropdownPropertyConfigTest").table();
+        Assert.assertEquals(1, usersPageTable.countTableObjects());
+        Assert.assertTrue(usersPageTable.containsText("DropdownPropertyConfigUser"));
     }
 
 }

@@ -241,7 +241,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 
             @Override
             public void expand(TreeSelectableBean<OrgType> expandedItem) {
-                super.collapse(expandedItem);
+                super.expand(expandedItem);
 
                 Set<TreeSelectableBean<OrgType>> items = OrgTreePanel.this.getCollapsedItems(getOrgTreeStateStorage());
                 if (items != null && items.contains(expandedItem)) {
@@ -276,6 +276,15 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
             Set<TreeSelectableBean<OrgType>> dtos = TreeStateModel.this.getExpandedItems();
             Set<TreeSelectableBean<OrgType>> collapsedItems = TreeStateModel.this.getCollapsedItems();
 
+            // just to have root expanded at all time
+            Iterator<TreeSelectableBean<OrgType>> iterator = provider.getRoots();
+            if (iterator.hasNext()) {
+                TreeSelectableBean<OrgType> root = iterator.next();
+                if (set.isEmpty() || !set.contains(root)) {
+                    set.add(root);
+                }
+            }
+
             if (collapsedItems != null) {
                 for (TreeSelectableBean<OrgType> collapsedItem : collapsedItems) {
                     if (set.contains(collapsedItem)) {
@@ -288,14 +297,6 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
                     if (!set.contains(orgTreeDto)) {
                         set.add(orgTreeDto);
                     }
-                }
-            }
-            // just to have root expanded at all time
-            Iterator<TreeSelectableBean<OrgType>> iterator = provider.getRoots();
-            if (iterator.hasNext()) {
-                TreeSelectableBean<OrgType> root = iterator.next();
-                if (set.isEmpty() || !set.contains(root)) {
-                    set.add(root);
                 }
             }
             return set;
@@ -469,8 +470,16 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
     }
 
     public void addCollapsedItem(TreeSelectableBean<OrgType> item, OrgTreeStateStorage storage){
-        if (storage != null && storage.getCollapsedItems() != null){
-            storage.getCollapsedItems().add(item);
+        if (storage == null ) {
+            return;
+        }
+        Set<TreeSelectableBean<OrgType>> collapsedItems = storage.getCollapsedItems();
+        if (collapsedItems == null) {
+            TreeStateSet<TreeSelectableBean<OrgType>> collapsed = new TreeStateSet<>();
+            collapsed.add(item);
+            storage.setCollapsedItems(collapsed);
+        } else {
+            collapsedItems.add(item);
         }
     }
 

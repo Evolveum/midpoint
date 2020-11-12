@@ -129,7 +129,7 @@ public class MemberOperationsHelper {
 
     public static Task createRecomputeMembersTask(PageBase pageBase, QueryScope scope,
             ObjectQuery query, AjaxRequestTarget target) {
-        Task operationalTask = pageBase.createSimpleTask(getTaskName(RECOMPUTE_OPERATION, scope));
+        Task operationalTask = pageBase.createSimpleTask(getTaskName("Recompute", scope));
         OperationResult parentResult = operationalTask.getResult();
         return createRecomputeMemberOperationTask(operationalTask, AssignmentHolderType.COMPLEX_TYPE, query,
                 null, parentResult, pageBase, target);
@@ -297,7 +297,8 @@ public class MemberOperationsHelper {
     }
 
     private static String getTaskName(String operation, QueryScope scope) {
-        StringBuilder nameBuilder = new StringBuilder(operation);
+        StringBuilder nameBuilder = new StringBuilder("operation.");
+        nameBuilder.append(operation);
         nameBuilder.append(".");
         if (scope != null) {
             nameBuilder.append(scope.name());
@@ -382,7 +383,9 @@ public class MemberOperationsHelper {
         ScheduleType schedule = new ScheduleType();
         schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
         operationalTask.makeSingle(schedule);
-        operationalTask.setName(WebComponentUtil.createPolyFromOrigString(pageBase.createStringResource(parentResult.getOperation()).getString()));
+        String key = parentResult.getOperation();
+        String name = pageBase.createStringResource(key).getString();
+        operationalTask.setName(WebComponentUtil.createPolyFromOrigString(name, key));
 
         QueryType queryType = pageBase.getQueryConverter().createQueryType(memberQuery);
         operationalTask.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, queryType);
