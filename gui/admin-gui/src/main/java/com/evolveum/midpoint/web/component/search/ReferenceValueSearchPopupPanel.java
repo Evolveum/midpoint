@@ -73,6 +73,9 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Specia
 
             @Override
             protected Class<O> getReferenceTargetObjectType() {
+                if (getModelObject().getType() == null) {
+                    return (Class<O>) ObjectType.class;
+                }
                 return (Class<O>) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), getModelObject().getType());
             }
         };
@@ -108,7 +111,6 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Specia
             }
         });
         type.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-//        type.getBaseFormComponent().add(AttributeAppender.append("style", "width: 150px;"));
         midpointForm.add(type);
 
         List<QName> allowedRelations = new ArrayList<>(getAllowedRelations());
@@ -126,7 +128,6 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Specia
             }
         });
         relation.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-//        relation.getBaseFormComponent().add(AttributeAppender.append("style", "width: 150px;"));
         midpointForm.add(relation);
     }
 

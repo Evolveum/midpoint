@@ -62,7 +62,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                 createStringResource("AbstractRoleAssignmentPanel.relationLabel")) {
             @Override
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<PrismContainerValueWrapper<AssignmentType>> assignmentModel) {
-                item.add(new Label(componentId, getRelationLabelValue(assignmentModel.getObject())));
+                item.add(new Label(componentId, WebComponentUtil.getRelationLabelValue(assignmentModel.getObject(), getPageBase())));
             }
         });
 
@@ -82,20 +82,6 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         });
 
         return columns;
-    }
-
-    private String getRelationLabelValue(PrismContainerValueWrapper<AssignmentType> assignmentWrapper) {
-        if (assignmentWrapper == null || assignmentWrapper.getRealValue() == null
-                || assignmentWrapper.getRealValue().getTargetRef() == null
-                || assignmentWrapper.getRealValue().getTargetRef().getRelation() == null) {
-            return "";
-        }
-
-        QName relation = assignmentWrapper.getRealValue().getTargetRef().getRelation();
-        String relationDisplayName = WebComponentUtil.getRelationHeaderLabelKeyIfKnown(relation);
-        return StringUtils.isNotEmpty(relationDisplayName) ?
-                getPageBase().createStringResource(relationDisplayName).getString() :
-                getPageBase().createStringResource(relation.getLocalPart()).getString();
     }
 
     protected void initCustomPaging() {

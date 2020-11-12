@@ -73,20 +73,20 @@ public class WebModelServiceUtils {
     private static final String OPERATION_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
     private static final String OPERATION_LOAD_FLOW_POLICY = DOT_CLASS + "loadFlowPolicy";
 
-    public static String resolveReferenceName(ObjectReferenceType ref, PageBase page) {
+    public static String resolveReferenceName(Referencable ref, PageBase page) {
         return resolveReferenceName(ref, page, false);
     }
 
-    public static String resolveReferenceName(ObjectReferenceType ref, PageBase page, boolean translate) {
+    public static String resolveReferenceName(Referencable ref, PageBase page, boolean translate) {
         Task task = page.createSimpleTask(WebModelServiceUtils.class.getName() + ".resolveReferenceName");
         return resolveReferenceName(ref, page, task, task.getResult(), translate);
     }
 
-    public static String resolveReferenceName(ObjectReferenceType ref, PageBase page, Task task, OperationResult result) {
+    public static String resolveReferenceName(Referencable ref, PageBase page, Task task, OperationResult result) {
         return resolveReferenceName(ref, page, task, result, false);
     }
 
-    public static String resolveReferenceName(ObjectReferenceType ref, PageBase page, Task task, OperationResult result, boolean translate) {
+    public static String resolveReferenceName(Referencable ref, PageBase page, Task task, OperationResult result, boolean translate) {
         if (ref == null) {
             return null;
         }
@@ -106,7 +106,7 @@ public class WebModelServiceUtils {
         }
     }
 
-    public static <T extends ObjectType> PrismObject<T> resolveReferenceNoFetch(ObjectReferenceType reference, PageBase page, Task task, OperationResult result) {
+    public static <T extends ObjectType> PrismObject<T> resolveReferenceNoFetch(Referencable reference, PageBase page, Task task, OperationResult result) {
         if (reference == null) {
             return null;
         }

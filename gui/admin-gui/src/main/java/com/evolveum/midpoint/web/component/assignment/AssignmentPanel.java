@@ -226,11 +226,34 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                         return createSearchableItems(containerDef);
                     }
 
+                    @Override
+                    public void refreshTable(AjaxRequestTarget ajaxRequestTarget) {
+                        super.refreshTable(ajaxRequestTarget);
+                        AssignmentPanel.this.refreshTable(ajaxRequestTarget);
+                    }
+
+                    @Override
+                    public void refreshTable(Class<AssignmentType> newTypeClass, AjaxRequestTarget ajaxRequestTarget) {
+                        super.refreshTable(newTypeClass, ajaxRequestTarget);
+                        AssignmentPanel.this.refreshTable(ajaxRequestTarget);
+                    }
+
+                    @Override
+                    protected IModel<List<PrismContainerValueWrapper<AssignmentType>>> loadValuesModel() {
+                        return AssignmentPanel.this.loadValuesModel(super.loadValuesModel());
+                    }
                 };
         multivalueContainerListPanel.add(new VisibleBehaviour(() -> getModel() != null && getModelObject() != null));
         add(multivalueContainerListPanel);
 
         setOutputMarkupId(true);
+    }
+
+    protected IModel<List<PrismContainerValueWrapper<AssignmentType>>> loadValuesModel(IModel<List<PrismContainerValueWrapper<AssignmentType>>> originalLoadValuesModel) {
+        return originalLoadValuesModel;
+    }
+
+    protected void refreshTable(AjaxRequestTarget ajaxRequestTarget) {
     }
 
     private List<MultiFunctinalButtonDto> newButtonDescription() {

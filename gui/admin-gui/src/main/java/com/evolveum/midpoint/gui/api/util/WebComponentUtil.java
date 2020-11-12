@@ -2002,6 +2002,20 @@ public final class WebComponentUtil {
         return getRelationRegistry().isDefault(relation);
     }
 
+    public static String getRelationLabelValue(PrismContainerValueWrapper<AssignmentType> assignmentWrapper, PageBase pageBase) {
+        if (assignmentWrapper == null || assignmentWrapper.getRealValue() == null
+                || assignmentWrapper.getRealValue().getTargetRef() == null
+                || assignmentWrapper.getRealValue().getTargetRef().getRelation() == null) {
+            return "";
+        }
+
+        QName relation = assignmentWrapper.getRealValue().getTargetRef().getRelation();
+        String relationDisplayName = WebComponentUtil.getRelationHeaderLabelKeyIfKnown(relation);
+        return StringUtils.isNotEmpty(relationDisplayName) ?
+                pageBase.createStringResource(relationDisplayName).getString() :
+                pageBase.createStringResource(relation.getLocalPart()).getString();
+    }
+
     @SuppressWarnings("WeakerAccess")
     public static QName getDefaultRelation() {
         return getRelationRegistry().getDefaultRelation();
