@@ -16,6 +16,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -24,6 +28,13 @@ public class UserTest extends AbstractSchrodingerTest {
     private static final String LOCALIZATION_TEST_USER_NAME_ORIG = "localizationTestUserName";
     private static final String LOCALIZATION_TEST_USER_NAME_DE = "localizationTestUserNameDe";
     private static final String LOCALIZATION_VALUE = "de";
+    private static final File DELEGATE_FROM_USER_FILE = new File("./src/test/resources/component/objects/users/delegate-from-user.xml");
+    private static final File DELEGATE_TO_USER_FILE = new File("./src/test/resources/component/objects/users/delegate-from-user.xml");
+
+    @Override
+    protected List<File> getObjectListToImport(){
+        return Arrays.asList(DELEGATE_FROM_USER_FILE, DELEGATE_TO_USER_FILE);
+    }
 
     @Test
     public void createUser() {
@@ -98,6 +109,24 @@ public class UserTest extends AbstractSchrodingerTest {
                                 .form()
                                 .compareInputAttributeValue("name", LOCALIZATION_TEST_USER_NAME_DE)
         );
+    }
+
+    @Test
+    public void test0030createDelegationTest() {
+        Assert.assertTrue(showUser("DelegateFromUser")
+                .selectTabDelegations()
+                    .clickAddDelegation()
+                        .table()
+                            .search()
+                            .byName()
+                            .inputValue("DelegateToUser")
+                            .updateSearch()
+                        .and()
+                        .clickByName("DelegateToUser")
+                    .and()
+                .clickSave()
+                .feedback()
+                .isSuccess());
     }
 
 }

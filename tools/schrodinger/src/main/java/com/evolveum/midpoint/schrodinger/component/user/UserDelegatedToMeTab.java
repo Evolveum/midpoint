@@ -27,8 +27,10 @@ public class UserDelegatedToMeTab extends Component<UserPage> {
         super(parent, parentElement);
     }
 
-
-    public DelegationDetailsPanel<UserDelegatedToMeTab> getDelegationDetailsPanel() {
-        return new DelegationDetailsPanel<>(this, $(Schrodinger.byDataId("assignmentList")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S));
+    public DelegationDetailsPanel<UserDelegatedToMeTab> getDelegationDetailsPanel(String delegatedFromUser) {
+        return new DelegationDetailsPanel<>(this,
+                $(Schrodinger.byAncestorFollowingSiblingDescendantOrSelfElementEnclosedValue("div", "data-s-id",
+                        "assignmentEditor", "class", "name",  delegatedFromUser))
+                        .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S));
     }
 }

@@ -10,7 +10,6 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
-import com.evolveum.midpoint.schrodinger.component.configuration.ClockTab;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 
@@ -19,11 +18,15 @@ import com.evolveum.midpoint.schrodinger.util.Schrodinger;
  */
 public class DateTimePanel<T> extends Component<T> {
 
+    public enum AmOrPmChoice {
+        AM, PM
+    }
+
     public DateTimePanel(T parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
 
-    public DateTimePanel<T> setDateTimeValue(String date, String hours, String minutes, ClockTab.AmOrPmChoice amOrPmChoice) {
+    public DateTimePanel<T> setDateTimeValue(String date, String hours, String minutes, AmOrPmChoice amOrPmChoice) {
         SelenideElement dateEle = findDate();
         dateEle.click();
         dateEle.clear();

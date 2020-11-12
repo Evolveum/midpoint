@@ -58,18 +58,10 @@ public class UserDelegationsTab extends Component<UserPage> {
         return this;
     }
 
-    public UserDelegationsTab clickCheckBoxForUserDelegation(String userName) {
-        SelenideElement delegationRow = $(Schrodinger.byAncestorFollowingSiblingDescendantOrSelfElementEnclosedValue("div",
-                "class", "row check-table-header", "class", "name", userName))
-                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
-        SelenideElement checkBox = delegationRow.find(Schrodinger.byElementAttributeValue("input", "type", "checkbox"))
-                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
-        checkBox.click();
-        checkBox.waitUntil(Condition.attribute("checked", "checked"), MidPoint.TIMEOUT_DEFAULT_2_S);
-        return this;
-    }
-
-    public DelegationDetailsPanel<UserDelegationsTab> getDelegationDetailsPanel() {
-        return new DelegationDetailsPanel<>(this, $(Schrodinger.byDataId("delegationsContainer")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S));
+    public DelegationDetailsPanel<UserDelegationsTab> getDelegationDetailsPanel(String delegateToUser) {
+        return new DelegationDetailsPanel<>(this,
+                $(Schrodinger.byAncestorFollowingSiblingDescendantOrSelfElementEnclosedValue("div", "data-s-id",
+                        "delegationsPanel", "class", "name",  delegateToUser))
+                        .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S));
     }
 }

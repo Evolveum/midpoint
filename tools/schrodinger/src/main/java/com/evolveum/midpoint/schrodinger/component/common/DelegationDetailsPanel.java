@@ -11,7 +11,9 @@ import com.codeborne.selenide.SelenideElement;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
+import com.evolveum.midpoint.schrodinger.component.DateTimePanel;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import com.evolveum.midpoint.schrodinger.util.Utils;
 
 import static com.codeborne.selenide.Selenide.$;
 /**
@@ -47,36 +49,67 @@ public class DelegationDetailsPanel<T> extends Component<T> {
         return this;
     }
 
-    public String getValidFromValue() {
-        return "";
+    public DateTimePanel<DelegationDetailsPanel<T>> getValidFromPanel() {
+        return new DateTimePanel<>(this,
+                $(Schrodinger.byDataId("delegationValidFrom")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S));
     }
 
-    public DelegationDetailsPanel<T> setValidFromValue() {
+    public DelegationDetailsPanel<T> setValidFromValue(String date, String hours, String minutes, DateTimePanel.AmOrPmChoice amOrPmChoice) {
+        DateTimePanel<DelegationDetailsPanel<T>> validFromPanel = new DateTimePanel<>(this,
+                $(Schrodinger.byDataId("delegationValidFrom")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S));
+        validFromPanel.setDateTimeValue(date, hours, minutes, amOrPmChoice);
         return this;
     }
 
-    public String getValidToValue() {
-        return "";
+    public DateTimePanel<DelegationDetailsPanel<T>> getValidToPanel() {
+        return new DateTimePanel<>(this,
+                $(Schrodinger.byDataId("delegationValidTo")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S));
     }
 
-    public DelegationDetailsPanel<T> setValidToValue() {
+    public DelegationDetailsPanel<T> setValidToValue(String date, String hours, String minutes, DateTimePanel.AmOrPmChoice amOrPmChoice) {
+        DateTimePanel<DelegationDetailsPanel<T>> validFromPanel = new DateTimePanel<>(this,
+                $(Schrodinger.byDataId("delegationValidTo")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S));
+        validFromPanel.setDateTimeValue(date, hours, minutes, amOrPmChoice);
         return this;
     }
 
-    public DelegationDetailsPanel<T> clickAssignmentPrivilegesCheckbox() {
-
+    public DelegationDetailsPanel<T> setAssignmentPrivilegesCheckboxValue(boolean value) {
+        Utils.setOptionCheckedById("assignmentPrivilegesCheckbox", value);
         return this;
     }
 
-    public DelegationDetailsPanel<T> clickAssignmentLimitationsCheckbox() {
+    public boolean isAssignmentPrivileges() {
+        return $(Schrodinger.byDataId("assignmentPrivilegesCheckbox")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .isSelected();
+    }
+
+    public DelegationDetailsPanel<T> clickAssignmentLimitationsCheckbox(boolean value) {
+        Utils.setOptionCheckedById("allowTransitive", value);
         return this;
     }
 
-    public DelegationDetailsPanel<T> clickApprovalWorkItemsCheckbox() {
+    public boolean isAssignmentLimitations() {
+        return $(Schrodinger.byDataId("allowTransitive")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .isSelected();
+    }
+
+    public DelegationDetailsPanel<T> clickApprovalWorkItemsCheckbox(boolean value) {
+        Utils.setOptionCheckedById("approvalWorkItems", value);
         return this;
     }
 
-    public DelegationDetailsPanel<T> clickCertificationWorkItemsCheckbox() {
+    public boolean isApprovalWorkItems() {
+        return $(Schrodinger.byDataId("approvalWorkItems")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .isSelected();
+    }
+
+    public DelegationDetailsPanel<T> clickCertificationWorkItemsCheckbox(boolean value) {
+        Utils.setOptionCheckedById("certificationWorkItems", value);
         return this;
+    }
+
+    public boolean isCertificationWorkItems() {
+        return $(Schrodinger.byDataId("certificationWorkItems")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .isSelected();
     }
 }
