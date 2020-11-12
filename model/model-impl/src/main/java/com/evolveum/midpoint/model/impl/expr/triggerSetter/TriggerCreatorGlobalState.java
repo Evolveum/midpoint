@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Evolveum and contributors
+ * Copyright (C) 2019-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,33 +7,34 @@
 
 package com.evolveum.midpoint.model.impl.expr.triggerSetter;
 
-import com.evolveum.midpoint.CacheInvalidationContext;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.api.Cacheable;
-import com.evolveum.midpoint.repo.api.DeleteObjectResult;
-import com.evolveum.midpoint.repo.cache.invalidation.RepositoryCacheInvalidationDetails;
-import com.evolveum.midpoint.repo.api.CacheRegistry;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.CacheInvalidationContext;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.api.Cache;
+import com.evolveum.midpoint.repo.api.CacheRegistry;
+import com.evolveum.midpoint.repo.api.DeleteObjectResult;
+import com.evolveum.midpoint.repo.cache.invalidation.RepositoryCacheInvalidationDetails;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
 
 /**
- *  Global state for optimizing trigger creators for the given midPoint node.
+ * Global state for optimizing trigger creators for the given midPoint node.
  */
 @Component
-public class TriggerCreatorGlobalState implements Cacheable {
+public class TriggerCreatorGlobalState implements Cache {
 
     private static final Trace LOGGER = TraceManager.getTrace(TriggerCreatorGlobalState.class);
     private static final Trace LOGGER_CONTENT = TraceManager.getTrace(TriggerCreatorGlobalState.class.getName() + ".content");
@@ -117,11 +118,11 @@ public class TriggerCreatorGlobalState implements Cacheable {
 
     @PostConstruct
     public void register() {
-        cacheRegistry.registerCacheableService(this);
+        cacheRegistry.registerCache(this);
     }
 
     @PreDestroy
     public void unregister() {
-        cacheRegistry.unregisterCacheableService(this);
+        cacheRegistry.unregisterCache(this);
     }
 }
