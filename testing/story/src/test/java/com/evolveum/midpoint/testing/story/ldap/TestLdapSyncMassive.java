@@ -295,7 +295,7 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
 
         // THEN
         then();
-        assertPartialError(taskResult);
+        assertFailure(taskResult);
 
         assertSyncTokenIncrement(0);
         assertLdapConnectorInstances(1, INSTANCES_MAX);
@@ -305,7 +305,7 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
         // in fact, it is "FUBAR, but stable"
 
         taskResult = waitForTaskNextRun(TASK_LIVE_SYNC_OID);
-        assertPartialError(taskResult);
+        assertFailure(taskResult);
 
         assertSyncTokenIncrement(0);
         assertLdapConnectorInstances(1, INSTANCES_MAX);
@@ -445,7 +445,7 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
 
         OperationResult taskResult = waitForTaskNextRun(TASK_LIVE_SYNC_OID);
 
-        assertPartialError(taskResult);
+        assertFailure(taskResult);
         assertSyncTokenIncrement(0);
         assertLdapConnectorInstances(1);
         assertThreadCount();

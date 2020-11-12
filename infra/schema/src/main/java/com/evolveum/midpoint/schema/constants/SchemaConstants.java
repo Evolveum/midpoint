@@ -299,6 +299,7 @@ public abstract class SchemaConstants {
     public static final ItemName MODEL_EXTENSION_DRY_RUN = new ItemName(NS_MODEL_EXTENSION, "dryRun");
     public static final ItemName MODEL_EXTENSION_SIMULATE_BEFORE_EXECUTE = new ItemName(NS_MODEL_EXTENSION, "simulateBeforeExecute");
     public static final ItemName MODEL_EXTENSION_RETRY_LIVE_SYNC_ERRORS = new ItemName(NS_MODEL_EXTENSION, "retryLiveSyncErrors");
+    public static final ItemName MODEL_EXTENSION_LIVE_SYNC_ERROR_HANDLING_STRATEGY = new ItemName(NS_MODEL_EXTENSION, "liveSyncErrorHandlingStrategy");
     public static final ItemName MODEL_EXTENSION_UPDATE_LIVE_SYNC_TOKEN_IN_DRY_RUN = new ItemName(NS_MODEL_EXTENSION, "updateLiveSyncTokenInDryRun");
     public static final ItemName MODEL_EXTENSION_LIVE_SYNC_BATCH_SIZE = new ItemName(NS_MODEL_EXTENSION, "liveSyncBatchSize");
     public static final ItemName MODEL_EXTENSION_FINISH_OPERATIONS_ONLY = new ItemName(NS_MODEL_EXTENSION, "finishOperationsOnly");
@@ -399,6 +400,7 @@ public abstract class SchemaConstants {
     public static final ItemName MODEL_EXTENSION_WORK_ITEM_ACTIONS = new ItemName(NS_MODEL_EXTENSION, "workItemActions");
     public static final ItemName MODEL_EXTENSION_WORK_ITEM_ACTION = new ItemName(NS_MODEL_EXTENSION, "workItemAction");
     public static final ItemName MODEL_EXTENSION_TIME_BEFORE_ACTION = new ItemName(NS_MODEL_EXTENSION, "timeBeforeAction");
+    public static final ItemName MODEL_EXTENSION_PLANNED_OPERATION_ATTEMPT = new ItemName(NS_MODEL_EXTENSION, "plannedOperationAttempt");
 
     public static final String NOOP_SCHEMA_URI = NS_MIDPOINT_PUBLIC + "/task/noop/handler-3";
     public static final ItemName NOOP_DELAY_QNAME = new ItemName(NOOP_SCHEMA_URI, "delay");

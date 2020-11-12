@@ -117,7 +117,7 @@ public class PageResetPassword extends PageAbstractSelfCredentials{
     protected List<PasswordAccountDto> getSelectedAccountsList() {
         List<PasswordAccountDto> accounts = getModelObject().getAccounts();
         if (accounts.isEmpty()) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
 
        for (PasswordAccountDto account : accounts) {

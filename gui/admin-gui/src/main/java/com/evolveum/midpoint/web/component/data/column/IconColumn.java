@@ -41,16 +41,10 @@ public abstract class IconColumn<T> extends AbstractColumn<T, String> {//impleme
         return "icon";
     }
 
-
     @Override
     public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId, IModel<T> rowModel) {
         cellItem.add(new ImagePanel(componentId, new ReadOnlyModel<>(() -> getIconDisplayType(rowModel))));
     }
 
     protected abstract DisplayType getIconDisplayType(final IModel<T> rowModel);
-
-//    @Override
-//    public IModel<String> getDataModel(IModel<T> rowModel) {
-//        return Model.of("");
-//    }
 }

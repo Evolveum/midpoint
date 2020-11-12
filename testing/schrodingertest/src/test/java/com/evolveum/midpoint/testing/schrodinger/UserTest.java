@@ -16,8 +16,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import static com.codeborne.selenide.Selenide.$;
-
 /**
  * Created by Viliam Repan (lazyman).
  */

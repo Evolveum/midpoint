@@ -13,7 +13,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncUpdateMessageListener;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
-import com.evolveum.midpoint.provisioning.ucf.api.async.ChangeListener;
+import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncChangeListener;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -60,14 +60,14 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 
     private static final String VAR_MESSAGE = "message";
 
-    @NotNull private final ChangeListener changeListener;
+    @NotNull private final AsyncChangeListener changeListener;
     @Nullable private final Authentication authentication;
     @NotNull private final AsyncUpdateConnectorInstance connectorInstance;
 
     private final AtomicInteger messagesSeen = new AtomicInteger(0);
     private final AtomicInteger changesProduced = new AtomicInteger(0);
 
-    TransformationalAsyncUpdateMessageListener(@NotNull ChangeListener changeListener, @Nullable Authentication authentication,
+    TransformationalAsyncUpdateMessageListener(@NotNull AsyncChangeListener changeListener, @Nullable Authentication authentication,
             @NotNull AsyncUpdateConnectorInstance connectorInstance) {
         this.changeListener = changeListener;
         this.authentication = authentication;

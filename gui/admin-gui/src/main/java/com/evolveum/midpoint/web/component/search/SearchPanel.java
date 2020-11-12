@@ -19,8 +19,10 @@ import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
+import com.evolveum.midpoint.prism.path.ItemPath;
+
+import com.evolveum.midpoint.util.QNameUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -46,7 +48,6 @@ import org.apache.wicket.util.time.Duration;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -657,14 +658,18 @@ public class SearchPanel extends BasePanel<Search> {
 
                         MoreDialogDto dto = moreDialogModel.getObject();
 
-                        String propertyName = property.getName().toLowerCase();
+                        ItemPath propertyPath = property.getFullPath();
                         for (SearchItem searchItem : search.getItems()) {
-                            if (propertyName.equalsIgnoreCase(searchItem.getName())) {
+                            if (searchItem instanceof FilterSearchItem) {
+                                return true;
+                            }
+                            if (QNameUtil.match(propertyPath.lastName(), ((PropertySearchItem) searchItem).getPath().lastName())) {
                                 return false;
                             }
                         }
 
                         String nameFilter = dto.getNameFilter();
+                        String propertyName = property.getName().toLowerCase();
                         if (StringUtils.isNotEmpty(nameFilter)
                                 && !propertyName.contains(nameFilter.toLowerCase())) {
                             return false;

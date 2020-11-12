@@ -10,9 +10,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -141,6 +141,11 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
     public TaskAsserter<RA> assertProgress(long expected) {
         long actual = defaultIfNull(getObject().asObjectable().getProgress(), 0L);
         assertEquals("Wrong progress", expected, actual);
+        return this;
+    }
+
+    public TaskAsserter<RA> assertToken(Object expected) {
+        assertPropertyEquals(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN), expected);
         return this;
     }
 

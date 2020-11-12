@@ -325,7 +325,6 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
 
         WebComponentUtil.clearProviderCache(getContainerableListPanel().getTable().getDataTable().getDataProvider());
 
-        getPageBase().showResult(completeWorkItemResult, true);
         target.add(getPageBase().getFeedbackPanel());
         target.add(getContainerableListPanel());
 

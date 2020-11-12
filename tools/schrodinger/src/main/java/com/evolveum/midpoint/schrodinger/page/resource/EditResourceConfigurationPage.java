@@ -59,9 +59,9 @@ public class EditResourceConfigurationPage extends BasicPage {
 
     public TestConnectionModal<EditResourceConfigurationPage> clickSaveAndTestConnection() {
         $(Schrodinger.byDataId("testConnection")).waitUntil(Condition.visible, MidPoint.TIMEOUT_EXTRA_LONG_10_M).click();
+
         SelenideElement testModalBox = $(Schrodinger
                 .byElementAttributeValue("div", "aria-labelledby", "Test connection result(s)"))
-                .waitUntil(Condition.exist, MidPoint.TIMEOUT_EXTRA_LONG_10_M)
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_EXTRA_LONG_10_M);
 
         return new TestConnectionModal<>(this, testModalBox);

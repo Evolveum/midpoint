@@ -28,7 +28,7 @@ public class MockLensDebugListener implements ClockworkInspector {
 
     private LensContext lastSyncContext;
 
-    public <F extends ObjectType>  LensContext<F> getLastSyncContext() {
+    public <F extends ObjectType> LensContext<F> getLastSyncContext() {
         return lastSyncContext;
     }
 
@@ -36,17 +36,11 @@ public class MockLensDebugListener implements ClockworkInspector {
         this.lastSyncContext = (LensContext) lastSyncContext;
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.model.lens.LensDebugListener#beforeSync(com.evolveum.midpoint.model.lens.LensContext)
-     */
     @Override
     public <F extends ObjectType> void clockworkStart(ModelContext<F> context) {
         LOGGER.trace(SEPARATOR+"\nSYNC CONTEXT BEFORE SYNC\n{}\n"+SEPARATOR, context.debugDump());
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.model.lens.LensDebugListener#afterSync(com.evolveum.midpoint.model.lens.LensContext)
-     */
     @Override
     public <F extends ObjectType> void clockworkFinish(ModelContext<F> context) {
         LOGGER.trace(SEPARATOR+"\nSYNC CONTEXT AFTER SYNC\n{}\n"+SEPARATOR, context.debugDump());
@@ -55,41 +49,30 @@ public class MockLensDebugListener implements ClockworkInspector {
 
     @Override
     public <F extends ObjectType> void projectorStart(ModelContext<F> context) {
-
     }
 
     @Override
     public <F extends ObjectType> void projectorFinish(ModelContext<F> context) {
-
     }
 
     @Override
     public <F extends ObjectType> void afterMappingEvaluation(ModelContext<F> context, Mapping<?,?> evaluatedMapping) {
-
     }
 
     @Override
     public <F extends ObjectType> void clockworkStateSwitch(ModelContext<F> contextBefore, ModelState newState) {
-        // TODO Auto-generated method stub
-
     }
 
     @Override
     public void projectorComponentSkip(String componentName) {
-        // TODO Auto-generated method stub
-
     }
 
     @Override
     public void projectorComponentStart(String componentName) {
-        // TODO Auto-generated method stub
-
     }
 
     @Override
     public void projectorComponentFinish(String componentName) {
-        // TODO Auto-generated method stub
-
     }
 
     @Override
@@ -98,6 +81,4 @@ public class MockLensDebugListener implements ClockworkInspector {
         DebugUtil.debugDumpWithLabelToString(sb, "lastSyncContext", lastSyncContext, indent + 1);
         return sb.toString();
     }
-
-
 }

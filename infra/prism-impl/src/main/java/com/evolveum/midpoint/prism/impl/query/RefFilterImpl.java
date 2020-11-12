@@ -22,6 +22,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
 public class RefFilterImpl extends ValueFilterImpl<PrismReferenceValue, PrismReferenceDefinition> implements RefFilter {
     private static final long serialVersionUID = 1L;
 
@@ -54,27 +56,16 @@ public class RefFilterImpl extends ValueFilterImpl<PrismReferenceValue, PrismRef
 
     @Override
     public boolean match(PrismContainerValue objectValue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-
-        Item filterItem = getFilterItem();
         Collection<PrismValue> objectItemValues = getObjectItemValues(objectValue);
-
-        if (!super.match(objectValue, matchingRuleRegistry)) {
-            return false;
+        Collection<? extends PrismValue> filterValues = emptyIfNull(getValues());
+        if (objectItemValues.isEmpty()) {
+            return filterValues.isEmpty();
         }
-
-        boolean filterItemIsEmpty = getValues() == null || getValues().isEmpty();
-        boolean objectItemIsEmpty = objectItemValues.isEmpty();
-        if (filterItemIsEmpty && objectItemIsEmpty) {
-            return true;
-        }
-        assert !filterItemIsEmpty;    // if both are empty, the previous statement causes 'return true'
-        assert !objectItemIsEmpty;    // if only one of them is empty, the super.match() returned false
-
-        for (Object filterItemValue : filterItem.getValues()) {
-            checkPrismReferenceValue(filterItemValue);
-            for (Object objectItemValue : objectItemValues) {
+        for (PrismValue filterValue : filterValues) {
+            checkPrismReferenceValue(filterValue);
+            for (PrismValue objectItemValue : objectItemValues) {
                 checkPrismReferenceValue(objectItemValue);
-                if (valuesMatch(((PrismReferenceValue) filterItemValue), (PrismReferenceValue) objectItemValue)) {
+                if (valuesMatch(((PrismReferenceValue) filterValue), (PrismReferenceValue) objectItemValue)) {
                     return true;
                 }
             }

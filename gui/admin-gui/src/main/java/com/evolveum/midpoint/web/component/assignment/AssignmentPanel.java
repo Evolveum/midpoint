@@ -15,6 +15,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.web.session.SessionStorage;
 
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -22,10 +23,8 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
@@ -37,10 +36,6 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
@@ -68,7 +63,6 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.MultiCompositedButtonPanel;
 import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -88,8 +82,6 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentPanel.class);
 
     private static final String ID_ASSIGNMENTS = "assignments";
-    private static final String ID_NEW_ITEM_BUTTON = "newItemButton";
-    private static final String ID_BUTTON_TOOLBAR_FRAGMENT = "buttonToolbarFragment";
 
     private static final String DOT_CLASS = AssignmentPanel.class.getName() + ".";
     protected static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
@@ -919,7 +911,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                 return getMultivalueContainerListPanel().createEditColumnAction();
             }
         });
-        menuItems.add(new ButtonInlineMenuItem(createStringResource("AssignmentPanel.viewTargetObject")) {
+        ButtonInlineMenuItem menu = new ButtonInlineMenuItem(createStringResource("AssignmentPanel.viewTargetObject")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -960,7 +952,28 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
             public boolean isHeaderMenuItem() {
                 return false;
             }
+
+        };
+        menu.setVisibilityChecker(new InlineMenuItem.VisibilityChecker() {
+            @Override
+            public boolean isVisible(IModel<?> rowModel, boolean isHeader) {
+                PrismContainerValueWrapper<AssignmentType> assignment = (PrismContainerValueWrapper<AssignmentType>) rowModel.getObject();
+                if (assignment == null) {
+                    return false;
+                }
+                PrismReferenceWrapper<Referencable> target = null;
+                try {
+                    target = assignment.findReference(AssignmentType.F_TARGET_REF);
+                } catch (Exception e) {
+                    LOGGER.error("Couldn't find targetRef in assignment");
+                }
+                if (target == null || target.isEmpty()) {
+                    return false;
+                }
+                return true;
+            }
         });
+        menuItems.add(menu);
         return menuItems;
     }
 

@@ -1599,7 +1599,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     @Override
     public void fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> initialTokenProperty,
             AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter,
-            ChangeHandler changeHandler, OperationResult parentResult)
+            LiveSyncChangeListener changeHandler, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException {
 
         OperationResult result = parentResult.subresult(OP_FETCH_CHANGES)
@@ -1671,7 +1671,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                         int sequentialNumber = deltasProcessed.incrementAndGet();
 
                         change = getChangeFromSyncDelta(requestConnIdObjectClass, objectClass, delta, sequentialNumber, handleResult);
-                        boolean canContinue = changeHandler.handleChange(change, handleResult);
+                        boolean canContinue = changeHandler.onChange(change, handleResult);
                         boolean doContinue = canContinue && canRun(reporter) && (maxChanges == null || maxChanges == 0 || sequentialNumber < maxChanges);
                         if (!doContinue) {
                             allChangesFetched.set(false);
@@ -1680,7 +1680,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                     } catch (Throwable t) {
                         PrismProperty<?> token = delta.getToken() != null ? createTokenProperty(delta.getToken()) : null;
                         handleResult.recordFatalError(t);
-                        boolean doContinue = changeHandler.handleError(token, change, t, handleResult);
+                        boolean doContinue = changeHandler.onChangePreparationError(token, change, t, handleResult);
                         if (!doContinue) {
                             allChangesFetched.set(false);
                         }
@@ -1739,7 +1739,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                     // We might consider finalToken value here. I.e. it it's non null, we could declare all changes to be fetched.
                     // But as mentioned above, this is not supported explicitly in SyncApiOp. So let's be a bit conservative.
                     LOGGER.trace("Signalling 'all changes fetched' with finalToken = {}", finalToken);
-                    changeHandler.handleAllChangesFetched(createTokenProperty(finalToken), result);
+                    changeHandler.onAllChangesFetched(createTokenProperty(finalToken), result);
                 }
             } catch (Throwable t) {
                 connIdResult.recordFatalError(t);

@@ -1760,6 +1760,7 @@
                                 <!-- Testing dependencies are not troubling us from. -->
                                 <ignoredUsedUndeclaredDependency>org.testng:testng</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>org.assertj:assertj-core</ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>org.javasimon:javasimon-core</ignoredUsedUndeclaredDependency>
 
                                 <!-- Unreliable detection -->
                                 <ignoredUsedUndeclaredDependency>javax.xml.bind:jaxb-api</ignoredUsedUndeclaredDependency>
@@ -2084,6 +2085,13 @@
         -->
         <profile>
             <id>extratest</id>
+            <properties>
+                <skipTests>true</skipTests>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>perftest</id>
             <properties>
                 <skipTests>true</skipTests>
             </properties>

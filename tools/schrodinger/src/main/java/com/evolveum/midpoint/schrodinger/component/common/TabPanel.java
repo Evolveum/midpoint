@@ -14,6 +14,8 @@ import org.openqa.selenium.By;
 import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
+import static com.codeborne.selenide.Selectors.byText;
+
 /**
  * Created by Viliam Repan (lazyman).
  */

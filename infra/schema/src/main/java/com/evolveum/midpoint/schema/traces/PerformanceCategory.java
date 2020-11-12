@@ -7,13 +7,16 @@
 
 package com.evolveum.midpoint.schema.traces;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+
+import org.jetbrains.annotations.NotNull;
+
+import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
 
 @Experimental
 public enum PerformanceCategory {
@@ -40,7 +43,7 @@ public enum PerformanceCategory {
             "com.evolveum.midpoint.repo.api.RepositoryService.advanceSequence",
             "com.evolveum.midpoint.repo.api.RepositoryService.returnUnusedValuesToSequence",
             "com.evolveum.midpoint.repo.api.RepositoryService.addDiagnosticInformation"),
-    REPOSITORY_OTHER("Repo:O", "Repository (other)", Arrays.asList(REPOSITORY), Arrays.asList(REPOSITORY_READ, REPOSITORY_WRITE)),
+    REPOSITORY_OTHER("Repo:O", "Repository (other)", singletonList(REPOSITORY), Arrays.asList(REPOSITORY_READ, REPOSITORY_WRITE)),
     REPOSITORY_CACHE("RCache", "Repository cache (all)",
             "com.evolveum.midpoint.repo.cache.RepositoryCache.*"),
     REPOSITORY_CACHE_READ("RCache:R", "Repository cache (read)",
@@ -61,8 +64,16 @@ public enum PerformanceCategory {
             "com.evolveum.midpoint.repo.cache.RepositoryCache.advanceSequence",
             "com.evolveum.midpoint.repo.cache.RepositoryCache.returnUnusedValuesToSequence",
             "com.evolveum.midpoint.repo.cache.RepositoryCache.addDiagnosticInformation"),
-    REPOSITORY_CACHE_OTHER("RCache:O", "Repository cache (other)", Arrays.asList(REPOSITORY_CACHE), Arrays.asList(REPOSITORY_CACHE_READ, REPOSITORY_CACHE_WRITE)),
+    INVALIDATE_CACHE_ENTRIES("CacheInv", "Invalidate cache entries (as part of write)",
+            "com.evolveum.midpoint.repo.cache.RepositoryCache.invalidateCacheEntries"),
+    REPOSITORY_CACHE_OTHER("RCache:O", "Repository cache (other)", singletonList(REPOSITORY_CACHE), Arrays.asList(REPOSITORY_CACHE_READ, REPOSITORY_CACHE_WRITE, INVALIDATE_CACHE_ENTRIES)),
     MAPPING_EVALUATION("Map", "Mapping evaluation", "com.evolveum.midpoint.model.common.mapping.MappingImpl.evaluate"),
+    SCRIPT_EVALUATION("Script", "Script evaluation", "com.evolveum.midpoint.model.common.expression.script.ScriptExpression.evaluate"),
+    NOTIFICATIONS("Notify", "Notifications", "com.evolveum.midpoint.notifications.impl.NotificationHook.invoke",
+            "com.evolveum.midpoint.notifications.impl.AccountOperationListener.notify*"),
+    NOTIFICATION_TRANSPORTS("NTrans", "Notification transports",
+            "com.evolveum.midpoint.notifications.impl.api.transports.*"),
+    AUDIT("Audit", "Audit (model)", "com.evolveum.midpoint.model.impl.util.AuditHelper.audit"),
     ICF("ConnId", "ConnId (all)", "org.identityconnectors.framework.api.ConnectorFacade.*"),
     ICF_READ("ConnId:R", "ConnId (read)",
             "org.identityconnectors.framework.api.ConnectorFacade.getObject",
@@ -78,33 +89,49 @@ public enum PerformanceCategory {
     ICF_SCHEMA("ConnId:S", "ConnId (schema)",
             "org.identityconnectors.framework.api.ConnectorFacade.getSupportedOperations",
             "org.identityconnectors.framework.api.ConnectorFacade.schema"),
-    ICF_OTHER("ConnId:O", "ConnId (other)", Arrays.asList(ICF), Arrays.asList(ICF_READ, ICF_WRITE, ICF_SCHEMA));
+    ICF_OTHER("ConnId:O", "ConnId (other)", singletonList(ICF), Arrays.asList(ICF_READ, ICF_WRITE, ICF_SCHEMA)),
+    EXTERNAL("Ext", "External", Arrays.asList(REPOSITORY, MAPPING_EVALUATION, SCRIPT_EVALUATION, NOTIFICATION_TRANSPORTS, AUDIT, ICF), emptyList()),
+    EXTERNAL_PLUS_REPO_CACHE("Ext+RC", "External plus repo cache", Arrays.asList(EXTERNAL, REPOSITORY_CACHE), emptyList());
 
     private final String shortLabel;
     private final String label;
-    private final List<PerformanceCategory> plus, minus;
-    private final List<String> patterns;
-    private final List<Pattern> compiledPatterns;
+    private final boolean derived;
+    @NotNull private final List<PerformanceCategory> plus;
+    @NotNull private final List<PerformanceCategory> minus;
+    @NotNull private final List<Pattern> compiledPatterns;
+    @NotNull private final List<Pattern> compiledExclusionPatterns;
 
-    PerformanceCategory(String shortLabel, String label, List<PerformanceCategory> plus, List<PerformanceCategory> minus) {
+    PerformanceCategory(String shortLabel, String label, @NotNull List<PerformanceCategory> plus, @NotNull List<PerformanceCategory> minus) {
         this.shortLabel = shortLabel;
         this.label = label;
         this.plus = plus;
         this.minus = minus;
-        this.patterns = null;
-        this.compiledPatterns = null;
+        this.compiledPatterns = emptyList();
+        this.compiledExclusionPatterns = emptyList();
+        this.derived = true;
     }
 
     PerformanceCategory(String shortLabel, String label, String... patterns) {
+        this(shortLabel, label, emptyList(), patterns);
+    }
+
+    PerformanceCategory(String shortLabel, String label, List<String> exclusions, String... patterns) {
         this.shortLabel = shortLabel;
         this.label = label;
-        this.plus = this.minus = null;
-        this.patterns = Arrays.asList(patterns);
-        this.compiledPatterns = new ArrayList<>();
+        this.plus = emptyList();
+        this.minus = emptyList();
+        this.compiledPatterns = compilePatterns(Arrays.asList(patterns));
+        this.compiledExclusionPatterns = compilePatterns(exclusions);
+        this.derived = false;
+    }
+
+    private List<Pattern> compilePatterns(Collection<String> patterns) {
+        final List<Pattern> compiledPatterns = new ArrayList<>();
         for (String pattern : patterns) {
             String regex = toRegex(pattern);
             compiledPatterns.add(Pattern.compile(regex));
         }
+        return compiledPatterns;
     }
 
     public String getShortLabel() {
@@ -116,14 +143,14 @@ public enum PerformanceCategory {
     }
 
     public boolean isDerived() {
-        return plus != null || minus != null;
+        return derived;
     }
 
-    public List<PerformanceCategory> getPlus() {
+    public @NotNull List<PerformanceCategory> getPlus() {
         return plus;
     }
 
-    public List<PerformanceCategory> getMinus() {
+    public @NotNull List<PerformanceCategory> getMinus() {
         return minus;
     }
 
@@ -132,12 +159,18 @@ public enum PerformanceCategory {
     }
 
     public boolean matches(OperationResultType operation) {
-        for (Pattern pattern : compiledPatterns) {
-            if (pattern.matcher(operation.getOperation()).matches()) {
-                return true;
-            }
+        if (isDerived()) {
+            return matchesAnyCategory(operation, plus) && !matchesAnyCategory(operation, minus);
+        } else {
+            return matchesAnyPattern(operation, compiledPatterns) && !matchesAnyPattern(operation, compiledExclusionPatterns);
         }
-        return false;
     }
 
+    private boolean matchesAnyCategory(OperationResultType operation, List<PerformanceCategory> categories) {
+        return categories.stream().anyMatch(category -> category.matches(operation));
+    }
+
+    private boolean matchesAnyPattern(OperationResultType operation, List<Pattern> patterns) {
+        return patterns.stream().anyMatch(pattern -> pattern.matcher(operation.getOperation()).matches());
+    }
 }

@@ -438,6 +438,30 @@ public class Schrodinger {
     }
 
     /**
+     * <p>Produces a XPath query pointing to an element. The search is based on the descendant of the searched element which is
+     * identified via a specified attribute</p>
+     *
+     * @param element
+     * <p>An element which is the subject of the search. e.g. <code>li</code></p>
+     *
+     * @param descendantAttr
+     * <p>Attribute of the descendant of the searched element e.g. <code>data-s-id</code></p>
+     *
+     * @param descendantAttrValue
+     * <p>Value of the descendants attribute</p>
+     *
+     * @return the XPath query value for the searched element
+     */
+
+    public static By byDescendantElementAttributeValue(String element, String descendantAttr, String descendantAttrValue) {
+        if (element == null) {
+            element = "*";
+        }
+
+        return By.xpath("//" + element + "[descendant-or-self::*[@" + descendantAttr + "=\"" + descendantAttrValue + "\"]]");
+    }
+
+    /**
      * <p>Produces a XPath query pointing to an element. The search is based on the following sibling of the searched element and the value
      * which is enclosed between it's HTML tags or the element tags of the siblings descendants</p>
      *

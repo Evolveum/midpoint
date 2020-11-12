@@ -78,8 +78,8 @@ public class AbstractLabTest extends AbstractSchrodingerTest {
     protected static final String HR_RESOURCE_NAME = "ExAmPLE, Inc. HR Source";
     protected static final String NOTIFICATION_FILE_NAME = "notification.txt";
 
-    protected static final String PASSWORD_ATTRIBUTE_RESOURCE_KEY = "User password attribute name";
-    protected static final String UNIQUE_ATTRIBUTE_RESOURCE_KEY = "Unique attribute name";
+    protected static final String PASSWORD_ATTRIBUTE_NAME = "User password attribute name";
+    protected static final String UNIQUE_ATTRIBUTE_NAME = "Unique attribute name";
 
     protected static final String CSV_1_UNIQUE_ATTRIBUTE_NAME = "login";
     protected static final String CSV_1_PASSWORD_ATTRIBUTE_NAME = "password";

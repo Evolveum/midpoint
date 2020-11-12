@@ -335,8 +335,8 @@ public class FocusAsserter<F extends FocusType,RA> extends AssignmentHolderAsser
     }
 
     @Override
-    public ExtensionAsserter<F, ? extends FocusAsserter<F,RA>, RA> extension() {
-        ExtensionAsserter<F, ? extends FocusAsserter<F,RA>, RA> asserter = new ExtensionAsserter<>(this, getDetails());
+    public ExtensionAsserter<F, ? extends FocusAsserter<F, RA>> extension() {
+        ExtensionAsserter<F, FocusAsserter<F, RA>> asserter = new ExtensionAsserter<>(getObjectable(), this, getDetails());
         copySetupTo(asserter);
         return asserter;
     }
