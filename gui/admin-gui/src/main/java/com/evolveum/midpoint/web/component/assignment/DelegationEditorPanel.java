@@ -228,9 +228,6 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
 
             @Override
             public boolean isVisible(){
-                if (!UserDtoStatus.ADD.equals(getModelObject().getStatus())){
-                    return true;
-                }
                 List<AssignmentInfoDto> privilegesList = privilegesListModel.getObject();
                 return privilegesList != null && privilegesList.size() > 0;
             }
@@ -275,7 +272,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         assignmentPrivilegesCheckbox.add(new VisibleEnableBehaviour(){
             @Override
             public boolean isEnabled(){
-                return UserDtoStatus.ADD.equals(getModelObject().getStatus());
+                return getModel().getObject().isEditable();
             }
         });
         assignmentPrivilegesContainer.add(assignmentPrivilegesCheckbox);
@@ -286,12 +283,6 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
 
         Label assignmentPrivilegesLabel = new Label(ID_ASSIGNMENT_PRIVILEGES_LABEL,
                 createStringResource("DelegationEditorPanel.allPrivilegesLabel"));
-        assignmentPrivilegesLabel.add(new VisibleEnableBehaviour(){
-            @Override
-            public boolean isVisible(){
-               return true;
-            }
-        });
         assignmentPrivilegesLabel.setOutputMarkupId(true);
         labelContainer.add(assignmentPrivilegesLabel);
 
@@ -316,8 +307,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
             private static final long serialVersionUID = 1L;
             @Override
             public boolean isVisible(){
-                return UserDtoStatus.ADD.equals(getModelObject().getStatus()) &&
-                        assignmentPrivilegesCheckbox.getModelObject();
+                return getModel().getObject().isEditable() && assignmentPrivilegesCheckbox.getModelObject();
             }
         });
         labelContainer.add(limitPrivilegesButton);
