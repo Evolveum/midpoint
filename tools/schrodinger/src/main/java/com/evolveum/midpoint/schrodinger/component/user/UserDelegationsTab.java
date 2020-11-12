@@ -12,6 +12,7 @@ import com.codeborne.selenide.SelenideElement;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
+import com.evolveum.midpoint.schrodinger.component.common.DelegationDetailsPanel;
 import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
 import com.evolveum.midpoint.schrodinger.component.modal.ObjectBrowserModal;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
@@ -66,5 +67,9 @@ public class UserDelegationsTab extends Component<UserPage> {
         checkBox.click();
         checkBox.waitUntil(Condition.attribute("checked", "checked"), MidPoint.TIMEOUT_DEFAULT_2_S);
         return this;
+    }
+
+    public DelegationDetailsPanel<UserDelegationsTab> getDelegationDetailsPanel() {
+        return new DelegationDetailsPanel<>(this, $(Schrodinger.byDataId("delegationsContainer")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S));
     }
 }
