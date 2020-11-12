@@ -21,6 +21,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.page.admin.users.component.DelegationTargetLimitationDialog;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -114,6 +115,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
+                target.add(DelegationEditorPanel.this.get("headerRow"));
             }
         };
         selected.add(new VisibleEnableBehaviour(){
