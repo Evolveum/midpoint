@@ -3717,13 +3717,14 @@ public final class WebComponentUtil {
                         displayType.getIcon().setCssClass(def.getDisplay().getIcon().getCssClass());
                         displayType.getIcon().setColor(def.getDisplay().getIcon().getColor());
                     }
+                    displayType.setLabel(def.getDisplay().getLabel());
                 }
-                if (displayType.getLabel() != null && StringUtils.isNotEmpty(displayType.getLabel().getOrig())){
-                    relationValue = pageBase.createStringResource(displayType.getLabel().getOrig()).getString();
+                if (displayType.getLabel() != null) {
+                    relationValue = getTranslatedPolyString(displayType.getLabel());
                 } else {
                     String relationKey = "RelationTypes." + RelationTypes.getRelationTypeByRelationValue(relation);
-                    relationValue = pageBase.createStringResource(relationValue).getString();
-                    if (StringUtils.isEmpty(relationValue) || relationKey.equals(relationValue)){
+                    relationValue = pageBase.createStringResource(relationKey).getString();
+                    if (StringUtils.isEmpty(relationValue) || relationKey.equals(relationValue)) {
                         relationValue = relation.getLocalPart();
                     }
                 }
