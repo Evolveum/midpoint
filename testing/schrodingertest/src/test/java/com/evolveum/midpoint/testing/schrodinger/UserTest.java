@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.testing.schrodinger;
 
 import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
+import com.evolveum.midpoint.schrodinger.component.DateTimePanel;
 import com.evolveum.midpoint.schrodinger.component.common.DelegationDetailsPanel;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
@@ -31,14 +32,18 @@ public class UserTest extends AbstractSchrodingerTest {
     private static final String LOCALIZATION_VALUE = "de";
     private static final File DELEGATE_FROM_USER_FILE = new File("./src/test/resources/component/objects/users/delegate-from-user.xml");
     private static final File DELEGATE_TO_USER_FILE = new File("./src/test/resources/component/objects/users/delegate-to-user.xml");
+    private static final File DELEGABLE_END_USER_ROLE_FILE = new File("./src/test/resources/component/objects/roles/delegable-end-user-role.xml");
+    private static final File DELEGATE_END_USER_ROLE_FROM_USER_FILE = new File("./src/test/resources/component/objects/users/delegate-end-user-role-from-user.xml");
+    private static final File DELEGATE_END_USER_ROLE_TO_USER_FILE = new File("./src/test/resources/component/objects/users/delegate-end-user-role-to-user.xml");
 
     @Override
     protected List<File> getObjectListToImport(){
-        return Arrays.asList(DELEGATE_FROM_USER_FILE, DELEGATE_TO_USER_FILE);
+        return Arrays.asList(DELEGATE_FROM_USER_FILE, DELEGATE_TO_USER_FILE,
+                DELEGABLE_END_USER_ROLE_FILE, DELEGATE_END_USER_ROLE_FROM_USER_FILE, DELEGATE_END_USER_ROLE_TO_USER_FILE);
     }
 
     @Test
-    public void createUser() {
+    public void test0010createUser() {
 
         //@formatter:off
         UserPage user = basicPage.newUser();
@@ -77,7 +82,7 @@ public class UserTest extends AbstractSchrodingerTest {
     }
 
     @Test //covers MID-5845
-    public void isLocalizedPolystringValueDisplayed(){
+    public void test0020isLocalizedPolystringValueDisplayed(){
         UserPage user = basicPage.newUser();
 
         Assert.assertTrue(
@@ -159,6 +164,42 @@ public class UserTest extends AbstractSchrodingerTest {
         Assert.assertFalse(delegationDetailsFromUser.getValidFromPanel().findHours().isEnabled(), "Hours field should be disabled");
         Assert.assertFalse(delegationDetailsFromUser.getValidFromPanel().findMinutes().isEnabled(), "Minutes field should be disabled");
         Assert.assertFalse(delegationDetailsFromUser.getValidFromPanel().findAmOrPmChoice().isEnabled(), "AM/PM choice field should be disabled");
+    }
+
+    @Test
+    public void test0040delegateAssignmentPrivileges() {
+        basicPage.loggedUser().logout();
+        Assert.assertTrue(midPoint.formLogin().login("DelegateEndUserRoleToUser", "password")
+                        .feedback()
+                        .isError(),
+                "User shouldn't login, doesn't has rights yet");
+        midPoint.formLogin().login(username, password);
+
+        Assert.assertTrue(showUser("DelegateEndUserRoleFromUser")
+                .selectTabDelegations()
+                    .clickAddDelegation()
+                        .table()
+                            .search()
+                            .byName()
+                            .inputValue("DelegateEndUserRoleToUser")
+                            .updateSearch()
+                        .and()
+                        .clickByName("DelegateEndUserRoleToUser")
+                            .getDelegationDetailsPanel("DelegateEndUserRoleToUser")
+                            .getValidFromPanel()
+                            .setDateTimeValue("11/11/2019", "10", "30", DateTimePanel.AmOrPmChoice.PM)
+                            .and()
+                        .and()
+                    .and()
+                .clickSave()
+                .feedback()
+                .isSuccess(),
+                "Couldn't delegate DelegableEndUserRole role to user");
+
+        basicPage.loggedUser().logout();
+        Assert.assertTrue(midPoint.formLogin().login("DelegateEndUserRoleToUser", "password")
+                        .userMenuExists(),
+                "User should be logged in, he has delegated end user role");
     }
 
 }
