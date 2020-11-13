@@ -7,9 +7,16 @@
 
 package com.evolveum.midpoint.schrodinger.component.user;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+
+import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
+import com.evolveum.midpoint.schrodinger.component.common.DelegationDetailsPanel;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
+import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+
+import static com.codeborne.selenide.Selenide.$;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -18,5 +25,12 @@ public class UserDelegatedToMeTab extends Component<UserPage> {
 
     public UserDelegatedToMeTab(UserPage parent, SelenideElement parentElement) {
         super(parent, parentElement);
+    }
+
+    public DelegationDetailsPanel<UserDelegatedToMeTab> getDelegationDetailsPanel(String delegatedFromUser) {
+        return new DelegationDetailsPanel<>(this,
+                $(Schrodinger.byAncestorFollowingSiblingDescendantOrSelfElementEnclosedValue("div", "data-s-id",
+                        "assignmentEditor", "class", "name",  delegatedFromUser))
+                        .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S));
     }
 }

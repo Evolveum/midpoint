@@ -621,7 +621,7 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     public List<PrismContainerDefinition<? extends Containerable>> getChildContainers() throws SchemaException {
         List<PrismContainerValueWrapper<ValueMetadataType>> metadataValues = getValues();
         if (CollectionUtils.isEmpty(metadataValues)) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
 
         List<PrismContainerDefinition<? extends Containerable>> childContainers = new ArrayList<>();
@@ -641,7 +641,7 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     public List<? extends ItemDefinition> getChildNonContainers() {
         List<PrismContainerValueWrapper<ValueMetadataType>> metadataValues = getValues();
         if (CollectionUtils.isEmpty(metadataValues)) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
 
         List<ItemDefinition<?>> childItems = new ArrayList<>();

@@ -1,0 +1,46 @@
+= midScale new SQL repository experiments
+
+As a non-involved developer you may ignore this directory.
+It is not part of the current midPoint build.
+
+== Notes
+
+* Directory `sql` contains various init scripts and experiments.
+Some of these will be moved to `config/sql` when proven worthy.
+
+== PostgreSQL table inheritance
+
+https://www.postgresql.org/docs/current/ddl-inherit.html[Table inheritance] is a nice mechanism
+that allows creating table hierarchies so we see all objects in one table and various subtypes in
+inherited tables.
+*It is also an implicit method for partitioning*, at least from the perspective of the parent table(s).
+
+* We need "abstract" tables like `m_object`.
+Ideally we don't want to insert into abstract tables, we can use `check (false) no inherit` for this.
+"Check false" always fails, but this is not inherited by sub-tables.
+
+* PKs, FKs and most of other constraints must be declared on each sub-table.
+Only check and not-null constraints are inherited, unless `no inherit` is declared.
+See https://www.postgresql.org/docs/13/ddl-inherit.html#DDL-INHERIT-CAVEATS[inheritance caveats].
+
+* To assure globally unique PKs we have to use triggers on sub-tables.
+See http://blog.ioguix.net/postgresql/2015/02/05/Partitionning-and-constraints-part-1.html[this post]
+for more - especially the solution towards the end with advisory locks.
+The part with the support for other types is also handy, because UUID is bigger than bigint for lock.
+
+* UUID is far from the first recommendation for a PK, but it's impractical to use anything else for midPoint.
+Even with additional serial PK the objects are searched by their OID, so it would have to be indexed
+and its uniqueness assured and then it can just be PK directly.
+Smaller PK could be beneficial only as FK from other tables, e.g. instead of `targetRef_oid` for associations.
+This could still mean that we need to follow the FK to resolve it to OID which we use in application.
+
+* We want to generate OID in the database, so `DEFAULT gen_random_uuid()` is used for `OID`
+column directly in the master table `m_object`.
+
+* To assure reasonable performance of unique OID we must not forget to declare `PRIMARY KEY (OID)`
+on the "concrete" tables (in `CREATE TABLE` or with `ALTER TABLE`).
+Without the index the check trigger gets very slow after a couple of thousands records.
+
+* TODO: can we partition inherited table? Like `m_shadow`.
+
+The result (WIP): link:sql/pgnew-experiments.sql[]

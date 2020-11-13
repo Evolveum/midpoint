@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,45 +7,46 @@
 
 package com.evolveum.midpoint.repo.common;
 
+import java.util.Collection;
+import java.util.Collections;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.CacheInvalidationContext;
-import com.evolveum.midpoint.repo.api.Cacheable;
-import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
+import com.evolveum.midpoint.repo.api.Cache;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
+import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.util.Collection;
-import java.util.Collections;
 
 /**
- * Adapter from SystemConfigurationChangeDispatcher to Cacheable. Distributes events about system configuration
- * invalidation changes.
+ * Adapter from SystemConfigurationChangeDispatcher to {@link Cache}.
+ * Distributes events about system configuration invalidation changes.
  */
 @Component
-public class SystemConfigurationCacheableAdapter implements Cacheable {
+public class SystemConfigurationCacheAdapter implements Cache {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SystemConfigurationCacheableAdapter.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SystemConfigurationCacheAdapter.class);
 
     @Autowired private CacheRegistry cacheRegistry;
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
 
     @PostConstruct
     public void register() {
-        cacheRegistry.registerCacheableService(this);
+        cacheRegistry.registerCache(this);
     }
 
     @PreDestroy
     public void unregister() {
-        cacheRegistry.unregisterCacheableService(this);
+        cacheRegistry.unregisterCache(this);
     }
 
     @Override
@@ -53,7 +54,7 @@ public class SystemConfigurationCacheableAdapter implements Cacheable {
         if (type == null || type.isAssignableFrom(SystemConfigurationType.class)) {
             // We ignore OID by now, assuming there's only a single system configuration object
             try {
-                OperationResult result = new OperationResult(SystemConfigurationCacheableAdapter.class.getName() + ".invalidate");
+                OperationResult result = new OperationResult(SystemConfigurationCacheAdapter.class.getName() + ".invalidate");
                 systemConfigurationChangeDispatcher.dispatch(true, true, result);
             } catch (Throwable t) {
                 LoggingUtils

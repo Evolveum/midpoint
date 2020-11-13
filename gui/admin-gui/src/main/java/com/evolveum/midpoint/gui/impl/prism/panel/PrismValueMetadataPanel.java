@@ -231,7 +231,7 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
                 childContainers = metadataWrapper.getChildContainers();
             } catch (SchemaException e) {
                 LOGGER.error("Cannot get child containers: {}", e.getMessage(), e);
-                childContainers = Collections.EMPTY_LIST;
+                childContainers = Collections.emptyList();
             }
 
             List<ContainersPopupDto> navigation = childContainers.stream().map(c -> new ContainersPopupDto(false, c)).collect(Collectors.toList());

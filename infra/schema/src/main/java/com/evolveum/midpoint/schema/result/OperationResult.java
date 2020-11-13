@@ -249,7 +249,7 @@ public class OperationResult
         if (!building) {
             throw new IllegalStateException("Not being built");
         }
-        recordStart(this, operation, createArguments());
+        recordStart(operation, createArguments());
         building = false;
         if (futureParent != null) {
             futureParent.addSubresult(this);
@@ -265,21 +265,24 @@ public class OperationResult
         }
     }
 
-    private static void recordStart(OperationResult result, String operation, Object[] arguments) {
-        if (result.isTraced()) {
-            result.collectingLogEntries = result.tracingProfile.isCollectingLogEntries();
-            if (result.collectingLogEntries) {
-                LoggingLevelOverrideConfiguration loggingOverrideConfiguration = result.tracingProfile.getLoggingLevelOverrideConfiguration();
-                if (loggingOverrideConfiguration != null && !LevelOverrideTurboFilter.isActive()) {
-                    LevelOverrideTurboFilter.overrideLogging(loggingOverrideConfiguration);
-                    result.startedLoggingOverride = true;
-                }
-                TracingAppender.openSink(result::appendLoggedEvents);
+    private void recordStart(String operation, Object[] arguments) {
+        collectingLogEntries = tracingProfile != null && tracingProfile.isCollectingLogEntries();
+        if (collectingLogEntries) {
+            LoggingLevelOverrideConfiguration loggingOverrideConfiguration = tracingProfile.getLoggingLevelOverrideConfiguration();
+            if (loggingOverrideConfiguration != null && !LevelOverrideTurboFilter.isActive()) {
+                LevelOverrideTurboFilter.overrideLogging(loggingOverrideConfiguration);
+                startedLoggingOverride = true;
             }
-            result.invocationRecord = OperationInvocationRecord.create(operation, arguments, result.tracingProfile.isMeasureCpuTime());
-            result.invocationId = result.invocationRecord.getInvocationId();
+            TracingAppender.openSink(this::appendLoggedEvents);
         }
-        result.start = System.currentTimeMillis();
+        // TODO for very minor operation results (e.g. those dealing with mapping and script execution)
+        //  we should consider skipping creation of invocationRecord. It includes some string manipulation(s)
+        //  and a call to System.nanoTime that could unnecessarily slow down midPoint operation.
+        //  But beware, it would disable measurements of these operations e.g. in task internal performance info panel.
+        boolean measureCpuTime = tracingProfile != null && tracingProfile.isMeasureCpuTime();
+        invocationRecord = OperationInvocationRecord.create(operation, arguments, measureCpuTime);
+        invocationId = invocationRecord.getInvocationId();
+        start = System.currentTimeMillis();
     }
 
     private void appendLoggedEvents(LoggingEventSink loggingEventSink) {
@@ -309,21 +312,11 @@ public class OperationResult
         return createSubresult(operation, true, null);
     }
 
-//    public static OperationResult createProfiled(String operation) {
-//        return createProfiled(operation, new Object[0]);
-//    }
-//
-//    public static OperationResult createProfiled(String operation, Object[] arguments) {
-//        OperationResult result = new OperationResult(operation);
-//        recordStart(result, operation, arguments);
-//        return result;
-//    }
-
     private OperationResult createSubresult(String operation, boolean minor, Object[] arguments) {
         OperationResult subresult = new OperationResult(operation);
         subresult.recordCallerReason(this);
         addSubresult(subresult);
-        recordStart(subresult, operation, arguments);
+        subresult.recordStart(operation, arguments);
         subresult.importance = minor ? MINOR : NORMAL;
         return subresult;
     }
@@ -349,17 +342,6 @@ public class OperationResult
             startedLoggingOverride = false;
         }
     }
-
-    // This is not quite useful: We want to record the "real" end, i.e. when the control leaves the region belonging to
-    // the operation result. So it's actually OK to rewrite the end timestamp, even if it was already set.
-    // A small price to pay is that "end" could get a bit inconsistent with "microseconds", that was presumably set earlier.
-    // But that's quite good - when analyzing we can see that such an inconsistency arose and we can deal with it.
-
-//    public void recordEndIfNeeded() {
-//        if (invocationRecord != null || end == null) {
-//            recordEnd();
-//        }
-//    }
 
     /**
      * Reference to an asynchronous operation that can be used to retrieve
@@ -1667,31 +1649,31 @@ public class OperationResult
         resultType.setMessageCode(opResult.getMessageCode());
 
         if (opResult.getCause() != null || !opResult.details.isEmpty()) {
-            StringBuilder detailsb = new StringBuilder();
+            StringBuilder detailSb = new StringBuilder();
 
             // Record text messages in details (if present)
             if (!opResult.details.isEmpty()) {
                 for (String line : opResult.details) {
-                    detailsb.append(line);
-                    detailsb.append("\n");
+                    detailSb.append(line);
+                    detailSb.append("\n");
                 }
             }
 
             // Record stack trace in details if a cause is present
             if (opResult.getCause() != null) {
                 Throwable ex = opResult.getCause();
-                detailsb.append(ex.getClass().getName());
-                detailsb.append(": ");
-                detailsb.append(ex.getMessage());
-                detailsb.append("\n");
+                detailSb.append(ex.getClass().getName());
+                detailSb.append(": ");
+                detailSb.append(ex.getMessage());
+                detailSb.append("\n");
                 StackTraceElement[] stackTrace = ex.getStackTrace();
                 for (StackTraceElement aStackTrace : stackTrace) {
-                    detailsb.append(aStackTrace.toString());
-                    detailsb.append("\n");
+                    detailSb.append(aStackTrace.toString());
+                    detailSb.append("\n");
                 }
             }
 
-            resultType.setDetails(detailsb.toString());
+            resultType.setDetails(detailSb.toString());
         }
 
         if (opResult.getUserFriendlyMessage() != null) {

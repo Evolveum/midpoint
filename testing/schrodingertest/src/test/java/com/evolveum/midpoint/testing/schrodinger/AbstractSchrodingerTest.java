@@ -18,6 +18,15 @@ import java.util.Properties;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.ex.ElementNotFound;
 import com.codeborne.selenide.testng.BrowserPerClass;
+
+import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
+import com.evolveum.midpoint.schrodinger.component.resource.ResourceAccountsTab;
+import com.evolveum.midpoint.schrodinger.component.resource.ResourceShadowTable;
+import com.evolveum.midpoint.schrodinger.page.resource.AccountPage;
+import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
+import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
+import com.evolveum.midpoint.schrodinger.page.user.UserPage;
+
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -346,4 +355,87 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
             LOG.error("Unable to add object, {}", result.getUserFriendlyMessage(), ex);
         }
     }
+
+    public UserPage showUser(String userName){
+        UserPage user = showUserInTable(userName).clickByName(userName);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        return user;
+    }
+
+    public AssignmentHolderObjectListTable<ListUsersPage, UserPage> showUserInTable(String userName) {
+        return basicPage.listUsers()
+                .table()
+                .search()
+                .byName()
+                .inputValue(userName)
+                .updateSearch()
+                .and();
+    }
+
+    public AccountPage showShadow(String resourceName, String searchedItem, String itemValue){
+        return showShadow(resourceName, searchedItem, itemValue, null, false);
+    }
+
+    public AccountPage showShadow(String resourceName, String searchedItem, String itemValue, String intent, boolean useRepository){
+        return getShadowTable(resourceName, searchedItem, itemValue, intent, useRepository)
+                .clickByName(itemValue);
+    }
+
+    public boolean existShadow(String resourceName, String searchedItem, String itemValue){
+        return existShadow(resourceName, searchedItem, itemValue, null, false);
+    }
+
+    public boolean existShadow(String resourceName, String searchedItem, String itemValue, String intent,  boolean useRepository){
+        ResourceShadowTable table = getShadowTable(resourceName, searchedItem, itemValue, intent, useRepository);
+        return table.containsText(itemValue);
+    }
+
+    public ResourceShadowTable getShadowTable(String resourceName, String searchedItem, String itemValue) {
+        return getShadowTable(resourceName, searchedItem, itemValue, null, false);
+    }
+
+    public ResourceShadowTable getShadowTable(String resourceName, String searchedItem, String itemValue, String intent, boolean useRepository) {
+        ResourceAccountsTab<ViewResourcePage> tab = basicPage.listResources()
+                .table()
+                .search()
+                .byName()
+                .inputValue(resourceName)
+                .updateSearch()
+                .and()
+                .clickByName(resourceName)
+                .clickAccountsTab();
+        if (useRepository) {
+            tab.clickSearchInRepository();
+        } else {
+            tab.clickSearchInResource();
+        }
+        Selenide.sleep(1000);
+        if (intent != null && !intent.isEmpty()) {
+            tab.setIntent(intent);
+            Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        }
+        return tab.table()
+                .search()
+                .resetBasicSearch()
+                .byItemName(searchedItem)
+                .inputValue(itemValue)
+                .updateSearch()
+                .and();
+    }
+
+    protected TaskPage showTask(String name, String menuKey) {
+        return basicPage.listTasks(menuKey)
+                .table()
+                .search()
+                .byName()
+                .inputValue(name)
+                .updateSearch()
+                .and()
+                .clickByName(name);
+    }
+
+    protected TaskPage showTask(String name) {
+        return showTask(name, "");
+    }
+
 }

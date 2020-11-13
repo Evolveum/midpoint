@@ -41,8 +41,12 @@ public abstract class AssignmentHolderObjectListTable<P, PD extends AssignmentHo
 
         getParentElement().$(Schrodinger.byElementValue("span", "data-s-id", "label", name))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        Selenide.sleep(getDetailsPageLoadingTimeToWait());
         return getObjectDetailsPage();
+    }
+
+    public long getDetailsPageLoadingTimeToWait() {
+        return MidPoint.TIMEOUT_DEFAULT_2_S;
     }
 
     public PD clickByPartialName(String name) {
