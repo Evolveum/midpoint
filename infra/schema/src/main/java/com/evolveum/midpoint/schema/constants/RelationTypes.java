@@ -93,7 +93,7 @@ public enum RelationTypes {
 
     public static RelationTypes getRelationTypeByRelationValue(QName relation){
         for (RelationTypes relationType : values()) {
-            if (relationType.getRelation().equals(relation)) {
+            if (QNameUtil.match(relationType.getRelation(), relation)) {
                 return relationType;
             }
         }

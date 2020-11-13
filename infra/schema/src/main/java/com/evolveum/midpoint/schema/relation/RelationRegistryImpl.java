@@ -11,9 +11,11 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang.BooleanUtils;
@@ -96,7 +98,11 @@ public class RelationRegistryImpl implements RelationRegistry {
         RelationDefinitionType relationDef = new RelationDefinitionType();
         relationDef.setRef(defaultRelationDefinition.getRelation());
         DisplayType display = new DisplayType();
-        display.setLabel(new PolyStringType(defaultRelationDefinition.getLabelKey()));
+        PolyStringType label = new PolyStringType(QNameUtil.getLocalPart(defaultRelationDefinition.getRelation()));
+        PolyStringTranslationType translation = new PolyStringTranslationType();
+        translation.setKey(defaultRelationDefinition.getLabelKey());
+        label.setTranslation(translation);
+        display.setLabel(label);
         if (StringUtils.isNotEmpty(defaultRelationDefinition.getDefaultIconStyle())){
             IconType icon = new IconType();
             icon.setCssClass(defaultRelationDefinition.getDefaultIconStyle());
