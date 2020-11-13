@@ -42,6 +42,7 @@ public abstract class AssignmentHolderDetailsPage<P extends AssignmentHolderDeta
     public PreviewPage clickPreview() {
         getPreviewButton().waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        feedback().isSuccess();
         return new PreviewPage();
     }
 
