@@ -22,7 +22,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType
  * that it may later evolve to something like future/promise.
  *
  * @author semancik
- *
  */
 public class AsynchronousOperationResult implements ShortDumpable {
 

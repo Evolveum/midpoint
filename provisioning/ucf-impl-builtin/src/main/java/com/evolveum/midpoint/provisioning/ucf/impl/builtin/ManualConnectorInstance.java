@@ -54,6 +54,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.*;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
@@ -76,13 +78,14 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
     private boolean connected = false;
 
+    @VisibleForTesting
     private static int randomDelayRange = 0;
 
     private static final String DEFAULT_OPERATOR_OID = SystemObjectsType.USER_ADMINISTRATOR.value();
 
     private static final Random RND = new Random();
 
-    private Clock clock = new Clock();
+    private final Clock clock = new Clock();
 
     @ManagedConnectorConfiguration
     public ManualConnectorConfiguration getConfiguration() {
@@ -312,15 +315,15 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
         InternalMonitor.recordConnectorOperation("queryOperationStatus");
 
-        PrismObject<CaseType> acase;
+        PrismObject<CaseType> aCase;
         try {
-            acase = repositoryService.getObject(CaseType.class, asynchronousOperationReference, null, result);
+            aCase = repositoryService.getObject(CaseType.class, asynchronousOperationReference, null, result);
         } catch (ObjectNotFoundException | SchemaException e) {
             result.recordFatalError(e);
             throw e;
         }
 
-        CaseType caseType = acase.asObjectable();
+        CaseType caseType = aCase.asObjectable();
         String state = caseType.getState();
 
         // States "open" and "created" are the same from the factual point of view
@@ -340,7 +343,6 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
             result.recordFatalError(e);
             throw e;
         }
-
     }
 
     // see CompleteWorkItemsAction.getOutcome(..) method
@@ -373,7 +375,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         // Nothing else to do
     }
 
-    private String getShadowIdentifier(Collection<? extends ResourceAttribute<?>> identifiers){
+    private String getShadowIdentifier(Collection<? extends ResourceAttribute<?>> identifiers) {
         try {
             Object[] shadowIdentifiers = identifiers.toArray();
 
@@ -407,11 +409,12 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         connected = false;
     }
 
-    @SuppressWarnings("unused")
+    @VisibleForTesting
     public static int getRandomDelayRange() {
         return randomDelayRange;
     }
 
+    @VisibleForTesting
     public static void setRandomDelayRange(int randomDelayRange) {
         ManualConnectorInstance.randomDelayRange = randomDelayRange;
     }
