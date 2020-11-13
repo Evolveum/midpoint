@@ -15,6 +15,8 @@ import com.evolveum.midpoint.schrodinger.component.DateTimePanel;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import com.evolveum.midpoint.schrodinger.util.Utils;
 
+import org.openqa.selenium.By;
+
 import static com.codeborne.selenide.Selenide.$;
 /**
  * Created by honchar
@@ -23,6 +25,12 @@ public class DelegationDetailsPanel<T> extends Component<T> {
 
     public DelegationDetailsPanel(T parent, SelenideElement parentElement) {
         super(parent, parentElement);
+    }
+
+    public DelegationDetailsPanel<T> expandDetailsPanel(String linkText) {
+        $(By.linkText(linkText)).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        $(Schrodinger.byDataId("delegationDescription")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+        return this;
     }
 
     public DelegationDetailsPanel<T> clickHeaderCheckbox(){
@@ -47,6 +55,11 @@ public class DelegationDetailsPanel<T> extends Component<T> {
         $(Schrodinger.byDataId("delegationDescription")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
                 .setValue(descriptionValue);
         return this;
+    }
+
+    public boolean isDescriptionEnabled() {
+        return $(Schrodinger.byDataId("delegationDescription")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .isEnabled();
     }
 
     public DateTimePanel<DelegationDetailsPanel<T>> getValidFromPanel() {
@@ -79,8 +92,11 @@ public class DelegationDetailsPanel<T> extends Component<T> {
     }
 
     public boolean isAssignmentPrivileges() {
-        return $(Schrodinger.byDataId("assignmentPrivilegesCheckbox")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
-                .isSelected();
+        if ($(Schrodinger.byDataId("assignmentPrivilegesCheckbox")).exists()) {
+            return $(Schrodinger.byDataId("assignmentPrivilegesCheckbox")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                    .isSelected();
+        }
+        return false;
     }
 
     public DelegationDetailsPanel<T> clickAssignmentLimitationsCheckbox(boolean value) {

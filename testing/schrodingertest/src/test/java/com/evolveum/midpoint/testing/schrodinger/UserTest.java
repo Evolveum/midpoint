@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.testing.schrodinger;
 
 import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
+import com.evolveum.midpoint.schrodinger.component.common.DelegationDetailsPanel;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
@@ -29,7 +30,7 @@ public class UserTest extends AbstractSchrodingerTest {
     private static final String LOCALIZATION_TEST_USER_NAME_DE = "localizationTestUserNameDe";
     private static final String LOCALIZATION_VALUE = "de";
     private static final File DELEGATE_FROM_USER_FILE = new File("./src/test/resources/component/objects/users/delegate-from-user.xml");
-    private static final File DELEGATE_TO_USER_FILE = new File("./src/test/resources/component/objects/users/delegate-from-user.xml");
+    private static final File DELEGATE_TO_USER_FILE = new File("./src/test/resources/component/objects/users/delegate-to-user.xml");
 
     @Override
     protected List<File> getObjectListToImport(){
@@ -127,6 +128,37 @@ public class UserTest extends AbstractSchrodingerTest {
                 .clickSave()
                 .feedback()
                 .isSuccess());
+
+        DelegationDetailsPanel delegationDetailsPanel = showUser("DelegateToUser")
+                .selectTabDelegatedToMe()
+                    .getDelegationDetailsPanel("DelegateFromUser")
+                    .expandDetailsPanel("DelegateFromUser");
+        Assert.assertFalse(delegationDetailsPanel.isAssignmentPrivileges(), "Assignment privileges should not be selected");
+        Assert.assertFalse(delegationDetailsPanel.isAssignmentLimitations(), "Assignment limitations should not be selected");
+        Assert.assertTrue(delegationDetailsPanel.isApprovalWorkItems(), "Workflow approvals (for approval work items) should be selected");
+        Assert.assertTrue(delegationDetailsPanel.isCertificationWorkItems(), "Workflow approvals (for certification work items) should be selected");
+
+        Assert.assertFalse(delegationDetailsPanel.isDescriptionEnabled(), "Description should be disabled");
+        Assert.assertFalse(delegationDetailsPanel.getValidFromPanel().findDate().isEnabled(), "Date field should be disabled");
+        Assert.assertFalse(delegationDetailsPanel.getValidFromPanel().findHours().isEnabled(), "Hours field should be disabled");
+        Assert.assertFalse(delegationDetailsPanel.getValidFromPanel().findMinutes().isEnabled(), "Minutes field should be disabled");
+        Assert.assertFalse(delegationDetailsPanel.getValidFromPanel().findAmOrPmChoice().isEnabled(), "AM/PM choice field should be disabled");
+
+        DelegationDetailsPanel delegationDetailsFromUser = showUser("DelegateFromUser")
+                .selectTabDelegations()
+                .getDelegationDetailsPanel("DelegateToUser")
+                .expandDetailsPanel("DelegateToUser");
+
+        Assert.assertFalse(delegationDetailsFromUser.isAssignmentPrivileges(), "Assignment privileges should not be selected");
+        Assert.assertFalse(delegationDetailsFromUser.isAssignmentLimitations(), "Assignment limitations should not be selected");
+        Assert.assertTrue(delegationDetailsFromUser.isApprovalWorkItems(), "Workflow approvals (for approval work items) should be selected");
+        Assert.assertTrue(delegationDetailsFromUser.isCertificationWorkItems(), "Workflow approvals (for certification work items) should be selected");
+
+        Assert.assertFalse(delegationDetailsFromUser.isDescriptionEnabled(), "Description should be disabled");
+        Assert.assertFalse(delegationDetailsFromUser.getValidFromPanel().findDate().isEnabled(), "Date field should be disabled");
+        Assert.assertFalse(delegationDetailsFromUser.getValidFromPanel().findHours().isEnabled(), "Hours field should be disabled");
+        Assert.assertFalse(delegationDetailsFromUser.getValidFromPanel().findMinutes().isEnabled(), "Minutes field should be disabled");
+        Assert.assertFalse(delegationDetailsFromUser.getValidFromPanel().findAmOrPmChoice().isEnabled(), "AM/PM choice field should be disabled");
     }
 
 }

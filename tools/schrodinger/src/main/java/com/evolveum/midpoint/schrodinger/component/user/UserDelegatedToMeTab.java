@@ -16,6 +16,8 @@ import com.evolveum.midpoint.schrodinger.component.common.DelegationDetailsPanel
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
+import org.openqa.selenium.By;
+
 import static com.codeborne.selenide.Selenide.$;
 
 /**
@@ -29,8 +31,7 @@ public class UserDelegatedToMeTab extends Component<UserPage> {
 
     public DelegationDetailsPanel<UserDelegatedToMeTab> getDelegationDetailsPanel(String delegatedFromUser) {
         return new DelegationDetailsPanel<>(this,
-                $(Schrodinger.byAncestorFollowingSiblingDescendantOrSelfElementEnclosedValue("div", "data-s-id",
-                        "assignmentEditor", "class", "name",  delegatedFromUser))
+                $(By.linkText(delegatedFromUser))
                         .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S));
     }
 }
