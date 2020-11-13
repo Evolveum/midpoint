@@ -21,6 +21,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.page.admin.users.component.DelegationTargetLimitationDialog;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -114,6 +115,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
+                target.add(DelegationEditorPanel.this.get("headerRow"));
             }
         };
         selected.add(new VisibleEnableBehaviour(){
@@ -228,9 +230,6 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
 
             @Override
             public boolean isVisible(){
-                if (!UserDtoStatus.ADD.equals(getModelObject().getStatus())){
-                    return true;
-                }
                 List<AssignmentInfoDto> privilegesList = privilegesListModel.getObject();
                 return privilegesList != null && privilegesList.size() > 0;
             }
@@ -275,7 +274,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         assignmentPrivilegesCheckbox.add(new VisibleEnableBehaviour(){
             @Override
             public boolean isEnabled(){
-                return UserDtoStatus.ADD.equals(getModelObject().getStatus());
+                return getModel().getObject().isEditable();
             }
         });
         assignmentPrivilegesContainer.add(assignmentPrivilegesCheckbox);
@@ -286,12 +285,6 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
 
         Label assignmentPrivilegesLabel = new Label(ID_ASSIGNMENT_PRIVILEGES_LABEL,
                 createStringResource("DelegationEditorPanel.allPrivilegesLabel"));
-        assignmentPrivilegesLabel.add(new VisibleEnableBehaviour(){
-            @Override
-            public boolean isVisible(){
-               return true;
-            }
-        });
         assignmentPrivilegesLabel.setOutputMarkupId(true);
         labelContainer.add(assignmentPrivilegesLabel);
 
@@ -316,8 +309,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
             private static final long serialVersionUID = 1L;
             @Override
             public boolean isVisible(){
-                return UserDtoStatus.ADD.equals(getModelObject().getStatus()) &&
-                        assignmentPrivilegesCheckbox.getModelObject();
+                return getModel().getObject().isEditable() && assignmentPrivilegesCheckbox.getModelObject();
             }
         });
         labelContainer.add(limitPrivilegesButton);

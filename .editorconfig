@@ -400,7 +400,6 @@ ij_xml_space_after_tag_name = false
 ij_xml_space_around_equals_in_attribute = false
 ij_xml_space_inside_empty_tag = false
 ij_xml_text_wrap = off
-ij_xml_use_custom_settings = false
 
 [{*.ats,*.ts}]
 ij_continuation_indent_size = 4
