@@ -68,6 +68,13 @@ public class MemberPanel<T> extends Component<T> {
         return this;
     }
 
+    public MemberPanel<T> selectRelation(String relation) {
+        getParentElement().$x(".//select[@name='searchByRelation:propertyLabel:row:selectWrapper:select']")
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S).selectOption(relation);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        return this;
+    }
+
     public MemberTable<MemberPanel<T>> table() {
         SelenideElement table = getParentElement().$x(".//div[@" + Schrodinger.DATA_S_ID + "='table']");
         return new MemberTable<>(this, table);
