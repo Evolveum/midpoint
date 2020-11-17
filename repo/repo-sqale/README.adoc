@@ -8,6 +8,9 @@ It is not part of the current midPoint build.
 * Directory `sql` contains various init scripts and experiments.
 Some of these will be moved to `config/sql` when proven worthy.
 
+Create DB schema script (WIP): link:sql/pgnew-repo.sql[]
+Useful inserts, selects, etc.: link:sql/pgnew-experiments.sql[]
+
 == PostgreSQL table inheritance
 
 https://www.postgresql.org/docs/current/ddl-inherit.html[Table inheritance] is a nice mechanism
@@ -18,6 +21,7 @@ inherited tables.
 * We need "abstract" tables like `m_object`.
 Ideally we don't want to insert into abstract tables, we can use `check (false) no inherit` for this.
 "Check false" always fails, but this is not inherited by sub-tables.
+Updates of common columns or deletes on abstract tables still work with expected results.
 
 * PKs, FKs and most of other constraints must be declared on each sub-table.
 Only check and not-null constraints are inherited, unless `no inherit` is declared.
@@ -43,4 +47,37 @@ Without the index the check trigger gets very slow after a couple of thousands r
 
 * TODO: can we partition inherited table? Like `m_shadow`.
 
-The result (WIP): link:sql/pgnew-experiments.sql[]
+* TODO: how much will the performance of insert suffer?
+
+* TODO: membership searches on abstract tables (e.g. focus), EXPLAIN, performance?
+
+* TODO: logging of all statements for experiments?
+https://www.postgresql.org/docs/13/runtime-config-logging.html
+https://stackoverflow.com/questions/722221/how-to-log-postgresql-queries
+
+* TODO: tablespaces?
+
+* The default `public` schema is used for all midpoint objects, that's OK.
+
+== Pagination
+
+Various types of pagination are summed up in https://www.citusdata.com/blog/2016/03/30/five-ways-to-paginate/[this article].
+
+For *pagination in the GUI* `OFFSET`/`LIMIT` seems to be the acceptable despite the performance
+degradation with big values of `OFFSET`.
+The reason is that GUI requires random access and first pages are accessed more than later/last pages.
+Also, any inconsistency (suddenly added entry) is easy to explain and user probably knows what is happening.
+
+For long term processes that need to process many items we use *keyset pagination*, e.g. using last
+ID from current page to define the next page without any `OFFSET`, only using `LIMIT`.
+This is very efficient and natural, too.
+While this may skip some items that are added after we processed the page (and at the same time
+process other items added later that appear on later pages) it is more or less deterministic.
+We can also avoid processing "future" items with `WHERE` clause using creation timestamp
+(or current maximal ID, if sequential) at the processing start time.
+
+Following techniques are generally not usable for us:
+
+* *TID Scan* and *Keyset with Estimated Bookmarks* does not support `WHERE` clauses.
+* *Cursor* pagination causes high client-server coupling and is state-full.
+We don't want to hold the cursor for operations that can take longer and need transactions.
