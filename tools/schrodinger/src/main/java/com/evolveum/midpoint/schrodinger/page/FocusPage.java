@@ -26,7 +26,7 @@ import static com.evolveum.midpoint.schrodinger.util.Utils.setOptionCheckedByNam
  * @author skublik
  */
 
-public class FocusPage<F extends FocusPage> extends AssignmentHolderDetailsPage<F> {
+public class FocusPage extends AssignmentHolderDetailsPage {
 
     public FocusPage checkForce() {
         setOptionCheckedByName("executeOptions:force", true);
@@ -68,7 +68,7 @@ public class FocusPage<F extends FocusPage> extends AssignmentHolderDetailsPage<
         return this;
     }
 
-    public ProjectionsTab<F> selectTabProjections() {
+    public <F extends FocusPage> ProjectionsTab<F> selectTabProjections() {
         SelenideElement element = getTabPanel().clickTab("pageAdminFocus.projections");
         Selenide.sleep(2000);
         return new ProjectionsTab<F>(this, element);

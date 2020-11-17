@@ -15,7 +15,7 @@ import com.evolveum.midpoint.schrodinger.page.FocusPage;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class UserPage extends FocusPage<UserPage> {
+public class UserPage extends FocusPage {
 
     public UserPersonasTab selectTabPersonas() {
         SelenideElement element = getTabPanel().clickTab("pageAdminFocus.personas");

@@ -12,8 +12,10 @@ import com.codeborne.selenide.SelenideElement;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
+import com.evolveum.midpoint.schrodinger.component.common.ChooseFocusTypeAndRelationModal;
 import com.evolveum.midpoint.schrodinger.component.modal.FocusSetAssignmentsModal;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
+import com.evolveum.midpoint.schrodinger.page.FocusPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
@@ -33,7 +35,7 @@ public class MemberPanel<T> extends Component<T> {
         super(parent, parentElement);
     }
 
-    public UserPage newMember() {
+    public ChooseFocusTypeAndRelationModal<MemberPanel<T>> newMember() {
         SelenideElement mainButton = $(By.xpath("//button[@type='button'][@title='Create  member ']"));
         String expanded = mainButton.getAttribute("aria-haspopup");
         if (Boolean.getBoolean(expanded)) {

@@ -14,9 +14,9 @@ import com.evolveum.midpoint.schrodinger.component.InducementsTab;
  * @author skublik
  */
 
-public class AbstractRolePage<A extends AbstractRolePage> extends FocusPage<A> {
+public class AbstractRolePage extends FocusPage {
 
-    public InducementsTab<A> selectTabInducements() {
+    public <A extends AbstractRolePage> InducementsTab<A> selectTabInducements() {
         SelenideElement element = getTabPanel().clickTab("FocusType.inducement");
 
         return new InducementsTab<A>((A) this, element);

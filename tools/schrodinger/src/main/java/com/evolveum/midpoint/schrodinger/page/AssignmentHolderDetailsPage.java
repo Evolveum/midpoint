@@ -25,7 +25,7 @@ import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 /**
  * Created by honchar
  */
-public abstract class AssignmentHolderDetailsPage<P extends AssignmentHolderDetailsPage> extends BasicPage {
+public abstract class AssignmentHolderDetailsPage extends BasicPage {
 
     public BasicPage clickBack() {
         $(Schrodinger.byDataResourceKey("pageAdminFocus.button.back"))
@@ -61,11 +61,11 @@ public abstract class AssignmentHolderDetailsPage<P extends AssignmentHolderDeta
         return new TabPanel<>(this, tabPanelElement);
     }
 
-    public AssignmentHolderBasicTab<P> selectTabBasic() {
+    public <P extends AssignmentHolderDetailsPage> AssignmentHolderBasicTab<P> selectTabBasic() {
         return new AssignmentHolderBasicTab<>((P) this, getTabSelenideElement("pageAdminFocus.basic"));
     }
 
-    public AssignmentsTab<P> selectTabAssignments() {
+    public <P extends AssignmentHolderDetailsPage> AssignmentsTab<P> selectTabAssignments() {
         return new AssignmentsTab<>((P) this, getTabSelenideElement("pageAdminFocus.assignments"));
     }
 
@@ -74,11 +74,11 @@ public abstract class AssignmentHolderDetailsPage<P extends AssignmentHolderDeta
                 .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
     }
 
-    public ObjectBrowserModal<AssignmentHolderDetailsPage<P>> changeArchetype() {
+    public ObjectBrowserModal<AssignmentHolderDetailsPage> changeArchetype() {
         if ($(Schrodinger.byDataResourceKey("PageAdminObjectDetails.button.changeArchetype")).exists()) {
             $(Schrodinger.byDataResourceKey("PageAdminObjectDetails.button.changeArchetype"))
                     .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
-            return new ObjectBrowserModal<AssignmentHolderDetailsPage<P>>(this, getModalWindowSelenideElement());
+            return new ObjectBrowserModal<>(this, getModalWindowSelenideElement());
         }
         return null;
     }

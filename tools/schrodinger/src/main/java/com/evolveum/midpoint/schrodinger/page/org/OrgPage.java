@@ -11,5 +11,5 @@ import com.evolveum.midpoint.schrodinger.page.AbstractRolePage;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class OrgPage extends AbstractRolePage<OrgPage> {
+public class OrgPage extends AbstractRolePage {
 }
