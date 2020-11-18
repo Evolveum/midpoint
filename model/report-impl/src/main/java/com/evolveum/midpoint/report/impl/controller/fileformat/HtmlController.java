@@ -11,9 +11,11 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.task.api.RunningTask;
 
@@ -239,64 +241,6 @@ public class HtmlController extends FileFormatController {
         return TagCreator.table().withClasses("table", "table-striped", "table-hover", "table-bordered");
     }
 
-    private ContainerTag createTable(CompiledObjectCollectionView compiledCollection, List<PrismObject<ObjectType>> values,
-            PrismObjectDefinition<ObjectType> def, Class<? extends ObjectType> type,
-            boolean recordProgress, ExpressionType condition, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        ContainerTag table = createTable();
-        ContainerTag tHead = TagCreator.thead();
-        ContainerTag tBody = TagCreator.tbody();
-        List<GuiObjectColumnType> columns = MiscSchemaUtil.orderCustomColumns(compiledCollection.getColumns());
-        ContainerTag trForHead = TagCreator.tr().withStyle("width: 100%;");
-
-        columns.forEach(column -> {
-            Validate.notNull(column.getName(), "Name of column is null");
-
-            String label = getColumnLabel(column, def);
-            DisplayType columnDisplay = column.getDisplay();
-            ContainerTag th = TagCreator.th(TagCreator.div(TagCreator.span(label).withClass("sortableLabel")));
-            if (columnDisplay != null) {
-                if (StringUtils.isNotBlank(columnDisplay.getCssClass())) {
-                    th.withClass(columnDisplay.getCssClass());
-                }
-                if (StringUtils.isNotBlank(columnDisplay.getCssStyle())) {
-                    th.withStyle(columnDisplay.getCssStyle());
-                }
-            }
-            trForHead.with(th);
-
-        });
-        tHead.with(trForHead);
-        table.with(tHead);
-
-        int i = 1;
-        if (recordProgress) {
-            task.setExpectedTotal((long) values.size());
-        }
-        for (PrismObject<ObjectType> value : values) {
-            if (recordProgress) {
-                recordProgress(task, i, result, LOGGER);
-                i++;
-            }
-            boolean writeRecord = true;
-            if (condition != null) {
-                writeRecord = evaluateCondition(condition, value, task, result);
-            }
-            if (writeRecord) {
-                ContainerTag tr = TagCreator.tr();
-                columns.forEach(column -> {
-                    ItemPath path = column.getPath() == null ? null : column.getPath().getItemPath();
-                    ExpressionType expression = column.getExport() != null ? column.getExport().getExpression() : null;
-                    tr.with(TagCreator
-                            .th(TagCreator.div(getRealValueAsString(column, value, path, expression, task, result))
-                                    .withStyle("white-space: pre-wrap")));
-                });
-                tBody.with(tr);
-            }
-        }
-        table.with(tBody);
-        return table;
-    }
-
     private ContainerTag createTable(CompiledObjectCollectionView compiledCollection, List<AuditEventRecordType> records, boolean recordProgress,
             ExpressionType condition, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         ContainerTag table = createTable();
@@ -378,30 +322,81 @@ public class HtmlController extends FileFormatController {
         return TagCreator.div().withClasses("box", "boxed-table", classes).withStyle(style).with(div);
     }
 
-    private ContainerTag createTableBoxForObjectView(String label, CollectionRefSpecificationType collection, @NotNull CompiledObjectCollectionView compiledCollection,
+    private ContainerTag createTableBoxForObjectView(String tableLabel, CollectionRefSpecificationType collection, @NotNull CompiledObjectCollectionView compiledCollection,
             ExpressionType condition, Task task, OperationResult result, boolean recordProgress) throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         long startMillis = getReportService().getClock().currentTimeMillis();
         Class<ObjectType> type = resolveType(collection, compiledCollection);
         Collection<SelectorOptions<GetOperationOptions>> options = DefaultColumnUtils.createOption(type, getReportService().getSchemaHelper());
-        List<PrismObject<ObjectType>> values = getReportService().getDashboardService()
-                .searchObjectFromCollection(collection, compiledCollection.getObjectType(), options, task, result);
-        if (values == null || values.isEmpty()) {
-            if (recordProgress) {
-                values = new ArrayList<>();
-            } else {
-                return null;
-            }
-        }
         PrismObjectDefinition<ObjectType> def = getReportService().getPrismContext().getSchemaRegistry().findItemDefinitionByCompileTimeClass(type, PrismObjectDefinition.class);
 
+        ContainerTag table = createTable();
+        ContainerTag tHead = TagCreator.thead();
+        ContainerTag tBody = TagCreator.tbody();
+        List<GuiObjectColumnType> columns;
         if (compiledCollection.getColumns().isEmpty()) {
-            getReportService().getModelInteractionService().applyView(compiledCollection, DefaultColumnUtils.getDefaultView(type));
+            columns = MiscSchemaUtil.orderCustomColumns(DefaultColumnUtils.getDefaultView(type).getColumn());
+        } else {
+            columns = MiscSchemaUtil.orderCustomColumns(compiledCollection.getColumns());
         }
+        ContainerTag trForHead = TagCreator.tr().withStyle("width: 100%;");
 
-        ContainerTag table = createTable(compiledCollection, values, def, type, recordProgress, condition, task, result);
+        columns.forEach(column -> {
+            Validate.notNull(column.getName(), "Name of column is null");
+
+            String label = getColumnLabel(column, def);
+            DisplayType columnDisplay = column.getDisplay();
+            ContainerTag th = TagCreator.th(TagCreator.div(TagCreator.span(label).withClass("sortableLabel")));
+            if (columnDisplay != null) {
+                if (StringUtils.isNotBlank(columnDisplay.getCssClass())) {
+                    th.withClass(columnDisplay.getCssClass());
+                }
+                if (StringUtils.isNotBlank(columnDisplay.getCssStyle())) {
+                    th.withStyle(columnDisplay.getCssStyle());
+                }
+            }
+            trForHead.with(th);
+
+        });
+        tHead.with(trForHead);
+        table.with(tHead);
+
+        AtomicInteger index = new AtomicInteger(1);
+        ResultHandler<ObjectType> handler = (value, prentResult) -> {
+            if (recordProgress) {
+                recordProgress(task, index.get(), result, LOGGER);
+                index.getAndIncrement();
+            }
+            boolean writeRecord = true;
+            if (condition != null) {
+                try {
+                    writeRecord = evaluateCondition(condition, value, task, result);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            if (writeRecord) {
+                ContainerTag tr = TagCreator.tr();
+                columns.forEach(column -> {
+                    ItemPath path = column.getPath() == null ? null : column.getPath().getItemPath();
+                    ExpressionType expression = column.getExport() != null ? column.getExport().getExpression() : null;
+                    tr.with(TagCreator
+                            .th(TagCreator.div(getRealValueAsString(column, value, path, expression, task, result))
+                                    .withStyle("white-space: pre-wrap")));
+                });
+                tBody.with(tr);
+            }
+            return true;
+        };
+        tBody.ch
+        getReportService().getDashboardService()
+                .searchObjectFromCollection(collection, compiledCollection.getObjectType(), handler, options, task, result, recordProgress);
+        if (tBody.getNumChildren() == 0 && !recordProgress) {
+            return null;
+        }
+        table.with(tBody);
         DisplayType display = compiledCollection.getDisplay();
-        return createTableBox(table, label, values.size(),
+        return createTableBox(table, tableLabel, (index.get() - 1),
                 convertMillisToString(startMillis), display);
     }
 

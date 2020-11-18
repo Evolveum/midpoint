@@ -14,10 +14,7 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-import com.evolveum.midpoint.schema.SchemaHelper;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 
@@ -500,8 +497,8 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
-    public List<PrismObject<ObjectType>> searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter,
-            Collection<SelectorOptions<GetOperationOptions>> defaultOptions, Task task, OperationResult result)
+    public void searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter, ResultHandler<ObjectType> handler,
+            Collection<SelectorOptions<GetOperationOptions>> defaultOptions, Task task, OperationResult result, boolean recordProgress)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Class<ObjectType> type = null;
 
@@ -543,10 +540,11 @@ public class DashboardServiceImpl implements DashboardService {
         } else {
             options = compiledCollection.getOptions();
         }
-
-        List<PrismObject<ObjectType>> values;
-        values = modelService.searchObjects(type, query, options, task, result);
-        return values;
+        if (recordProgress) {
+            long count = modelService.countObjects(type, query, options, task, result);
+            task.setExpectedTotal(count);
+        }
+        modelService.searchObjectsIterative(type, query, handler, options, task, result);
     }
 
     @Override
