@@ -448,7 +448,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
 //        }
 
         SearchPanel searchPanel = getSearchPanel();
-        ObjectQuery searchQuery = searchPanel.getModelObject().createObjectQuery(getPageBase().getPrismContext());
+        ObjectQuery searchQuery = searchPanel.getModelObject().createObjectQuery(getPageBase());
         if (searchQuery != null && searchQuery.getFilter() != null) {
             memberQuery.addFilter(searchQuery.getFilter());
         }

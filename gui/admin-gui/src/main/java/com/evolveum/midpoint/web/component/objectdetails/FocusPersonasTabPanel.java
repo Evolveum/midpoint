@@ -11,6 +11,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
@@ -57,17 +59,12 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
     private void initLayout() {
         MainObjectListPanel<F> userListPanel =
                 new MainObjectListPanel<F>(ID_PERSONAS_TABLE,
-                (Class<F>) FocusType.class, null, null) {
+                (Class<F>) FocusType.class, null) {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected IColumn<SelectableBean<F>, String> createCheckboxColumn(){
                 return null;
-            }
-
-            @Override
-            protected List<IColumn<SelectableBean<F>, String>> createColumns() {
-                return new ArrayList<>();
             }
 
             @Override
@@ -109,16 +106,17 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
             protected void objectDetailsPerformed(AjaxRequestTarget target, F object) {
             }
 
-                    @Override
-                    protected boolean isCreateNewObjectEnabled() {
+            @Override
+            protected boolean isCreateNewObjectEnabled() {
                         return false;
                     }
 
-                    @Override
-            protected ObjectQuery createContentQuery() {
+            @Override
+            protected ObjectQuery createQuery() {
                 List<String> personaOidsList = getPersonasOidsList();
-                QueryFactory factory = FocusPersonasTabPanel.this.getPageBase().getPrismContext().queryFactory();
-                ObjectQuery query = factory.createQuery(factory.createInOid(personaOidsList));
+                ObjectQuery query = getPageBase().getPrismContext().queryFor(FocusType.class)
+                        .id(personaOidsList.toArray(new String[0]))
+                        .build();
                 return query;
             }
 
@@ -126,6 +124,16 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
             protected boolean isObjectDetailsEnabled(IModel<SelectableBean<F>> rowModel) {
                 return false;
             }
+
+            @Override
+            protected UserProfileStorage.TableId getTableId() {
+                return null;
+            }
+
+            @Override
+            protected boolean enableSavePageSize() {
+                        return false;
+                    }
         };
         userListPanel.setOutputMarkupId(true);
         add(userListPanel);

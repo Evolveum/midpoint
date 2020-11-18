@@ -552,8 +552,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                             }
 
                             @Override
-                            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
-                                super.addFilterToContentQuery(query);
+                            protected ObjectQuery addFilterToContentQuery() {
+                                ObjectQuery query = super.addFilterToContentQuery();
                                 if (query == null) {
                                     query = getPrismContext().queryFactory().createQuery();
                                 }

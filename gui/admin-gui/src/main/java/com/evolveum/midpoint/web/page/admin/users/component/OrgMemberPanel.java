@@ -12,7 +12,6 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -148,7 +147,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
     @Override
     protected MemberPanelStorage getMemberPanelStorage(){
-        String storageKey = WebComponentUtil.getStorageKeyForTableId(getTableId(getComplexTypeQName()));
+        String storageKey = getTableId(getComplexTypeQName()) != null ? getTableId(getComplexTypeQName()).name() : null;
         PageStorage storage = null;
         if (StringUtils.isNotEmpty(storageKey)) {
             storage = getPageBase().getSessionStorage().getPageStorageMap().get(storageKey);

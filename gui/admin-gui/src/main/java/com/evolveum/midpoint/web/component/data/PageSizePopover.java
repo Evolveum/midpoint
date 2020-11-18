@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.component.data;
 
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
@@ -19,7 +21,6 @@ import org.apache.wicket.validation.validator.RangeValidator;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 
 /**
@@ -94,7 +95,7 @@ public class PageSizePopover extends BasePanel<PageSizePopover> {
 
             @Override
             public Integer getObject() {
-                TablePanel<?> tablePanel = findParent(TablePanel.class);
+                TablePanel tablePanel = findParent(TablePanel.class);
                 UserProfileStorage.TableId tableId = tablePanel.getTableId();
 
                 return getPageBase().getSessionStorage().getUserProfile().getPagingSize(tableId);
@@ -102,7 +103,7 @@ public class PageSizePopover extends BasePanel<PageSizePopover> {
 
             @Override
             public void setObject(Integer o) {
-                TablePanel<?> tablePanel = findParent(TablePanel.class);
+                TablePanel tablePanel = findParent(TablePanel.class);
                 UserProfileStorage.TableId tableId = tablePanel.getTableId();
 
                 getPageBase().getSessionStorage().getUserProfile().setPagingSize(tableId, o);

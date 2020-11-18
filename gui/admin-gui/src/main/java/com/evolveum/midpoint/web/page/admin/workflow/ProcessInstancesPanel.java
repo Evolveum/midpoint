@@ -67,15 +67,15 @@ public class ProcessInstancesPanel extends BasePanel {
     }
 
     public ProcessInstancesPanel(String id, ISortableDataProvider<ProcessInstanceDto, String> provider,
-            UserProfileStorage.TableId tableId, int pageSize, View view, @Nullable IModel<String> currentInstanceIdModel) {
+            UserProfileStorage.TableId tableId, View view, @Nullable IModel<String> currentInstanceIdModel) {
         super(id);
         this.provider = provider;
-        initLayout(tableId, pageSize, view, currentInstanceIdModel);
+        initLayout(tableId, view, currentInstanceIdModel);
     }
 
-    private void initLayout(UserProfileStorage.TableId tableId, int pageSize, View view, final IModel<String> currentInstanceIdModel) {
+    private void initLayout(UserProfileStorage.TableId tableId, View view, final IModel<String> currentInstanceIdModel) {
         BoxedTablePanel<ProcessInstanceDto> table = new BoxedTablePanel<ProcessInstanceDto>(
-                ID_REQUESTS_TABLE, provider, initColumns(view), tableId, pageSize) {
+                ID_REQUESTS_TABLE, provider, initColumns(view), tableId) {
 
             @Override
             protected Item<ProcessInstanceDto> customizeNewRowItem(Item<ProcessInstanceDto> item,

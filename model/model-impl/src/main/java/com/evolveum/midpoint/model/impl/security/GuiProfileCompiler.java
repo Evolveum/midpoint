@@ -28,7 +28,6 @@ import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.controller.CollectionProcessor;
 import com.evolveum.midpoint.model.impl.lens.AssignmentCollector;
-import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -36,7 +35,6 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationTransformer;
 import com.evolveum.midpoint.security.api.DelegatorWithOtherPrivilegesLimitations;
@@ -353,7 +351,7 @@ public class GuiProfileCompiler {
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
 
-        QName targetObjectType = existingView.getObjectType();
+        QName targetObjectType = existingView.getContainerType();
         Class<? extends ObjectType> targetTypeClass = ObjectType.class;
         if (targetObjectType != null) {
             targetTypeClass = ObjectTypes.getObjectTypeFromTypeQName(targetObjectType).getClassDefinition();

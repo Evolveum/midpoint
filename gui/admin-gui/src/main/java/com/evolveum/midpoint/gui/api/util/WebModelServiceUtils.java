@@ -11,13 +11,16 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchColl
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.Session;
-import org.apache.wicket.ThreadContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,20 +30,16 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -48,7 +47,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
 /**
@@ -65,6 +63,8 @@ public class WebModelServiceUtils {
     private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
     private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
+    private static final String OPERATION_SEARCH_CONTAINERS = DOT_CLASS + "searchContainers";
+    private static final String OPERATION_COUNT_CONTAINERS = DOT_CLASS + "countContainers";
     private static final String OPERATION_SAVE_OBJECT = DOT_CLASS + "saveObject";
     private static final String OPERATION_LOAD_OBJECT_REFS = DOT_CLASS + "loadObjectReferences";
     private static final String OPERATION_COUNT_OBJECT = DOT_CLASS + "countObjects";
@@ -73,20 +73,20 @@ public class WebModelServiceUtils {
     private static final String OPERATION_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
     private static final String OPERATION_LOAD_FLOW_POLICY = DOT_CLASS + "loadFlowPolicy";
 
-    public static String resolveReferenceName(ObjectReferenceType ref, PageBase page) {
+    public static String resolveReferenceName(Referencable ref, PageBase page) {
         return resolveReferenceName(ref, page, false);
     }
 
-    public static String resolveReferenceName(ObjectReferenceType ref, PageBase page, boolean translate) {
+    public static String resolveReferenceName(Referencable ref, PageBase page, boolean translate) {
         Task task = page.createSimpleTask(WebModelServiceUtils.class.getName() + ".resolveReferenceName");
         return resolveReferenceName(ref, page, task, task.getResult(), translate);
     }
 
-    public static String resolveReferenceName(ObjectReferenceType ref, PageBase page, Task task, OperationResult result) {
+    public static String resolveReferenceName(Referencable ref, PageBase page, Task task, OperationResult result) {
         return resolveReferenceName(ref, page, task, result, false);
     }
 
-    public static String resolveReferenceName(ObjectReferenceType ref, PageBase page, Task task, OperationResult result, boolean translate) {
+    public static String resolveReferenceName(Referencable ref, PageBase page, Task task, OperationResult result, boolean translate) {
         if (ref == null) {
             return null;
         }
@@ -106,7 +106,7 @@ public class WebModelServiceUtils {
         }
     }
 
-    public static <T extends ObjectType> PrismObject<T> resolveReferenceNoFetch(ObjectReferenceType reference, PageBase page, Task task, OperationResult result) {
+    public static <T extends ObjectType> PrismObject<T> resolveReferenceNoFetch(Referencable reference, PageBase page, Task task, OperationResult result) {
         if (reference == null) {
             return null;
         }
@@ -546,6 +546,66 @@ public class WebModelServiceUtils {
         }
 
         LOGGER.debug("Saved with result {}", subResult);
+    }
+
+    public static <C extends Containerable> List<C> searchContainers(Class<C> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result, PageBase page){
+        LOGGER.debug("Searching {}, options {}", type.getSimpleName(), options);
+
+        OperationResult subResult;
+        if (result != null) {
+            subResult = result.createMinorSubresult(OPERATION_SEARCH_CONTAINERS);
+        } else {
+            subResult = new OperationResult(OPERATION_SEARCH_CONTAINERS);
+        }
+        List<C> containers = new ArrayList<>();
+        try {
+            Task task = page.createSimpleTask(subResult.getOperation());
+            List<C> list;
+            if (AuditEventRecordType.class.equals(type)){
+                list = (List<C>) page.getAuditService().searchObjects(query, options, subResult);
+            } else {
+                list = page.getModelService().searchContainers(type, query, options, task, subResult);
+            }
+            if (list != null) {
+                containers.addAll(list);
+            }
+        } catch (Exception ex) {
+            subResult.recordFatalError(page.createStringResource("WebModelUtils.couldntSearchObjects").getString(), ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't search containers", ex);
+        } finally {
+            subResult.computeStatus();
+        }
+
+        if (result == null && WebComponentUtil.showResultInPage(subResult)) {
+            page.showResult(subResult);
+        }
+
+        LOGGER.debug("Loaded ({}) with result {}", containers.size(), subResult);
+
+        return containers;
+    }
+
+    public static <C extends Containerable> int countContainers(Class<C> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, PageBase page) {
+        LOGGER.debug("Count containers: type => {}, query => {}", type, query);
+        Task task = page.createSimpleTask(OPERATION_COUNT_CONTAINERS);
+        OperationResult parentResult = new OperationResult(OPERATION_COUNT_CONTAINERS);
+        int count = 0;
+        try {
+            if (AuditEventRecordType.class.equals(type)){
+                count = page.getAuditService().countObjects(query, options, parentResult);
+            } else {
+                count = page.getModelService().countContainers(type, query, options, task, parentResult);
+            }
+        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
+                | ConfigurationException | CommunicationException | ExpressionEvaluationException ex) {
+            parentResult.recordFatalError(page.createStringResource("WebModelUtils.couldntCountObjects").getString(), ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count containers", ex);
+        }
+
+        LOGGER.debug("Count containers with result {}", parentResult);
+        return count;
     }
 
     public static <T extends ObjectType> ObjectDelta<T> createActivationAdminStatusDelta(

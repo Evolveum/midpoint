@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -18,6 +17,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -49,14 +49,12 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
-import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 
 /**
  * @author skublik
  */
-public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends BasePanel<PrismContainerWrapper<ObjectPolicyConfigurationType>> {
+public class ObjectPolicyConfigurationTabPanel extends BasePanel<PrismContainerWrapper<ObjectPolicyConfigurationType>> {
 
     private static final long serialVersionUID = 1L;
 
@@ -83,21 +81,10 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
     }
 
     protected void initLayout() {
-
-        TableId tableId = UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE;
-        PageStorage pageStorage = getPageBase().getSessionStorage().getObjectPoliciesConfigurationTabStorage();
-
-        MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S> multivalueContainerListPanel
-                = new MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S>(ID_OBJECTS_POLICY, getModel(),
-                tableId, pageStorage) {
+        MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType> multivalueContainerListPanel
+                = new MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType>(ID_OBJECTS_POLICY, ObjectPolicyConfigurationType.class) {
 
             private static final long serialVersionUID = 1L;
-
-            @Override
-            protected List<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> postSearch(
-                    List<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> items) {
-                return getObjects();
-            }
 
             @Override
             protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation) {
@@ -105,22 +92,27 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
             }
 
             @Override
-            protected void initPaging() {
-                ObjectPolicyConfigurationTabPanel.this.initPaging();
-            }
-
-            @Override
-            protected boolean enableActionNewObject() {
+            protected boolean isCreateNewObjectVisible() {
                 return true;
             }
 
             @Override
-            protected ObjectQuery createQuery() {
-                    return ObjectPolicyConfigurationTabPanel.this.createQuery();
+            protected IModel<PrismContainerWrapper<ObjectPolicyConfigurationType>> getContainerModel() {
+                return ObjectPolicyConfigurationTabPanel.this.getModel();
             }
 
             @Override
-            protected List<IColumn<PrismContainerValueWrapper<ObjectPolicyConfigurationType>, String>> createColumns() {
+            protected String getStorageKey() {
+                return SessionStorage.KEY_OBJECT_POLICIES_TAB;
+            }
+
+            @Override
+            protected UserProfileStorage.TableId getTableId() {
+                return UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE;
+            }
+
+            @Override
+            protected List<IColumn<PrismContainerValueWrapper<ObjectPolicyConfigurationType>, String>> createDefaultColumns() {
                 return initBasicColumns();
             }
 
@@ -145,10 +137,6 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
         };
         add(multivalueContainerListPanel);
         setOutputMarkupId(true);
-    }
-
-    private List<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> getObjects() {
-        return getModelObject().getValues();
     }
 
     protected void newObjectPolicyClickPerformed(AjaxRequestTarget target) {
@@ -202,20 +190,8 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
         return itemWrapper.isMandatory();
     }
 
-    private MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S> getMultivalueContainerListPanel(){
-        return ((MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S>)get(ID_OBJECTS_POLICY));
-    }
-
-
-    private ObjectQuery createQuery() {
-        return getPageBase().getPrismContext().queryFor(ObjectPolicyConfigurationType.class)
-                .all()
-                .build();
-    }
-
-    private void initPaging() {
-        getPageBase().getSessionStorage().getObjectPoliciesConfigurationTabStorage().setPaging(
-                getPrismContext().queryFactory().createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE)));
+    private MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType> getMultivalueContainerListPanel(){
+        return ((MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType>)get(ID_OBJECTS_POLICY));
     }
 
     private List<IColumn<PrismContainerValueWrapper<ObjectPolicyConfigurationType>, String>> initBasicColumns() {

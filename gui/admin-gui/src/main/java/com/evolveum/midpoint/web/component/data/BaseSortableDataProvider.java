@@ -12,6 +12,8 @@ import java.io.Serializable;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.session.PageStorage;
+
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -282,6 +284,14 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     }
 
     protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
+        PageStorage storage = getPageStorage();
+        if (storage != null) {
+            storage.setPaging(paging);
+        }
+    }
+
+    protected PageStorage getPageStorage() {
+        return null;
     }
 
     public abstract Iterator<? extends T> internalIterator(long first, long count);

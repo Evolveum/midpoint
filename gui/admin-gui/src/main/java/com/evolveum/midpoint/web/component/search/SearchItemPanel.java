@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -161,6 +162,15 @@ public class SearchItemPanel<S extends SearchItem, T extends Serializable> exten
                         }
                     }, true);
                     break;
+                case DATE:
+                    searchItemField = new DateIntervalSearchPanel(ID_SEARCH_ITEM_FIELD,
+                            new PropertyModel(getModel(), "fromDate"),
+                            new PropertyModel(getModel(), "toDate"));
+                    break;
+                case ITEM_PATH:
+                    searchItemField = new ItemPathSearchPanel(ID_SEARCH_ITEM_FIELD,
+                            new PropertyModel(getModel(), "value.value"));
+                    break;
                 case TEXT:
                     PrismObject<LookupTableType> lookupTable = WebComponentUtil.findLookupTable(item.getDefinition(), getPageBase());
                     if (lookupTable != null) {
@@ -200,7 +210,6 @@ public class SearchItemPanel<S extends SearchItem, T extends Serializable> exten
                 default:
                     searchItemField = new TextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value"));
             }
-            searchItemField.add(AttributeModifier.append("class", "col-sm-6"));
             if (searchItemField instanceof InputPanel && !(searchItemField instanceof AutoCompleteTextPanel)) {
                 ((InputPanel) searchItemField).getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
                 ((InputPanel) searchItemField).getBaseFormComponent().add(AttributeAppender.append("style", "width: 140px; max-width: 400px !important;"));

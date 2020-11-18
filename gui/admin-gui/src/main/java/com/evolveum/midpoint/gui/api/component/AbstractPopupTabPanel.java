@@ -60,20 +60,20 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
         add(parametersPanelFragment);
     }
 
-    protected Component initObjectListPanel() {
-        PopupObjectListPanel<O> listPanel = new PopupObjectListPanel<O>(ID_OBJECT_LIST_PANEL,
-                (Class) getObjectType().getClassDefinition(), true, getPageBase()) {
+    protected Component initObjectListPanel(){
+        PopupObjectListPanel<O> listPanel = new PopupObjectListPanel<O>(ID_OBJECT_LIST_PANEL, (Class)getObjectType().getClassDefinition(),
+                true) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected List<IColumn<SelectableBean<O>, String>> createColumns() {
-                if (AbstractRoleType.class.isAssignableFrom(getType())) {
+            protected List<IColumn<SelectableBean<O>, String>> createDefaultColumns() {
+                if (AbstractRoleType.class.isAssignableFrom(getType())){
                     List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<>();
-                    columns.addAll((Collection) ColumnUtils.getDefaultAbstractRoleColumns(false));
+                    columns.addAll((Collection)ColumnUtils.getDefaultAbstractRoleColumns(false));
                     return columns;
                 } else {
-                    return super.createColumns();
+                    return super.createDefaultColumns();
                 }
             }
 
@@ -93,10 +93,10 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
             }
 
             @Override
-            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
-                ObjectQuery queryWithFilters = AbstractPopupTabPanel.this.addFilterToContentQuery(query);
-                if (queryWithFilters == null) {
-                    queryWithFilters = AbstractPopupTabPanel.this.getPageBase().getPrismContext().queryFactory().createQuery();
+            protected ObjectQuery getCustomizeContentQuery() {
+                ObjectQuery customQuery = AbstractPopupTabPanel.this.addFilterToContentQuery();
+                if (customQuery == null) {
+                    customQuery = AbstractPopupTabPanel.this.getPageBase().getPrismContext().queryFactory().createQuery();
                 }
                 List<ObjectReferenceType> archetypeRefList = getArchetypeRefList();
                 if (!CollectionUtils.isEmpty(archetypeRefList)) {
@@ -113,15 +113,15 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
                     if (!CollectionUtils.isEmpty(archetypeRefFilterList)) {
                         OrFilter archetypeRefOrFilter =
                                 AbstractPopupTabPanel.this.getPageBase().getPrismContext().queryFactory().createOr(archetypeRefFilterList);
-                        queryWithFilters.addFilter(archetypeRefOrFilter);
+                        customQuery.addFilter(archetypeRefOrFilter);
                     }
                 }
 
                 ObjectFilter subTypeFilter = getSubtypeFilter();
                 if (subTypeFilter != null) {
-                    queryWithFilters.addFilter(subTypeFilter);
+                    customQuery.addFilter(subTypeFilter);
                 }
-                return queryWithFilters;
+                return customQuery;
             }
 
         };
@@ -147,7 +147,7 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
         if (objectListPanel == null) {
             return new ArrayList<>();
         }
-        return objectListPanel.getSelectedObjects();
+        return objectListPanel.getSelectedRealObjects();
     }
 
     protected PopupObjectListPanel getObjectListPanel() {
@@ -161,8 +161,8 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
         return Model.of(true);
     }
 
-    protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
-        return query;
+    protected ObjectQuery addFilterToContentQuery() {
+        return null;
     }
 
     protected List<ObjectReferenceType> getArchetypeRefList() {

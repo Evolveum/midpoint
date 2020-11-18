@@ -388,9 +388,8 @@ public class HtmlController extends FileFormatController {
             }
             return true;
         };
-        tBody.ch
         getReportService().getDashboardService()
-                .searchObjectFromCollection(collection, compiledCollection.getObjectType(), handler, options, task, result, recordProgress);
+                .searchObjectFromCollection(collection, compiledCollection.getContainerType(), handler, options, task, result, recordProgress);
         if (tBody.getNumChildren() == 0 && !recordProgress) {
             return null;
         }

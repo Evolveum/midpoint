@@ -10,6 +10,8 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
@@ -30,6 +32,7 @@ public class Property implements Serializable, Comparable<Property> {
     private final ItemDefinition definition;
     private boolean selected;
     private ItemPath fullPath;
+    private PolyStringType displayName;
 
     public Property(ItemDefinition definition, ItemPath fullPath) {
         Validate.notNull(definition, "Property name must no be null");
@@ -43,6 +46,9 @@ public class Property implements Serializable, Comparable<Property> {
     }
 
     public String getName() {
+        if (displayName != null){
+            return WebComponentUtil.getTranslatedPolyString(displayName);
+        }
         if (definition != null && StringUtils.isNotEmpty(definition.getDisplayName())) {
             return PageBase.createStringResourceStatic(null, definition.getDisplayName()).getString();
         }
@@ -59,6 +65,10 @@ public class Property implements Serializable, Comparable<Property> {
 
     public ItemPath getFullPath() {
         return fullPath;
+    }
+
+    public void setDisplayName(PolyStringType displayName) {
+        this.displayName = displayName;
     }
 
     @Override

@@ -12,6 +12,27 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.QueryFactory;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.server.PageTask;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -33,30 +54,22 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
-import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -65,38 +78,27 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.ColumnTypeDto;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.ObjectLinkColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.PropertySearchItem;
 import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchValue;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceContentTabPanel.Operation;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
-import com.evolveum.midpoint.web.page.admin.server.PageTask;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Implementation classes : ResourceContentResourcePanel,
@@ -189,9 +191,9 @@ public abstract class ResourceContentPanel extends Panel {
 
     }
 
-    private TableId getTableId() {
+    private UserProfileStorage.TableId getTableId() {
         if (kind == null) {
-            return TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
+            return UserProfileStorage.TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
         }
 
         if (searchMode == null) {
@@ -201,29 +203,29 @@ public abstract class ResourceContentPanel extends Panel {
         if (searchMode.equals(SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT)) {
             switch (kind) {
                 case ACCOUNT:
-                    return TableId.PAGE_RESOURCE_ACCOUNTS_PANEL_REPOSITORY_MODE;
+                    return UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL_REPOSITORY_MODE;
                 case GENERIC:
-                    return TableId.PAGE_RESOURCE_GENERIC_PANEL_REPOSITORY_MODE;
+                    return UserProfileStorage.TableId.PAGE_RESOURCE_GENERIC_PANEL_REPOSITORY_MODE;
                 case ENTITLEMENT:
-                    return TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL_REPOSITORY_MODE;
+                    return UserProfileStorage.TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL_REPOSITORY_MODE;
 
                 default:
-                    return TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
+                    return UserProfileStorage.TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
             }
         } else if (searchMode.equals(SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT)) {
             switch (kind) {
                 case ACCOUNT:
-                    return TableId.PAGE_RESOURCE_ACCOUNTS_PANEL_RESOURCE_MODE;
+                    return UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL_RESOURCE_MODE;
                 case GENERIC:
-                    return TableId.PAGE_RESOURCE_GENERIC_PANEL_RESOURCE_MODE;
+                    return UserProfileStorage.TableId.PAGE_RESOURCE_GENERIC_PANEL_RESOURCE_MODE;
                 case ENTITLEMENT:
-                    return TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL_RESOURCE_MODE;
+                    return UserProfileStorage.TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL_RESOURCE_MODE;
 
                 default:
-                    return TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
+                    return UserProfileStorage.TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
             }
         }
-        return TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
+        return UserProfileStorage.TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
     }
 
     private void initLayout() {
@@ -235,7 +237,7 @@ public abstract class ResourceContentPanel extends Panel {
 
         MainObjectListPanel<ShadowType> shadowListPanel =
                 new MainObjectListPanel<ShadowType>(ID_TABLE,
-                        ShadowType.class, getTableId(), createSearchOptions()) {
+                ShadowType.class, createSearchOptions()) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -244,7 +246,7 @@ public abstract class ResourceContentPanel extends Panel {
                     }
 
                     @Override
-                    protected List<IColumn<SelectableBean<ShadowType>, String>> createColumns() {
+                    protected List<IColumn<SelectableBean<ShadowType>, String>> createDefaultColumns() {
                         return ResourceContentPanel.this.initColumns();
                     }
 
@@ -260,71 +262,40 @@ public abstract class ResourceContentPanel extends Panel {
                     }
 
                     @Override
-                    protected BaseSortableDataProvider<SelectableBean<ShadowType>> initProvider() {
-                        provider = (SelectableBeanObjectDataProvider<ShadowType>) super.initProvider();
+                    protected UserProfileStorage.TableId getTableId() {
+                        return ResourceContentPanel.this.getTableId();
+                    }
+
+                    @Override
+                    public PageStorage getPageStorage() {
+                        return getPageBase().getSessionStorage().getResourceContentStorage(kind, searchMode);
+                    }
+
+                    @Override
+                    protected ISelectableDataProvider createProvider() {
+                        provider = (SelectableBeanObjectDataProvider<ShadowType>) super.createProvider();
                         provider.setEmptyListOnNullQuery(true);
                         provider.setSort(null);
-                        provider.setUseObjectCounting(isUseObjectCounting());
                         provider.setDefaultCountIfNull(Integer.MAX_VALUE);
                         return provider;
                     }
 
                     @Override
-                    protected ObjectQuery createContentQuery() {
-                        ObjectQuery parentQuery = super.createContentQuery();
+                    protected ObjectQuery getCustomizeContentQuery() {
                         QueryFactory queryFactory = pageBase.getPrismContext().queryFactory();
 
                         List<ObjectFilter> filters = new ArrayList<>();
-                        if (parentQuery != null) {
-                            filters.add(parentQuery.getFilter());
-                        }
-
                         ObjectQuery customQuery = ResourceContentPanel.this.createQuery();
                         if (customQuery != null && customQuery.getFilter() != null) {
                             filters.add(customQuery.getFilter());
                         }
-                        if (filters.size() == 1) {
-                            return queryFactory.createQuery(filters.iterator().next());
-                        }
                         if (filters.size() == 0) {
                             return null;
                         }
+                        if (filters.size() == 1) {
+                            return queryFactory.createQuery(filters.iterator().next());
+                        }
                         return queryFactory.createQuery(queryFactory.createAnd(filters));
-                    }
-
-                    @Override
-                    protected LoadableModel<Search> initSearchModel() {
-                        return new LoadableModel<Search>(false) {
-
-                            private static final long serialVersionUID = 1L;
-
-                            @Override
-                            public Search load() {
-                                String storageKey = getStorageKey();
-                                Search search = null;
-                                if (org.apache.commons.lang3.StringUtils.isNotEmpty(storageKey)) {
-                                    PageStorage storage = getPageStorage(storageKey);
-                                    if (storage != null) {
-                                        search = storage.getSearch();
-                                    }
-                                }
-                                Search newSearch = createSearch();
-                                if (search == null
-                                        || !search.getAvailableDefinitions().containsAll(newSearch.getAvailableDefinitions())) {
-                                    search = newSearch;
-                                }
-
-                                String searchByName = getSearchByNameParameterValue();
-                                if (searchByName != null) {
-                                    for (PropertySearchItem item : search.getPropertyItems()) {
-                                        if (ItemPath.create(ObjectType.F_NAME).equivalent(item.getPath())) {
-                                            item.setValue(new SearchValue<>(searchByName));
-                                        }
-                                    }
-                                }
-                                return search;
-                            }
-                        };
                     }
 
                     @Override
@@ -914,7 +885,7 @@ public abstract class ResourceContentPanel extends Panel {
             selectedShadows = new ArrayList<>();
             selectedShadows.add(selected);
         } else {
-            selectedShadows = getTable().getSelectedObjects();
+            selectedShadows = getTable().getSelectedRealObjects();
         }
 
         OperationResult result = new OperationResult(OPERATION_IMPORT_OBJECT);
@@ -1168,7 +1139,7 @@ public abstract class ResourceContentPanel extends Panel {
             selectedShadow.add(shadow);
         } else {
             provider.clearSelectedObjects();
-            selectedShadow = getTable().getSelectedObjects();
+            selectedShadow = getTable().getSelectedRealObjects();
         }
         return selectedShadow;
     }

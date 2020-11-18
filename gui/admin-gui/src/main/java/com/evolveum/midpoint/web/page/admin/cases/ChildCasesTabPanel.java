@@ -57,12 +57,7 @@ public class ChildCasesTabPanel extends AbstractObjectTabPanel<CaseType> {
         setOutputMarkupId(true);
 
         MainObjectListPanel<CaseType> table = new MainObjectListPanel<CaseType>(ID_CHILD_CASES_PANEL,
-                CaseType.class, UserProfileStorage.TableId.PAGE_CASE_CHILD_CASES_TAB, Collections.emptyList()) {
-
-//            @Override
-//            protected IColumn<SelectableBean<CaseType>, String> createCheckboxColumn() {
-//                return null;
-//            }
+                CaseType.class, Collections.emptyList()) {
 
             @Override
             protected void objectDetailsPerformed(AjaxRequestTarget target, CaseType caseInstance) {
@@ -72,7 +67,7 @@ public class ChildCasesTabPanel extends AbstractObjectTabPanel<CaseType> {
             }
 
             @Override
-            protected List<IColumn<SelectableBean<CaseType>, String>> createColumns() {
+            protected List<IColumn<SelectableBean<CaseType>, String>> createDefaultColumns() {
                 List<IColumn<SelectableBean<CaseType>, String>> columns = new ArrayList<IColumn<SelectableBean<CaseType>, String>>();
 
                 IColumn column = new PropertyColumn(createStringResource("pageCases.table.description"), "value.description");
@@ -111,7 +106,7 @@ public class ChildCasesTabPanel extends AbstractObjectTabPanel<CaseType> {
                     }
                 };
                 columns.add(column);
-                return columns;
+                return (List) columns;
             }
 
             @Override
@@ -120,21 +115,17 @@ public class ChildCasesTabPanel extends AbstractObjectTabPanel<CaseType> {
             }
 
             @Override
-            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
-                if (query == null) {
-                    query = ChildCasesTabPanel.this.getPageBase().getPrismContext().queryFactory().createQuery();
-                }
+            protected ObjectQuery getCustomizeContentQuery() {
                 ObjectQuery queryFilter = ChildCasesTabPanel.this.getPageBase().getPrismContext().queryFor(CaseType.class)
                         .item(CaseType.F_PARENT_REF)
                         .ref(getObjectWrapper().getOid())
                         .build();
-                query.addFilter(queryFilter.getFilter());
-                return query;
+                return ChildCasesTabPanel.this.getPageBase().getPrismContext().queryFactory().createQuery(queryFilter.getFilter());
             }
 
             @Override
-            protected WebMarkupContainer createTableButtonToolbar(String id) {
-                return null;
+            protected UserProfileStorage.TableId getTableId() {
+                return UserProfileStorage.TableId.PAGE_CASE_CHILD_CASES_TAB;
             }
 
             @Override
@@ -142,6 +133,10 @@ public class ChildCasesTabPanel extends AbstractObjectTabPanel<CaseType> {
                 return new ArrayList<>();
             }
 
+            @Override
+            protected IColumn<SelectableBean<CaseType>, String> createCheckboxColumn() {
+                return null;
+            }
         };
         table.setOutputMarkupId(true);
         add(table);

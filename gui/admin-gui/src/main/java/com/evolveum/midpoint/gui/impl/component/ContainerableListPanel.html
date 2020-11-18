@@ -8,12 +8,16 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div wicket:id="items" class="main-form-panel">
-        <div class="row" wicket:id="search"/>
+    <div wicket:id="items" class="main-form-panel" style="overflow-x: hidden;">
         <div class="row" >
             <div class="col-md-12" wicket:id="itemsTable"  style="margin: 5px 0;"/>
         </div>
     </div>
+    <wicket:fragment wicket:id="buttonBar">
+        <div class="btn-group" wicket:id="buttonsRepeater">
+            <a wicket:id="button"></a>
+        </div>
+    </wicket:fragment>
     <wicket:child />
 </wicket:panel>
 </html>

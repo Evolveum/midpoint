@@ -9,7 +9,13 @@ package com.evolveum.midpoint.web.component.search;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
-import org.apache.commons.collections4.CollectionUtils;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.apache.cxf.common.util.CollectionUtils;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
@@ -141,6 +147,22 @@ public class SearchFactory {
                 ItemPath.create(ObjectPolicyConfigurationType.F_SUBTYPE),
                 ItemPath.create(ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF)
         ));
+
+        SEARCHABLE_OBJECTS.put(AuditEventRecordType.class, Arrays.asList(
+                ItemPath.create(AuditEventRecordType.F_TIMESTAMP),
+                ItemPath.create(AuditEventRecordType.F_INITIATOR_REF),
+                ItemPath.create(AuditEventRecordType.F_EVENT_STAGE),
+                ItemPath.create(AuditEventRecordType.F_EVENT_TYPE),
+                ItemPath.create(AuditEventRecordType.F_TARGET_REF),
+                ItemPath.create(AuditEventRecordType.F_TARGET_OWNER_REF),
+                ItemPath.create(AuditEventRecordType.F_CHANGED_ITEM),
+                ItemPath.create(AuditEventRecordType.F_OUTCOME),
+                ItemPath.create(AuditEventRecordType.F_CHANNEL),
+                ItemPath.create(AuditEventRecordType.F_HOST_IDENTIFIER),
+                ItemPath.create(AuditEventRecordType.F_REQUEST_IDENTIFIER),
+                ItemPath.create(AuditEventRecordType.F_REFERENCE),
+                ItemPath.create(AuditEventRecordType.F_RESOURCE_OID)
+        ));
     }
 
     public static Search createSearchForShadow(
@@ -149,11 +171,28 @@ public class SearchFactory {
     }
 
     public static <C extends Containerable> Search createContainerSearch(Class<C> type, ModelServiceLocator modelServiceLocator) {
+        return createContainerSearch(type, null, modelServiceLocator);
+    }
+
+    public static <C extends Containerable> Search createContainerSearch(Class<C> type, ItemPath defaultSearchItem, ModelServiceLocator modelServiceLocator) {
+        return createContainerSearch(type, defaultSearchItem, null, modelServiceLocator);
+    }
+    public static <C extends Containerable> Search createContainerSearch(Class<C> type, ItemPath defaultSearchItem, List<SearchItemDefinition> defaultAvailableDefs,
+            ModelServiceLocator modelServiceLocator) {
 
         PrismContainerDefinition<C> containerDef = modelServiceLocator.getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
-        List<SearchItemDefinition> availableDefs = getAvailableDefinitions(containerDef, true);
+        List<SearchItemDefinition> availableDefs = defaultAvailableDefs;
+        if (CollectionUtils.isEmpty(defaultAvailableDefs)) {
+            availableDefs = getAvailableDefinitions(containerDef, true);
+        }
 
         Search search = new Search(type, availableDefs);
+        if (defaultSearchItem != null) {
+            ItemDefinition defaultItemDef = containerDef.findItemDefinition(defaultSearchItem);
+            if (defaultItemDef != null) {
+                search.addItem(defaultItemDef);
+            }
+        }
         return search;
     }
 
@@ -410,11 +449,24 @@ public class SearchFactory {
     }
 
     public static <C extends Containerable> void addSearchPropertyDef(PrismContainerDefinition<C> containerDef, ItemPath path, List<SearchItemDefinition> defs) {
+        addSearchPropertyDef(containerDef, path, defs, null);
+    }
+
+    public static <C extends Containerable> void addSearchPropertyDef(PrismContainerDefinition<C> containerDef, ItemPath path, List<SearchItemDefinition> defs, String key) {
         PrismPropertyDefinition propDef = containerDef.findPropertyDefinition(path);
         if (propDef == null) {
             return;
         }
-        defs.add(new SearchItemDefinition(path, propDef, null));
+        SearchItemDefinition searchItem = new SearchItemDefinition(path, propDef, null);
+        if (key != null) {
+            PolyStringType displayName = new PolyStringType(propDef.getItemName().getLocalPart());
+            PolyStringTranslationType translation = new PolyStringTranslationType();
+            translation.setFallback(propDef.getItemName().getLocalPart());
+            translation.setKey(key);
+            displayName.setTranslation(translation);
+            searchItem.setDisplayName(displayName);
+        }
+        defs.add(searchItem);
     }
 
     private static boolean isIndexed(ItemDefinition def) {

@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
+ * Copyright (c) 2010-2017 Evolveum and contributors
+=======
  * Copyright (C) 2010-2020 Evolveum and contributors
+>>>>>>> origin/pre-devel-4.3
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -12,11 +16,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
+import com.evolveum.midpoint.gui.impl.session.ContainerTabStorage;
 import com.evolveum.midpoint.gui.impl.session.WorkItemsStorage;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
@@ -30,6 +36,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_ROLE_CATALOG = "roleCatalog";
     public static final String KEY_AUDIT_LOG = "auditLog";
     public static final String KEY_USER_HISTORY_AUDIT_LOG = "userHistoryAuditLog";
+    public static final String KEY_OBJECT_HISTORY_AUDIT_LOG = "objectHistoryAuditLog";
     public static final String KEY_RESOURCE_ACCOUNT_CONTENT = "resourceAccountContent";
     public static final String KEY_RESOURCE_ENTITLEMENT_CONTENT = "resourceEntitlementContent";
     public static final String KEY_RESOURCE_GENERIC_CONTENT = "resourceGenericContent";
@@ -46,11 +53,12 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_LOGGING_TAB_LOGGER_TABLE = "loggingTabLoggerTable";
     public static final String KEY_FOCUS_PROJECTION_TABLE = "focusProjectionTable";
     public static final String KEY_NOTIFICATION_TAB_MAIL_SERVER_TABLE = "notificationTabMailServerTable";
-    public static final String KEY_ROLE_MEMBER_PANEL = "roleMemberPanel";
-    public static final String KEY_ORG_MEMBER_PANEL = "orgMemberPanel";
-    public static final String KEY_SERVICE_MEMBER_PANEL = "serviceMemberPanel";
+    public static final String KEY_ROLE_MEMBER_PANEL = UserProfileStorage.TableId.ROLE_MEMBER_PANEL.name();
+    public static final String KEY_ORG_MEMBER_PANEL = UserProfileStorage.TableId.ORG_MEMBER_PANEL.name();
+    public static final String KEY_SERVICE_MEMBER_PANEL = UserProfileStorage.TableId.SERVICE_MEMBER_PANEL.name();
+    public static final String KEY_SERVICE_ARCHETYPE_PANEL = UserProfileStorage.TableId.ARCHETYPE_MEMBER_PANEL.name();
     public static final String KEY_WORK_ITEMS = "workItems";
-    public static final String KEY_OBJECT_LIST = "objectListPage";
+    public static final String KEY_OBJECT_LIST = "containerListPage";
     public static final String KEY_CASE_WORKITEMS_TAB = "workitemsTab";
     public static final String KEY_CASE_EVENTS_TAB = "caseEventsTab";
     public static final String KEY_ORG_STRUCTURE_PANEL_STORAGE = "orgStructurePanelStorage";
@@ -119,15 +127,18 @@ public class SessionStorage implements Serializable, DebugDumpable {
         return (AuditLogStorage) pageStorageMap.get(KEY_AUDIT_LOG);
     }
 
-    public AuditLogStorage getUserHistoryAuditLog() {
-        if (pageStorageMap.get(KEY_USER_HISTORY_AUDIT_LOG) == null) {
-            pageStorageMap.put(KEY_USER_HISTORY_AUDIT_LOG, new AuditLogStorage());
+    public AuditLogStorage getObjectHistoryAuditLog(QName objectType) {
+        if (pageStorageMap.get(objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG) == null) {
+            pageStorageMap.put(objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG, new AuditLogStorage());
         }
-        return (AuditLogStorage) pageStorageMap.get(KEY_USER_HISTORY_AUDIT_LOG);
+        return (AuditLogStorage)pageStorageMap.get(objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG);
     }
 
-    public void setUserHistoryAuditLog(AuditLogStorage storage) {
-        pageStorageMap.put(KEY_USER_HISTORY_AUDIT_LOG, storage);
+    public void setObjectHistoryAuditLog(QName objectType, AuditLogStorage storage) {
+        if (pageStorageMap.containsKey(objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG)) {
+            pageStorageMap.remove(objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG);
+        }
+        pageStorageMap.put(objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG, storage);
     }
 
     public ResourceContentStorage getResourceContentStorage(ShadowKindType kind, String searchMode) {
@@ -139,59 +150,15 @@ public class SessionStorage implements Serializable, DebugDumpable {
 
     }
 
-    private ObjectTabStorage getObjectTabStorage(String key) {
+    private ContainerTabStorage getContainerTabStorage(String key) {
         if (pageStorageMap.get(key) == null) {
-            pageStorageMap.put(key, new ObjectTabStorage());
+            pageStorageMap.put(key, new ContainerTabStorage());
         }
-        return (ObjectTabStorage) pageStorageMap.get(key);
+        return (ContainerTabStorage) pageStorageMap.get(key);
     }
 
-    public ObjectTabStorage getAssignmentsTabStorage() {
-        return getObjectTabStorage(KEY_ASSIGNMENTS_TAB);
-    }
-
-    public ObjectTabStorage getInducementsTabStorage() {
-        return getObjectTabStorage(KEY_INDUCEMENTS_TAB);
-    }
-
-    public ObjectTabStorage getTriggersTabStorage() {
-        return getObjectTabStorage(KEY_TRIGGERS_TAB);
-    }
-
-    public ObjectTabStorage getInducedEntitlementsTabStorage() {
-        return getObjectTabStorage(KEY_INDUCED_ENTITLEMENTS_TAB);
-    }
-
-    public ObjectTabStorage getCaseWorkitemsTabStorage() {
-        return getObjectTabStorage(KEY_CASE_WORKITEMS_TAB);
-    }
-
-    public ObjectTabStorage getCaseEventsTabStorage() {
-        return getObjectTabStorage(KEY_CASE_EVENTS_TAB);
-    }
-
-    public ObjectTabStorage getObjectPoliciesConfigurationTabStorage() {
-        return getObjectTabStorage(KEY_OBJECT_POLICIES_TAB);
-    }
-
-    public ObjectTabStorage getGlobalPolicyRulesTabStorage() {
-        return getObjectTabStorage(KEY_GLOBAL_POLICY_RULES_TAB);
-    }
-
-    public ObjectTabStorage getLoggingConfigurationTabAppenderTableStorage() {
-        return getObjectTabStorage(KEY_LOGGING_TAB_APPENDER_TABLE);
-    }
-
-    public ObjectTabStorage getLoggingConfigurationTabLoggerTableStorage() {
-        return getObjectTabStorage(KEY_LOGGING_TAB_LOGGER_TABLE);
-    }
-
-    public ObjectTabStorage getFocusProjectionTableStorage() {
-        return getObjectTabStorage(KEY_FOCUS_PROJECTION_TABLE);
-    }
-
-    public ObjectTabStorage getNotificationConfigurationTabMailServerTableStorage() {
-        return getObjectTabStorage(KEY_NOTIFICATION_TAB_MAIL_SERVER_TABLE);
+    public ContainerTabStorage getNotificationConfigurationTabMailServerTableStorage() {
+        return getContainerTabStorage(KEY_NOTIFICATION_TAB_MAIL_SERVER_TABLE);
     }
 
     private String getContentStorageKey(ShadowKindType kind, String searchMode) {
@@ -249,16 +216,27 @@ public class SessionStorage implements Serializable, DebugDumpable {
         }
         if (key.startsWith(KEY_OBJECT_LIST)) {
             pageStorage = new ObjectListStorage();
+        } else if (KEY_ORG_MEMBER_PANEL.equals(key)
+                || KEY_ROLE_MEMBER_PANEL.equals(key)
+                || KEY_SERVICE_MEMBER_PANEL.equals(key)) {
+            pageStorage = new MemberPanelStorage();
+        } else if (KEY_ASSIGNMENTS_TAB.equals(key)
+                || KEY_INDUCEMENTS_TAB.equals(key)
+                || KEY_CASE_EVENTS_TAB.equals(key)
+                || KEY_TRIGGERS_TAB.equals(key)
+                || KEY_INDUCED_ENTITLEMENTS_TAB.equals(key)
+                || KEY_CASE_WORKITEMS_TAB.equals(key)
+                || KEY_OBJECT_POLICIES_TAB.equals(key)
+                || KEY_GLOBAL_POLICY_RULES_TAB.equals(key)
+                || KEY_LOGGING_TAB_APPENDER_TABLE.equals(key)
+                || KEY_LOGGING_TAB_LOGGER_TABLE.equals(key)
+                || KEY_FOCUS_PROJECTION_TABLE.equals(key)){
+            pageStorage = getContainerTabStorage(key);
+        } else if (KEY_AUDIT_LOG.equals(key)) {
+            pageStorage = new AuditLogStorage();
+        }
+        if (pageStorage != null) {
             pageStorageMap.put(key, pageStorage);
-        } else if (KEY_ORG_MEMBER_PANEL.equals(key)) {
-            pageStorage = new MemberPanelStorage();
-            pageStorageMap.put(KEY_ORG_MEMBER_PANEL, pageStorage);
-        } else if (KEY_ROLE_MEMBER_PANEL.equals(key)) {
-            pageStorage = new MemberPanelStorage();
-            pageStorageMap.put(KEY_ROLE_MEMBER_PANEL, pageStorage);
-        } else if (KEY_SERVICE_MEMBER_PANEL.equals(key)) {
-            pageStorage = new MemberPanelStorage();
-            pageStorageMap.put(KEY_SERVICE_MEMBER_PANEL, pageStorage);
         }
         return pageStorage;
         //TODO: fixme

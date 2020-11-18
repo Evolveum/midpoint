@@ -312,7 +312,7 @@ public class CsvController extends FileFormatController {
             }
             return true;
         };
-        getReportService().getDashboardService().searchObjectFromCollection(collection, compiledCollection.getObjectType(), handler, options, task, result, true);
+        getReportService().getDashboardService().searchObjectFromCollection(collection, compiledCollection.getContainerType(), handler, options, task, result, true);
 
         CSVFormat csvFormat = createCsvFormat();
         if (Boolean.TRUE.equals(isHeader())) {

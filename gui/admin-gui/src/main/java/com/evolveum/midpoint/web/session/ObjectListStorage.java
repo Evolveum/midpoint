@@ -27,8 +27,8 @@ public class ObjectListStorage implements PageStorage, DebugDumpable {
     }
 
     @Override
-    public void setPaging(ObjectPaging usersPaging) {
-        this.objectListTablePaging = usersPaging;
+    public void setPaging(ObjectPaging objectListTablePaging) {
+        this.objectListTablePaging = objectListTablePaging;
     }
 
     @Override
@@ -37,8 +37,8 @@ public class ObjectListStorage implements PageStorage, DebugDumpable {
     }
 
     @Override
-    public void setSearch(Search usersSearch) {
-        this.objectListSearch = usersSearch;
+    public void setSearch(Search objectListSearch) {
+        this.objectListSearch = objectListSearch;
     }
 
     @Override

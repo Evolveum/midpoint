@@ -11,10 +11,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.page.admin.PageAdmin;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -44,7 +48,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
-import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -68,7 +71,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
                         label = "PageResources.auth.resources.view.label",
                         description = "PageResources.auth.resources.view.description")
         })
-public class PageResources extends PageAdminObjectList<ResourceType> {
+public class PageResources extends PageAdmin {
 
     private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(PageResources.class);
@@ -91,44 +94,55 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
         super();
     }
 
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
+
     protected void initLayout() {
-        super.initLayout();
-        getObjectListPanel().setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES);
+
+        Form mainForm = new MidpointForm(ID_MAIN_FORM);
+        add(mainForm);
+
+        MainObjectListPanel<ResourceType> table = new MainObjectListPanel<ResourceType>(ID_TABLE, ResourceType.class, getQueryOptions()) {
+            @Override
+            protected void objectDetailsPerformed(AjaxRequestTarget target, ResourceType resource) {
+                PageResources.this.resourceDetailsPerformed(target, resource.getOid());
+            }
+
+            @Override
+            protected UserProfileStorage.TableId getTableId() {
+                return UserProfileStorage.TableId.TABLE_RESOURCES;
+            }
+
+            @Override
+            protected List<IColumn<SelectableBean<ResourceType>, String>> createDefaultColumns() {
+                return PageResources.this.initResourceColumns();
+            }
+
+//            @Override
+//            protected IColumn<SelectableBean<ResourceType>, String> createCheckboxColumn() {
+//                return null;
+//            }
+
+            @Override
+            protected List<InlineMenuItem> createInlineMenu() {
+                return PageResources.this.createRowMenuItems();
+            }
+        };
+        table.setOutputMarkupId(true);
+        mainForm.add(table);
+
+        table.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES);
 
     }
 
-    @Override
-    protected List<InlineMenuItem> createRowActions() {
-        return PageResources.this.createRowMenuItems();
-    }
-
-    @Override
-    protected List<IColumn<SelectableBean<ResourceType>, String>> initColumns() {
-        return PageResources.this.initResourceColumns();
-    }
-
-    @Override
-    protected void objectDetailsPerformed(AjaxRequestTarget target, ResourceType object) {
-        PageResources.this.resourceDetailsPerformed(target, object.getOid());
-
-    }
-
-    @Override
-    protected Class<ResourceType> getType() {
-        return ResourceType.class;
-    }
-
-    @Override
-    protected Collection<SelectorOptions<GetOperationOptions>> getQueryOptions() {
+    private Collection<SelectorOptions<GetOperationOptions>> getQueryOptions() {
         return getOperationOptionsBuilder()
                 .noFetch()
                 .item(ResourceType.F_CONNECTOR_REF).resolve()
                 .build();
-    }
-
-    @Override
-    protected UserProfileStorage.TableId getTableId() {
-        return UserProfileStorage.TableId.TABLE_RESOURCES;
     }
 
     private List<InlineMenuItem> createRowMenuItems() {
@@ -331,7 +345,7 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
     private List<ResourceType> isAnyResourceSelected(AjaxRequestTarget target, ResourceType single) {
         return single != null
                 ? Collections.singletonList(single)
-                : getResourceTable().getSelectedObjects();
+                : getResourceTable().getSelectedRealObjects();
 
     }
 
@@ -389,7 +403,7 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
                 if (singleDelete != null) {
                     selected.add(singleDelete);
                 } else {
-                    selected = getResourceTable().getSelectedObjects();
+                    selected = getResourceTable().getSelectedRealObjects();
                 }
 
                 if (selected.size() == 1) {
@@ -407,7 +421,7 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
         if (singleDelete != null) {
             selected.add(singleDelete);
         } else {
-            selected = getResourceTable().getSelectedObjects();
+            selected = getResourceTable().getSelectedRealObjects();
         }
 
         OperationResult result = new OperationResult(OPERATION_DELETE_RESOURCES);

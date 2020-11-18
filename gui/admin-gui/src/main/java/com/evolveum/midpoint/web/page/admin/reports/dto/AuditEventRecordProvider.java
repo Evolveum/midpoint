@@ -430,13 +430,6 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
         }
     }
 
-    @Override
-    protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
-        if (getPageStorage() != null) {
-            getPageStorage().setPaging(paging);
-        }
-    }
-
     @NotNull
     @Override
     protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
@@ -451,10 +444,6 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
     }
 
     protected void saveCurrentPage(long from, long count) {
-    }
-
-    protected PageStorage getPageStorage() {
-        return null;
     }
 
     private String getQueryOrderByPart() {
