@@ -36,26 +36,25 @@ public class MemberPanel<T> extends Component<T> {
     }
 
     public ChooseFocusTypeAndRelationModal<MemberPanel<T>> newMember() {
-        SelenideElement mainButton = $(By.xpath("//button[@type='button'][@title='Create  member ']"));
-        String expanded = mainButton.getAttribute("aria-haspopup");
-        if (Boolean.getBoolean(expanded)) {
-            newMember("Create  member ");
-        } else {
-            mainButton.click();
+        SelenideElement mainButton = $(By.xpath("//button[@type='button'][@title='Create  member ']"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+        mainButton.click();
+        Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
+        if (Boolean.getBoolean(mainButton.getAttribute("aria-expanded"))) {
+            return newMember("Create  member ");
         }
-        return null; //TODO implement return popup
+        return new ChooseFocusTypeAndRelationModal<>(this, Utils.getModalWindowSelenideElement());
     }
 
-    public AssignmentHolderDetailsPage newMember(String title) {
+    public ChooseFocusTypeAndRelationModal newMember(String title) {
         SelenideElement mainButton = $(By.xpath("//button[@type='button'][@title='Create  member ']"));
         if (!Boolean.getBoolean(mainButton.getAttribute("aria-expanded"))) {
             mainButton.click();
-            mainButton.waitWhile(Condition.attribute("aria-expanded", "false"), MidPoint.TIMEOUT_MEDIUM_6_S);
         }
         $(Schrodinger.byElementAttributeValue("div", "title", title))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
-        return new AssignmentHolderDetailsPage(){};
+        return new ChooseFocusTypeAndRelationModal<>(this, Utils.getModalWindowSelenideElement());
     }
 
     public FocusSetAssignmentsModal<T> assignMember() {
