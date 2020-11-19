@@ -119,7 +119,6 @@ CREATE TABLE m_focus (
 
 CREATE TABLE m_user (
     objectTypeClass INT4 GENERATED ALWAYS AS (10) STORED,
-
     additionalName_norm VARCHAR(255),
     additionalName_orig VARCHAR(255),
     employeeNumber VARCHAR(255),
@@ -144,5 +143,80 @@ CREATE TABLE m_user (
 
 CREATE CONSTRAINT TRIGGER m_user_oid_check_tr AFTER INSERT OR UPDATE ON m_user
     DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE object_oid_pk();
+
+CREATE TABLE m_shadow (
+    objectTypeClass INT4 GENERATED ALWAYS AS (6) STORED,
+    objectClass VARCHAR(157) NOT NULL,
+    resourceRef_targetOid VARCHAR(36),
+    resourceRef_targetType INT4,
+    resourceRef_relation VARCHAR(157),
+    intent VARCHAR(255),
+    kind INT4,
+    attemptNumber INT4,
+    dead BOOLEAN,
+    exist BOOLEAN,
+    failedOperationType INT4,
+    fullSynchronizationTimestamp TIMESTAMP,
+    pendingOperationCount INT4,
+    primaryIdentifierValue VARCHAR(255),
+    status INT4,
+    synchronizationSituation INT4,
+    synchronizationTimestamp TIMESTAMP,
+
+    CONSTRAINT m_shadow_pk PRIMARY KEY (oid)
+)
+    INHERITS (m_object);
+
+-- Shadows with partitions
+CREATE CONSTRAINT TRIGGER m_shadow_oid_check_tr AFTER INSERT OR UPDATE ON m_shadow
+    DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE object_oid_pk();
+
+CREATE TABLE m_assignment (
+    id INT4 NOT NULL,
+    owner_oid UUID NOT NULL,
+    administrativeStatus INT4,
+    archiveTimestamp TIMESTAMP,
+    disableReason VARCHAR(255),
+    disableTimestamp TIMESTAMP,
+    effectiveStatus INT4,
+    enableTimestamp TIMESTAMP,
+    validFrom TIMESTAMP,
+    validTo TIMESTAMP,
+    validityChangeTimestamp TIMESTAMP,
+    validityStatus INT4,
+    assignmentOwner INT4,
+    createChannel VARCHAR(255),
+    createTimestamp TIMESTAMP,
+    creatorRef_relation VARCHAR(157),
+    creatorRef_targetOid VARCHAR(36),
+    creatorRef_targetType INT4,
+    lifecycleState VARCHAR(255),
+    modifierRef_relation VARCHAR(157),
+    modifierRef_targetOid VARCHAR(36),
+    modifierRef_targetType INT4,
+    modifyChannel VARCHAR(255),
+    modifyTimestamp TIMESTAMP,
+    orderValue INT4,
+    orgRef_relation VARCHAR(157),
+    orgRef_targetOid VARCHAR(36),
+    orgRef_targetType INT4,
+    resourceRef_relation VARCHAR(157),
+    resourceRef_targetOid VARCHAR(36),
+    resourceRef_targetType INT4,
+    targetRef_relation VARCHAR(157),
+    targetRef_targetOid VARCHAR(36),
+    targetRef_targetType INT4,
+    tenantRef_relation VARCHAR(157),
+    tenantRef_targetOid VARCHAR(36),
+    tenantRef_targetType INT4,
+    extId INT4,
+    extOid VARCHAR(36),
+
+    CONSTRAINT m_assignment_pk PRIMARY KEY (owner_oid, id)
+);
+
+-- This can't be done without separate table where OID is truly unique
+ALTER TABLE IF EXISTS m_assignment
+    ADD CONSTRAINT fk_assignment_owner FOREIGN KEY (owner_oid) REFERENCES m_object(oid);
 
 -- TODO other indexes, only PK is defined at the moment

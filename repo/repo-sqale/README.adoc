@@ -45,9 +45,31 @@ column directly in the master table `m_object`.
 on the "concrete" tables (in `CREATE TABLE` or with `ALTER TABLE`).
 Without the index the check trigger gets very slow after a couple of thousands records.
 
-* TODO: can we partition inherited table? Like `m_shadow`.
+* Can we partition inherited table? Like `m_shadow`.
+*No, this is not possible.*
+Options:
+** Using "application managed partitioning" with inheritance as needed.
+(I prefer this, it is more cumbersome, but possibly more flexible.)
+** Shadow would not be part of `m_object` hierarchy.
 
-* TODO: how much will the performance of insert suffer?
+* Foreign key can't be used against `m_object.oid` because it does not enforce index (by itself).
+Perhaps we want to introduce `m_object_oid` table that would own the unique pool of OIDs and could
+be used for referencing FKs.
+Referencing only some types of objects (e.g. just focuses) is probably mission impossible.
+
+* How much will the performance of insert suffer with trigger checking `m_object.oid`?
+Following table show the effects of the count of inherited tables and volume of already inserted rows
+on the time for adding 100k of new rows:
++
+|===
+| Inherited{nbsp}tables /
+Existing rows | 4 | 20 | 50 | 100
+
+| 0 | 7s | 10s | 29/35/36s | 63s
+| 500k | 6s | 10s | 21/32/23s | 63/34/65s
+| 1M | 6s | 10s | 20/33/33s| 66/66/45s
+| 5M | 16/10/21/7/7s | 11/13/13/12s | - | -
+|===
 
 * TODO: membership searches on abstract tables (e.g. focus), EXPLAIN, performance?
 
