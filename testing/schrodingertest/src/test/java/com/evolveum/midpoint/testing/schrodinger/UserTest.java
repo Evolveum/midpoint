@@ -162,7 +162,6 @@ public class UserTest extends AbstractSchrodingerTest {
         Assert.assertFalse(delegationDetailsFromUser.getValidFromPanel().findDate().isEnabled(), "Date field should be disabled");
         Assert.assertFalse(delegationDetailsFromUser.getValidFromPanel().findHours().isEnabled(), "Hours field should be disabled");
         Assert.assertFalse(delegationDetailsFromUser.getValidFromPanel().findMinutes().isEnabled(), "Minutes field should be disabled");
-        Assert.assertFalse(delegationDetailsFromUser.getValidFromPanel().findAmOrPmChoice().isEnabled(), "AM/PM choice field should be disabled");
     }
 
     @Test
