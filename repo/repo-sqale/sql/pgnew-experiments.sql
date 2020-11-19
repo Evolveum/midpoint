@@ -36,6 +36,12 @@ commit;
 select * from m_object where oid='66eb4861-867d-4a41-b6f0-41a3874bd48f';
 
 -- adding x users
+-- 100_000 inserts: 3 inherited tables ~6s, for 25 inherited tables ~13s, for 50 ~20s, for 100 ~34s
+-- change with volume (100 inherited tables): 200k previous rows ~34s, with 1m rows ~37s
+-- with 3 inherited tables and 5M existing rows, adding 100k rows takes ~7s
+select count(*) from m_object;
+delete from m_object;
+vacuum full analyze;
 DO
 $$
     BEGIN
@@ -80,3 +86,37 @@ FROM m_focus
 
 select ctid, * from m_object
 ;
+
+select count(*) from pg_inherits
+;
+
+-- creating more tables inherited from m_object or m_focus
+DO
+$$
+    BEGIN
+        FOR r IN 101..125
+            LOOP
+                EXECUTE 'CREATE TABLE m_omore' || r || '(
+                    objectTypeClass INT4 GENERATED ALWAYS AS (101) STORED,
+                    PRIMARY KEY (oid)
+                )
+                    INHERITS (m_object)';
+                EXECUTE 'CREATE TABLE m_fmore' || r || '(
+                    objectTypeClass INT4 GENERATED ALWAYS AS (101) STORED,
+                    PRIMARY KEY (oid)
+                )
+                    INHERITS (m_focus)';
+            END LOOP;
+    END;
+$$;
+
+DO
+$$
+    BEGIN
+        FOR r IN 1..47
+            LOOP
+                EXECUTE 'DROP TABLE m_fmore' || r ;
+                EXECUTE 'DROP TABLE m_omore' || r ;
+            END LOOP;
+    END
+$$;
