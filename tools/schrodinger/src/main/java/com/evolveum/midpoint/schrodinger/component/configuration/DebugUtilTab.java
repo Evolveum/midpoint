@@ -17,6 +17,7 @@ import com.evolveum.midpoint.schrodinger.util.Utils;
 
 import static com.codeborne.selenide.Selenide.$;
 
+import static com.evolveum.midpoint.schrodinger.util.Utils.setCheckFormGroupOptionCheckedById;
 import static com.evolveum.midpoint.schrodinger.util.Utils.setOptionCheckedById;
 
 /**
@@ -29,12 +30,12 @@ public class DebugUtilTab extends Component<InternalsConfigurationPage> {
     }
 
     public DebugUtilTab selectDetailedDebugDump() {
-        setOptionCheckedById("detailedDebugDump", true);
+        setCheckFormGroupOptionCheckedById("detailedDebugDump", true);
         return this;
     }
 
     public DebugUtilTab deselectDetailedDebugDump() {
-        setOptionCheckedById("detailedDebugDump", false);
+        setCheckFormGroupOptionCheckedById("detailedDebugDump", false);
         return this;
     }
 

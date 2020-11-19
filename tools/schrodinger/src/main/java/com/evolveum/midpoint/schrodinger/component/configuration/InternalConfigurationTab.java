@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import static com.codeborne.selenide.Selenide.$;
 
+import static com.evolveum.midpoint.schrodinger.util.Utils.setCheckFormGroupOptionCheckedById;
 import static com.evolveum.midpoint.schrodinger.util.Utils.setOptionCheckedById;
 
 /**
@@ -28,52 +29,52 @@ public class InternalConfigurationTab extends Component<InternalsConfigurationPa
     }
 
     public InternalConfigurationTab selectCheckConsistency() {
-        setOptionCheckedById("consistencyChecks", true);
+        setCheckFormGroupOptionCheckedById("consistencyChecks", true);
         return this;
     }
 
     public InternalConfigurationTab deselectCheckConsistency() {
-        setOptionCheckedById("consistencyChecks", false);
+        setCheckFormGroupOptionCheckedById("consistencyChecks", false);
         return this;
     }
 
     public InternalConfigurationTab selectCheckEncryption() {
-        setOptionCheckedById("encryptionChecks", true);
+        setCheckFormGroupOptionCheckedById("encryptionChecks", true);
         return this;
     }
 
     public InternalConfigurationTab deselectCheckEncryption() {
-        setOptionCheckedById("encryptionChecks", false);
+        setCheckFormGroupOptionCheckedById("encryptionChecks", false);
         return this;
     }
 
     public InternalConfigurationTab selectCheckReadEncryption() {
-        setOptionCheckedById("readEncryptionChecks", true);
+        setCheckFormGroupOptionCheckedById("readEncryptionChecks", true);
         return this;
     }
 
     public InternalConfigurationTab deselectCheckReadEncryption() {
-        setOptionCheckedById("readEncryptionChecks", false);
+        setCheckFormGroupOptionCheckedById("readEncryptionChecks", false);
         return this;
     }
 
     public InternalConfigurationTab selectModelProfiling() {
-        setOptionCheckedById("modelProfiling", true);
+        setCheckFormGroupOptionCheckedById("modelProfiling", true);
         return this;
     }
 
     public InternalConfigurationTab deselectModelProfiling() {
-        setOptionCheckedById("modelProfiling", false);
+        setCheckFormGroupOptionCheckedById("modelProfiling", false);
         return this;
     }
 
     public InternalConfigurationTab selectTolerateUndeclaredPrefixes() {
-        setOptionCheckedById("tolerateUndeclaredPrefixes", true);
+        setCheckFormGroupOptionCheckedById("tolerateUndeclaredPrefixes", true);
         return this;
     }
 
     public InternalConfigurationTab deselectTolerateUndeclaredPrefixes() {
-        setOptionCheckedById("tolerateUndeclaredPrefixes", false);
+        setCheckFormGroupOptionCheckedById("tolerateUndeclaredPrefixes", false);
         return this;
     }
 
