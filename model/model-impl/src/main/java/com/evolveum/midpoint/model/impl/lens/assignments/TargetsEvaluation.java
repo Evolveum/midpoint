@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import static com.evolveum.midpoint.model.api.util.ReferenceResolver.Source.REPOSITORY;
 import static com.evolveum.midpoint.model.impl.lens.assignments.Util.isChanged;
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -232,7 +231,7 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
         variables.put(ExpressionConstants.VAR_SOURCE, segment.getOrderOneObject(), ObjectType.class);
         AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);
         if (assignmentPathVariables != null) {
-            ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variables, getPrismContext());
+            ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variables, ctx.ae.prismContext);
         }
         variables.addVariableDefinitions(ctx.ae.getAssignmentEvaluationVariables());
         return variables;
