@@ -54,7 +54,7 @@ public class RegistrationConfirmationNotifier extends ConfirmationNotifier<Regis
         } else if (event.getFocusDeltas().isEmpty()) {
             LOGGER.trace("No user deltas in event, exiting.");
             return false;
-        } else if (SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI.equals(event.getChannel())) {
+        } else if (SchemaConstants.CHANNEL_SELF_REGISTRATION_URI.equals(event.getChannel())) {
             LOGGER.trace("Found change from registration channel.");
             return true;
         } else {

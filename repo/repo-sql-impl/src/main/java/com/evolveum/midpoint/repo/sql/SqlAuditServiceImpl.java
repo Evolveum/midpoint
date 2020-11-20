@@ -58,6 +58,7 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sql.util.TemporaryTableDialect;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -86,6 +87,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
 public class SqlAuditServiceImpl extends SqlBaseService implements AuditService {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlAuditServiceImpl.class);
+
+    private static final String OP_NAME_PREFIX = SqlAuditServiceImpl.class.getSimpleName() + '.';
 
     private static final String OP_CLEANUP_AUDIT_MAX_AGE = "cleanupAuditMaxAge";
     private static final String OP_CLEANUP_AUDIT_MAX_RECORDS = "cleanupAuditMaxRecords";
@@ -278,10 +281,10 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                     }
                 }
             } catch (SchemaException | SystemException e) {
-                // TODO MID-6446 - if we want to throw in new tests, but first we need to fix existing ones
-//                if (InternalsConfig.isConsistencyChecks()) {
-//                    throw new SystemException("Problem during audit delta parse", e);
-//                }
+                // See MID-6446 - we want to throw in tests, old ones should be fixed by now
+                if (InternalsConfig.isConsistencyChecks()) {
+                    throw new SystemException("Problem during audit delta parse", e);
+                }
                 LOGGER.warn("Serialized audit delta for recordId={} cannot be parsed."
                         + " No changed items were created. This may cause problem later, but is not"
                         + " critical for storing the audit record.", recordId, e);
@@ -1091,12 +1094,18 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     public int countObjects(
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @Nullable OperationResult parentResult) {
+            @NotNull OperationResult parentResult) {
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + "countObjects")
+                .addParam("query", query)
+                .build();
+
         try {
-            // TODO MID-6319 do something with the OperationResult... skipped for now
             return sqlQueryExecutor.count(AuditEventRecordType.class, query, options);
-        } catch (QueryException e) {
+        } catch (QueryException | RuntimeException e) {
+            baseHelper.handleGeneralException(e, operationResult);
             throw new SystemException(e);
+        } finally {
+            operationResult.computeStatusIfUnknown();
         }
     }
 
@@ -1105,17 +1114,24 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     public SearchResultList<AuditEventRecordType> searchObjects(
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @Nullable OperationResult parentResult)
+            @NotNull OperationResult parentResult)
             throws SchemaException {
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + "searchObjects")
+                .addParam("query", query)
+                .build();
 
-        // TODO MID-6319 do something with the OperationResult... skipped for now
         try {
             SearchResultList<AuditEventRecordType> result =
                     sqlQueryExecutor.list(AuditEventRecordType.class, query, options);
-            addContainerDefinition(AuditEventRecordType.class, result);
+//            addContainerDefinition(AuditEventRecordType.class, result);
             return result;
-        } catch (QueryException e) {
+        } catch (QueryException | RuntimeException e) {
+            baseHelper.handleGeneralException(e, operationResult);
             throw new SystemException(e);
+        } finally {
+            if (operationResult != null && operationResult.isUnknown()) {
+                operationResult.computeStatus();
+            }
         }
     }
 
@@ -1136,11 +1152,5 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             //noinspection unchecked
             container.add(containerValue.asPrismContainerValue());
         }
-    }
-
-    public void addCustomColumn(String propertyName, String columnName) {
-        ColumnMetadata columnMetadata =
-                ColumnMetadata.named(columnName).ofType(Types.NVARCHAR).withSize(255);
-        QAuditEventRecordMapping.INSTANCE.addExtensionColumn(propertyName, columnMetadata);
     }
 }

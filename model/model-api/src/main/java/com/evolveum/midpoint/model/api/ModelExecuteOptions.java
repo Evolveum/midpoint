@@ -128,6 +128,23 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         return is(options, ModelExecuteOptionsType.F_FORCE);
     }
 
+    public Boolean getPushChanges() {
+        return content.isPushChanges();
+    }
+
+    public static boolean isPushChanges(ModelExecuteOptions options) {
+        return is(options, F_PUSH_CHANGES);
+    }
+
+    public ModelExecuteOptions pushChanges(Boolean value) {
+        content.setPushChanges(value);
+        return this;
+    }
+
+    public ModelExecuteOptions pushChanges() {
+        return pushChanges(true);
+    }
+
     public Boolean getRaw() {
         return content.isRaw();
     }
@@ -413,6 +430,9 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
             }
             if (ModelExecuteOptionsType.F_FORCE.getLocalPart().equals(option)) {
                 retVal.force(true);
+            }
+            if (F_PUSH_CHANGES.getLocalPart().equals(option)) {
+                retVal.pushChanges(true);
             }
             if (F_NO_CRYPT.getLocalPart().equals(option)) {
                 retVal.noCrypt(true);

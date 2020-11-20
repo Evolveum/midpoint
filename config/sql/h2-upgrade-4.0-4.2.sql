@@ -45,4 +45,18 @@ ALTER TABLE m_case ALTER COLUMN targetRef_type RENAME TO targetRef_targetType;
 ALTER TABLE m_focus ADD COLUMN passwordCreateTimestamp TIMESTAMP;
 ALTER TABLE m_focus ADD COLUMN passwordModifyTimestamp TIMESTAMP;
 
+-- MID-6037
+ALTER TABLE m_service ADD CONSTRAINT uc_service_name UNIQUE (name_norm);
+
+-- MID-6232
+CREATE INDEX iAuditEventRecordEStageTOid
+  ON m_audit_event (eventStage, targetOid);
+
+-- policySituation belong to M_OBJECT
+ALTER TABLE m_focus_policy_situation DROP CONSTRAINT fk_focus_policy_situation;
+ALTER TABLE m_focus_policy_situation RENAME TO m_object_policy_situation;
+ALTER TABLE m_object_policy_situation ALTER COLUMN focus_oid RENAME TO object_oid;
+ALTER TABLE m_object_policy_situation
+  ADD CONSTRAINT fk_object_policy_situation FOREIGN KEY (object_oid) REFERENCES m_object;
+
 COMMIT;

@@ -950,7 +950,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         PrismAsserts.assertTripleZero(outputTriple, PrismTestUtil.createPolyString(ExpressionTestUtil.CONST_FOO_VALUE));
         PrismAsserts.assertTripleNoMinus(outputTriple);
 
-        assertOrigins(MiscUtil.extractSingleton(outputTriple.getZeroSet()));
+        assertOrigins(MiscUtil.extractSingleton(outputTriple.getZeroSet()), SystemObjectsType.ORIGIN_INTERNAL.value());
     }
 
     /**
@@ -973,7 +973,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         PrismAsserts.assertTripleZero(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
         PrismAsserts.assertTripleNoMinus(outputTriple);
 
-        assertOrigins(MiscUtil.extractSingleton(outputTriple.getZeroSet()));
+        assertOrigins(MiscUtil.extractSingleton(outputTriple.getZeroSet()), SystemObjectsType.ORIGIN_INTERNAL.value());
     }
 
     /**
@@ -995,7 +995,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         PrismAsserts.assertTripleNoPlus(outputTriple);
         PrismAsserts.assertTripleNoMinus(outputTriple);
 
-        assertOrigins(MiscUtil.extractSingleton(outputTriple.getZeroSet()));
+        assertOrigins(MiscUtil.extractSingleton(outputTriple.getZeroSet()), SystemObjectsType.ORIGIN_INTERNAL.value());
     }
 
     public MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> evaluate(String filename,
@@ -1242,6 +1242,11 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
 
             @Override
             public String debugDump(int indent) {
+                return null;
+            }
+
+            @Override
+            public String getTaskTreeOid(Task task, OperationResult result) throws SchemaException {
                 return null;
             }
         };

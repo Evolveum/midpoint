@@ -1,11 +1,26 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.common;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.context.MessageSource;
+import org.springframework.context.NoSuchMessageException;
+import org.springframework.context.support.ResourceBundleMessageSource;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -19,23 +34,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationArgumentType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
-
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.apache.commons.lang.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.context.MessageSource;
-import org.springframework.context.NoSuchMessageException;
-import org.springframework.context.support.ResourceBundleMessageSource;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
 
 /**
  * @author Viliam Repan (lazyman).
@@ -45,13 +44,13 @@ public class LocalizationServiceImpl implements LocalizationService {
 
     private static final Trace LOG = TraceManager.getTrace(LocalizationServiceImpl.class);
 
-    private List<MessageSource> sources = new ArrayList<>();
+    private final List<MessageSource> sources = new ArrayList<>();
 
     private Locale overrideLocale = null; // for tests
 
     public void init() {
         URL url = buildMidpointHomeLocalizationFolderUrl();
-        ClassLoader classLoader = new URLClassLoader(new URL[]{url}, null);
+        ClassLoader classLoader = new URLClassLoader(new URL[] { url }, null);
 
         sources.add(buildSource("Midpoint", classLoader));
         sources.add(buildSource(SchemaConstants.BUNDLE_NAME, classLoader));
@@ -195,9 +194,9 @@ public class LocalizationServiceImpl implements LocalizationService {
             } else if (param instanceof PolyStringType) {
                 param = translate(((PolyStringType) param).toPolyString(), locale, true);
             } else if (param instanceof PolyStringTranslationType) {
-                param = translate((PolyStringTranslationType)param, locale);
+                param = translate((PolyStringTranslationType) param, locale);
             } else if (param instanceof PolyStringTranslationArgumentType) {
-                param = translate((PolyStringTranslationArgumentType)param, locale);
+                param = translate((PolyStringTranslationArgumentType) param, locale);
             }
 
             translated[i] = param;
@@ -236,7 +235,7 @@ public class LocalizationServiceImpl implements LocalizationService {
         }
         if (polyString.getTranslation() != null) {
             String value = translate(polyString.getTranslation(), locale);
-            if (value != null){
+            if (value != null) {
                 return value;
             }
         }

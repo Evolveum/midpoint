@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.web.security;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -87,7 +88,7 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession implements D
         }
 
         //setting locale
-        setLocale(WebModelServiceUtils.getLocale());
+        setLocale(WebComponentUtil.getLocale());
         LOGGER.debug("Using {} as locale", getLocale());
 
         //set time zone

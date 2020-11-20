@@ -6,15 +6,12 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.labs;
 
-import static com.codeborne.selenide.Selenide.$;
-
 import com.codeborne.selenide.Selenide;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
 
 import com.evolveum.midpoint.schrodinger.page.configuration.AboutPage;
 import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
-import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
@@ -22,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -68,12 +64,13 @@ public class M11SystemConfiguration extends AbstractLabTest {
         notificationFile = new File(getTestTargetDir(), NOTIFICATION_FILE_NAME);
         notificationFile.createNewFile();
 
-        importObject(SYSTEM_CONFIGURATION_FILE_11_1, true);
+        addObjectFromFile(SYSTEM_CONFIGURATION_FILE_11_1);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
 
         basicPage.notifications()
                 .setRedirectToFile(notificationFile.getAbsolutePath())
                 .and()
-            .save()
+            .clickSave()
                 .feedback()
                     .isSuccess();
 
@@ -116,7 +113,7 @@ public class M11SystemConfiguration extends AbstractLabTest {
                 + "    - Target: Internal Employee (role) [default]\n"
                 + "\n"
                 + "Requester: midPoint Administrator (administrator)\n"
-                + "Channel: http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#liveSync\n"
+                + "Channel: http://midpoint.evolveum.com/xml/ns/public/common/channels-3#liveSync\n"
                 + "\n";
 
         Assertions.assertThat(notification).startsWith(startOfNotification);
@@ -125,42 +122,41 @@ public class M11SystemConfiguration extends AbstractLabTest {
 
     @Test(dependsOnMethods = {"mod11test01ConfiguringNotifications"},groups={"M11"}, dependsOnGroups={"M10"})
     public void mod11test02ConfiguringDeploymentInformation() {
-        importObject(SYSTEM_CONFIGURATION_FILE_11_2, true);
+        addObjectFromFile(SYSTEM_CONFIGURATION_FILE_11_2);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
 
-        Assert.assertTrue($(Schrodinger.byDataId("header", "mainHeader"))
-                .getCssValue("background-color").equals("rgba(48, 174, 48, 1)"));
-        Assert.assertTrue($(Schrodinger.byDataId("span", "pageTitle")).getText().startsWith("DEV:"));
+        Assert.assertTrue(basicPage.mainHeaderPanelStyleMatch("rgba(48, 174, 48, 1)"));
+        Assert.assertTrue(basicPage.pageTitleStartsWith("DEV:"));
 
         basicPage.deploymentInformation()
                 .form()
                     .addAttributeValue("headerColor", "lightblue")
                     .and()
                 .and()
-            .save()
+            .clickSave()
                 .feedback()
                     .isSuccess();
 
-        Assert.assertTrue($(Schrodinger.byDataId("header", "mainHeader"))
-                .getCssValue("background-color").equals("rgba(173, 216, 230, 1)"));
+        Assert.assertTrue(basicPage.mainHeaderPanelStyleMatch("rgba(173, 216, 230, 1)"));
 
         basicPage.deploymentInformation()
                 .form()
                     .addAttributeValue("headerColor", "#30ae30")
                     .and()
                 .and()
-            .save()
+            .clickSave()
                 .feedback()
                     .isSuccess();
-        Assert.assertTrue($(Schrodinger.byDataId("header", "mainHeader"))
-        .getCssValue("background-color").equals("rgba(48, 174, 48, 1)"));
+        Assert.assertTrue(basicPage.mainHeaderPanelStyleMatch("rgba(48, 174, 48, 1)"));
     }
 
     @Test(dependsOnMethods = {"mod11test02ConfiguringDeploymentInformation"},groups={"M11"}, dependsOnGroups={"M10"})
     public void mod11test03ConfiguringObjectCollectionsAndViews() {
-        importObject(OBJECT_COLLECTION_ACTIVE_EMP_FILE, true);
-        importObject(OBJECT_COLLECTION_INACTIVE_EMP_FILE, true);
-        importObject(OBJECT_COLLECTION_FORMER_EMP_FILE, true);
-        importObject(SYSTEM_CONFIGURATION_FILE_11_3, true);
+        addObjectFromFile(OBJECT_COLLECTION_ACTIVE_EMP_FILE);
+        addObjectFromFile(OBJECT_COLLECTION_INACTIVE_EMP_FILE);
+        addObjectFromFile(OBJECT_COLLECTION_FORMER_EMP_FILE);
+        addObjectFromFile(SYSTEM_CONFIGURATION_FILE_11_3);
+        Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
 
         basicPage.loggedUser().logoutIfUserIsLogin();
         FormLoginPage login = midPoint.formLogin();

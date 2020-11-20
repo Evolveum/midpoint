@@ -11,6 +11,7 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.TabPanel;
 import com.evolveum.midpoint.schrodinger.component.configuration.*;
+import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
@@ -19,68 +20,42 @@ import static com.codeborne.selenide.Selenide.$;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class SystemPage extends BasicPage {
-
-    public SystemPage cancel() {
-        //todo implement
-        return this;
-    }
-
-    public SystemPage save() {
-        $(Schrodinger.byDataId("save")).click();
-        return this;
-    }
+public class SystemPage extends AssignmentHolderDetailsPage {
 
     public SystemTab systemTab() {
-        SelenideElement element = getTabPanel().clickTab("pageSystemConfiguration.system.title");
-        return new SystemTab(this, element);
+        return new SystemTab(this, getTabSelenideElement("pageSystemConfiguration.system.title"));
     }
 
     public ObjectPolicyTab objectPolicyTab() {
-        SelenideElement element = getTabPanel().clickTab("pageSystemConfiguration.objectPolicy.title");
-        return new ObjectPolicyTab(this, element);
+        return new ObjectPolicyTab(this, getTabSelenideElement("pageSystemConfiguration.objectPolicy.title"));
     }
 
     public NotificationsTab notificationsTab() {
-        SelenideElement element = getTabPanel().clickTab("pageSystemConfiguration.notifications.title");
-        return new NotificationsTab(this, element);
+        return new NotificationsTab(this, getTabSelenideElement("pageSystemConfiguration.notifications.title"));
     }
 
     public LoggingTab loggingTab() {
-        //todo implement
-        SelenideElement element = null;
-        return new LoggingTab(this, element);
+        return new LoggingTab(this, getTabSelenideElement("pageSystemConfiguration.logging.title"));
     }
 
     public ProfilingTab profilingTab() {
-        //todo implement
-        SelenideElement element = null;
-        return new ProfilingTab(this, element);
+        return new ProfilingTab(this, getTabSelenideElement("pageSystemConfiguration.profiling.title"));
     }
 
     public AdminGuiTab adminGuiTab() {
-        //todo implement
-        SelenideElement element = null;
-        return new AdminGuiTab(this, element);
+        return new AdminGuiTab(this, getTabSelenideElement("pageSystemConfiguration.adminGui.title"));
     }
 
     public DeploymentInformationTab deploymentInformationTab() {
-        SelenideElement element = getTabPanel().clickTab("pageSystemConfiguration.deploymentInformation.title");
-        return new DeploymentInformationTab(this, element);
+        return new DeploymentInformationTab(this, getTabSelenideElement("pageSystemConfiguration.deploymentInformation.title"));
     }
 
     public InfrastructureTab infrastructureTab() {
-        SelenideElement element = getTabPanel().clickTab("pageSystemConfiguration.infrastructure.title");
-        return new InfrastructureTab(this, element);
+        return new InfrastructureTab(this, getTabSelenideElement("pageSystemConfiguration.infrastructure.title"));
     }
 
     public RoleManagementTab roleManagementTab(){
-        return new RoleManagementTab(this, null);
+        return new RoleManagementTab(this, getTabSelenideElement("pageSystemConfiguration.roleManagement.title"));
     }
 
-    protected TabPanel getTabPanel() {
-        SelenideElement tabPanelElement = $(Schrodinger.byDataId("div", "tabPanel"))
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-        return new TabPanel<>(this, tabPanelElement);
-    }
 }

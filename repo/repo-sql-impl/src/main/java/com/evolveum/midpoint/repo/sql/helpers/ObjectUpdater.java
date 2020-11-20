@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.helpers;
 
 import java.lang.reflect.Method;
@@ -13,12 +12,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.persistence.PersistenceException;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-
-import com.evolveum.midpoint.repo.sql.helpers.delta.ObjectDeltaUpdater;
-
-import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
@@ -46,6 +39,7 @@ import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
+import com.evolveum.midpoint.repo.sql.helpers.delta.ObjectDeltaUpdater;
 import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -54,6 +48,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -132,7 +127,8 @@ public class ObjectUpdater {
                 baseHelper.handleGeneralException(ex, session, result);
                 throw new AssertionError("shouldn't be here");
             }
-            AttemptContext attemptContext = new AttemptContext();       // TODO use this throughout overwriteAddObjectAttempt to collect information about no-fetch insertion attempts
+            // TODO use this throughout overwriteAddObjectAttempt to collect information about no-fetch insertion attempts
+            AttemptContext attemptContext = new AttemptContext();
             handleConstraintViolationExceptionSpecialCases(constEx, session, attemptContext, result);
             baseHelper.rollbackTransaction(session, constEx, result, true);
 
@@ -248,15 +244,14 @@ public class ObjectUpdater {
                 .itemsToSkip(itemsToSkip)
                 .options(SerializationOptions
                         .createSerializeReferenceNamesForNullOids()
-                        .skipIndexOnly(true))
+                        .skipIndexOnly(true)
+                        .skipTransient(true))
                 .serialize(savedObject);
         byte[] fullObject = RUtil.getBytesFromSerializedForm(xml, getConfiguration().isUseZip());
 
         object.setFullObject(fullObject);
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Updating full object xml column finished. Xml:\n{}", xml);
-        }
+        LOGGER.trace("Updating full object xml column finished. Xml:\n{}", xml);
     }
 
     protected SqlRepositoryConfiguration getConfiguration() {
@@ -265,12 +260,12 @@ public class ObjectUpdater {
 
     private <T extends ObjectType> String nonOverwriteAddObjectAttempt(PrismObject<T> object, RObject rObject,
             String originalOid, Session session, OrgClosureManager.Context closureContext)
-            throws ObjectAlreadyExistsException, SchemaException, DtoTranslationException {
+            throws ObjectAlreadyExistsException, SchemaException {
 
         // check name uniqueness (by type)
         if (StringUtils.isNotEmpty(originalOid)) {
             LOGGER.trace("Checking oid uniqueness.");
-            //todo improve this table name bullshit
+            // TODO improve this table name nonsense
             Class hqlType = ClassMapper.getHQLTypeClass(object.getCompileTimeClass());
             NativeQuery query = session.createNativeQuery("select count(*) from "
                     + RUtil.getTableName(hqlType, session) + " where oid=:oid");
@@ -312,14 +307,8 @@ public class ObjectUpdater {
         try {
             session = baseHelper.beginTransaction();
 
-            Class<?> clazz = ClassMapper.getHQLTypeClass(type);
-
-            CriteriaBuilder cb = session.getCriteriaBuilder();
-            CriteriaQuery<?> cq = cb.createQuery(clazz);
-            cq.where(cb.equal(cq.from(clazz).get("oid"), oid));
-
-            Query query = session.createQuery(cq);
-            RObject object = (RObject) query.uniqueResult();
+            Class<? extends RObject> clazz = ClassMapper.getHQLTypeClass(type);
+            RObject object = session.get(clazz, oid);
             if (object == null) {
                 throw new ObjectNotFoundException("Object of type '" + type.getSimpleName() + "' with oid '" + oid
                         + "' was not found.", null, oid);
@@ -590,7 +579,7 @@ public class ObjectUpdater {
         RObject rObject;
         Class<? extends RObject> clazz = ClassMapper.getHQLTypeClass(object.getClass());
         try {
-            rObject = clazz.newInstance();
+            rObject = clazz.getConstructor().newInstance();
             // Note that methods named "copyFromJAXB" that were _not_ called from this point were renamed e.g. to "fromJaxb",
             // in order to avoid confusion with dynamically called "copyFromJAXB" method.
             Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz,

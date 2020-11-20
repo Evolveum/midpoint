@@ -21,6 +21,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 import javax.xml.namespace.QName;
@@ -76,6 +77,8 @@ public class PageAdminConfiguration extends PageAdmin {
 
         task.setName(taskName);
         task.flushPendingModifications(result);
+
+        task.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value());
 
         TaskManager taskManager = getTaskManager();
         taskManager.switchToBackground(task, result);

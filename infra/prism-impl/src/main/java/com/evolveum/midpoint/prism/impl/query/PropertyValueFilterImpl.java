@@ -139,4 +139,9 @@ public abstract class PropertyValueFilterImpl<T> extends ValueFilterImpl<PrismPr
 
     public abstract PropertyValueFilterImpl clone();
 
+    void checkPrismPropertyValue(Object value) {
+        if (!(value instanceof PrismPropertyValue)) {
+            throw new IllegalArgumentException("Not supported prism value for equals filter. It must be an instance of PrismPropertyValue but it is " + value.getClass());
+        }
+    }
 }

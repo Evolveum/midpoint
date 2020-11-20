@@ -1,16 +1,16 @@
 /*
- * Copyright (c) 2010-2014 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import org.apache.commons.lang.StringUtils;
-
 import java.io.Serializable;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
 /**
  * @author lazyman
@@ -25,7 +25,7 @@ public class AttributeDto implements Serializable {
     public static final String F_DISPLAY_ORDER = "displayOrder";
     public static final String F_RETURNED_BY_DEFAULT = "returnedByDefault";
 
-    private ResourceAttributeDefinition definition;
+    private final ResourceAttributeDefinition definition;
 
     public AttributeDto(ResourceAttributeDefinition def) {
         this.definition = def;
@@ -35,17 +35,14 @@ public class AttributeDto implements Serializable {
         return definition.getItemName().getLocalPart();
     }
 
-    public String getfNameCaseInsensitive() {
+    public String getNameCaseInsensitive() {
         return StringUtils.lowerCase(definition.getItemName().getLocalPart());
     }
 
     public String getMinMaxOccurs() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(definition.getMinOccurs());
-        sb.append('/');
-        sb.append(definition.getMaxOccurs());
-
-        return sb.toString();
+        return String.valueOf(definition.getMinOccurs())
+                + '/'
+                + definition.getMaxOccurs();
     }
 
     public String getNativeAttributeName() {

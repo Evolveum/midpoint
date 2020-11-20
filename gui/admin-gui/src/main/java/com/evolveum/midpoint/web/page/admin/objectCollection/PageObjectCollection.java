@@ -112,10 +112,6 @@ public class PageObjectCollection extends PageAdminObjectDetails<ObjectCollectio
         return PageObjectCollection.class;
     }
 
-    @Override
-    public void continueEditing(AjaxRequestTarget target) {
-    }
-
     private List<ITab> getTabs(){
         List<ITab> tabs = new ArrayList<>();
         tabs.add(new PanelTab(createStringResource("pageObjectCollection.basic.title")) {
@@ -149,7 +145,17 @@ public class PageObjectCollection extends PageAdminObjectDetails<ObjectCollectio
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return createContainerPanel(panelId, getObjectModel(), ObjectCollectionType.F_BASE_COLLECTION, CollectionRefSpecificationType.COMPLEX_TYPE);
+                return new SingleContainerPanel<CollectionRefSpecificationType>(panelId, createModel(getObjectModel(), ObjectCollectionType.F_BASE_COLLECTION),
+                        CollectionRefSpecificationType.COMPLEX_TYPE) {
+                    @Override
+                    protected ItemVisibility getVisibility(ItemPath itemPath) {
+                        if (ItemPath.create(ObjectCollectionType.F_BASE_COLLECTION, CollectionRefSpecificationType.F_BASE_COLLECTION_REF)
+                                .isSuperPathOrEquivalent(itemPath)) {
+                            return ItemVisibility.HIDDEN;
+                        }
+                        return ItemVisibility.AUTO;
+                    }
+                };
             }
         });
 
@@ -193,13 +199,13 @@ public class PageObjectCollection extends PageAdminObjectDetails<ObjectCollectio
         return PrismContainerWrapperModel.fromContainerWrapper(model, itemName);
     }
 
-    @Override
-    public void finishProcessing(AjaxRequestTarget target, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, boolean returningFromAsync, OperationResult result) {
-        if (!isKeepDisplayingResults()) {
-            showResult(result);
-            redirectBack();
-        }
-    }
+//    @Override
+//    public void finishProcessing(AjaxRequestTarget target, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, boolean returningFromAsync, OperationResult result) {
+//        if (!isKeepDisplayingResults()) {
+//            showResult(result);
+//            redirectBack();
+//        }
+//    }
 
     @Override
     protected AbstractObjectMainPanel<ObjectCollectionType> createMainPanel(String id) {

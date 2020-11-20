@@ -30,7 +30,7 @@ public class ResourcesPageTable<T> extends TableWithPageRedirect<T> {
     }
 
     @Override
-    public TableHeaderDropDownMenu<ResourcesPageTable> clickHeaderActionDropDown() {
+    protected TableHeaderDropDownMenu<ResourcesPageTable> clickHeaderActionDropDown() {
         return null;
     }
 

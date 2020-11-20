@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -76,7 +76,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     private static final File TEST_DIR = new File("src/test/resources/sync");
 
-    private static final TestResource USER_IMPORTER = new TestResource(TEST_DIR, "user-importer.xml", "00000000-1111-1111-1111-000000000002");
+    private static final TestResource<UserType> USER_IMPORTER = new TestResource<>(
+            TEST_DIR, "user-importer.xml", "00000000-1111-1111-1111-000000000002");
 
     private static final String ACCOUNT_OTIS_NAME = "otis";
     private static final String ACCOUNT_OTIS_FULLNAME = "Otis";
@@ -400,7 +401,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 .end()
                 .assertProgress(7);
 
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 5);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 3);
 
         List<PrismObject<UserType>> usersAfter = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", usersAfter);
@@ -2532,6 +2533,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         OperationStatsType statistics = taskAfter.getStoredOperationStats();
         SynchronizationInformationType syncInfo = statistics.getSynchronizationInformation();
+        // TODO: sometimes fails with: java.lang.AssertionError: expected:<12> but was:<0>
         assertEquals(17 - 3 - 2, syncInfo.getCountLinked());  //total (17) - filtered (3)- protectected (2)
     }
 

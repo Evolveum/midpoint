@@ -45,6 +45,7 @@ public class DeltaMapTripleImpl<K,V> implements DeltaMapTriple<K,V> {
         minusMap = createMap();
     }
 
+    // TODO consider removing this unused method and declare plus/minus/zero map not null
     public DeltaMapTripleImpl(Map<K,V> zeroMap, Map<K,V> plusMap, Map<K,V> minusMap) {
         this.zeroMap = zeroMap;
         this.plusMap = plusMap;

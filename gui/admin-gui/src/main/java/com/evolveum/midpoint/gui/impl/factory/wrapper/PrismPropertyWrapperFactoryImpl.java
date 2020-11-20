@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -36,7 +36,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
  * @author katka
  */
 @Component
-public class PrismPropertyWrapperFactoryImpl<T> extends ItemWrapperFactoryImpl<PrismPropertyWrapper<T>, PrismPropertyValue<T>, PrismProperty<T>, PrismPropertyValueWrapper<T>>{
+public class PrismPropertyWrapperFactoryImpl<T>
+        extends ItemWrapperFactoryImpl<PrismPropertyWrapper<T>, PrismPropertyValue<T>, PrismProperty<T>, PrismPropertyValueWrapper<T>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyWrapperFactoryImpl.class);
 
@@ -81,24 +82,24 @@ public class PrismPropertyWrapperFactoryImpl<T> extends ItemWrapperFactoryImpl<P
         if (valueEnumerationRef == null) {
             return null;
         }
-            //TODO: task and result from context
-            Task task = wrapperContext.getTask();
-            OperationResult result = wrapperContext.getResult().createSubresult(OPERATION_LOAD_LOOKUP_TABLE);
-            Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-                    .createLookupTableRetrieveOptions(schemaHelper);
+        //TODO: task and result from context
+        Task task = wrapperContext.getTask();
+        OperationResult result = wrapperContext.getResult().createSubresult(OPERATION_LOAD_LOOKUP_TABLE);
+        Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
+                .createLookupTableRetrieveOptions(schemaHelper);
 
-            try {
-                PrismObject<LookupTableType> lookupTable = getModelService().getObject(LookupTableType.class, valueEnumerationRef.getOid(), options, task, result);
-                result.computeStatusIfUnknown();
-                return lookupTable.asObjectable();
-            } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException
-                    | ConfigurationException | ExpressionEvaluationException e) {
-                LOGGER.error("Cannot load lookup table for {} ", item);
-                result.recordFatalError("Cannot load lookupTable for " + item + ", Reason: " + e.getMessage(), e);
-                //TODO throw???
-            }
+        try {
+            PrismObject<LookupTableType> lookupTable = getModelService().getObject(LookupTableType.class, valueEnumerationRef.getOid(), options, task, result);
+            result.computeStatusIfUnknown();
+            return lookupTable.asObjectable();
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException
+                | ConfigurationException | ExpressionEvaluationException e) {
+            LOGGER.error("Cannot load lookup table for {} ", item);
+            result.recordFatalError("Cannot load lookupTable for " + item + ", Reason: " + e.getMessage(), e);
+            //TODO throw???
+        }
 
-            return null;
+        return null;
 
     }
 

@@ -65,4 +65,16 @@ public class AuthModuleRegistryImpl {
         return factory;
     }
 
+    public <T extends AbstractModuleFactory> T findModelFactoryByClass(Class<T> clazz) {
+
+        Optional<T> opt = (Optional<T>) moduleFactories.stream().filter(f -> f.getClass().equals(clazz)).findFirst();
+        if (!opt.isPresent()) {
+            LOGGER.trace("No factory found for class {}", clazz);
+            return null;
+        }
+        T factory = opt.get();
+        LOGGER.trace("Found component factory {} for class {}", factory, clazz);
+        return factory;
+    }
+
 }

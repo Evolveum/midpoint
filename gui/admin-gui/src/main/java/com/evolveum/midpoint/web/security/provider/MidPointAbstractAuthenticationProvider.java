@@ -13,6 +13,10 @@ import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -21,6 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -89,8 +94,12 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
             if (actualAuthentication instanceof MidpointAuthentication) {
                 MidpointAuthentication mpAuthentication = (MidpointAuthentication) actualAuthentication;
                 ModuleAuthentication moduleAuthentication = getProcessingModule(mpAuthentication);
-                MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
-                token = createNewAuthenticationToken(token, mpAuthentication.getAuthenticationChannel().resolveAuthorities(principal.getAuthorities()));
+                if (token.getPrincipal() instanceof MidPointPrincipal) {
+                    MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
+                    token = createNewAuthenticationToken(token, mpAuthentication.getAuthenticationChannel().resolveAuthorities(principal.getAuthorities()));
+                } else {
+                    token = createNewAuthenticationToken(token, token.getAuthorities());
+                }
                 writeAutentication(processingAuthentication, mpAuthentication, moduleAuthentication, token);
 
                 return mpAuthentication;
@@ -124,7 +133,7 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
         return moduleAuthentication;
     }
 
-    protected ConnectionEnvironment createEnviroment(AuthenticationChannel channel) {
+    protected ConnectionEnvironment createEnvironment(AuthenticationChannel channel) {
         if (channel != null) {
             ConnectionEnvironment connEnv = ConnectionEnvironment.create(channel.getChannelId());
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -133,7 +142,7 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
             }
             return connEnv;
         } else {
-            return ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI);
+            return ConnectionEnvironment.create(SchemaConstants.CHANNEL_USER_URI);
         }
     }
 
@@ -186,5 +195,11 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
         if (obj == null) return false;
         if (this.getClass() != obj.getClass()) return false;
         return (this.hashCode() == obj.hashCode());
+    }
+
+    protected Collection<? extends ItemDelta<?, ?>> computeModifications(@NotNull FocusType before, @NotNull FocusType after) {
+        ObjectDelta<? extends FocusType> delta = ((PrismObject<FocusType>)before.asPrismObject()).diff((PrismObject<FocusType>) after.asPrismObject(), ParameterizedEquivalenceStrategy.LITERAL);
+        assert delta.isModify();
+        return delta.getModifications();
     }
 }

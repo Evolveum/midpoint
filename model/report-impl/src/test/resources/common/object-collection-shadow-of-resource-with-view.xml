@@ -30,4 +30,11 @@
             <previousColumn>nameColumnReport</previousColumn>
         </column>
     </defaultView>
+    <getOptions>
+        <option>
+            <options>
+                <raw>true</raw>
+            </options>
+        </option>
+    </getOptions>
 </objectCollection>

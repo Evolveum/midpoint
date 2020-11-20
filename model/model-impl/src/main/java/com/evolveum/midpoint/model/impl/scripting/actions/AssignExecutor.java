@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
@@ -196,7 +197,8 @@ public class AssignExecutor extends AssignmentOperationsExecutor<AssignParameter
     }
 
     @Override
-    protected ObjectDelta<? extends ObjectType> createDelta(AssignmentHolderType object, AssignParameters parameters) throws SchemaException {
+    protected ObjectDelta<? extends ObjectType> createDelta(AssignmentHolderType object, PipelineItem item,
+            AssignParameters parameters, ExecutionContext context, OperationResult result) throws SchemaException {
 
         List<AssignmentType> assignmentsToAdd = new ArrayList<>();
         assignmentsToAdd.addAll(targetsToAssignments(parameters.targetRefs));

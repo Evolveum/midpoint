@@ -11,10 +11,16 @@ import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHo
 /**
  * Created by Kate Honchar
  */
-public class CasesPage extends AssignmentHolderObjectListPage<CasesListTable> {
+public class CasesPage extends AssignmentHolderObjectListPage<CasesListTable, CasePage> {
 
     @Override
     public CasesListTable table() {
         return new CasesListTable(this, getTableBoxElement());
     }
+
+    @Override
+    public CasePage getObjectDetailsPage() {
+        return new CasePage();
+    }
+
 }

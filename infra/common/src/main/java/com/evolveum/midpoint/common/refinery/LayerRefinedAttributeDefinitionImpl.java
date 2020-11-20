@@ -31,15 +31,13 @@ import org.jetbrains.annotations.NotNull;
  * @author semancik
  *
  */
-public final class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttributeDefinition<T> {
+public final class LayerRefinedAttributeDefinitionImpl<T> extends AbstractFreezable implements LayerRefinedAttributeDefinition<T> {
 
-    private RefinedAttributeDefinition<T> refinedAttributeDefinition;
-    private LayerType layer;
+    private final RefinedAttributeDefinition<T> refinedAttributeDefinition;
+    private final LayerType layer;
     private Boolean overrideCanRead = null;
     private Boolean overrideCanAdd = null;
     private Boolean overrideCanModify = null;
-
-    private boolean immutable;
 
     private LayerRefinedAttributeDefinitionImpl(RefinedAttributeDefinition<T> refinedAttributeDefinition, LayerType layer) {
         this.refinedAttributeDefinition = refinedAttributeDefinition;
@@ -50,7 +48,11 @@ public final class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefine
         if (rAttrDef == null) {
             return null;
         }
-        return new LayerRefinedAttributeDefinitionImpl<>(rAttrDef, layer);
+        LayerRefinedAttributeDefinitionImpl<T> wrapped = new LayerRefinedAttributeDefinitionImpl<>(rAttrDef, layer);
+        if (rAttrDef.isImmutable()) {
+            wrapped.freeze();
+        }
+        return wrapped;
     }
 
     static List<LayerRefinedAttributeDefinition<?>> wrapCollection(
@@ -79,6 +81,7 @@ public final class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefine
     }
 
     public void setOverrideCanRead(Boolean overrideCanRead) {
+        checkMutable();
         this.overrideCanRead = overrideCanRead;
     }
 
@@ -88,6 +91,7 @@ public final class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefine
     }
 
     public void setOverrideCanAdd(Boolean overrideCanAdd) {
+        checkMutable();
         this.overrideCanAdd = overrideCanAdd;
     }
 
@@ -97,6 +101,7 @@ public final class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefine
     }
 
     public void setOverrideCanModify(Boolean overrideCanModify) {
+        checkMutable();
         this.overrideCanModify = overrideCanModify;
     }
 
@@ -301,11 +306,6 @@ public final class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefine
     @Override
     public MutableResourceAttributeDefinition<T> toMutable() {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isImmutable() {
-        return immutable;
     }
 
     @Override
@@ -692,11 +692,6 @@ public final class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefine
 
     @Override
     public String toString() {
-        return refinedAttributeDefinition + ":" + layer;
-    }
-
-    @Override
-    public void freeze() {
-        immutable = true;
+        return (isImmutable() ? "" : "+") + refinedAttributeDefinition + ":" + layer;
     }
 }

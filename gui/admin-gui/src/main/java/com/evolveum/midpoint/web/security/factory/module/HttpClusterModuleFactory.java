@@ -66,7 +66,7 @@ public class HttpClusterModuleFactory extends AbstractModuleFactory {
     }
 
     private AuthenticationProvider createProvider() {
-        return new ClusterProvider();
+        return getObjectObjectPostProcessor().postProcess(new ClusterProvider());
     }
 
     private ModuleAuthentication createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType, ModuleWebSecurityConfiguration configuration) {

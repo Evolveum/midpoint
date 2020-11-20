@@ -19,7 +19,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -121,7 +120,7 @@ public class PageRegistrationBase extends PageBase {
             public SecurityPolicyType run() {
 
                 Task task = createAnonymousTask(OPERATION_GET_SECURITY_POLICY);
-                task.setChannel(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
+                task.setChannel(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI);
                 OperationResult result = new OperationResult(OPERATION_GET_SECURITY_POLICY);
 
                 try {

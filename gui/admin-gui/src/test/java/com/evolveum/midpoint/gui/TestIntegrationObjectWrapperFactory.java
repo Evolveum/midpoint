@@ -80,7 +80,6 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
     private static final List<ItemPath> BASIC_USER_CONTAINERS_PATHS = Arrays.asList(
             UserType.F_EXTENSION,
-            //UserType.F_METADATA, // Temporary - see MID-6335
             UserType.F_ASSIGNMENT,
             UserType.F_ACTIVATION,
             UserType.F_TRIGGER,
@@ -89,7 +88,6 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             UserType.F_BEHAVIOR);
     private static final List<ItemPath> BASIC_SHADOW_CONTAINERS_PATHS = Arrays.asList(
             ShadowType.F_EXTENSION,
-            //ShadowType.F_METADATA, // Temporary - see MID-6335
             ShadowType.F_PENDING_OPERATION,
             ShadowType.F_ATTRIBUTES,
             ShadowType.F_TRIGGER,
@@ -98,12 +96,10 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             ShadowType.F_CREDENTIALS);
     private static final List<ItemPath> BASIC_ORG_CONTAINERS_PATHS = Arrays.asList(
             OrgType.F_EXTENSION,
-            //OrgType.F_METADATA, // Temporary - see MID-6335
             OrgType.F_ASSIGNMENT,
             OrgType.F_ACTIVATION,
             OrgType.F_INDUCEMENT,
             OrgType.F_AUTHORIZATION,
-//            OrgType.F_EXCLUSION,
             OrgType.F_CONDITION,
             OrgType.F_ADMIN_GUI_CONFIGURATION,
             OrgType.F_DATA_PROTECTION,
@@ -111,8 +107,6 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             OrgType.F_AUTOASSIGN,
             OrgType.F_CREDENTIALS,
             OrgType.F_BEHAVIOR);
-    private String userWallyOid;
-    private String accountWallyOid;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -132,7 +126,6 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         assertLoggedInUserOid(USER_ADMINISTRATOR_OID);
 
@@ -143,9 +136,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         WrapperContext context = new WrapperContext(task, result);
         PrismObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper(user, ItemStatus.NOT_CHANGED, context);
 
-        // THEN
         then();
-
         displayDumpable("Wrapper after", objectWrapper);
 
         WrapperTestUtil.assertWrapper(objectWrapper, getString("prismContainer.mainPanelDisplayName"), "user description", user, userOld, ItemStatus.NOT_CHANGED);
@@ -170,26 +161,26 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         ItemStatus objectStatus = objectWrapper.getStatus();
 
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_GIVEN_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_FULL_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_ADDITIONAL_NAME, false); // not visible, because it is empty
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_LOCALITY, true);
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_NAME, true);
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_GIVEN_NAME, true);
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_FULL_NAME, true);
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, false); // not visible, because it is empty
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_LOCALITY, true);
 
         assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_WEAPON), null);
         assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_COLORS), ItemProcessing.AUTO);
         assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_SECRET), ItemProcessing.IGNORE);
         assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_RANT), ItemProcessing.MINIMAL);
 
-        // WHEN
+        when();
         mainContainerValueWrapper.setShowEmpty(true);
 
-        // THEN
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_GIVEN_NAME, true); // emphasized
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_FULL_NAME, true); // emphasized
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_ADDITIONAL_NAME, true); // empty
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_LOCALITY, true); // empty
+        then();
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_NAME, true);
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_GIVEN_NAME, true); // emphasized
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_FULL_NAME, true); // emphasized
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, true); // empty
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_LOCALITY, true); // empty
 
         ObjectDelta<UserType> objectDelta = objectWrapper.getObjectDelta();
         displayDumpable("Delta", objectDelta);
@@ -215,9 +206,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         PrismObject<UserType> user = getUser(USER_EMPTY_OID);
         PrismObject<UserType> userOld = user.clone();
 
-        // WHEN
         when();
-
         Task task = createTask();
         OperationResult result = task.getResult();
 
@@ -227,9 +216,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         PrismObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper(user, ItemStatus.NOT_CHANGED, context);
 
-        // THEN
         then();
-
         displayDumpable("Wrapper after", objectWrapper);
 
         WrapperTestUtil.assertWrapper(objectWrapper, getString("prismContainer.mainPanelDisplayName"), "user description", user, userOld, ItemStatus.NOT_CHANGED);
@@ -248,21 +235,21 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         assertEquals("Wrong main container wrapper readOnly", Boolean.FALSE, (Boolean) objectWrapper.isReadOnly());
 
         ItemStatus objectStatus = objectWrapper.getStatus();
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_GIVEN_NAME, true); // emphasized
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_FULL_NAME, true); // emphasized
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_ADDITIONAL_NAME, false); // empty
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_LOCALITY, false); // empty
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_NAME, true);
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_GIVEN_NAME, true); // emphasized
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_FULL_NAME, true); // emphasized
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, false); // empty
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_LOCALITY, false); // empty
 
-        // WHEN
+        when();
         mainContainerValueWrapper.setShowEmpty(true);
 
-        // THEN
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_GIVEN_NAME, true); // emphasized
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_FULL_NAME, true); // emphasized
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_ADDITIONAL_NAME, true); // empty
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_LOCALITY, true); // empty
+        then();
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_NAME, true);
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_GIVEN_NAME, true); // emphasized
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_FULL_NAME, true); // emphasized
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, true); // empty
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_LOCALITY, true); // empty
 
         ObjectDelta<UserType> objectDelta = objectWrapper.getObjectDelta();
         displayDumpable("Delta", objectDelta);
@@ -308,25 +295,25 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         assertEquals("Wrong main container wrapper readOnly", Boolean.FALSE, (Boolean) objectWrapper.isReadOnly());
 
         ItemStatus objectStatus = objectWrapper.getStatus();
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_GIVEN_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_FULL_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_ADDITIONAL_NAME, true);
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_NAME, true);
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_GIVEN_NAME, true);
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_FULL_NAME, true);
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, true);
 
         assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_WEAPON), null);
         assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_COLORS), ItemProcessing.AUTO);
         assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_SECRET), ItemProcessing.IGNORE);
         assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_RANT), ItemProcessing.MINIMAL);
 
-        // WHEN
+        when();
         mainContainerValueWrapper.setShowEmpty(false);
 
-        // THEN
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_GIVEN_NAME, true); // emphasized
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_FULL_NAME, true); // emphasized
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_ADDITIONAL_NAME, false); // empty
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_LOCALITY, false); // empty
+        then();
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_NAME, true);
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_GIVEN_NAME, true); // emphasized
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_FULL_NAME, true); // emphasized
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, false); // empty
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_LOCALITY, false); // empty
 
         ObjectDelta<UserType> objectDelta = objectWrapper.getObjectDelta();
         displayDumpable("Delta", objectDelta);
@@ -360,9 +347,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         WrapperTestUtil.fillInPropertyWrapper(modelServiceLocator, mainContainerValueWrapper, UserType.F_EMPLOYEE_NUMBER, USER_NEWMAN_EMPLOYEE_NUMBER);
         WrapperTestUtil.fillInPropertyWrapper(modelServiceLocator, mainContainerValueWrapper, extensionPath(PIRACY_SHIP), USER_NEWMAN_SHIP);
 
-        // THEN
         then();
-
         displayDumpable("Wrapper after", objectWrapper);
 
         WrapperTestUtil.assertWrapper(objectWrapper, getString("prismContainer.mainPanelDisplayName"), "user description", user, getUserDefinition().instantiate(), ItemStatus.ADDED);
@@ -386,20 +371,20 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_RANT), ItemProcessing.MINIMAL);
 
         ItemStatus objectStatus = objectWrapper.getStatus();
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_GIVEN_NAME, true); // emphasized
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_FULL_NAME, true); // emphasized
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_ADDITIONAL_NAME, true); // empty
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_LOCALITY, true); // empty
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_NAME, true);
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_GIVEN_NAME, true); // emphasized
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_FULL_NAME, true); // emphasized
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, true); // empty
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_LOCALITY, true); // empty
 
-        // WHEN
+        when();
         mainContainerValueWrapper.setShowEmpty(false);
 
-        // THEN
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_GIVEN_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_FULL_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_ADDITIONAL_NAME, false); // not visible, because it is empty
+        then();
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_NAME, true);
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_GIVEN_NAME, true);
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_FULL_NAME, true);
+        assertItemWrapperFullControl(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, false); // not visible, because it is empty
 
         ObjectDelta<UserType> objectDelta = objectWrapper.getObjectDelta();
         displayDumpable("Delta", objectDelta);
@@ -420,7 +405,6 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         display("Shadow", shadow);
         PrismObject<ShadowType> shadowOld = shadow.clone();
 
-        // WHEN
         when();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -498,12 +482,10 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         PrismObject<OrgType> org = getObject(OrgType.class, ORG_SCUMM_BAR_OID);
         PrismObject<OrgType> orgOld = org.clone();
 
-        // WHEN
         when();
         Task task = getTestTask();
         PrismObjectWrapper<OrgType> objectWrapper = createObjectWrapper(task, org, ItemStatus.NOT_CHANGED);
 
-        // THEN
         then();
         displayDumpable("Wrapper after", objectWrapper);
 
@@ -526,10 +508,10 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         assertEquals("Wrong main container wrapper readOnly", Boolean.FALSE, (Boolean) mainContainerValueWrapper.isReadOnly());
 
         ItemStatus objectStatus = objectWrapper.getStatus();
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, OrgType.F_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, OrgType.F_IDENTIFIER, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, OrgType.F_RISK_LEVEL, false); // not visible, because it is empty
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, OrgType.F_LOCALITY, true);
+        assertItemWrapperFullControl(mainContainerValueWrapper, OrgType.F_NAME, true);
+        assertItemWrapperFullControl(mainContainerValueWrapper, OrgType.F_IDENTIFIER, true);
+        assertItemWrapperFullControl(mainContainerValueWrapper, OrgType.F_RISK_LEVEL, false); // not visible, because it is empty
+        assertItemWrapperFullControl(mainContainerValueWrapper, OrgType.F_LOCALITY, true);
 
         assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_TRANSFORM_DESCRIPTION), null);
         PrismContainerWrapper<Containerable> transformContainerWrapper = mainContainerValueWrapper.findContainer(extensionPath(PIRACY_TRANSFORM));
@@ -538,14 +520,14 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //        ContainerWrapper<Containerable> transformContainerWrapper = objectWrapper.findContainer(ItemPath.create(PIRACY_TRANSFORM));
 //        assertEquals("Wrong processing in item wrapper for "+PIRACY_TRANSFORM, ItemProcessing.MINIMAL, transformContainerWrapper.getProcessing());
 
-        // WHEN
+        when();
         mainContainerValueWrapper.setShowEmpty(true);
 
-        // THEN
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, OrgType.F_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, OrgType.F_IDENTIFIER, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, OrgType.F_RISK_LEVEL, true); // empty
-        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, OrgType.F_LOCALITY, true);
+        then();
+        assertItemWrapperFullControl(mainContainerValueWrapper, OrgType.F_NAME, true);
+        assertItemWrapperFullControl(mainContainerValueWrapper, OrgType.F_IDENTIFIER, true);
+        assertItemWrapperFullControl(mainContainerValueWrapper, OrgType.F_RISK_LEVEL, true); // empty
+        assertItemWrapperFullControl(mainContainerValueWrapper, OrgType.F_LOCALITY, true);
 
         ObjectDelta<OrgType> objectDelta = objectWrapper.getObjectDelta();
         displayDumpable("Delta", objectDelta);
@@ -562,7 +544,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         PrismObject<UserType> user = createUser(USER_WALLY_NAME, USER_WALLY_FULLNAME, true);
         addObject(user);
-        userWallyOid = user.getOid();
+        String userWallyOid = user.getOid();
         assignRole(userWallyOid, ROLE_MAPMAKER_OID, task, result);
 
         // preconditions
@@ -570,7 +552,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         PrismObject<UserType> userAfter = getUser(userWallyOid);
         display("User after change execution", userAfter);
-        accountWallyOid = getSingleLinkOid(userAfter);
+        String accountWallyOid = getSingleLinkOid(userAfter);
 
         PrismObject<ShadowType> shadow = getShadowModel(accountWallyOid);
         shadow.findReference(ShadowType.F_RESOURCE_REF).getValue().setObject(resourceDummy);
@@ -582,16 +564,12 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         displayDumpable("Group", dummyGroup);
         assertGroupMember(dummyGroup, USER_WALLY_NAME);
 
-        // WHEN
         when();
-
         PrismObjectWrapper<ShadowType> objectWrapper = createObjectWrapper(task, shadow, ItemStatus.NOT_CHANGED);
         assertTrue("Wrong wrapper created. Expected ShadowWrapper but was " + objectWrapper.getClass().getSimpleName(), objectWrapper instanceof ShadowWrapper);
         ShadowWrapper shadowWrapper = (ShadowWrapper) objectWrapper;
 
-        // THEN
         then();
-
         displayDumpable("Wrapper after", shadowWrapper);
 
         WrapperTestUtil.assertWrapper(shadowWrapper, getString("prismContainer.mainPanelDisplayName"), "shadow description", shadow, shadowOld, ItemStatus.NOT_CHANGED);
@@ -633,7 +611,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //        PrismAsserts.assertPropertyValue(groupAssociationValuePVal.asReferencable().getTargetName(), GROUP_DUMMY_MAPMAKERS_NAME);
     }
 
-    @Test(enabled = false)
+    @Test
     public void test240OrgScummBarModifyTransformDescription() throws Exception {
         PrismObject<OrgType> org = getObject(OrgType.class, ORG_SCUMM_BAR_OID);
 
@@ -648,11 +626,9 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         displayDumpable("Wrapper after", objectWrapper);
 
-        // WHEN
         when();
         ObjectDelta<OrgType> objectDelta = objectWrapper.getObjectDelta();
 
-        // THEN
         then();
         displayDumpable("Delta", objectDelta);
         ItemPath ahoyPath = ItemPath.create(ObjectType.F_EXTENSION, PIRACY_TRANSFORM_DESCRIPTION);
@@ -666,10 +642,9 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         PrismObject<OrgType> orgAfter = getObject(OrgType.class, ORG_MINISTRY_OF_RUM_OID);
         display("Org after", orgAfter);
-
     }
 
-    @Test(enabled = false)
+    @Test
     public void test241OrgScummBarModifyTransformProperties() throws Exception {
         PrismObject<OrgType> org = getObject(OrgType.class, ORG_SCUMM_BAR_OID);
 
@@ -690,11 +665,9 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         displayDumpable("Wrapper after", objectWrapper);
 
-        // WHEN
         when();
         ObjectDelta<OrgType> objectDelta = objectWrapper.getObjectDelta();
 
-        // THEN
         then();
         displayDumpable("Delta", objectDelta);
         ItemPath ahoyPath = ItemPath.create(ObjectType.F_EXTENSION, PIRACY_TRANSFORM, valueWrapperA.getNewValue().getId(), PIRACY_REPLACEMENT);
@@ -708,7 +681,6 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         PrismObject<OrgType> orgAfter = getObject(OrgType.class, ORG_MINISTRY_OF_RUM_OID);
         display("Org after", orgAfter);
-
     }
 
     @Test
@@ -736,11 +708,9 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         displayDumpable("Wrapper after", objectWrapper);
 
-        // WHEN
         when();
         ObjectDelta<OrgType> objectDelta = objectWrapper.getObjectDelta();
 
-        // THEN
         then();
         displayDumpable("Delta", objectDelta);
         ItemPath transformPath = ItemPath.create(ObjectType.F_EXTENSION, PIRACY_TRANSFORM);
@@ -765,7 +735,6 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         PrismObject<OrgType> orgAfter = getObject(OrgType.class, ORG_MINISTRY_OF_RUM_OID);
         display("Org after", orgAfter);
-
     }
 
     /**
@@ -786,11 +755,9 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         displayDumpable("Wrapper after", objectWrapper);
 
-        // WHEN
         when();
         ObjectDelta<OrgType> objectDelta = objectWrapper.getObjectDelta();
 
-        // THEN
         then();
         displayDumpable("Delta", objectDelta);
         PrismAsserts.assertModifications(objectDelta, 1);
@@ -809,12 +776,13 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         PrismObject<OrgType> orgAfter = getObject(OrgType.class, ORG_MINISTRY_OF_RUM_OID);
         display("Org after", orgAfter);
-
     }
 
-    private void modifyPropertyWrapper(ModelServiceLocator modelServiceLocator, PrismContainerValueWrapper<OrgType> mainContainerValueWrapper, ItemPath propPath, String newValue) throws SchemaException {
+    private void modifyPropertyWrapper(ModelServiceLocator modelServiceLocator,
+            PrismContainerValueWrapper<OrgType> mainContainerValueWrapper,
+            ItemPath propPath, String newValue) throws SchemaException {
         PrismPropertyWrapper propertyWrapper = mainContainerValueWrapper.findProperty(propPath);
-        List<PrismPropertyValueWrapper> values = propertyWrapper.getValues();
+        List<PrismPropertyValueWrapper<String>> values = propertyWrapper.getValues();
         if (values.size() == 1) {
             values.get(0).setRealValue(newValue);
         } else if (values.isEmpty()) {
@@ -822,7 +790,8 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             WrapperContext context = new WrapperContext(modelServiceLocator.getPageTask(), modelServiceLocator.getPageTask().getResult());
             context.setShowEmpty(true);
             context.setCreateIfEmpty(true);
-            PrismValueWrapper newValueWrapper = modelServiceLocator.createValueWrapper(propertyWrapper, pval, ValueStatus.ADDED, context);
+            PrismValueWrapper<String> newValueWrapper = modelServiceLocator.createValueWrapper(
+                    propertyWrapper, pval, ValueStatus.ADDED, context);
             newValueWrapper.setRealValue(newValue);
             propertyWrapper.getItem().add(pval);
             propertyWrapper.getValues().add(newValueWrapper);
@@ -846,7 +815,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
     private void modifyTransformProp(PrismContainerValueWrapper<Containerable> transformValueWrapper, ItemName prop, String newReplacement) throws SchemaException {
         PrismPropertyWrapper<String> replacementPropWrapper = transformValueWrapper.findProperty(prop);
         List<PrismPropertyValueWrapper<String>> values = replacementPropWrapper.getValues();
-        PrismPropertyValue<String> prismValue = (PrismPropertyValue<String>) values.get(0).getNewValue();
+        PrismPropertyValue<String> prismValue = values.get(0).getNewValue();
         prismValue.setValue(newReplacement);
     }
 
@@ -855,7 +824,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
      */
     @Test
     public void test800EditSchemaJackPropReadAllModifySomeUser() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PROP_READ_ALL_MODIFY_SOME_USER_OID);
         login(USER_JACK_USERNAME);
@@ -863,14 +832,10 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("user before", user);
 
-        // WHEN
         when();
-
         PrismObjectWrapper<UserType> objectWrapper = createObjectWrapper(getTestTask(), user, ItemStatus.NOT_CHANGED);
 
-        // THEN
         then();
-
         displayDumpable("Wrapper after", objectWrapper);
         assertEquals("Wrong object wrapper readOnly", Boolean.FALSE, (Boolean) objectWrapper.isReadOnly());
 
@@ -913,13 +878,12 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         assertEquals("Wrong locality definition.canAdd", Boolean.FALSE, (Boolean) localityNameWrapper.canAdd());
         assertEquals("Wrong locality definition.canModify", Boolean.FALSE, (Boolean) localityNameWrapper.canModify());
 
-        // WHEN
+        when();
         mainContainerValueWrapper.setShowEmpty(true);
 
-        // THEN
+        then();
         additionalNameWrapper = mainContainerValueWrapper.findProperty(UserType.F_ADDITIONAL_NAME);
         assertEquals("Wrong additionalName visible", Boolean.TRUE, (Boolean) additionalNameWrapper.isVisible(mainContainerValueWrapper, null)); // visible, because show empty
-
     }
 
     /**
@@ -927,7 +891,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
      */
     @Test
     public void test802EditSchemaJackPropReadSomeModifySomeUser() throws Exception {
-        // GIVEN
+        given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PROP_READ_SOME_MODIFY_SOME_USER_OID);
         login(USER_JACK_USERNAME);
@@ -936,14 +900,10 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("user before", user);
 
-        // WHEN
         when();
-
         PrismObjectWrapper<UserType> objectWrapper = createObjectWrapper(task, user, ItemStatus.NOT_CHANGED);
 
-        // THEN
         then();
-
         displayDumpable("Wrapper after", objectWrapper);
         assertEquals("Wrong object wrapper readOnly", Boolean.FALSE, (Boolean) objectWrapper.isReadOnly());
 
@@ -995,9 +955,10 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //        assertEquals("Wrong locality definition.canModify", Boolean.FALSE, (Boolean)localityNameWrapper.canModify());
     }
 
-    private <C extends Containerable> void assertItemWrapperFullConrol(PrismContainerValueWrapper<C> containerWrapper, ItemStatus status, ItemName propName,
-            boolean visible) throws SchemaException {
-        ItemWrapper itemWrapper = containerWrapper.findItem(propName, ItemWrapper.class);
+    private <C extends Containerable> void assertItemWrapperFullControl(
+            PrismContainerValueWrapper<C> containerWrapper, ItemName propName, boolean visible)
+            throws SchemaException {
+        ItemWrapper<?, ?> itemWrapper = containerWrapper.findItem(propName, ItemWrapper.class);
         assertEquals("Wrong " + propName + " readOnly", Boolean.FALSE, (Boolean) itemWrapper.isReadOnly());
         assertEquals("Wrong " + propName + " visible", visible, itemWrapper.isVisible(containerWrapper, w -> ItemVisibility.AUTO));
         assertEquals("Wrong " + propName + " definition.canRead", Boolean.TRUE, (Boolean) itemWrapper.canRead());
@@ -1007,7 +968,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
     private <F extends FocusType> void assertItemWrapperProcessing(PrismContainerValueWrapper<F> containerWrapper,
             ItemPath propName, ItemProcessing expectedProcessing) throws SchemaException {
-        ItemWrapper itemWrapper = containerWrapper.findItem(propName, ItemWrapper.class);
+        ItemWrapper<?, ?> itemWrapper = containerWrapper.findItem(propName, ItemWrapper.class);
         if (expectedProcessing == ItemProcessing.IGNORE) {
             assertNull("Unexpected ignored item wrapper for " + propName, itemWrapper);
         } else {

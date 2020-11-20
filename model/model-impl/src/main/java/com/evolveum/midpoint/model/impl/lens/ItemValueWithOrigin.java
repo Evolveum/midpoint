@@ -10,18 +10,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
-import com.evolveum.midpoint.model.impl.lens.construction.Construction;
-import com.evolveum.midpoint.model.impl.lens.projector.ValueMatcher;
+import com.evolveum.midpoint.model.impl.lens.construction.ResourceObjectConstruction;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,10 +30,10 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 
     private V itemValue;
     private PrismValueDeltaSetTripleProducer<V, D> mapping;
-    private Construction construction;
+    private ResourceObjectConstruction construction;
 
     public ItemValueWithOrigin(V itemValue,
-            PrismValueDeltaSetTripleProducer<V, D> mapping, Construction accountConstruction) {
+            PrismValueDeltaSetTripleProducer<V, D> mapping, ResourceObjectConstruction accountConstruction) {
         super();
         this.itemValue = itemValue;
         this.mapping = mapping;
@@ -57,7 +54,7 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
         return mapping;
     }
 
-    public Construction getConstruction() {
+    public ResourceObjectConstruction getConstruction() {
         return construction;
     }
 
@@ -71,19 +68,6 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 
     public boolean wasValid() {
         return construction == null || construction.getWasValid();
-    }
-
-    public <T> boolean equalsRealValue(V pvalue, ValueMatcher<T> valueMatcher) throws SchemaException {
-        if (itemValue == null) {
-            return false;
-        }
-        if (valueMatcher == null) {
-            return itemValue.equals(pvalue, EquivalenceStrategy.IGNORE_METADATA);
-        } else {
-            // this must be a property, otherwise there would be no matcher
-            return valueMatcher.match(((PrismPropertyValue<T>)itemValue).getValue(),
-                    ((PrismPropertyValue<T>)pvalue).getValue());
-        }
     }
 
     public ItemValueWithOrigin<V,D> clone() {
@@ -158,5 +142,10 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 
     boolean isSourceless() {
         return mapping != null && mapping.isSourceless();
+    }
+
+    @Experimental
+    public boolean isPushChanges() {
+        return mapping != null && mapping.isPushChanges();
     }
 }

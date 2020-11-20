@@ -31,6 +31,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItemSpecificationType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 /**
  * @author katka
  */
@@ -52,6 +54,9 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
 
     private List<VirtualContainerItemSpecificationType> virtualItems;
     private List<ItemWrapper<?, ?>> items = new ArrayList<>();
+
+    private List<ItemWrapper<?, ?>> nonContainers = new ArrayList<>();
+    private List<PrismContainerWrapper<? extends Containerable>> containers = new ArrayList<>();
 
     public PrismContainerValueWrapperImpl(PrismContainerWrapper<C> parent, PrismContainerValue<C> pcv, ValueStatus status) {
         super(parent, pcv, status);
@@ -154,6 +159,16 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     }
 
     @Override
+    public void addItem(ItemWrapper<?, ?> newItem) {
+        items.add(newItem);
+        if (newItem instanceof PrismContainerWrapper) {
+            containers.add((PrismContainerWrapper) newItem);
+        } else {
+            nonContainers.add(newItem);
+        }
+    }
+
+    @Override
     public boolean isShowMetadata() {
         return showMetadata;
     }
@@ -219,15 +234,18 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     }
 
     @Override
-    public <T extends Containerable> List<PrismContainerWrapper<T>> getContainers() {
-        List<PrismContainerWrapper<T>> containers = new ArrayList<>();
+    public List<PrismContainerWrapper<? extends Containerable>> getContainers() {
+        if (!containers.isEmpty()) {
+            return containers;
+        }
+//        List<PrismContainerWrapper<T>> containers = new ArrayList<>();
         for (ItemWrapper<?, ?> container : items) {
 
             collectExtensionItems(container, true, containers);
 
             if (container instanceof PrismContainerWrapper && !ObjectType.F_EXTENSION.equivalent(container.getItemName())) {
                 //noinspection unchecked
-                containers.add((PrismContainerWrapper<T>) container);
+                containers.add((PrismContainerWrapper) container);
             }
         }
         return containers;
@@ -235,13 +253,16 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
 
     @Override
     public List<ItemWrapper<?,?>> getNonContainers() {
-        List<ItemWrapper<?,?>> nonContainers = new ArrayList<>();
+        if (!nonContainers.isEmpty()) {
+            return nonContainers;
+        }
+//        List<ItemWrapper<?,?>> nonContainers = new ArrayList<>();
         for (ItemWrapper<?,?> item : items) {
 
             collectExtensionItems(item, false, nonContainers);
 
             if (!(item instanceof PrismContainerWrapper)) {
-                (nonContainers).add(item);
+                nonContainers.add(item);
             }
         }
 
@@ -496,5 +517,16 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
 
     public PrismContainerDefinition<C> getDefinition() {
         return getNewValue().getDefinition();
+    }
+
+    @Override
+    public PrismContainerWrapper<? extends Containerable> getSelectedChild() {
+        for (PrismContainerWrapper<? extends Containerable> child : getContainers()) {
+            if (child.isShowMetadataDetails()) {
+                return child;
+            }
+        }
+
+        return null;
     }
 }

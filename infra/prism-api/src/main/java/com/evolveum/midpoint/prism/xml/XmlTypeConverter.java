@@ -16,6 +16,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.codec.binary.Base64;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.TestOnly;
 import org.w3c.dom.Element;
 
 import javax.xml.bind.annotation.XmlEnumValue;
@@ -136,7 +137,9 @@ public class XmlTypeConverter {
     }
 
     public static XMLGregorianCalendar createXMLGregorianCalendar(String string) {
-        return getDatatypeFactory().newXMLGregorianCalendar(string);
+        // FIXME: We need to make gregorian calendar roundtrip to make sure time zone is included
+
+        return createXMLGregorianCalendar(getDatatypeFactory().newXMLGregorianCalendar(string));
     }
 
     public static XMLGregorianCalendar createXMLGregorianCalendarFromIso8601(String iso8601string) {
@@ -161,14 +164,16 @@ public class XmlTypeConverter {
         if (cal == null) {
             return null;
         }
-        return getDatatypeFactory().newXMLGregorianCalendar(cal.toGregorianCalendar()); // TODO find a better way
+        return createXMLGregorianCalendar(cal.toGregorianCalendar()); // TODO find a better way
     }
 
+    @TestOnly
     public static XMLGregorianCalendar createXMLGregorianCalendar(int year, int month, int day, int hour, int minute,
             int second, int millisecond, int timezone) {
         return getDatatypeFactory().newXMLGregorianCalendar(year, month, day, hour, minute, second, millisecond, timezone);
     }
 
+    @TestOnly
     public static XMLGregorianCalendar createXMLGregorianCalendar(int year, int month, int day, int hour, int minute,
             int second) {
         return getDatatypeFactory().newXMLGregorianCalendar(year, month, day, hour, minute, second, 0, 0);
@@ -200,6 +205,10 @@ public class XmlTypeConverter {
         return rv;
     }
 
+    public static XMLGregorianCalendar fromNow(long now, String timeSpec) {
+        return fromNow(now, createDuration(timeSpec));
+    }
+
     public static long toMillis(Duration duration) {
         long now = System.currentTimeMillis();
         return toMillis(fromNow(now, duration)) - now;
@@ -218,6 +227,14 @@ public class XmlTypeConverter {
                 toBigInteger(duration.getField(DatatypeConstants.MINUTES)),
                 toBigDecimal(duration.getField(DatatypeConstants.SECONDS)));
     }
+
+    public static boolean isZero(Duration duration) {
+        if (duration == null) {
+            return true;
+        }
+        return duration.getSign() == 0;
+    }
+
 
     // to be used from within createDuration only (for general use it should be rewritten!!)
     private static BigDecimal toBigDecimal(Number number) {
@@ -469,7 +486,8 @@ public class XmlTypeConverter {
         } else if (type.equals(GregorianCalendar.class)) {
             return (T) getDatatypeFactory().newXMLGregorianCalendar(stringContent).toGregorianCalendar();
         } else if (XMLGregorianCalendar.class.isAssignableFrom(type)) {
-            return (T) getDatatypeFactory().newXMLGregorianCalendar(stringContent);
+            // MID-6361: We need to make XmlGregorian - Gregorian - XmlGregorian roundtrip to make sure time zone is includded
+            return (T) createXMLGregorianCalendar(stringContent);
         } else if (type.equals(ZonedDateTime.class)) {
             return (T) ZonedDateTime.parse(stringContent);
         } else if (Duration.class.isAssignableFrom(type)) {
@@ -510,4 +528,5 @@ public class XmlTypeConverter {
             return new PolyString(orig, norm);
         }
     }
+
 }

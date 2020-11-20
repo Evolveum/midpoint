@@ -1,10 +1,27 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.server;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -24,22 +41,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import org.apache.wicket.Component;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Created by honchar.
@@ -62,7 +63,6 @@ public class TaskErrorsTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> 
     }
 
     private void initLayout() {
-
 
         SelectableBeanObjectDataProvider<? extends ObjectType> provider = new SelectableBeanObjectDataProvider<ObjectType>(this, ObjectType.class, null) {
 
@@ -94,6 +94,11 @@ public class TaskErrorsTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> 
                     return Collections.emptyList();
                 }
             }
+
+            @Override
+            protected SelectableBean<ObjectType> getNewSelectableBean() {
+                return new TaskErrorSelectableBeanImpl<>();
+            }
         };
 
         BoxedTablePanel<TaskErrorSelectableBeanImpl<ObjectType>> table = new BoxedTablePanel<>(ID_TASK_ERRORS, provider, initColumns());
@@ -104,19 +109,19 @@ public class TaskErrorsTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> 
 
     private List<IColumn<TaskErrorSelectableBeanImpl<ObjectType>, String>> initColumns() {
         List<IColumn<TaskErrorSelectableBeanImpl<ObjectType>, String>> columns = new ArrayList<>();
-        columns.add(new PropertyColumn<TaskErrorSelectableBeanImpl<ObjectType>, String>(createStringResource("pageTaskEdit.taskErros.objectName"), TaskErrorSelectableBeanImpl.F_OBJECT_REF_NAME){
+        columns.add(new PropertyColumn<TaskErrorSelectableBeanImpl<ObjectType>, String>(createStringResource("pageTaskEdit.taskErros.objectName"), TaskErrorSelectableBeanImpl.F_OBJECT_REF_NAME) {
             @Override
             public String getSortProperty() {
                 return "name";
             }
         });
         columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.status"), TaskErrorSelectableBeanImpl.F_STATUS));
-        columns.add(new AbstractColumn<TaskErrorSelectableBeanImpl<ObjectType>, String>(createStringResource("pageTaskEdit.taskErros.timestamp"), TaskErrorSelectableBeanImpl.F_ERROR_TIMESTAMP){
+        columns.add(new AbstractColumn<TaskErrorSelectableBeanImpl<ObjectType>, String>(createStringResource("pageTaskEdit.taskErros.timestamp"), TaskErrorSelectableBeanImpl.F_ERROR_TIMESTAMP) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(Item<ICellPopulator<TaskErrorSelectableBeanImpl<ObjectType>>> cellItem, String componentId,
-                                     IModel<TaskErrorSelectableBeanImpl<ObjectType>> rowModel) {
+                    IModel<TaskErrorSelectableBeanImpl<ObjectType>> rowModel) {
                 Label label = new Label(componentId, (IModel<String>) () -> WebComponentUtil.getShortDateTimeFormattedValue(rowModel.getObject().getErrorTimestamp(), getPageBase()));
                 cellItem.add(label);
             }
@@ -126,7 +131,7 @@ public class TaskErrorsTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> 
         return columns;
     }
 
-    private ObjectQuery createContentQuery(String taskOid, PageBase pageBase){
+    private ObjectQuery createContentQuery(String taskOid, PageBase pageBase) {
         return pageBase.getPrismContext().queryFor(ObjectType.class)
                 .exists(ObjectType.F_OPERATION_EXECUTION)
                 .block()
@@ -151,6 +156,6 @@ public class TaskErrorsTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> 
     @Override
     protected void detachModel() {
         super.detachModel();
-        ((LoadableModel) getModel()).reset();
+        ((LoadableModel<?>) getModel()).reset();
     }
 }

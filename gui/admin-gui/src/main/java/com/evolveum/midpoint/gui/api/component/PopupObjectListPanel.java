@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,10 +8,21 @@ package com.evolveum.midpoint.gui.api.component;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Supplier;
 
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -23,29 +34,17 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.PolyStringPropertyColumn;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.model.IModel;
-
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectListPanel<O> {
     private static final long serialVersionUID = 1L;
@@ -61,7 +60,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
     }
 
     public PopupObjectListPanel(String id, Class<? extends O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options,
-                                boolean multiselect, PageBase parentPage) {
+            boolean multiselect, PageBase parentPage) {
         super(id, defaultType, null, options, multiselect);
     }
 
@@ -85,7 +84,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 
                 @Override
                 protected IModel<Boolean> getEnabled(IModel<SelectableBean<O>> rowModel) {
-                        return PopupObjectListPanel.this.getCheckBoxEnableModel(rowModel);
+                    return PopupObjectListPanel.this.getCheckBoxEnableModel(rowModel);
                 }
             };
         }
@@ -98,10 +97,10 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
             String propertyExpression = SelectableBeanImpl.F_VALUE + "." + (StringUtils.isEmpty(itemPath) ? "name" : itemPath);
             String sortProperty = StringUtils.isEmpty(itemPath) ? ObjectType.F_NAME.getLocalPart() : itemPath;
             if (expression != null) {
-                propertyExpression = SelectableBeanImpl.F_VALUE +(StringUtils.isEmpty(itemPath) ? "" : ("." + itemPath));
+                propertyExpression = SelectableBeanImpl.F_VALUE + (StringUtils.isEmpty(itemPath) ? "" : ("." + itemPath));
                 sortProperty = StringUtils.isEmpty(itemPath) ? "" : itemPath;
             }
-            return new LinkColumn<SelectableBean<O>>(
+            return new AjaxLinkColumn<SelectableBean<O>>(
                     columnNameModel == null ? createStringResource("ObjectType.name") : columnNameModel,
                     sortProperty, propertyExpression) {
                 private static final long serialVersionUID = 1L;
@@ -109,8 +108,8 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
                 @Override
                 protected IModel createLinkModel(IModel<SelectableBean<O>> rowModel) {
                     IModel linkModel = new PropertyModel(rowModel, getPropertyExpression());
-                    if (linkModel.getObject() != null && linkModel.getObject() instanceof PolyStringType){
-                        return Model.of(WebComponentUtil.getTranslatedPolyString((PolyStringType)linkModel.getObject()));
+                    if (linkModel.getObject() != null && linkModel.getObject() instanceof PolyStringType) {
+                        return Model.of(WebComponentUtil.getTranslatedPolyString((PolyStringType) linkModel.getObject()));
                     }
                     return linkModel;
                 }
@@ -131,22 +130,23 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
                     }
                 }
             };
-        }
-
-        else {
-            if ((StringUtils.isEmpty(itemPath) || ObjectType.F_NAME.getLocalPart().equals(itemPath)) && expression == null){
-                return new PolyStringPropertyColumn<SelectableBean<O>>(columnNameModel == null ? createStringResource("userBrowserDialog.name") : columnNameModel,
+        } else {
+            if ((StringUtils.isEmpty(itemPath) || ObjectType.F_NAME.getLocalPart().equals(itemPath)) && expression == null) {
+                return new PolyStringPropertyColumn<>(
+                        columnNameModel == null
+                                ? createStringResource("userBrowserDialog.name")
+                                : columnNameModel,
                         ObjectType.F_NAME.getLocalPart(), "value.name");
             } else {
                 String propertyExpression = SelectableBeanImpl.F_VALUE + "." + itemPath;
                 String sortProperty = itemPath;
                 if (expression != null) {
-                    propertyExpression = SelectableBeanImpl.F_VALUE +(StringUtils.isEmpty(itemPath) ? "" : ("." + itemPath));
+                    propertyExpression = SelectableBeanImpl.F_VALUE + (StringUtils.isEmpty(itemPath) ? "" : ("." + itemPath));
                     sortProperty = StringUtils.isEmpty(itemPath) ? "" : itemPath;
                 }
                 return new PropertyColumn(
                         columnNameModel == null ? createStringResource("userBrowserDialog.name") : columnNameModel,
-                        sortProperty, propertyExpression){
+                        sortProperty, propertyExpression) {
 
                     @Override
                     public IModel<?> getDataModel(IModel rowModel) {
@@ -185,7 +185,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
         return ColumnUtils.getDefaultColumns(getType());
     }
 
-    protected void onSelectPerformed(AjaxRequestTarget target, O object){
+    protected void onSelectPerformed(AjaxRequestTarget target, O object) {
 
     }
 
@@ -198,16 +198,15 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
     protected void addCustomActions(@NotNull List<InlineMenuItem> actionsList, SerializableSupplier<Collection<? extends ObjectType>> objectsSupplier) {
     }
 
-
-    protected void onUpdateCheckbox(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel){
+    protected void onUpdateCheckbox(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {
 
     }
 
-    protected IModel<Boolean> getCheckBoxEnableModel(IModel<SelectableBean<O>> rowModel){
+    protected IModel<Boolean> getCheckBoxEnableModel(IModel<SelectableBean<O>> rowModel) {
         return Model.of(true);
     }
 
-    protected String getStorageKey(){
+    protected String getStorageKey() {
         return null;
     }
 

@@ -13,13 +13,18 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -29,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionTy
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.UnassignActionExpressionType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -95,12 +101,16 @@ public class UnassignExecutor extends AssignmentOperationsExecutor<UnassignParam
     }
 
     @Override
-    protected ObjectDelta<? extends ObjectType> createDelta(AssignmentHolderType object, UnassignParameters parameters)
-            throws SchemaException {
+    protected ObjectDelta<? extends ObjectType> createDelta(AssignmentHolderType object, PipelineItem item,
+            UnassignParameters parameters, ExecutionContext context, OperationResult result) throws SchemaException,
+            ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException,
+            ExpressionEvaluationException {
+
+        ObjectFilter resolvedFilter = resolveFilter(object, item, parameters, context, result);
 
         List<AssignmentType> assignmentsToDelete = new ArrayList<>();
         for (AssignmentType existingAssignment : object.getAssignment()) {
-            if (matches(existingAssignment, parameters)) {
+            if (matches(existingAssignment, parameters, resolvedFilter)) {
                 assignmentsToDelete.add(existingAssignment);
             }
         }
@@ -111,8 +121,29 @@ public class UnassignExecutor extends AssignmentOperationsExecutor<UnassignParam
                 .asObjectDelta(object.getOid());
     }
 
+    @Nullable
+    private ObjectFilter resolveFilter(AssignmentHolderType object, PipelineItem item, UnassignParameters parameters,
+            ExecutionContext context, OperationResult result) throws SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+        if (parameters.staticFilter != null) {
+            return ExpressionUtil.evaluateFilterExpressions(
+                    parameters.staticFilter, createVariables(object, item), MiscSchemaUtil.getExpressionProfile(),
+                    expressionFactory, prismContext,
+                    "expression evaluation in unassign filter for " + object, context.getTask(), result);
+        } else {
+            return null;
+        }
+    }
+
+    private ExpressionVariables createVariables(AssignmentHolderType input, PipelineItem item) {
+        ExpressionVariables variables = createVariables(item.getVariables());
+        variables.put(ExpressionConstants.VAR_INPUT, input, AssignmentHolderType.class);
+        return variables;
+    }
+
     @SuppressWarnings("SimplifiableIfStatement")
-    private boolean matches(AssignmentType existingAssignment, UnassignParameters parameters) throws SchemaException {
+    private boolean matches(AssignmentType existingAssignment, UnassignParameters parameters, ObjectFilter resolvedFilter)
+            throws SchemaException {
         ObjectReferenceType targetRef = existingAssignment.getTargetRef();
         if (targetRef != null && matchesOid(targetRef.getOid(), parameters.dynamicRoleRefs)
                 && matchesRelation(targetRef.getRelation(), parameters.dynamicRelations)) {
@@ -123,8 +154,7 @@ public class UnassignExecutor extends AssignmentOperationsExecutor<UnassignParam
                 && matchesOid(construction.getResourceRef().getOid(), parameters.dynamicResourceRefs)) {
             return true;
         }
-        return parameters.staticFilter != null
-                && parameters.staticFilter.match(existingAssignment.asPrismContainerValue(), matchingRuleRegistry);
+        return resolvedFilter != null && resolvedFilter.match(existingAssignment.asPrismContainerValue(), matchingRuleRegistry);
     }
 
     private boolean matchesOid(String existingOid, Collection<ObjectReferenceType> refsToUnassign) {

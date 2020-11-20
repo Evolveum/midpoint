@@ -105,7 +105,18 @@
                     <xsd:element name="state" type="xsd:anyURI" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                TODO
+                                State of this case. Built-in states are:
+                                <ul>
+                                    <li>created: The case was created but it is not yet open. E.g. there should be no work items.</li>
+                                    <li>open: The case is open - work items are created, completed, delegated, etc. Associated work is being carried out.</li>
+                                    <li>closing: All human interaction regarding the case is over. But there might be some actions pending, e.g.
+                                        submitting change execution task, waiting for subtasks to be closed, and so on.</li>
+                                    <li>executing: The case now proceeds by means of automated execution of defined actions (e.g. approved changes);
+                                        or waiting for the execution to start.</li>
+                                    <li>closed: The case is closed. No further actions nor changes are expected.</li>
+                                </ul>
+                                Not all states are relevant for all cases. For example, manual resource cases do not use "executing" state.
+                                URIs can be qualified or unqualified.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>CaseType.state</a:displayName>
@@ -116,7 +127,13 @@
                     <xsd:element name="outcome" type="xsd:anyURI" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                TODO
+                                Outcome of the case. For approval cases, typical outcomes are approve, reject, skip (qualified
+                                with namespace of "http://midpoint.evolveum.com/xml/ns/public/model/approval/outcome" or unqualified).
+
+                                For manual resource cases, possible outcomes are - in addition to the above - OperationResultStatusType string
+                                representations: success, fatal_error, not_applicable, and so on. These values are always not qualified.
+
+                                This will be probably reconsidered in the future.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>CaseType.outcome</a:displayName>

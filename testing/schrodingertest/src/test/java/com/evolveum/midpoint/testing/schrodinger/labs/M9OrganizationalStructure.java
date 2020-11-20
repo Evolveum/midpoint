@@ -32,20 +32,23 @@ public class M9OrganizationalStructure extends AbstractLabTest{
 
     @Test(groups={"M9"}, dependsOnGroups={"M8"})
     public void mod09test01ImportStaticOrgStructure() {
-        importObject(ARCHETYPE_ORG_FUNCTIONAL_FILE, true, true);
-        importObject(ARCHETYPE_ORG_COMPANY_FILE, true);
-        importObject(ARCHETYPE_ORG_GROUP_FILE, true);
-        importObject(ARCHETYPE_ORG_GROUP_LIST_FILE, true);
+        addObjectFromFile(ARCHETYPE_ORG_FUNCTIONAL_FILE);
+        addObjectFromFile(ARCHETYPE_ORG_COMPANY_FILE);
+        addObjectFromFile(ARCHETYPE_ORG_GROUP_FILE);
+        addObjectFromFile(ARCHETYPE_ORG_GROUP_LIST_FILE);
 
         basicPage.loggedUser().logoutIfUserIsLogin();
         FormLoginPage login = midPoint.formLogin();
         login.login(getUsername(), getPassword());
 
-        importObject(ORG_EXAMPLE_FILE, true);
+        addObjectFromFile(ORG_EXAMPLE_FILE);
 
         OrgTreePage orgTree = basicPage.orgStructure();
         Assert.assertTrue(orgTree.selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                 .getOrgHierarchyPanel()
+                    .showTreeNodeDropDownMenu("ExAmPLE, Inc. - Functional Structure")
+                        .expandAll()
+                    .expandOrg("Software Department")
                     .containsChildOrg("ExAmPLE, Inc. - Functional Structure", "Executive Division", "Sales Department",
                                 "Human Resources", "Technology Division", "IT Administration Department", "Software Department", "Java Development"));
         Assert.assertTrue(orgTree.selectTabWithRootOrg("Groups")
@@ -53,7 +56,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                     .containsChildOrg("Groups", "Active Employees", "Administrators", "Contractors", "Former Employees",
                         "Inactive Employees", "Security"));
 
-        importObject(ORG_SECRET_OPS_FILE, true);
+        addObjectFromFile(ORG_SECRET_OPS_FILE);
         Assert.assertTrue(basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                     .getOrgHierarchyPanel()
@@ -65,7 +68,8 @@ public class M9OrganizationalStructure extends AbstractLabTest{
         basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                     .getOrgHierarchyPanel()
-                        .expandOrg("Secret Operations")
+                        .showTreeNodeDropDownMenu("Secret Operations")
+                            .expandAll()
                         .selectOrgInTree("Transportation and Logistics Department")
                         .and()
                     .getMemberPanel()
@@ -84,8 +88,8 @@ public class M9OrganizationalStructure extends AbstractLabTest{
         Assert.assertTrue(basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                     .getOrgHierarchyPanel()
-                        .expandOrg("Secret Operations")
-                        .expandOrg("Transportation and Logistics Department")
+                        .showTreeNodeDropDownMenu("Secret Operations")
+                            .expandAll()
                         .showTreeNodeDropDownMenu("Warp Speed Research")
                             .edit()
                                 .selectTabBasic()
@@ -111,8 +115,8 @@ public class M9OrganizationalStructure extends AbstractLabTest{
         Assert.assertTrue(basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                     .getOrgHierarchyPanel()
-                        .expandOrg("Secret Operations")
-                        .expandOrg("Transportation and Logistics Department")
+                        .showTreeNodeDropDownMenu("Secret Operations")
+                            .expandAll()
                         .selectOrgInTree("Warp Speed Research")
                         .and()
                     .getMemberPanel()
@@ -136,8 +140,8 @@ public class M9OrganizationalStructure extends AbstractLabTest{
         Assert.assertFalse(basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                     .getOrgHierarchyPanel()
-                        .expandOrg("Secret Operations")
-                        .expandOrg("Transportation and Logistics Department")
+                        .showTreeNodeDropDownMenu("Secret Operations")
+                            .expandAll()
                         .selectOrgInTree("Warp Speed Research")
                         .and()
                     .getMemberPanel()
@@ -173,7 +177,6 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                         .and()
                     .getMemberPanel()
                         .table()
-                            .clickHeaderActionDropDown()
                                 .assign()
                                     .selectType("User")
                                     .table()
@@ -194,8 +197,8 @@ public class M9OrganizationalStructure extends AbstractLabTest{
         Assert.assertTrue(basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                     .getOrgHierarchyPanel()
-                        .expandOrg("Secret Operations")
-                        .expandOrg("Transportation and Logistics Department")
+                        .showTreeNodeDropDownMenu("Secret Operations")
+                            .expandAll()
                         .selectOrgInTree("Warp Speed Research")
                         .and()
                     .getMemberPanel()
@@ -212,8 +215,8 @@ public class M9OrganizationalStructure extends AbstractLabTest{
         basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                     .getOrgHierarchyPanel()
-                        .expandOrg("Secret Operations")
-                        .expandOrg("Transportation and Logistics Department")
+                        .showTreeNodeDropDownMenu("Secret Operations")
+                            .expandAll()
                         .showTreeNodeDropDownMenu("Warp Speed Research")
                             .edit()
                                 .selectTabInducements()
@@ -246,9 +249,8 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                         .and()
                     .getMemberPanel()
                         .table()
-                            .clickHeaderActionDropDown()
-                                .recompute()
-                                    .clickYes()
+                            .recompute()
+                                .clickYes()
                             .and()
                         .and()
                     .and()

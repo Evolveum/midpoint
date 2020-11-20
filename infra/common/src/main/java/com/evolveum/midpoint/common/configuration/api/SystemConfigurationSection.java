@@ -19,5 +19,7 @@ public interface SystemConfigurationSection {
 
     String getJmap();
 
+    String getJhsdb();
+
     String getLogFile();
 }

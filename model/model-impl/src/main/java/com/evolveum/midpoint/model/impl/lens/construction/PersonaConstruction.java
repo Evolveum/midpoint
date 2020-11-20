@@ -6,27 +6,40 @@
  */
 package com.evolveum.midpoint.model.impl.lens.construction;
 
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionType;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Collections;
+import java.util.Objects;
 
 /**
  * @author semancik
- *
  */
-public class PersonaConstruction<AH extends AssignmentHolderType> extends AbstractConstruction<AH, PersonaConstructionType, EvaluatedPersonaConstructionImpl<AH>> {
+public class PersonaConstruction<AH extends AssignmentHolderType>
+        extends AbstractConstruction<AH, PersonaConstructionType, EvaluatedPersonaConstructionImpl<AH>> {
 
-    public PersonaConstruction(PersonaConstructionType constructionType, ObjectType source) {
-        super(constructionType, source);
+    PersonaConstruction(PersonaConstructionBuilder<AH> builder) {
+        super(builder);
+    }
+
+    @Override
+    public @NotNull PersonaConstructionType getConstructionBean() {
+        return Objects.requireNonNull(constructionBean);
+    }
+
+    @Override
+    public @NotNull AssignmentPathImpl getAssignmentPath() {
+        return Objects.requireNonNull(assignmentPath);
     }
 
     public DeltaSetTriple<EvaluatedPersonaConstructionImpl<AH>> getEvaluatedConstructionTriple() {
         EvaluatedPersonaConstructionImpl<AH> evaluatedConstruction = new EvaluatedPersonaConstructionImpl<>(this);
-        return getPrismContext().deltaFactory().createDeltaSetTriple(Collections.singleton(evaluatedConstruction), Collections.emptyList(), Collections.emptyList());
+        return beans.prismContext.deltaFactory().createDeltaSetTriple(Collections.singleton(evaluatedConstruction), Collections.emptyList(), Collections.emptyList());
     }
 
     @Override

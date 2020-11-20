@@ -46,7 +46,7 @@ public class TestLiveSyncTask extends AbstractSynchronizationStoryTest {
 
     @Override
     protected String getExpectedChannel() {
-        return SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI;
+        return SchemaConstants.CHANNEL_LIVE_SYNC_URI;
     }
 
     @Override

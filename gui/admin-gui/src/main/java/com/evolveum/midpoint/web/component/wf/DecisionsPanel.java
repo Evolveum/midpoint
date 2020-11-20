@@ -1,18 +1,15 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.wf;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -20,12 +17,14 @@ import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.DecisionDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 /**
  * @author lazyman
@@ -54,8 +53,9 @@ public class DecisionsPanel extends BasePanel<List<DecisionDto>> {
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.when"), DecisionDto.F_TIME));
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.escalation"), DecisionDto.F_ESCALATION_LEVEL_NUMBER));
 
-        ISortableDataProvider provider = new ListDataProvider<>(this, getModel());
-        BoxedTablePanel decisionsTable = new BoxedTablePanel<>(ID_DECISIONS_TABLE, provider, columns, tableId, pageSize);
+        ISortableDataProvider<?, ?> provider = new ListDataProvider<>(this, getModel());
+        BoxedTablePanel<?> decisionsTable = new BoxedTablePanel<>(
+                ID_DECISIONS_TABLE, provider, columns, tableId, pageSize);
         add(decisionsTable);
     }
 
@@ -84,7 +84,7 @@ public class DecisionsPanel extends BasePanel<List<DecisionDto>> {
 
             private String choose(IModel<DecisionDto> rowModel, String inProgress, String forwarded, String approved, String rejected) {
                 DecisionDto dto = rowModel.getObject();
-                if (StringUtils.isNotEmpty(dto.getAssigneeChange())){
+                if (StringUtils.isNotEmpty(dto.getAssigneeChange())) {
                     return forwarded;
                 }
                 if (dto.getOutcome() == null) {

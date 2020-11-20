@@ -11,40 +11,25 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryFactory;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.error.PageError;
-import com.evolveum.midpoint.web.page.forgetpassword.PageForgotPassword;
-import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.filter.SecurityQuestionsAuthenticationFilter;
 import com.evolveum.midpoint.web.security.module.authentication.SecurityQuestionFormModuleAuthentication;
 import com.evolveum.midpoint.web.security.util.SecurityQuestionDto;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.fasterxml.jackson.core.JsonEncoding;
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
+
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
-import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
@@ -60,17 +45,9 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
-import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
-import org.apache.wicket.request.cycle.RequestCycle;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.WebAttributes;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-
-import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -119,7 +96,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
 
     @Override
     protected void initCustomLayer() {
-        Form form = new Form(ID_MAIN_FORM);
+        MidpointForm form = new MidpointForm(ID_MAIN_FORM);
         form.add(AttributeModifier.replace("action", new IModel<String>() {
             @Override
             public String getObject() {
@@ -140,7 +117,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
 
     }
 
-    private void initSendingInformation(Form form) {
+    private void initSendingInformation(MidpointForm form) {
         WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
         form.add(csrfField);
 
@@ -153,7 +130,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
         form.add(username);
     }
 
-    private void initQuestionsSection(Form form) {
+    private void initQuestionsSection(MidpointForm form) {
         WebMarkupContainer questionsContainer = new WebMarkupContainer(ID_INSIDE_FORM);
         questionsContainer.setOutputMarkupId(true);
         questionsContainer.add(new VisibleEnableBehaviour() {
@@ -225,7 +202,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
         return answers.toString();
     }
 
-    private void initButtons(Form form) {
+    private void initButtons(MidpointForm form) {
 
         WebMarkupContainer firstLevelButtonContainer = new WebMarkupContainer(ID_FIRST_LEVEL_BUTTONS);
         firstLevelButtonContainer.setOutputMarkupId(true);
@@ -252,7 +229,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
         firstLevelButtonContainer.add(createBackButton(ID_BACK_1_BUTTON));
     }
 
-    private void initStaticLayout(Form form) {
+    private void initStaticLayout(MidpointForm form) {
 
         WebMarkupContainer staticLayout = new WebMarkupContainer(ID_STATIC_LAYOUT);
         staticLayout.setOutputMarkupId(true);
@@ -375,8 +352,8 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
 //        throw new RestartResponseException(PageForgotPassword.this);
 //    }
 
-    private Form getMainForm() {
-        return (Form) get(ID_MAIN_FORM);
+    private MidpointForm getMainForm() {
+        return (MidpointForm) get(ID_MAIN_FORM);
     }
 
     private HiddenField getHiddenUsername(){

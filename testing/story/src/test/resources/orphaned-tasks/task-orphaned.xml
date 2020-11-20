@@ -1,0 +1,12 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="95b6bd28-f7cd-4c70-aee2-fe111bf1917d">
+    <name>orphaned</name>
+    <parent>c2b0ade1-5352-4c96-b7e8-b0068db902d9</parent>
+</task>

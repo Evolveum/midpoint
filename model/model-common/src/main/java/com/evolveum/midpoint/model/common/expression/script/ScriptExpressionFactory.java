@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -19,7 +19,7 @@ import com.evolveum.midpoint.model.common.expression.functions.CustomFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.api.Cacheable;
+import com.evolveum.midpoint.repo.api.Cache;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -46,7 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInfo
 /**
  * @author Radovan Semancik
  */
-public class ScriptExpressionFactory implements Cacheable {
+public class ScriptExpressionFactory implements Cache {
 
     private static final Trace LOGGER = TraceManager.getTrace(ScriptExpressionFactory.class);
     private static final Trace LOGGER_CONTENT = TraceManager.getTrace(ScriptExpressionFactory.class.getName() + ".content");
@@ -66,12 +66,12 @@ public class ScriptExpressionFactory implements Cacheable {
 
     @PostConstruct
     public void register() {
-        cacheRegistry.registerCacheableService(this);
+        cacheRegistry.registerCache(this);
     }
 
     @PreDestroy
     public void unregister() {
-        cacheRegistry.unregisterCacheableService(this);
+        cacheRegistry.unregisterCache(this);
     }
 
     public ScriptExpressionFactory(PrismContext prismContext, RepositoryService repositoryService) {
@@ -228,6 +228,7 @@ public class ScriptExpressionFactory implements Cacheable {
         if (type == null || type.isAssignableFrom(FunctionLibraryType.class)) {
             // Currently we don't try to select entries to be cleared based on OID
             customFunctionLibraryCache.clear();
+            initialized.set(false);
         }
     }
 

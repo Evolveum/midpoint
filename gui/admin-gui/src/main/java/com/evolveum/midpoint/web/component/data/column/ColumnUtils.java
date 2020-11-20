@@ -1,38 +1,29 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.data.column;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.CaseTypeUtil;
-import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.DateLabelComponent;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
-import com.evolveum.midpoint.web.util.TooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObjectDetailsPage;
+
+import java.util.*;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.util.QNameUtil;
+
+import com.evolveum.midpoint.web.page.admin.cases.ChildCasesTabPanel;
+import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
+import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -50,11 +41,30 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.util.*;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObjectDetailsPage;
+import org.jetbrains.annotations.NotNull;
 
 public class ColumnUtils {
     private static final Trace LOGGER = TraceManager.getTrace(ColumnUtils.class);
@@ -62,7 +72,7 @@ public class ColumnUtils {
     public static <T> List<IColumn<T, String>> createColumns(List<ColumnTypeDto<String>> columns) {
         List<IColumn<T, String>> tableColumns = new ArrayList<>();
         for (ColumnTypeDto<String> column : columns) {
-            PropertyColumn<T, String> tableColumn = null;
+            PropertyColumn<T, String> tableColumn;
             if (column.isSortable()) {
                 tableColumn = createPropertyColumn(column.getColumnName(), column.getSortableColumn(),
                         column.getColumnValue(), column.isMultivalue(), column.isTranslated());
@@ -84,8 +94,8 @@ public class ColumnUtils {
 
     private static <T> PropertyColumn<T, String> createPropertyColumn(String name, String sortableProperty,
             final String expression, final boolean multivalue, boolean translated) {
-        if (!multivalue && translated){
-            return new PolyStringPropertyColumn<T>(createStringResource(name), sortableProperty,
+        if (!multivalue && translated) {
+            return new PolyStringPropertyColumn<>(createStringResource(name), sortableProperty,
                     expression);
         }
         return new PropertyColumn<T, String>(createStringResource(name), sortableProperty, expression) {
@@ -106,7 +116,6 @@ public class ColumnUtils {
                 super.populateItem(item, componentId, rowModel);
             }
         };
-
     }
 
     public static <O extends ObjectType> List<IColumn<SelectableBean<O>, String>> getDefaultColumns(Class<? extends O> type) {
@@ -132,12 +141,12 @@ public class ColumnUtils {
         }
     }
 
-    public static <O extends ObjectType> IColumn<SelectableBean<O>, String> createIconColumn(PageBase pageBase){
+    public static <O extends ObjectType> IColumn<SelectableBean<O>, String> createIconColumn(PageBase pageBase) {
 
         return new CompositedIconColumn<SelectableBean<O>>(createIconColumnHeaderModel()) {
 
             @Override
-            protected CompositedIcon getCompositedIcon(IModel<SelectableBean<O>> rowModel){
+            protected CompositedIcon getCompositedIcon(IModel<SelectableBean<O>> rowModel) {
                 if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getValue() == null) {
                     return new CompositedIconBuilder().build();
                 }
@@ -197,37 +206,37 @@ public class ColumnUtils {
         return "";
     }
 
-    private static <T extends ObjectType> IModel<String> getIconColumnDataModel(IModel<SelectableBean<T>> rowModel){
+    private static <T extends ObjectType> IModel<String> getIconColumnDataModel(IModel<SelectableBean<T>> rowModel) {
         Class<T> type = (Class<T>) rowModel.getObject().getValue().getClass();
         if (ShadowType.class.equals(type)) {
-                T shadow = rowModel.getObject().getValue();
-                if (shadow == null){
-                    return null;
-                }
-                return ShadowUtil.isProtected(shadow.asPrismContainer()) ?
-                        createStringResource("ThreeStateBooleanPanel.true") : createStringResource("ThreeStateBooleanPanel.false");
+            T shadow = rowModel.getObject().getValue();
+            if (shadow == null) {
+                return null;
+            }
+            return ShadowUtil.isProtected(shadow.asPrismContainer()) ?
+                    createStringResource("ThreeStateBooleanPanel.true") : createStringResource("ThreeStateBooleanPanel.false");
 
         }
         return Model.of();
     }
 
-    public static <T extends ObjectType> String getIconColumnTitle(IModel<SelectableBean<T>> rowModel){
-        if (rowModel == null || rowModel.getObject() == null){
+    public static <T extends ObjectType> String getIconColumnTitle(IModel<SelectableBean<T>> rowModel) {
+        if (rowModel == null || rowModel.getObject() == null) {
             return null;
         }
         return getIconColumnTitle(rowModel.getObject().getValue(), rowModel.getObject().getResult());
     }
 
-    public static <T extends ObjectType> String getIconColumnTitle(T object, OperationResult result){
-        if (object == null){
+    public static <T extends ObjectType> String getIconColumnTitle(T object, OperationResult result) {
+        if (object == null) {
             return null;
         }
-        if (result != null && result.isFatalError()){
+        if (result != null && result.isFatalError()) {
             return result.getUserFriendlyMessage() != null ?
                     result.getUserFriendlyMessage().getFallbackMessage() : result.getMessage();
         }
-        Class<T> type = (Class<T>)object.getClass();
-        if (object == null && !ShadowType.class.equals(type)){
+        Class<T> type = (Class<T>) object.getClass();
+        if (object == null && !ShadowType.class.equals(type)) {
             return null;
         } else if (type.equals(UserType.class)) {
             String iconClass = object != null ? WebComponentUtil.createUserIcon(object.asPrismContainer()) : null;
@@ -235,7 +244,7 @@ public class ColumnUtils {
             String titleValue = "";
             if (iconClass != null &&
                     iconClass.startsWith(compareStringValue) &&
-                    iconClass.length() > compareStringValue.length()){
+                    iconClass.length() > compareStringValue.length()) {
                 titleValue = iconClass.substring(compareStringValue.length());
             }
             return createStringResource("ColumnUtils.getUserIconColumn.createTitleModel." + titleValue) == null ?
@@ -265,23 +274,20 @@ public class ColumnUtils {
     }
 
     public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultUserColumns() {
-        List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
 
         List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
-                new ColumnTypeDto<String>("UserType.givenName", UserType.F_GIVEN_NAME.getLocalPart(),
+                new ColumnTypeDto<>("UserType.givenName", UserType.F_GIVEN_NAME.getLocalPart(),
                         SelectableBeanImpl.F_VALUE + ".givenName", false, true),
-                new ColumnTypeDto<String>("UserType.familyName", UserType.F_FAMILY_NAME.getLocalPart(),
+                new ColumnTypeDto<>("UserType.familyName", UserType.F_FAMILY_NAME.getLocalPart(),
                         SelectableBeanImpl.F_VALUE + ".familyName", false, true),
-                new ColumnTypeDto<String>("UserType.fullName", UserType.F_FULL_NAME.getLocalPart(),
+                new ColumnTypeDto<>("UserType.fullName", UserType.F_FULL_NAME.getLocalPart(),
                         SelectableBeanImpl.F_VALUE + ".fullName", false, true),
-                new ColumnTypeDto<String>("UserType.emailAddress", UserType.F_EMAIL_ADDRESS.getLocalPart(),
+                new ColumnTypeDto<>("UserType.emailAddress", UserType.F_EMAIL_ADDRESS.getLocalPart(),
                         SelectableBeanImpl.F_VALUE + ".emailAddress", false)
 
         );
-        columns.addAll(ColumnUtils.<SelectableBean<T>>createColumns(columnsDefs));
 
-        return columns;
-
+        return new ArrayList<>(ColumnUtils.createColumns(columnsDefs));
     }
 
     public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultTaskColumns() {
@@ -307,7 +313,6 @@ public class ColumnUtils {
                         }
 
                     }
-
                 });
 
         columns.add(new AbstractColumn<SelectableBean<T>, String>(
@@ -327,7 +332,6 @@ public class ColumnUtils {
                     cellItem.add(new Label(componentId));
                 }
             }
-
         });
 
         columns.add(new AbstractColumn<SelectableBean<T>, String>(
@@ -348,13 +352,12 @@ public class ColumnUtils {
                 }
 
             }
-
         });
 
-        List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
-                new ColumnTypeDto<String>("TaskType.executionStatus", TaskType.F_EXECUTION_STATUS.getLocalPart(),
+        List<ColumnTypeDto<String>> columnsDefs = Collections.singletonList(
+                new ColumnTypeDto<>("TaskType.executionStatus", TaskType.F_EXECUTION_STATUS.getLocalPart(),
                         SelectableBeanImpl.F_VALUE + ".executionStatus", false));
-        columns.addAll(ColumnUtils.<SelectableBean<T>>createColumns(columnsDefs));
+        columns.addAll(ColumnUtils.createColumns(columnsDefs));
 
         return columns;
 
@@ -363,8 +366,7 @@ public class ColumnUtils {
     public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultRoleColumns() {
         List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
 
-
-        columns.addAll((Collection)getDefaultAbstractRoleColumns(true));
+        columns.addAll((Collection) getDefaultAbstractRoleColumns(true));
 
         return columns;
     }
@@ -372,7 +374,7 @@ public class ColumnUtils {
     public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultServiceColumns() {
         List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
 
-        columns.addAll((Collection)getDefaultAbstractRoleColumns(true));
+        columns.addAll((Collection) getDefaultAbstractRoleColumns(true));
 
         return columns;
     }
@@ -380,7 +382,7 @@ public class ColumnUtils {
     public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultOrgColumns() {
         List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
 
-        columns.addAll((Collection)getDefaultAbstractRoleColumns(true));
+        columns.addAll((Collection) getDefaultAbstractRoleColumns(true));
 
         return columns;
     }
@@ -388,14 +390,14 @@ public class ColumnUtils {
     public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultArchetypeColumns() {
         List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
 
-        columns.addAll((Collection)getDefaultAbstractRoleColumns(true));
+        columns.addAll((Collection) getDefaultAbstractRoleColumns(true));
 
         return columns;
     }
 
     public static <O extends ObjectType> List<IColumn<SelectableBean<O>, String>> getDefaultObjectColumns() {
-        List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
-                new ColumnTypeDto<String>("ObjectType.description",
+        List<ColumnTypeDto<String>> columnsDefs = Collections.singletonList(
+                new ColumnTypeDto<>("ObjectType.description",
                         null,
                         SelectableBeanImpl.F_VALUE + ".description", false)
         );
@@ -403,21 +405,19 @@ public class ColumnUtils {
         return columns;
     }
 
-
     public static <T extends AbstractRoleType> List<IColumn<SelectableBean<T>, String>> getDefaultAbstractRoleColumns(boolean showAccounts) {
-
-        String sortByDisplayName = null;
-        String sortByIdentifer = null;
+        String sortByDisplayName;
+        String sortByIdentifer;
         sortByDisplayName = AbstractRoleType.F_DISPLAY_NAME.getLocalPart();
         sortByIdentifer = AbstractRoleType.F_IDENTIFIER.getLocalPart();
         List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
-                new ColumnTypeDto<String>("AbstractRoleType.displayName",
+                new ColumnTypeDto<>("AbstractRoleType.displayName",
                         sortByDisplayName,
                         SelectableBeanImpl.F_VALUE + ".displayName", false, true),
-                new ColumnTypeDto<String>("AbstractRoleType.description",
+                new ColumnTypeDto<>("AbstractRoleType.description",
                         null,
                         SelectableBeanImpl.F_VALUE + ".description", false),
-                new ColumnTypeDto<String>("AbstractRoleType.identifier", sortByIdentifer,
+                new ColumnTypeDto<>("AbstractRoleType.identifier", sortByIdentifer,
                         SelectableBeanImpl.F_VALUE + ".identifier", false)
 
         );
@@ -429,7 +429,7 @@ public class ColumnUtils {
 
                 @Override
                 public void populateItem(Item<ICellPopulator<SelectableBean<T>>> cellItem,
-                                         String componentId, IModel<SelectableBean<T>> model) {
+                        String componentId, IModel<SelectableBean<T>> model) {
                     cellItem.add(new Label(componentId,
                             model.getObject().getValue() != null ?
                                     model.getObject().getValue().getLinkRef().size() : null));
@@ -441,7 +441,6 @@ public class ColumnUtils {
                             Integer.toString(rowModel.getObject().getValue().getLinkRef().size()) : "");
                 }
 
-
             };
 
             columns.add(column);
@@ -451,21 +450,17 @@ public class ColumnUtils {
     }
 
     public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultResourceColumns() {
-        List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
 
-        List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
-                new ColumnTypeDto<String>("AbstractRoleType.description", null,
+        List<ColumnTypeDto<String>> columnsDefs = Collections.singletonList(
+                new ColumnTypeDto<>("AbstractRoleType.description", null,
                         SelectableBeanImpl.F_VALUE + ".description", false)
 
         );
 
-        columns.addAll(ColumnUtils.<SelectableBean<T>>createColumns(columnsDefs));
-
-        return columns;
-
+        return new ArrayList<>(ColumnUtils.createColumns(columnsDefs));
     }
 
-    public static List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> getDefaultWorkItemColumns(PageBase pageBase, boolean isFullView){
+    public static List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> getDefaultWorkItemColumns(PageBase pageBase, boolean isFullView) {
         List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> columns = new ArrayList<>();
         columns.add(new AbstractExportableColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>(
                 createStringResource("WorkItemsPanel.stage")) {
@@ -473,7 +468,7 @@ public class ColumnUtils {
 
             @Override
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
-                                     String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                    String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                 cellItem.add(new Label(componentId, ApprovalContextUtil.getWorkItemStageInfo(unwrapRowModel(rowModel))));
             }
 
@@ -482,7 +477,6 @@ public class ColumnUtils {
                 return Model.of(ApprovalContextUtil.getStageInfo(unwrapRowModel(rowModel)));
             }
 
-
         });
         columns.add(new AbstractExportableColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>(
                 createStringResource("pageCases.table.state")) {
@@ -490,7 +484,7 @@ public class ColumnUtils {
 
             @Override
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
-                                     String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                    String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                 CaseWorkItemType workItem = unwrapRowModel(rowModel);
                 cellItem.add(new Label(componentId, workItem.getCloseTimestamp() != null ? SchemaConstants.CASE_STATE_CLOSED : SchemaConstants.CASE_STATE_OPEN));
             }
@@ -501,10 +495,9 @@ public class ColumnUtils {
                 return Model.of(parentCase != null ? parentCase.getState() : "");
             }
 
-
         });
 
-        columns.add(new LinkColumn<PrismContainerValueWrapper<CaseWorkItemType>>(createStringResource("WorkItemsPanel.object")) {
+        columns.add(new AjaxLinkColumn<PrismContainerValueWrapper<CaseWorkItemType>>(createStringResource("WorkItemsPanel.object")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -531,7 +524,7 @@ public class ColumnUtils {
 
             @Override
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem, String componentId,
-                                     final IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                    final IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                 CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
                 CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
                 AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltyForCase(caseType);
@@ -550,8 +543,16 @@ public class ColumnUtils {
 
                 c.add(new AttributeAppender("title", descriptionValue));
             }
+
+            @Override
+            public boolean isEnabled(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
+                CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
+                return CollectionUtils.isNotEmpty(WebComponentUtil.loadReferencedObjectList(
+                        Collections.singletonList(caseType.getObjectRef()), "loadCaseWorkItemObjectRef", pageBase));
+            }
         });
-        columns.add(new LinkColumn<PrismContainerValueWrapper<CaseWorkItemType>>(createStringResource("WorkItemsPanel.target")) {
+        columns.add(new AjaxLinkColumn<PrismContainerValueWrapper<CaseWorkItemType>>(createStringResource("WorkItemsPanel.target")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -570,7 +571,7 @@ public class ColumnUtils {
 
             @Override
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem, String componentId,
-                                     final IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                    final IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                 super.populateItem(cellItem, componentId, rowModel);
                 Component c = cellItem.get(componentId);
 
@@ -582,6 +583,14 @@ public class ColumnUtils {
 
                 c.add(new AttributeAppender("title", descriptionValue));
             }
+
+            @Override
+            public boolean isEnabled(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
+                CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
+                return CollectionUtils.isNotEmpty(WebComponentUtil.loadReferencedObjectList(
+                        Collections.singletonList(caseType.getTargetRef()), "loadCaseWorkItemTargetRef", pageBase));
+            }
         });
         if (isFullView) {
             columns.add(new AbstractExportableColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>(
@@ -590,31 +599,14 @@ public class ColumnUtils {
 
                 @Override
                 public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
-                                         String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                    RepeatingView actorLinks = new RepeatingView(componentId);
-                    actorLinks.setOutputMarkupId(true);
+                        String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                     List<ObjectReferenceType> assigneeRefs;
-                    if (CaseWorkItemUtil.doesAssigneeExist(unwrapRowModel(rowModel))){
+                    if (CaseWorkItemUtil.doesAssigneeExist(unwrapRowModel(rowModel))) {
                         assigneeRefs = unwrapRowModel(rowModel).getAssigneeRef();
                     } else {
                         assigneeRefs = unwrapRowModel(rowModel).getCandidateRef();
                     }
-                    if (assigneeRefs != null){
-                        assigneeRefs.forEach(assigneeRef -> {
-                            LinkPanel assigneeLinkPanel = new LinkPanel(actorLinks.newChildId(),
-                                    Model.of(WebModelServiceUtils.resolveReferenceName(assigneeRef, pageBase))) {
-                                private static final long serialVersionUID = 1L;
-
-                                @Override
-                                public void onClick(AjaxRequestTarget target) {
-                                    dispatchToObjectDetailsPage(assigneeRef, pageBase, false);
-                                }
-                            };
-                            assigneeLinkPanel.setOutputMarkupId(true);
-                            actorLinks.add(assigneeLinkPanel);
-                        });
-                    }
-                    cellItem.add(actorLinks);
+                    cellItem.add(getMultilineLinkPanel(componentId, assigneeRefs, pageBase));
                 }
 
                 @Override
@@ -622,6 +614,7 @@ public class ColumnUtils {
                     String assignee = WebComponentUtil.getReferencedObjectNames(unwrapRowModel(rowModel).getAssigneeRef(), false);
                     return Model.of(assignee != null ? assignee : WebComponentUtil.getReferencedObjectNames(unwrapRowModel(rowModel).getCandidateRef(), true));
                 }
+
             });
         }
         columns.add(new AbstractExportableColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>(
@@ -630,7 +623,7 @@ public class ColumnUtils {
 
             @Override
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
-                                     String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                    String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                 cellItem.add(new Label(componentId,
                         WebComponentUtil.getShortDateTimeFormattedValue(unwrapRowModel(rowModel).getCreateTimestamp(), pageBase)));
             }
@@ -646,7 +639,7 @@ public class ColumnUtils {
 
                 @Override
                 public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem, String componentId,
-                                         final IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                        final IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                     cellItem.add(new DateLabelComponent(componentId, new IModel<Date>() {
                         private static final long serialVersionUID = 1L;
 
@@ -665,7 +658,7 @@ public class ColumnUtils {
 
                 @Override
                 public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
-                                         String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                        String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                     cellItem.add(new Label(componentId,
                             WebComponentUtil.getShortDateTimeFormattedValue(unwrapRowModel(rowModel).getDeadline(), pageBase)));
                 }
@@ -682,7 +675,7 @@ public class ColumnUtils {
 
                 @Override
                 public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
-                                         String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                        String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                     cellItem.add(new Label(componentId, ApprovalContextUtil.getEscalationLevelInfo(unwrapRowModel(rowModel))));
                 }
 
@@ -697,12 +690,12 @@ public class ColumnUtils {
 
     public static List<IColumn<SelectableBean<CaseType>, String>> getDefaultCaseColumns(PageBase pageBase, boolean isDashboard) {
 
-        List<IColumn<SelectableBean<CaseType>, String>> columns = new ArrayList<IColumn<SelectableBean<CaseType>, String>>();
+        List<IColumn<SelectableBean<CaseType>, String>> columns = new ArrayList<>();
 
         IColumn column = new PropertyColumn(createStringResource("pageCases.table.description"), "value.description");
         columns.add(column);
 
-        column = new AbstractColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.objectRef")){
+        column = new AbstractColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.objectRef")) {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
                 item.add(new Label(componentId, new IModel<String>() {
@@ -713,13 +706,13 @@ public class ColumnUtils {
                             return "";
                         }
                         AssignmentHolderType objectRef = WebComponentUtil.getObjectFromAddDeltyForCase(caseModelObject);
-                        if (objectRef != null){
+                        if (objectRef != null) {
                             return WebComponentUtil.getEffectiveName(objectRef, AbstractRoleType.F_DISPLAY_NAME);
                         } else if (caseModelObject.getObjectRef() != null
-                                && StringUtils.isNotEmpty(caseModelObject.getObjectRef().getOid())){
-                            if (caseModelObject.getObjectRef().getObject() != null){
-                                    return WebComponentUtil.getEffectiveName(caseModelObject.getObjectRef().getObject(),
-                                            AbstractRoleType.F_DISPLAY_NAME);
+                                && StringUtils.isNotEmpty(caseModelObject.getObjectRef().getOid())) {
+                            if (caseModelObject.getObjectRef().getObject() != null) {
+                                return WebComponentUtil.getEffectiveName(caseModelObject.getObjectRef().getObject(),
+                                        AbstractRoleType.F_DISPLAY_NAME);
                             } else {
                                 try {
                                     return WebComponentUtil.getEffectiveName(caseModelObject.getObjectRef(), AbstractRoleType.F_DISPLAY_NAME, pageBase,
@@ -748,7 +741,7 @@ public class ColumnUtils {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> cellItem,
-                                     String componentId, final IModel<SelectableBean<CaseType>> rowModel) {
+                    String componentId, final IModel<SelectableBean<CaseType>> rowModel) {
                 CaseType object = rowModel.getObject().getValue();
                 MetadataType metadata = object != null ? object.getMetadata() : null;
                 XMLGregorianCalendar createdCal = metadata != null ? metadata.getCreateTimestamp() : null;
@@ -779,7 +772,7 @@ public class ColumnUtils {
             column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.closeTimestamp"), CaseType.F_CLOSE_TIMESTAMP.getLocalPart(), "value.closeTimestamp") {
                 @Override
                 public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> cellItem,
-                                         String componentId, final IModel<SelectableBean<CaseType>> rowModel) {
+                        String componentId, final IModel<SelectableBean<CaseType>> rowModel) {
                     CaseType object = rowModel.getObject().getValue();
                     XMLGregorianCalendar closedCal = object != null ? object.getCloseTimestamp() : null;
                     final Date closed;
@@ -806,10 +799,51 @@ public class ColumnUtils {
             columns.add(column);
         }
 
-        column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.state"), CaseType.F_STATE.getLocalPart(), "value.state"){
+        column = new CountIconColumn<SelectableBean<CaseType>>(createStringResource("CaseType.outcome")) {
+
+            @Override
+            protected Map<DisplayType, Integer> getIconDisplayType(IModel<SelectableBean<CaseType>> rowModel) {
+                Map<DisplayType, Integer> map = new HashMap<>();
+                CaseType caseType = rowModel.getObject().getValue();
+                if(ObjectTypeUtil.hasArchetype(caseType, SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value())){
+                    ObjectQuery queryFilter = pageBase.getPrismContext().queryFor(CaseType.class)
+                            .item(CaseType.F_PARENT_REF)
+                            .ref(caseType.getOid())
+                            .build();
+                    List<PrismObject<CaseType>> childs =
+                            WebModelServiceUtils.searchObjects(CaseType.class, queryFilter, new OperationResult("search_case_child"), pageBase);
+
+                    for (PrismObject<CaseType> child : childs) {
+                        processCaseOutcome(child.asObjectable(), map, false);
+                    }
+                } else {
+                    processCaseOutcome(caseType, map, true);
+                }
+
+                return map;
+            }
+
             @Override
             public String getCssClass() {
-                return isDashboard ? "col-md-1 col-sm-2" : super.getCssClass();
+                return "col-lg-1";
+            }
+        };
+        columns.add(column);
+
+        column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.state"), CaseType.F_STATE.getLocalPart(), "value.state") {
+            @Override
+            public String getCssClass() {
+                return "col-lg-1";
+            }
+
+            @Override
+            public IModel<?> getDataModel(IModel<SelectableBean<CaseType>> rowModel) {
+                IModel<String> dataModel = (IModel<String>) super.getDataModel(rowModel);
+                if (StringUtils.isNotBlank(dataModel.getObject())) {
+                    String key = CaseType.COMPLEX_TYPE.getLocalPart() + "." + CaseType.F_STATE.getLocalPart() + "." + dataModel.getObject();
+                    return new StringResourceModel(key, pageBase).setModel(new Model<String>()).setDefaultValue(dataModel.getObject());
+                }
+                return dataModel;
             }
         };
         columns.add(column);
@@ -820,7 +854,7 @@ public class ColumnUtils {
 
                 @Override
                 public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> cellItem,
-                                         String componentId, IModel<SelectableBean<CaseType>> model) {
+                        String componentId, IModel<SelectableBean<CaseType>> model) {
                     cellItem.add(new Label(componentId,
                             model.getObject().getValue() != null && model.getObject().getValue().getWorkItem() != null ?
                                     model.getObject().getValue().getWorkItem().size() : null));
@@ -832,6 +866,10 @@ public class ColumnUtils {
                             Integer.toString(rowModel.getObject().getValue().getWorkItem().size()) : "");
                 }
 
+                @Override
+                public String getCssClass() {
+                    return "col-lg-1";
+                }
 
             };
             columns.add(column);
@@ -840,40 +878,96 @@ public class ColumnUtils {
         return columns;
     }
 
-    public static AbstractColumn<SelectableBean<CaseType>, String> createCaseActorsColumn(PageBase pageBase){
-        return new AbstractColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.actors")){
+    private static void processCaseOutcome(CaseType caseType, Map<DisplayType, Integer> map, boolean useNullAsOne) {
+        if (caseType == null){
+            return;
+        }
+        Integer one = null;
+        if (!useNullAsOne) {
+            one = 1;
+        }
+        if(CaseTypeUtil.isApprovalCase(caseType)){
+            Boolean result = ApprovalUtils.approvalBooleanValueFromUri(caseType.getOutcome());
+            if (result == null) {
+                if (caseType.getCloseTimestamp() != null) {
+                    return;
+                } else {
+                    putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(ApprovalOutcomeIcon.IN_PROGRESS));
+                }
+            } else if (result){
+                putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(ApprovalOutcomeIcon.APPROVED));
+            } else {
+                putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(ApprovalOutcomeIcon.REJECTED));
+            }
+            return;
+        } if(CaseTypeUtil.isManualProvisioningCase(caseType)) {
+
+            if (StringUtils.isEmpty(caseType.getOutcome())) {
+                if (caseType.getCloseTimestamp() != null) {
+                    putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(OperationResultStatusPresentationProperties.UNKNOWN));
+                } else {
+                    putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(OperationResultStatusPresentationProperties.IN_PROGRESS));
+                }
+            } else {
+                OperationResultStatusType result;
+                try {
+                    result = OperationResultStatusType.fromValue(caseType.getOutcome());
+                } catch (IllegalArgumentException e) {
+                    putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(OperationResultStatusPresentationProperties.UNKNOWN));
+                    return;
+                }
+                OperationResultStatusPresentationProperties resultStatus = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result);
+                putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(resultStatus));
+            }
+        }
+    }
+
+    private static void putDisplayTypeToMapWithCount(Map<DisplayType, Integer> map, Integer one, DisplayType caseDisplayType){
+        if (map.containsKey(caseDisplayType)) {
+            map.merge(caseDisplayType, 1, Integer::sum);
+        } else {
+            map.put(caseDisplayType, one);
+        }
+    }
+
+    public static AbstractColumn<SelectableBean<CaseType>, String> createCaseActorsColumn(PageBase pageBase) {
+        return new AbstractColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.actors")) {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
                 CaseType caseInstance = rowModel != null ? rowModel.getObject().getValue() : null;
-                item.add(getMultilineLinkPanel(componentId, getActorsForCase(rowModel != null ? rowModel.getObject().getValue() : null),
-                        caseInstance, pageBase));
+                item.add(getMultilineLinkPanel(componentId, getActorsForCase(rowModel != null ? rowModel.getObject().getValue() : null), pageBase));
             }
         };
     }
 
-    public static RepeatingView getMultilineLinkPanel(String componentId, List<ObjectReferenceType> referencesList,
-            CaseType caseType, PageBase pageBase){
+    public static RepeatingView getMultilineLinkPanel(String componentId, List<ObjectReferenceType> referencesList, PageBase pageBase) {
         RepeatingView multilineLinkPanel = new RepeatingView(componentId);
         multilineLinkPanel.setOutputMarkupId(true);
-        if (referencesList != null){
+        if (referencesList != null) {
             referencesList.forEach(reference -> {
-                LinkPanel assigneeLinkPanel = new LinkPanel(multilineLinkPanel.newChildId(),
+                AjaxLinkPanel referenceAjaxLinkPanel = new AjaxLinkPanel(multilineLinkPanel.newChildId(),
                         Model.of(WebModelServiceUtils.resolveReferenceName(reference, pageBase))) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        dispatchToObjectDetailsPage(caseType.getObjectRef(), pageBase, false);
+                        dispatchToObjectDetailsPage(reference, pageBase, false);
+                    }
+
+                    @Override
+                    public boolean isEnabled() {
+                        return CollectionUtils.isNotEmpty(WebComponentUtil.loadReferencedObjectList(
+                                Collections.singletonList(reference), "loadCaseReferenceObject", pageBase));
                     }
                 };
-                assigneeLinkPanel.setOutputMarkupId(true);
-                multilineLinkPanel.add(assigneeLinkPanel);
+                referenceAjaxLinkPanel.setOutputMarkupId(true);
+                multilineLinkPanel.add(referenceAjaxLinkPanel);
             });
         }
         return multilineLinkPanel;
     }
 
-    public static <C extends Containerable> C unwrapRowModel(IModel<PrismContainerValueWrapper<C>> rowModel){
+    public static <C extends Containerable> C unwrapRowModel(IModel<PrismContainerValueWrapper<C>> rowModel) {
         return rowModel.getObject().getRealValue();
     }
 

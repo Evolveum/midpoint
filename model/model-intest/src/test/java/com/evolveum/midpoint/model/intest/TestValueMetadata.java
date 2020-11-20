@@ -12,6 +12,9 @@ import java.io.File;
 import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.api.MetadataItemProcessingSpec;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -45,6 +48,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
 
     public static final File TEST_DIR = new File("src/test/resources/metadata");
+
+    //region Constants for level of assurance recording scenario
+    private static final File LEVEL_OF_ASSURANCE_DIR = new File(TEST_DIR, "level-of-assurance");
+
+    private static final TestResource<UserType> USER_BOB = new TestResource<>(LEVEL_OF_ASSURANCE_DIR, "user-bob.xml", "cab2344d-06c0-4881-98ee-7075bf5d1309");
+    private static final TestResource<UserType> USER_CHUCK = new TestResource<>(LEVEL_OF_ASSURANCE_DIR, "user-chuck.xml", "3eb9ca6b-49b8-4602-943a-992d8eb9adad");
+
+    private static final TestResource<ObjectTemplateType> TEMPLATE_LOA_USER = new TestResource<>(LEVEL_OF_ASSURANCE_DIR, "template-loa-user.xml", "b1005d3d-6ef4-4347-b235-313666824ed8");
+    //endregion
 
     //region Constants for sensitivity propagation scenario
     private static final File SENSITIVITY_PROPAGATION_DIR = new File(TEST_DIR, "sensitivity-propagation");
@@ -98,6 +110,8 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
     private static final String ATTR_FIRSTNAME = "firstname";
     private static final String ATTR_LASTNAME = "lastname";
     private static final String ATTR_ORGANIZATION = "organization";
+    private static final String ATTR_LOA = "loa";
+
     private static final DummyTestResource RESOURCE_HR = new DummyTestResource(
             PROVENANCE_METADATA_RECORDING_DIR, "resource-hr.xml", "9a34c3b6-aca5-4f9b-aae4-24f3f2d98ce9", "hr", controller -> {
         controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
@@ -115,6 +129,8 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 ATTR_LASTNAME, String.class, false, false);
         controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
                 ATTR_ORGANIZATION, String.class, false, true);
+        controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                ATTR_LOA, Integer.class, false, false);
     });
 
     private static final TestResource<UserType> USER_LEONHARD = new TestResource<>(
@@ -128,13 +144,11 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
     private static final ItemPath SENSITIVITY_PATH = ItemPath.create(ObjectType.F_EXTENSION, SENSITIVITY_NAME);
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
-    private static final TestResource<ObjectTemplateType> TEMPLATE_REGULAR_USER = new TestResource<>(TEST_DIR, "template-regular-user.xml", "b1005d3d-6ef4-4347-b235-313666824ed8");
     private static final TestResource<UserType> USER_ALICE = new TestResource<>(TEST_DIR, "user-alice.xml", "9fc389be-5b47-4e9d-90b5-33fffd87b3ca");
-    private static final TestResource<UserType> USER_BOB = new TestResource<>(TEST_DIR, "user-bob.xml", "cab2344d-06c0-4881-98ee-7075bf5d1309");
-    private static final TestResource<UserType> USER_CHUCK = new TestResource<>(TEST_DIR, "user-chuck.xml", "3eb9ca6b-49b8-4602-943a-992d8eb9adad");
     private static final String USER_BLAISE_NAME = "blaise";
 
     private static final ItemPath PATH_ALIAS = ItemPath.create(UserType.F_EXTENSION, new ItemName("alias")); // TODO namespace
+    private static final ItemPath PATH_ASSURED_ORGANIZATION = ItemPath.create(UserType.F_EXTENSION, new ItemName("assuredOrganization")); // TODO namespace
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -165,10 +179,10 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
 
         addObject(USER_LEONHARD, initTask, initResult);
 
-        addObject(TEMPLATE_REGULAR_USER, initTask, initResult);
+        addObject(TEMPLATE_LOA_USER, initTask, initResult);
         addObject(USER_ALICE, initTask, initResult);
 
-        setGlobalTracingOverride(createModelLoggingTracingProfile());
+//        setGlobalTracingOverride(createModelLoggingTracingProfile());
     }
 
     @Override
@@ -192,6 +206,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         when();
         ValueMetadata metadata = nameValue.getValueMetadata();
         assertThat(metadata.isEmpty()).isTrue();
+        assertThat(metadata.getDefinition()).isNotNull();
 
         XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar();
 
@@ -202,6 +217,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         then();
         @NotNull ValueMetadata metadataAfter = nameValue.getValueMetadata();
         assertThat(metadataAfter.isEmpty()).isFalse();
+        assertThat(metadataAfter.getDefinition()).isNotNull();
 
         ValueMetadataType realMetadataValueAfter = (ValueMetadataType) metadataAfter.getRealValue();
         assertThat(realMetadataValueAfter.getProvisioning().getLastProvisioningTimestamp()).isEqualTo(now);
@@ -216,6 +232,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         then();
         assertUserAfter(USER_ALICE.oid)
                 .valueMetadata(ItemPath.EMPTY_PATH)
+                    .assertHasDefinition()
                     .singleValue()
                         .containerSingle(ValueMetadataType.F_PROCESS)
                             .assertItems(ProcessMetadataType.F_REQUEST_TIMESTAMP)
@@ -223,48 +240,63 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .end()
                     .end()
                 .valueMetadata(UserType.F_NAME)
+                    .assertHasDefinition()
                     .singleValue()
-                        .containerSingle(ValueMetadataType.F_TRANSFORMATION)
-                            .container(TransformationMetadataType.F_SOURCE)
-                                .assertSize(1)
-                                .singleValue()
-                                    .assertPropertyEquals(ValueSourceType.F_KIND, "http://midpoint.evolveum.com/data-provenance/source#resource")
-                                    .end()
-                                .end()
-                            .end()
-                        .end()
+//                        .containerSingle(ValueMetadataType.F_TRANSFORMATION)
+//                            .container(TransformationMetadataType.F_SOURCE)
+//                                .assertSize(1)
+//                                .singleValue()
+//                                    .assertPropertyEquals(ValueSourceType.F_KIND, "http://midpoint.evolveum.com/data-provenance/source#resource")
+//                                    .end()
+//                                .end()
+//                            .end()
+//                        .assertPropertyValuesEqual(LOA_PATH, 10)
+//                        .end()
                     .end()
+                .end()
                 .valueMetadata(UserType.F_GIVEN_NAME)
+                    .assertHasDefinition()
                     .singleValue()
                         .display()
+                        .assertPropertyValuesEqual(LOA_PATH, 7)
                         .end()
                     .end()
                 .valueMetadata(UserType.F_FAMILY_NAME)
+                    .assertHasDefinition()
                     .singleValue()
                         .display()
+                        .assertPropertyValuesEqual(LOA_PATH, 7)
                         .end()
                     .end()
                 .valueMetadata(UserType.F_FULL_NAME)
+                    .assertHasDefinition()
                     .singleValue()
                         .display()
+                        .assertPropertyValuesEqual(LOA_PATH, 5)
                         .end()
                     .end()
                 .valueMetadata(UserType.F_ORGANIZATIONAL_UNIT, ppv -> "Development".equals(PolyString.getOrig((PolyString) ppv.getRealValue())))
+                    .assertHasDefinition()
                     .singleValue()
                         .display()
+                        .assertPropertyValuesEqual(LOA_PATH, 7)
                         .end()
                     .end()
                 .valueMetadata(ItemPath.create(UserType.F_ASSIGNMENT, 111L))
+                    .assertHasDefinition()
                     .singleValue()
                         .display()
+                        .assertPropertyValuesEqual(LOA_PATH, 5)
                         .end()
                     .end()
                 .valueMetadata(ItemPath.create(UserType.F_ASSIGNMENT, 111L, AssignmentType.F_SUBTYPE), ppv -> "manual".equals(ppv.getRealValue()))
+                    .assertHasDefinition()
                     .singleValue()
                         .display()
                         .end()
                     .end()
                 .valueMetadata(ItemPath.create(UserType.F_ASSIGNMENT, 111L, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS))
+                    .assertHasDefinition()
                     .singleValue()
                         .display()
                         .end()
@@ -289,22 +321,25 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .display()
                 .displayXml()
                 .valueMetadata(UserType.F_GIVEN_NAME)
+                    .assertHasDefinition()
                     .singleValue()
                         .display()
-                        .assertPropertyValuesEqual(LOA_PATH, "low")
+                        .assertPropertyValuesEqual(LOA_PATH, 1)
                         .end()
                     .end()
                 .valueMetadata(UserType.F_FAMILY_NAME)
+                    .assertHasDefinition()
                     .singleValue()
                         .display()
-                        .assertPropertyValuesEqual(LOA_PATH, "high")
+                        .assertPropertyValuesEqual(LOA_PATH, 3)
                         .end()
                     .end()
                 .assertFullName("Bob Green")
                 .valueMetadata(UserType.F_FULL_NAME)
+                    .assertHasDefinition()
                     .singleValue()
                         .display()
-                        .assertPropertyValuesEqual(LOA_PATH, "low");
+                        .assertPropertyValuesEqual(LOA_PATH, 1);
     }
 
     /**
@@ -319,7 +354,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
 
         PrismPropertyValue<PolyString> bob = prismContext.itemFactory().createPropertyValue();
         bob.setValue(PolyString.fromOrig("Bob"));
-        bob.getValueMetadata().createNewValue().findOrCreateProperty(LOA_PATH).setRealValue("normal");
+        bob.getValueMetadata().createNewValue().findOrCreateProperty(LOA_PATH).setRealValue(2);
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
                 .item(UserType.F_GIVEN_NAME).replace(bob)
@@ -333,22 +368,25 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .display()
                 .displayXml()
                 .valueMetadata(UserType.F_GIVEN_NAME)
+                    .assertHasDefinition()
                     .singleValue()
                         .display()
-                        .assertPropertyValuesEqual(LOA_PATH, "normal")
+                        .assertPropertyValuesEqual(LOA_PATH, 2)
                         .end()
                     .end()
                 .valueMetadata(UserType.F_FAMILY_NAME)
+                    .assertHasDefinition()
                     .singleValue()
                         .display()
-                        .assertPropertyValuesEqual(LOA_PATH, "high")
+                        .assertPropertyValuesEqual(LOA_PATH, 3)
                         .end()
                     .end()
                 .assertFullName("Bob Green")
                 .valueMetadata(UserType.F_FULL_NAME)
+                    .assertHasDefinition()
                     .singleValue()
                         .display()
-                        .assertPropertyValuesEqual(LOA_PATH, "normal");
+                        .assertPropertyValuesEqual(LOA_PATH, 2);
     }
 
     /**
@@ -366,7 +404,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
 
         PrismPropertyValue<PolyString> robert = prismContext.itemFactory().createPropertyValue();
         robert.setValue(PolyString.fromOrig("Robert"));
-        robert.getValueMetadata().createNewValue().findOrCreateProperty(LOA_PATH).setRealValue("high");
+        robert.getValueMetadata().createNewValue().findOrCreateProperty(LOA_PATH).setRealValue(3);
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
                 .item(UserType.F_GIVEN_NAME).add(robert)
@@ -380,18 +418,18 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .displayXml()
                 .valueMetadata(UserType.F_GIVEN_NAME)
                     .singleValue()
-                        .assertPropertyValuesEqual(LOA_PATH, "high")
+                        .assertPropertyValuesEqual(LOA_PATH, 3)
                         .end()
                     .end()
                 .valueMetadata(UserType.F_FAMILY_NAME)
                     .singleValue()
-                        .assertPropertyValuesEqual(LOA_PATH, "high")
+                        .assertPropertyValuesEqual(LOA_PATH, 3)
                         .end()
                     .end()
                 .assertFullName("Robert Green")
                 .valueMetadata(UserType.F_FULL_NAME)
                     .singleValue()
-                        .assertPropertyValuesEqual(LOA_PATH, "high");
+                        .assertPropertyValuesEqual(LOA_PATH, 3);
     }
 
     /**
@@ -417,8 +455,9 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .displayXml()
                 .assertFullName("Chuck White")
                 .valueMetadata(UserType.F_FULL_NAME)
+                    .assertHasDefinition()
                     .singleValue()
-                        .assertPropertyValuesEqual(LOA_PATH, "low")
+                        .assertPropertyValuesEqual(LOA_PATH, 1)
                         .end();
     }
     //endregion
@@ -552,7 +591,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .beginProvenance()
                             .beginAcquisition()
                                 .originRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .channel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .channel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .timestamp(now)
                             .<ProvenanceMetadataType>end()
                         .<ValueMetadataType>end());
@@ -566,7 +605,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .beginProvenance()
                             .beginAcquisition()
                                 .originRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .channel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .channel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .timestamp(now)
                             .<ProvenanceMetadataType>end()
                         .<ValueMetadataType>end());
@@ -589,7 +628,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                     .provenance()
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                             .assertTimestampBetween(now, now)
                         .end()
                     .end()
@@ -599,7 +638,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                     .provenance()
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                             .assertTimestampBetween(now, now)
                         .end()
                     .end()
@@ -610,7 +649,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .assertMappingSpec(TEMPLATE_PROVENANCE_METADATA_RECORDING.oid)
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                             .assertTimestampBetween(now, now)
                         .end()
                     .end()
@@ -672,7 +711,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                     .provenance()
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                             .assertTimestampBefore(before)
                         .end()
                     .end()
@@ -684,7 +723,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .provenance()
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
@@ -706,7 +745,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .assertAcquisitions(2)
                         .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                             .assertTimestampBefore(before)
                         .end()
                         .singleAcquisition(ORIGIN_SELF_SERVICE_APP.oid)
@@ -772,7 +811,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                     .provenance()
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                             .assertTimestampBefore(before)
                         .end()
                     .end()
@@ -784,7 +823,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .provenance()
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
@@ -808,7 +847,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertAcquisitions(2)
                             .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertTimestampBefore(before)
                             .end()
                             .singleAcquisition(ORIGIN_SELF_SERVICE_APP.oid)
@@ -882,7 +921,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertAcquisitions(3)
                             .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertTimestampBefore(before)
                             .end()
                             .singleAcquisition(ORIGIN_SELF_SERVICE_APP.oid)
@@ -958,7 +997,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                     .provenance()
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                             .assertTimestampBefore(before)
                         .end()
                     .end()
@@ -970,7 +1009,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .provenance()
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
@@ -985,7 +1024,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertAcquisitions(1)
                             .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
@@ -1071,7 +1110,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .provenance()
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
@@ -1086,7 +1125,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertAcquisitions(2)
                             .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertTimestampBefore(before)
                             .end()
                             .singleAcquisition(ORIGIN_SELF_SERVICE_APP.oid)
@@ -1113,7 +1152,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .assertAcquisitions(2)
                             .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertTimestampBefore(before)
                             .end()
                             .singleAcquisition(ORIGIN_SELF_SERVICE_APP.oid)
@@ -1166,7 +1205,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .beginProvenance()
                             .beginAcquisition()
                                 .originRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .channel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .channel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .timestamp(now)
                             .<ProvenanceMetadataType>end()
                         .<ValueMetadataType>end());
@@ -1188,7 +1227,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                     .provenance()
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                             .assertTimestamp(now)
                         .end()
                     .end()
@@ -1200,7 +1239,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .provenance()
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
@@ -1214,7 +1253,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertMappingSpec(TEMPLATE_PROVENANCE_METADATA_RECORDING.oid)
                             .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                             .end()
                         .end()
                     .end()
@@ -1234,7 +1273,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .assertMappingSpec(TEMPLATE_PROVENANCE_METADATA_RECORDING.oid)
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                         .end()
                     .end()
                 .end();
@@ -1245,12 +1284,14 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
      * Blaise is imported from HR anew.
      *
      * After:
-     *  - name:       blaise (m:hr)
-     *  - givenName:  Blaise (m:hr)
-     *  - familyName: Pascal (m:hr)
-     *  - fullName:   Blaise Pascal (m:hr)
-     *  - org:        Department of Hydrostatics (m:hr)
-     *  - org:        Binomial Club (m:hr)
+     *  - name:       blaise (m:hr/2)
+     *  - givenName:  Blaise (m:hr/2)
+     *  - familyName: Pascal (m:hr/2)
+     *  - fullName:   Blaise Pascal (m:hr/2)
+     *  - org:        Department of Hydrostatics (m:hr/2)
+     *  - org:        Binomial Club (m:hr/2)
+     *
+     * Note: /2 means LoA of 2.
      */
     @Test
     public void test300ImportBlaiseFromHr() throws Exception {
@@ -1286,6 +1327,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBetween(start, end)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
                 .end()
 
                 .assertGivenName("Blaise")
@@ -1298,6 +1340,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBetween(start, end)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
                 .end()
 
                 .assertFamilyName("Pascal")
@@ -1310,6 +1353,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBetween(start, end)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
                 .end()
 
                 .assertFullName("Blaise Pascal")
@@ -1322,6 +1366,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBetween(start, end)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
                 .end()
 
                 .assertOrganizations("Department of Hydrostatics", "Binomial Club")
@@ -1334,6 +1379,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBetween(start, end)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
                 .end()
                 .valueMetadataSingle(UserType.F_ORGANIZATION, ValueSelector.origEquals("Binomial Club"))
                     .provenance()
@@ -1344,28 +1390,60 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBetween(start, end)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
+                .end()
+
+                .assertCostCenter("CC000")
+                .valueMetadata(UserType.F_COST_CENTER)
+                    .assertSize(0) // there should be none, because the processing of MD for costCenter is disabled
+                .end()
+
+                .assertLocality("Bratislava")
+                .valueMetadataSingle(UserType.F_LOCALITY)
+                    .assertInternalOrigin()
+                    .provenance()
+                        .assertMappingSpec(TEMPLATE_PROVENANCE_METADATA_RECORDING.oid)
+                    .end()
+                    .assertNoItem(LOA_PATH) // LoA handling is turned off for "locality" mapping
+                .end()
+
+                .valueMetadataSingle(UserType.F_TITLE)
+                    .assertInternalOrigin() // generated
+                .end()
+
+                .valueMetadataSingle(UserType.F_ASSIGNMENT) // there should be only a single assignment
+                    .display()
+                    .provenance()
+                        .assertMappingSpec(RESOURCE_HR.oid)
+                        .singleAcquisition()
+                            .assertOriginRef(ORIGIN_HR_FEED.oid)
+                            .assertResourceRef(RESOURCE_HR.oid)
+                            .assertTimestampBetween(start, end)
+                        .end()
+                    .end()
+                    .assertNoItem(LOA_PATH) // LoA handling is turned off for assignments
                 .end();
     }
 
     /**
      * Before:
-     *  - name:       blaise (hr)
-     *  - givenName:  Blaise (hr)
-     *  - familyName: Pascal (hr)
-     *  - fullName:   Blaise Pascal (m:hr)
-     *  - org:        Department of Hydrostatics (hr)
-     *  - org:        Binomial Club (hr)
+     *  - name:       blaise (m:hr/2)
+     *  - givenName:  Blaise (m:hr/2)
+     *  - familyName: Pascal (m:hr/2)
+     *  - fullName:   Blaise Pascal (m:hr/2)
+     *  - org:        Department of Hydrostatics (m:hr/2)
+     *  - org:        Binomial Club (m:hr/2)
      *
      * Delta:
-     *  - add familyName: Pascal (admin)
+     *  - add familyName: Pascal (admin/5)
      *
      * After:
-     *  - name:       blaise (hr)
-     *  - givenName:  Blaise (hr)
-     *  - familyName: Pascal (hr, admin)
-     *  - fullName:   Blaise Pascal (m:hr+admin)
-     *  - org:        Department of Hydrostatics (hr)
-     *  - org:        Binomial Club (hr)
+     *  - name:       blaise (hr/2)
+     *  - givenName:  Blaise (hr/2)
+     *  - familyName: Pascal (hr/2, admin/5)
+     *  - fullName:   Blaise Pascal (m:hr+admin/2)
+     *  - org:        Department of Hydrostatics (hr/2)
+     *  - org:        Binomial Club (hr/2)
      */
     @Test
     public void test310ReinforceFamilyNameByManualEntry() throws Exception {
@@ -1386,11 +1464,12 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .beginProvenance()
                             .beginAcquisition()
                                 .originRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .channel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .channel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .actorRef(USER_ADMINISTRATOR_OID, UserType.COMPLEX_TYPE)
                                 .timestamp(now)
                             .<ProvenanceMetadataType>end()
                         .<ValueMetadataType>end());
+        setLoA(pascal, 5);
         // @formatter:on
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
@@ -1414,6 +1493,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBefore(before)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
                 .end()
 
                 .assertGivenName("Blaise")
@@ -1425,6 +1505,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBefore(before)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
                 .end()
 
                 .assertFamilyName("Pascal")
@@ -1438,16 +1519,18 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 2)
                     .end()
                     .valueForOrigin(ORIGIN_ADMIN_ENTRY.oid)
                         .provenance()
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertActorRef(USER_ADMINISTRATOR_OID)
                                 .assertTimestampBetween(now, now)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 5)
                     .end()
                 .end()
 
@@ -1463,11 +1546,12 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .end()
                         .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                             .assertActorRef(USER_ADMINISTRATOR_OID)
                             .assertTimestampBetween(now, now)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2) // because givenName has LoA of 2
                 .end()
 
                 .assertOrganizations("Department of Hydrostatics", "Binomial Club")
@@ -1479,6 +1563,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBefore(before)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
                 .end()
                 .valueMetadataSingle(UserType.F_ORGANIZATION, ValueSelector.origEquals("Binomial Club"))
                     .provenance()
@@ -1488,28 +1573,29 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBefore(before)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
                 .end();
     }
 
     /**
      * Before:
-     *  - name:       blaise (hr)
-     *  - givenName:  Blaise (hr)
-     *  - familyName: Pascal (hr, admin)
-     *  - fullName:   Blaise Pascal (m:hr+admin)
-     *  - org:        Department of Hydrostatics (hr)
-     *  - org:        Binomial Club (hr)
+     *  - name:       blaise (m:hr/2)
+     *  - givenName:  Blaise (m:hr/2)
+     *  - familyName: Pascal (m:hr/2, admin/5)
+     *  - fullName:   Blaise Pascal (m:hr+admin/2)
+     *  - org:        Department of Hydrostatics (m:hr/2)
+     *  - org:        Binomial Club (m:hr/2)
      *
      * Delta:
-     *  - add givenName: Blaise (admin/jim)
+     *  - add givenName: Blaise (admin/jim:4)
      *
      * After:
-     *  - name:       blaise (hr)
-     *  - givenName:  Blaise (hr, admin/jim)
-     *  - familyName: Pascal (hr, admin)
-     *  - fullName:   Blaise Pascal (m:hr+admin) [not sure about actor/timestamp]
-     *  - org:        Department of Hydrostatics (hr)
-     *  - org:        Binomial Club (hr)
+     *  - name:       blaise (m:hr/2)
+     *  - givenName:  Blaise (m:hr/2, admin/jim/4)
+     *  - familyName: Pascal (m:hr/2, admin/5)
+     *  - fullName:   Blaise Pascal (m:hr+admin/4) [not sure about actor/timestamp]
+     *  - org:        Department of Hydrostatics (m:hr/2)
+     *  - org:        Binomial Club (m:hr/2)
      */
     @Test
     public void test320ReinforceGivenNameByManualEntry() throws Exception {
@@ -1530,11 +1616,12 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .beginProvenance()
                             .beginAcquisition()
                                 .originRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .channel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .channel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .actorRef(USER_JIM.oid, UserType.COMPLEX_TYPE)
                                 .timestamp(now)
                             .<ProvenanceMetadataType>end()
                         .<ValueMetadataType>end());
+        setLoA(blaise, 4);
         // @formatter:on
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
@@ -1556,6 +1643,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBefore(before)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
                 .end()
 
                 .assertGivenName("Blaise")
@@ -1568,16 +1656,18 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 2)
                     .end()
                     .valueForOrigin(ORIGIN_ADMIN_ENTRY.oid)
                         .provenance()
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertActorRef(USER_JIM.oid)
                                 .assertTimestampBetween(now, now)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 4)
                     .end()
                 .end()
 
@@ -1592,16 +1682,18 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 2)
                     .end()
                     .valueForOrigin(ORIGIN_ADMIN_ENTRY.oid)
                         .provenance()
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertActorRef(USER_ADMINISTRATOR_OID)
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 5)
                     .end()
                 .end()
 
@@ -1617,10 +1709,11 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .end()
                         .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                             // not sure about actor (administrator vs. jim) nor timestamp
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 4) // Blaise: 4, Pascal: 5
                 .end()
 
                 .assertOrganizations("Department of Hydrostatics", "Binomial Club")
@@ -1632,6 +1725,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBefore(before)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
                 .end()
                 .valueMetadataSingle(UserType.F_ORGANIZATION, ValueSelector.origEquals("Binomial Club"))
                     .provenance()
@@ -1641,28 +1735,29 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBefore(before)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
                 .end();
     }
 
     /**
      * Now importing Blaise from CRM. Values are not conflicting. One organization is added.
      *
-     * Before:
-     *  - name:       blaise (hr)
-     *  - givenName:  Blaise (hr, admin/jim)
-     *  - familyName: Pascal (hr, admin)
-     *  - fullName:   Blaise Pascal (m:hr+admin)
-     *  - org:        Department of Hydrostatics (hr)
-     *  - org:        Binomial Club (hr)
+     * After:
+     *  - name:       blaise (m:hr/2)
+     *  - givenName:  Blaise (m:hr/2, admin/jim/4)
+     *  - familyName: Pascal (m:hr/2, admin/5)
+     *  - fullName:   Blaise Pascal (m:hr+admin/4)
+     *  - org:        Department of Hydrostatics (m:hr/2)
+     *  - org:        Binomial Club (m:hr/2)
      *
      * After:
-     *  - name:       blaise (hr, crm)
-     *  - givenName:  Blaise (hr, admin/jim, crm)
-     *  - familyName: Pascal (hr, admin, crm)
-     *  - fullName:   Blaise Pascal (m:hr+admin+crm)
-     *  - org:        Department of Hydrostatics (hr, crm)
-     *  - org:        Binomial Club (hr)
-     *  - org:        Gases (crm)
+     *  - name:       blaise (m:hr/2, m:crm/3)
+     *  - givenName:  Blaise (m:hr/2, admin/jim/4, m:crm/3)
+     *  - familyName: Pascal (m:hr/2, admin/5, m:crm/3)
+     *  - fullName:   Blaise Pascal (m:hr+admin+crm/4)
+     *  - org:        Department of Hydrostatics (m:hr/2, m:crm/3)
+     *  - org:        Binomial Club (m:hr/2)
+     *  - org:        Gases (m:crm/3)
      */
     @Test
     public void test330ImportBlaiseFromCrm() throws Exception {
@@ -1675,6 +1770,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         crmAccount.addAttributeValue(ATTR_LASTNAME, "Pascal");
         crmAccount.addAttributeValue(ATTR_ORGANIZATION, "Department of Hydrostatics");
         crmAccount.addAttributeValue(ATTR_ORGANIZATION, "Gases");
+        crmAccount.addAttributeValue(ATTR_LOA, 3);
 
         when();
         XMLGregorianCalendar before = clock.currentTimeXMLGregorianCalendar();
@@ -1694,6 +1790,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 2)
                     .end()
                     .valueForOrigin(ORIGIN_CRM_FEED.oid)
                         .provenance()
@@ -1702,6 +1799,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBetween(before, after)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 3)
                     .end()
                 .end()
 
@@ -1716,16 +1814,18 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 2)
                     .end()
                     .valueForOrigin(ORIGIN_ADMIN_ENTRY.oid)
                         .provenance()
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertActorRef(USER_JIM.oid)
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 4)
                     .end()
                     .valueForOrigin(ORIGIN_CRM_FEED.oid)
                         .provenance()
@@ -1734,6 +1834,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBetween(before, after)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 3)
                     .end()
                 .end()
 
@@ -1748,16 +1849,18 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 2)
                     .end()
                     .valueForOrigin(ORIGIN_ADMIN_ENTRY.oid)
                         .provenance()
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertActorRef(USER_ADMINISTRATOR_OID)
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 5)
                     .end()
                     .valueForOrigin(ORIGIN_CRM_FEED.oid)
                         .provenance()
@@ -1766,6 +1869,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBetween(before, after)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 3)
                     .end()
                 .end()
 
@@ -1783,10 +1887,11 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBetween(before, after)
                         .end()
                         .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
-                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                             // not sure about actor (administrator vs. jim) nor timestamp
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 4)
                 .end()
 
                 .assertOrganizations("Department of Hydrostatics", "Binomial Club", "Gases")
@@ -1800,6 +1905,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 2)
                     .end()
                     .valueForOrigin(ORIGIN_CRM_FEED.oid)
                         .provenance()
@@ -1809,6 +1915,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBetween(before, after)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 3)
                     .end()
                 .end()
                 .valueMetadataSingle(UserType.F_ORGANIZATION, ValueSelector.origEquals("Binomial Club"))
@@ -1819,6 +1926,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBefore(before)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
                 .end()
                 .valueMetadataSingle(UserType.F_ORGANIZATION, ValueSelector.origEquals("Gases"))
                     .provenance()
@@ -1828,8 +1936,8 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBetween(before, after)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 3)
                 .end();
-
     }
 
     /**
@@ -1908,7 +2016,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .provenance()
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertActorRef(USER_JIM.oid)
                                 .assertTimestampBefore(before)
                             .end()
@@ -1940,7 +2048,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .provenance()
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertActorRef(USER_ADMINISTRATOR_OID)
                                 .assertTimestampBefore(before)
                             .end()
@@ -1970,7 +2078,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBefore(before)
                         .end()
                         .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
-                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                             // not sure about actor (administrator vs. jim) nor timestamp
                         .end()
                     .end()
@@ -2022,12 +2130,12 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
      * Delta: org should lose Department of Hydrostatics value (via HR).
      *
      * After:
-     *  - name:       blaise (hr, crm)
-     *  - givenName:  Blaise (hr, admin/jim, crm)
-     *  - familyName: Pascal (hr, admin, crm)
-     *  - fullName:   Blaise Pascal (m:hr+admin+crm)
-     *  - org:        Department of Hydrostatics (crm) <---- We should keep the CRM yield of this value.
-     *  - org:        Binomial Club (hr)
+     *  - name:       blaise (hr/2, crm/3)
+     *  - givenName:  Blaise (hr/2, admin/jim/4, crm/3)
+     *  - familyName: Pascal (hr/2, admin/5, crm/3)
+     *  - fullName:   Blaise Pascal (m:hr+admin+crm/4)
+     *  - org:        Department of Hydrostatics (crm/3) <---- We should keep the CRM yield of this value.
+     *  - org:        Binomial Club (hr/2)
      */
     @Test
     public void test350DeleteBlaiseFromHydrostatics() throws Exception {
@@ -2066,11 +2174,129 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBefore(before)
                         .end()
                     .end()
-                .end();
+                .end()
+
+                .assertValues(PATH_ASSURED_ORGANIZATION, poly("Department of Hydrostatics"));
+    }
+
+    /**
+     * Before:
+     *  - name:       blaise (hr/2, crm/3)
+     *  - givenName:  Blaise (hr/2, admin/jim/4, crm/3)
+     *  - familyName: Pascal (hr/2, admin/5, crm/3)
+     *  - fullName:   Blaise Pascal (m:hr+admin+crm/4)
+     *  - org:        Department of Hydrostatics (crm/3) <---- We should keep the CRM yield of this value.
+     *  - org:        Binomial Club (hr/2)
+     *  - assuredOrg: Department of Hydrostatics
+     *
+     * Delta: admin enters its own value for Binomial Club with loa of 5
+     *
+     * After:
+     *  - name:       blaise (hr/2, crm/3)
+     *  - givenName:  Blaise (hr/2, admin/jim/4, crm/3)
+     *  - familyName: Pascal (hr/2, admin/5, crm/3)
+     *  - fullName:   Blaise Pascal (m:hr+admin+crm/4)
+     *  - org:        Department of Hydrostatics (crm/3) <---- We should keep the CRM yield of this value.
+     *  - org:        Binomial Club (hr/2)
+     *  - assuredOrg: Department of Hydrostatics
+     *  - assuredOrg: Binomial Club
+     */
+    @Test
+    public void test360ReinforceBinomialClub() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> blaise = findUserByUsername(USER_BLAISE_NAME);
+
+        XMLGregorianCalendar before = clock.currentTimeXMLGregorianCalendar();
+        Thread.sleep(10);
+        XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+
+        PrismPropertyValue<PolyString> binomialClubAdmin = prismContext.itemFactory().createPropertyValue();
+        binomialClubAdmin.setValue(PolyString.fromOrig("Binomial Club"));
+        binomialClubAdmin.setValueMetadata(
+                new ValueMetadataType(prismContext)
+                        .beginProvenance()
+                            .beginAcquisition()
+                                .originRef(ORIGIN_ADMIN_ENTRY.ref())
+                                .channel(SchemaConstants.CHANNEL_USER_LOCAL)
+                                .timestamp(now)
+                            .<ProvenanceMetadataType>end()
+                        .<ValueMetadataType>end());
+        setLoA(binomialClubAdmin, 5);
+
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_ORGANIZATION).add(binomialClubAdmin)
+                .asObjectDelta(blaise.getOid());
+
+        when();
+        executeChanges(delta, null, task, result);
+
+        then();
+        assertUserAfterByUsername(USER_BLAISE_NAME)
+                .displayXml()
+
+                // skip all those lengthy asserts
+                .assertOrganizations("Department of Hydrostatics", "Binomial Club")
+                .valueMetadataSingle(UserType.F_ORGANIZATION, ValueSelector.origEquals("Department of Hydrostatics"))
+                    .provenance()
+                        .singleAcquisition()
+                            .assertOriginRef(ORIGIN_CRM_FEED.oid)
+                            .assertResourceRef(RESOURCE_CRM.oid)
+                            .assertTimestampBefore(before)
+                        .end()
+                    .end()
+                .end()
+                .valueMetadata(UserType.F_ORGANIZATION, ValueSelector.origEquals("Binomial Club"))
+                    .assertSize(2)
+                    .valueForOrigin(ORIGIN_HR_FEED.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertResourceRef(RESOURCE_HR.oid)
+                                .assertTimestampBefore(before)
+                            .end()
+                        .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 2)
+                    .end()
+                    .valueForOrigin(ORIGIN_ADMIN_ENTRY.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertTimestamp(now)
+                            .end()
+                        .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 5)
+                    .end()
+                .end()
+
+                .assertValues(PATH_ASSURED_ORGANIZATION, poly("Department of Hydrostatics"), poly("Binomial Club"));
     }
 
     @Test
-    public void test950DeleteBlaiseAndReconcile() throws Exception {
+    public void test370ProvenanceSupport() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> blaise = findUserByUsername(USER_BLAISE_NAME);
+
+        when();
+        MetadataItemProcessingSpec provenanceSupportSpec = modelInteractionService.getMetadataItemProcessingSpec(
+                ValueMetadataType.F_PROVENANCE, blaise, task, result);
+
+        then();
+        displayDumpable("provenance support spec", provenanceSupportSpec);
+
+        assertThat(provenanceSupportSpec.isFullProcessing(UserType.F_GIVEN_NAME)).as("giveName provenance support").isTrue();
+        assertThat(provenanceSupportSpec.isFullProcessing(UserType.F_FULL_NAME)).as("fullName provenance support").isTrue();
+        assertThat(provenanceSupportSpec.isFullProcessing(ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS)))
+                .as("activation/administrativeStatus provenance support").isTrue();
+        assertThat(provenanceSupportSpec.isFullProcessing(UserType.F_ASSIGNMENT)).as("assignment provenance support").isTrue();
+        assertThat(provenanceSupportSpec.isFullProcessing(UserType.F_COST_CENTER)).as("costCenter provenance support").isFalse();
+    }
+
+    @Test
+    public void test390DeleteBlaiseAndReconcile() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2091,4 +2317,18 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
     }
 
     //endregion
+
+    private void setLoA(PrismValue value, int loa) throws SchemaException {
+        PrismContainer<Containerable> valueMetadata = value.getValueMetadataAsContainer();
+        assertThat(valueMetadata.size()).isEqualTo(1);
+        valueMetadata.getValue().findOrCreateProperty(LOA_PATH).setRealValue(loa);
+    }
+
+    private PolyString poly(String orig) {
+        PolyString polyString = PolyString.fromOrig(orig);
+        polyString.recompute(prismContext.getDefaultPolyStringNormalizer());
+        return polyString;
+    }
+
+
 }

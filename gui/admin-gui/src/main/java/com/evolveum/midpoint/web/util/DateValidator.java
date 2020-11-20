@@ -25,7 +25,7 @@ public class DateValidator extends AbstractFormValidator {
     private ItemPath identifier;
     private DateTimeField dateFrom;
     private DateTimeField dateTo;
-    private String messageKey = "DateValidator.message.fromAfterTo";
+    private String messageKey = "DateValidator.defaultErrorMessage";
 
     public DateValidator() {
         this(null, null);

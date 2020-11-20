@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdministrativeAvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
 import org.apache.wicket.model.IModel;
 
@@ -29,6 +30,7 @@ public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
     @Override
     protected List<SummaryTag<ResourceType>> getSummaryTagComponentList(){
         AvailabilityStatusType availability = ResourceTypeUtil.getLastAvailabilityStatus(getModelObject());
+        AdministrativeAvailabilityStatusType administrativeAvailability = ResourceTypeUtil.getAdministrativeAvailabilityStatus(getModelObject());
 
         List<SummaryTag<ResourceType>> summaryTagList = new ArrayList<>();
 
@@ -37,24 +39,30 @@ public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
 
             @Override
             protected void initialize(ResourceType object) {
-                if (availability== null) {
+                if (AdministrativeAvailabilityStatusType.MAINTENANCE == administrativeAvailability) {
+                    setIconCssClass(GuiStyleConstants.CLASS_ICON_RESOURCE_MAINTENANCE);
+                    setLabel(ResourceSummaryPanel.this.getString(administrativeAvailability));
+                    return;
+                }
+
+                if (availability == null) {
                     setIconCssClass(GuiStyleConstants.CLASS_ICON_RESOURCE_UNKNOWN);
                     setLabel(getString("ResourceSummaryPanel.UNKNOWN"));
                     return;
-                }
-                setLabel(ResourceSummaryPanel.this.getString(availability));
-                switch(availability) {
-                    case UP:
-                        setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_ACTIVE);
-                        break;
-                    case DOWN:
-                        setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_INACTIVE);
-                        break;
-                    case BROKEN:
-                        setIconCssClass(GuiStyleConstants.CLASS_ICON_RESOURCE_BROKEN);
-                        break;
+                } else {
+                    setLabel(ResourceSummaryPanel.this.getString(availability));
+                    switch (availability) {
+                        case UP:
+                            setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_ACTIVE);
+                            break;
+                        case DOWN:
+                            setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_INACTIVE);
+                            break;
+                        case BROKEN:
+                            setIconCssClass(GuiStyleConstants.CLASS_ICON_RESOURCE_BROKEN);
+                            break;
 
-
+                    }
                 }
             }
         };
@@ -64,7 +72,7 @@ public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
 
 
     @Override
-    protected String getIconCssClass() {
+    protected String getDefaultIconCssClass() {
         return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON;
     }
 

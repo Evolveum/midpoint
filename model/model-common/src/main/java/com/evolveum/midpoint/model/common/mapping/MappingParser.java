@@ -174,7 +174,8 @@ class MappingParser<D extends ItemDefinition, MBT extends AbstractMappingType> {
         ValueSetDefinitionType domainSetType = sourceDefinition.getSet();
         if (domainSetType != null) {
             ValueSetDefinition<IV, ID> setDef = new ValueSetDefinition<>(
-                    domainSetType, sourceItemDefinition, m.expressionProfile, variableName, null,
+                    domainSetType, sourceItemDefinition, m.valueMetadataDefinition,
+                    m.expressionProfile, variableName, null,
                     "domain of " + variableName, "domain of " + variableName + " in " + m.getMappingContextDescription(),
                     m.getTask(), result);
             setDef.init(m.beans.expressionFactory);
@@ -185,17 +186,20 @@ class MappingParser<D extends ItemDefinition, MBT extends AbstractMappingType> {
                     //noinspection unchecked
                     itemOld = itemOld.clone();
                     itemOld.filterValues(setDef::containsTunnel);
+                    itemOld.filterYields(setDef::containsYieldTunnel);
                 }
 
                 if (itemNew != null) {
                     //noinspection unchecked
                     itemNew = itemNew.clone();
                     itemNew.filterValues(setDef::containsTunnel);
+                    itemNew.filterYields(setDef::containsYieldTunnel);
                 }
 
                 if (delta != null) {
                     delta = delta.clone();
                     delta.filterValues(setDef::containsTunnel);
+                    delta.filterYields(setDef::containsYieldTunnel);
                 }
 
             } catch (TunnelException te) {

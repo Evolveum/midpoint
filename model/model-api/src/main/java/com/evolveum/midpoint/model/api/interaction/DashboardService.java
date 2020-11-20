@@ -9,8 +9,8 @@ package com.evolveum.midpoint.model.api.interaction;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -22,6 +22,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import javax.xml.namespace.QName;
@@ -37,10 +38,10 @@ public interface DashboardService {
             ExpressionEvaluationException, ObjectNotFoundException;
 
     List<PrismObject<ObjectType>> searchObjectFromCollection(CollectionRefSpecificationType collection, QName typeForFilter,
-            Collection<SelectorOptions<GetOperationOptions>> options, ExpressionType condition, Task task, OperationResult result) throws SchemaException,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException,
             ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
-    List<AuditEventRecord> searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, ExpressionType condition, Task task, OperationResult result)
+    List<AuditEventRecordType> searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, ObjectPaging paging, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException;
 
@@ -48,5 +49,8 @@ public interface DashboardService {
             SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
     CollectionRefSpecificationType getCollectionRefSpecificationType(DashboardWidgetType widget, Task task, OperationResult result);
+
+    Integer countAuditEvents(CollectionRefSpecificationType collectionRef, ObjectCollectionType collection, Task task, OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException;
 
 }

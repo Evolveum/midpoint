@@ -35,6 +35,7 @@ import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sql.helpers.JdbcSession;
 import com.evolveum.midpoint.repo.sql.pure.SqlTableMetadata;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.mapping.QAuditEventRecordMapping;
 import com.evolveum.midpoint.repo.sql.util.EntityStateInterceptor;
 import com.evolveum.midpoint.repo.sql.util.MidPointImplicitNamingStrategy;
 import com.evolveum.midpoint.repo.sql.util.MidPointPhysicalNamingStrategy;
@@ -93,11 +94,13 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
         for (Configuration subConfigColumn : subConfigColumns) {
             String columnName = getStringFromConfig(
                     subConfigColumn, CONF_AUDIT_SERVICE_COLUMN_NAME);
-            String eventRecordPropertyName = getStringFromConfig(
+            String propertyName = getStringFromConfig(
                     subConfigColumn, CONF_AUDIT_SERVICE_EVENT_RECORD_PROPERTY_NAME);
             // No type definition for now, it's all String or String implicit conversion.
 
-            auditService.addCustomColumn(eventRecordPropertyName, columnName);
+            ColumnMetadata columnMetadata =
+                    ColumnMetadata.named(columnName).ofType(Types.NVARCHAR).withSize(255);
+            QAuditEventRecordMapping.INSTANCE.addExtensionColumn(propertyName, columnMetadata);
             if (tableMetadata != null && tableMetadata.get(columnName) == null) {
                 // Fails on SQL Server with snapshot transaction, so different isolation is used.
                 try (JdbcSession jdbcSession = baseHelper.newJdbcSession()

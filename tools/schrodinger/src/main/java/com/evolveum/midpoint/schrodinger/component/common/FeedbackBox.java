@@ -92,13 +92,17 @@ public class FeedbackBox<T> extends Component<T> {
     public TaskBasicTab clickShowTask() {
 
         $(Schrodinger.byDataId("backgroundTask")).click();
-        SelenideElement taskBasicTab = $(Schrodinger.byDataResourceKey("pageTaskEdit.basic"));
+        SelenideElement taskBasicTab = $(Schrodinger.byDataResourceKey("pageTask.basic.title"));
         return new TaskBasicTab(new TaskPage(), taskBasicTab);
     }
 
     public Boolean isFeedbackBoxPresent() {
 
         return getParentElement().isDisplayed();
+    }
+
+    public Boolean doesMessageExist(String messageText) {
+        return $(By.linkText(messageText)).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).exists();
     }
 
 }

@@ -6,47 +6,113 @@
  */
 package com.evolveum.midpoint.model.impl.lens.construction;
 
-import java.io.Serializable;
-
+import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
+import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.Objects;
+
 /**
+ * A superclass for both resource object constructions (ResourceObjectConstruction)
+ * and persona object constructions (PersonaConstruction).
+ *
+ * Contains the construction definition (bean) and the relevant context: assignment path, source object, lens context,
+ * validity information. Basically, everything that is needed to evaluate this construction.
+ *
+ * Note: it is still not quite clear how much is persona construction evaluation similar to the evaluation of a resource
+ * object construction. Persona constructions are currently evaluated using object template evaluation mechanism, while
+ * resource object constructions evaluation is based on attribute/association mappings evaluation directly in
+ * {@link EvaluatedResourceObjectConstructionImpl} and its subclass(es).
+ *
+ * @param <AH> focus type to which this construction applies
+ * @param <ACT> type of the construction bean (e.g. ConstructionType, PersonaConstructionType)
+ * @param <EC> "EvaluatedXXX" class paired with the construction (e.g. {@link EvaluatedPlainResourceObjectConstructionImpl}, {@link EvaluatedPersonaConstructionImpl})
+ *
  * @author Radovan Semancik
  */
-public abstract class AbstractConstruction<AH extends AssignmentHolderType, ACT extends AbstractConstructionType, EC extends EvaluatedConstructible<AH>> implements DebugDumpable, Serializable {
+public abstract class AbstractConstruction<AH extends AssignmentHolderType, ACT extends AbstractConstructionType, EC extends EvaluatedAbstractConstruction<AH>>
+        implements DebugDumpable {
 
-    protected AssignmentPathImpl assignmentPath;
-    protected final ACT constructionBean;
-    private ObjectType source;
-    private OriginType originType;
-    private String channel;
-    private LensContext<AH> lensContext;
+    /**
+     * Definition of the assigned construction.
+     * (For "artificial" constructions created during outbound mappings evaluations it is null.)
+     */
+    @Nullable protected final ACT constructionBean;
+
+    /**
+     * If this construction is assigned, this is the path to it.
+     * (For "artificial" constructions created during outbound mappings evaluations it is null.)
+     */
+    @Nullable protected final AssignmentPathImpl assignmentPath;
+
+    /**
+     * Object in which the construction is defined: either assignment segment source object
+     * (assignment holder) or a resource object.
+     */
+    @NotNull protected final ObjectType source;
+
+    /**
+     * Origin of this construction.
+     */
+    @NotNull protected final OriginType originType;
+
+    /**
+     * Lens context in which this construction is collected and evaluated.
+     */
+    @NotNull protected final LensContext<AH> lensContext;
+
+    /**
+     * Current time. Should be copied from the projector's current time, but it is currently not always the case.
+     */
+    @NotNull protected final XMLGregorianCalendar now;
 
     /**
      * Focus ODO. Should be the absolute one i.e. OLD -> summary delta -> NEW.
+     *
+     * Intentionally not final. It is set just before the construction evaluation
+     * in order to ensure it is up to date. (The constructions are collected before
+     * focus mappings are evaluated. And focus mappings can provide some item deltas.)
+     *
+     * Actually it is not quite clear if this field is relevant also for persona constructions.
+     * These are currently evaluated using object template evaluator, not using EvaluatedXXXConstruction
+     * evaluate() methods.
      */
     private ObjectDeltaObject<AH> focusOdoAbsolute;
 
-    private ObjectResolver objectResolver;
-    private PrismContext prismContext;
+    /**
+     * Components (Spring beans) needed for construction processing.
+     */
+    @NotNull protected final ModelBeans beans;
+
+    /**
+     * TODO
+     * Again, not clear if relevant for persona constructions.
+     */
+    final ExpressionProfile expressionProfile;
 
     /**
      * Is the construction valid in the new state, i.e.
      * - is the whole assignment path active (regarding activation and lifecycle state),
      * - and are all conditions on the path enabled? (EXCLUDING the focus object itself)
      */
-    private boolean valid = true;
+    private final boolean valid;
 
     /**
      * Was the construction valid in the focus old state?
@@ -56,45 +122,38 @@ public abstract class AbstractConstruction<AH extends AssignmentHolderType, ACT 
      */
     private boolean wasValid = true;
 
-    public AbstractConstruction(ACT constructionBean, ObjectType source) {
-        this.constructionBean = constructionBean;
-        this.source = source;
-        this.assignmentPath = null;
+    /**
+     * Variables related to the assignmentPath. Lazily evaluated.
+     */
+    private AssignmentPathVariables assignmentPathVariables;
+
+    AbstractConstruction(AbstractConstructionBuilder<AH, ACT, EC, ?> builder) {
+        this.assignmentPath = builder.assignmentPath;
+        this.constructionBean = builder.constructionBean;
+        this.source = builder.source;
+        this.originType = builder.originType;
+        this.lensContext = builder.lensContext;
+        this.now = builder.now;
+        this.beans = builder.modelBeans;
+        this.valid = builder.valid;
+
+        // TODO: this is wrong. It should be set up during the evaluation process.
+        this.expressionProfile = MiscSchemaUtil.getExpressionProfile();
     }
 
-    public void setSource(ObjectType source) {
-        this.source = source;
-    }
-
-    public ObjectType getSource() {
+    public @NotNull ObjectType getSource() {
         return source;
     }
 
-    public OriginType getOriginType() {
+    public @NotNull OriginType getOriginType() {
         return originType;
     }
 
-    public void setOriginType(OriginType originType) {
-        this.originType = originType;
-    }
-
-    public String getChannel() {
-        return channel;
-    }
-
-    public void setChannel(String channel) {
-        this.channel = channel;
-    }
-
-    public LensContext<AH> getLensContext() {
+    public @NotNull LensContext<AH> getLensContext() {
         return lensContext;
     }
 
-    public void setLensContext(LensContext<AH> lensContext) {
-        this.lensContext = lensContext;
-    }
-
-    public ACT getConstructionBean() {
+    public @Nullable ACT getConstructionBean() {
         return constructionBean;
     }
 
@@ -104,41 +163,17 @@ public abstract class AbstractConstruction<AH extends AssignmentHolderType, ACT 
 
     public void setFocusOdoAbsolute(ObjectDeltaObject<AH> focusOdoAbsolute) {
         if (focusOdoAbsolute.getDefinition() == null) {
-            throw new IllegalArgumentException("No definition in focus ODO "+ focusOdoAbsolute);
+            throw new IllegalArgumentException("No definition in focus ODO " + focusOdoAbsolute);
         }
         this.focusOdoAbsolute = focusOdoAbsolute;
     }
 
-    public ObjectResolver getObjectResolver() {
-        return objectResolver;
-    }
-
-    public void setObjectResolver(ObjectResolver objectResolver) {
-        this.objectResolver = objectResolver;
-    }
-
-    PrismContext getPrismContext() {
-        return prismContext;
-    }
-
-    public void setPrismContext(PrismContext prismContext) {
-        this.prismContext = prismContext;
-    }
-
-    public String getDescription() {
-        return constructionBean.getDescription();
-    }
-
     public boolean isWeak() {
-        return constructionBean.getStrength() == ConstructionStrengthType.WEAK;
+        return constructionBean != null && constructionBean.getStrength() == ConstructionStrengthType.WEAK;
     }
 
     public boolean isValid() {
         return valid;
-    }
-
-    public void setValid(boolean isValid) {
-        this.valid = isValid;
     }
 
     public boolean getWasValid() {
@@ -149,91 +184,39 @@ public abstract class AbstractConstruction<AH extends AssignmentHolderType, ACT 
         this.wasValid = wasValid;
     }
 
-    public AssignmentPathImpl getAssignmentPath() {
+    public @Nullable AssignmentPathImpl getAssignmentPath() {
         return assignmentPath;
     }
 
-    public void setAssignmentPath(AssignmentPathImpl assignmentPath) {
-        this.assignmentPath = assignmentPath;
-    }
-
     public abstract DeltaSetTriple<EC> getEvaluatedConstructionTriple();
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((assignmentPath == null) ? 0 : assignmentPath.hashCode());
-        result = prime * result + ((channel == null) ? 0 : channel.hashCode());
-        result = prime * result + ((constructionBean == null) ? 0 : constructionBean.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        AbstractConstruction other = (AbstractConstruction) obj;
-        if (assignmentPath == null) {
-            if (other.assignmentPath != null) {
-                return false;
-            }
-        } else if (!assignmentPath.equals(other.assignmentPath)) {
-            return false;
-        }
-        if (channel == null) {
-            if (other.channel != null) {
-                return false;
-            }
-        } else if (!channel.equals(other.channel)) {
-            return false;
-        }
-        if (constructionBean == null) {
-            if (other.constructionBean != null) {
-                return false;
-            }
-        } else if (!constructionBean.equals(other.constructionBean)) {
-            return false;
-        }
-        if (focusOdoAbsolute == null) {
-            if (other.focusOdoAbsolute != null) {
-                return false;
-            }
-        } else if (!focusOdoAbsolute.equals(other.focusOdoAbsolute)) {
-            return false;
-        }
-        if (valid != other.valid) {
-            return false;
-        }
-        if (lensContext == null) {
-            if (other.lensContext != null) {
-                return false;
-            }
-        } else if (!lensContext.equals(other.lensContext)) {
-            return false;
-        }
-        if (originType != other.originType) {
-            return false;
-        }
-        if (source == null) {
-            if (other.source != null) {
-                return false;
-            }
-        } else if (!source.equals(other.source)) {
-            return false;
-        }
-        return true;
-    }
 
     /**
      * Typical reason for being ignored is that the resourceRef cannot be resolved.
      */
     abstract public boolean isIgnored();
+
+    public AssignmentPathVariables getAssignmentPathVariables() throws SchemaException {
+        if (assignmentPathVariables == null) {
+            assignmentPathVariables = LensUtil.computeAssignmentPathVariables(assignmentPath);
+        }
+        return assignmentPathVariables;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof AbstractConstruction))
+            return false;
+        AbstractConstruction<?, ?, ?> that = (AbstractConstruction<?, ?, ?>) o;
+        return valid == that.valid &&
+                wasValid == that.wasValid &&
+                Objects.equals(constructionBean, that.constructionBean) &&
+                Objects.equals(assignmentPath, that.assignmentPath);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(constructionBean);
+    }
 }

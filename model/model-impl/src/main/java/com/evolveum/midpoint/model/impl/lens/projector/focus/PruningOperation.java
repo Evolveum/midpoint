@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
@@ -29,11 +30,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PrunePolicyActionType;
 
-import java.util.ArrayList;
+import java.util.Collection;
 
 public class PruningOperation<F extends AssignmentHolderType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PruningOperation.class);
+
+    private static final String OP_EXECUTE = PruningOperation.class.getName() + ".execute";
 
     private final LensContext<F> context;
     private final DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple;
@@ -65,26 +68,39 @@ public class PruningOperation<F extends AssignmentHolderType> {
     /**
      * @return true if the assignments should be re-evaluated
      */
-    public boolean execute() throws SchemaException {
-        for (EvaluatedAssignmentImpl<F> existingOrNewAssignment: evaluatedAssignmentTriple.getNonNegativeValues()) {
-            // Note that we take assignments on "being added" condition i.e. ones which are added since objectOld.
-            // Taking simple "plus set" is not sufficient because of situations after wave 0 when all assignments
-            // look like being in zero set.
-            if (existingOrNewAssignment.getOrigin().isBeingAdded()) {
-                pruneNewAssignment(existingOrNewAssignment);
+    public boolean execute(OperationResult parentResult) throws SchemaException {
+        OperationResult result = parentResult.createMinorSubresult(OP_EXECUTE);
+        try {
+            for (EvaluatedAssignmentImpl<F> existingOrNewAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
+                // Note that we take assignments on "being added" condition i.e. ones which are added since objectOld.
+                // Taking simple "plus set" is not sufficient because of situations after wave 0 when all assignments
+                // look like being in zero set.
+                if (existingOrNewAssignment.getOrigin().isBeingAdded()) {
+                    pruneNewAssignment(existingOrNewAssignment);
+                }
             }
-        }
 
-        return prunedViaSecondaryDelta && !enforcementOverrideGenerated;
+            return prunedViaSecondaryDelta && !enforcementOverrideGenerated;
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
     }
 
     private void pruneNewAssignment(EvaluatedAssignmentImpl<F> newAssignment) {
-        newAssignment.getAllTargetsPolicyRules().stream()
-                .filter(rule -> rule.containsEnabledAction(PrunePolicyActionType.class))
-                .forEach(rule -> new ArrayList<>(rule.getTriggers()).stream() // cloning the list because it is modified inside
-                        .filter(trigger -> trigger instanceof EvaluatedExclusionTrigger)
-                        .map(trigger -> (EvaluatedExclusionTrigger) trigger)
-                        .forEach(exclusionTrigger -> processPruneRuleExclusionTrigger(newAssignment, rule, exclusionTrigger)));
+        LOGGER.trace("Pruning new assignment: {}", newAssignment);
+        for (EvaluatedPolicyRuleImpl newAssignmentRule : newAssignment.getAllTargetsPolicyRules()) {
+            if (newAssignmentRule.containsEnabledAction(PrunePolicyActionType.class)) {
+                Collection<EvaluatedExclusionTrigger> exclusionTriggers =
+                        newAssignmentRule.getAllTriggers(EvaluatedExclusionTrigger.class);
+                LOGGER.trace("Exclusion triggers: {}", exclusionTriggers);
+                for (EvaluatedExclusionTrigger exclusionTrigger : exclusionTriggers) {
+                    processPruneRuleExclusionTrigger(newAssignment, newAssignmentRule, exclusionTrigger);
+                }
+            }
+        }
     }
 
     private void processPruneRuleExclusionTrigger(EvaluatedAssignmentImpl<F> newAssignment, EvaluatedPolicyRuleImpl pruneRule,

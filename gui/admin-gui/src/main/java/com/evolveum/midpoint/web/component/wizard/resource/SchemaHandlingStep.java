@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.wizard.resource;
 
 import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.fillDefault;
@@ -15,7 +14,7 @@ import java.util.Iterator;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -909,7 +908,6 @@ public class SchemaHandlingStep extends WizardStep {
 
     private void addObjectTypePerformed(AjaxRequestTarget target) {
         ResourceObjectTypeDefinitionType objectType = new ResourceObjectTypeDefinitionType();
-        //objectType.setDisplayName(generateName(getString("SchemaHandlingStep.label.newObjectType")));
         ResourceObjectTypeDefinitionTypeDto dto = new ResourceObjectTypeDefinitionTypeDto(objectType);
 
         if (schemaHandlingDtoModel.getObject().getObjectTypeDtoList().isEmpty()) {
@@ -924,15 +922,6 @@ public class SchemaHandlingStep extends WizardStep {
         resetSelections(target);
         target.add(this);
         parentPage.refreshIssues(target);
-    }
-
-    static String generateName(List<String> existing, String prefix) {
-        for (int i = 1; ; i++) {
-            String candidate = prefix + (i > 1 ? " " + i : "");
-            if (!existing.contains(candidate)) {
-                return candidate;
-            }
-        }
     }
 
     @NotNull

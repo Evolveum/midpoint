@@ -35,25 +35,17 @@ public class Table<T> extends Component<T> {
 
     public TableRow rowByColumnLabel(String label, String rowValue) {
         int index = findColumnByLabel(label);
-
-        ElementsCollection rows = getParentElement().findAll("tbody tr");
-        for (SelenideElement row : rows) {
-            String value = row.find("td:nth-child(" + index + ")").text();
-            if (value == null) {
-                continue;
-            }
-            value = value.trim();
-
-            if (Objects.equals(rowValue, value)) {
-                return new TableRow(this, row);
-            }
+        if (index < 0) {
+            return null;
         }
-
-        return null;
+        return getTableRowByIndex(index, rowValue);
     }
 
     public int findColumnByLabel(String label) {
         ElementsCollection headers = getParentElement().findAll("thead th div span[data-s-id=label]");
+        if (headers == null) {
+            return -1;
+        }
         int index = 1;
         for (SelenideElement header : headers) {
             String value = header.text();
@@ -67,12 +59,57 @@ public class Table<T> extends Component<T> {
             }
             index++;
         }
+        if (index > headers.size()) {
+            return -1;
+        }
+        return index;
+    }
 
+    public int findColumnByResourceKey(String key) {
+        ElementsCollection headers = getParentElement().findAll("thead th div span[data-s-id=label]");
+        if (headers == null) {
+            return -1;
+        }
+        int index = 1;
+        for (SelenideElement header : headers) {
+            String headerResourceKey = header.getAttribute("data-s-resource-key");
+            if (headerResourceKey == null) {
+                index++;
+                continue;
+            }
+
+            if (Objects.equals(headerResourceKey, key)) {
+                break;
+            }
+            index++;
+        }
+        if (index > headers.size()) {
+            return -1;
+        }
         return index;
     }
 
     public TableRow rowByColumnResourceKey(String key, String rowValue) {
-        // todo implement
+        int index = findColumnByResourceKey(key);
+        if (index < 0) {
+            return null;
+        }
+        return getTableRowByIndex(index, rowValue);
+    }
+
+    private TableRow getTableRowByIndex(int index, String rowValue) {
+        ElementsCollection rows = getParentElement().findAll("tbody tr");
+        for (SelenideElement row : rows) {
+            String value = row.find("td:nth-child(" + index + ")").text();
+            if (value == null) {
+                continue;
+            }
+            value = value.trim();
+
+            if (Objects.equals(rowValue, value)) {
+                return new TableRow(this, row);
+            }
+        }
         return null;
     }
 
@@ -136,4 +173,19 @@ public class Table<T> extends Component<T> {
         return $(Schrodinger.byDataId("buttonToolbar"));
     }
 
+    public int countTableObjects() {
+        String countStringValue = $(Schrodinger.bySelfOrAncestorElementAttributeValue("div", "class", "dataTables_info", "data-s-id", "count"))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).text();
+        if (countStringValue == null) {
+            return 0;
+        }
+        if (countStringValue.equals("No matching result found.")) {
+            return 0;
+        }
+        int lastSpaceIndex = countStringValue.lastIndexOf(" ");
+        if (lastSpaceIndex < 0) {
+            return 0;
+        }
+        return Integer.parseInt(countStringValue.substring(lastSpaceIndex + 1));
+    }
 }

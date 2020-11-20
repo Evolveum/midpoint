@@ -492,7 +492,7 @@ public class DependencyProcessor {
         return true;
     }
 
-    <F extends ObjectType> void preprocessDependencies(LensContext<F> context){
+    <F extends ObjectType> void preprocessDependencies(LensContext<F> context) {
 
         //in the first wave we do not have enough information to preprocess contexts
         if (context.getExecutionWave() == 0) {
@@ -579,20 +579,27 @@ public class DependencyProcessor {
         int accountWave = projectionContext.getWave();
         if (accountWave >= executionWave) {
             // This had no chance to be provisioned yet, so we assume it will be provisioned
+            LOGGER.trace("wasProvisioned = true because projection wave ({}) is >= execution wave ({})",
+                    accountWave, executionWave);
             return true;
         }
-        if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN
-                || projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
-            return false;
-        }
+
+        // TODO are these checks relevant?
+//        if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN
+//                || projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
+//            LOGGER.trace("wasProvisioned = false because of synchronizationPolicyDecision={}",
+//                    projectionContext.getSynchronizationPolicyDecision());
+//            return false;
+//        }
 
         PrismObject<ShadowType> objectCurrent = projectionContext.getObjectCurrent();
         if (objectCurrent == null) {
+            LOGGER.trace("wasProvisioned = false because objectCurrent is null");
             return false;
         }
 
-
         if (!projectionContext.isExists()) {
+            LOGGER.trace("wasProvisioned = false because isExists is false");
             return false;
         }
 
@@ -602,6 +609,7 @@ public class DependencyProcessor {
         // isExists will in fact be true even if the projection was not provisioned yet.
         // We need to check pending operations to see if there is pending add delta.
         if (hasPendingAddOperation(objectCurrent)) {
+            LOGGER.trace("wasProvisioned = false because there are pending add operations");
             return false;
         }
 

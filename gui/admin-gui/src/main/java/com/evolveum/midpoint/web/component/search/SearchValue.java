@@ -1,21 +1,19 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.search;
+
+import java.io.Serializable;
+import java.util.Objects;
+
+import org.apache.commons.lang3.NotImplementedException;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-import org.apache.commons.lang.NotImplementedException;
-import org.apache.commons.lang.builder.ToStringBuilder;
-
-import java.io.Serializable;
-import java.util.Arrays;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -65,7 +63,7 @@ public class SearchValue<T extends Serializable> implements DisplayableValue<T>,
             }
 
             if (ort.getType() != null) {
-                valueToShow += "type=" + ort.getType().getLocalPart() +"/";
+                valueToShow += "type=" + ort.getType().getLocalPart() + "/";
             }
 
             if (ort.getRelation() != null && !ort.getRelation().equals(PrismConstants.Q_ANY)) {
@@ -73,10 +71,10 @@ public class SearchValue<T extends Serializable> implements DisplayableValue<T>,
             }
             return valueToShow;
         }
-        if (label == null){
+        if (label == null) {
             if (displayName != null) {
                 return displayName;
-            } else if (value != null){
+            } else if (value != null) {
                 return value.toString();
             }
         }
@@ -93,7 +91,7 @@ public class SearchValue<T extends Serializable> implements DisplayableValue<T>,
         this.label = null;
 
         if (value instanceof DisplayableValue) {
-            DisplayableValue dv = (DisplayableValue) value;
+            DisplayableValue<?> dv = (DisplayableValue) value;
             setLabel(dv.getLabel());
         }
     }
@@ -106,32 +104,33 @@ public class SearchValue<T extends Serializable> implements DisplayableValue<T>,
         this.displayName = displayName;
     }
 
-    @Override
-    public String toString() {
-        return new ToStringBuilder(this)
-                .append("label", label)
-                .append("value", value)
-                .toString();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        SearchValue<?> that = (SearchValue<?>) o;
-
-        return !(value != null ? !value.equals(that.value) : that.value != null);
-
-    }
-
     public void clear() {
         value = null;
         label = null;
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
+
+        SearchValue<?> that = (SearchValue<?>) o;
+
+        return Objects.equals(label, that.label)
+                && Objects.equals(value, that.value);
+
+    }
+
+    @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{value, label});
+        return Objects.hash(label, value);
+    }
+
+    @Override
+    public String toString() {
+        return "SearchValue{" +
+                "label='" + label + '\'' +
+                ", value=" + value +
+                '}';
     }
 }

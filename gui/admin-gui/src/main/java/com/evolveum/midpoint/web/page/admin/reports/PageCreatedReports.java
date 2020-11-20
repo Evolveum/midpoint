@@ -1,35 +1,18 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.page.admin.reports;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
-import com.evolveum.midpoint.web.page.admin.configuration.PageTraceView;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -46,7 +29,10 @@ import org.apache.wicket.util.string.StringValue;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
@@ -56,6 +42,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -70,11 +57,16 @@ import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.StringChoiceRenderer;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
+import com.evolveum.midpoint.web.page.admin.configuration.PageTraceView;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDeleteDialogDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author lazyman
@@ -85,7 +77,7 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
                 description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORTS_CREATED_REPORTS_URL,
                 label = "PageCreatedReports.auth.createdReports.label",
-                description = "PageCreatedReports.auth.createdReports.description")})
+                description = "PageCreatedReports.auth.createdReports.description") })
 public class PageCreatedReports extends PageAdminObjectList<ReportDataType> {
 
     private static final long serialVersionUID = 1L;
@@ -100,19 +92,20 @@ public class PageCreatedReports extends PageAdminObjectList<ReportDataType> {
 
     private static final String ID_REPORT_TYPE_SELECT = "reportType";
 
+    private static final Map<FileFormatTypeType, String> REPORT_EXPORT_TYPE_MAP = new HashMap<>();
 
-    private IModel<ReportDeleteDialogDto> deleteModel = new Model<>();
+    private final IModel<ReportDeleteDialogDto> deleteModel = new Model<>();
+
     private ReportDataType currentReport;
 
-    private static Map<FileFormatTypeType, String> reportExportTypeMap = new HashMap<>();
     private Map<String, String> reportTypeMal = new HashMap<>();
 
     private AjaxDownloadBehaviorFromStream ajaxDownloadBehavior = null;
 
     static {
-        reportExportTypeMap.put(FileFormatTypeType.CSV, "text/csv; charset=UTF-8");
+        REPORT_EXPORT_TYPE_MAP.put(FileFormatTypeType.CSV, "text/csv; charset=UTF-8");
 //        reportExportTypeMap.put(JasperExportType.DOCX, "application/vnd.openxmlformats-officedocument.wordprocessingml.document; charset=UTF-8");
-        reportExportTypeMap.put(FileFormatTypeType.HTML, "text/html; charset=UTF-8");
+        REPORT_EXPORT_TYPE_MAP.put(FileFormatTypeType.HTML, "text/html; charset=UTF-8");
 //        reportExportTypeMap.put(JasperExportType.ODS, "application/vnd.oasis.opendocument.spreadsheet; charset=UTF-8");
 //        reportExportTypeMap.put(JasperExportType.ODT, "application/vnd.oasis.opendocument.text; charset=UTF-8");
 //        reportExportTypeMap.put(JasperExportType.PDF, "application/pdf; charset=UTF-8");
@@ -142,12 +135,12 @@ public class PageCreatedReports extends PageAdminObjectList<ReportDataType> {
         }
     }
 
-    private String getReportType(){
-         StringValue param = getPage().getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-         if (param != null) {
-             return param.toString();
-         }
-         return "undefined";
+    private String getReportType() {
+        StringValue param = getPage().getPageParameters().get(OnePageParameterEncoder.PARAMETER);
+        if (param != null) {
+            return param.toString();
+        }
+        return "undefined";
     }
 
     @Override
@@ -160,10 +153,11 @@ public class PageCreatedReports extends PageAdminObjectList<ReportDataType> {
 
         String reportName = reportTypeMal.get(getReportType());
         List<String> values = new ArrayList<>(reportTypeMal.values());
-        DropDownChoicePanel<String> reportTypeSelect = new DropDownChoicePanel(ID_REPORT_TYPE_SELECT,
-                Model.of(reportName),
-                Model.ofList(values),
-                StringChoiceRenderer.simple(), true);
+        DropDownChoicePanel<String> reportTypeSelect = new DropDownChoicePanel<>
+                (ID_REPORT_TYPE_SELECT,
+                        Model.of(reportName),
+                        Model.ofList(values),
+                        StringChoiceRenderer.simple(), true);
 
         reportTypeSelect.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
 
@@ -177,7 +171,6 @@ public class PageCreatedReports extends PageAdminObjectList<ReportDataType> {
         reportTypeSelect.setOutputMarkupId(true);
         getMainForm().add(reportTypeSelect);
 
-
         ajaxDownloadBehavior = new AjaxDownloadBehaviorFromStream() {
 
             private static final long serialVersionUID = 1L;
@@ -188,8 +181,8 @@ public class PageCreatedReports extends PageAdminObjectList<ReportDataType> {
             }
 
             @Override
-           public String getFileName(){
-              return getReportFileName();
+            public String getFileName() {
+                return getReportFileName();
             }
         };
 
@@ -207,7 +200,7 @@ public class PageCreatedReports extends PageAdminObjectList<ReportDataType> {
     }
 
     @Override
-    protected boolean isCreateNewObjectEnabled(){
+    protected boolean isCreateNewObjectEnabled() {
         return false;
     }
 
@@ -235,14 +228,13 @@ public class PageCreatedReports extends PageAdminObjectList<ReportDataType> {
                     getPrismContext().queryFactory().createOrdering(
                             ItemPath.create(new QName(SchemaConstantsGenerated.NS_COMMON, sortParam.getProperty())), order));
 
-
         } else {
             return Collections.emptyList();
         }
     }
 
     @Override
-    protected UserProfileStorage.TableId getTableId(){
+    protected UserProfileStorage.TableId getTableId() {
         return UserProfileStorage.TableId.PAGE_CREATED_REPORTS_PANEL;
     }
 
@@ -254,9 +246,9 @@ public class PageCreatedReports extends PageAdminObjectList<ReportDataType> {
 
     //TODO - consider adding Author name, File Type and ReportType to columns
     protected List<IColumn<SelectableBean<ReportDataType>, String>> initColumns() {
-            List<IColumn<SelectableBean<ReportDataType>, String>> columns = new ArrayList<>();
+        List<IColumn<SelectableBean<ReportDataType>, String>> columns = new ArrayList<>();
 
-         IColumn<SelectableBean<ReportDataType>, String> column = new PropertyColumn<>(createStringResource("pageCreatedReports.table.description"), "value.description");
+        IColumn<SelectableBean<ReportDataType>, String> column = new PropertyColumn<>(createStringResource("pageCreatedReports.table.description"), "value.description");
         columns.add(column);
 
         column = new AbstractColumn<SelectableBean<ReportDataType>, String>(
@@ -267,10 +259,11 @@ public class PageCreatedReports extends PageAdminObjectList<ReportDataType> {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ReportDataType>>> cellItem,
-                                     String componentId, final IModel<SelectableBean<ReportDataType>> rowModel) {
+                    String componentId, final IModel<SelectableBean<ReportDataType>> rowModel) {
                 cellItem.add(new DateLabelComponent(componentId, new IModel<Date>() {
 
                     private static final long serialVersionUID = 1L;
+
                     @Override
                     public Date getObject() {
                         ReportDataType object = rowModel.getObject().getValue();
@@ -279,7 +272,8 @@ public class PageCreatedReports extends PageAdminObjectList<ReportDataType> {
                             return null;
                         }
 
-                        return XmlTypeConverter.toDate(metadata.getCreateTimestamp());                   }
+                        return XmlTypeConverter.toDate(metadata.getCreateTimestamp());
+                    }
                 }, WebComponentUtil.getShortDateTimeFormat(PageCreatedReports.this)));
             }
         };
@@ -384,7 +378,7 @@ public class PageCreatedReports extends PageAdminObjectList<ReportDataType> {
                     public void onClick(AjaxRequestTarget target) {
                         SelectableBeanImpl<ReportDataType> rowDto = getRowModel().getObject();
                         currentReport = rowDto.getValue();
-                        downloadPerformed(target, rowDto.getValue(), ajaxDownloadBehavior);
+                        downloadPerformed(target, ajaxDownloadBehavior);
                     }
                 };
             }
@@ -395,7 +389,7 @@ public class PageCreatedReports extends PageAdminObjectList<ReportDataType> {
             }
 
             @Override
-            public boolean isHeaderMenuItem(){
+            public boolean isHeaderMenuItem() {
                 return false;
             }
         };
@@ -472,23 +466,18 @@ public class PageCreatedReports extends PageAdminObjectList<ReportDataType> {
         return getObjectListPanel().getSelectedObjects();
     }
 
-    private void deleteAllPerformed(AjaxRequestTarget target, ReportDeleteDialogDto.Operation op) {
-        final ReportDeleteDialogDto dto = new ReportDeleteDialogDto(op, null);
-        deleteModel.setObject(dto);
-
-        getPageBase().showMainPopup(getDeleteDialogPanel(), target);
-    }
-
-    private ConfirmationPanel getDeleteDialogPanel(){
-        ConfirmationPanel dialog = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), createDeleteConfirmString()){
+    private ConfirmationPanel getDeleteDialogPanel() {
+        ConfirmationPanel dialog = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), createDeleteConfirmString()) {
 
             private static final long serialVersionUID = 1L;
+
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 ReportDeleteDialogDto dto = deleteModel.getObject();
                 switch (dto.getOperation()) {
                     case DELETE_SINGLE:
-                        deleteSelectedConfirmedPerformed(target, Arrays.asList(dto.getObjects().get(0)));
+                        deleteSelectedConfirmedPerformed(target,
+                                Collections.singletonList(dto.getObjects().get(0)));
                         break;
                     case DELETE_SELECTED:
                         deleteSelectedConfirmedPerformed(target, dto.getObjects());
@@ -501,7 +490,6 @@ public class PageCreatedReports extends PageAdminObjectList<ReportDataType> {
         };
         return dialog;
     }
-
 
     private void deleteSelectedPerformed(AjaxRequestTarget target, ReportDeleteDialogDto.Operation op, ReportDataType single) {
         List<ReportDataType> selected = getSelectedData();
@@ -535,9 +523,7 @@ public class PageCreatedReports extends PageAdminObjectList<ReportDataType> {
                 subresult.recordFatalError(
                         getString("PageCreatedReports.message.deleteSelectedConfirmedPerformed.fatalError", WebComponentUtil.getName(data), e.getMessage()), e);
                 LOGGER.error("Cannot delete report {}. Reason: {}", WebComponentUtil.getName(data), e.getMessage(), e);
-                continue;
             }
-            //WebModelServiceUtils.deleteObject(ReportOutputType.class, data.getOid(), result, this);
         }
         result.computeStatusIfUnknown();
 
@@ -556,7 +542,9 @@ public class PageCreatedReports extends PageAdminObjectList<ReportDataType> {
 
     private ObjectQuery appendTypeFilter(ObjectQuery query) {
         DropDownChoicePanel<String> typeSelect = (DropDownChoicePanel<String>) getMainForm().get(ID_REPORT_TYPE_SELECT);
-        String typeRef = typeSelect == null ? reportTypeMal.get(getReportType()) : (String) typeSelect.getBaseFormComponent().getModelObject();
+        String typeRef = typeSelect == null
+                ? reportTypeMal.get(getReportType())
+                : typeSelect.getBaseFormComponent().getModelObject();
         S_AtomicFilterEntry q = getPrismContext().queryFor(ReportDataType.class);
 
         S_AtomicFilterExit refF;
@@ -564,11 +552,11 @@ public class PageCreatedReports extends PageAdminObjectList<ReportDataType> {
             Entry<String, String> typeRefFilter = reportTypeMal.entrySet().stream().filter(e -> e.getValue().equals(typeRef)).findFirst().get();
             if (typeRefFilter != null) {
                 refF = q.item(ReportDataType.F_REPORT_REF).ref(typeRefFilter.getKey());
-            if (query == null) {
-                query = refF.build();
-            } else {
-                query.addFilter(refF.buildFilter());
-            }
+                if (query == null) {
+                    query = refF.build();
+                } else {
+                    query.addFilter(refF.buildFilter());
+                }
             }
         }
 
@@ -587,7 +575,7 @@ public class PageCreatedReports extends PageAdminObjectList<ReportDataType> {
             return null;
         }
 
-        String contentType = reportExportTypeMap.get(report.getFileFormat());
+        String contentType = REPORT_EXPORT_TYPE_MAP.get(report.getFileFormat());
         if (StringUtils.isEmpty(contentType)) {
             contentType = "multipart/mixed; charset=UTF-8";
         }
@@ -614,13 +602,8 @@ public class PageCreatedReports extends PageAdminObjectList<ReportDataType> {
         return input;
     }
 
-    private void fileTypeFilterPerformed(AjaxRequestTarget target) {
-        //TODO - perform filtering based on file type - need to wait for schema update (ReportOutputType)
-    }
-
-    private void downloadPerformed(AjaxRequestTarget target, ReportDataType reports,
-                                   AjaxDownloadBehaviorFromStream ajaxDownloadBehavior) {
-
+    private void downloadPerformed(
+            AjaxRequestTarget target, AjaxDownloadBehaviorFromStream ajaxDownloadBehavior) {
         ajaxDownloadBehavior.initiate(target);
     }
 
@@ -628,7 +611,7 @@ public class PageCreatedReports extends PageAdminObjectList<ReportDataType> {
         return getReportFileName(currentReport);
     }
 
-    public static String getReportFileName(ReportDataType currentReport){
+    public static String getReportFileName(ReportDataType currentReport) {
         try {
             OperationResult result = new OperationResult(OPERATION_GET_REPORT_FILENAME);
 //            ReportOutputType reportOutput = WebModelServiceUtils.loadObject(ReportOutputType.class, currentReport.getOid(), getPageBase(),
@@ -638,14 +621,14 @@ public class PageCreatedReports extends PageAdminObjectList<ReportDataType> {
                 fileName = fileName.substring(fileName.lastIndexOf("/") + 1);
             }
             return fileName;
-        } catch (Exception ex){
+        } catch (Exception ex) {
             //nothing to do
         }
         return null;
     }
 
     @Override
-    protected Class<ReportDataType> getType(){
+    protected Class<ReportDataType> getType() {
         return ReportDataType.class;
     }
 }

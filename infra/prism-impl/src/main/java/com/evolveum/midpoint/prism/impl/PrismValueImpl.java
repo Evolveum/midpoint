@@ -44,6 +44,8 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
 
     protected transient PrismContext prismContext;
 
+    private boolean isTransient;
+
     PrismValueImpl() {
     }
 
@@ -249,10 +251,11 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
             clone.prismContext = this.prismContext;
         }
         clone.valueMetadata = valueMetadata != null ? valueMetadata.clone() : null;
+        clone.isTransient = isTransient;
     }
 
-    EquivalenceStrategy getEqualsHashCodeStrategy() {
-        return defaultIfNull(defaultEquivalenceStrategy, EquivalenceStrategy.NOT_LITERAL);
+    private EquivalenceStrategy getEqualsHashCodeStrategy() {
+        return defaultIfNull(defaultEquivalenceStrategy, EquivalenceStrategy.DATA);
     }
 
     @Override
@@ -296,25 +299,6 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
         return this == other ||
                 (other == null || other instanceof PrismValue) &&
                 equals((PrismValue) other, getEqualsHashCodeStrategy());
-    }
-
-    public boolean equals(PrismValue thisValue, PrismValue otherValue) {
-        if (thisValue == otherValue) {
-            return true;
-        }
-        if (thisValue == null || otherValue == null) {
-            return false;
-        }
-        return thisValue.equals(otherValue, getEqualsHashCodeStrategy());
-    }
-
-    /**
-     * Assumes matching representations. I.e. it assumes that both this and otherValue represent the same instance of item.
-     * E.g. the container with the same ID.
-     */
-    @Override
-    public Collection<? extends ItemDelta> diff(PrismValue otherValue) {
-        return diff(otherValue, EquivalenceStrategy.IGNORE_METADATA);
     }
 
     /**
@@ -448,5 +432,15 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
             valueMetadata.freeze();
         }
         super.performFreeze();
+    }
+
+    @Override
+    public boolean isTransient() {
+        return isTransient;
+    }
+
+    @Override
+    public void setTransient(boolean value) {
+        isTransient = value;
     }
 }

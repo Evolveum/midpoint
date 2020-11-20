@@ -53,7 +53,7 @@ CREATE TABLE m_acc_cert_case (
   targetRef_targetType     INTEGER,
   tenantRef_relation       VARCHAR(157),
   tenantRef_targetOid      VARCHAR(36),
-  tenantRef_ttargetType    INTEGER,
+  tenantRef_targetType     INTEGER,
   PRIMARY KEY (owner_oid, id)
 )
   DEFAULT CHARACTER SET utf8
@@ -386,8 +386,8 @@ CREATE TABLE m_focus_photo (
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_bin
   ENGINE = InnoDB;
-CREATE TABLE m_focus_policy_situation (
-  focus_oid       VARCHAR(36) NOT NULL,
+CREATE TABLE m_object_policy_situation (
+  object_oid      VARCHAR(36) NOT NULL,
   policySituation VARCHAR(255)
 )
   DEFAULT CHARACTER SET utf8
@@ -1026,6 +1026,8 @@ CREATE INDEX iAuditDeltaRecordId
   ON m_audit_delta (record_id);
 CREATE INDEX iTimestampValue
   ON m_audit_event (timestampValue);
+CREATE INDEX iAuditEventRecordEStageTOid
+  ON m_audit_event (eventStage, targetOid);
 CREATE INDEX iChangedItemPath
   ON m_audit_item (changedItemPath);
 CREATE INDEX iAuditItemRecordId
@@ -1213,6 +1215,8 @@ CREATE INDEX iServiceNameOrig
   ON m_service (name_orig);
 CREATE INDEX iServiceNameNorm
   ON m_service (name_norm);
+ALTER TABLE m_service
+  ADD CONSTRAINT uc_service_name UNIQUE (name_norm);
 CREATE INDEX iSystemConfigurationNameOrig
   ON m_system_configuration (name_orig);
 ALTER TABLE m_system_configuration
@@ -1296,8 +1300,8 @@ ALTER TABLE m_connector_target_system
   ADD CONSTRAINT fk_connector_target_system FOREIGN KEY (connector_oid) REFERENCES m_connector (oid);
 ALTER TABLE m_focus_photo
   ADD CONSTRAINT fk_focus_photo FOREIGN KEY (owner_oid) REFERENCES m_focus (oid);
-ALTER TABLE m_focus_policy_situation
-  ADD CONSTRAINT fk_focus_policy_situation FOREIGN KEY (focus_oid) REFERENCES m_focus (oid);
+ALTER TABLE m_object_policy_situation
+  ADD CONSTRAINT fk_object_policy_situation FOREIGN KEY (object_oid) REFERENCES m_object (oid);
 ALTER TABLE m_object_ext_boolean
   ADD CONSTRAINT fk_o_ext_boolean_owner FOREIGN KEY (owner_oid) REFERENCES m_object (oid);
 ALTER TABLE m_object_ext_date

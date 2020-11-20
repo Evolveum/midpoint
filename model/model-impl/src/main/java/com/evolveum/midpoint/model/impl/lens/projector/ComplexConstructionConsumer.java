@@ -6,8 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructible;
-import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedAbstractConstruction;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionPack;
 import com.evolveum.midpoint.prism.delta.DeltaMapTriple;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -16,7 +15,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author Radovan Semancik
  *
  */
-public interface ComplexConstructionConsumer<K, EC extends EvaluatedConstructible> {
+public interface ComplexConstructionConsumer<K, EC extends EvaluatedAbstractConstruction> {
 
     boolean before(K key);
 

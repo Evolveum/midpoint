@@ -567,7 +567,8 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
     }
 
     private Collection<? extends ItemDelta<?, ?>> computeModifications(@NotNull FocusType before, @NotNull FocusType after) {
-        ObjectDelta<? extends FocusType> delta = ((PrismObject<FocusType>)before.asPrismObject()).diff((PrismObject<FocusType>) after.asPrismObject(), ParameterizedEquivalenceStrategy.LITERAL);
+        ObjectDelta<? extends FocusType> delta = ((PrismObject<FocusType>)before.asPrismObject())
+                .diff((PrismObject<FocusType>) after.asPrismObject(), ParameterizedEquivalenceStrategy.DATA);
         assert delta.isModify();
         return delta.getModifications();
     }

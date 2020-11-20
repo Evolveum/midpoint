@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import java.util.HashSet;
@@ -15,31 +14,21 @@ import javax.persistence.Table;
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.repo.sql.query.definition.*;
-
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.*;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
-import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceType;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
-/**
- * @author lazyman
- */
-@QueryEntity(collections = {
-        @VirtualCollection(jaxbName = @JaxbName(localPart = "assignment"), jaxbType = Set.class,
-                jpaName = "assignments", jpaType = Set.class, additionalParams = {
-                @VirtualQueryParam(name = "assignmentOwner", type = RAssignmentOwner.class,
-                        value = "FOCUS") }, collectionType = RAssignment.class) })
 @Entity
 @ForeignKey(name = "fk_focus")
 @Table(indexes = {
@@ -52,10 +41,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 @Persister(impl = MidPointJoinedPersister.class)
 public abstract class RFocus extends RObject {
 
-    private Set<RObjectReference<RShadow>> linkRef;                         // FocusType
-    private Set<RObjectReference<RFocus>> personaRef;                       // FocusType
-    private RActivation activation;                                         // FocusType
-    private Set<String> policySituation;                                    // ObjectType
+    private Set<RObjectReference<RShadow>> linkRef; // FocusType
+    private Set<RObjectReference<RFocus>> personaRef; // FocusType
+    private RActivation activation; // FocusType
+
     //photo
     private boolean hasPhoto;
     private Set<RFocusPhoto> jpegPhoto;
@@ -71,7 +60,7 @@ public abstract class RFocus extends RObject {
     private XMLGregorianCalendar passwordCreateTimestamp;
     private XMLGregorianCalendar passwordModifyTimestamp;
 
-    //password Metadata
+    //password Metadata TODO remove? it's in RObject already
     private XMLGregorianCalendar createTimestamp;
 
     @Where(clause = RObjectReference.REFERENCE_TYPE + "= 1")
@@ -99,16 +88,6 @@ public abstract class RFocus extends RObject {
     @Embedded
     public RActivation getActivation() {
         return activation;
-    }
-
-    @ElementCollection
-    @ForeignKey(name = "fk_focus_policy_situation")
-    @CollectionTable(name = "m_focus_policy_situation", joinColumns = {
-            @JoinColumn(name = "focus_oid", referencedColumnName = "oid")
-    })
-    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
-    public Set<String> getPolicySituation() {
-        return policySituation;
     }
 
     @JaxbName(localPart = "locality")
@@ -185,10 +164,6 @@ public abstract class RFocus extends RObject {
         this.localityFocus = locality;
     }
 
-    public void setPolicySituation(Set<String> policySituation) {
-        this.policySituation = policySituation;
-    }
-
     public void setLinkRef(Set<RObjectReference<RShadow>> linkRef) {
         this.linkRef = linkRef;
     }
@@ -219,9 +194,6 @@ public abstract class RFocus extends RObject {
 
         if (linkRef != null ? !linkRef.equals(other.linkRef) : other.linkRef != null) { return false; }
         if (activation != null ? !activation.equals(other.activation) : other.activation != null) { return false; }
-        if (policySituation != null ? !policySituation.equals(other.policySituation) : other.policySituation != null) {
-            return false;
-        }
         if (localityFocus != null ? !localityFocus.equals(other.localityFocus) : other.localityFocus != null) { return false; }
         if (costCenter != null ? !costCenter.equals(other.costCenter) : other.costCenter != null) { return false; }
         if (emailAddress != null ? !emailAddress.equals(other.emailAddress) : other.emailAddress != null) { return false; }
@@ -276,8 +248,6 @@ public abstract class RFocus extends RObject {
             repo.setHasPhoto(true);
         }
 
-        repo.setPolicySituation(RUtil.listToSet(jaxb.getPolicySituation()));
-
         if (jaxb.getCredentials() != null && jaxb.getCredentials().getPassword() != null
                 && jaxb.getCredentials().getPassword().getMetadata() != null) {
             repo.setPasswordCreateTimestamp(jaxb.getCredentials().getPassword().getMetadata().getCreateTimestamp());
@@ -294,7 +264,7 @@ public abstract class RFocus extends RObject {
     //   (1) deletion of photos for RUsers that have no photos fetched (because fetching is lazy)
     //   (2) even querying of m_focus_photo table on RFocus merge
     // (see comments in SqlRepositoryServiceImpl.modifyObjectAttempt)
-    @OneToMany(mappedBy = "owner", orphanRemoval = false)
+    @OneToMany(mappedBy = "owner")
     @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RFocusPhoto> getJpegPhoto() {
         if (jpegPhoto == null) {

@@ -162,4 +162,8 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
         savePerformed(target);
     }
 
+    protected boolean isChangeArchetypeAllowed() {
+        return false;
+    }
+
 }

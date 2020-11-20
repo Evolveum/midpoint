@@ -20,6 +20,7 @@ import java.util.*;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.naming.InvalidNameException;
 import javax.naming.NamingEnumeration;
@@ -35,13 +36,16 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -64,6 +68,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 
 /**
  * Library of standard midPoint functions. These functions are made available to all
@@ -437,28 +442,27 @@ public class BasicExpressionFunctions {
         return prismContext;
     }
 
-    public <T> Collection<T> getExtensionPropertyValues(ObjectType object, String namespace, String localPart) {
+    public <T> Collection<T> getExtensionPropertyValues(Containerable containerable, String namespace, String localPart) {
         checkColon(localPart);
-        return getExtensionPropertyValues(object, new javax.xml.namespace.QName(namespace, localPart));
+        return getExtensionPropertyValues(containerable, new javax.xml.namespace.QName(namespace, localPart));
     }
 
-    public <T> Collection<T> getExtensionPropertyValues(ObjectType object, groovy.xml.QName propertyQname) {
+    public <T> Collection<T> getExtensionPropertyValues(Containerable object, groovy.xml.QName propertyQname) {
         return getExtensionPropertyValues(object, propertyQname.getNamespaceURI(), propertyQname.getLocalPart());
     }
 
-    public <T> Collection<T> getExtensionPropertyValues(ObjectType object, javax.xml.namespace.QName propertyQname) {
+    public <T> Collection<T> getExtensionPropertyValues(Containerable object, javax.xml.namespace.QName propertyQname) {
         return ObjectTypeUtil.getExtensionPropertyValuesNotNull(object, propertyQname);
     }
 
-
-    public <T> T getExtensionPropertyValue(ObjectType object, String localPart) throws SchemaException {
+    public <T> T getExtensionPropertyValue(Containerable containerable, String localPart) throws SchemaException {
         checkColon(localPart);
-        return getExtensionPropertyValue(object, new javax.xml.namespace.QName(null, localPart));
+        return getExtensionPropertyValue(containerable, new javax.xml.namespace.QName(null, localPart));
     }
 
-    public <T> T getExtensionPropertyValue(ObjectType object, String namespace, String localPart) throws SchemaException {
+    public <T> T getExtensionPropertyValue(Containerable containerable, String namespace, String localPart) throws SchemaException {
         checkColon(localPart);
-        return getExtensionPropertyValue(object, new javax.xml.namespace.QName(namespace, localPart));
+        return getExtensionPropertyValue(containerable, new javax.xml.namespace.QName(namespace, localPart));
     }
 
     public Referencable getExtensionReferenceValue(ObjectType object, String namespace, String localPart) throws SchemaException {
@@ -472,15 +476,15 @@ public class BasicExpressionFunctions {
         }
     }
 
-    public <T> T getExtensionPropertyValue(ObjectType object, groovy.xml.QName propertyQname) throws SchemaException {
-        return getExtensionPropertyValue(object, propertyQname.getNamespaceURI(), propertyQname.getLocalPart());
+    public <T> T getExtensionPropertyValue(Containerable containerable, groovy.xml.QName propertyQname) throws SchemaException {
+        return getExtensionPropertyValue(containerable, propertyQname.getNamespaceURI(), propertyQname.getLocalPart());
     }
 
-    public <T> T getExtensionPropertyValue(ObjectType object, javax.xml.namespace.QName propertyQname) throws SchemaException {
-        if (object == null) {
+    public <T> T getExtensionPropertyValue(Containerable containerable, javax.xml.namespace.QName propertyQname) throws SchemaException {
+        if (containerable == null) {
             return null;
         }
-        Collection<T> values = ObjectTypeUtil.getExtensionPropertyValues(object, propertyQname);
+        Collection<T> values = ObjectTypeUtil.getExtensionPropertyValues(containerable, propertyQname);
         return toSingle(values, "a multi-valued extension property " + propertyQname);
     }
 
@@ -581,6 +585,42 @@ public class BasicExpressionFunctions {
 
     public Collection<String> getAttributeStringValues(ShadowType shadow, javax.xml.namespace.QName attributeQname) {
         return ShadowUtil.getAttributeValues(shadow, attributeQname, String.class);
+    }
+
+    /**
+     * Generic method to extract all metadata values pointed-to by given item path (specified as segments).
+     * Note: does not support multivalued containers withing the path (e.g. collecting transformation/source/name,
+     * where transformation/source is a multivalued container).
+     */
+    @Experimental
+    @NotNull
+    public Collection<?> getMetadataValues(PrismValue value, Object... pathSegments) {
+        if (value == null) {
+            return emptySet();
+        } else {
+            ItemPath itemPath = ItemPath.create(pathSegments);
+            return value.getValueMetadataAsContainer().valuesStream()
+                    .map(md -> md.findItem(itemPath))
+                    .filter(Objects::nonNull)
+                    .flatMap(item -> item.getRealValues().stream())
+                    .collect(Collectors.toList());
+        }
+    }
+
+    @Experimental
+    @NotNull
+    public Collection<?> getMetadataValues(PrismValue value, String path) {
+        return getMetadataValues(value, (Object[]) path.split("/")); // temporary TODO rework this!
+    }
+
+    /**
+     * Simplified version of getMetadataValue aimed at fetching single-segment extension paths.
+     */
+    @Experimental
+    @NotNull
+    public Collection<?> getMetadataExtensionValues(PrismValue value, String itemLocalPart) {
+        checkColon(itemLocalPart);
+        return getMetadataValues(value, ValueMetadataType.F_EXTENSION, itemLocalPart);
     }
 
     public void setExtensionRealValues(PrismContainerValue<?> containerValue, Map<String, Object> map) throws SchemaException {

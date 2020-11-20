@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_ENABLE_TIMESTAMP;
@@ -15,8 +16,15 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Objects;
+import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemPath;
+
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -126,6 +134,25 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         resourceDummyPrecreate = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_PRECREATE.file, RESOURCE_DUMMY_PRECREATE.oid, initTask, initResult);
         resourceDummyPrecreateType = resourceDummyPrecreate.asObjectable();
         dummyResourceCtlPrecreate.setResource(resourceDummyPrecreate);
+//
+//        setGlobalTracingOverride(createModelLoggingTracingProfile());
+    }
+
+    @Test
+    public void test000Sanity() {
+        // MID-6609
+        // 1. Correct serialization and parsing of <path> expression
+
+        PrismProperty<Object> uselessStringProp = resourceDummyKhaki.findProperty(ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION, "configurationProperties", "uselessString"));
+        ExpressionType expression = (ExpressionType) Objects.requireNonNull(uselessStringProp.getValue().getExpression())
+                .getExpression();
+        assertThat(expression.getExpressionEvaluator()).hasSize(1);
+        JAXBElement<?> evaluatorJaxb = expression.getExpressionEvaluator().get(0);
+        assertThat(evaluatorJaxb.getName()).isEqualTo(SchemaConstantsGenerated.C_PATH);
+        assertThat(evaluatorJaxb.getValue().toString()).isEqualTo("$configuration/name");
+
+        // 2. Correct evaluation of <path> expression: $configuration/name = 'SystemConfiguration'
+        assertThat(dummyResourceKhaki.getUselessString()).as("useless string").isEqualTo("SystemConfiguration");
     }
 
     @Test
@@ -621,16 +648,17 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
      *
      * TODO Sure? Enabling already enabled user is a phantom change. As such, it is now filtered out.
      */
-    @Test(enabled = false) // MID-6420
+    @Test
     public void test114ModifyUserJackEnable() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
+        ModelExecuteOptions options = ModelExecuteOptions.create(prismContext).pushChanges(); // MID-6420
 
         // WHEN
-        modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
+        modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, options, task, result, ActivationStatusType.ENABLED);
 
         // THEN
         result.computeStatus();
@@ -656,15 +684,16 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     /**
      * Re-enabling the user should enable the account as well. Even if the user is already enabled.
      */
-    @Test(enabled = false) // MID-6420, see above
+    @Test
     public void test115ModifyUserJackAdministrativeStatusNull() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        ModelExecuteOptions options = ModelExecuteOptions.create(prismContext).pushChanges(); // MID-6420
 
         // WHEN
-        modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result);
+        modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, options, task, result);
 
         // THEN
         result.computeStatus();

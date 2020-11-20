@@ -213,7 +213,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
         PrismTestUtil.setPrismContext(prismContext);
         Task initTask = createPlainTask("INIT");
-        initTask.setChannel(SchemaConstants.CHANNEL_GUI_INIT_URI);
+        initTask.setChannel(SchemaConstants.CHANNEL_INIT_URI);
         OperationResult result = initTask.getResult();
 
         InternalMonitor.reset();
@@ -446,6 +446,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(
             File file, boolean metadata, OperationResult parentResult)
             throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
+        return repoAddObjectFromFile(file, (RepoAddOptions) null, metadata, parentResult);
+    }
+
+    protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(
+            File file, RepoAddOptions options, boolean metadata, OperationResult parentResult)
+            throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
 
         OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
                 + ".repoAddObjectFromFile");
@@ -463,7 +469,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
 
         logger.trace("Adding object:\n{}", object.debugDump());
-        repoAddObject(object, "from file " + file, result);
+        repoAddObject(object, "from file " + file, options, result);
         result.recordSuccess();
         return object;
     }
@@ -510,10 +516,15 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected <T extends ObjectType> void repoAddObject(
             PrismObject<T> object, String contextDesc, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
+        repoAddObject(object, contextDesc, null, result);
+    }
+    protected <T extends ObjectType> void repoAddObject(
+            PrismObject<T> object, String contextDesc, RepoAddOptions options, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
         if (object.canRepresent(TaskType.class)) {
             Assert.assertNotNull(taskManager, "Task manager is not initialized");
             try {
-                taskManager.addTask((PrismObject<TaskType>) object, result);
+                taskManager.addTask((PrismObject<TaskType>) object, options, result);
             } catch (ObjectAlreadyExistsException | SchemaException ex) {
                 result.recordFatalError(ex.getMessage(), ex);
                 throw ex;
@@ -522,7 +533,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             Assert.assertNotNull(repositoryService, "Repository service is not initialized");
             try {
                 CryptoUtil.encryptValues(protector, object);
-                String oid = repositoryService.addObject(object, null, result);
+                String oid = repositoryService.addObject(object, options, result);
                 object.setOid(oid);
             } catch (ObjectAlreadyExistsException | SchemaException | EncryptionException ex) {
                 result.recordFatalError(ex.getMessage() + " while adding " + object + (contextDesc == null ? "" : " " + contextDesc), ex);
@@ -934,12 +945,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void assertShadowCommon(PrismObject<ShadowType> shadow, String oid, String username, ResourceType resourceType,
-            QName objectClass, MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentfiers) throws SchemaException {
-        assertShadowCommon(shadow, oid, username, resourceType, objectClass, nameMatchingRule, requireNormalizedIdentfiers, false);
+            QName objectClass, MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentifiers) throws SchemaException {
+        assertShadowCommon(shadow, oid, username, resourceType, objectClass, nameMatchingRule, requireNormalizedIdentifiers, false);
     }
 
     protected void assertShadowCommon(PrismObject<ShadowType> shadow, String oid, String username, ResourceType resourceType,
-            QName objectClass, final MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentfiers, boolean useMatchingRuleForShadowName) throws SchemaException {
+            QName objectClass, final MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentifiers, boolean useMatchingRuleForShadowName) throws SchemaException {
         new PrismObjectAsserter<>((PrismObject<? extends ObjectType>) shadow)
                 .assertSanity();
         if (oid != null) {
@@ -998,7 +1009,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             if (nameMatchingRule == null) {
                 assertEquals("Unexpected primary identifier in shadow for " + username, username, idProp.getRealValue());
             } else {
-                if (requireNormalizedIdentfiers) {
+                if (requireNormalizedIdentifiers) {
                     assertEquals("Unexpected primary identifier in shadow for " + username, nameMatchingRule.normalize(username), idProp.getRealValue());
                 } else {
                     PrismAsserts.assertEquals("Unexpected primary identifier in shadow for " + username, nameMatchingRule, username, idProp.getRealValue());
@@ -1007,7 +1018,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         } else {
             boolean found = false;
             String expected = username;
-            if (requireNormalizedIdentfiers && nameMatchingRule != null) {
+            if (requireNormalizedIdentifiers && nameMatchingRule != null) {
                 expected = nameMatchingRule.normalize(username);
             }
             List<String> wasValues = new ArrayList<>();
@@ -1021,7 +1032,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                         break;
                     }
                 } else {
-                    if (requireNormalizedIdentfiers) {
+                    if (requireNormalizedIdentifiers) {
                         if (expected.equals(idProp.getRealValue())) {
                             found = true;
                             break;
@@ -1088,10 +1099,15 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected void assertShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
             QName objectClass, MatchingRule<String> nameMatchingRule) throws SchemaException {
-        assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule, true);
+        assertShadowRepo(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule, true, false);
+    }
+
+    protected void assertShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
+            QName objectClass, MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentifiers,
+            boolean useMatchingRuleForShadowName) throws SchemaException {
+        assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule, requireNormalizedIdentifiers, useMatchingRuleForShadowName);
         PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(ShadowType.F_ATTRIBUTES);
         Collection<Item<?, ?>> attributes = attributesContainer.getValue().getItems();
-//        Collection secIdentifiers = ShadowUtil.getSecondaryIdentifiers(accountShadow);
         RefinedResourceSchema refinedSchema = null;
         try {
             refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
@@ -1100,9 +1116,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
         ObjectClassComplexTypeDefinition objClassDef = refinedSchema.getRefinedDefinition(objectClass);
         Collection secIdentifiers = objClassDef.getSecondaryIdentifiers();
-        if (secIdentifiers == null) {
-            AssertJUnit.fail("No secondary identifiers in repo shadow");
-        }
         // repo shadow should contains all secondary identifiers + ICF_UID
         assertRepoShadowAttributes(attributes, secIdentifiers.size() + 1);
     }
@@ -2110,6 +2123,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         assertEquals("Unexpected operation " + result.getOperation() + " result status", expectedStatus, result.getStatus());
     }
 
+    protected void assertNoMessage(OperationResult result) {
+        assertThat(result.getMessage()).as("message in operation result").isNull();
+    }
+
     protected String assertInProgress(OperationResult result) {
         if (result.isUnknown()) {
             result.computeStatus();
@@ -2216,6 +2233,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void closeCase(String caseOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        closeCase(caseOid, OperationResultStatusType.SUCCESS);
+    }
+
+    protected void closeCase(String caseOid, OperationResultStatusType outcome) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         OperationResult result = new OperationResult("closeCase");
         Collection modifications = new ArrayList<>(1);
 
@@ -2226,7 +2247,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
         PrismPropertyDefinition<String> outcomePropertyDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(CaseType.class).findPropertyDefinition(CaseType.F_OUTCOME);
         PropertyDelta<String> outcomeDelta = outcomePropertyDef.createEmptyDelta(CaseType.F_OUTCOME);
-        outcomeDelta.setRealValuesToReplace(OperationResultStatusType.SUCCESS.value());
+        outcomeDelta.setRealValuesToReplace(outcome.value());
         modifications.add(outcomeDelta);
 
         repositoryService.modifyObject(CaseType.class, caseOid, modifications, null, result);
@@ -2780,6 +2801,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         OperationResult result = new OperationResult("assertNoRepoShadow");
         try {
             PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, oid, GetOperationOptions.createRawCollection(), result);
+            display("Unexpected repo shadow", shadow);
             fail("Expected that shadow " + oid + " will not be in the repo. But it was: " + shadow);
         } catch (ObjectNotFoundException e) {
             // Expected
@@ -2920,5 +2942,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
      */
     protected boolean runsInIdea() {
         return System.getProperty("idea.launcher.bin.path") != null;
+    }
+
+    /**
+     * Waits a little before asserting task status. This is to enable task manager to write e.g. operationStatus
+     * after task operation result status indicates that the handler has finished.
+     */
+    protected void stabilize() throws InterruptedException {
+        Thread.sleep(500);
     }
 }

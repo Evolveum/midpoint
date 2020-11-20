@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -24,9 +24,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultHandlingStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
-/**
- * @author mederly
- */
 public class TestOperationResult extends AbstractSchemaTest {
 
     private static final String LOCAL_1 = "local1";
@@ -62,13 +59,13 @@ public class TestOperationResult extends AbstractSchemaTest {
 
         then();
         System.out.println("After cleanup (normal):\n" + root.debugDump());
-        assertEquals("Wrong overall status", OperationResultStatus.FATAL_ERROR, root.getStatus());        // because of sub2
-        assertEquals("Wrong status of sub1", OperationResultStatus.WARNING, sub1.getStatus());            // because of sub12
+        assertEquals("Wrong overall status", OperationResultStatus.FATAL_ERROR, root.getStatus()); // because of sub2
+        assertEquals("Wrong status of sub1", OperationResultStatus.WARNING, sub1.getStatus()); // because of sub12
         assertEquals("Wrong # of sub1 subresults", 2, sub1.getSubresults().size());
 
         checkResultConversion(root, true);
 
-        // WHEN
+        when();
         PrismContext prismContext = getPrismContext();
         OperationResult.applyOperationResultHandlingStrategy(
                 Arrays.asList(
@@ -83,14 +80,15 @@ public class TestOperationResult extends AbstractSchemaTest {
         root.cleanupResultDeeply();
         System.out.println("After deep cleanup (major):\n" + root.debugDump());
 
-        assertEquals("Wrong overall status", OperationResultStatus.FATAL_ERROR, root.getStatus());        // because of sub2
-        assertEquals("Wrong status of sub1", OperationResultStatus.WARNING, sub1.getStatus());            // because of sub12
-        assertEquals("Wrong # of sub1 subresults", 1, sub1.getSubresults().size());           // SUCCESS should be gone now
+        then();
+        assertEquals("Wrong overall status", OperationResultStatus.FATAL_ERROR, root.getStatus()); // because of sub2
+        assertEquals("Wrong status of sub1", OperationResultStatus.WARNING, sub1.getStatus()); // because of sub12
+        assertEquals("Wrong # of sub1 subresults", 1, sub1.getSubresults().size()); // SUCCESS should be gone now
     }
 
     @Test
     public void testSummarizeByHiding() throws Exception {
-        // GIVEN
+        given();
         OperationResult root = new OperationResult("dummy");
         OperationResult level1 = root.createSubresult("level1");
         for (int i = 1; i <= 30; i++) {
@@ -101,13 +99,18 @@ public class TestOperationResult extends AbstractSchemaTest {
         level1.computeStatus();
         root.computeStatus();
 
-        // WHEN+THEN
+        when();
         root.summarize();
         System.out.println("After shallow summarizing\n" + root.debugDump());
+
+        then();
         assertEquals("Level1 shouldn't be summarized this time", 30, level1.getSubresults().size());
 
+        when();
         root.summarize(true);
         System.out.println("After deep summarizing\n" + root.debugDump());
+
+        then();
         assertEquals("Level1 should be summarized this time", 11, level1.getSubresults().size());
 
         OperationResult summary = level1.getSubresults().get(10);
@@ -120,8 +123,7 @@ public class TestOperationResult extends AbstractSchemaTest {
 
     @Test
     public void testExplicitSummarization() throws Exception {
-        // GIVEN
-
+        given();
         OperationResult root = new OperationResult("dummy");
         OperationResult level1 = root.createSubresult("level1");
         level1.setSummarizeSuccesses(true);
@@ -133,13 +135,18 @@ public class TestOperationResult extends AbstractSchemaTest {
         level1.computeStatus();
         root.computeStatus();
 
-        // WHEN+THEN
+        when();
         root.summarize();
         System.out.println("After shallow summarizing\n" + root.debugDump());
+
+        then();
         assertEquals("Level1 shouldn't be summarized this time", 30, level1.getSubresults().size());
 
+        when();
         root.summarize(true);
         System.out.println("After deep summarizing\n" + root.debugDump());
+
+        then();
         assertEquals("Level1 should be summarized this time", 1, level1.getSubresults().size());
 
         OperationResult summary = level1.getSubresults().get(0);
@@ -166,18 +173,17 @@ public class TestOperationResult extends AbstractSchemaTest {
                 operationB.recordStatus(OperationResultStatus.WARNING, "messageB");
             }
 
-            OperationResult operationC = root.createSubresult("operationC." + a);        // will not be summarized
+            OperationResult operationC = root.createSubresult("operationC." + a); // will not be summarized
             operationC.addParam("valueC", a);
             operationC.recordStatus(OperationResultStatus.SUCCESS, "messageC");
 
             root.summarize();
             System.out.println("After iteration " + a + ":\n" + root.debugDump());
-            int expectedA = a < 10 ? a : 10;
-            int expectedB = b < 10 ? b : 10;
-            int expectedC = a;
+            int expectedA = Math.min(a, 10);
+            int expectedB = Math.min(b, 10);
             int expectedSummarizationA = a <= 10 ? 0 : 1;
             int expectedSummarizationB = b <= 10 ? 0 : 1;
-            int expectedTotal = expectedA + expectedB + expectedC + expectedSummarizationA + expectedSummarizationB;
+            int expectedTotal = expectedA + expectedB + a + expectedSummarizationA + expectedSummarizationB;
 
             if (b > 10) {
                 assertEquals("Wrong # of subresults", expectedTotal, root.getSubresults().size());
@@ -203,18 +209,17 @@ public class TestOperationResult extends AbstractSchemaTest {
     }
 
     private void checkResultConversion(OperationResult result, boolean assertEquals) throws SchemaException {
-        // WHEN
+        when();
         OperationResultType resultType = result.createOperationResultType();
         String serialized = getPrismContext().xmlSerializer().serializeAnyData(resultType, SchemaConstants.C_RESULT);
         System.out.println("Converted OperationResultType\n" + serialized);
         OperationResult resultRoundTrip = OperationResult.createOperationResult(resultType);
         OperationResultType resultTypeRoundTrip = resultRoundTrip.createOperationResultType();
 
-        // THEN
+        then();
         assertEquals("Operation result conversion changes the result (OperationResultType)", resultType, resultTypeRoundTrip);
         if (assertEquals) {
             assertEquals("Operation result conversion changes the result (OperationResult)", result, resultRoundTrip);
         }
     }
-
 }

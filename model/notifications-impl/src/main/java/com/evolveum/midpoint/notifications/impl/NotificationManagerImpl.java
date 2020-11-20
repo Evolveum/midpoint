@@ -33,7 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 public class NotificationManagerImpl implements NotificationManager {
 
     private static final Trace LOGGER = TraceManager.getTrace(NotificationManager.class);
-    private static final String OP_PROCESS_EVENT = NotificationManager.class + ".processEvent";
+    private static final String OP_PROCESS_EVENT = NotificationManager.class.getName() + ".processEvent";
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -61,13 +61,13 @@ public class NotificationManagerImpl implements NotificationManager {
                 processEvent(event, event.getAdHocHandler(), task, result);
             }
 
-            SystemConfigurationType systemConfigurationType = getSystemConfiguration(task, result);
-            if (systemConfigurationType == null) {
+            SystemConfigurationType systemConfiguration = getSystemConfiguration(task, result);
+            if (systemConfiguration == null) {
                 LOGGER.trace("No system configuration in repository, are we doing initial import?");
-            } else if (systemConfigurationType.getNotificationConfiguration() == null) {
+            } else if (systemConfiguration.getNotificationConfiguration() == null) {
                 LOGGER.trace("No notification configuration in repository, finished event processing.");
             } else {
-                NotificationConfigurationType notificationConfiguration = systemConfigurationType.getNotificationConfiguration();
+                NotificationConfigurationType notificationConfiguration = systemConfiguration.getNotificationConfiguration();
                 for (EventHandlerType eventHandlerBean : notificationConfiguration.getHandler()) {
                     processEvent(event, eventHandlerBean, task, result);
                 }
@@ -83,7 +83,7 @@ public class NotificationManagerImpl implements NotificationManager {
     }
 
     private SystemConfigurationType getSystemConfiguration(Task task, OperationResult result) {
-        boolean errorIfNotFound = !SchemaConstants.CHANNEL_GUI_INIT_URI.equals(task.getChannel());
+        boolean errorIfNotFound = !SchemaConstants.CHANNEL_INIT_URI.equals(task.getChannel());
         return NotificationFunctionsImpl
                 .getSystemConfiguration(cacheRepositoryService, errorIfNotFound, result);
     }

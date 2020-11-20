@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.MetadataContainerPanel;
@@ -49,15 +51,17 @@ public class MetadataWrapperFactoryImpl<C extends Containerable> extends PrismCo
     }
 
     @Override
+    protected boolean shouldCreateEmptyValue(PrismContainer<C> item, WrapperContext context) {
+        return false;
+    }
+
+    @Override
     public PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent, ItemDefinition<?> def, WrapperContext context) throws SchemaException {
-//        Boolean readonly = context.getReadOnly() == null ? null : Boolean.valueOf(context.getReadOnly());
-//        context.setReadOnly(true);
-//        context.setMetadata(true);
         WrapperContext ctx = context.clone();
         ctx.setReadOnly(true);
         ctx.setMetadata(true);
         PrismContainerWrapper<C> wrapper = super.createWrapper(parent, def, ctx);
-//        context.setReadOnly(readonly);
         return wrapper;
     }
+
 }

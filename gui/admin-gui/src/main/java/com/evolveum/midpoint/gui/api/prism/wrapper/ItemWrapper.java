@@ -63,8 +63,8 @@ public interface ItemWrapper<I extends Item, VW extends PrismValueWrapper> exten
     List<VW> getValues();
     VW getValue() throws SchemaException;
 
-    boolean isStripe();
-    void setStripe(boolean stripe);
+//    boolean isStripe();
+//    void setStripe(boolean stripe);
 
     I getItem();
 
@@ -91,4 +91,7 @@ public interface ItemWrapper<I extends Item, VW extends PrismValueWrapper> exten
 
     void setShowMetadataDetails(boolean showMetadataDetails);
     boolean isShowMetadataDetails();
+
+    boolean isProcessProvenanceMetadata();
+    void setProcessProvenanceMetadata(boolean processProvenanceMetadata);
 }

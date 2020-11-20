@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -29,22 +29,26 @@ public class SecurityPolicyUtil {
     public static final String REST_SEQUENCE_NAME = "rest-default";
     public static final String ACTUATOR_SEQUENCE_NAME = "actuator-default";
     public static final String PASSWORD_RESET_SEQUENCE_NAME = "password-reset-default";
-    private static final List<String> IGNORED_LOCAL_PATH;
+
+    private static final List<String> DEFAULT_IGNORED_LOCAL_PATH;
+
+    /** Constant representing no custom ignored local paths (can be null or empty collection). */
+    public static final List<String> NO_CUSTOM_IGNORED_LOCAL_PATH = null;
 
     static {
         List<String> list = new ArrayList<>();
         list.add("/actuator");
         list.add("/actuator/health");
-        IGNORED_LOCAL_PATH = Collections.unmodifiableList(list);
+        DEFAULT_IGNORED_LOCAL_PATH = Collections.unmodifiableList(list);
     }
 
     public static AbstractAuthenticationPolicyType getAuthenticationPolicy(
             String authPolicyName, SecurityPolicyType securityPolicy) throws SchemaException {
 
-        MailAuthenticationPolicyType mailAuthPolicy = getMailAuthenticationPolicy(
-                authPolicyName, securityPolicy);
-        SmsAuthenticationPolicyType smsAuthPolicy = getSmsAuthenticationPolicy(
-                authPolicyName, securityPolicy);
+        MailAuthenticationPolicyType mailAuthPolicy =
+                getMailAuthenticationPolicy(authPolicyName, securityPolicy);
+        SmsAuthenticationPolicyType smsAuthPolicy =
+                getSmsAuthenticationPolicy(authPolicyName, securityPolicy);
         return checkAndGetAuthPolicyConsistence(mailAuthPolicy, smsAuthPolicy);
 
     }
@@ -142,7 +146,6 @@ public class SecurityPolicyUtil {
         Validate.notNull(sequence);
         ArrayList<AuthenticationSequenceModuleType> modules = new ArrayList<>(sequence.getModule());
         Validate.notNull(modules);
-        Validate.notEmpty(modules);
         Comparator<AuthenticationSequenceModuleType> comparator =
                 (f1, f2) -> {
                     Integer f1Order = f1.getOrder();
@@ -166,7 +169,8 @@ public class SecurityPolicyUtil {
     }
 
     public static AuthenticationsPolicyType createDefaultAuthenticationPolicy(
-            SchemaRegistry schemaRegistry) throws SchemaException {
+            List<String> customIgnoredLocalPaths, SchemaRegistry schemaRegistry)
+            throws SchemaException {
 
         PrismObjectDefinition<SecurityPolicyType> secPolicyDef =
                 schemaRegistry.findObjectDefinitionByCompileTimeClass(SecurityPolicyType.class);
@@ -184,8 +188,10 @@ public class SecurityPolicyUtil {
         authenticationPolicy.sequence(createRestSequence());
         authenticationPolicy.sequence(createActuatorSequence());
         authenticationPolicy.sequence(createPasswordResetSequence());
-        for (String ignoredPath : IGNORED_LOCAL_PATH) {
-            authenticationPolicy.ignoredLocalPath(ignoredPath);
+        if (customIgnoredLocalPaths == null || customIgnoredLocalPaths.isEmpty()) {
+            DEFAULT_IGNORED_LOCAL_PATH.forEach(authenticationPolicy::ignoredLocalPath);
+        } else {
+            customIgnoredLocalPaths.forEach(authenticationPolicy::ignoredLocalPath);
         }
         secPolicy.asObjectable().setAuthentication(authenticationPolicy);
         return secPolicy.asObjectable().getAuthentication();
@@ -245,7 +251,7 @@ public class SecurityPolicyUtil {
         sequence.name(PASSWORD_RESET_SEQUENCE_NAME);
         AuthenticationSequenceChannelType channel = new AuthenticationSequenceChannelType();
         channel.setDefault(true);
-        channel.channelId(SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI);
+        channel.channelId(SchemaConstants.CHANNEL_RESET_PASSWORD_URI);
         channel.setUrlSuffix("resetPassword");
         sequence.channel(channel);
         AuthenticationSequenceModuleType module = new AuthenticationSequenceModuleType();

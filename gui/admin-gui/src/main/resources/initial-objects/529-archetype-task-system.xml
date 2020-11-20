@@ -11,7 +11,12 @@
     <archetypePolicy>
         <display>
             <label>System task</label>
-            <pluralLabel>System tasks</pluralLabel>
+            <pluralLabel>
+                <orig>System tasks</orig>
+                <translation>
+                    <key>SystemTasks.title</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fa fa-save</cssClass>
                 <color>green</color>

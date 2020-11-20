@@ -152,7 +152,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         PrismObject<ShadowType> accountShadowJack = provisioningService.getObject(ShadowType.class, accountShadowJackDummyOid, null, task, result);
         change.setCurrentShadow(accountShadowJack);
         change.setResource(getDummyResourceObject());
-        change.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
+        change.setSourceChannel(SchemaConstants.CHANNEL_LIVE_SYNC_URI);
 
         // WHEN
         when();
@@ -207,7 +207,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         PrismObject<ShadowType> accountShadowJack = provisioningService.getObject(ShadowType.class, accountShadowJackDummyOid, null, task, result);
         change.setCurrentShadow(accountShadowJack);
         change.setResource(getDummyResourceObject());
-        change.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
+        change.setSourceChannel(SchemaConstants.CHANNEL_LIVE_SYNC_URI);
 
         displayDumpable("SENDING CHANGE NOTIFICATION", change);
 
@@ -263,7 +263,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         PrismObject<ShadowType> accountShadowJack = provisioningService.getObject(ShadowType.class, accountShadowJackDummyOid, null, task, result);
         change.setCurrentShadow(accountShadowJack);
         change.setResource(getDummyResourceObject());
-        change.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_DISCOVERY_URI);
+        change.setSourceChannel(SchemaConstants.CHANNEL_DISCOVERY_URI);
 
         // WHEN
         synchronizationService.notifyChange(change, task, result);
@@ -979,7 +979,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertSituation(shadow, SynchronizationSituationType.LINKED);
 
     }
-
 
     private void setDebugListener() {
         mockListener = new MockLensDebugListener();

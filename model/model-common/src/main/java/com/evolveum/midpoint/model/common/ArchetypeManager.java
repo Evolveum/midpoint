@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Evolveum and contributors
+ * Copyright (C) 2019-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -17,9 +17,8 @@ import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
-import com.evolveum.midpoint.repo.api.Cacheable;
+import com.evolveum.midpoint.repo.api.Cache;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +47,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  * @author Radovan Semancik
  */
 @Component
-public class ArchetypeManager implements Cacheable {
+public class ArchetypeManager implements Cache {
 
     private static final Trace LOGGER = TraceManager.getTrace(ArchetypeManager.class);
     private static final Trace LOGGER_CONTENT = TraceManager.getTrace(ArchetypeManager.class.getName() + ".content");
@@ -57,16 +56,16 @@ public class ArchetypeManager implements Cacheable {
     @Autowired private PrismContext prismContext;
     @Autowired private CacheRegistry cacheRegistry;
 
-    private Map<String, ArchetypePolicyType> archetypePolicyCache = new ConcurrentHashMap<>();
+    private final Map<String, ArchetypePolicyType> archetypePolicyCache = new ConcurrentHashMap<>();
 
     @PostConstruct
-    public void registerCacheableService() {
-        cacheRegistry.registerCacheableService(this);
+    public void register() {
+        cacheRegistry.registerCache(this);
     }
 
     @PreDestroy
-    public void unregisterCacheableService() {
-        cacheRegistry.unregisterCacheableService(this);
+    public void unregister() {
+        cacheRegistry.unregisterCache(this);
     }
 
     public PrismObject<ArchetypeType> getArchetype(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
@@ -155,10 +154,12 @@ public class ArchetypeManager implements Cacheable {
             return null;
         }
 
-        PrismObject<ArchetypeType> archetype = null;
+        PrismObject<ArchetypeType> archetype;
         if (object.canRepresent(AssignmentHolderType.class)) {
             //noinspection unchecked
             archetype = determineArchetype((PrismObject<? extends AssignmentHolderType>) object, explicitArchetypeOid, result);
+        } else {
+            archetype = null;
         }
 
         if (archetype != null) {
@@ -170,8 +171,7 @@ public class ArchetypeManager implements Cacheable {
 
         ArchetypePolicyType archetypePolicy = mergeArchetypePolicies(archetype, result);
 
-
-        // No archetype for this object. Try to find appropriate system configuration section for this object.
+        // Try to find appropriate system configuration section for this object.
         ObjectPolicyConfigurationType objectPolicy = determineObjectPolicyConfiguration(object, result);
         // TODO: cache the result of the merge
         ArchetypePolicyType mergedPolicy = merge(archetypePolicy, objectPolicy);
@@ -308,7 +308,7 @@ public class ArchetypeManager implements Cacheable {
     private <C extends Containerable> List<C> mergeContainers(List<C> currentContainers, List<C> superContainers, Function<C, Predicate<C>> predicate, BiFunction<C, C, C> mergeFunction) {
         if (currentContainers.isEmpty()) {
             if (superContainers.isEmpty()) {
-                return Collections.EMPTY_LIST;
+                return Collections.emptyList();
             }
             return superContainers.stream().map(this::cloneComplex).collect(Collectors.toList());
         }

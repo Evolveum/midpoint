@@ -1,11 +1,19 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.progress;
+
+import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.*;
+import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
+import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.EXITING;
+
+import java.util.*;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.ProgressListener;
@@ -32,14 +40,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import org.apache.commons.lang.StringUtils;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
-
-import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.*;
-import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
-import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.EXITING;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -49,10 +49,11 @@ public class ProgressReporter implements ProgressListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(ProgressReporter.class);
 
-    private MidPointApplication application;
+    private final MidPointApplication application;
 
-    private Map<String, String> nameCache = new HashMap<>();
-    private ProgressDto progress = new ProgressDto();
+    private final Map<String, String> nameCache = new HashMap<>();
+    private final ProgressDto progress = new ProgressDto();
+
     private volatile boolean abortRequested;
 
     // Operation result got from the asynchronous operation (null if async op not yet finished)
@@ -143,15 +144,9 @@ public class ProgressReporter implements ProgressListener {
 
     @Override
     public void onProgressAchieved(ModelContext modelContext, ProgressInformation progressInformation) {
-
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("onProgressAchieved: {}\n, modelContext = \n{}", progressInformation.debugDump(),
                     modelContext.debugDump(2));
-        }
-
-        if (progress == null) {
-            LOGGER.error("No progress, exiting");      // should not occur
-            return;
         }
 
         if (StringUtils.isNotEmpty(progressInformation.getMessage())) {
@@ -209,7 +204,7 @@ public class ProgressReporter implements ProgressListener {
     }
 
     private ProgressReportActivityDto findRelevantStatusItem(List<ProgressReportActivityDto> progressReportActivities,
-                                                             ProgressInformation progressInformation) {
+            ProgressInformation progressInformation) {
 
         for (ProgressReportActivityDto si : progressReportActivities) {
             if (si.correspondsTo(progressInformation)) {
@@ -220,7 +215,7 @@ public class ProgressReporter implements ProgressListener {
     }
 
     private void updateStatusItemState(ProgressReportActivityDto si, ProgressInformation progressInformation,
-                                       ModelContext modelContext) {
+            ModelContext modelContext) {
 
         si.setActivityType(progressInformation.getActivityType());
         si.setResourceShadowDiscriminator(progressInformation.getResourceShadowDiscriminator());

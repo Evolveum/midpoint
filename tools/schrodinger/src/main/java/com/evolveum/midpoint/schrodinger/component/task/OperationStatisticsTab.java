@@ -9,19 +9,36 @@ package com.evolveum.midpoint.schrodinger.component.task;
 import com.codeborne.selenide.SelenideElement;
 
 import com.evolveum.midpoint.schrodinger.component.Component;
+import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 /**
  * @author skublik
  */
 
-public class OperationStatisticsTab<T> extends Component<T> {
+public class OperationStatisticsTab extends Component<TaskPage> {
 
-    public OperationStatisticsTab(T parent, SelenideElement parentElement) {
+    public OperationStatisticsTab(TaskPage parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
 
-    public int getSuccessfullyProcessed() {
-        return Integer.valueOf(getParentElement().$(Schrodinger.byDataId("span", "objectsProcessedSuccess")).getText());
+    public Integer getSuccessfullyProcessed() {
+        return getIntegerValueForTextField("objectsProcessedSuccess");
+    }
+
+    public Integer getObjectsFailedToBeProcessed() {
+        return getIntegerValueForTextField("objectsProcessedFailure");
+    }
+
+    public Integer getObjectsTotalCount() {
+        return getIntegerValueForTextField("objectsTotal");
+    }
+
+    private Integer getIntegerValueForTextField(String fieldName) {
+        String textValue = getParentElement().$(Schrodinger.byDataId("span", fieldName)).getText();
+        if (textValue == null || textValue.trim().equals("")) {
+            return null;
+        }
+        return Integer.valueOf(textValue);
     }
 }

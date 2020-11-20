@@ -25,6 +25,8 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import static com.codeborne.selenide.Selenide.screenshot;
 
@@ -37,14 +39,9 @@ public class UsersTest extends AbstractSchrodingerTest {
     private static final File OT_FOR_LOOKUP_TABLE_SUBTYPES = new File("src/test/resources/configuration/objects/objecttemplate/object-template-for-lookup-table-subtypes.xml");
     private static final File SYSTEM_CONFIG_WITH_LOOKUP_TABLE = new File("src/test/resources/configuration/objects/systemconfig/system-configuration-with-lookup-table.xml");
 
-    @BeforeClass
     @Override
-    public void beforeClass() throws IOException {
-        super.beforeClass();
-        importObject(LOOKUP_TABLE_SUBTYPES, true);
-        importObject(OT_FOR_LOOKUP_TABLE_SUBTYPES, true);
-        importObject(SYSTEM_CONFIG_WITH_LOOKUP_TABLE, true);
-
+    protected List<File> getObjectListToImport(){
+        return Arrays.asList(LOOKUP_TABLE_SUBTYPES, OT_FOR_LOOKUP_TABLE_SUBTYPES, SYSTEM_CONFIG_WITH_LOOKUP_TABLE);
     }
 
     @Test
@@ -84,7 +81,7 @@ public class UsersTest extends AbstractSchrodingerTest {
         user.selectTabBasic()
                 .form()
                 .addAttributeValue("name", "searchUser")
-                .addAttributeValue("subtype", "Extern")
+                .addAttributeValue("title", "PhD.")
                 .and()
                 .and()
                 .clickSave();
@@ -96,8 +93,19 @@ public class UsersTest extends AbstractSchrodingerTest {
             users
                 .table()
                     .search()
-                        .byItemName("subtype")
-                            .inputValue("Extern")
+                        .byItemName("title")
+                            .inputValue("PhD.")
+                    .updateSearch()
+                    .and()
+                .currentTableContains("searchUser")
+        );
+
+        Assert.assertTrue(
+                users
+                .table()
+                    .search()
+                        .byItemName("title")
+                            .inputValue("PhD")
                     .updateSearch()
                     .and()
                 .currentTableContains("searchUser")
@@ -107,8 +115,19 @@ public class UsersTest extends AbstractSchrodingerTest {
             users
                 .table()
                     .search()
-                        .byItemName("subtype")
-                            .inputValue("Employee")
+                        .byItemName("title")
+                            .inputValue("Ing.")
+                    .updateSearch()
+                    .and()
+                .currentTableContains("searchUser")
+        );
+
+        Assert.assertFalse(
+            users
+                .table()
+                    .search()
+                        .byItemName("title")
+                            .inputValue("Ing")
                     .updateSearch()
                     .and()
                 .currentTableContains("searchUser")

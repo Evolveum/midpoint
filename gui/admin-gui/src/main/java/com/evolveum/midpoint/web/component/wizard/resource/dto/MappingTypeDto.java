@@ -1,11 +1,16 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -14,16 +19,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import org.apache.commons.lang.StringUtils;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
- *  @author shood
- * */
+ * @author shood
+ */
 public class MappingTypeDto implements Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(MappingTypeDto.class);
@@ -42,8 +41,9 @@ public class MappingTypeDto implements Serializable {
 
     private static final MappingStrengthType DEFAULT_MAPPING_STRENGTH = MappingStrengthType.NORMAL;
 
+    private final MappingType oldMappingObject;
+
     private MappingType mappingObject;
-    private MappingType oldMappingObject;
     private String expression;
     private String condition;
     private String target;
@@ -55,15 +55,15 @@ public class MappingTypeDto implements Serializable {
     private ObjectReferenceType expressionPolicyRef = null;
     private ObjectReferenceType conditionPolicyRef = null;
 
-    public MappingTypeDto(MappingType mapping, PrismContext prismContext){
+    public MappingTypeDto(MappingType mapping, PrismContext prismContext) {
 
-        if(mapping != null && mapping.equals(new MappingType())){
+        if (mapping != null && mapping.equals(new MappingType())) {
             mappingObject = mapping;
             expression = ExpressionUtil.EXPRESSION_AS_IS;
             expressionType = ExpressionUtil.ExpressionEvaluatorType.AS_IS;
         }
 
-        if(mapping == null){
+        if (mapping == null) {
             MappingType newMapping = new MappingType();
             newMapping.setAuthoritative(true);
             mappingObject = newMapping;
@@ -73,17 +73,17 @@ public class MappingTypeDto implements Serializable {
 
         oldMappingObject = mappingObject.clone();
 
-        for(VariableBindingDefinitionType mappingSource: mappingObject.getSource()){
-            if(mappingSource.getPath() != null) {
+        for (VariableBindingDefinitionType mappingSource : mappingObject.getSource()) {
+            if (mappingSource.getPath() != null) {
                 source.add(mappingSource.getPath().getItemPath().toString());
             }
         }
 
-        if(mappingObject.getTarget() != null && mappingObject.getTarget().getPath() != null) {
+        if (mappingObject.getTarget() != null && mappingObject.getTarget().getPath() != null) {
             target = mappingObject.getTarget().getPath().getItemPath().toString();
         }
 
-        if(mappingObject.getStrength() == null){
+        if (mappingObject.getStrength() == null) {
             mappingObject.setStrength(DEFAULT_MAPPING_STRENGTH);
         }
 
@@ -121,13 +121,13 @@ public class MappingTypeDto implements Serializable {
         mappingObject.getExceptChannel().addAll(oldMappingObject.getExceptChannel());
     }
 
-    public MappingType prepareDtoToSave(PrismContext prismContext) throws SchemaException{
+    public MappingType prepareDtoToSave(PrismContext prismContext) throws SchemaException {
 
-        if(mappingObject == null){
+        if (mappingObject == null) {
             mappingObject = new MappingType();
         }
 
-        if(target != null){
+        if (target != null) {
             VariableBindingDefinitionType mappingTarget = new VariableBindingDefinitionType();
             mappingTarget.setPath(prismContext.itemPathParser().asItemPathType(target));
             mappingObject.setTarget(mappingTarget);
@@ -137,8 +137,8 @@ public class MappingTypeDto implements Serializable {
 
         mappingObject.getSource().clear();
         List<VariableBindingDefinitionType> mappingSourceList = new ArrayList<>();
-        for(String s: source){
-            if(s == null){
+        for (String s : source) {
+            if (s == null) {
                 continue;
             }
 
@@ -150,7 +150,7 @@ public class MappingTypeDto implements Serializable {
         mappingObject.getSource().addAll(mappingSourceList);
 
         if (expression != null) {
-            if(mappingObject.getExpression() == null){
+            if (mappingObject.getExpression() == null) {
                 mappingObject.setExpression(new ExpressionType());
             }
             ExpressionUtil.parseExpressionEvaluators(expression, mappingObject.getExpression(), prismContext);
@@ -166,27 +166,27 @@ public class MappingTypeDto implements Serializable {
         return mappingObject;
     }
 
-    public void updateExpressionGeneratePolicy(){
+    public void updateExpressionGeneratePolicy() {
         expression = ExpressionUtil.getExpressionString(expressionType, expressionPolicyRef);
     }
 
-    public void updateConditionGeneratePolicy(){
+    public void updateConditionGeneratePolicy() {
         condition = ExpressionUtil.getExpressionString(expressionType, conditionPolicyRef);
     }
 
-    public void updateExpressionLanguage(){
+    public void updateExpressionLanguage() {
         expression = ExpressionUtil.getExpressionString(expressionType, expressionLanguage);
     }
 
-    public void updateConditionLanguage(){
+    public void updateConditionLanguage() {
         condition = ExpressionUtil.getExpressionString(conditionType, conditionLanguage);
     }
 
-    public void updateExpression(){
+    public void updateExpression() {
         expression = ExpressionUtil.getExpressionString(expressionType);
     }
 
-    public void updateCondition(){
+    public void updateCondition() {
         condition = ExpressionUtil.getExpressionString(conditionType);
     }
 
@@ -280,27 +280,29 @@ public class MappingTypeDto implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof MappingTypeDto)) return false;
+        if (this == o) { return true; }
+        if (!(o instanceof MappingTypeDto)) { return false; }
 
         MappingTypeDto that = (MappingTypeDto) o;
 
-        if (condition != null ? !condition.equals(that.condition) : that.condition != null) return false;
-        if (conditionLanguage != that.conditionLanguage) return false;
-        if (conditionPolicyRef != null ? !conditionPolicyRef.equals(that.conditionPolicyRef) : that.conditionPolicyRef != null)
+        if (condition != null ? !condition.equals(that.condition) : that.condition != null) { return false; }
+        if (conditionLanguage != that.conditionLanguage) { return false; }
+        if (conditionPolicyRef != null ? !conditionPolicyRef.equals(that.conditionPolicyRef) : that.conditionPolicyRef != null) {
             return false;
-        if (conditionType != that.conditionType) return false;
-        if (expression != null ? !expression.equals(that.expression) : that.expression != null) return false;
-        if (expressionLanguage != that.expressionLanguage) return false;
-        if (expressionPolicyRef != null ? !expressionPolicyRef.equals(that.expressionPolicyRef) : that.expressionPolicyRef != null)
+        }
+        if (conditionType != that.conditionType) { return false; }
+        if (expression != null ? !expression.equals(that.expression) : that.expression != null) { return false; }
+        if (expressionLanguage != that.expressionLanguage) { return false; }
+        if (expressionPolicyRef != null ? !expressionPolicyRef.equals(that.expressionPolicyRef) : that.expressionPolicyRef != null) {
             return false;
-        if (expressionType != that.expressionType) return false;
-        if (mappingObject != null ? !mappingObject.equals(that.mappingObject) : that.mappingObject != null)
+        }
+        if (expressionType != that.expressionType) { return false; }
+        if (mappingObject != null ? !mappingObject.equals(that.mappingObject) : that.mappingObject != null) { return false; }
+        if (oldMappingObject != null ? !oldMappingObject.equals(that.oldMappingObject) : that.oldMappingObject != null) {
             return false;
-        if (oldMappingObject != null ? !oldMappingObject.equals(that.oldMappingObject) : that.oldMappingObject != null)
-            return false;
-        if (source != null ? !source.equals(that.source) : that.source != null) return false;
-        if (target != null ? !target.equals(that.target) : that.target != null) return false;
+        }
+        if (source != null ? !source.equals(that.source) : that.source != null) { return false; }
+        if (target != null ? !target.equals(that.target) : that.target != null) { return false; }
 
         return true;
     }
@@ -322,20 +324,20 @@ public class MappingTypeDto implements Serializable {
         return result;
     }
 
-    public static String createMappingLabel(MappingType mapping, Trace LOGGER, PrismContext context,
-                                            String placeholder, String nameNotSpecified ){
-        if(mapping == null){
+    public static String createMappingLabel(MappingType mapping, Trace logger,
+            PrismContext context, String placeholder, String nameNotSpecified) {
+        if (mapping == null) {
             return placeholder;
         }
 
         StringBuilder sb = new StringBuilder();
-        if(mapping.getName() != null && StringUtils.isNotEmpty(mapping.getName())){
+        if (mapping.getName() != null && StringUtils.isNotEmpty(mapping.getName())) {
             sb.append(mapping.getName());
             return sb.toString();
         }
 
         if (!mapping.getSource().isEmpty()) {
-            for (VariableBindingDefinitionType source: mapping.getSource()) {
+            for (VariableBindingDefinitionType source : mapping.getSource()) {
                 if (source.getPath() != null && !ItemPath.isEmpty(source.getPath().getItemPath())) {
                     sb.append(source.getPath().getItemPath().last());
                     sb.append(",");
@@ -345,8 +347,8 @@ public class MappingTypeDto implements Serializable {
 
         sb.append("-");
         sb.append(" (");
-        if(mapping.getExpression() != null && mapping.getExpression().getExpressionEvaluator() != null){
-            sb.append(ExpressionUtil.getExpressionType(ExpressionUtil.loadExpression(mapping.getExpression(), context, LOGGER)));
+        if (mapping.getExpression() != null && mapping.getExpression().getExpressionEvaluator() != null) {
+            sb.append(ExpressionUtil.getExpressionType(ExpressionUtil.loadExpression(mapping.getExpression(), context, logger)));
         }
         sb.append(")");
         sb.append("->");

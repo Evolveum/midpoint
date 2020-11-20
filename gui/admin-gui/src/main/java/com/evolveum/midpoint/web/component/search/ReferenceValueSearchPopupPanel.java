@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,29 +10,29 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteReferenceRenderer;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteReferenceRenderer;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends BasePanel<ObjectReferenceType> {
 
@@ -57,7 +57,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends BasePa
     private void initLayout() {
         setOutputMarkupId(true);
 
-        TextField<String> oidField = new TextField<String>(ID_OID, new PropertyModel<>(getModel(), "oid"));
+        TextField<String> oidField = new TextField<>(ID_OID, new PropertyModel<>(getModel(), "oid"));
         oidField.add(new AjaxFormComponentUpdatingBehavior("blur") {
 
             private static final long serialVersionUID = 1L;
@@ -74,19 +74,18 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends BasePa
 
         ReferenceAutocomplete nameField = new ReferenceAutocomplete(ID_NAME, Model.of(getModelObject()),
                 new AutoCompleteReferenceRenderer(),
-                getPageBase()){
+                getPageBase()) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected Class<O> getReferenceTargetObjectType(){
+            protected Class<O> getReferenceTargetObjectType() {
                 List<QName> supportedTypes = getSupportedTargetList();
-                if (CollectionUtils.isNotEmpty(supportedTypes)){
+                if (CollectionUtils.isNotEmpty(supportedTypes)) {
                     return (Class<O>) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), supportedTypes.get(0));
                 }
                 return (Class<O>) ObjectType.class;
             }
-
         };
 
         nameField.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("blur") {
@@ -96,6 +95,9 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends BasePa
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 ObjectReferenceType ort = nameField.getBaseFormComponent().getModelObject();
+                if (ort == null) {
+                    return;
+                }
                 ReferenceValueSearchPopupPanel.this.getModel().setObject(ort);
                 target.add(ReferenceValueSearchPopupPanel.this.get(ID_OID));
             }
@@ -104,9 +106,8 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends BasePa
         nameField.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         add(nameField);
 
-        DropDownChoice<QName> type = new DropDownChoice<>(ID_TYPE, new PropertyModel<QName>(getModel(), "type"),
-                getSupportedTargetList(), new QNameObjectTypeChoiceRenderer());
-        type.setNullValid(true);
+        DropDownChoicePanel<QName> type = new DropDownChoicePanel<QName>(ID_TYPE, new PropertyModel<>(getModel(), "type"),
+                Model.ofList(getSupportedTargetList()), new QNameObjectTypeChoiceRenderer(), true);
         type.setOutputMarkupId(true);
         type.add(new VisibleEnableBehaviour() {
 
@@ -117,20 +118,14 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends BasePa
                 return getSupportedTargetList().size() > 1;
             }
         });
-        type.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        type.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        type.getBaseFormComponent().add(AttributeAppender.append("style", "width: 150px;"));
         add(type);
 
-        if (getModelObject() != null && getModelObject().getRelation() == null){
-            getModelObject().setRelation(PrismConstants.Q_ANY);
-        }
-        List<QName> allowedRelations = new ArrayList<QName>();
-        allowedRelations.addAll(getAllowedRelations());
-        if (!allowedRelations.contains(PrismConstants.Q_ANY)) {
-            allowedRelations.add(0, PrismConstants.Q_ANY);
-        }
-        DropDownChoice<QName> relation = new DropDownChoice<>(ID_RELATION, new PropertyModel<QName>(getModel(), "relation"),
-                allowedRelations, new QNameObjectTypeChoiceRenderer());
-//        relation.setNullValid(true);
+        List<QName> allowedRelations = new ArrayList<>(getAllowedRelations());
+        DropDownChoicePanel<QName> relation = new DropDownChoicePanel<QName>(ID_RELATION,
+                new PropertyModel<>(getModel(), "relation"),
+                Model.ofList(allowedRelations), new QNameObjectTypeChoiceRenderer(), true);
         relation.setOutputMarkupId(true);
         relation.add(new VisibleEnableBehaviour() {
 
@@ -141,7 +136,8 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends BasePa
                 return getAllowedRelations().size() > 1;
             }
         });
-        relation.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        relation.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        relation.getBaseFormComponent().add(AttributeAppender.append("style", "width: 150px;"));
         add(relation);
 
         AjaxButton confirm = new AjaxButton(ID_CONFIRM_BUTTON, createStringResource("Button.ok")) {
@@ -157,7 +153,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends BasePa
 
     }
 
-    protected void confirmPerformed(AjaxRequestTarget target){
+    protected void confirmPerformed(AjaxRequestTarget target) {
 
     }
 
@@ -168,6 +164,5 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends BasePa
     protected List<QName> getSupportedTargetList() {
         return WebComponentUtil.createFocusTypeList();
     }
-
 
 }

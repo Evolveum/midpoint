@@ -109,7 +109,6 @@ public interface MidpointTestMixin {
      */
     @Nullable MidpointTestContext getTestContext();
 
-    @Deprecated
     @NotNull
     // TODO switch to private after ditching JDK 8, DON'T USE/DON'T OVERRIDE!
     /*private*/ default MidpointTestContext testContext() {
@@ -227,12 +226,7 @@ public interface MidpointTestMixin {
      * Displays "when" subsection header with test name and provided description (nullable).
      */
     default void when(String description) {
-        String testName = getTestNameShort();
-        if (description == null) {
-            description = "";
-        }
-        println(TEST_OUT_SECTION_PREFIX + testName + ": WHEN " + description + TEST_OUT_SECTION_SUFFIX);
-        logger().info(TEST_LOG_SECTION_PREFIX + testName + ": WHEN " + description + TEST_LOG_SECTION_SUFFIX);
+        testPhaseMessage("WHEN", description);
     }
 
     /**
@@ -247,12 +241,24 @@ public interface MidpointTestMixin {
      * Displays "then" subsection header with test name and provided description (nullable).
      */
     default void then(String description) {
+        testPhaseMessage("THEN", description);
+    }
+
+    default void and(String description) {
+        testPhaseMessage("AND", description);
+    }
+
+    // TODO switch to private after ditching JDK 8, DON'T USE/DON'T OVERRIDE!
+    /*private*/
+    default void testPhaseMessage(String keyword, String description) {
         String testName = getTestNameShort();
         if (description == null) {
             description = "";
         }
-        println(TEST_OUT_SECTION_PREFIX + testName + ": THEN " + description + TEST_OUT_SECTION_SUFFIX);
-        logger().info(TEST_LOG_SECTION_PREFIX + testName + ": THEN " + description + TEST_LOG_SECTION_SUFFIX);
+        println(TEST_OUT_SECTION_PREFIX + testName + ": " + keyword + " "
+                + description + TEST_OUT_SECTION_SUFFIX);
+        logger().info(TEST_LOG_SECTION_PREFIX + testName + ": " + keyword + " "
+                + description + TEST_LOG_SECTION_SUFFIX);
     }
 
     /**

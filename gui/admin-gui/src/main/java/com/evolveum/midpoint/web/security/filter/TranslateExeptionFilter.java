@@ -8,6 +8,8 @@ package com.evolveum.midpoint.web.security.filter;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -31,7 +33,11 @@ public class TranslateExeptionFilter extends OncePerRequestFilter {
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
             if (!response.isCommitted()) {
-                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                if (SecurityUtils.isRecordSessionlessAccessChannel(request)) {
+                    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                } else {
+                    response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                }
             }
         }
     }

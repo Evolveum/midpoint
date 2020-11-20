@@ -1,52 +1,47 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.search;
 
-import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
-import com.evolveum.midpoint.gui.api.component.autocomplete.LookupTableConverter;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.web.model.LookupPropertyModel;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.behavior.Behavior;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteSettings;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.convert.ConversionException;
 import org.apache.wicket.util.convert.IConverter;
 
-import java.io.Serializable;
-import java.util.*;
+import com.evolveum.midpoint.gui.api.component.autocomplete.LookupTableConverter;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
 /**
  * @author Viliam Repan (lazyman)
  */
 public class TextPopupPanel<T extends Serializable> extends SearchPopupPanel<T> {
 
-   private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
     private static final String ID_TEXT_INPUT = "input";
 
     private static final int MAX_ITEMS = 10;
 
-    private PrismObject<LookupTableType> lookup;
+    private final PrismObject<LookupTableType> lookup;
 
     public TextPopupPanel(String id, IModel<DisplayableValue<T>> model, PrismObject<LookupTableType> lookup) {
         super(id, model);
@@ -84,10 +79,10 @@ public class TextPopupPanel<T extends Serializable> extends SearchPopupPanel<T> 
         AutoCompleteSettings settings = new AutoCompleteSettings();
         settings.setShowListOnEmptyInput(true);
 
-
         AutoCompleteTextField<String> textField = new AutoCompleteTextField<String>(ID_TEXT_INPUT, new PropertyModel<>(getModel(), SearchValue.F_VALUE), settings) {
 
             private static final long serialVersionUID = 1L;
+
             @Override
             protected Iterator<String> getChoices(String input) {
                 return prepareAutoCompleteList(input).iterator();
@@ -100,7 +95,7 @@ public class TextPopupPanel<T extends Serializable> extends SearchPopupPanel<T> 
                     return converter;
                 }
 
-                return new LookupTableConverter(converter, lookup.asObjectable(), this, false){
+                return new LookupTableConverter(converter, lookup.asObjectable(), this, false) {
                     @Override
                     public Object convertToObject(String value, Locale locale) throws ConversionException {
                         PropertyModel<Object> label = new PropertyModel<>(TextPopupPanel.this.getModelObject(), SearchValue.F_LABEL);
@@ -115,7 +110,7 @@ public class TextPopupPanel<T extends Serializable> extends SearchPopupPanel<T> 
         return textField;
     }
 
-    public FormComponent getTextField(){
+    public FormComponent getTextField() {
         return (FormComponent) get(ID_TEXT_INPUT);
     }
 
@@ -126,18 +121,12 @@ public class TextPopupPanel<T extends Serializable> extends SearchPopupPanel<T> 
             return values;
         }
 
-        List<LookupTableRowType> rows = new ArrayList<>();
-        rows.addAll(lookup.asObjectable().getRow());
+        List<LookupTableRowType> rows = new ArrayList<>(lookup.asObjectable().getRow());
+        rows.sort((o1, o2) -> {
+            String s1 = WebComponentUtil.getOrigStringFromPoly(o1.getLabel());
+            String s2 = WebComponentUtil.getOrigStringFromPoly(o2.getLabel());
 
-        Collections.sort(rows, new Comparator<LookupTableRowType>() {
-
-            @Override
-            public int compare(LookupTableRowType o1, LookupTableRowType o2) {
-                String s1 = WebComponentUtil.getOrigStringFromPoly(o1.getLabel());
-                String s2 = WebComponentUtil.getOrigStringFromPoly(o2.getLabel());
-
-                return String.CASE_INSENSITIVE_ORDER.compare(s1, s2);
-            }
+            return String.CASE_INSENSITIVE_ORDER.compare(s1, s2);
         });
 
         for (LookupTableRowType row : rows) {

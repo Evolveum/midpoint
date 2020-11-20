@@ -1,0 +1,105 @@
+= midScale new SQL repository experiments
+
+As a non-involved developer you may ignore this directory.
+It is not part of the current midPoint build.
+
+== Notes
+
+* Directory `sql` contains various init scripts and experiments.
+Some of these will be moved to `config/sql` when proven worthy.
+
+Create DB schema script (WIP): link:sql/pgnew-repo.sql[]
+Useful inserts, selects, etc.: link:sql/pgnew-experiments.sql[]
+
+== PostgreSQL table inheritance
+
+https://www.postgresql.org/docs/current/ddl-inherit.html[Table inheritance] is a nice mechanism
+that allows creating table hierarchies so we see all objects in one table and various subtypes in
+inherited tables.
+*It is also an implicit method for partitioning*, at least from the perspective of the parent table(s).
+
+* We need "abstract" tables like `m_object`.
+Ideally we don't want to insert into abstract tables, we can use `check (false) no inherit` for this.
+"Check false" always fails, but this is not inherited by sub-tables.
+Updates of common columns or deletes on abstract tables still work with expected results.
+
+* PKs, FKs and most of other constraints must be declared on each sub-table.
+Only check and not-null constraints are inherited, unless `no inherit` is declared.
+See https://www.postgresql.org/docs/13/ddl-inherit.html#DDL-INHERIT-CAVEATS[inheritance caveats].
+
+* To assure globally unique PKs we have to use triggers on sub-tables.
+See http://blog.ioguix.net/postgresql/2015/02/05/Partitionning-and-constraints-part-1.html[this post]
+for more - especially the solution towards the end with advisory locks.
+The part with the support for other types is also handy, because UUID is bigger than bigint for lock.
+
+* UUID is far from the first recommendation for a PK, but it's impractical to use anything else for midPoint.
+Even with additional serial PK the objects are searched by their OID, so it would have to be indexed
+and its uniqueness assured and then it can just be PK directly.
+Smaller PK could be beneficial only as FK from other tables, e.g. instead of `targetRef_oid` for associations.
+This could still mean that we need to follow the FK to resolve it to OID which we use in application.
+
+* We want to generate OID in the database, so `DEFAULT gen_random_uuid()` is used for `OID`
+column directly in the master table `m_object`.
+
+* To assure reasonable performance of unique OID we must not forget to declare `PRIMARY KEY (OID)`
+on the "concrete" tables (in `CREATE TABLE` or with `ALTER TABLE`).
+Without the index the check trigger gets very slow after a couple of thousands records.
+
+* Can we partition inherited table? Like `m_shadow`.
+*No, this is not possible.*
+Options:
+** Using "application managed partitioning" with inheritance as needed.
+(I prefer this, it is more cumbersome, but possibly more flexible.)
+** Shadow would not be part of `m_object` hierarchy.
+
+* Foreign key can't be used against `m_object.oid` because it does not enforce index (by itself).
+Perhaps we want to introduce `m_object_oid` table that would own the unique pool of OIDs and could
+be used for referencing FKs.
+Referencing only some types of objects (e.g. just focuses) is probably mission impossible.
+
+* How much will the performance of insert suffer with trigger checking `m_object.oid`?
+Following table show the effects of the count of inherited tables and volume of already inserted rows
+on the time for adding 100k of new rows:
++
+|===
+| Inherited{nbsp}tables /
+Existing rows | 4 | 20 | 50 | 100
+
+| 0 | 7s | 10s | 29/35/36s | 63s
+| 500k | 6s | 10s | 21/32/23s | 63/34/65s
+| 1M | 6s | 10s | 20/33/33s| 66/66/45s
+| 5M | 16/10/21/7/7s | 11/13/13/12s | - | -
+|===
+
+* TODO: membership searches on abstract tables (e.g. focus), EXPLAIN, performance?
+
+* TODO: logging of all statements for experiments?
+https://www.postgresql.org/docs/13/runtime-config-logging.html
+https://stackoverflow.com/questions/722221/how-to-log-postgresql-queries
+
+* TODO: tablespaces?
+
+* The default `public` schema is used for all midpoint objects, that's OK.
+
+== Pagination
+
+Various types of pagination are summed up in https://www.citusdata.com/blog/2016/03/30/five-ways-to-paginate/[this article].
+
+For *pagination in the GUI* `OFFSET`/`LIMIT` seems to be the acceptable despite the performance
+degradation with big values of `OFFSET`.
+The reason is that GUI requires random access and first pages are accessed more than later/last pages.
+Also, any inconsistency (suddenly added entry) is easy to explain and user probably knows what is happening.
+
+For long term processes that need to process many items we use *keyset pagination*, e.g. using last
+ID from current page to define the next page without any `OFFSET`, only using `LIMIT`.
+This is very efficient and natural, too.
+While this may skip some items that are added after we processed the page (and at the same time
+process other items added later that appear on later pages) it is more or less deterministic.
+We can also avoid processing "future" items with `WHERE` clause using creation timestamp
+(or current maximal ID, if sequential) at the processing start time.
+
+Following techniques are generally not usable for us:
+
+* *TID Scan* and *Keyset with Estimated Bookmarks* does not support `WHERE` clauses.
+* *Cursor* pagination causes high client-server coupling and is state-full.
+We don't want to hold the cursor for operations that can take longer and need transactions.

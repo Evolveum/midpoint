@@ -6,6 +6,11 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter.Format.TEXT;
+import static com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter.SortBy.TIME;
+
+import static java.util.Collections.singleton;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -13,6 +18,14 @@ import java.util.*;
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.constants.Channel;
+
+import com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter;
+import com.evolveum.midpoint.schema.statistics.OperationsPerformanceInformationUtil;
+import com.evolveum.midpoint.util.exception.*;
+
+import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -54,10 +67,6 @@ import com.evolveum.midpoint.test.ProvisioningScriptSpec;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -1089,6 +1098,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertCustomColumn("foo", "test");
+        dummyAuditService.assertCustomColumn("ship", "Black Pearl");
 //        dummyAuditService.assertResourceOid(RESOURCE_DUMMY_OID);
         dummyAuditService.assertExecutionSuccess();
 
@@ -2299,6 +2309,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
     /**
      * We try to modify an assignment of the account and see whether changes will be recorded in the account itself.
+     *
+     * We also check the metadata.channel migration for both the object and the assignment (MID-6547).
      */
     @Test
     public void test191ModifyUserJackModifyAssignment() throws Exception {
@@ -2354,6 +2366,17 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 createReplaceAccountConstructionUserDelta(USER_JACK_OID, assignmentId, accountConstruction);
         deltas.add(accountAssignmentUserDelta);
 
+        // Set user and assignment create channel to legacy value.
+        repositoryService.modifyObject(
+                UserType.class, jackBefore.getOid(),
+                deltaFor(UserType.class)
+                    .item(UserType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
+                        .replace(Channel.USER.getLegacyUri())
+                    .item(UserType.F_ASSIGNMENT, assignmentId, AssignmentType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
+                        .replace(Channel.USER.getLegacyUri())
+                    .asItemDeltas(),
+                result);
+
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
         PrismObject<UserType> userJackOld = getUser(USER_JACK_OID);
@@ -2377,6 +2400,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         display("User after change execution", userJack);
         assertUserJack(userJack, "Jack Sparrow");
         accountJackOid = getSingleLinkOid(userJack);
+
+        // MID-6547 (channel URI migration)
+        assertThat(userJack.asObjectable().getMetadata().getCreateChannel()).isEqualTo(Channel.USER.getUri());
+        assertThat(userJack.asObjectable().getAssignment().get(0).getMetadata().getCreateChannel()).isEqualTo(Channel.USER.getUri());
 
         // Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,
@@ -3097,15 +3124,16 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // WHEN
         when();
-        modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        executeChanges(delta, null, task, result);
 
         // THEN
         then();
         assertSuccess(result);
 
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
-        // Weak activation mapping means account load
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+        // Weak activation mapping means account load. But if the account does not previously exist,
+        // no loading is required. And now we skip activation processing for completed projections.
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User after change execution", userJackAfter);
@@ -3165,10 +3193,21 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         ModelExecuteOptions options = executeOptions().reconcile();
 
+        OperationsPerformanceMonitor.INSTANCE.clearGlobalPerformanceInformation();
+
         // WHEN
         modelService.executeChanges(deltas, options, task, result);
 
         // THEN
+        OperationsPerformanceInformationType performanceInformation =
+                OperationsPerformanceInformationUtil.toOperationsPerformanceInformationType(
+                        OperationsPerformanceMonitor.INSTANCE.getGlobalPerformanceInformation());
+        displayValue("Operation performance (by name)",
+                OperationsPerformanceInformationUtil.format(performanceInformation));
+        displayValue("Operation performance (by time)",
+                OperationsPerformanceInformationUtil.format(performanceInformation,
+                        new AbstractStatisticsPrinter.Options(TEXT, TIME), null, null));
+
         assertSuccess(result);
         // Not sure why 2 ... but this is not a big problem now
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
@@ -3212,7 +3251,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSteadyResources();
     }
 
-    @Test   // MID-5516
+    @Test // MID-5516
     public void test400RemoveExtensionProtectedStringValue() throws Exception {
         // GIVEN
         Task task = getTestTask();
@@ -3248,6 +3287,41 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         display("joe after", joeAfter);
 
         joeAfter.checkConsistence();
+    }
+
+    @Test // MID-6592
+    public void test410RecomputeRole() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        String roleOid = addTestRole(task, result);
+
+        preTestCleanup(AssignmentPolicyEnforcementType.FULL);
+
+        ObjectDelta<RoleType> emptyDelta = deltaFor(RoleType.class)
+                .asObjectDelta(roleOid);
+
+        when();
+        modelService.executeChanges(singleton(emptyDelta), ModelExecuteOptions.create(prismContext).reconcile(), task, result);
+
+        then();
+        assertSuccess(result);
+
+        displayDumpable("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertCustomColumn("foo", "test");
+    }
+
+    private String addTestRole(Task task, OperationResult result) throws CommonException {
+        RoleType role = new RoleType(prismContext)
+                .name("test410");
+        PrismPropertyDefinition<String> costCenterDef = role.asPrismObject().getDefinition()
+                .findPropertyDefinition(ItemPath.create(RoleType.F_EXTENSION, "costCenter"));
+        PrismProperty<String> costCenterProp = costCenterDef.instantiate();
+        costCenterProp.setRealValue("CC000");
+        role.asPrismObject().getOrCreateExtension().getValue().add(costCenterProp);
+        return addObject(role.asPrismObject(), task, result);
     }
 
     private void assertDummyScriptsAdd(PrismObject<UserType> user, PrismObject<? extends ShadowType> account, ResourceType resource) {

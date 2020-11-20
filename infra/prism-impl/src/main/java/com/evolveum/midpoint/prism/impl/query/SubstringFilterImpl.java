@@ -80,7 +80,7 @@ public final class SubstringFilterImpl<T> extends PropertyValueFilterImpl<T> imp
     public boolean match(PrismContainerValue containerValue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
         Collection<PrismValue> objectItemValues = getObjectItemValues(containerValue);
 
-        MatchingRule matching = getMatchingRuleFromRegistry(matchingRuleRegistry, getFilterItem());
+        MatchingRule matching = getMatchingRuleFromRegistry(matchingRuleRegistry);
 
         for (Object val : objectItemValues) {
             if (val instanceof PrismPropertyValue) {

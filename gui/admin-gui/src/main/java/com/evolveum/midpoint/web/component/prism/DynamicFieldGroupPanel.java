@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,7 +8,7 @@ package com.evolveum.midpoint.web.component.prism;
 
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -24,7 +24,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.MutableItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
@@ -34,11 +33,7 @@ import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractFormItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FormDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FormFieldGroupType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemDisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<PrismObjectWrapper<O>> {
 
@@ -49,7 +44,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
     private static final String ID_PROPERTY = "property";
     private static final String ID_HEADER = "header";
 
-    private List<AbstractFormItemType> formItems;
+    private final List<AbstractFormItemType> formItems;
 
     public DynamicFieldGroupPanel(String id, String groupName, IModel<PrismObjectWrapper<O>> objectWrapper, List<AbstractFormItemType> formItems, Form<?> mainForm, PageBase parentPage) {
         super(id, objectWrapper);
@@ -75,7 +70,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
 
     private void initLayout(String groupName, List<AbstractFormItemType> formItems, Form<?> mainForm) {
 
-        Label header = new Label(ID_HEADER, getPageBase().getString(groupName, (Object []) null));
+        Label header = new Label(ID_HEADER, getPageBase().getString(groupName, (Object[]) null));
         add(header);
 
         RepeatingView itemView = new RepeatingView(ID_PROPERTY);
@@ -90,7 +85,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
                 continue;
             }
 
-            ItemWrapper<?,?> itemWrapper = findAndTailorItemWrapper(formItem, getObjectWrapper());
+            ItemWrapper<?, ?> itemWrapper = findAndTailorItemWrapper(formItem, getObjectWrapper());
 
             try {
                 Panel panel = getPageBase().initItemPanel(itemView.newChildId(), itemWrapper.getTypeName(), Model.of(itemWrapper), null);
@@ -123,7 +118,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
             throw new RestartResponseException(getPageBase());
         }
 
-        ItemWrapper<?,?> itemWrapper;
+        ItemWrapper<?, ?> itemWrapper;
         try {
             itemWrapper = objectWrapper.findItem(path, ItemWrapper.class);
         } catch (SchemaException e) {
@@ -148,7 +143,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
             return;
         }
 
-        MutableItemDefinition itemDef = itemWrapper.toMutable();
+        MutableItemDefinition<?> itemDef = itemWrapper.toMutable();
         if (PolyStringUtils.isNotEmpty(displayType.getLabel())) {
             itemDef.setDisplayName(displayType.getLabel().getOrig());
         }

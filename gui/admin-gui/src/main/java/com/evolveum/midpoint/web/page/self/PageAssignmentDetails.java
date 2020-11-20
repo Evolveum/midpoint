@@ -13,7 +13,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.assignment.AssignmentDetailsPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -48,7 +48,7 @@ public class PageAssignmentDetails extends PageBase{
     public void initLayout(final IModel<AssignmentEditorDto> assignmentModel) {
         setOutputMarkupId(true);
 
-        Form mainForm = new Form(ID_FORM);
+        MidpointForm mainForm = new MidpointForm(ID_FORM);
         mainForm.setOutputMarkupId(true);
         add(mainForm);
 

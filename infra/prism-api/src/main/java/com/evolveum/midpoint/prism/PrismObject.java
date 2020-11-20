@@ -180,4 +180,9 @@ public interface PrismObject<O extends Objectable> extends PrismContainer<O> {
     static <T extends Objectable> T asObjectable(PrismObject<T> object) {
         return object != null ? object.asObjectable() : null;
     }
+
+    default boolean isOfType(@NotNull Class<?> type) {
+        Class<O> compileTimeClass = getCompileTimeClass();
+        return compileTimeClass != null && type.isAssignableFrom(compileTimeClass);
+    }
 }

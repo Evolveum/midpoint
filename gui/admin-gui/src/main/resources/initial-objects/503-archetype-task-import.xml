@@ -12,7 +12,12 @@
     <archetypePolicy>
         <display>
             <label>Import task</label>
-            <pluralLabel>Import tasks</pluralLabel>
+            <pluralLabel>
+                <orig>Import tasks</orig>
+                <translation>
+                    <key>ImportTasks.title</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fa fa-upload</cssClass>
                 <color>green</color>

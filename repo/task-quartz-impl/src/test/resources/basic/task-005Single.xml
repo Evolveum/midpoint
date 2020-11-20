@@ -30,4 +30,5 @@
     <recurrence>single</recurrence>
     <!-- No schedule - will execute immediately -->
     <cleanupAfterCompletion>PT10S</cleanupAfterCompletion>
+    <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</channel>
 </task>

@@ -1,12 +1,14 @@
-midPoint 4.1 "Pasteur"
+midPoint 4.2 "Maxwell"
 ----------------------
 
-Release 4.1 is a thirty-second midPoint release code-named Pasteur.
-The 4.1 release brings major authentication improvements, user interface improvements, improved archetype functionality and a number of smaller improvements.
+Release 4.2 is a thirty-third midPoint release code-named "Maxwell".
+The 4.2 release brings new reporting mechanism, updates to auditing implementation,
+continued improvement for authentication and handful of other interesting improvements.
+Most importantly, midPoint 4.2 brings experimental updates to the very foundations of midPoint.
 
-Release date: 9th April 2020
+Release date: 23rd October 2020
 Release type: Feature release
-End of support: 9th April 2021
+End of support: 23rd October 2021
 
 Please see the release notes for detailed list of changes:
-https://wiki.evolveum.com/display/midPoint/Release+4.1
+https://wiki.evolveum.com/display/midPoint/Release+4.2

@@ -1,19 +1,16 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.form.multivalue;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import java.io.Serializable;
+import java.util.Iterator;
+import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -26,24 +23,21 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.util.ListModel;
 
-import java.io.Serializable;
-import java.util.Iterator;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
- *  This is a generic component that server to edit various types
- *  of Serializable objects in GUI. It is aimed for multi-value
- *  objects and it requires to add custom modal window as an
- *  editor for object.
+ * This is a generic component that server to edit various types
+ * of Serializable objects in GUI. It is aimed for multi-value
+ * objects and it requires to add custom modal window as an
+ * editor for object.
  *
- *  @author shood
- * */
+ * @author shood
+ */
 public class GenericMultiValueLabelEditPanel<T extends Serializable> extends BasePanel<List<T>> { //BasePanel<List<T>> {
     private static final long serialVersionUID = 1L;
-
-    private static final Trace LOGGER = TraceManager.getTrace(GenericMultiValueLabelEditPanel.class);
 
     private static final String ID_LABEL = "label";
     private static final String ID_REPEATER = "repeater";
@@ -57,17 +51,15 @@ public class GenericMultiValueLabelEditPanel<T extends Serializable> extends Bas
     private static final String ID_BUTTON_GROUP = "buttonGroup";
     private static final String ID_EDIT = "edit";
 
-//    protected static final String ID_MODAL_EDITOR = "modalEditor";
-
     private static final String CLASS_MULTI_VALUE = "multivalue-form";
 
-    private boolean isMultiple;
-    private IModel<String> label;
-    private String labelSize;
-    private String textSize;
+    private final boolean isMultiple;
+    private final IModel<String> label;
+    private final String labelSize;
+    private final String textSize;
 
     public GenericMultiValueLabelEditPanel(String id, IModel<List<T>> value, IModel<String> label,
-                                           String labelSize, String textSize, boolean isMultiple){
+            String labelSize, String textSize, boolean isMultiple) {
         super(id, value);
         this.isMultiple = isMultiple;
         setOutputMarkupId(true);
@@ -83,7 +75,7 @@ public class GenericMultiValueLabelEditPanel<T extends Serializable> extends Bas
 
         Label l = new Label(ID_LABEL, label);
         l.setVisible(getLabelVisibility());
-        if(StringUtils.isNotEmpty(labelSize)){
+        if (StringUtils.isNotEmpty(labelSize)) {
             l.add(AttributeAppender.prepend("class", labelSize));
         }
         add(l);
@@ -91,7 +83,7 @@ public class GenericMultiValueLabelEditPanel<T extends Serializable> extends Bas
         WebMarkupContainer addFirstContainer = new WebMarkupContainer(ID_ADD_FIRST_CONTAINER);
         addFirstContainer.setOutputMarkupId(true);
         addFirstContainer.setOutputMarkupPlaceholderTag(true);
-        addFirstContainer.add(new VisibleEnableBehaviour(){
+        addFirstContainer.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -122,10 +114,10 @@ public class GenericMultiValueLabelEditPanel<T extends Serializable> extends Bas
                     @Override
                     public String getObject() {
                         StringBuilder sb = new StringBuilder();
-                        if(StringUtils.isNotEmpty(textSize)){
+                        if (StringUtils.isNotEmpty(textSize)) {
                             sb.append(textSize).append(' ');
                         }
-                        if(listItem.getIndex() > 0 && StringUtils.isNotEmpty(getOffsetClass())){
+                        if (listItem.getIndex() > 0 && StringUtils.isNotEmpty(getOffsetClass())) {
                             sb.append(getOffsetClass()).append(' ');
                             sb.append(CLASS_MULTI_VALUE);
                         }
@@ -137,8 +129,10 @@ public class GenericMultiValueLabelEditPanel<T extends Serializable> extends Bas
                 TextField text = new TextField<>(ID_TEXT, createTextModel(listItem.getModel()));
                 text.add(new AjaxFormComponentUpdatingBehavior("blur") {
                     private static final long serialVersionUID = 1L;
+
                     @Override
-                    protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {}
+                    protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
+                    }
                 });
                 text.setEnabled(false);
                 text.add(AttributeAppender.replace("placeholder", label));
@@ -153,7 +147,7 @@ public class GenericMultiValueLabelEditPanel<T extends Serializable> extends Bas
 
                     @Override
                     public String getObject() {
-                        if(listItem.getIndex() > 0 && StringUtils.isNotEmpty(labelSize)){
+                        if (listItem.getIndex() > 0 && StringUtils.isNotEmpty(labelSize)) {
                             return CLASS_MULTI_VALUE;
                         }
 
@@ -169,11 +163,11 @@ public class GenericMultiValueLabelEditPanel<T extends Serializable> extends Bas
                         editValuePerformed(target, listItem.getModel());
                     }
                 };
-                edit.add(new VisibleEnableBehaviour(){
+                edit.add(new VisibleEnableBehaviour() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    public boolean isEnabled(){
+                    public boolean isEnabled() {
                         return GenericMultiValueLabelEditPanel.this.isEditButtonEnabled();
                     }
                 });
@@ -188,10 +182,9 @@ public class GenericMultiValueLabelEditPanel<T extends Serializable> extends Bas
         add(repeater);
     }
 
-    protected void showDialog(Popupable dialogContent, AjaxRequestTarget target){
+    protected void showDialog(Popupable dialogContent, AjaxRequestTarget target) {
         getPageBase().showMainPopup(dialogContent, target);
     }
-
 
     /**
      * @return css class for off-setting other values (not first, left to the first there is a label)
@@ -203,6 +196,7 @@ public class GenericMultiValueLabelEditPanel<T extends Serializable> extends Bas
     protected IModel<String> createTextModel(final IModel<T> model) {
         return new IModel<String>() {
             private static final long serialVersionUID = 1L;
+
             @Override
             public String getObject() {
                 T obj = model.getObject();
@@ -212,14 +206,14 @@ public class GenericMultiValueLabelEditPanel<T extends Serializable> extends Bas
     }
 
     private void initButtons(WebMarkupContainer buttonGroup, final ListItem<T> item) {
-         AjaxLink<Void> add = new AjaxLink<Void>(ID_ADD) {
-             private static final long serialVersionUID = 1L;
+        AjaxLink<Void> add = new AjaxLink<Void>(ID_ADD) {
+            private static final long serialVersionUID = 1L;
 
-             @Override
-             public void onClick(AjaxRequestTarget target) {
-                 addValuePerformed(target);
-             }
-         };
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                addValuePerformed(target);
+            }
+        };
         add.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
@@ -254,25 +248,20 @@ public class GenericMultiValueLabelEditPanel<T extends Serializable> extends Bas
             if (size <= 1) {
                 return true;
             }
-            if (item.getIndex() == size - 1) {
-                return true;
-            }
+            return item.getIndex() == size - 1;
         }
         return false;
     }
 
     /**
-     *  Override to provide call-back to edit button click event
-     * */
-    protected void editValuePerformed(AjaxRequestTarget target, IModel<T> rowModel){}
+     * Override to provide call-back to edit button click event
+     */
+    protected void editValuePerformed(AjaxRequestTarget target, IModel<T> rowModel) {
+    }
 
     protected boolean isRemoveButtonVisible() {
         int size = getModelObject().size();
-        if (size > 0) {
-            return true;
-        }
-
-        return false;
+        return size > 0;
     }
 
     protected void addValuePerformed(AjaxRequestTarget target) {
@@ -283,10 +272,10 @@ public class GenericMultiValueLabelEditPanel<T extends Serializable> extends Bas
     }
 
     /**
-     *  Override to provide a special handling for addition of first
-     *  value to attribute.
-     * */
-    protected void addFirstPerformed(AjaxRequestTarget target){
+     * Override to provide a special handling for addition of first
+     * value to attribute.
+     */
+    protected void addFirstPerformed(AjaxRequestTarget target) {
         List<T> objects = getModelObject();
         objects.add(createNewEmptyItem());
 
@@ -294,8 +283,8 @@ public class GenericMultiValueLabelEditPanel<T extends Serializable> extends Bas
     }
 
     /**
-     *  Override to provide creation of a new empty item
-     * */
+     * Override to provide creation of a new empty item
+     */
     protected T createNewEmptyItem() {
         return null;
     }
@@ -315,19 +304,19 @@ public class GenericMultiValueLabelEditPanel<T extends Serializable> extends Bas
         target.add(this);
     }
 
-    public void closeModalWindow(AjaxRequestTarget target){
+    public void closeModalWindow(AjaxRequestTarget target) {
         getPageBase().hideMainPopup(target);
     }
 
-    protected boolean getLabelVisibility(){
+    protected boolean getLabelVisibility() {
         return true;
     }
 
-    protected boolean getAddButtonVisibility(){
+    protected boolean getAddButtonVisibility() {
         return true;
     }
 
-    protected boolean isEditButtonEnabled(){
+    protected boolean isEditButtonEnabled() {
         return true;
     }
 }

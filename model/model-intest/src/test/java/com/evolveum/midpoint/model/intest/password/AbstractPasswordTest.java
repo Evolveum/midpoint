@@ -6,12 +6,17 @@
  */
 package com.evolveum.midpoint.model.intest.password;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.schema.constants.Channel;
+
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -234,6 +239,15 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         OperationResult result = task.getResult();
         prepareTest();
 
+        // Set password create channel to legacy value (MID-6547).
+        repositoryService.modifyObject(
+                UserType.class, USER_JACK_OID,
+                deltaFor(UserType.class)
+                        .item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
+                            .replace(Channel.USER.getLegacyUri())
+                        .asItemDeltas(),
+                result);
+
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
@@ -254,6 +268,9 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertPasswordMetadata(userJack, false, startCal, endCal);
         // Password policy is not active yet. No history should be kept.
         assertPasswordHistoryEntries(userJack);
+
+        // Check channel migration (MID-6547).
+        assertThat(userJack.asObjectable().getCredentials().getPassword().getMetadata().getCreateChannel()).isEqualTo(Channel.USER.getUri());
 
         assertSingleUserPasswordNotification(USER_JACK_USERNAME, USER_PASSWORD_1_CLEAR);
     }
@@ -381,6 +398,15 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         lastPasswordChangeStart = clock.currentTimeXMLGregorianCalendar();
 
+        // Set account password create channel to legacy value (MID-6547).
+        repositoryService.modifyObject(
+                ShadowType.class, accountJackOid,
+                deltaFor(ShadowType.class)
+                        .item(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
+                            .replace(Channel.USER.getLegacyUri())
+                        .asItemDeltas(),
+                result);
+
         // WHEN
         modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_2_CLEAR, task, result);
 
@@ -404,6 +430,9 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // MID-3860
         assertShadowPasswordMetadata(accountShadowRepo, lastPasswordChangeStart, lastPasswordChangeEnd, true, false);
         assertShadowLifecycle(accountShadowRepo, false);
+
+        // Check channel migration (MID-6547).
+        assertThat(accountShadowRepo.asObjectable().getCredentials().getPassword().getMetadata().getCreateChannel()).isEqualTo(Channel.USER.getUri());
 
         // Check account
         PrismObject<ShadowType> accountShadowModel = modelService.getObject(ShadowType.class, accountJackOid, null, task, result);
@@ -1192,6 +1221,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         // THEN
         assertFailure(result);
+        assertUserFriendlyMessage(result, "PolicyViolationException.message.credentials.password");
 
         assertJackPasswordsWithHistory(USER_PASSWORD_VALID_1, USER_PASSWORD_AA_CLEAR);
         assertNoUserPasswordNotifications();
@@ -1403,6 +1433,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         // THEN
         assertFailure(result);
+        assertUserFriendlyMessage(result, "PolicyViolationException.message.credentials.password");
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -3029,6 +3060,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // THEN
         then();
         assertPartialError(result);
+        assertUserFriendlyMessage(result, "PolicyViolationException.message.projectionPassword");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
@@ -3361,7 +3393,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         login(USER_JACK_USERNAME);
 
         Task task = createTask(getSecurityContextPrincipal());
-        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+        task.setChannel(SchemaConstants.CHANNEL_USER_URI);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -3425,7 +3457,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         login(USER_JACK_USERNAME);
 
         Task task = createTask(getSecurityContextPrincipal());
-        task.setChannel(SchemaConstants.CHANNEL_GUI_SELF_SERVICE_URI);
+        task.setChannel(SchemaConstants.CHANNEL_SELF_SERVICE_URI);
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> objectDelta = createOldNewPasswordDelta(USER_JACK_OID,
@@ -3494,7 +3526,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         login(USER_ADMINISTRATOR_USERNAME);
 
         Task task = createTask(getSecurityContextPrincipal());
-        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+        task.setChannel(SchemaConstants.CHANNEL_USER_URI);
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> objectDelta = createOldNewPasswordDelta(USER_JACK_OID,
@@ -3610,7 +3642,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         if (!clearPasswordAvailable && getPasswordStorageType() == CredentialsStorageTypeType.HASHING) {
             return;
         }
-        assertShadowPasswordMetadata(shadow, passwordCreated, startCal, endCal, USER_ADMINISTRATOR_OID, SchemaConstants.CHANNEL_GUI_USER_URI);
+        assertShadowPasswordMetadata(shadow, passwordCreated, startCal, endCal, USER_ADMINISTRATOR_OID, SchemaConstants.CHANNEL_USER_URI);
     }
 
     // 9XX tests: Password minimal age, no password, etc.
@@ -4454,7 +4486,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertNotNull("No credentials/password/metadata", metadata);
         assertNotNull("No credentials/password/metadata/createTimestamp", metadata.getCreateTimestamp());
         assertNotNull("No credentials/password/metadata/creatorRef", metadata.getCreatorRef());
-        assertEquals("Wrong createChannel", SchemaConstants.CHANNEL_GUI_USER_URI, metadata.getCreateChannel());
+        assertEquals("Wrong createChannel", SchemaConstants.CHANNEL_USER_URI, metadata.getCreateChannel());
     }
 
     private void assertPasswordModifyMetadata(PrismObject<UserType> user) {
@@ -4466,6 +4498,13 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertNotNull("No credentials/password/metadata", metadata);
         assertNotNull("No credentials/password/metadata/modifyTimestamp", metadata.getModifyTimestamp());
         assertNotNull("No credentials/password/metadata/modifierRef", metadata.getModifierRef());
-        assertEquals("Wrong modifyChannel", SchemaConstants.CHANNEL_GUI_USER_URI, metadata.getModifyChannel());
+        assertEquals("Wrong modifyChannel", SchemaConstants.CHANNEL_USER_URI, metadata.getModifyChannel());
+    }
+
+    protected void assertUserFriendlyMessage(OperationResult result, String expectedKey) {
+        assertThat(result.getUserFriendlyMessage()).as("user friendly message").isNotNull();
+        assertThat(((SingleLocalizableMessage) result.getUserFriendlyMessage()).getKey())
+                .as("user friendly message key")
+                .isEqualTo(expectedKey);
     }
 }

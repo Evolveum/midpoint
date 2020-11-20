@@ -10,6 +10,7 @@ package com.evolveum.midpoint.schema.util;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -20,6 +21,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -56,8 +58,8 @@ public class ObjectTypeUtil {
     /**
      * Never returns null. Returns empty collection instead.
      */
-    public static <T> Collection<T> getExtensionPropertyValuesNotNull(ObjectType objectType, QName propertyQname) {
-        Collection<T> values = getExtensionPropertyValues(objectType, propertyQname);
+    public static <T> Collection<T> getExtensionPropertyValuesNotNull(Containerable containerable, QName propertyQname) {
+        Collection<T> values = getExtensionPropertyValues(containerable, propertyQname);
         if (values == null) {
             return new ArrayList<>(0);
         } else {
@@ -65,9 +67,10 @@ public class ObjectTypeUtil {
         }
     }
 
-    public static <T> Collection<T> getExtensionPropertyValues(ObjectType objectType, QName propertyQname) {
-        PrismObject<? extends ObjectType> object = objectType.asPrismObject();
-        PrismContainer<Containerable> extensionContainer = object.findContainer(ObjectType.F_EXTENSION);
+    public static <T> Collection<T> getExtensionPropertyValues(Containerable containerable, QName propertyQname) {
+        PrismContainerValue pcv = containerable.asPrismContainerValue();
+        //noinspection unchecked
+        PrismContainer<Containerable> extensionContainer = pcv.findContainer(ObjectType.F_EXTENSION);
         if (extensionContainer == null) {
             return null;
         }
@@ -194,11 +197,7 @@ public class ObjectTypeUtil {
 
     public static String getShortTypeName(Class<? extends ObjectType> type) {
         ObjectTypes objectTypeType = ObjectTypes.getObjectType(type);
-        if (objectTypeType != null) {
-            return objectTypeType.getElementName().getLocalPart();
-        } else {
-            return type.getSimpleName();
-        }
+        return objectTypeType.getElementName().getLocalPart();
     }
 
     @NotNull
@@ -280,6 +279,28 @@ public class ObjectTypeUtil {
             return null;
         }
         return createObjectRef(object, prismContext.getDefaultRelation());
+    }
+
+    /**
+     * Creates a very basic (OID-only) reference for a given object. Useful e.g. to create references
+     * to be used in search filters.
+     */
+    @Experimental
+    public static ObjectReferenceType createOidOnlyObjectRef(ObjectType object) {
+        return createObjectRef(object != null ? object.getOid() : null);
+    }
+
+    /**
+     * @return OID-only object ref. Useful for search filters.
+     */
+    public static ObjectReferenceType createObjectRef(String oid) {
+        if (oid == null) {
+            return null;
+        } else {
+            ObjectReferenceType ref = new ObjectReferenceType();
+            ref.setOid(oid);
+            return ref;
+        }
     }
 
     public static ObjectReferenceType createObjectRef(ObjectType objectType, QName relation) {
@@ -914,8 +935,64 @@ public class ObjectTypeUtil {
         return customColumnsList;
     }
 
+    public static PrismContainerValue<ExtensionType> getExtensionContainerValue(Containerable containerable) {
+        if (containerable == null) {
+            return null;
+        }
+        PrismContainer extensionContainer = containerable.asPrismContainerValue().findContainer(ObjectType.F_EXTENSION);
+        if (extensionContainer == null) {
+            return null;
+        }
+        // note that here we create empty extension if there's none
+        //noinspection unchecked
+        return ((PrismContainerValue<ExtensionType>) extensionContainer.getValue());
+    }
+
+    @FunctionalInterface
+    private interface ExtensionItemRemover {
+        // Removes item (known from the context) from the extension
+        void removeFrom(PrismContainerValue<?> extension);
+    }
+
+    @FunctionalInterface
+    private interface ExtensionItemCreator {
+        // Creates item (known from the context) holding specified real values
+        Item<?, ?> create(List<?> realValues) throws SchemaException;
+    }
+
     public static void setExtensionPropertyRealValues(PrismContext prismContext, PrismContainerValue<?> parent, ItemName propertyName,
             Object... values) throws SchemaException {
+        setExtensionItemRealValues(parent,
+                extension -> extension.removeProperty(propertyName),
+                (realValues) -> {
+                    //noinspection unchecked
+                    PrismProperty<Object> property = prismContext.getSchemaRegistry()
+                            .findPropertyDefinitionByElementName(propertyName)
+                            .instantiate();
+                    realValues.forEach(property::addRealValue);
+                    return property;
+                }, values);
+    }
+
+    public static void setExtensionContainerRealValues(PrismContext prismContext, PrismContainerValue<?> parent, ItemName containerName,
+            Object... values) throws SchemaException {
+        setExtensionItemRealValues(parent,
+                extension -> extension.removeContainer(containerName),
+                (realValues) -> {
+                    PrismContainer<Containerable> container = prismContext.getSchemaRegistry()
+                            .findContainerDefinitionByElementName(containerName)
+                            .instantiate();
+                    for (Object realValue : realValues) {
+                        //noinspection unchecked
+                        container.add(((Containerable) realValue).asPrismContainerValue());
+                    }
+                    return container;
+                }, values);
+    }
+
+    private static void setExtensionItemRealValues(PrismContainerValue<?> parent, ExtensionItemRemover itemRemover,
+            ExtensionItemCreator itemCreator, Object... values) throws SchemaException {
+
         // To cater for setExtensionPropertyRealValues(..., null)
         List<?> refinedValues = Arrays.stream(values)
                 .filter(Objects::nonNull)
@@ -934,14 +1011,29 @@ public class ObjectTypeUtil {
         }
 
         if (refinedValues.isEmpty()) {
-            extension.removeProperty(propertyName);
+            itemRemover.removeFrom(extension);
         } else {
-            //noinspection unchecked
-            PrismProperty<Object> property =
-                    prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(propertyName)
-                            .instantiate();
-            refinedValues.forEach(property::addRealValue);
-            extension.addReplaceExisting(property);
+            extension.addReplaceExisting(itemCreator.create(refinedValues));
         }
+    }
+
+//    public static <T> T getExtensionItemRealValue(Containerable parent, ItemName name) {
+//        return getExtensionItemRealValue(parent.asPrismContainerValue(), name);
+//    }
+
+    public static <T> T getExtensionItemRealValue(PrismContainerValue<?> parent, ItemName name) {
+        Item<?, ?> item = parent.findItem(ItemPath.create(ObjectType.F_EXTENSION, name));
+        if (item != null) {
+            //noinspection unchecked
+            return (T) item.getRealValue();
+        } else {
+            return null;
+        }
+    }
+
+    public static List<String> getOids(List<? extends Objectable> objectables) {
+        return objectables.stream()
+                .map(Objectable::getOid)
+                .collect(Collectors.toList());
     }
 }

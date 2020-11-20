@@ -347,6 +347,17 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="completed" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Was the processing of this projection (in its execution wave) complete?
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                                <a:experimental>true</a:experimental>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="resourceShadowDiscriminator" type="c:ShadowDiscriminatorType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -924,6 +935,17 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ClockworkTraceType">
                 <xsd:sequence>
+                    <xsd:element name="resourceShadowDiscriminator" type="tns:ShadowDiscriminatorType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Which projection context is being processed? (Present only if applicable.)
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:experimental>true</a:experimental>
+                                <a:since>4.2</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -984,6 +1006,13 @@
                         <xsd:annotation>
                             <xsd:appinfo>
                                 <a:since>4.1</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="reason" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1403,6 +1432,29 @@
     </xsd:complexType>
     <xsd:element name="repositorySearchObjectsTrace" type="tns:RepositorySearchObjectsTraceType" />
 
+    <xsd:complexType name="ResourceObjectConstructionEvaluationTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Trace for evaluation resource object construction.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.2</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:TraceType">
+                <xsd:sequence>
+                    <xsd:element name="construction" type="tns:ConstructionType" minOccurs="0"/>
+                    <xsd:element name="resourceShadowDiscriminator" type="c:ShadowDiscriminatorType" minOccurs="0"/>
+                    <xsd:element name="assignmentPath" type="c:AssignmentPathType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="resourceObjectConstructionEvaluationTrace" type="tns:ResourceObjectConstructionEvaluationTraceType" />
+
     <xsd:complexType name="MappingEvaluationTraceType">
         <xsd:annotation>
             <xsd:documentation>
@@ -1428,6 +1480,13 @@
                     <xsd:element name="conditionResultNew" type="xsd:boolean" minOccurs="0"/>
                     <xsd:element name="implicitSourcePath" type="t:ItemPathType" minOccurs="0"/>
                     <xsd:element name="implicitTargetPath" type="t:ItemPathType" minOccurs="0"/>
+                    <xsd:element name="pushChangesRequested" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="source" type="tns:MappingSourceEvaluationTraceType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:appinfo>
@@ -1451,6 +1510,13 @@
                         <xsd:annotation>
                             <xsd:appinfo>
                                 <a:since>4.0.1</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="pushChanges" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1757,33 +1823,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="hasPlus" type="xsd:boolean" minOccurs="0">
+                    <xsd:element name="inputOrigin" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Does this tuple contain a value that is present in plus set of its source?
-                                (This is an internal implementation information. So this item can change in later versions.)
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:since>4.2</a:since>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="hasMinus" type="xsd:boolean" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Does this tuple contain a value that is present in minus set of its source?
-                                (This is an internal implementation information. So this item can change in later versions.)
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:since>4.2</a:since>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="hasZero" type="xsd:boolean" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Does this tuple contain a value that is present in zero set of its source?
-                                (This is an internal implementation information. So this item can change in later versions.)
+                                String representation of the input origin.
+                                P means plus, M means minus, Z means zero for each input in question.
+                                (This awkward form was chosen because multivalued properties in containers
+                                have no guaranteed value ordering.)
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.2</a:since>
@@ -2282,6 +2328,16 @@
                         Whether to hide or include deployment information (except for subscription identifier) in the trace.
                         Default is false, i.e. the deployment information is included.
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="measureCpuTime" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether to measure CPU time per operation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="collectLogEntries" type="xsd:boolean" minOccurs="0">
@@ -2885,6 +2941,16 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="PROJECTOR_EXECUTION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="resourceObjectConstructionEvaluation">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Evaluation of a resource object construction.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RESOURCE_OBJECT_CONSTRUCTION_EVALUATION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

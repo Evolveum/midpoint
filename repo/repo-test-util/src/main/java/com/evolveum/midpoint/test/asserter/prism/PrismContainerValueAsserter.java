@@ -99,8 +99,8 @@ public class PrismContainerValueAsserter<C extends Containerable, RA> extends Pr
         return getPrismValue().findContainer(ItemName.fromQName(attrName));
     }
 
-    private <T> Item<PrismValue,ItemDefinition> findItem(QName itemName) {
-        return getPrismValue().findItem(ItemName.fromQName(itemName));
+    private <T> Item<PrismValue,ItemDefinition> findItem(ItemPath itemPath) {
+        return getPrismValue().findItem(itemPath);
     }
 
     public <T> PrismContainerValueAsserter<C,RA> assertPropertyEquals(ItemPath path, T expected) {
@@ -191,7 +191,7 @@ public class PrismContainerValueAsserter<C extends Containerable, RA> extends Pr
         return this;
     }
 
-    public <T> PrismContainerValueAsserter<C,RA> assertNoItem(QName itemName) {
+    public <T> PrismContainerValueAsserter<C,RA> assertNoItem(ItemPath itemName) {
         Item<PrismValue,ItemDefinition> item = findItem(itemName);
         assertNull("Unexpected item "+itemName+" in "+desc()+": "+item, item);
         return this;

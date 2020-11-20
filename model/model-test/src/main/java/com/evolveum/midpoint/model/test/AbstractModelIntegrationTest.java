@@ -27,6 +27,8 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -140,7 +142,7 @@ import com.evolveum.prism.xml.ns._public.types_3.*;
  */
 public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 
-    protected static final int DEFAULT_TASK_WAIT_TIMEOUT = 25000;
+    protected static final int DEFAULT_TASK_WAIT_TIMEOUT = 250000;
     protected static final long DEFAULT_TASK_SLEEP_TIME = 200;
 
     protected static final String CONNECTOR_DUMMY_TYPE = "com.evolveum.icf.dummy.connector.DummyConnector";
@@ -152,7 +154,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected static final ItemPath ACTIVATION_VALID_TO_PATH = SchemaConstants.PATH_ACTIVATION_VALID_TO;
     protected static final ItemPath PASSWORD_VALUE_PATH = SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
 
-    private static final String DEFAULT_CHANNEL = SchemaConstants.CHANNEL_GUI_USER_URI;
+    private static final String DEFAULT_CHANNEL = SchemaConstants.CHANNEL_USER_URI;
 
     protected static final String LOG_PREFIX_FAIL = "SSSSS=X ";
     protected static final String LOG_PREFIX_ATTEMPT = "SSSSS=> ";
@@ -3719,6 +3721,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return waitForTaskFinish(taskOid, true, startTime, DEFAULT_TASK_WAIT_TIMEOUT, false);
     }
 
+    protected Task rerunTaskErrorsOk(String taskOid, OperationResult result) throws CommonException {
+        long startTime = System.currentTimeMillis();
+        restartTask(taskOid, result);
+        return waitForTaskFinish(taskOid, true, startTime, DEFAULT_TASK_WAIT_TIMEOUT, true);
+    }
+
     protected void assertTaskExecutionStatus(String taskOid, TaskExecutionStatus expectedExecutionStatus) throws ObjectNotFoundException, SchemaException {
         final OperationResult result = new OperationResult(AbstractIntegrationTest.class + ".assertTaskExecutionStatus");
         Task task = taskManager.getTaskPlain(taskOid, result);
@@ -6406,7 +6414,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     private Task createAllowDenyTask(String opname) {
         Task task = createTask("createAllowDenyTask." + opname);
         task.setOwner(getSecurityContextPrincipalFocus());
-        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+        task.setChannel(SchemaConstants.CHANNEL_USER_URI);
         return task;
     }
 
@@ -6457,7 +6465,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         MidPointPrincipal origPrincipal = getSecurityContextPrincipal();
         login(USER_ADMINISTRATOR_USERNAME);
         task.setOwner(getSecurityContextPrincipalFocus());
-        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+        task.setChannel(SchemaConstants.CHANNEL_USER_URI);
         try {
             attempt.run(task, result);
         } catch (Throwable e) {
@@ -6643,5 +6651,31 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected ModelExecuteOptions executeOptions() {
         return ModelExecuteOptions.create(prismContext);
+    }
+
+    public interface TracedFunctionCall<X> {
+        X execute() throws CommonException, PreconditionViolationException;
+    }
+
+    public interface TracedProcedureCall {
+        void execute() throws CommonException, PreconditionViolationException;
+    }
+
+    protected <X> X traced(TracedFunctionCall<X> tracedCall) throws CommonException, PreconditionViolationException {
+        setGlobalTracingOverride(createModelLoggingTracingProfile());
+        try {
+            return tracedCall.execute();
+        } finally {
+            unsetGlobalTracingOverride();
+        }
+    }
+
+    protected void traced(TracedProcedureCall tracedCall) throws CommonException, PreconditionViolationException {
+        setGlobalTracingOverride(createModelLoggingTracingProfile());
+        try {
+            tracedCall.execute();
+        } finally {
+            unsetGlobalTracingOverride();
+        }
     }
 }

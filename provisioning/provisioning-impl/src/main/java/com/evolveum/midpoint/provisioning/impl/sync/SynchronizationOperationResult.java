@@ -14,13 +14,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  *  EXPERIMENTAL
  */
-@SuppressWarnings({ "unused", "WeakerAccess" })
+@SuppressWarnings({ "unused" })
 public class SynchronizationOperationResult {
-    private AtomicInteger changesProcessed = new AtomicInteger(0);
-    private AtomicInteger errors = new AtomicInteger(0);
+    private final AtomicInteger changesProcessed = new AtomicInteger(0);
+    private final AtomicInteger errors = new AtomicInteger(0);
     private volatile boolean suspendEncountered;
     private volatile boolean haltingErrorEncountered;
     private Throwable exceptionEncountered;             // FIXME this is a workaround for thresholds
+    private volatile boolean taskSuspensionRequested;
     private boolean allChangesFetched;
     private PrismProperty<?> initialToken;
     private PrismProperty<?> taskTokenUpdatedTo;
@@ -57,6 +58,14 @@ public class SynchronizationOperationResult {
         this.exceptionEncountered = exceptionEncountered;
     }
 
+    public boolean isTaskSuspensionRequested() {
+        return taskSuspensionRequested;
+    }
+
+    public void setTaskSuspensionRequested(boolean taskSuspensionRequested) {
+        this.taskSuspensionRequested = taskSuspensionRequested;
+    }
+
     public boolean isAllChangesFetched() {
         return allChangesFetched;
     }
@@ -88,6 +97,7 @@ public class SynchronizationOperationResult {
                 ", suspendEncountered=" + suspendEncountered +
                 ", haltingErrorEncountered=" + haltingErrorEncountered +
                 ", exceptionEncountered=" + exceptionEncountered +
+                ", taskSuspensionRequested=" + taskSuspensionRequested +
                 ", allChangesFetched=" + allChangesFetched +
                 ", initialToken=" + initialToken +
                 ", taskTokenUpdatedTo=" + taskTokenUpdatedTo;

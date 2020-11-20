@@ -213,10 +213,6 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
         }
     }
 
-    public boolean containsModification(ItemDelta itemDelta) {
-        return containsModification(itemDelta, EquivalenceStrategy.IGNORE_METADATA);
-    }
-
     public boolean containsModification(ItemDelta itemDelta, EquivalenceStrategy strategy) {
         for (ItemDelta<?,?> modification: modifications) {
             if (modification.contains(itemDelta, strategy)) {

@@ -1,0 +1,30 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:sm="http://midpoint.evolveum.com/xml/ns/samples/metadata"
+      oid="3eb9ca6b-49b8-4602-943a-992d8eb9adad">
+    <name>chuck</name>
+    <subtype>loa</subtype>
+    <givenName>
+        <_value>Chuck</_value>
+        <_metadata>
+            <c:extension>
+                <sm:loa>1</sm:loa>
+            </c:extension>
+        </_metadata>
+    </givenName>
+    <familyName>
+        <_value>White</_value>
+        <_metadata>
+            <c:extension>
+                <sm:loa>3</sm:loa>
+            </c:extension>
+        </_metadata>
+    </familyName>
+</user>

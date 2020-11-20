@@ -62,11 +62,11 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
 
     @Test(groups={"M5"}, dependsOnGroups={"M4"})
     public void mod05test01UsingRBAC() {
-        importObject(INTERNAL_EMPLOYEE_ROLE_FILE,true);
-        importObject(INCOGNITO_ROLE_FILE,true);
-        importObject(SECRET_I_ROLE_FILE,true);
-        importObject(SECRET_II_ROLE_FILE,true);
-        importObject(TOP_SECRET_I_ROLE_FILE,true);
+        addObjectFromFile(INTERNAL_EMPLOYEE_ROLE_FILE);
+        addObjectFromFile(INCOGNITO_ROLE_FILE);
+        addObjectFromFile(SECRET_I_ROLE_FILE);
+        addObjectFromFile(SECRET_II_ROLE_FILE);
+        addObjectFromFile(TOP_SECRET_I_ROLE_FILE);
 
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Secret Projects I", "Secret Projects II");
         Assert.assertTrue(
@@ -142,13 +142,13 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
 
     @Test(dependsOnMethods = {"mod05test04CreatingRoles"}, groups={"M5"}, dependsOnGroups={"M4"})
     public void mod05test05DisableOnUnassign() {
-        importObject(CSV_1_RESOURCE_FILE_5_5,true);
+        addObjectFromFile(CSV_1_RESOURCE_FILE_5_5);
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
 
-        importObject(CSV_2_RESOURCE_FILE_5_5,true);
+        addObjectFromFile(CSV_2_RESOURCE_FILE_5_5);
         changeResourceAttribute(CSV_2_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv2TargetFile.getAbsolutePath(), true);
 
-        importObject(CSV_3_RESOURCE_FILE_5_5,true);
+        addObjectFromFile(CSV_3_RESOURCE_FILE_5_5);
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
 
         Utils.removeAssignments(showUser("kirk").selectTabAssignments(), "Internal Employee");
@@ -229,8 +229,8 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
     @Test(dependsOnMethods = {"mod05test06InactiveAssignment"}, groups={"M5"}, dependsOnGroups={"M4"})
     public void mod05test07ArchetypesIntroduction() {
 
-        importObject(ARCHETYPE_EMPLOYEE_FILE, true);
-        importObject(ARCHETYPE_EXTERNAL_FILE, true);
+        addObjectFromFile(ARCHETYPE_EMPLOYEE_FILE);
+        addObjectFromFile(ARCHETYPE_EXTERNAL_FILE);
 
         PrismForm<AssignmentHolderBasicTab<ArchetypePage>> archetypePolicyForm = basicPage.listArchetypes()
                 .table()
@@ -243,13 +243,13 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
         Assert.assertTrue(archetypePolicyForm.compareInputAttributeValue("cssClass", "fa fa-user"));
         Assert.assertTrue(archetypePolicyForm.compareInputAttributeValue("color", "darkgreen"));
 
-        importObject(SYSTEM_CONFIGURATION_FILE_5_7, true);
+        addObjectFromFile(SYSTEM_CONFIGURATION_FILE_5_7);
 
         basicPage.loggedUser().logoutIfUserIsLogin();
         FormLoginPage login = midPoint.formLogin();
         login.login(getUsername(), getPassword());
 
-        basicPage.listUsers().newUser("New "+ARCHETYPE_EMPLOYEE_LABEL.toLowerCase())
+        basicPage.listUsers().newObjectCollection("New "+ARCHETYPE_EMPLOYEE_LABEL.toLowerCase())
                 .selectTabBasic()
                     .form()
                         .addAttributeValue(UserType.F_NAME, "janeway")

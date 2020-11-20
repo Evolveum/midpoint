@@ -153,7 +153,7 @@
             </correlation>
             <reaction>
                 <situation>linked</situation>
-                <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#asyncUpdate</channel>
+                <channel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#asyncUpdate</channel>
                 <condition>
                     <script>
                         <code>import com.evolveum.midpoint.prism.path.ItemPath

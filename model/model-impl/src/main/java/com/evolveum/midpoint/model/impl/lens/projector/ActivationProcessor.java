@@ -86,7 +86,7 @@ public class ActivationProcessor implements ProjectorProcessor {
     private PrismContainerDefinition<ActivationType> activationDefinition;
 
     // not a "medic-managed" entry point
-    <F extends ObjectType> void processActivationForAllResources(LensContext<F> context, String activityDescription,
+    <F extends ObjectType> void processProjectionsActivation(LensContext<F> context, String activityDescription,
             XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException,
             SecurityViolationException {
@@ -123,6 +123,13 @@ public class ActivationProcessor implements ProjectorProcessor {
                 .addParam("projection", projectionContext.getHumanReadableName())
                 .build();
         try {
+
+            if (!projectionContext.isCurrentForProjection()) {
+                LOGGER.trace("Projection {} is not current, skipping activation processing", projectionContext.getHumanReadableName());
+                result.recordNotApplicable();
+                return;
+            }
+
             LensFocusContext<O> focusContext = context.getFocusContext();
             if (focusContext == null || !FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
 
@@ -165,6 +172,9 @@ public class ActivationProcessor implements ProjectorProcessor {
         SynchronizationPolicyDecision existingDecision = projCtx.getSynchronizationPolicyDecision();
         SynchronizationIntent synchronizationIntent = projCtx.getSynchronizationIntent();
 
+        result.addContext("existingDecision", String.valueOf(existingDecision));
+        result.addContext("synchronizationIntent", String.valueOf(synchronizationIntent));
+
         LOGGER.trace("processActivationUserCurrent starting for {}. Existing decision = {}, synchronization intent = {}",
                 projCtxDesc, existingDecision, synchronizationIntent);
 
@@ -173,24 +183,28 @@ public class ActivationProcessor implements ProjectorProcessor {
             return;
         }
 
-        if (existingDecision != null) {
-            throw new IllegalStateException("Decision "+existingDecision+" already present for projection "+projCtxDesc);
-        }
+        // Activation is computed on projector start but can be recomputed in the respective wave again.
+        // So let us skip this safety check. An alternative would be to skip all activation processing
+        // in such a case. But the current approach is closer to the previous implementation and safer.
+
+//        if (existingDecision != null) {
+//            throw new IllegalStateException("Decision "+existingDecision+" already present for projection "+projCtxDesc);
+//        }
 
         if (synchronizationIntent == SynchronizationIntent.UNLINK) {
-            projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.UNLINK);
+            setSynchronizationPolicyDecision(projCtx, SynchronizationPolicyDecision.UNLINK, result);
             LOGGER.trace("Evaluated decision for {} to {} because of unlink synchronization intent, skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.UNLINK);
             return;
         }
 
         if (projCtx.isTombstone()) {
             if (projCtx.isDelete() && ModelExecuteOptions.isForce(context.getOptions())) {
-                projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
+                setSynchronizationPolicyDecision(projCtx, SynchronizationPolicyDecision.DELETE, result);
                 LOGGER.trace("Evaluated decision for tombstone {} to {} (force), skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.DELETE);
             } else {
                 // Let's keep tombstones linked until they expire. So we do not have shadows without owners.
                 // This is also needed for async delete operations.
-                projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
+                setSynchronizationPolicyDecision(projCtx, SynchronizationPolicyDecision.KEEP, result);
                 LOGGER.trace("Evaluated decision for {} to {} because it is tombstone, skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.KEEP);
             }
             return;
@@ -198,7 +212,7 @@ public class ActivationProcessor implements ProjectorProcessor {
 
         if (synchronizationIntent == SynchronizationIntent.DELETE || projCtx.isDelete()) {
             // TODO: is this OK?
-            projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
+            setSynchronizationPolicyDecision(projCtx, SynchronizationPolicyDecision.DELETE, result);
             LOGGER.trace("Evaluated decision for {} to {}, skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.DELETE);
             return;
         }
@@ -283,7 +297,7 @@ public class ActivationProcessor implements ProjectorProcessor {
 
         LOGGER.trace("Evaluated decision for projection {} to {}", projCtxDesc, decision);
 
-        projCtx.setSynchronizationPolicyDecision(decision);
+        setSynchronizationPolicyDecision(projCtx, decision, result);
 
         PrismObject<F> focusNew = context.getFocusContext().getObjectNew();
         if (focusNew == null) {
@@ -299,7 +313,7 @@ public class ActivationProcessor implements ProjectorProcessor {
 
         ResourceObjectTypeDefinitionType resourceObjectTypeDefinition = projCtx.getResourceObjectTypeDefinitionType();
         if (resourceObjectTypeDefinition == null) {
-            LOGGER.trace("No refined object definition, therefore also no activation outbound definition, skipping activation processing for account " + projCtxDesc);
+            LOGGER.trace("No refined object definition, therefore also no activation outbound definition, skipping activation processing for account {}", projCtxDesc);
             return;
         }
         ResourceActivationDefinitionType activationDefinition = resourceObjectTypeDefinition.getActivation();
@@ -361,6 +375,11 @@ public class ActivationProcessor implements ProjectorProcessor {
         } else {
             LOGGER.trace("Skipping activation lockout status processing because {} does not have activation lockout status capability", projCtx.getResource());
         }
+    }
+
+    private void setSynchronizationPolicyDecision(LensProjectionContext projCtx, SynchronizationPolicyDecision decision, OperationResult result) {
+        projCtx.setSynchronizationPolicyDecision(decision);
+        result.addReturn("decision", String.valueOf(decision));
     }
 
     private <F extends FocusType> void processActivationMetadata(LensProjectionContext projCtx, XMLGregorianCalendar now) throws SchemaException {
@@ -526,6 +545,7 @@ public class ActivationProcessor implements ProjectorProcessor {
         params.setFixTarget(true);
         params.setContext(context);
 
+        ObjectDeltaObject<F> focusOdoAbsolute = context.getFocusContext().getObjectDeltaObjectAbsolute();
         params.setInitializer(builder -> {
             builder.mappingKind(MappingKindType.OUTBOUND)
                     .implicitSourcePath(LEGAL_PROPERTY_NAME)
@@ -534,8 +554,6 @@ public class ActivationProcessor implements ProjectorProcessor {
             builder.defaultSource(new Source<>(getLegalIdi(projCtx), ExpressionConstants.VAR_LEGAL_QNAME));
             builder.additionalSource(new Source<>(getAssignedIdi(projCtx), ExpressionConstants.VAR_ASSIGNED_QNAME));
             builder.additionalSource(new Source<>(getFocusExistsIdi(context.getFocusContext()), ExpressionConstants.VAR_FOCUS_EXISTS_QNAME));
-
-            ObjectDeltaObject<F> focusOdoAbsolute = context.getFocusContext().getObjectDeltaObjectAbsolute();
 
             // Variable: focus
             builder.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdoAbsolute, context.getFocusContext().getObjectDefinition());
@@ -577,7 +595,9 @@ public class ActivationProcessor implements ProjectorProcessor {
         MutablePrismPropertyDefinition<Boolean> shadowExistenceTargetDef = prismContext.definitionFactory().createPropertyDefinition(SHADOW_EXISTS_PROPERTY_NAME, DOMUtil.XSD_BOOLEAN);
         shadowExistenceTargetDef.setMinOccurs(1);
         shadowExistenceTargetDef.setMaxOccurs(1);
+        shadowExistenceTargetDef.freeze();
         params.setTargetItemDefinition(shadowExistenceTargetDef);
+        params.setSourceContext(focusOdoAbsolute);
         mappingEvaluator.evaluateMappingSetProjection(params, task, result);
 
         boolean output;
@@ -652,7 +672,6 @@ public class ActivationProcessor implements ProjectorProcessor {
 
         evaluateOutboundMapping(context, projCtx, bidirectionalMappingType, focusPropertyPath, projectionPropertyPath, initializer,
                 now, current, desc + " outbound activation mapping", task, result);
-
     }
 
     private <T, F extends FocusType> void evaluateOutboundMapping(final LensContext<F> context,
@@ -715,7 +734,6 @@ public class ActivationProcessor implements ProjectorProcessor {
         if (projCtx.isDoReconciliation()) {
             reconcileOutboundValue(context, projCtx, outputTripleMap, desc);
         }
-
     }
 
     /**
@@ -762,10 +780,8 @@ public class ActivationProcessor implements ProjectorProcessor {
 
             Collection<PrismPropertyValue<T>> shouldHaveValues = outputTriple.getNonNegativeValues();
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Reconciliation of {}:\n  hasValues:\n{}\n  shouldHaveValues\n{}",
-                        mappingOutputPath, DebugUtil.debugDump(hasValues, 2), DebugUtil.debugDump(shouldHaveValues, 2));
-            }
+            LOGGER.trace("Reconciliation of {}:\n  hasValues:\n{}\n  shouldHaveValues\n{}",
+                    mappingOutputPath, DebugUtil.debugDumpLazily(hasValues, 2), DebugUtil.debugDumpLazily(shouldHaveValues, 2));
 
             for (PrismPropertyValue<T> shouldHaveValue: shouldHaveValues) {
                 if (!PrismValueCollectionsUtil.containsRealValue(hasValues, shouldHaveValue)) {
@@ -794,10 +810,7 @@ public class ActivationProcessor implements ProjectorProcessor {
                 projCtx.swallowToSecondaryDelta(targetItemDelta);
             }
         }
-
     }
-
-
 
     private ItemDeltaItem<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> getLegalIdi(LensProjectionContext accCtx) throws SchemaException {
         Boolean legal = accCtx.isLegal();

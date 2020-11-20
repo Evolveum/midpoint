@@ -1,22 +1,15 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.page.error;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import org.apache.commons.lang.StringUtils;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -27,8 +20,15 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.http.WebResponse;
 import org.springframework.http.HttpStatus;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 /**
  * Base class for error web pages.
@@ -49,10 +49,10 @@ public class PageError extends PageBase {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageError.class);
 
-    private Integer code;
+    private final Integer code;
+
     private String exClass;
     private String exMessage;
-    protected String errorMessageKey;
 
     public PageError() {
         this(500);
@@ -138,13 +138,8 @@ public class PageError extends PageBase {
         };
         add(home);
 
-        Form form = new Form(ID_LOGOUT_FORM);
-        form.add(AttributeModifier.replace("action", new IModel<String>() {
-            @Override
-            public String getObject() {
-                return getUrlForLogout();
-            }
-        }));
+        MidpointForm form = new MidpointForm(ID_LOGOUT_FORM);
+        form.add(AttributeModifier.replace("action", (IModel<String>) () -> getUrlForLogout()));
         form.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {

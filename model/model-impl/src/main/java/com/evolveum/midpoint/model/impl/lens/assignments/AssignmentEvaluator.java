@@ -15,6 +15,7 @@ import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
@@ -28,7 +29,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -76,6 +76,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 
     // Spring beans and bean-like objects used
 
+    final ModelBeans beans;
     final ReferenceResolver referenceResolver;
     final ObjectResolver objectResolver;
     final SystemObjectCache systemObjectCache;
@@ -97,6 +98,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
         focusOdoRelative = builder.focusOdoRelative;
         lensContext = builder.lensContext;
         channel = builder.channel;
+        beans = builder.modelBeans;
         objectResolver = builder.objectResolver;
         systemObjectCache = builder.systemObjectCache;
         relationRegistry = builder.relationRegistry;
@@ -152,8 +154,8 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
         AssignmentEvaluationTraceType trace;
         if (result.isTracingNormal(AssignmentEvaluationTraceType.class)) {
             trace = new AssignmentEvaluationTraceType(prismContext)
-                    .assignmentOld(CloneUtil.clone(getAssignmentBean(assignmentIdi, true)))
-                    .assignmentNew(CloneUtil.clone(getAssignmentBean(assignmentIdi, false)))
+                    .assignmentOld(LensUtil.cloneResolveResource(getAssignmentBean(assignmentIdi, true), lensContext))
+                    .assignmentNew(LensUtil.cloneResolveResource(getAssignmentBean(assignmentIdi, false), lensContext))
                     .primaryAssignmentMode(PlusMinusZeroType.fromValue(primaryAssignmentMode))
                     .evaluateOld(evaluateOld)
                     .textSource(source != null ? source.asPrismObject().debugDump() : "null")
@@ -235,20 +237,6 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
         return variables;
     }
 
-    // TODO revisit this
-    static ObjectType getOrderOneObject(AssignmentPathSegmentImpl segment) {
-        EvaluationOrder evaluationOrder = segment.getEvaluationOrder();
-        if (evaluationOrder.getSummaryOrder() == 1) {
-            return segment.getTarget();
-        } else {
-            if (segment.getSource() != null) {        // should be always the case...
-                return segment.getSource();
-            } else {
-                return segment.getTarget();
-            }
-        }
-    }
-
     private AssignmentType getAssignmentBean(
             ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
             boolean old) {
@@ -280,6 +268,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
         private ObjectDeltaObject<AH> focusOdoRelative;
         private LensContext<AH> lensContext;
         private String channel;
+        private ModelBeans modelBeans;
         private ObjectResolver objectResolver;
         private SystemObjectCache systemObjectCache;
         private RelationRegistry relationRegistry;
@@ -328,6 +317,11 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 
         public Builder<AH> objectResolver(ObjectResolver val) {
             objectResolver = val;
+            return this;
+        }
+
+        public Builder<AH> modelBeans(ModelBeans val) {
+            modelBeans = val;
             return this;
         }
 

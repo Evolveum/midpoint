@@ -89,8 +89,15 @@ function resizeToMaxHeight(editorId, minHeight) {
 }
 
 function getMaxSizeHeight(minHeight) {
-    var newHeight = $(document).innerHeight()
-        - $('footer.main-footer').outerHeight(true) - $('header.main-header').outerHeight(true);
+    var footerHeight = $('footer.main-footer').outerHeight(true);
+
+    var newHeight;
+    if (footerHeight) {
+        newHeight = $(document).innerHeight()
+                - footerHeight - $('header.main-header').outerHeight(true);
+    } else {
+    newHeight = $(document).innerHeight() - $('header.main-header').outerHeight(true);
+    }
 
     var boxHeader = $('div.box-header').outerHeight(true);
     var buttonsBar = $('div.main-button-bar').outerHeight(true);

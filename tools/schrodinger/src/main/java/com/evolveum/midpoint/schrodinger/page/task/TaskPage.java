@@ -8,25 +8,23 @@ package com.evolveum.midpoint.schrodinger.page.task;
 
 import static com.codeborne.selenide.Selenide.$;
 
+import static com.evolveum.midpoint.schrodinger.util.Utils.getModalWindowSelenideElement;
+
 import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.ElementsCollection;
-import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 
-import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
-import com.evolveum.midpoint.schrodinger.component.AssignmentsTab;
-import com.evolveum.midpoint.schrodinger.component.task.OperationStatisticsTab;
-import com.evolveum.midpoint.schrodinger.component.task.TaskBasicTab;
-
-import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
-
-import com.evolveum.midpoint.schrodinger.page.user.ProgressPage;
+import com.evolveum.midpoint.schrodinger.component.task.*;
 
 import org.openqa.selenium.By;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
+import com.evolveum.midpoint.schrodinger.component.AssignmentsTab;
 import com.evolveum.midpoint.schrodinger.component.common.SummaryPanel;
+import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
+import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.page.PreviewPage;
+import com.evolveum.midpoint.schrodinger.page.user.ProgressPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 /**
@@ -77,15 +75,42 @@ public class TaskPage extends AssignmentHolderDetailsPage<TaskPage> {
     }
 
     public boolean isRunNowVisible(){
-        return   $(Schrodinger.byDataResourceKey("span", "pageTaskEdit.button.runNow")).is(Condition.visible);
+        return $(Schrodinger.byDataResourceKey("span", "pageTaskEdit.button.runNow")).is(Condition.visible);
+    }
+
+    public TaskPage downloadReport() {
+        $(Schrodinger.byDataResourceKey("PageTask.download.report"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        return this;
+    }
+
+    public ConfirmationModal<TaskPage> cleanupEnvironmentalPerformanceInfo() {
+        $(By.cssSelector(".fa.fa-area-chart"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        return new ConfirmationModal<TaskPage>(this, getModalWindowSelenideElement());
+    }
+
+    public ConfirmationModal<TaskPage> cleanupResults() {
+        $(By.cssSelector(".fa.fa-list-alt"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        return new ConfirmationModal<TaskPage>(this, getModalWindowSelenideElement());
+    }
+
+    public TaskPage refreshNow() {
+        $(Schrodinger.byDataResourceKey("autoRefreshPanel.refreshNow"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        return this;
+    }
+
+    public TaskPage resumeRefreshing() {
+        $(Schrodinger.byDataResourceKey("autoRefreshPanel.resumeRefreshing"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        return this;
     }
 
     @Override
     public AssignmentHolderBasicTab<TaskPage> selectTabBasic() {
-        SelenideElement element = getTabPanel().clickTab("pageTask.basic.title")
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new TaskBasicTab(this, element);
+        return new TaskBasicTab(this, getTabSelenideElement(("pageTask.basic.title")));
     }
 
     @Override
@@ -94,17 +119,27 @@ public class TaskPage extends AssignmentHolderDetailsPage<TaskPage> {
     }
 
     public AssignmentHolderBasicTab<TaskPage> selectScheduleTab(){
-        SelenideElement element = getTabPanel().clickTab("pageTask.schedule.title")
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new AssignmentHolderBasicTab<TaskPage>(this, element);
+        return new AssignmentHolderBasicTab<TaskPage>(this, getTabSelenideElement(("pageTask.schedule.title")));
     }
 
-    public OperationStatisticsTab<TaskPage> selectTabOperationStatistics() {
-        SelenideElement element = getTabPanel().clickTab("pageTask.operationStats.title")
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
+    public OperationStatisticsTab selectTabOperationStatistics() {
+        return new OperationStatisticsTab(this, getTabSelenideElement(("pageTask.operationStats.title")));
+    }
 
-        return new OperationStatisticsTab(this, element);
+    public EnvironmentalPerformanceTab selectTabEnvironmentalPerformance() {
+        return new EnvironmentalPerformanceTab(this, getTabSelenideElement(("pageTask.environmentalPerformance.title")));
+    }
+
+    public InternalPerformanceTab selectTabInternalPerformance() {
+        return new InternalPerformanceTab(this, getTabSelenideElement(("pageTask.internalPerformance.title")));
+    }
+
+    public ResultTab selectTabResult() {
+        return new ResultTab(this, getTabSelenideElement(("pageTask.result.title")));
+    }
+
+     public ErrorsTab selectTabErrors() {
+        return new ErrorsTab(this, getTabSelenideElement(("pageTask.errors.title")));
     }
 
     public TaskPage setHandlerUriForNewTask(String handler) {

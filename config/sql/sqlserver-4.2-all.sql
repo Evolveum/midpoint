@@ -306,8 +306,8 @@ CREATE TABLE m_focus_photo (
   photo     VARBINARY(MAX),
   PRIMARY KEY (owner_oid)
 );
-CREATE TABLE m_focus_policy_situation (
-  focus_oid       NVARCHAR(36) COLLATE database_default NOT NULL,
+CREATE TABLE m_object_policy_situation (
+  object_oid      NVARCHAR(36) COLLATE database_default NOT NULL,
   policySituation NVARCHAR(255) COLLATE database_default
 );
 CREATE TABLE m_object (
@@ -799,6 +799,8 @@ CREATE INDEX iAuditDeltaRecordId
   ON m_audit_delta (record_id);
 CREATE INDEX iTimestampValue
   ON m_audit_event (timestampValue);
+CREATE INDEX iAuditEventRecordEStageTOid
+  ON m_audit_event (eventStage, targetOid);
 CREATE INDEX iChangedItemPath
   ON m_audit_item (changedItemPath);
 CREATE INDEX iAuditItemRecordId
@@ -989,6 +991,8 @@ CREATE INDEX iServiceNameOrig
   ON m_service (name_orig);
 CREATE INDEX iServiceNameNorm
   ON m_service (name_norm);
+ALTER TABLE m_service
+  ADD CONSTRAINT uc_service_name UNIQUE (name_norm);
 CREATE INDEX iSystemConfigurationNameOrig
   ON m_system_configuration (name_orig);
 ALTER TABLE m_system_configuration
@@ -1072,8 +1076,8 @@ ALTER TABLE m_connector_target_system
   ADD CONSTRAINT fk_connector_target_system FOREIGN KEY (connector_oid) REFERENCES m_connector;
 ALTER TABLE m_focus_photo
   ADD CONSTRAINT fk_focus_photo FOREIGN KEY (owner_oid) REFERENCES m_focus;
-ALTER TABLE m_focus_policy_situation
-  ADD CONSTRAINT fk_focus_policy_situation FOREIGN KEY (focus_oid) REFERENCES m_focus;
+ALTER TABLE m_object_policy_situation
+  ADD CONSTRAINT fk_object_policy_situation FOREIGN KEY (object_oid) REFERENCES m_object;
 ALTER TABLE m_object_ext_boolean
   ADD CONSTRAINT fk_o_ext_boolean_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
 ALTER TABLE m_object_ext_date
@@ -1184,6 +1188,30 @@ ALTER TABLE m_user
 ALTER TABLE m_value_policy
   ADD CONSTRAINT fk_value_policy FOREIGN KEY (oid) REFERENCES m_object;
 
+-- Indices for foreign keys; maintained manually
+CREATE INDEX iUserEmployeeTypeOid ON m_user_employee_type(user_oid);
+CREATE INDEX iUserOrganizationOid ON m_user_organization(user_oid);
+CREATE INDEX iUserOrganizationalUnitOid ON m_user_organizational_unit(user_oid);
+CREATE INDEX iAssignmentExtBooleanItemId ON m_assignment_ext_boolean(item_id);
+CREATE INDEX iAssignmentExtDateItemId ON m_assignment_ext_date(item_id);
+CREATE INDEX iAssignmentExtLongItemId ON m_assignment_ext_long(item_id);
+CREATE INDEX iAssignmentExtPolyItemId ON m_assignment_ext_poly(item_id);
+CREATE INDEX iAssignmentExtReferenceItemId ON m_assignment_ext_reference(item_id);
+CREATE INDEX iAssignmentExtStringItemId ON m_assignment_ext_string(item_id);
+CREATE INDEX iAssignmentPolicySituationId ON m_assignment_policy_situation(assignment_oid, assignment_id);
+CREATE INDEX iConnectorTargetSystemOid ON m_connector_target_system(connector_oid);
+CREATE INDEX iObjectPolicySituationOid ON m_object_policy_situation(object_oid);
+CREATE INDEX iObjectExtBooleanItemId ON m_object_ext_boolean(item_id);
+CREATE INDEX iObjectExtDateItemId ON m_object_ext_date(item_id);
+CREATE INDEX iObjectExtLongItemId ON m_object_ext_long(item_id);
+CREATE INDEX iObjectExtPolyItemId ON m_object_ext_poly(item_id);
+CREATE INDEX iObjectExtReferenceItemId ON m_object_ext_reference(item_id);
+CREATE INDEX iObjectExtStringItemId ON m_object_ext_string(item_id);
+CREATE INDEX iObjectSubtypeOid ON m_object_subtype(object_oid);
+CREATE INDEX iOrgOrgTypeOid ON m_org_org_type(org_oid);
+CREATE INDEX iServiceTypeOid ON m_service_type(service_oid);
+CREATE INDEX iTaskDependentOid ON m_task_dependent(task_oid);
+
 BEGIN TRANSACTION
 INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.2');
 COMMIT;
@@ -1194,7 +1222,7 @@ COMMIT;
 --# In your Quartz properties file, you'll need to set
 --# org.quartz.jobStore.driverDelegateClass = org.quartz.impl.jdbcjobstore.MSSQLDelegate
 --#
---# you shouse enter your DB instance's name on the next line in place of "enter_db_name_here"
+--# you should enter your DB instance's name on the next line in place of "enter_db_name_here"
 --#
 --#
 --# From a helpful (but anonymous) Quartz user:

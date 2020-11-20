@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import static javax.persistence.CascadeType.ALL;
@@ -20,6 +19,7 @@ import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.NamedQueries;
 import org.hibernate.annotations.NamedQuery;
 import org.hibernate.annotations.*;
@@ -81,7 +81,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @QueryEntity(
         anyElements = {
                 @VirtualAny(jaxbNameLocalPart = "extension", ownerType = RObjectExtensionType.EXTENSION)
-        })
+        },
+        collections = {
+                @VirtualCollection(jaxbName = @JaxbName(localPart = "assignment"), jaxbType = Set.class,
+                        jpaName = "assignments", jpaType = Set.class, additionalParams = {
+                        @VirtualQueryParam(name = "assignmentOwner", type = RAssignmentOwner.class,
+                                value = "FOCUS") }, collectionType = RAssignment.class) })
 @Entity
 @Table(name = "m_object", indexes = {
         @Index(name = "iObjectNameOrig", columnList = "name_orig"),
@@ -136,10 +141,12 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
     private Set<ROperationExecution> operationExecutions;
 
     // AssignmentHolderType information
-    private Set<RObjectReference<RAbstractRole>> roleMembershipRef;         // AssignmentHolderType
-    private Set<RObjectReference<RFocus>> delegatedRef;                     // AssignmentHolderType
-    private Set<RObjectReference<RArchetype>> archetypeRef;                 // AssignmentHolderType
-    private Set<RAssignment> assignments;                                   // AssignmentHolderType
+    private Set<RObjectReference<RAbstractRole>> roleMembershipRef; // AssignmentHolderType
+    private Set<RObjectReference<RFocus>> delegatedRef; // AssignmentHolderType
+    private Set<RObjectReference<RArchetype>> archetypeRef; // AssignmentHolderType
+    private Set<RAssignment> assignments; // AssignmentHolderType
+
+    private Set<String> policySituation;
 
     @Id
     @GeneratedValue(generator = "ObjectOidGenerator")
@@ -173,17 +180,15 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
     }
 
     @NotQueryable
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = ROrgClosure.class, mappedBy = "descendant",
-            cascade = CascadeType.REMOVE)
-//    @Cascade({ org.hibernate.annotations.CascadeType.DELETE })
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = ROrgClosure.class,
+            mappedBy = "descendant", cascade = CascadeType.REMOVE)
     public Set<ROrgClosure> getDescendants() {
         return descendants;
     }
 
     @NotQueryable
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = ROrgClosure.class, mappedBy = "ancestor",
-            cascade = CascadeType.REMOVE)//, orphanRemoval = true)
-//    @Cascade({ org.hibernate.annotations.CascadeType.DELETE })
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = ROrgClosure.class,
+            mappedBy = "ancestor", cascade = CascadeType.REMOVE)
     public Set<ROrgClosure> getAncestors() {
         return ancestors;
     }
@@ -206,7 +211,6 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
 
     @Where(clause = RObjectReference.REFERENCE_TYPE + "= 5")
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true, cascade = ALL)
-//    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createApproverRef") })
     public Set<RObjectReference<RFocus>> getCreateApproverRef() {
         if (createApproverRef == null) {
@@ -217,8 +221,6 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
 
     @Where(clause = RObjectReference.REFERENCE_TYPE + "= 8")
     @OneToMany(mappedBy = "owner", orphanRemoval = true, cascade = ALL)
-//    @ForeignKey(name = "none")
-//    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RObjectReference<RAbstractRole>> getRoleMembershipRef() {
         if (roleMembershipRef == null) {
             roleMembershipRef = new HashSet<>();
@@ -228,8 +230,6 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
 
     @Where(clause = RObjectReference.REFERENCE_TYPE + "= 9")
     @OneToMany(mappedBy = "owner", orphanRemoval = true, cascade = ALL)
-//    @ForeignKey(name = "none")
-//    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RObjectReference<RFocus>> getDelegatedRef() {
         if (delegatedRef == null) {
             delegatedRef = new HashSet<>();
@@ -239,8 +239,6 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
 
     @Where(clause = RObjectReference.REFERENCE_TYPE + "= 11")
     @OneToMany(mappedBy = "owner", orphanRemoval = true, cascade = ALL)
-//    @ForeignKey(name = "none")
-//    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RObjectReference<RArchetype>> getArchetypeRef() {
         if (archetypeRef == null) {
             archetypeRef = new HashSet<>();
@@ -273,8 +271,6 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
     @JaxbPath(itemPath = @JaxbName(localPart = "assignment"))
     @JaxbPath(itemPath = @JaxbName(localPart = "inducement"))
     @OneToMany(mappedBy = RAssignment.F_OWNER, orphanRemoval = true, cascade = ALL)
-//    @ForeignKey(name = "none")
-//    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     @NotQueryable // virtual definition is used instead
     public Set<RAssignment> getAssignments() {
         if (assignments == null) {
@@ -307,7 +303,6 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
 
     @Where(clause = RObjectReference.REFERENCE_TYPE + "= 6")
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true, cascade = ALL)
-//    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyApproverRef") })
     public Set<RObjectReference<RFocus>> getModifyApproverRef() {
         if (modifyApproverRef == null) {
@@ -328,48 +323,36 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
 
     @NotQueryable
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner", orphanRemoval = true, cascade = ALL)
-    //@Cascade({ PERSIST, MERGE, REMOVE, REFRESH, DELETE, REPLICATE, LOCK, DETACH })      // not SAVE_UPDATE
-//    @Cascade({ ALL })
     public Collection<ROExtLong> getLongs() {
         return longs;
     }
 
     @NotQueryable
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner", orphanRemoval = true, cascade = ALL)
-    //@Cascade({ PERSIST, MERGE, REMOVE, REFRESH, DELETE, REPLICATE, LOCK, DETACH })      // not SAVE_UPDATE
-//    @Cascade({ ALL })
     public Collection<ROExtBoolean> getBooleans() {
         return booleans;
     }
 
     @NotQueryable
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner", orphanRemoval = true, cascade = ALL)
-    //@Cascade({ PERSIST, MERGE, REMOVE, REFRESH, DELETE, REPLICATE, LOCK, DETACH })      // not SAVE_UPDATE
-//    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Collection<ROExtString> getStrings() {
         return strings;
     }
 
     @NotQueryable
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner", orphanRemoval = true, cascade = ALL)
-    //@Cascade({ PERSIST, MERGE, REMOVE, REFRESH, DELETE, REPLICATE, LOCK, DETACH })      // not SAVE_UPDATE
-//    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Collection<ROExtDate> getDates() {
         return dates;
     }
 
     @NotQueryable
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner", orphanRemoval = true, cascade = ALL)
-    //@Cascade({ PERSIST, MERGE, REMOVE, REFRESH, DELETE, REPLICATE, LOCK, DETACH })      // not SAVE_UPDATE
-//    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Collection<ROExtReference> getReferences() {
         return references;
     }
 
     @NotQueryable
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner", orphanRemoval = true, cascade = ALL)
-    //@Cascade({ PERSIST, MERGE, REMOVE, REFRESH, DELETE, REPLICATE, LOCK, DETACH })      // not SAVE_UPDATE
-//    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Collection<ROExtPolyString> getPolys() {
         return polys;
     }
@@ -384,7 +367,6 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
     @CollectionTable(name = "m_object_subtype", joinColumns = {
             @JoinColumn(name = "object_oid", referencedColumnName = "oid",
                     foreignKey = @javax.persistence.ForeignKey(name = "fk_object_subtype")) })
-//    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<String> getSubtype() {
         return subtype;
     }
@@ -509,7 +491,6 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
 
     @NotQueryable
     @OneToMany(mappedBy = "owner", orphanRemoval = true, cascade = ALL)
-//    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RObjectTextInfo> getTextInfoItems() {
         if (textInfoItems == null) {
             textInfoItems = new HashSet<>();
@@ -522,8 +503,6 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
     }
 
     @OneToMany(mappedBy = RAssignment.F_OWNER, orphanRemoval = true, cascade = ALL)
-//    @ForeignKey(name = "none")
-//    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     @JaxbName(localPart = "operationExecution")
     public Set<ROperationExecution> getOperationExecutions() {
         if (operationExecutions == null) {
@@ -552,6 +531,21 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
     public void setArchetypeRef(Set<RObjectReference<RArchetype>> archetypeRef) {
         this.archetypeRef = archetypeRef;
     }
+
+    @ElementCollection
+    @ForeignKey(name = "fk_object_policy_situation")
+    @CollectionTable(name = "m_object_policy_situation", joinColumns = {
+            @JoinColumn(name = "object_oid", referencedColumnName = "oid")
+    })
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
+    public Set<String> getPolicySituation() {
+        return policySituation;
+    }
+
+    public void setPolicySituation(Set<String> policySituation) {
+        this.policySituation = policySituation;
+    }
+
 
     /* TODO: remove in 2021, I believe id-based eq/hash is best for entities like this
     @Override
@@ -679,6 +673,8 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
 
         MetadataFactory.fromJaxb(jaxb.getMetadata(), repo, repositoryContext.relationRegistry);
         repo.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTenantRef(), repositoryContext.relationRegistry));
+
+        repo.setPolicySituation(RUtil.listToSet(jaxb.getPolicySituation()));
 
         if (jaxb.getExtension() != null) {
             copyExtensionOrAttributesFromJAXB(jaxb.getExtension().asPrismContainerValue(), repo, repositoryContext, RObjectExtensionType.EXTENSION, generatorResult);

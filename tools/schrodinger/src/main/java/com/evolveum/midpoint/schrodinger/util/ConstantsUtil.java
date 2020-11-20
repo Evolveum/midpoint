@@ -32,4 +32,15 @@ public class ConstantsUtil {
 
     //styles
     public static final String OBJECT_USER_BOX_COLOR = "object-user-box";
+    public static final String OBJECT_ROLE_BOX_COLOR = "object-role-box";
+    public static final String OBJECT_SERVICE_BOX_COLOR = "object-service-box";
+
+    public static final String COLLECTION_REF_ATTRIBUTE_NAME = "Collection ref";
+    public static final String OBJECT_COLLECTION_VIEWS_HEADER = "Object collection views";
+    public static final String OBJECT_COLLECTION_VIEW_HEADER = "Object collection view";
+    public static final String NEW_GUI_OBJECT_LIST_VIEW_HEADER = "New gui object list view";
+    public static final String NEW_OBJECT_LIST_VIEW_CONTAINER_KEY = "GuiObjectListViewType.details";
+    public static final String NEW_OBJECT_LIST_VIEW_CONTAINER_NEW_VALUE_KEY = "GuiObjectListViewType.details.newValue";
+    public static final String COLLECTION_HEADER = "Collection";
+
 }

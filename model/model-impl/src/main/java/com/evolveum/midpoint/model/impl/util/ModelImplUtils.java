@@ -61,6 +61,7 @@ import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.MaintenanceException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -567,12 +568,22 @@ public class ModelImplUtils {
     }
 
     public static ModelExecuteOptions getModelExecuteOptions(@NotNull Task task) {
-        ModelExecuteOptionsType options = task.getExtensionContainerRealValueOrClone(SchemaConstants.C_MODEL_EXECUTE_OPTIONS);
-        if (options == null) {
-            return null;
-        } else {
-            return ModelExecuteOptions.fromModelExecutionOptionsType(options);
+        ModelExecuteOptionsType options1 = task.getExtensionContainerRealValueOrClone(SchemaConstants.C_MODEL_EXECUTE_OPTIONS); // legacy
+        if (options1 != null) {
+            return ModelExecuteOptions.fromModelExecutionOptionsType(options1);
         }
+
+        ModelExecuteOptionsType options2 = task.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_MODEL_EXECUTE_OPTIONS);
+        if (options2 != null) {
+            return ModelExecuteOptions.fromModelExecutionOptionsType(options2);
+        }
+
+        ModelExecuteOptionsType options3 = task.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
+        if (options3 != null) {
+            return ModelExecuteOptions.fromModelExecutionOptionsType(options3);
+        }
+
+        return null;
     }
 
     public static ExpressionVariables getDefaultExpressionVariables(@NotNull LensContext<?> context,
@@ -754,6 +765,7 @@ public class ModelImplUtils {
         return targetRef;
     }
 
+    @NotNull
     public static <V extends PrismValue, F extends ObjectType> List<V> evaluateScript(
                 ScriptExpression scriptExpression, LensContext<F> lensContext, ExpressionVariables variables, boolean useNew, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -786,7 +798,13 @@ public class ModelImplUtils {
             return CriticalityType.FATAL; // not reached
         } else {
             ErrorSelectorType errorSelector = ResourceTypeUtil.getConnectorErrorCriticality(resourceType);
-            if (e instanceof CommunicationException) {
+            if (e instanceof MaintenanceException) {
+                // The resource was put to maintenance mode administratively. Do not log the error.
+                if (result != null) {
+                    result.recordSuccess();
+                }
+                return CriticalityType.IGNORE;
+            } else if (e instanceof CommunicationException) {
                 // Network problem. Just continue evaluation. The error is recorded in the result.
                 // The consistency mechanism has (most likely) already done the best.
                 // We cannot do any better.

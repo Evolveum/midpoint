@@ -1,38 +1,34 @@
 /*
- * Copyright (c) 2014-2017 Evolveum and contributors
+ * Copyright (C) 2014-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.common.refinery;
 
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.AbstractFreezable;
-import com.evolveum.midpoint.prism.Freezable;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.BooleanUtils;
-
-import com.evolveum.midpoint.prism.Visitable;
-import com.evolveum.midpoint.prism.Visitor;
-import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
+import javax.xml.namespace.QName;
 
-public class RefinedAssociationDefinition extends AbstractFreezable implements Serializable, Visitable, Freezable {
+import org.apache.commons.lang3.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.prism.AbstractFreezable;
+import com.evolveum.midpoint.prism.Freezable;
+import com.evolveum.midpoint.prism.Visitable;
+import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+public class RefinedAssociationDefinition extends AbstractFreezable
+        implements Serializable, Visitable, Freezable {
+
     private static final long serialVersionUID = 1L;
 
-    private Map<LayerType, PropertyLimitations> limitationsMap;
-
-    private ResourceObjectAssociationType resourceObjectAssociationType;
+    private final ResourceObjectAssociationType resourceObjectAssociationType;
     private RefinedObjectClassDefinition associationTarget;
-
-    private boolean immutable;
 
     public RefinedAssociationDefinition(ResourceObjectAssociationType resourceObjectAssociationType) {
         super();
@@ -157,5 +153,4 @@ public class RefinedAssociationDefinition extends AbstractFreezable implements S
     private void copyValues(RefinedAssociationDefinition clone) {
         clone.associationTarget = this.associationTarget;
     }
-
 }

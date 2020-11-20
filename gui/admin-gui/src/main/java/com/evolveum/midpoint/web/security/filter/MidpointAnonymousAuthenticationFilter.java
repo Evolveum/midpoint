@@ -1,28 +1,22 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.security.filter;
 
-import com.evolveum.midpoint.model.api.authentication.AuthModule;
-import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.web.security.factory.channel.AuthChannelRegistryImpl;
-import com.evolveum.midpoint.web.security.factory.module.AuthModuleRegistryImpl;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationsPolicyType;
-import org.springframework.beans.factory.annotation.Autowired;
+import static com.evolveum.midpoint.schema.util.SecurityPolicyUtil.NO_CUSTOM_IGNORED_LOCAL_PATH;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.core.Authentication;
@@ -32,14 +26,20 @@ import org.springframework.security.web.authentication.AnonymousAuthenticationFi
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.Assert;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
+import com.evolveum.midpoint.model.api.authentication.AuthModule;
+import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
+import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.security.factory.channel.AuthChannelRegistryImpl;
+import com.evolveum.midpoint.web.security.factory.module.AuthModuleRegistryImpl;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationsPolicyType;
 
 /**
  * @author skublik
@@ -49,17 +49,16 @@ public class MidpointAnonymousAuthenticationFilter extends AnonymousAuthenticati
 
     private static final Trace LOGGER = TraceManager.getTrace(MidpointAnonymousAuthenticationFilter.class);
 
-    private AuthModuleRegistryImpl authRegistry;
-
-    private AuthChannelRegistryImpl authChannelRegistry;
-
-    private PrismContext prismContext;
+    private final AuthModuleRegistryImpl authRegistry;
+    private final AuthChannelRegistryImpl authChannelRegistry;
+    private final PrismContext prismContext;
+    private final String key;
 
     private AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource = new WebAuthenticationDetailsSource();
-    private String key;
 
-    public MidpointAnonymousAuthenticationFilter(AuthModuleRegistryImpl authRegistry, AuthChannelRegistryImpl authChannelRegistry, PrismContext prismContext,
-                                                 String key, Object principal, List<GrantedAuthority> authorities) {
+    public MidpointAnonymousAuthenticationFilter(AuthModuleRegistryImpl authRegistry,
+            AuthChannelRegistryImpl authChannelRegistry, PrismContext prismContext,
+            String key, Object principal, List<GrantedAuthority> authorities) {
         super(key, principal, authorities);
         this.key = key;
         this.authRegistry = authRegistry;
@@ -78,8 +77,7 @@ public class MidpointAnonymousAuthenticationFilter extends AnonymousAuthenticati
                 LOGGER.debug("Populated SecurityContextHolder with anonymous token: '"
                         + SecurityContextHolder.getContext().getAuthentication() + "'");
             }
-        }
-        else {
+        } else {
             if (SecurityContextHolder.getContext().getAuthentication() instanceof MidpointAuthentication) {
                 MidpointAuthentication mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
                 ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
@@ -102,17 +100,19 @@ public class MidpointAnonymousAuthenticationFilter extends AnonymousAuthenticati
         Authentication auth = createBasicAuthentication(request);
 
         MidpointAuthentication authentication = new MidpointAuthentication(SecurityPolicyUtil.createDefaultSequence());
-        AuthenticationsPolicyType authenticationsPolicy = null;
+        AuthenticationsPolicyType authenticationsPolicy;
         try {
-            authenticationsPolicy = SecurityPolicyUtil.createDefaultAuthenticationPolicy(prismContext.getSchemaRegistry());
+            authenticationsPolicy = SecurityPolicyUtil.createDefaultAuthenticationPolicy(
+                    NO_CUSTOM_IGNORED_LOCAL_PATH, prismContext.getSchemaRegistry());
         } catch (SchemaException e) {
             LOGGER.error("Couldn't get default authentication policy");
             throw new IllegalArgumentException("Couldn't get default authentication policy", e);
         }
         AuthenticationSequenceType sequence = SecurityPolicyUtil.createDefaultSequence();
         AuthenticationChannel authenticationChannel = SecurityUtils.buildAuthChannel(authChannelRegistry, sequence);
-        List<AuthModule> authModules = SecurityUtils.buildModuleFilters(authRegistry, sequence, request, authenticationsPolicy.getModules(),
-                null, new HashMap<Class<? extends Object>, Object>(), authenticationChannel);
+        List<AuthModule> authModules = SecurityUtils.buildModuleFilters(
+                authRegistry, sequence, request, authenticationsPolicy.getModules(),
+                null, new HashMap<>(), authenticationChannel);
         authentication.setAuthModules(authModules);
         ModuleAuthentication module = authModules.get(0).getBaseModuleAuthentication();
         module.setAuthentication(auth);

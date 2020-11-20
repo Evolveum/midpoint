@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.security.util;
 
 import static org.springframework.security.saml.util.StringUtils.stripSlashes;
@@ -13,11 +12,6 @@ import static org.springframework.security.saml.util.StringUtils.stripStartingSl
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
-
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-
-import com.evolveum.midpoint.security.api.SecurityUtil;
 
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
@@ -36,13 +30,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.web.context.ContextLoader;
-import org.springframework.web.context.WebApplicationContext;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.*;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -52,6 +46,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.Producer;
@@ -97,8 +92,8 @@ public class SecurityUtils {
         map.put("rest", SchemaConstants.CHANNEL_REST_URI);
         map.put("api", SchemaConstants.CHANNEL_REST_URI);
         map.put("actuator", SchemaConstants.CHANNEL_ACTUATOR_URI);
-        map.put("resetPassword", SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI);
-        map.put("registration", SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
+        map.put("resetPassword", SchemaConstants.CHANNEL_RESET_PASSWORD_URI);
+        map.put("registration", SchemaConstants.CHANNEL_SELF_REGISTRATION_URI);
         LOCAL_PATH_AND_CHANNEL = Collections.unmodifiableMap(map);
     }
 
@@ -125,34 +120,32 @@ public class SecurityUtils {
     }
 
     public static boolean isMenuAuthorized(MainMenuItem item) {
-        Class clazz = item.getPageClass();
+        Class<?> clazz = item.getPageClass();
         return clazz == null || isPageAuthorized(clazz);
     }
 
     public static boolean isMenuAuthorized(MenuItem item) {
-        Class clazz = item.getPageClass();
+        Class<?> clazz = item.getPageClass();
         return isPageAuthorized(clazz);
     }
 
-    public static boolean isPageAuthorized(Class page) {
+    public static boolean isPageAuthorized(Class<?> page) {
         if (page == null) {
             return false;
         }
 
-        PageDescriptor descriptor = (PageDescriptor) page.getAnnotation(PageDescriptor.class);
+        PageDescriptor descriptor = page.getAnnotation(PageDescriptor.class);
         if (descriptor == null) {
             return false;
         }
 
         AuthorizationAction[] actions = descriptor.action();
         List<String> list = new ArrayList<>();
-        if (actions != null) {
-            for (AuthorizationAction action : actions) {
-                list.add(action.actionUri());
-            }
+        for (AuthorizationAction action : actions) {
+            list.add(action.actionUri());
         }
 
-        return WebComponentUtil.isAuthorized(list.toArray(new String[list.size()]));
+        return WebComponentUtil.isAuthorized(list.toArray(new String[0]));
     }
 
     public static WebMarkupContainer createHiddenInputForCsrf(String id) {
@@ -198,9 +191,8 @@ public class SecurityUtils {
         }
         String[] partsOfLocalPath = stripStartingSlashes(localePath).split("/");
 
-        AuthenticationSequenceType specificSequence = getSpecificSequence(httpRequest);
-        if (specificSequence != null) {
-            return specificSequence;
+        if (isSpecificSequence(httpRequest)) {
+            return getSpecificSequence(httpRequest);
         }
 
         List<AuthenticationSequenceType> sequences = getSequencesForNodeGroups(nodeGroups, authenticationPolicy);
@@ -268,14 +260,14 @@ public class SecurityUtils {
             }
             if (suffixOfAddSeq.toLowerCase().equals(suffixOfActSeq.toLowerCase())) {
                 if (replace) {
-                    sequences.remove(sequences.indexOf(actualSequence));
+                    sequences.remove(actualSequence);
                     sequences.add(addingSequence);
                 }
                 return;
             }
             if (isDefaultAddSeq && isDefaultActSeq) {
                 if (replace) {
-                    sequences.remove(sequences.indexOf(actualSequence));
+                    sequences.remove(actualSequence);
                     sequences.add(addingSequence);
                 }
                 return;
@@ -319,11 +311,28 @@ public class SecurityUtils {
                     sequence.setName(AuthenticationModuleNameConstants.CLUSTER);
                     AuthenticationSequenceChannelType seqChannel = new AuthenticationSequenceChannelType();
                     seqChannel.setUrlSuffix(AuthenticationModuleNameConstants.CLUSTER.toLowerCase());
+                    seqChannel.setChannelId(SchemaConstants.CHANNEL_REST_URI);
+                    sequence.setChannel(seqChannel);
                     return sequence;
                 }
             }
         }
         return null;
+    }
+
+    public static boolean isSpecificSequence(HttpServletRequest httpRequest) {
+        String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
+        String channel = searchChannelByPath(localePath);
+        if (SchemaConstants.CHANNEL_REST_URI.equals(channel)) {
+            String header = httpRequest.getHeader("Authorization");
+            if (header != null) {
+                String type = header.split(" ")[0];
+                if (AuthenticationModuleNameConstants.CLUSTER.toLowerCase().equals(type.toLowerCase())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private static AuthenticationSequenceType searchSequence(String comparisonAttribute, boolean inputIsChannel, List<AuthenticationSequenceType> sequences) {
@@ -372,13 +381,13 @@ public class SecurityUtils {
             CredentialsPolicyType credentialPolicy, Map<Class<?>, Object> sharedObjects,
             AuthenticationChannel authenticationChannel) {
         Validate.notNull(authRegistry, "Registry for module factories is null");
-        Validate.notEmpty(sequence.getModule(), "Sequence " + sequence.getName() + " don't contains authentication modules");
 
-        List<AuthModule> specificModules = getSpecificModuleFilter(sequence.getChannel().getUrlSuffix(), request,
-                sharedObjects, authenticationModulesType, credentialPolicy);
-        if (specificModules != null) {
-            return specificModules;
+        if (isSpecificSequence(request)) {
+            return getSpecificModuleFilter(authRegistry, sequence.getChannel().getUrlSuffix(), request,
+                    sharedObjects, authenticationModulesType, credentialPolicy);
         }
+
+        Validate.notEmpty(sequence.getModule(), "Sequence " + sequence.getName() + " don't contains authentication modules");
 
         List<AuthenticationSequenceModuleType> sequenceModules = SecurityPolicyUtil.getSortedModules(sequence);
         List<AuthModule> authModules = new ArrayList<>();
@@ -399,7 +408,7 @@ public class SecurityUtils {
         return authModules;
     }
 
-    private static List<AuthModule> getSpecificModuleFilter(String urlSuffix, HttpServletRequest httpRequest, Map<Class<?>, Object> sharedObjects,
+    private static List<AuthModule> getSpecificModuleFilter(AuthModuleRegistryImpl authRegistry, String urlSuffix, HttpServletRequest httpRequest, Map<Class<?>, Object> sharedObjects,
             AuthenticationModulesType authenticationModulesType, CredentialsPolicyType credentialPolicy) {
         String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
         String channel = searchChannelByPath(localePath);
@@ -409,8 +418,7 @@ public class SecurityUtils {
                 String type = header.split(" ")[0];
                 if (AuthenticationModuleNameConstants.CLUSTER.toLowerCase().equals(type.toLowerCase())) {
                     List<AuthModule> authModules = new ArrayList<>();
-                    WebApplicationContext context = ContextLoader.getCurrentWebApplicationContext();
-                    HttpClusterModuleFactory factory = context.getBean(HttpClusterModuleFactory.class);
+                    HttpClusterModuleFactory factory = authRegistry.findModelFactoryByClass(HttpClusterModuleFactory.class);
                     AbstractAuthenticationModuleType module = new AbstractAuthenticationModuleType() {
                     };
                     module.setName(AuthenticationModuleNameConstants.CLUSTER.toLowerCase() + "-module");
@@ -428,20 +436,21 @@ public class SecurityUtils {
         return null;
     }
 
-    private static AbstractAuthenticationModuleType getModuleByName(String name, AuthenticationModulesType authenticationModulesType) {
-        PrismContainerValue modulesContainerValue = authenticationModulesType.asPrismContainerValue();
+    private static AbstractAuthenticationModuleType getModuleByName(
+            String name, AuthenticationModulesType authenticationModulesType) {
+        PrismContainerValue<?> modulesContainerValue = authenticationModulesType.asPrismContainerValue();
         List<AbstractAuthenticationModuleType> modules = new ArrayList<>();
         modulesContainerValue.accept(v -> {
             if (!(v instanceof PrismContainer)) {
                 return;
             }
 
-            PrismContainer c = (PrismContainer) v;
+            PrismContainer<?> c = (PrismContainer<?>) v;
             if (!(AbstractAuthenticationModuleType.class.isAssignableFrom(c.getCompileTimeClass()))) {
                 return;
             }
 
-            c.getValues().forEach(x -> modules.add((AbstractAuthenticationModuleType) ((PrismContainerValue) x).asContainerable()));
+            c.getValues().forEach(x -> modules.add((AbstractAuthenticationModuleType) ((PrismContainerValue<?>) x).asContainerable()));
         });
 
         for (AbstractAuthenticationModuleType module : modules) {
@@ -569,15 +578,16 @@ public class SecurityUtils {
 
     private static Task createAnonymousTask(String operation, TaskManager manager) {
         Task task = manager.createTaskInstance(operation);
-        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+        task.setChannel(SchemaConstants.CHANNEL_USER_URI);
         return task;
     }
 
     public static UserType searchUserPrivileged(String username, SecurityContextManager securityContextManager, TaskManager manager,
             ModelService modelService, PrismContext prismContext) {
         UserType userType = securityContextManager.runPrivileged(new Producer<UserType>() {
-            ObjectQuery query = prismContext.queryFor(UserType.class).item(UserType.F_NAME)
-                    .eqPoly(username).matchingNorm().build();
+            final ObjectQuery query = prismContext.queryFor(UserType.class)
+                    .item(UserType.F_NAME).eqPoly(username).matchingNorm()
+                    .build();
 
             @Override
             public UserType run() {
@@ -694,7 +704,7 @@ public class SecurityUtils {
         return true;
     }
 
-    public static boolean isRecordSessionlessAccessChannel(HttpServletRequest httpRequest){
+    public static boolean isRecordSessionlessAccessChannel(HttpServletRequest httpRequest) {
         if (httpRequest != null) {
             String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
             String channel = SecurityUtils.searchChannelByPath(localePath);

@@ -1,17 +1,17 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.page.admin.configuration;
 
 import java.io.Serializable;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.TextArea;
@@ -42,7 +42,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.DataLanguagePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
@@ -60,7 +60,7 @@ public class PageDebugView extends PageAdminConfiguration {
     private static final String DOT_CLASS = PageDebugView.class.getName() + ".";
     private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "initObjectViewObject";
     private static final String OPERATION_SAVE_OBJECT = DOT_CLASS + "saveObject";
-    private static final String ID_PLAIN_TEXTAREA = "plain-textarea";
+    private static final String ID_PLAIN_TEXTAREA = "plainTextarea";
     private static final String ID_VIEW_BUTTON_PANEL = "viewButtonPanel";
 
     private static final String ID_FORM = "mainForm";
@@ -74,6 +74,7 @@ public class PageDebugView extends PageAdminConfiguration {
 
     private IModel<ObjectViewDto<?>> objectViewDtoModel;
     private final DebugViewOptions debugViewConfiguration = new DebugViewOptions();
+    private static final int DEFAULT_EDITOR_ROWS_NUMBER = 50;
 
     public PageDebugView() {
     }
@@ -171,7 +172,7 @@ public class PageDebugView extends PageAdminConfiguration {
     }
 
     private void initLayout() {
-        final Form<?> mainForm = new Form<>(ID_FORM);
+        final MidpointForm<?> mainForm = new MidpointForm<>(ID_FORM);
         add(mainForm);
         mainForm.add(createOptionCheckbox(DebugViewOptions.ID_ENCRYPT, new PropertyModel<>(debugViewConfiguration, DebugViewOptions.ID_ENCRYPT), "pageDebugView.encrypt", "pageDebugView.encrypt.help"));
         mainForm.add(createOptionCheckbox(DebugViewOptions.ID_VALIDATE_SCHEMA, new PropertyModel<>(debugViewConfiguration, DebugViewOptions.ID_VALIDATE_SCHEMA), "pageDebugView.validateSchema", "pageDebugView.validateSchema.help"));
@@ -181,6 +182,8 @@ public class PageDebugView extends PageAdminConfiguration {
 
         TextArea<String> plainTextarea = new TextArea<>(ID_PLAIN_TEXTAREA, new PropertyModel<>(objectViewDtoModel, ObjectViewDto.F_XML));
         plainTextarea.add(new VisibleBehaviour(() -> isTrue(DebugViewOptions.ID_SWITCH_TO_PLAINTEXT)));
+        plainTextarea.add(new AttributeModifier("rows", DEFAULT_EDITOR_ROWS_NUMBER));
+        plainTextarea.add(new AttributeModifier("style", "min-width:100%; max-width: 100%;"));
         mainForm.add(plainTextarea);
 
         initAceEditor(mainForm);
@@ -215,18 +218,18 @@ public class PageDebugView extends PageAdminConfiguration {
         return panel.getValue();
     }
 
-    private Form<?> getMainForm() {
-        return (Form<?>) get(ID_FORM);
+    private MidpointForm<?> getMainForm() {
+        return (MidpointForm<?>) get(ID_FORM);
     }
 
-    private void initAceEditor(Form<?> mainForm) {
+    private void initAceEditor(MidpointForm<?> mainForm) {
         AceEditor editor = new AceEditor("aceEditor", new PropertyModel<>(objectViewDtoModel, ObjectViewDto.F_XML));
         editor.setModeForDataLanguage(dataLanguage);
         editor.add(new VisibleBehaviour(() -> !isTrue(DebugViewOptions.ID_SWITCH_TO_PLAINTEXT)));
         mainForm.add(editor);
     }
 
-    private void initViewButton(Form mainForm) {
+    private void initViewButton(MidpointForm mainForm) {
         DataLanguagePanel<Objectable> dataLanguagePanel =
                 new DataLanguagePanel<Objectable>(ID_VIEW_BUTTON_PANEL, dataLanguage, Objectable.class, PageDebugView.this) {
                     private static final long serialVersionUID = 1L;
@@ -253,7 +256,7 @@ public class PageDebugView extends PageAdminConfiguration {
         mainForm.add(dataLanguagePanel);
     }
 
-    private void initButtons(final Form<?> mainForm) {
+    private void initButtons(final MidpointForm<?> mainForm) {
         AjaxSubmitButton saveButton = new AjaxSubmitButton("saveButton",
                 createStringResource("pageDebugView.button.save")) {
             private static final long serialVersionUID = 1L;
@@ -318,7 +321,7 @@ public class PageDebugView extends PageAdminConfiguration {
 //                    ReportTypeUtil.applyConfigurationDefinition((PrismObject)newObject, delta, getPrismContext());
 //                }
 
-                Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(delta);
+                Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(delta);
                 ModelExecuteOptions options = ModelExecuteOptions.create(getPrismContext());
                 if (isTrue(DebugViewOptions.ID_SAVE_AS_RAW)) {
                     options.raw(true);
@@ -353,7 +356,7 @@ public class PageDebugView extends PageAdminConfiguration {
     }
 
     private void validateObject(OperationResult result, Holder<Objectable> objectHolder) {
-        parseObject(objectViewDtoModel.getObject().getXml(), (Holder<Objectable>) objectHolder, dataLanguage, isTrue(DebugViewOptions.ID_VALIDATE_SCHEMA), false, Objectable.class, result);
+        parseObject(objectViewDtoModel.getObject().getXml(), objectHolder, dataLanguage, isTrue(DebugViewOptions.ID_VALIDATE_SCHEMA), false, Objectable.class, result);
     }
 
     static class DebugViewOptions implements Serializable {

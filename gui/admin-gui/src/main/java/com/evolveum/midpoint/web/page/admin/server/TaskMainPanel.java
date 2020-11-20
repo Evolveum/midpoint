@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -24,8 +24,6 @@ import com.evolveum.midpoint.gui.api.util.ObjectTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeMainPanel;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
@@ -37,8 +35,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkManagementType;
 
 public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
-
-    private static final Trace LOGGER = TraceManager.getTrace(TaskMainPanel.class);
 
     private static final String ID_SAVE_AND_RUN = "saveAndRun";
 
@@ -71,7 +67,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
         createOperationStatisticsPanel(tabs, parentTaskPage);
         createEnvironmentalPerformanceTab(tabs, parentTaskPage);
         createOperationTab(tabs, parentTaskPage);
-        createInteranalPerformanceTab(tabs, parentTaskPage);
+        createInternalPerformanceTab(tabs, parentTaskPage);
         createResultTab(tabs, parentTaskPage);
         createErrorsTab(tabs, parentTaskPage);
         return tabs;
@@ -275,7 +271,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
         });
     }
 
-    private void createInteranalPerformanceTab(List<ITab> tabs, PageTask parentPage) {
+    private void createInternalPerformanceTab(List<ITab> tabs, PageTask parentPage) {
         ObjectTabVisibleBehavior<TaskType> internalPerfTabsVisibility = new ObjectTabVisibleBehavior<TaskType>
                 (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_INTERNAL_PERFORMANCE_URL, parentPage) {
 
@@ -291,7 +287,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new TaskInternalPerformanceTabPanel(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_OPERATION_STATS));
+                return new TaskInternalPerformanceTabPanel(panelId, getObjectModel());
             }
         });
     }
@@ -406,5 +402,4 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
     private TaskType getTask() {
         return getObject().asObjectable();
     }
-
 }

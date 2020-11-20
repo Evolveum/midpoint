@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sql.pure;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -25,17 +22,23 @@ public class SqlTableMetadata {
      */
     private final Map<String, ColumnMetadata> columnMap = new LinkedHashMap<>();
 
+    /**
+     * Creates metadata for a table.
+     * Implementation detail: It is possible to use {@link Connection#getMetaData()} but this
+     * iterates over too many items for all visible tables and is very slow on Oracle.
+     * Using {@link ResultSet#getMetaData()} is much more efficient and gives us all we need.
+     */
     public static SqlTableMetadata create(Connection conn, String tableName) {
         try {
             SqlTableMetadata tableMetadata = new SqlTableMetadata();
-            DatabaseMetaData metaData = conn.getMetaData();
-            ResultSet rs = metaData.getColumns(null, null, null, null);
-            while (rs.next()) {
-                // constants from metaData.getColumns Javadoc
-                if (tableName.equalsIgnoreCase(rs.getString("TABLE_NAME"))) {
-                    tableMetadata.add(ColumnMetadata.named(rs.getString("COLUMN_NAME"))
-                            .ofType(rs.getInt("DATA_TYPE"))
-                            .withSize(rs.getInt("COLUMN_SIZE")));
+            try (PreparedStatement stmt =
+                    conn.prepareStatement("select * from " + tableName + " where 0=1")) {
+                ResultSet rs = stmt.executeQuery();
+                ResultSetMetaData metaData = rs.getMetaData();
+                for (int i = 1; i <= metaData.getColumnCount(); i++) {
+                    tableMetadata.add(ColumnMetadata.named(metaData.getColumnName(i))
+                            .ofType(metaData.getColumnType(i))
+                            .withSize(metaData.getColumnDisplaySize(i)));
                 }
             }
             return tableMetadata;

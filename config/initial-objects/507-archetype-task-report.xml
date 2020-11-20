@@ -12,7 +12,12 @@
     <archetypePolicy>
         <display>
             <label>Report task</label>
-            <pluralLabel>Report tasks</pluralLabel>
+            <pluralLabel>
+                <orig>Report tasks</orig>
+                <translation>
+                    <key>ReportTasks.title</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fa fa-pie-chart</cssClass>
                 <color>green</color>
@@ -30,6 +35,10 @@
             <path>extension/rext:reportOutputOid</path>
             <visibility>visible</visibility>
         </itemConstraint>
+        <itemConstraint>
+            <path>extension/rext:reportDataParam</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
         <adminGuiConfiguration>
             <objectDetails>
                 <type>TaskType</type>
@@ -42,6 +51,9 @@
                     </item>
                     <item>
                         <c:path>extension/rext:reportOutputOid</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/rext:reportDataParam</c:path>
                     </item>
                 </container>
             </objectDetails>

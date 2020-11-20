@@ -180,11 +180,6 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
         return objectValuePolicyEvaluator;
     }
 
-    private AbstractCredentialType getOldCredential() {
-        PrismContainer<R> currentCredentialContainer = getOldCredentialContainer();
-        return currentCredentialContainer != null ? currentCredentialContainer.getRealValue() : null;
-    }
-
     /**
      * Main entry point.
      */
@@ -244,7 +239,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
         } else {
             if (hasValueDelta(focusDelta, getCredentialsContainerPath())) {
                 credentialValueChanged = true;
-                checkMinOccurs = true;     // might not be precise (e.g. might check minOccurs even if a value is being added)
+                checkMinOccurs = true; // might not be precise (e.g. might check minOccurs even if a value is being added)
                 processValueDelta(focusDelta);
                 addMetadataDelta();
             }
@@ -261,7 +256,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
     }
 
     @NotNull
-    private PrismObject<F> getObjectNew(LensFocusContext<F> focusContext) throws SchemaException, ConfigurationException {
+    private PrismObject<F> getObjectNew(LensFocusContext<F> focusContext) throws SchemaException {
         PrismObject<F> objectNew = focusContext.getObjectNew();
         if (objectNew != null) {
             return objectNew;
@@ -356,7 +351,8 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 
     private void addMetadataDelta() throws SchemaException {
         Collection<? extends ItemDelta<?, ?>> metaDeltas = metadataManager.createModifyMetadataDeltas(
-                context, getCredentialsContainerPath().append(AbstractCredentialType.F_METADATA),
+                context, getCurrentCredentialMetadata(),
+                getCredentialsContainerPath().append(AbstractCredentialType.F_METADATA),
                 context.getFocusClass(), now, task);
         for (ItemDelta<?, ?> metaDelta : metaDeltas) {
             context.getFocusContext().swallowToSecondaryDelta(metaDelta);
@@ -380,9 +376,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
             return false;
         }
         for (PartiallyResolvedDelta<PrismValue, ItemDefinition> partialDelta : focusDelta.findPartial(credentialsPath)) {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Residual delta:\n{}", partialDelta.debugDump());
-            }
+            LOGGER.trace("Residual delta:\n{}", partialDelta.debugDumpLazily());
             ItemPath residualPath = partialDelta.getResidualPath();
             if (ItemPath.isEmpty(residualPath)) {
                 continue;
@@ -423,12 +417,29 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
         return false;
     }
 
+    private AbstractCredentialType getOldCredential() {
+        PrismContainer<R> oldCredentialContainer = getOldCredentialContainer();
+        return oldCredentialContainer != null ? oldCredentialContainer.getRealValue() : null;
+    }
+
+    private MetadataType getCurrentCredentialMetadata() {
+        AbstractCredentialType currentCredential = getCurrentCredential();
+        return currentCredential != null ? currentCredential.getMetadata() : null;
+    }
+
+    private AbstractCredentialType getCurrentCredential() {
+        PrismContainer<R> currentCredentialContainer = getCurrentCredentialContainer();
+        return currentCredentialContainer != null ? currentCredentialContainer.getRealValue() : null;
+    }
+
     private PrismContainer<R> getOldCredentialContainer() {
         PrismObject<F> objectOld = context.getFocusContext().getObjectOld();
-        if (objectOld == null) {
-            return null;
-        }
-        return objectOld.findContainer(getCredentialsContainerPath());
+        return objectOld != null ? objectOld.findContainer(getCredentialsContainerPath()) : null;
+    }
+
+    private PrismContainer<R> getCurrentCredentialContainer() {
+        PrismObject<F> objectCurrent = context.getFocusContext().getObjectCurrent();
+        return objectCurrent != null ? objectCurrent.findContainer(getCredentialsContainerPath()) : null;
     }
 
     private void addHistoryDeltas() throws SchemaException {
@@ -535,7 +546,6 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
         }
     }
 
-    @SuppressWarnings("WeakerAccess")
     public abstract static class Builder<F extends FocusType> {
         private PrismContext prismContext;
         private Protector protector;

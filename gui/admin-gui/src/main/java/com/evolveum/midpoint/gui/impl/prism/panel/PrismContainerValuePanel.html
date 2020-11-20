@@ -10,30 +10,19 @@
 <wicket:panel>
     <form wicket:id="valueForm">
         <div class="prism-header" wicket:id="header">
-            <div class="pull-left">
-                <button wicket:id="expandCollapseButton" wicket:message="title:PrismObjectPanel.expandCollapseContainer"
-                        class="btn btn-box-tool expand-collapse-button" trigger="hover"><i class="fa fa-caret-down"></i></button>
-           </div>
-            <div class="labelContainer" wicket:id="labelContainer">
-                <a class="prism-title" wicket:id="label"/>
-                <i class="helpTextIcon" wicket:id="help"/>
-            </div>
-<!--            <button wicket:id="showMetadata" wicket:message="title:PrismObjectPanel.showMetadata" class="btn btn-box-tool"><i class="fa fa-asterisk"></i></button>-->
-            <button wicket:id="sortProperties" wicket:message="title:PrismObjectPanel.sortProperties" class="btn btn-box-tool"><i class="fa fa-sort-alpha-asc"></i></button>
-            <button wicket:id="addChildContainer" wicket:message="title:PrismObjectPanel.addChildContainer" class="btn btn-box-tool" trigger="hover"><i class="fa fa-plus-circle"></i></button>
-            <button wicket:id="removeButton" wicket:message="title:PrismObjectPanel.deleteContainer" class="btn btn-box-tool" trigger="hover"><i class="fa fa-minus-circle"></i></button>
-            <a class="btn btn-box-tool" wicket:id="showMetadata" wicket:message="title:PageBase.button.delete"><i class="fa fa-tag"/></a>
+            <button wicket:id="expandCollapseButton" wicket:message="title:PrismObjectPanel.expandCollapseContainer" class="pull-left btn btn-box-tool expand-collapse-button" trigger="hover"></button>
+            <a class="prism-title" wicket:id="label"/>
+            <i class="helpTextIcon" wicket:id="help"/>
+            <button wicket:id="sortProperties" wicket:message="title:PrismObjectPanel.sortProperties" class="btn btn-box-tool"></button>
+            <button wicket:id="addChildContainer" wicket:message="title:PrismObjectPanel.addChildContainer" class="btn btn-box-tool fa fa-plus-circle" trigger="hover"></button>
+            <button wicket:id="removeButton" wicket:message="title:PrismObjectPanel.deleteContainer" class="btn btn-box-tool fa fa-minus-circle" trigger="hover"></button>
+            <a class="btn btn-box-tool fa fa-tag" wicket:id="showMetadata" wicket:message="title:PageBase.button.metadata"></a>
         </div>
-        <div class="row">
-            <div class="col-xs-10">
-                <ul class="nav metadata-nav">
-                    <li wicket:id="metadataList">
-                        <a class="label label-default" wicket:id="metadataQName"/>
-                    </li>
-                </ul>
-                <div wicket:id="metadata"></div>
+        <wicket:enclosure child="metadata">
+            <div class="row">
+                <div wicket:id="metadata"/>
             </div>
-        </div>
+        </wicket:enclosure>
 
         <div wicket:id="valueContainer">
 

@@ -109,7 +109,7 @@ public class TaskTypeUtil {
         subTasks.forEach(subTask -> {
             OperationStatsType operationStatsType = subTask.getOperationStats();
             if (operationStatsType != null) {
-                IterativeTaskInformation.addTo(iterativeTaskInformation, operationStatsType.getIterativeTaskInformation(), true);
+                IterativeTaskInformation.addTo(iterativeTaskInformation, operationStatsType.getIterativeTaskInformation(), false);
                 SynchronizationInformation.addTo(synchronizationInformation, operationStatsType.getSynchronizationInformation());
                 ActionsExecutedInformation.addTo(actionsExecutedInformation, operationStatsType.getActionsExecutedInformation());
             }
@@ -151,5 +151,9 @@ public class TaskTypeUtil {
 
     private static boolean isCoordinatedWorker(TaskType taskType) {
         return taskType.getWorkManagement() != null && TaskKindType.WORKER == taskType.getWorkManagement().getTaskKind();
+    }
+
+    public static boolean isManageableTreeRoot(TaskType taskType) {
+        return isCoordinator(taskType) || isPartitionedMaster(taskType);
     }
 }

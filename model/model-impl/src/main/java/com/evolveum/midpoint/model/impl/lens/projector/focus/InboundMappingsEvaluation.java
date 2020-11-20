@@ -758,12 +758,11 @@ class InboundMappingsEvaluation<F extends FocusType> {
             PrismObject<F> focus = getCurrentFocus(); // TODO check if we should really use current object here
             PrismObjectDefinition<F> focusDef = getFocusDefinition(focus);
 
-            // TODO apply metadata only if enabled
             if (currentProjectionItem != null) {
-                beans.projectionValueMetadataCreator.setValueMetadata(currentProjectionItem, projectionContext);
+                beans.projectionValueMetadataCreator.setValueMetadata(currentProjectionItem, projectionContext, env, result);
             }
             if (itemAPrioriDelta != null) {
-                beans.projectionValueMetadataCreator.setValueMetadata(itemAPrioriDelta, projectionContext);
+                beans.projectionValueMetadataCreator.setValueMetadata(itemAPrioriDelta, projectionContext, env, result);
             }
 
             Source<V,D> defaultSource = new Source<>(currentProjectionItem, itemAPrioriDelta, null, ExpressionConstants.VAR_INPUT_QNAME, itemDefinition);
@@ -1009,7 +1008,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
                         .skipNormalMappingAPrioriDeltaCheck(true);
 
         DeltaSetTripleMapConsolidation<F> consolidation = new DeltaSetTripleMapConsolidation<>(
-                outputTripleMap, focusNew, focusAPrioriDelta, context::itemDeltaExists,
+                outputTripleMap, focusNew, focusAPrioriDelta, context::primaryFocusItemDeltaExists,
                 true, customizer, focusDefinition,
                 env, beans, context, result);
         consolidation.computeItemDeltas();

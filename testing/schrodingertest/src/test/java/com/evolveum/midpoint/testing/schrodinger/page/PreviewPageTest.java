@@ -8,20 +8,17 @@
 package com.evolveum.midpoint.testing.schrodinger.page;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import com.codeborne.selenide.Screenshots;
 import com.codeborne.selenide.Selenide;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
-import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.component.prism.show.PartialSceneHeader;
 
 import com.evolveum.midpoint.schrodinger.page.user.ProgressPage;
 import com.evolveum.midpoint.schrodinger.util.ConstantsUtil;
 
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 
 import org.testng.annotations.Test;
@@ -46,14 +43,11 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
     private static final String ROLE_USER_NO_PREVIEW_NAME = "roleNoPreviewChanges";
 
     @Override
-    protected void initSystem(Task task, OperationResult initResult) throws Exception {
-        super.initSystem(task, initResult);
-
-        repoAddObjectFromFile(ROLE_USER_PREVIEW_FILE, initResult);
-        repoAddObjectFromFile(ROLE_USER_NO_PREVIEW_FILE, initResult);
+    protected List<File> getObjectListToImport(){
+        return Arrays.asList(ROLE_USER_PREVIEW_FILE, ROLE_USER_NO_PREVIEW_FILE);
     }
 
-    @Test
+    @Test (priority = 1)
     public void test001createUser() {
 
         //@formatter:off
@@ -87,7 +81,7 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
         assertTrue(progressPage.feedback().isSuccess());
     }
 
-    @Test
+    @Test (priority = 2, dependsOnMethods = {"test001createUser"})
     public void test002modifyUser() {
 
         //@formatter:off
@@ -120,7 +114,7 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
         assertTrue(progressPage.feedback().isSuccess());
     }
 
-    @Test
+    @Test (priority = 3, dependsOnMethods = {"test001createUser"})
     public void test003assignRolePreview() {
         //@formatter:off
         ProgressPage previewPage = basicPage.listUsers()
@@ -146,7 +140,7 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
 
     }
 
-    @Test
+    @Test (priority = 4, dependsOnMethods = {"test001createUser"})
     public void test004loginWithUserJack() {
 
         midPoint.logout();
@@ -179,7 +173,7 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
 
     }
 
-    @Test
+    @Test (priority = 5, dependsOnMethods = {"test001createUser", "test003assignRolePreview"})
     public void test005unassignRolePreview() {
         //@formatter:off
         ProgressPage previewPage = basicPage.listUsers()
@@ -187,6 +181,7 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
                     .clickByName("jack")
                         .selectTabAssignments()
                             .table()
+                                .selectCheckboxByName(ROLE_USER_PREVIEW_NAME)
                                 .removeByName(ROLE_USER_PREVIEW_NAME)
                             .and()
                         .and()
@@ -197,7 +192,7 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
 
     }
 
-    @Test
+    @Test (priority = 6, dependsOnMethods = {"test001createUser"})
     public void test006assignRoleNoPreview() {
         //@formatter:off
         ProgressPage previewPage = basicPage.listUsers()
@@ -223,7 +218,7 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
 
     }
 
-    @Test
+    @Test (priority = 7, dependsOnMethods = {"test001createUser", "test003assignRolePreview", "test005unassignRolePreview", "test006assignRoleNoPreview"})
     public void test007loginWithUserJack() {
 
         midPoint.logout();

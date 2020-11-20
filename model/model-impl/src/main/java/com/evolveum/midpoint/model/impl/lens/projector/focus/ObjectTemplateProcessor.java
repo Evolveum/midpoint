@@ -6,9 +6,6 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType.AFTER_ASSIGNMENTS;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType.BEFORE_ASSIGNMENTS;
-
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +23,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType.*;
 
 /**
  * Processor to handle object template.
@@ -56,6 +55,17 @@ public class ObjectTemplateProcessor implements ProjectorProcessor {
             SecurityViolationException, ConfigurationException, CommunicationException {
         TemplateMappingsEvaluation<AH, AH> evaluation = TemplateMappingsEvaluation.createForStandardTemplate(
                 beans, context, AFTER_ASSIGNMENTS, now, task, result);
+        evaluation.computeItemDeltas();
+        applyEvaluationResultsToFocus(evaluation);
+    }
+
+    @ProcessorMethod
+    public <AH extends AssignmentHolderType> void processTemplateAfterProjections(LensContext<AH> context,
+            XMLGregorianCalendar now, Task task, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException,
+            SecurityViolationException, ConfigurationException, CommunicationException {
+        TemplateMappingsEvaluation<AH, AH> evaluation = TemplateMappingsEvaluation.createForStandardTemplate(
+                beans, context, AFTER_PROJECTIONS, now, task, result);
         evaluation.computeItemDeltas();
         applyEvaluationResultsToFocus(evaluation);
     }

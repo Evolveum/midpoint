@@ -10,15 +10,15 @@ package com.evolveum.midpoint.task.quartzimpl.execution;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
+import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImplUtil;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
 import com.evolveum.midpoint.util.exception.*;
@@ -297,10 +297,10 @@ public class JobExecutor implements InterruptableJob {
     }
 
     static class GroupExecInfo {
-        int limit;
-        Collection<Task> tasks = new ArrayList<>();
+        private int limit;
+        private final Collection<Task> tasks = new ArrayList<>();
 
-        GroupExecInfo(Integer l) {
+        private GroupExecInfo(Integer l) {
             limit = l != null ? l : Integer.MAX_VALUE;
         }
 
@@ -679,6 +679,7 @@ mainCycle:
 
                 for (long time = 0; time < sleepFor + WATCHFUL_SLEEP_INCREMENT; time += WATCHFUL_SLEEP_INCREMENT) {
                     try {
+                        //noinspection BusyWait
                         Thread.sleep(WATCHFUL_SLEEP_INCREMENT);
                     } catch (InterruptedException e) {
                         // safely ignored
@@ -722,7 +723,7 @@ mainCycle:
 
         if (task.getResult() == null) {
             LOGGER.warn("Task without operation result found, please check the task creation/retrieval/update code: {}", task);
-            task.setResultTransient(task.createUnnamedTaskResult());
+            task.setResultTransient(TaskQuartzImpl.createUnnamedTaskResult());
         }
 
         TaskRunResult runResult;
@@ -744,20 +745,40 @@ mainCycle:
     }
 
     private void recordCycleRunStart(OperationResult result, TaskHandler handler) {
-        LOGGER.debug("Task cycle run STARTING " + task + ", handler = " + handler);
+        LOGGER.debug("Task cycle run STARTING {}, handler = {}", task, handler);
         taskManagerImpl.notifyTaskStart(task);
         try {
             task.setLastRunStartTimestamp(System.currentTimeMillis());
-            if (task.getCategory() == null) {
-                task.setCategory(task.getCategoryFromHandler());
-            }
-            OperationResult newResult = new OperationResult("run");
-            newResult.setStatus(OperationResultStatus.IN_PROGRESS);
-            task.setResult(newResult);                                        // MID-4033
+            setCategoryIfMissing();
+            setOrMigrateChannelUri();
+            setNewOperationResult();
             task.flushPendingModifications(result);
         } catch (Exception e) {    // TODO: implement correctly after clarification
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot record run start for task {}", e, task);
         }
+    }
+
+    private void setCategoryIfMissing() {
+        if (task.getCategory() == null) {
+            task.setCategory(task.getCategoryFromHandler());
+        }
+    }
+
+    private void setOrMigrateChannelUri() {
+        if (task.getChannel() != null) {
+            Channel.Migration migration = Channel.findMigration(task.getChannel());
+            if (migration != null && migration.isNeeded()) {
+                task.setChannel(migration.getNewUri());
+            }
+        } else {
+            task.setChannel(task.getChannelFromHandler());
+        }
+    }
+
+    private void setNewOperationResult() {
+        OperationResult newResult = new OperationResult("run");
+        newResult.setStatus(OperationResultStatus.IN_PROGRESS);
+        task.setResult(newResult); // MID-4033
     }
 
     /*
@@ -776,7 +797,6 @@ mainCycle:
                     OperationResult taskResult = runResult.getOperationResult().clone();
                     taskResult.cleanupResult();
                     taskResult.summarize(true);
-//                    System.out.println("Setting task result to " + taskResult);
                     task.setResult(taskResult);
                 } catch (Throwable ex) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Problem with task result cleanup/summarize - continuing with raw result", ex);

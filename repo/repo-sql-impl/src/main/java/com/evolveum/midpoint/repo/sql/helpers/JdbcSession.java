@@ -104,7 +104,7 @@ public class JdbcSession implements AutoCloseable {
         return startTransaction(true);
     }
 
-    public JdbcSession startTransaction(boolean readonly) {
+    private JdbcSession startTransaction(boolean readonly) {
         LOGGER.debug("Starting {}transaction", readonly ? "readonly " : "");
 
         try {
@@ -114,10 +114,10 @@ public class JdbcSession implements AutoCloseable {
         }
 
         rollbackForReadOnly = false;
-        // Configuration check really means: "Does it support read-only transactions?"
         if (readonly) {
-            if (repoConfiguration.isUseReadOnlyTransactions()) {
-                executeStatement("SET TRANSACTION READ ONLY");
+            // If null, DB does not support read-only transactions.
+            if (repoConfiguration.getReadOnlyTransactionStatement() != null) {
+                executeStatement(repoConfiguration.getReadOnlyTransactionStatement());
             } else {
                 rollbackForReadOnly = true;
             }

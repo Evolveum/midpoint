@@ -13,6 +13,7 @@ import java.io.IOException;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 import org.testng.annotations.Test;
@@ -61,7 +62,7 @@ public class TestInitialObjects extends AbstractGuiUnitTest {
     private <O extends ObjectType> void testInitialObject(ObjectValidator validator, StringBuilder errorsSb, File file) throws SchemaException, IOException {
         PrismObject<O> object = getPrismContext().parseObject(file);
         ValidationResult validationResult = validator.validate(object);
-        if (validationResult.isEmpty() || isOnlyJasperWarning(validationResult)) {
+        if (validationResult.isEmpty() || isIgnoredWarning(validationResult)) {
             display("Checked "+object+": no warnings");
             return;
         }
@@ -76,7 +77,7 @@ public class TestInitialObjects extends AbstractGuiUnitTest {
         }
     }
 
-    private boolean isOnlyJasperWarning(ValidationResult validationResult) {
+    private boolean isIgnoredWarning(ValidationResult validationResult) {
         for (ValidationItem item : validationResult.getItems()){
             if (!item.getItemPath().equivalent(ItemPath.create(ReportType.F_JASPER))
                     || !item.getStatus().equals(OperationResultStatus.WARNING)){

@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.schema.traces.operations;
 
-import static com.evolveum.midpoint.schema.traces.TraceUtil.getParameter;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,6 +34,10 @@ public class ItemConsolidationOpNode extends OpNode {
         trace = getTrace(ItemConsolidationTraceType.class);
     }
 
+    protected void postProcess() {
+        setDisabled(trace != null && getResults(trace).isEmpty());
+    }
+
     public ItemConsolidationTraceType getTrace() {
         return trace;
     }
@@ -52,10 +54,7 @@ public class ItemConsolidationOpNode extends OpNode {
                 sb.append(" ⇒ ").append(String.join(", ", results));
             }
         } else {
-            String itemPath = getParameter(result, "itemPath");
-            if (itemPath != null) {
-                sb.append(itemPath);
-            }
+            sb.append(getParameter("itemPath"));
         }
         return sb.toString();
     }

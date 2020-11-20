@@ -1,20 +1,14 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.data;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
+import java.util.List;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -26,7 +20,12 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import java.util.List;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 
 /**
  * @author lazyman
@@ -36,17 +35,17 @@ public class TablePanel<T> extends Panel implements Table {
     private static final String ID_TABLE = "table";
     private static final String ID_PAGING = "paging";
 
-    private IModel<Boolean> showPaging = new Model<>(true);
-    private IModel<Boolean> showCount = new Model<>(true);
+    private final IModel<Boolean> showPaging = new Model<>(true);
+    private final IModel<Boolean> showCount = new Model<>(true);
 
-    private UserProfileStorage.TableId tableId;
+    private final UserProfileStorage.TableId tableId;
 
     public TablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns) {
         this(id, provider, columns, null, UserProfileStorage.DEFAULT_PAGING_SIZE);
     }
 
     public TablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
-                      UserProfileStorage.TableId tableId, long pageSize) {
+            UserProfileStorage.TableId tableId, long pageSize) {
         super(id);
         Validate.notNull(provider, "Object type must not be null.");
         Validate.notNull(columns, "Columns must not be null.");
@@ -61,7 +60,7 @@ public class TablePanel<T> extends Panel implements Table {
 
         table.setOutputMarkupId(true);
 
-        TableHeadersToolbar headers = new TableHeadersToolbar(table, provider);
+        TableHeadersToolbar<?> headers = new TableHeadersToolbar<>(table, provider);
         headers.setOutputMarkupId(true);
         table.addTopToolbar(headers);
 
@@ -118,7 +117,7 @@ public class TablePanel<T> extends Panel implements Table {
             };
         }
 
-        BaseSortableDataProvider baseProvider = (BaseSortableDataProvider) provider;
+        BaseSortableDataProvider<?> baseProvider = (BaseSortableDataProvider<?>) provider;
         return baseProvider.isSizeAvailableModel();
     }
 
@@ -171,14 +170,14 @@ public class TablePanel<T> extends Panel implements Table {
     public void setTableCssClass(String cssClass) {
         Validate.notEmpty(cssClass, "Css class must not be null or empty.");
 
-        DataTable table = getDataTable();
-        table.add(new AttributeAppender("class", new Model(cssClass), " "));
+        DataTable<?, ?> table = getDataTable();
+        table.add(new AttributeAppender("class", new Model<>(cssClass), " "));
     }
 
     public void setStyle(String value) {
         Validate.notEmpty(value, "Value must not be null or empty.");
 
-        DataTable table = getDataTable();
-        table.add(new AttributeModifier("style", new Model(value)));
+        DataTable<?, ?> table = getDataTable();
+        table.add(new AttributeModifier("style", new Model<>(value)));
     }
 }

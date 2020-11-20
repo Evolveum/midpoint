@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,44 +9,40 @@ package com.evolveum.midpoint.gui.impl.factory.wrapper;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.ValueMetadataWrapperImpl;
-import com.evolveum.midpoint.model.api.ModelService;
-
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.task.api.TaskManager;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.ValueMetadataWrapperImpl;
 import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItemSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * @author katka
- *
  */
-public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends PrismValue, I extends Item, VW extends PrismValueWrapper> implements ItemWrapperFactory<IW, VW, PV> {
+public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends PrismValue, I extends Item, VW extends PrismValueWrapper>
+        implements ItemWrapperFactory<IW, VW, PV> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ItemWrapperFactoryImpl.class);
 
@@ -100,10 +96,11 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
 
         IW itemWrapper = createWrapperInternal(parent, (I) childItem, status, context);
         itemWrapper.setMetadata(context.isMetadata());
+        itemWrapper.setProcessProvenanceMetadata(context.isProcessMetadataFor(itemWrapper.getPath()));
 
         registerWrapperPanel(itemWrapper);
 
-        List<VW> valueWrappers  = createValuesWrapper(itemWrapper, (I) childItem, context);
+        List<VW> valueWrappers = createValuesWrapper(itemWrapper, (I) childItem, context);
         itemWrapper.getValues().addAll(valueWrappers);
         itemWrapper.setShowEmpty(context.isShowEmpty(), false);
 
@@ -120,6 +117,9 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
     }
 
     private boolean skipCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context, boolean isEmptyValue) {
+        if (def == null) {
+            return true;
+        }
         if (QNameUtil.match(FocusType.F_LINK_REF, def.getItemName()) || QNameUtil.match(FocusType.F_PERSONA_REF, def.getItemName())) {
             LOGGER.trace("Skip creating wrapper for {}, it is not supported", def);
             return true;
@@ -134,7 +134,6 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
             LOGGER.trace("Skipping creating wrapper for {}, because experimental GUI features are turned off.", def);
             return true;
         }
-
 
         if (ItemStatus.ADDED == status && def.isDeprecated()) {
             LOGGER.trace("Skipping creating wrapper for {}, because item is deprecated and doesn't contain any value.", def);
@@ -166,7 +165,6 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
         return true;
     }
 
-
     protected abstract void setupWrapper(IW wrapper);
 
     protected List<VW> createValuesWrapper(IW itemWrapper, I item, WrapperContext context) throws SchemaException {
@@ -176,17 +174,17 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
         if (values.isEmpty()) {
             if (shouldCreateEmptyValue(item, context)) {
                 PV prismValue = createNewValue(item);
-                VW valueWrapper =  createValueWrapper(itemWrapper, prismValue, ValueStatus.ADDED, context);
-//                setupMetadata(valueWrapper, context);
+                VW valueWrapper = createValueWrapper(itemWrapper, prismValue, ValueStatus.ADDED, context);
+                setupMetadata(itemWrapper, valueWrapper, context);
                 pvWrappers.add(valueWrapper);
             }
             return pvWrappers;
         }
 
         for (PV pcv : values) {
-            if(canCreateValueWrapper(pcv)){
+            if (canCreateValueWrapper(pcv)) {
                 VW valueWrapper = createValueWrapper(itemWrapper, pcv, ValueStatus.NOT_CHANGED, context);
-                setupMetadata(valueWrapper, context);
+                setupMetadata(itemWrapper, valueWrapper, context);
                 pvWrappers.add(valueWrapper);
             }
         }
@@ -195,21 +193,96 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
 
     }
 
-    protected <VW extends PrismValueWrapper> void setupMetadata(VW valueWrapper, WrapperContext ctx) throws SchemaException {
+    protected <VW extends PrismValueWrapper> void setupMetadata(IW itemWrapper, VW valueWrapper, WrapperContext ctx) throws SchemaException {
+        if (itemWrapper.isMetadata()) {
+            return;
+        }
         PrismValue oldValue = valueWrapper.getNewValue();
-        Optional<ValueMetadata> metadata = oldValue.valueMetadata(); // TODO
-        return;
-        // TODO adapt this code
-//        if (!metadata.isPresent()) {
-//            LOGGER.trace("Skipping creating metadata");
-//            return;
-//        }
-//
-//        ValueMetadata valueMetadata = metadata.get();
-//
-//        ValueMetadataWrapperFactoryImpl valueMetadataWrapperFactory = new ValueMetadataWrapperFactoryImpl(getRegistry());
-//        PrismContainerValueWrapper<Containerable> valueMetadataWrapper = valueMetadataWrapperFactory.createValueWrapper(null, valueMetadata, ValueStatus.NOT_CHANGED, ctx);
-//        valueWrapper.setValueMetadata(new ValueMetadataWrapperImpl(valueMetadataWrapper));
+        PrismContainer<ValueMetadataType> metadataContainer = oldValue.getValueMetadataAsContainer();
+
+        if (canContainLegacyMetadata(oldValue)) {
+            PrismContainer<MetadataType> oldMetadata = ((PrismContainerValue) oldValue).findContainer(ObjectType.F_METADATA);
+            if (oldMetadata != null && oldMetadata.getValue() != null) {
+                PrismContainerValue<ValueMetadataType> newMetadataValue = metadataContainer.createNewValue();
+                transformStorageMetadata(newMetadataValue, oldMetadata);
+                transformProcessMetadata(newMetadataValue, oldMetadata);
+            }
+        }
+
+        ValueMetadataWrapperFactoryImpl valueMetadataWrapperFactory = new ValueMetadataWrapperFactoryImpl(getRegistry());
+        PrismContainerWrapper<ValueMetadataType> valueMetadataWrapper = valueMetadataWrapperFactory.createWrapper(null, metadataContainer, ItemStatus.NOT_CHANGED, ctx);
+        if (valueMetadataWrapper != null) {
+            valueWrapper.setValueMetadata(new ValueMetadataWrapperImpl(valueMetadataWrapper));
+        }
+    }
+
+    private <T, PV extends PrismValue> boolean canContainLegacyMetadata(PV value) {
+        if (value instanceof PrismObjectValue) {
+            return true;
+        }
+
+        if (!(value instanceof PrismContainerValue)) {
+            return false;
+        }
+
+        PrismContainerDefinition containerDef = ((PrismContainerValue) value).getDefinition();
+        if (containerDef == null || containerDef.isRuntimeSchema()) {
+            return false;
+        }
+
+        T realValue = value.getRealValue();
+        if (realValue == null) {
+            return false;
+        }
+
+        if (PasswordType.class.isAssignableFrom(realValue.getClass())) {
+            return true;
+        }
+
+        if (AssignmentType.class.isAssignableFrom(realValue.getClass())) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private void transformStorageMetadata(PrismContainerValue<ValueMetadataType> metadataValue, PrismContainer<MetadataType> oldMetadata) throws SchemaException {
+
+        MetadataType oldMetadataType = oldMetadata.getRealValue();
+        StorageMetadataType storageMetadataType = new StorageMetadataType(prismContext);
+        storageMetadataType.setCreateChannel(oldMetadataType.getCreateChannel());
+        storageMetadataType.setCreateTaskRef(oldMetadataType.getCreateTaskRef());
+        storageMetadataType.setCreateTimestamp(oldMetadataType.getCreateTimestamp());
+        storageMetadataType.setCreatorRef(oldMetadataType.getCreatorRef());
+        storageMetadataType.setModifierRef(oldMetadataType.getModifierRef());
+        storageMetadataType.setModifyChannel(oldMetadataType.getModifyChannel());
+        storageMetadataType.setModifyTaskRef(oldMetadataType.getModifyTaskRef());
+        storageMetadataType.setModifyTimestamp(oldMetadataType.getModifyTimestamp());
+
+        if (!storageMetadataType.asPrismContainerValue().isEmpty()) {
+            PrismContainer<StorageMetadataType> storagetMetadata = metadataValue.findOrCreateContainer(ValueMetadataType.F_STORAGE);
+            storagetMetadata.setRealValue(storageMetadataType);
+        }
+
+
+
+    }
+
+    private void transformProcessMetadata(PrismContainerValue<ValueMetadataType> metadataValue, PrismContainer<MetadataType> oldContainer) throws SchemaException {
+        MetadataType oldMetadata = oldContainer.getRealValue();
+        ProcessMetadataType processMetadataType = new ProcessMetadataType(prismContext);
+        processMetadataType.setCertificationFinishedTimestamp(oldMetadata.getCertificationFinishedTimestamp());
+        processMetadataType.setCertificationOutcome(oldMetadata.getCertificationOutcome());
+        processMetadataType.setCreateApprovalTimestamp(oldMetadata.getCreateApprovalTimestamp());
+        processMetadataType.setModifyApprovalTimestamp(oldMetadata.getModifyApprovalTimestamp());
+        processMetadataType.setRequestorComment(oldMetadata.getRequestorComment());
+        processMetadataType.setRequestorRef(oldMetadata.getRequestorRef());
+        processMetadataType.setRequestTimestamp(oldMetadata.getRequestTimestamp());
+
+        if (!processMetadataType.asPrismContainerValue().isEmpty()) {
+            PrismContainer<ProcessMetadataType> processMetadata = metadataValue.findOrCreateContainer(ValueMetadataType.F_PROCESS);
+            processMetadata.setRealValue(processMetadataType);
+        }
     }
 
     protected List<PV> getValues(I item) {
@@ -263,7 +336,6 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
     protected boolean canCreateValueWrapper(PV pcv) {
         return true;
     }
-
 
     protected abstract PV createNewValue(I item) throws SchemaException;
 

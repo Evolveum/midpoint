@@ -6,24 +6,17 @@
  */
 package com.evolveum.midpoint.schrodinger.page.configuration;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
-import com.codeborne.selenide.WebDriverRunner;
 
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
-import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import org.openqa.selenium.By;
-import org.openqa.selenium.Keys;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.executeJavaScript;
 
-import static com.evolveum.midpoint.schrodinger.util.Utils.setOptionChecked;
+import static com.evolveum.midpoint.schrodinger.util.Utils.setOptionCheckedByName;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -31,92 +24,92 @@ import static com.evolveum.midpoint.schrodinger.util.Utils.setOptionChecked;
 public class ImportObjectPage extends BasicPage {
 
     public ImportObjectPage checkProtectedByEncryption() {
-        setOptionChecked("importOptions:protectedByEncryption", true);
+        setOptionCheckedByName("importOptions:protectedByEncryption", true);
         return this;
     }
 
     public ImportObjectPage checkFetchResourceSchema() {
-        setOptionChecked("importOptions:fetchResourceSchema", true);
+        setOptionCheckedByName("importOptions:fetchResourceSchema", true);
         return this;
     }
 
     public ImportObjectPage checkKeepOid() {
-        setOptionChecked("importOptions:keepOid", true);
+        setOptionCheckedByName("importOptions:keepOid", true);
         return this;
     }
 
     public ImportObjectPage checkOverwriteExistingObject() {
-        setOptionChecked("importOptions:overwriteExistingObject", true);
+        setOptionCheckedByName("importOptions:overwriteExistingObject", true);
         return this;
     }
 
     public ImportObjectPage checkReferentialIntegrity() {
-        setOptionChecked("importOptions:referentialIntegrity", true);
+        setOptionCheckedByName("importOptions:referentialIntegrity", true);
         return this;
     }
 
     public ImportObjectPage checkSummarizeSuccesses() {
-        setOptionChecked("importOptions:summarizeSuccesses", true);
+        setOptionCheckedByName("importOptions:summarizeSuccesses", true);
         return this;
     }
 
     public ImportObjectPage checkValidateDynamicSchema() {
-        setOptionChecked("importOptions:validateDynamicSchema", true);
+        setOptionCheckedByName("importOptions:validateDynamicSchema", true);
         return this;
     }
 
     public ImportObjectPage checkValidateStaticSchema() {
-        setOptionChecked("importOptions:validateStaticSchema", true);
+        setOptionCheckedByName("importOptions:validateStaticSchema", true);
         return this;
     }
 
     public ImportObjectPage checkSummarizeErrors() {
-        setOptionChecked("importOptions:summarizeErrors", true);
+        setOptionCheckedByName("importOptions:summarizeErrors", true);
         return this;
     }
 
     public ImportObjectPage uncheckProtectedByEncryption() {
-        setOptionChecked("importOptions:protectedByEncryption", false);
+        setOptionCheckedByName("importOptions:protectedByEncryption", false);
         return this;
     }
 
     public ImportObjectPage uncheckFetchResourceSchema() {
-        setOptionChecked("importOptions:fetchResourceSchema", false);
+        setOptionCheckedByName("importOptions:fetchResourceSchema", false);
         return this;
     }
 
     public ImportObjectPage uncheckKeepOid() {
-        setOptionChecked("importOptions:keepOid", false);
+        setOptionCheckedByName("importOptions:keepOid", false);
         return this;
     }
 
     public ImportObjectPage uncheckOverwriteExistingObject() {
-        setOptionChecked("importOptions:overwriteExistingObject", false);
+        setOptionCheckedByName("importOptions:overwriteExistingObject", false);
         return this;
     }
 
     public ImportObjectPage uncheckReferentialIntegrity() {
-        setOptionChecked("importOptions:referentialIntegrity", false);
+        setOptionCheckedByName("importOptions:referentialIntegrity", false);
         return this;
     }
 
     public ImportObjectPage uncheckSummarizeSuccesses() {
-        setOptionChecked("importOptions:summarizeSuccesses", false);
+        setOptionCheckedByName("importOptions:summarizeSuccesses", false);
         return this;
     }
 
     public ImportObjectPage uncheckValidateDynamicSchema() {
-        setOptionChecked("importOptions:validateDynamicSchema", false);
+        setOptionCheckedByName("importOptions:validateDynamicSchema", false);
         return this;
     }
 
     public ImportObjectPage uncheckValidateStaticSchema() {
-        setOptionChecked("importOptions:validateStaticSchema", false);
+        setOptionCheckedByName("importOptions:validateStaticSchema", false);
         return this;
     }
 
     public ImportObjectPage uncheckSummarizeErrors() {
-        setOptionChecked("importOptions:summarizeErrors", false);
+        setOptionCheckedByName("importOptions:summarizeErrors", false);
         return this;
     }
 

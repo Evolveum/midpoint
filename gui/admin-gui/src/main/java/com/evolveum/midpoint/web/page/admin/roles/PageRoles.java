@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.web.page.admin.roles;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -19,7 +20,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.util.FocusListInlineMenuHelper;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -30,6 +30,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -110,5 +111,14 @@ public class PageRoles extends PageAdminObjectList<RoleType> {
     private boolean isShowConfirmationDialog(ColumnMenuAction action){
         return action.getRowModel() != null ||
                 getObjectListPanel().getSelectedObjectsCount() > 0;
+    }
+
+    @Override
+    protected List<ItemPath> getFixedSearchItems() {
+        List<ItemPath> fixedSearchItems = new ArrayList<>();
+        fixedSearchItems.add(ObjectType.F_NAME);
+        fixedSearchItems.add(AbstractRoleType.F_DISPLAY_NAME);
+        fixedSearchItems.add(AbstractRoleType.F_IDENTIFIER);
+        return fixedSearchItems;
     }
 }

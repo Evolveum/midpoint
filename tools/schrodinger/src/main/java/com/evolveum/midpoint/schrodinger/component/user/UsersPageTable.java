@@ -8,19 +8,15 @@
 package com.evolveum.midpoint.schrodinger.component.user;
 
 import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
 import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
-import com.evolveum.midpoint.schrodinger.component.common.Search;
-import com.evolveum.midpoint.schrodinger.component.common.table.TableWithPageRedirect;
 import com.evolveum.midpoint.schrodinger.component.table.TableHeaderDropDownMenu;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
-import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -34,7 +30,7 @@ public class UsersPageTable extends AssignmentHolderObjectListTable<ListUsersPag
     }
 
     @Override
-    public UsersTableDropDown<UsersPageTable> clickHeaderActionDropDown() {
+    protected TableHeaderDropDownMenu<UsersPageTable> clickHeaderActionDropDown() {
 
         $(Schrodinger.bySelfOrAncestorElementAttributeValue("button", "data-toggle", "dropdown", "class", "sortableLabel"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
@@ -42,19 +38,56 @@ public class UsersPageTable extends AssignmentHolderObjectListTable<ListUsersPag
         SelenideElement dropDown = $(Schrodinger.byDataId("ul", "dropDownMenu"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
-        return new UsersTableDropDown<UsersPageTable>(this, dropDown);
+        return new TableHeaderDropDownMenu<UsersPageTable>(this, dropDown);
 
     }
 
-    public ConfirmationModal<UsersPageTable> clickEnable() {
+    public ConfirmationModal<UsersPageTable> enableUser() {
+        return enableUser(null, null);
+    }
 
-        $(Schrodinger.bySelfOrAncestorElementAttributeValue("i", "class", "fa fa-user fa-fw", "data-s-id", "topToolbars"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+    public ConfirmationModal<UsersPageTable> enableUser(String columnTitleKey, String rowValue) {
+        return clickMenuItemWithConfirmation(columnTitleKey, rowValue, "pageUsers.menu.enable");
+    }
 
-        SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Confirm action"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+    public ConfirmationModal<UsersPageTable> disableUser() {
+        return disableUser(null, null);
+    }
 
-        return new ConfirmationModal<>(this, actualModal);
+    public ConfirmationModal<UsersPageTable> disableUser(String columnTitleKey, String rowValue) {
+        return clickMenuItemWithConfirmation(columnTitleKey, rowValue, "pageUsers.menu.disable");
+    }
+
+    public ConfirmationModal<UsersPageTable> reconcileUser() {
+        return reconcileUser(null, null);
+    }
+
+    public ConfirmationModal<UsersPageTable> reconcileUser(String columnTitleKey, String rowValue) {
+        return clickMenuItemWithConfirmation(columnTitleKey, rowValue, "pageUsers.menu.reconcile");
+    }
+
+    public ConfirmationModal<UsersPageTable> unlockUser() {
+        return unlockUser(null, null);
+    }
+
+    public ConfirmationModal<UsersPageTable> unlockUser(String columnTitleKey, String rowValue) {
+        return clickMenuItemWithConfirmation(columnTitleKey, rowValue, "pageUsers.menu.unlock");
+    }
+
+    public ConfirmationModal<UsersPageTable> deleteUser() {
+        return deleteUser(null, null);
+    }
+
+    public ConfirmationModal<UsersPageTable> deleteUser(String columnTitleKey, String rowValue) {
+        return clickMenuItemWithConfirmation(columnTitleKey, rowValue, "pageUsers.menu.delete");
+    }
+
+    public ConfirmationModal<UsersPageTable> mergeUser() {
+        return mergeUser(null, null);
+    }
+
+    public ConfirmationModal<UsersPageTable> mergeUser(String columnTitleKey, String rowValue) {
+        return clickMenuItemWithConfirmation(columnTitleKey, rowValue, "pageUsers.menu.merge");
     }
 
     @Override

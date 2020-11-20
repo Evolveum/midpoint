@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.data.audit;
 
 import java.io.Serializable;
@@ -23,13 +22,14 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 
-/**
- * @author lazyman
- */
 @Ignore
 @Entity
 @Table(name = RAuditEventRecord.TABLE_NAME, indexes = {
-        @Index(name = "iTimestampValue", columnList = RAuditEventRecord.COLUMN_TIMESTAMP) }) // TODO correct index name
+        @Index(name = "iTimestampValue", columnList = RAuditEventRecord.COLUMN_TIMESTAMP),
+        @Index(name = "iAuditEventRecordEStageTOid",
+                columnList = RAuditEventRecord.EVENT_STAGE_COLUMN_NAME
+                        + ", " + RAuditEventRecord.TARGET_OID_COLUMN_NAME)
+})
 public class RAuditEventRecord implements Serializable {
 
     public static final String TABLE_NAME = "m_audit_event";
@@ -42,7 +42,7 @@ public class RAuditEventRecord implements Serializable {
     public static final String ATTORNEY_OID_COLUMN_NAME = "attorneyOid";
     private static final String CHANNEL_COLUMN_NAME = "channel";
     private static final String EVENT_IDENTIFIER_COLUMN_NAME = "eventIdentifier";
-    private static final String EVENT_STAGE_COLUMN_NAME = "eventStage";
+    public static final String EVENT_STAGE_COLUMN_NAME = "eventStage";
     private static final String EVENT_TYPE_COLUMN_NAME = "eventType";
     private static final String HOST_IDENTIFIER_COLUMN_NAME = "hostIdentifier";
     public static final String INITIATOR_NAME_COLUMN_NAME = "initiatorName";

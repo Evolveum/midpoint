@@ -1,21 +1,12 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.roles.component;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyConstraintType;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -30,14 +21,21 @@ import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyConstraintType;
+
 /**
  * Created by honchar the panel is to be used as a content component for main
  * popup window from the PageBase class
  */
 public class MultiplicityPolicyPanel extends Panel implements Popupable {
     private static final long serialVersionUID = 1L;
-
-    private static final Trace LOGGER = TraceManager.getTrace(MultiplicityPolicyPanel.class);
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_DESCRIPTION = "description";
@@ -52,8 +50,8 @@ public class MultiplicityPolicyPanel extends Panel implements Popupable {
 
     private static final String MULTIPLICITY_UNBOUNDED = "unbounded";
 
-    private boolean unbounded = false;
-    private IModel<MultiplicityPolicyConstraintType> model;
+    private final boolean unbounded = false;
+    private final IModel<MultiplicityPolicyConstraintType> model;
 
     public MultiplicityPolicyPanel(String id, final MultiplicityPolicyConstraintType policy) {
         super(id);
@@ -97,13 +95,13 @@ public class MultiplicityPolicyPanel extends Panel implements Popupable {
     }
 
     private void initLayout() {
-        Form form = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
+        Form form = new MidpointForm(ID_MAIN_FORM);
         form.setOutputMarkupId(true);
         add(form);
 
         TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION,
-            new PropertyModel<>(model,
-                MultiplicityPolicyConstraintType.F_DESCRIPTION.getLocalPart()),
+                new PropertyModel<>(model,
+                        MultiplicityPolicyConstraintType.F_DESCRIPTION.getLocalPart()),
                 createStringResource("multiplicityContainer.label.description"), ID_LABEL_SIZE,
                 ID_INPUT_SIZE);
         form.add(description);
@@ -112,8 +110,8 @@ public class MultiplicityPolicyPanel extends Panel implements Popupable {
         multiplicityContainer.setOutputMarkupId(true);
         form.add(multiplicityContainer);
 
-        TextField multiplicity = new TextField<>(ID_MULTIPLICITY, new PropertyModel<String>(model,
-                MultiplicityPolicyConstraintType.F_MULTIPLICITY.getLocalPart()));
+        TextField<String> multiplicity = new TextField<>(ID_MULTIPLICITY,
+                new PropertyModel<>(model, MultiplicityPolicyConstraintType.F_MULTIPLICITY.getLocalPart()));
         multiplicity.add(prepareMultiplicityValidator());
         multiplicity.add(new VisibleEnableBehaviour() {
 
@@ -125,7 +123,7 @@ public class MultiplicityPolicyPanel extends Panel implements Popupable {
         multiplicityContainer.add(multiplicity);
 
         CheckBox multiplicityUnbounded = new CheckBox(ID_MULTIPLICITY_UNBOUND,
-            new PropertyModel<>(this, MULTIPLICITY_UNBOUNDED));
+                new PropertyModel<>(this, MULTIPLICITY_UNBOUNDED));
         multiplicityUnbounded.add(new OnChangeAjaxBehavior() {
 
             @Override
@@ -208,12 +206,12 @@ public class MultiplicityPolicyPanel extends Panel implements Popupable {
     }
 
     @Override
-    public String getWidthUnit(){
+    public String getWidthUnit() {
         return "px";
     }
 
     @Override
-    public String getHeightUnit(){
+    public String getHeightUnit() {
         return "px";
     }
 

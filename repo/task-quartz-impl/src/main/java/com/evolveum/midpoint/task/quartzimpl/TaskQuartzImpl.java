@@ -18,6 +18,8 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -70,7 +72,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * - HANDLER_URI_STACK: manipulation of the URI stack (probably obsolete as URI stack is not used much)
  * <p>
  * Note that PRISM_ACCESS could be replaced by taskPrism object; but unfortunately taskPrism is changed in updateTaskInstance().
- * Quartz and Pending modification synchronization is perhaps not so useful, because we do not expact two threads to modify
+ * Quartz and Pending modification synchronization is perhaps not so useful, because we do not expect two threads to modify
  * a task at the same time. But let's play it safe.
  * <p>
  * PRISM_ACCESS by itself is NOT sufficient, though. TODO explain
@@ -88,7 +90,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public class TaskQuartzImpl implements InternalTaskInterface {
 
-    private static final TaskBinding DEFAULT_BINDING_TYPE = TaskBinding.TIGHT;
     private static final int TIGHT_BINDING_INTERVAL_LIMIT = 10;
 
     private final Object quartzAccess = new Object();
@@ -99,9 +100,9 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
     private PrismObject<TaskType> taskPrism;
 
-    private PrismObject<UserType> requestee;                                  // temporary information
+    private PrismObject<UserType> requestee; // temporary information
 
-    /*
+    /**
      * Task result is stored here as well as in task prism.
      *
      * This one is the live value of this task's result. All operations working with this task
@@ -123,82 +124,79 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     protected OperationResult taskResult;
 
     @NotNull protected final TaskManagerQuartzImpl taskManager;
-    protected RepositoryService repositoryService;
+    @NotNull protected final RepositoryService repositoryService;
 
-    private boolean recreateQuartzTrigger = false;          // whether to recreate quartz trigger on next flushPendingModifications and/or synchronizeWithQuartz
+    /**
+     * Whether to recreate quartz trigger on next flushPendingModifications and/or synchronizeWithQuartz.
+     */
+    private boolean recreateQuartzTrigger = false;
 
-    @NotNull    // beware, we still have to synchronize on pendingModifications while iterating over it
+    @NotNull // beware, we still have to synchronize on pendingModifications while iterating over it
     private final List<ItemDelta<?, ?>> pendingModifications = Collections.synchronizedList(new ArrayList<>());
 
+    /**
+     * Points where tracing is requested (for this task).
+     */
     private final Set<TracingRootType> tracingRequestedFor = new HashSet<>();
-    private TracingProfileType tracingProfile;      // the profile to be used for tracing - it is copied into operation result at specified tracing point(s)
+
+    /**
+     * The profile to be used for tracing - it is copied into operation result at specified tracing point(s).
+     */
+    private TracingProfileType tracingProfile;
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskQuartzImpl.class);
 
     //region Constructors
 
-    private TaskQuartzImpl(@NotNull TaskManagerQuartzImpl taskManager) {
+    TaskQuartzImpl(@NotNull TaskManagerQuartzImpl taskManager, @NotNull PrismObject<TaskType> taskPrism) {
         this.taskManager = taskManager;
+        this.repositoryService = taskManager.getRepositoryService();
+        this.taskPrism = taskPrism;
         statistics = new Statistics(taskManager.getPrismContext());
+        setDefaults();
+        updateTaskResult();
     }
 
     /**
-     * Note: This constructor assumes that the task is transient.
+     * Creates a new task instance i.e. from scratch.
      *
      * @param operationName if null, default op. name will be used
      */
-    TaskQuartzImpl(@NotNull TaskManagerQuartzImpl taskManager, LightweightIdentifier taskIdentifier, String operationName) {
-        this(taskManager);
-        this.repositoryService = taskManager.getRepositoryService();
-        this.taskPrism = new TaskType(getPrismContext()).asPrismObject();
-
-        setTaskIdentifier(taskIdentifier.toString());
-        setExecutionStatusTransient(TaskExecutionStatus.RUNNABLE);
-        setRecurrenceStatusTransient(TaskRecurrence.SINGLE);
-        setBindingTransient(DEFAULT_BINDING_TYPE);
-        setProgressTransient(0L);
-        setObjectTransient(null);
-        createOrUpdateTaskResult(operationName, true);
-
-        setDefaults();
+    static TaskQuartzImpl createNew(@NotNull TaskManagerQuartzImpl taskManager, String operationName) {
+        TaskType taskBean = new TaskType(taskManager.getPrismContext())
+                .taskIdentifier(taskManager.generateTaskIdentifier().toString())
+                .executionStatus(TaskExecutionStatusType.RUNNABLE)
+                .recurrence(TaskRecurrenceType.SINGLE)
+                .progress(0L)
+                .result(createTaskResult(operationName));
+        return new TaskQuartzImpl(taskManager, taskBean.asPrismObject());
     }
 
     /**
-     * Assumes that the task is persistent
-     * <p>
+     * Creates a new task instance from provided task prism object.
+     *
      * NOTE: if the result in prism is null, task result will be kept null as well (meaning it was not fetched from the repository).
      */
-    TaskQuartzImpl(@NotNull TaskManagerQuartzImpl taskManager, PrismObject<TaskType> taskPrism, RepositoryService repositoryService) {
-        this(taskManager);
-        this.repositoryService = repositoryService;
-        this.taskPrism = taskPrism;
-        createOrUpdateTaskResult(null, false);
-
-        setDefaults();
+    static TaskQuartzImpl createFromPrismObject(@NotNull TaskManagerQuartzImpl taskManager, PrismObject<TaskType> taskObject) {
+        return new TaskQuartzImpl(taskManager, taskObject);
     }
 
     private void setDefaults() {
         if (getBinding() == null) {
-            setBindingTransient(DEFAULT_BINDING_TYPE);
+            setBindingTransient(bindingFromSchedule(getSchedule()));
         }
     }
 
     //endregion
 
     //region Result handling
-    private void createOrUpdateTaskResult(String operationName, boolean create) {
+    private void updateTaskResult() {
         synchronized (prismAccess) {
             OperationResultType resultInPrism = taskPrism.asObjectable().getResult();
-            if (resultInPrism == null && create) {
-                if (operationName == null) {
-                    resultInPrism = createUnnamedTaskResult().createOperationResultType();
-                } else {
-                    resultInPrism = new OperationResult(operationName).createOperationResultType();
-                }
-                taskPrism.asObjectable().setResult(resultInPrism);
-            }
             if (resultInPrism != null) {
                 taskResult = OperationResult.createOperationResult(resultInPrism);
+            } else {
+                taskResult = null;
             }
         }
     }
@@ -208,6 +206,9 @@ public class TaskQuartzImpl implements InternalTaskInterface {
             if (taskResult != null) {
                 target.asObjectable().setResult(taskResult.createOperationResultType());
                 target.asObjectable().setResultStatus(taskResult.getStatus().createStatusType());
+            } else {
+                target.asObjectable().setResult(null);
+                target.asObjectable().setResultStatus(null);
             }
         }
     }
@@ -259,7 +260,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     }
 
     Task cloneAsStaticTask() {
-        return new TaskQuartzImpl(taskManager, getClonedTaskObject(), repositoryService);
+        return TaskQuartzImpl.createFromPrismObject(taskManager, getClonedTaskObject());
     }
 
     @NotNull
@@ -272,12 +273,8 @@ public class TaskQuartzImpl implements InternalTaskInterface {
         }
     }
 
-    RepositoryService getRepositoryService() {
+    @NotNull RepositoryService getRepositoryService() {
         return repositoryService;
-    }
-
-    void setRepositoryService(RepositoryService repositoryService) {
-        this.repositoryService = repositoryService;
     }
 
     @Override
@@ -430,6 +427,28 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     }
 
     @Nullable
+    private <X extends Containerable> ContainerDelta<X> createContainerValueAddDeltaIfPersistent(ItemName name, X value)
+            throws SchemaException {
+        if (isPersistent()) {
+            //noinspection unchecked
+            X clonedValue = value != null ? (X) value.asPrismContainerValue().clone().asContainerable() : null;
+            return deltaFactory().container().createModificationAdd(name, TaskType.class, clonedValue);
+        } else {
+            return null;
+        }
+    }
+
+    @Nullable
+    private ReferenceDelta createReferenceValueAddDeltaIfPersistent(ItemName name, Referencable value) {
+        if (isPersistent()) {
+            PrismReferenceValue clonedValue = value != null ? value.asReferenceValue().clone() : null;
+            return deltaFactory().reference().createModificationAdd(TaskType.class, name, clonedValue);
+        } else {
+            return null;
+        }
+    }
+
+    @Nullable
     private ReferenceDelta createReferenceDeltaIfPersistent(ItemName name, ObjectReferenceType value) {
         return isPersistent() ? deltaFactory().reference().createModificationReplace(name,
                 taskManager.getTaskObjectDefinition(), value != null ? value.clone().asReferenceValue() : null) : null;
@@ -467,6 +486,18 @@ public class TaskQuartzImpl implements InternalTaskInterface {
         }
     }
 
+    private <X extends Containerable> void addContainerable(ItemName name, X value) {
+        try {
+            addPendingModification(addContainerableAndCreateDeltaIfPersistent(name, value));
+        } catch (SchemaException e) {
+            throw new SystemException("Couldn't add the task container '" + name + "' value: " + e.getMessage(), e);
+        }
+    }
+
+    private void addReferencable(ItemName name, Referencable value) {
+        addPendingModification(addReferencableAndCreateDeltaIfPersistent(name, value));
+    }
+
     private <X> void setPropertyTransient(ItemName name, X value) {
         synchronized (prismAccess) {
             try {
@@ -482,7 +513,34 @@ public class TaskQuartzImpl implements InternalTaskInterface {
             try {
                 taskPrism.setContainerRealValue(name, value);
             } catch (SchemaException e) {
-                throw new SystemException("Couldn't set the task property '" + name + "': " + e.getMessage(), e);
+                throw new SystemException("Couldn't set the task container '" + name + "': " + e.getMessage(), e);
+            }
+        }
+    }
+
+    private <X extends Containerable> void addContainerableTransient(ItemName name, X value) {
+        if (value == null) {
+            return;
+        }
+        synchronized (prismAccess) {
+            try {
+                //noinspection unchecked
+                taskPrism.findOrCreateContainer(name).add(value.asPrismContainerValue());
+            } catch (SchemaException e) {
+                throw new SystemException("Couldn't add the task container '" + name + "' value: " + e.getMessage(), e);
+            }
+        }
+    }
+
+    private void addReferencableTransient(ItemName name, Referencable value) {
+        if (value == null) {
+            return;
+        }
+        synchronized (prismAccess) {
+            try {
+                taskPrism.findOrCreateReference(name).add(value.asReferenceValue());
+            } catch (SchemaException e) {
+                throw new SystemException("Couldn't add the task reference '" + name + "' value: " + e.getMessage(), e);
             }
         }
     }
@@ -506,6 +564,17 @@ public class TaskQuartzImpl implements InternalTaskInterface {
             throws SchemaException {
         setContainerableTransient(name, value);
         return createContainerDeltaIfPersistent(name, value);
+    }
+
+    private <X extends Containerable> ContainerDelta<X> addContainerableAndCreateDeltaIfPersistent(ItemName name, X value)
+            throws SchemaException {
+        addContainerableTransient(name, value);
+        return createContainerValueAddDeltaIfPersistent(name, value);
+    }
+
+    private ReferenceDelta addReferencableAndCreateDeltaIfPersistent(ItemName name, Referencable value) {
+        addReferencableTransient(name, value);
+        return createReferenceValueAddDeltaIfPersistent(name, value);
     }
 
     private PrismReferenceValue getReferenceValue(ItemName name) {
@@ -585,7 +654,6 @@ public class TaskQuartzImpl implements InternalTaskInterface {
         return getContainerableOrClone(TaskType.F_OPERATION_STATS);
     }
 
-    @SuppressWarnings("WeakerAccess")
     public void setOperationStats(OperationStatsType value) {
         setContainerable(TaskType.F_OPERATION_STATS, value);
     }
@@ -597,7 +665,6 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     /*
      * expectedTotal
      */
-
     @Override
     @Nullable
     public Long getExpectedTotal() {
@@ -814,14 +881,10 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
     // derives default binding form schedule
     private static TaskBinding bindingFromSchedule(ScheduleType schedule) {
-        if (schedule == null) {
-            return DEFAULT_BINDING_TYPE;
-        } else if (schedule.getInterval() != null && schedule.getInterval() != 0) {
-            return schedule.getInterval() <= TIGHT_BINDING_INTERVAL_LIMIT ? TaskBinding.TIGHT : TaskBinding.LOOSE;
-        } else if (StringUtils.isNotEmpty(schedule.getCronLikePattern())) {
-            return TaskBinding.LOOSE;
+        if (schedule != null && schedule.getInterval() != null && schedule.getInterval() > 0 && schedule.getInterval() <= TIGHT_BINDING_INTERVAL_LIMIT) {
+            return TaskBinding.TIGHT;
         } else {
-            return DEFAULT_BINDING_TYPE;
+            return TaskBinding.LOOSE;
         }
     }
 
@@ -2114,6 +2177,38 @@ public class TaskQuartzImpl implements InternalTaskInterface {
         return h != null ? h.getCategoryName(this) : null;
     }
 
+    public String getChannelFromHandler() {
+        TaskHandler h = getHandler();
+        return h != null ? h.getDefaultChannel() : null;
+    }
+
+    @Override
+    public void addArchetypeInformation(String archetypeOid) {
+        synchronized (prismAccess) {
+            List<ObjectReferenceType> existingArchetypes = taskPrism.asObjectable().getArchetypeRef();
+            if (!existingArchetypes.isEmpty()) {
+                throw new IllegalStateException("Couldn't add archetype " + archetypeOid + " because there is already one: "
+                        + existingArchetypes + "; in " + this);
+            }
+            addContainerable(TaskType.F_ASSIGNMENT,
+                    ObjectTypeUtil.createAssignmentTo(archetypeOid, ObjectTypes.ARCHETYPE, getPrismContext()));
+            addReferencable(TaskType.F_ROLE_MEMBERSHIP_REF,
+                    ObjectTypeUtil.createObjectRef(archetypeOid, ObjectTypes.ARCHETYPE));
+            addReferencable(TaskType.F_ARCHETYPE_REF,
+                    ObjectTypeUtil.createObjectRef(archetypeOid, ObjectTypes.ARCHETYPE));
+        }
+    }
+
+    @Override
+    public void addArchetypeInformationIfMissing(String archetypeOid) {
+        synchronized (prismAccess) {
+            List<ObjectReferenceType> existingArchetypes = taskPrism.asObjectable().getArchetypeRef();
+            if (existingArchetypes.isEmpty()) {
+                addArchetypeInformation(archetypeOid);
+            }
+        }
+    }
+
     /*
      *  Other methods
      */
@@ -2144,7 +2239,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
             throw ex;
         }
         this.taskPrism = repoObj;
-        createOrUpdateTaskResult(null, false);
+        updateTaskResult();
         setDefaults();
         resolveOwnerRef(result);
         result.recordSuccess();
@@ -2403,8 +2498,16 @@ public class TaskQuartzImpl implements InternalTaskInterface {
         return statistics.getAggregatedLiveOperationStats(emptyList());
     }
 
+    private static OperationResultType createTaskResult(String operationName) {
+        if (operationName == null) {
+            return createUnnamedTaskResult().createOperationResultType();
+        } else {
+            return new OperationResult(operationName).createOperationResultType();
+        }
+    }
+
     @NotNull
-    public OperationResult createUnnamedTaskResult() {
+    public static OperationResult createUnnamedTaskResult() {
         return new OperationResult(DOT_INTERFACE + "run");
     }
 

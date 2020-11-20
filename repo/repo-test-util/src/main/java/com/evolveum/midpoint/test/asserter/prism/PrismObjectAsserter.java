@@ -14,6 +14,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -248,6 +249,23 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         return this;
     }
 
+    // TODO move/copy? to PCV asserter
+    public PrismObjectAsserter<O,RA> assertValues(ItemPath path, Object... expectedRealValues) {
+        Item extensionItem = getObject().findItem(path);
+        if (expectedRealValues.length == 0) {
+            if (extensionItem != null && !extensionItem.isEmpty()) {
+                fail("Extension item exists when not expected: " + extensionItem);
+            }
+        } else {
+            assertNotNull("No item " + path, extensionItem);
+            Collection actualRealValues = extensionItem.getRealValues();
+            //noinspection unchecked
+            assertThat(actualRealValues).as("actual real values for item " + path)
+                    .containsExactlyInAnyOrder(expectedRealValues);
+        }
+        return this;
+    }
+
     public PrismContainerAsserter<?, ? extends PrismObjectAsserter<O,RA>> extensionContainer(String localName) {
         return createExtensionContainerAsserter(localName, getObject().findExtensionItem(localName));
     }
@@ -309,15 +327,15 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         }
     }
 
-    protected <T> void assertPropertyEquals(QName propName, T expected) {
-        PrismProperty<T> prop = getObject().findProperty(ItemName.fromQName(propName));
+    protected <T> void assertPropertyEquals(ItemPath propPath, T expected) {
+        PrismProperty<T> prop = getObject().findProperty(propPath);
         if (prop == null && expected == null) {
             return;
         }
-        assertNotNull("No "+propName.getLocalPart()+" in "+desc(), prop);
+        assertNotNull("No "+propPath+" in "+desc(), prop);
         T realValue = prop.getRealValue();
-        assertNotNull("No value in "+propName.getLocalPart()+" in "+desc(), realValue);
-        assertEquals("Wrong "+propName.getLocalPart()+" in "+desc(), expected, realValue);
+        assertNotNull("No value in "+propPath+" in "+desc(), realValue);
+        assertEquals("Wrong "+propPath+" in "+desc(), expected, realValue);
     }
 
     public PrismObjectAsserter<O,RA> assertNoItem(ItemPath itemPath) {
@@ -358,8 +376,8 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         return object;
     }
 
-    public ExtensionAsserter<O, ? extends PrismObjectAsserter<O,RA>, RA> extension() {
-        ExtensionAsserter<O, ? extends PrismObjectAsserter<O,RA>, RA> asserter = new ExtensionAsserter<>(this, getDetails());
+    public ExtensionAsserter<O, ? extends PrismObjectAsserter<O, RA>> extension() {
+        ExtensionAsserter<O, PrismObjectAsserter<O, RA>> asserter = new ExtensionAsserter<>(getObjectable(), this, getDetails());
         copySetupTo(asserter);
         return asserter;
     }
@@ -464,6 +482,20 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         if (!archetypeRefs.isEmpty()) {
             fail("Found archetypeRefs while not expected any: "+archetypeRefs);
         }
+        return this;
+    }
+
+    public PrismObjectAsserter<O,RA> assertPolicySituation(String uri) {
+        assertThat(getObject().asObjectable().getPolicySituation())
+                .as("Policy situations")
+                .contains(uri);
+        return this;
+    }
+
+    public PrismObjectAsserter<O,RA> assertNoPolicySituation(String uri) {
+        assertThat(getObject().asObjectable().getPolicySituation())
+                .as("Policy situations")
+                .doesNotContain(uri);
         return this;
     }
 }

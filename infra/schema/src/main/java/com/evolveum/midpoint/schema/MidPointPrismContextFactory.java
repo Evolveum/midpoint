@@ -19,6 +19,7 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 
 import com.evolveum.midpoint.schema.metadata.MidpointProvenanceEquivalenceStrategy;
 import com.evolveum.midpoint.schema.metadata.MidpointValueMetadataFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ObjectFactory;
@@ -65,6 +66,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         context.setDefaultRelation(SchemaConstants.ORG_DEFAULT);
         context.setObjectsElementName(SchemaConstants.C_OBJECTS);
         context.setDefaultReferenceTypeName(ObjectReferenceType.COMPLEX_TYPE);
+        context.setExtensionContainerTypeName(ExtensionType.COMPLEX_TYPE);
         if (InternalsConfig.isPrismMonitoring()) {
             context.setMonitor(new InternalMonitor());
         }
@@ -81,6 +83,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         context.setDefaultRelation(SchemaConstants.ORG_DEFAULT);
         context.setObjectsElementName(SchemaConstants.C_OBJECTS);
         context.setDefaultReferenceTypeName(ObjectReferenceType.COMPLEX_TYPE);
+        context.setExtensionContainerTypeName(ExtensionType.COMPLEX_TYPE);
         return context;
     }
 
@@ -107,7 +110,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
     }
 
     private void registerAxiomSchemas(SchemaRegistryImpl schemaRegistry) {
-        if(schemaRegistry instanceof AxiomEnabledSchemaRegistry) {
+        if (schemaRegistry instanceof AxiomEnabledSchemaRegistry) {
             AxiomEnabledSchemaRegistry axiomRegistry = (AxiomEnabledSchemaRegistry) schemaRegistry;
             AxiomModelStatementSource commonMetadata;
             try {
@@ -148,8 +151,6 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         // midPoint schemas
         schemaRegistry.registerPrismDefaultSchemaResource("xml/ns/public/common/common-3.xsd", "c",
                 com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory.class.getPackage());         // declared by default
-
-        schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/extension-metadata-3.xsd", "meta-ext");
 
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/audit-3.xsd", "aud",
                 com.evolveum.midpoint.xml.ns._public.common.audit_3.ObjectFactory.class.getPackage());

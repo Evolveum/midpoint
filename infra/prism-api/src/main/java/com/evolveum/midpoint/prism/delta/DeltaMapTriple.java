@@ -69,4 +69,10 @@ public interface DeltaMapTriple<K,V> extends DebugDumpable, Serializable, Simple
     DeltaMapTriple<K,V> clone(Cloner<Entry<K, V>> cloner);
 
     boolean isEmpty();
+
+    default void clear() {
+        clearPlusMap();
+        clearMinusMap();
+        clearZeroMap();
+    }
 }

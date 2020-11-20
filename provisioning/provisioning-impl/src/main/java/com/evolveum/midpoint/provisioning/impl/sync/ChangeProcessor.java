@@ -41,6 +41,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
+
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +74,15 @@ public class ChangeProcessor {
     @Autowired private SchemaHelper schemaHelper;
 
     /**
+     * Local sequence number of a change that is being processed in the current thread.
+     * Actually, it is a hack to enable testing: The code in mappings can obtain this
+     * information and do some asserts on it. When the information will be propagated into
+     * e.g. lensContext, we should remove this hack.
+     */
+    @VisibleForTesting
+    public static final ThreadLocal<Integer> CHANGE_BEING_PROCESSED = new ThreadLocal<>();
+
+    /**
      * Executes the request.
      *
      * @param workerTask Task in context of which the worker task is executing.
@@ -88,13 +99,14 @@ public class ChangeProcessor {
         String objectDisplayName = null;
         String objectOid = null;
 
+        CHANGE_BEING_PROCESSED.set(change.getLocalSequenceNumber());
         OperationResult result = parentResult.createMinorSubresult(OP_PROCESS_SYNCHRONIZATION);
         try {
 
             ProvisioningContext ctx = determineProvisioningContext(globalCtx, change, workerTask, result);
             if (ctx == null) {
-                request.setSuccess(true);
-                request.onSuccess();
+                request.setSuccessfullyProcessed(true);
+                request.onSuccessfullyProcessed();
                 return;
             }
 
@@ -103,8 +115,8 @@ public class ChangeProcessor {
             // that is used to execute the request. On the other hand, the task in globalCtx is the original
             // one that was used to start listening for changes. TODO This is to be cleaned up.
             // But for the time being let's forward with this hack.
-            if (SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI.equals(workerTask.getChannel())) {
-                ctx.setChannelOverride(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
+            if (SchemaConstants.CHANNEL_ASYNC_UPDATE_URI.equals(workerTask.getChannel())) {
+                ctx.setChannelOverride(SchemaConstants.CHANNEL_ASYNC_UPDATE_URI);
             }
 
             if (change.getObjectDelta() != null) {
@@ -145,8 +157,8 @@ public class ChangeProcessor {
                 assert change.isDelete();
                 LOGGER.debug("Skipping processing change. Can't find appropriate shadow (e.g. the object was "
                         + "deleted on the resource meantime).");
-                request.setSuccess(true);
-                request.onSuccess();
+                request.setSuccessfullyProcessed(true);
+                request.onSuccessfullyProcessed();
                 // Are we OK with the result being automatically computed here? (i.e. most probably SUCCESS?)
                 return;
             }
@@ -172,7 +184,9 @@ public class ChangeProcessor {
 
             notifyChangeResult.computeStatus("Error in notify change operation.");
 
-            if (notifyChangeResult.isSuccess() || notifyChangeResult.isHandledError() || notifyChangeResult.isNotApplicable()) {
+            //noinspection RedundantIfStatement
+            if (notifyChangeResult.isSuccess() || notifyChangeResult.isHandledError()
+                    || notifyChangeResult.isNotApplicable() || notifyChangeResult.isInProgress()) {
                 // Do not delete dead shadows. Keep dead shadow around because they contain results
                 // of the synchronization. Usual shadow refresh process should delete them eventually.
                 // TODO: review. Maybe make this configuration later on.
@@ -181,9 +195,9 @@ public class ChangeProcessor {
                 // And we need to modify ResourceObjectChangeListener for that. Keeping all dead
                 // shadows is much easier.
                 //                deleteShadowFromRepoIfNeeded(change, result);
-                request.setSuccess(true);
+                request.setSuccessfullyProcessed(true);
             } else {
-                request.setSuccess(false);
+                request.setSuccessfullyProcessed(false);
             }
 
             try {
@@ -196,10 +210,10 @@ public class ChangeProcessor {
                 result.computeStatus();
             }
 
-            if (request.isSuccess()) {
-                request.onSuccess();
+            if (request.isSuccessfullyProcessed()) {
+                request.onSuccessfullyProcessed();
             } else {
-                request.onError(result);
+                request.onProcessingError(notifyChangeResult);
             }
             workerTask.recordIterativeOperationEnd(objectName, objectDisplayName, ShadowType.COMPLEX_TYPE, objectOid, started, null);
 
@@ -207,16 +221,20 @@ public class ChangeProcessor {
                 ConfigurationException | ExpressionEvaluationException | SecurityViolationException | EncryptionException |
                 PolicyViolationException | RuntimeException | Error e) {
             result.recordFatalError(e);
-            request.setSuccess(false);
-            request.onError(e, result);
-            if (started > 0) {
-                workerTask.recordIterativeOperationEnd(objectName, objectDisplayName, ShadowType.COMPLEX_TYPE, objectOid, started, e);
+            request.setSuccessfullyProcessed(false);
+            try {
+                request.onProcessingError(e, result);
+            } finally {
+                if (started > 0) {
+                    workerTask.recordIterativeOperationEnd(objectName, objectDisplayName, ShadowType.COMPLEX_TYPE, objectOid, started, e);
+                }
             }
         } finally {
             request.setDone(true);
             result.computeStatusIfUnknown();
             result.cleanupResult();
             request.onCompletion(workerTask, coordinatorTask, result);
+            CHANGE_BEING_PROCESSED.remove();
         }
     }
 
@@ -376,7 +394,7 @@ public class ChangeProcessor {
         shadowChangeDescription.setResource(resourceType.asPrismObject());
         shadowChangeDescription.setOldShadow(change.getOldRepoShadow());
         shadowChangeDescription.setCurrentShadow(change.getCurrentResourceObject());
-        shadowChangeDescription.setSourceChannel(channel != null ? channel : SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
+        shadowChangeDescription.setSourceChannel(channel != null ? channel : SchemaConstants.CHANNEL_LIVE_SYNC_URI);
         return shadowChangeDescription;
     }
 
@@ -385,12 +403,20 @@ public class ChangeProcessor {
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException,
             PreconditionViolationException {
 
-        if (result.isSuccess() || result.isHandledError() || result.isNotApplicable()) {
+        if (result.isSuccess() || result.isHandledError() || result.isNotApplicable() || result.isInProgress()) {
+            return;
+        }
+
+        ErrorSelectorType selector = partition != null ? partition.getErrorCriticality() : null;
+        if (selector == null) {
+            // We have no information of how to adapt the criticality of the error.
+            // So, let us continue with what we know from the model operation.
+            // We certainly do not want to modify the operation result (e.g. by switching from
+            // FATAL_ERROR to PARTIAL_ERROR).
             return;
         }
 
         Throwable ex = RepoCommonUtils.getResultException(result);
-        ErrorSelectorType selector = partition != null ? partition.getErrorCriticality() : null;
         CriticalityType criticality = ExceptionUtil.getCriticality(selector, ex, CriticalityType.PARTIAL);
         RepoCommonUtils.processErrorCriticality(task, criticality, ex, result);
     }

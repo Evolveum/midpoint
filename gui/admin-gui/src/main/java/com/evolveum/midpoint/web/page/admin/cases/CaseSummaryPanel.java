@@ -1,10 +1,16 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (Cs) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.cases;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -13,7 +19,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
@@ -22,11 +27,6 @@ import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.model.IModel;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by honchar
@@ -38,15 +38,15 @@ public class CaseSummaryPanel extends ObjectSummaryPanel<CaseType> {
     private static final String DOT_CLASS = CaseSummaryPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_PARENT_CASE_DISPLAY_NAME = DOT_CLASS + "loadParentCaseDisplayName";
 
-    public CaseSummaryPanel(String id, Class type, IModel<CaseType> model, ModelServiceLocator serviceLocator) {
+    public CaseSummaryPanel(String id, Class<CaseType> type, IModel<CaseType> model, ModelServiceLocator serviceLocator) {
         super(id, type, model, serviceLocator);
     }
 
     @Override
     protected IModel<String> getTitleModel() {
-        return new LoadableModel<String>(){
+        return new LoadableModel<String>() {
             @Override
-            public String load(){
+            public String load() {
                 ObjectReferenceType parentRef = getModelObject().getParentRef();
                 if (parentRef != null && StringUtils.isNotEmpty(parentRef.getOid())) {
                     Task task = getPageBase().createSimpleTask(OPERATION_LOAD_PARENT_CASE_DISPLAY_NAME);
@@ -63,7 +63,7 @@ public class CaseSummaryPanel extends ObjectSummaryPanel<CaseType> {
     }
 
     @Override
-    protected List<SummaryTag<CaseType>> getSummaryTagComponentList(){
+    protected List<SummaryTag<CaseType>> getSummaryTagComponentList() {
         List<SummaryTag<CaseType>> summaryTagList = new ArrayList<>();
         SummaryTag<CaseType> tagOutcome = new SummaryTag<CaseType>(ID_SUMMARY_TAG, getModel()) {
             @Override
@@ -92,7 +92,7 @@ public class CaseSummaryPanel extends ObjectSummaryPanel<CaseType> {
     }
 
     @Override
-    protected String getIconCssClass() {
+    protected String getDefaultIconCssClass() {
         return GuiStyleConstants.EVO_CASE_OBJECT_ICON;
     }
 
@@ -106,7 +106,7 @@ public class CaseSummaryPanel extends ObjectSummaryPanel<CaseType> {
         return null;
     }
 
-   @Override
+    @Override
     protected boolean isIdentifierVisible() {
         return false;
     }

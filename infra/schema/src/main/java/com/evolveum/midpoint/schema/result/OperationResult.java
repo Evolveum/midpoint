@@ -143,6 +143,7 @@ public class OperationResult
     private Long start;
     private Long end;
     private Long microseconds;
+    private Long cpuMicroseconds;
     private Long invocationId;
 
     private final List<LogSegmentType> logSegments = new ArrayList<>();
@@ -248,7 +249,7 @@ public class OperationResult
         if (!building) {
             throw new IllegalStateException("Not being built");
         }
-        recordStart(this, operation, createArguments());
+        recordStart(operation, createArguments());
         building = false;
         if (futureParent != null) {
             futureParent.addSubresult(this);
@@ -264,22 +265,24 @@ public class OperationResult
         }
     }
 
-    private static void recordStart(OperationResult result, String operation, Object[] arguments) {
-        result.collectingLogEntries = result.tracingProfile != null && result.tracingProfile.isCollectingLogEntries();
-        if (result.collectingLogEntries) {
-            LoggingLevelOverrideConfiguration loggingOverrideConfiguration = result.tracingProfile.getLoggingLevelOverrideConfiguration();
+    private void recordStart(String operation, Object[] arguments) {
+        collectingLogEntries = tracingProfile != null && tracingProfile.isCollectingLogEntries();
+        if (collectingLogEntries) {
+            LoggingLevelOverrideConfiguration loggingOverrideConfiguration = tracingProfile.getLoggingLevelOverrideConfiguration();
             if (loggingOverrideConfiguration != null && !LevelOverrideTurboFilter.isActive()) {
                 LevelOverrideTurboFilter.overrideLogging(loggingOverrideConfiguration);
-                result.startedLoggingOverride = true;
+                startedLoggingOverride = true;
             }
-            TracingAppender.openSink(result::appendLoggedEvents);
+            TracingAppender.openSink(this::appendLoggedEvents);
         }
         // TODO for very minor operation results (e.g. those dealing with mapping and script execution)
         //  we should consider skipping creation of invocationRecord. It includes some string manipulation(s)
         //  and a call to System.nanoTime that could unnecessarily slow down midPoint operation.
-        result.invocationRecord = OperationInvocationRecord.create(operation, arguments);
-        result.invocationId = result.invocationRecord.getInvocationId();
-        result.start = System.currentTimeMillis();
+        //  But beware, it would disable measurements of these operations e.g. in task internal performance info panel.
+        boolean measureCpuTime = tracingProfile != null && tracingProfile.isMeasureCpuTime();
+        invocationRecord = OperationInvocationRecord.create(operation, arguments, measureCpuTime);
+        invocationId = invocationRecord.getInvocationId();
+        start = System.currentTimeMillis();
     }
 
     private void appendLoggedEvents(LoggingEventSink loggingEventSink) {
@@ -309,21 +312,11 @@ public class OperationResult
         return createSubresult(operation, true, null);
     }
 
-//    public static OperationResult createProfiled(String operation) {
-//        return createProfiled(operation, new Object[0]);
-//    }
-//
-//    public static OperationResult createProfiled(String operation, Object[] arguments) {
-//        OperationResult result = new OperationResult(operation);
-//        recordStart(result, operation, arguments);
-//        return result;
-//    }
-
     private OperationResult createSubresult(String operation, boolean minor, Object[] arguments) {
         OperationResult subresult = new OperationResult(operation);
         subresult.recordCallerReason(this);
         addSubresult(subresult);
-        recordStart(subresult, operation, arguments);
+        subresult.recordStart(operation, arguments);
         subresult.importance = minor ? MINOR : NORMAL;
         return subresult;
     }
@@ -336,6 +329,7 @@ public class OperationResult
             invocationRecord.processReturnValue(getReturns(), cause);
             invocationRecord.afterCall();
             microseconds = invocationRecord.getElapsedTimeMicros();
+            cpuMicroseconds = invocationRecord.getCpuTimeMicros();
             if (collectingLogEntries) {
                 TracingAppender.closeCurrentSink();
                 collectingLogEntries = false;
@@ -348,17 +342,6 @@ public class OperationResult
             startedLoggingOverride = false;
         }
     }
-
-    // This is not quite useful: We want to record the "real" end, i.e. when the control leaves the region belonging to
-    // the operation result. So it's actually OK to rewrite the end timestamp, even if it was already set.
-    // A small price to pay is that "end" could get a bit inconsistent with "microseconds", that was presumably set earlier.
-    // But that's quite good - when analyzing we can see that such an inconsistency arose and we can deal with it.
-
-//    public void recordEndIfNeeded() {
-//        if (invocationRecord != null || end == null) {
-//            recordEnd();
-//        }
-//    }
 
     /**
      * Reference to an asynchronous operation that can be used to retrieve
@@ -773,7 +756,9 @@ public class OperationResult
         if (localizableMessage == null) {
             return;
         }
-        if (userFriendlyMessage instanceof SingleLocalizableMessage) {
+        if (userFriendlyMessage == null) {
+            userFriendlyMessage = localizableMessage;
+        } else if (userFriendlyMessage instanceof SingleLocalizableMessage) {
             userFriendlyMessage = new LocalizableMessageListBuilder()
                     .message(userFriendlyMessage)
                     .message(localizableMessage)
@@ -820,6 +805,7 @@ public class OperationResult
         boolean hasHandledError = false;
         boolean hasError = false;
         boolean hasWarning = false;
+        StringJoiner operationMessageJoiner = new StringJoiner(", ");
         for (OperationResult sub : getSubresults()) {
             if (sub.getStatus() != OperationResultStatus.NOT_APPLICABLE) {
                 allNotApplicable = false;
@@ -829,34 +815,26 @@ public class OperationResult
             }
             if (sub.getStatus() == OperationResultStatus.FATAL_ERROR) {
                 hasError = true;
-                if (message == null) {
-                    message = sub.getMessage();
-                } else {
-                    message = message + ", " + sub.getMessage();
+                if (sub.getMessage() != null) {
+                    operationMessageJoiner.add(sub.getMessage());
                 }
             }
             if (sub.getStatus() == OperationResultStatus.PARTIAL_ERROR) {
                 hasError = true;
-                if (message == null) {
-                    message = sub.getMessage();
-                } else {
-                    message = message + ", " + sub.getMessage();
+                if (sub.getMessage() != null) {
+                    operationMessageJoiner.add(sub.getMessage());
                 }
             }
             if (sub.getStatus() == OperationResultStatus.HANDLED_ERROR) {
                 hasHandledError = true;
-                if (message == null) {
-                    message = sub.getMessage();
-                } else {
-                    message = message + ", " + sub.getMessage();
+                if (sub.getMessage() != null) {
+                    operationMessageJoiner.add(sub.getMessage());
                 }
             }
             if (sub.getStatus() == OperationResultStatus.IN_PROGRESS) {
                 hasInProgress = true;
-                if (message == null) {
-                    message = sub.getMessage();
-                } else {
-                    message = message + ", " + sub.getMessage();
+                if (sub.getMessage() != null) {
+                    operationMessageJoiner.add(sub.getMessage());
                 }
                 if (asynchronousOperationReference == null) {
                     asynchronousOperationReference = sub.getAsynchronousOperationReference();
@@ -864,12 +842,13 @@ public class OperationResult
             }
             if (sub.getStatus() == OperationResultStatus.WARNING) {
                 hasWarning = true;
-                if (message == null) {
-                    message = sub.getMessage();
-                } else {
-                    message = message + ", " + sub.getMessage();
+                if (sub.getMessage() != null) {
+                    operationMessageJoiner.add(sub.getMessage());
                 }
             }
+        }
+        if (operationMessageJoiner.length() > 0) {
+            message = operationMessageJoiner.toString();
         }
 
         if (allNotApplicable) {
@@ -923,7 +902,7 @@ public class OperationResult
         return isTracing(traceClass, TracingLevelType.NORMAL);
     }
 
-    public boolean isTracingMinimal(Class<? extends TraceType> traceClass) {
+    public boolean isTracingAny(Class<? extends TraceType> traceClass) {
         return isTracing(traceClass, TracingLevelType.MINIMAL);
     }
 
@@ -998,26 +977,23 @@ public class OperationResult
 
     public void recomputeStatus() {
         recordEnd();
-        // Only recompute if there are subresults, otherwise keep original
-        // status
+        // Only recompute if there are subresults, otherwise keep original status
         if (subresults != null && !subresults.isEmpty()) {
             computeStatus();
         }
     }
 
-    public void recomputeStatus(String message) {
+    public void recomputeStatus(String errorMessage) {
         recordEnd();
-        // Only recompute if there are subresults, otherwise keep original
-        // status
+        // Only recompute if there are subresults, otherwise keep original status
         if (subresults != null && !subresults.isEmpty()) {
-            computeStatus(message);
+            computeStatus(errorMessage);
         }
     }
 
     public void recomputeStatus(String errorMessage, String warningMessage) {
         recordEnd();
-        // Only recompute if there are subresults, otherwise keep original
-        // status
+        // Only recompute if there are subresults, otherwise keep original status
         if (subresults != null && !subresults.isEmpty()) {
             computeStatus(errorMessage, warningMessage);
         }
@@ -1529,6 +1505,13 @@ public class OperationResult
         this.status = status;
         this.message = message;
         this.cause = cause;
+        recordUserFriendlyMessage(cause);
+    }
+
+    private void recordUserFriendlyMessage(Throwable cause) {
+        if (cause instanceof CommonException) {
+            setUserFriendlyMessage(((CommonException) cause).getUserFriendlyMessage());
+        }
     }
 
     public void recordFatalError(String message) {
@@ -1634,6 +1617,7 @@ public class OperationResult
             opResult.setEnd(XmlTypeConverter.toMillis(result.getEnd()));
         }
         opResult.setMicroseconds(result.getMicroseconds());
+        opResult.setCpuMicroseconds(result.getCpuMicroseconds());
         opResult.setInvocationId(result.getInvocationId());
         opResult.logSegments.addAll(result.getLog());
         return opResult;
@@ -1665,31 +1649,31 @@ public class OperationResult
         resultType.setMessageCode(opResult.getMessageCode());
 
         if (opResult.getCause() != null || !opResult.details.isEmpty()) {
-            StringBuilder detailsb = new StringBuilder();
+            StringBuilder detailSb = new StringBuilder();
 
             // Record text messages in details (if present)
             if (!opResult.details.isEmpty()) {
                 for (String line : opResult.details) {
-                    detailsb.append(line);
-                    detailsb.append("\n");
+                    detailSb.append(line);
+                    detailSb.append("\n");
                 }
             }
 
             // Record stack trace in details if a cause is present
             if (opResult.getCause() != null) {
                 Throwable ex = opResult.getCause();
-                detailsb.append(ex.getClass().getName());
-                detailsb.append(": ");
-                detailsb.append(ex.getMessage());
-                detailsb.append("\n");
+                detailSb.append(ex.getClass().getName());
+                detailSb.append(": ");
+                detailSb.append(ex.getMessage());
+                detailSb.append("\n");
                 StackTraceElement[] stackTrace = ex.getStackTrace();
                 for (StackTraceElement aStackTrace : stackTrace) {
-                    detailsb.append(aStackTrace.toString());
-                    detailsb.append("\n");
+                    detailSb.append(aStackTrace.toString());
+                    detailSb.append("\n");
                 }
             }
 
-            resultType.setDetails(detailsb.toString());
+            resultType.setDetails(detailSb.toString());
         }
 
         if (opResult.getUserFriendlyMessage() != null) {
@@ -1710,6 +1694,7 @@ public class OperationResult
         resultType.setStart(XmlTypeConverter.createXMLGregorianCalendar(opResult.start));
         resultType.setEnd(XmlTypeConverter.createXMLGregorianCalendar(opResult.end));
         resultType.setMicroseconds(opResult.microseconds);
+        resultType.setCpuMicroseconds(opResult.cpuMicroseconds);
         resultType.setInvocationId(opResult.invocationId);
         resultType.getLog().addAll(opResult.logSegments);           // consider cloning here
         resultType.getTrace().addAll(opResult.traces);           // consider cloning here
@@ -2161,13 +2146,16 @@ public class OperationResult
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) { return true; }
-            if (o == null || getClass() != o.getClass()) { return false; }
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
 
             OperationStatusKey that = (OperationStatusKey) o;
-
-            if (operation != null ? !operation.equals(that.operation) : that.operation != null) { return false; }
-            return status == that.status;
+            return Objects.equals(operation, that.operation)
+                    && status == that.status;
         }
 
         @Override
@@ -2184,6 +2172,7 @@ public class OperationResult
         private int hiddenCount;        // how many entries will be hidden (after this wave of stripping)
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     public OperationResult clone() {
         return clone(null, true);
     }
@@ -2223,6 +2212,7 @@ public class OperationResult
         clone.start = start;
         clone.end = end;
         clone.microseconds = microseconds;
+        clone.cpuMicroseconds = cpuMicroseconds;
         clone.invocationId = invocationId;
         clone.traces.addAll(CloneUtil.cloneCollectionMembers(traces));
 
@@ -2335,6 +2325,7 @@ public class OperationResult
                 Objects.equals(start, result.start) &&
                 Objects.equals(end, result.end) &&
                 Objects.equals(microseconds, result.microseconds) &&
+                Objects.equals(cpuMicroseconds, result.cpuMicroseconds) &&
                 Objects.equals(invocationId, result.invocationId) &&
                 Objects.equals(tracingProfile, result.tracingProfile) &&
                 Objects.equals(operation, result.operation) &&
@@ -2359,7 +2350,7 @@ public class OperationResult
                 operation, qualifiers, status, params, context, returns, token, messageCode,
                 message, userFriendlyMessage, cause, count, hiddenRecordsCount, subresults, details,
                 summarizeErrors, summarizePartialErrors, summarizeSuccesses, building, start, end,
-                microseconds, invocationId, traces, asynchronousOperationReference);
+                microseconds, cpuMicroseconds, invocationId, traces, asynchronousOperationReference);
     }
 
     public Long getStart() {
@@ -2384,6 +2375,14 @@ public class OperationResult
 
     public void setMicroseconds(Long microseconds) {
         this.microseconds = microseconds;
+    }
+
+    public Long getCpuMicroseconds() {
+        return cpuMicroseconds;
+    }
+
+    public void setCpuMicroseconds(Long cpuMicroseconds) {
+        this.cpuMicroseconds = cpuMicroseconds;
     }
 
     public Long getInvocationId() {

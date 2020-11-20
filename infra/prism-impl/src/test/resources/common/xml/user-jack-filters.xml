@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<user oid="c0c010c0-d34d-b33f-f00d-111111111111" version="42"
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+        xmlns='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'
+        xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+        xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
+        xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:adhoc="http://midpoint.evolveum.com/xml/ns/test/adhoc-1.xsd"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension">
+    <name>jack</name>
+    <description>This must be the best pirate the world has ever seen</description>
+    <extension>
+
+        <!-- String type from extra schema -->
+        <ext:singleStringType>foobar</ext:singleStringType>
+
+        <!-- Indexed (and multivalued) string from  extra schema -->
+        <ext:indexedString>alpha</ext:indexedString>
+        <ext:indexedString>bravo</ext:indexedString>
+
+        <!-- Dynamic string type -->
+        <ext:bar xsi:type="xsd:string">BAR</ext:bar>
+
+        <!-- Dynamic int type -->
+        <ext:num xsi:type="xsd:int">42</ext:num>
+
+        <!-- Dynamic dateTime type -->
+        <ext:dateTime xsi:type="xsd:dateTime">2020-07-07T00:00:00.000+02:00</ext:dateTime>
+
+        <!-- Dynamic multivalued string type -->
+        <ext:multi xsi:type="xsd:string">raz</ext:multi>
+        <ext:multi xsi:type="xsd:string">dva</ext:multi>
+        <ext:multi xsi:type="xsd:string">tri</ext:multi>
+        <ext:multi incomplete="true"/>
+
+    <!--    <foo:password xsi:type="ProtectedStringType">
+            <clearValue>openS3zam3</clearValue>
+        </foo:password>  -->
+    </extension>
+    <fullName>cpt. Jack Sparrow</fullName>
+    <givenName>Jack</givenName>
+    <familyName>Sparrow</familyName>
+    <additionalNames>Captain</additionalNames>
+    <additionalNames>Jackie</additionalNames>
+    <polyName>
+        <t:orig>Džek Sperou</t:orig>
+        <t:norm>dzek sperou</t:norm>
+        <t:translation>
+            <t:key>JACK</t:key>
+            <t:fallback>Jack</t:fallback>
+            <t:argument>
+                <t:value>Sparrow</t:value>
+            </t:argument>
+        </t:translation>
+        <t:lang>
+            <t:en>Jack Sparrow</t:en>
+            <t:sk>Džek Sperou</t:sk>
+            <t:ru>Джек Воробей</t:ru>
+            <t:hr>Ðek Sperou</t:hr>
+        </t:lang>
+    </polyName>
+
+    <assignment id="1111">
+        <description>Assignment 1</description>
+    </assignment>
+
+    <assignment id="1112">
+        <description>Assignment 2</description>
+        <accountConstruction>
+            <howto>Just do it</howto>
+            <when>2012-02-24T10:48:52.000Z</when>
+            <value>ABC</value>              <!-- simple RawType content -->
+            <value>
+                <fullName>Nobody</fullName> <!-- complex RawType content (interpreted as UserType in tests) -->
+            </value>
+        </accountConstruction>
+    </assignment>
+
+    <assignment incomplete="true"/>
+
+    <activation>
+        <enabled>true</enabled>
+        <validFrom>1975-05-30T21:30:00.000Z</validFrom>
+    </activation>
+
+    <password>
+        <t:encryptedData>
+            <t:encryptionMethod>
+                 <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes256-cbc</t:algorithm>
+            </t:encryptionMethod>
+            <t:keyInfo>
+                <t:keyName>HF6JRsNMeJt6alihT44CXKgpe0c=</t:keyName>
+            </t:keyInfo>
+            <t:cipherData>
+                <t:cipherValue>blc5OXO2Z4vJW7o/XXhqZzg/rkwsIOwRBK7KLgMqwcrVcYpeZZOjxzgRgFiNw4IB</t:cipherValue>
+            </t:cipherData>
+        </t:encryptedData>
+    </password>
+
+    <!-- Composite object -->
+    <account oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1113">
+        <name>jsparrow</name>
+    </account>
+
+    <!-- Plain reference -->
+    <accountRef oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1111" />       <!-- deliberately without specifying the type, as it should be taken from the definition -->
+
+    <!-- Reference with description and filter -->
+    <accountRef oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1112" type="AccountType">
+        <description>This is a reference with a filter</description>
+        <filter>
+            <q:equal>
+                <q:path>name</q:path>
+                <q:value>captain</q:value>
+            </q:equal>
+        </filter>
+    </accountRef>
+
+    <accountRef incomplete="true" />
+
+    <special>got it!</special>
+
+    <singleActivation/>            <!-- empty container value for single-valued child container -->
+    <multiActivation/>
+    <multiActivationCopy/>
+    <multiActivationCopy>
+        <enabled>true</enabled>
+    </multiActivationCopy>
+
+    <singleConstruction/>
+    <multiConstruction/>
+    <multiConstructionCopy/>
+    <multiConstructionCopy>
+        <howto>abc</howto>
+    </multiConstructionCopy>
+
+</user>

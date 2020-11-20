@@ -19,7 +19,6 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.ScriptHistoryEntry;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -51,7 +50,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         deltas.add(delta);
 
-        task.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON));
+        task.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_RECON));
         modelService.executeChanges(deltas, executeOptions().reconcile(), task, parentResult);
 
         delta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_FULL_NAME, new PolyString("tralala"));

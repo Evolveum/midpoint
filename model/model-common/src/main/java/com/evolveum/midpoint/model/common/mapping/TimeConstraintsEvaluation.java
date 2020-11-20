@@ -15,6 +15,8 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingTimeDeclarationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
@@ -28,6 +30,8 @@ import java.util.Objects;
  * Evaluates mapping time constraints.
  */
 class TimeConstraintsEvaluation {
+
+    private static final Trace LOGGER = TraceManager.getTrace(TimeConstraintsEvaluation.class);
 
     /**
      * "Parent" mapping evaluation.
@@ -60,7 +64,7 @@ class TimeConstraintsEvaluation {
         }
 
         XMLGregorianCalendar timeFrom = parseTime(timeFromSpec, result);
-        m.traceTimeFrom(timeFrom);
+        m.recordTimeFrom(timeFrom);
 
         if (timeFrom == null && timeFromSpec != null) {
             // Time is specified but there is no value for it.
@@ -70,7 +74,7 @@ class TimeConstraintsEvaluation {
             return;
         }
         XMLGregorianCalendar timeTo = parseTime(timeToSpec, result);
-        m.traceTimeTo(timeTo);
+        m.recordTimeTo(timeTo);
 
         if (timeFrom != null && timeFrom.compare(m.now) == DatatypeConstants.GREATER) {
             // before timeFrom
@@ -100,27 +104,28 @@ class TimeConstraintsEvaluation {
         timeConstraintValid = timeTo == null;
     }
 
-    private XMLGregorianCalendar parseTime(MappingTimeDeclarationType timeType, OperationResult result) throws SchemaException,
+    private XMLGregorianCalendar parseTime(MappingTimeDeclarationType timeBean, OperationResult result) throws SchemaException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException {
-        if (timeType == null) {
+        if (timeBean == null) {
             return null;
         }
         XMLGregorianCalendar referenceTime;
-        ExpressionType expressionType = timeType.getExpression();
-        VariableBindingDefinitionType referenceTimeType = timeType.getReferenceTime();
-        if (referenceTimeType == null) {
-            if (expressionType == null) {
+        ExpressionType expressionBean = timeBean.getExpression();
+        VariableBindingDefinitionType referenceTimeBean = timeBean.getReferenceTime();
+        if (referenceTimeBean == null) {
+            if (expressionBean == null) {
                 throw new SchemaException("No reference time specified, there is also no default and no expression; in time specification in " + m.getMappingContextDescription());
             } else {
                 referenceTime = null;
             }
         } else {
-            referenceTime = parseTimeSource(referenceTimeType, result);
+            referenceTime = parseTimeSource(referenceTimeBean, result);
         }
+        LOGGER.trace("reference time = {}", referenceTime);
 
         XMLGregorianCalendar time;
-        if (expressionType == null) {
+        if (expressionBean == null) {
             if (referenceTime == null) {
                 return null;
             } else {
@@ -136,17 +141,19 @@ class TimeConstraintsEvaluation {
             timeVariables.addVariableDefinition(ExpressionConstants.VAR_REFERENCE_TIME, referenceTime, timeDefinition);
 
             PrismPropertyValue<XMLGregorianCalendar> timePropVal = ExpressionUtil.evaluateExpression(m.sources, timeVariables, timeDefinition,
-                    expressionType, m.expressionProfile, m.beans.expressionFactory, "time expression in " + m.getMappingContextDescription(), m.getTask(), result);
+                    expressionBean, m.expressionProfile, m.beans.expressionFactory, "time expression in " + m.getMappingContextDescription(), m.getTask(), result);
 
             if (timePropVal == null) {
                 return null;
             }
 
             time = timePropVal.getValue();
+            LOGGER.trace("Expression evaluated. Time = {}", time);
         }
-        Duration offset = timeType.getOffset();
+        Duration offset = timeBean.getOffset();
         if (offset != null) {
             time.add(offset);
+            LOGGER.trace("Offset {} applied; time = {}", offset, time);
         }
         return time;
     }
@@ -159,6 +166,8 @@ class TimeConstraintsEvaluation {
         Object sourceObject = ExpressionUtil.resolvePathGetValue(path, m.variables, false,
                 m.getTypedSourceContext(), m.beans.objectResolver, m.beans.prismContext,
                 "reference time definition in " + m.getMappingContextDescription(), m.getTask(), result);
+        LOGGER.trace("parseTimeSource: path = {}, source object = {}", path, sourceObject);
+
         if (sourceObject == null) {
             return null;
         }

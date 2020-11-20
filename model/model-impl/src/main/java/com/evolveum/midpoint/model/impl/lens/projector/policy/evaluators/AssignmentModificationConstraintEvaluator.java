@@ -70,7 +70,7 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
                 return null;
             }
             AssignmentModificationPolicyConstraintType constraint = constraintElement.getValue();
-            if (!operationMatches(constraint, ctx.inPlus, ctx.inZero, ctx.inMinus) ||
+            if (!operationMatches(constraint, ctx.isAdded, ctx.isKept, ctx.isDeleted) ||
                     !relationMatches(constraint, ctx) ||
                     !pathsMatch(constraint, ctx) ||
                     !expressionPasses(constraintElement, ctx, result)) {
@@ -108,9 +108,9 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 
     @NotNull
     private <AH extends AssignmentHolderType> String createOperationKey(AssignmentPolicyRuleEvaluationContext<AH> ctx) {
-        if (ctx.inPlus) {
+        if (ctx.isAdded) {
             return "Added";
-        } else if (ctx.inMinus) {
+        } else if (ctx.isDeleted) {
             return "Deleted";
         } else {
             return "Modified";
@@ -179,8 +179,8 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 
         // hope this is correctly filled in
         if (constraint.getItem().isEmpty()) {
-            if (ctx.inPlus || ctx.inMinus) {
-                LOGGER.trace("pathsMatch: returns true because no items are configured and inPlus||inMinus");
+            if (ctx.isAdded || ctx.isDeleted) {
+                LOGGER.trace("pathsMatch: returns true because no items are configured and isAdded||isDeleted");
                 return true;
             } else {
                 Collection<? extends ItemDelta<?, ?>> subItemDeltas = ctx.evaluatedAssignment.getAssignmentIdi().getSubItemDeltas();
@@ -191,16 +191,16 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
         } else {
             for (ItemPathType path : constraint.getItem()) {
                 ItemPath itemPath = prismContext.toPath(path);
-                if (ctx.inPlus && pathDoesNotMatch(ctx.evaluatedAssignment.getAssignmentType(false), itemPath)) {
-                    LOGGER.trace("pathsMatch: returns false because inPlus and path {} does not match new assignment", itemPath);
+                if (ctx.isAdded && pathDoesNotMatch(ctx.evaluatedAssignment.getAssignmentType(false), itemPath)) {
+                    LOGGER.trace("pathsMatch: returns false because isAdded and path {} does not match new assignment", itemPath);
                     return false;
-                } else if (ctx.inMinus && pathDoesNotMatch(ctx.evaluatedAssignment.getAssignmentType(true), itemPath)) {
-                    LOGGER.trace("pathsMatch: returns false because inMinus and path {} does not match old assignment", itemPath);
+                } else if (ctx.isDeleted && pathDoesNotMatch(ctx.evaluatedAssignment.getAssignmentType(true), itemPath)) {
+                    LOGGER.trace("pathsMatch: returns false because isDeleted and path {} does not match old assignment", itemPath);
                     return false;
                 } else {
                     Collection<? extends ItemDelta<?, ?>> subItemDeltas = ctx.evaluatedAssignment.getAssignmentIdi().getSubItemDeltas();
-                    if (ctx.inZero && pathDoesNotMatch(subItemDeltas, itemPath, exactMatch)) {
-                        LOGGER.trace("pathsMatch: returns false because inZero and path {} does not match new assignment; "
+                    if (ctx.isKept && pathDoesNotMatch(subItemDeltas, itemPath, exactMatch)) {
+                        LOGGER.trace("pathsMatch: returns false because isKept and path {} does not match new assignment; "
                                         + "exact={}; sub item deltas={}", itemPath, exactMatch, subItemDeltas);
                         return false;
                     }

@@ -71,7 +71,7 @@ public class NextRecompute {
         targetContext.swallowToSecondaryDelta(triggerDelta);
     }
 
-    public static <V extends PrismValue, D extends ItemDefinition> NextRecompute update(MappingImpl<V, D> mapping, NextRecompute existing) {
+    public static NextRecompute update(MappingImpl<?, ?> mapping, NextRecompute existing) {
         XMLGregorianCalendar mappingNextRecomputeTime = mapping.getNextRecomputeTime();
         LOGGER.trace("Evaluation of mapping {} delayed to {}", mapping, mappingNextRecomputeTime);
         if (mappingNextRecomputeTime != null && (existing == null || existing.nextRecomputeTime.compare(mappingNextRecomputeTime) == DatatypeConstants.GREATER)) {

@@ -176,7 +176,7 @@ public class CryptoUtil {
         if (changes == 0) {
             return Collections.emptySet();
         }
-        ObjectDelta<T> diff = object.diff(reencrypted, EquivalenceStrategy.LITERAL);
+        ObjectDelta<T> diff = object.diff(reencrypted, EquivalenceStrategy.DATA);
         if (!diff.isModify()) {
             throw new AssertionError("Expected MODIFY delta, got " + diff);
         }

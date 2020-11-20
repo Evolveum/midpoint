@@ -9,6 +9,7 @@ echo Error: No command given. Specify either start or stop.
 goto end
 
 :doStart
+REM BIN_DIR will end with \
 set BIN_DIR=%~dp0
 set LIB_DIR=%BIN_DIR%..\lib
 
@@ -24,6 +25,7 @@ if not exist "%BIN_DIR%midpoint.bat" (
     goto end
 )
 
+set ORIG_JAVA_OPTS=%JAVA_OPTS%
 set JAVA_OPTS=-Xms2048M -Xmx4096M -Dpython.cachedir="%MIDPOINT_HOME%\tmp" -Djavax.net.ssl.trustStore="%MIDPOINT_HOME%\keystore.jceks" -Djavax.net.ssl.trustStoreType=jceks %JAVA_OPTS%
 
 if not exist "%BIN_DIR%setenv.bat" goto :noSetEnv
@@ -33,6 +35,15 @@ echo.
 call "%BIN_DIR%setenv.bat"
 
 :noSetEnv
+
+if not exist "%MIDPOINT_HOME%\setenv.bat" goto :noSetEnvMpHome
+echo Applying %MIDPOINT_HOME%\setenv.bat
+echo.
+
+call "%MIDPOINT_HOME%\setenv.bat"
+
+:noSetEnvMpHome
+
 echo Using MIDPOINT_HOME:   "%MIDPOINT_HOME%"
 
 if not exist "%LIB_DIR%\midpoint.war" (
@@ -50,7 +61,6 @@ echo Using BOOT_OUT:        "%BOOT_OUT%"
 
 rem ----- Execute The Requested Start Command ---------------------------------------
 
-shift
 set RUN_JAVA=javaw
 if not "%JAVA_HOME%" == "" set RUN_JAVA=%JAVA_HOME%\bin\javaw
 
@@ -59,14 +69,17 @@ echo Using JAVA_OPTS:       "%JAVA_OPTS%"
 echo Using parameters:      "%*"
 echo.
 echo Starting midPoint.
-start /b "midPoint" "%RUN_JAVA%" -jar %JAVA_OPTS% -Dmidpoint.home="%MIDPOINT_HOME%" "%LIB_DIR%\midpoint.war" %* > "%BOOT_OUT%" 2>&1
+start /b "midPoint" "%RUN_JAVA%"^
+ %JAVA_OPTS% -Dmidpoint.home="%MIDPOINT_HOME%"^
+ -cp "%LIB_DIR%\midpoint.war"^
+ -Dloader.path=WEB-INF/classes,WEB-INF/lib,WEB-INF/lib-provided,%MIDPOINT_HOME%\lib^
+ org.springframework.boot.loader.PropertiesLauncher %2 %3 %4 %5 %6 %7 %8 %9 > "%BOOT_OUT%" 2>&1
 goto end
 
 :doStop
 
 set MIDPOINT_PORT=8080
 
-shift
 echo Trying to find and stop a process listening on port %MIDPOINT_PORT%...
 set MIDPOINT_FOUND=
 FOR /F "usebackq tokens=5" %%i IN (`netstat -aon ^| findstr "0.0.0.0:%MIDPOINT_PORT% "`) DO (

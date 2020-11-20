@@ -11,7 +11,6 @@ package com.evolveum.midpoint.schema.result;
  * that it may later evolve to something like future/promise.
  *
  * @author semancik
- *
  */
 public class AsynchronousOperationReturnValue<T> extends AsynchronousOperationResult {
 

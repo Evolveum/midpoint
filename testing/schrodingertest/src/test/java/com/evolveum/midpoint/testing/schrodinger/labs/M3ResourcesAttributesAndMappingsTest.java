@@ -6,26 +6,23 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.labs;
 
-import com.codeborne.selenide.Condition;
-
 import com.codeborne.selenide.Selenide;
-import com.codeborne.selenide.SelenideElement;
 
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
+import com.evolveum.midpoint.schrodinger.component.resource.ResourceConfigurationTab;
 import com.evolveum.midpoint.schrodinger.page.resource.AccountPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ResourceWizardPage;
+import com.evolveum.midpoint.schrodinger.page.resource.SchemaStepSchemaTab;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
-import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.commons.io.FileUtils;
-import org.openqa.selenium.By;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -33,8 +30,6 @@ import org.testng.annotations.Test;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
-
-import static com.codeborne.selenide.Selenide.$;
 
 /**
  * @author skublik
@@ -53,89 +48,59 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
         csv1TargetFile = new File(getTestTargetDir(), CSV_1_FILE_SOURCE_NAME);
         FileUtils.copyFile(CSV_1_SOURCE_FILE, csv1TargetFile);
 
-        importObject(CSV_1_SIMPLE_RESOURCE_FILE,true);
+        importObject(CSV_1_SIMPLE_RESOURCE_FILE, true);
 
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
 
         ListResourcesPage resourcesList = basicPage.listResources();
 
-        resourcesList
+        PrismForm<ResourceConfigurationTab> configTab = resourcesList
                 .table()
-                    .clickByName(CSV_1_RESOURCE_NAME)
-                        .clickEditResourceConfiguration();
-
-        SelenideElement uniqueAttributeField = $(Schrodinger.byDataResourceKey(UNIQUE_ATTRIBUTE_RESOURCE_KEY))
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-
+                .clickByName(CSV_1_RESOURCE_NAME)
+                    .clickEditResourceConfiguration()
+                    .form();
         // Unique attribute name should be login
-        Assert.assertTrue(uniqueAttributeField
-                .$(By.tagName("input"))
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S)
-                .getValue()
-                .equals(CSV_1_UNIQUE_ATTRIBUTE_NAME));
-
-        SelenideElement passwordAttributeField = $(Schrodinger.byDataResourceKey(PASSWORD_ATTRIBUTE_RESOURCE_KEY))
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
+        Assert.assertTrue(configTab
+                            .compareInputAttributeValue(UNIQUE_ATTRIBUTE_NAME, CSV_1_UNIQUE_ATTRIBUTE_NAME));
 
         // Password attribute name should be password
-        Assert.assertTrue(passwordAttributeField
-                .$(By.tagName("input"))
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S)
-                .getValue()
-                .equals(CSV_1_PASSWORD_ATTRIBUTE_NAME));
+        Assert.assertTrue(configTab
+                .compareInputAttributeValue(PASSWORD_ATTRIBUTE_NAME, CSV_1_PASSWORD_ATTRIBUTE_NAME));
 
         ResourceWizardPage resourceWizard = basicPage.listResources()
                 .table()
                     .clickByName(CSV_1_RESOURCE_NAME)
                         .clickShowUsingWizard();
 
-        //wizard should appear
-        Assert.assertTrue($(By.className("wizard"))
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S)
-                .exists());
-
-        Assert.assertTrue($(Schrodinger.byDataId("readOnlyNote"))
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S)
-                .exists());
+        Assert.assertTrue(resourceWizard.isReadonlyMode());
 
         //Configuration tab
-        resourceWizard.clickOnWizardTab("Configuration");
-        Assert.assertTrue($(Schrodinger.byDataId("configuration"))
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S)
-                .exists());
+        Assert.assertTrue(resourceWizard.selectConfigurationStep().getParentElement().exists());
 
         //Schema tab
-        resourceWizard.clickOnWizardTab("Schema");
-        Assert.assertTrue($(By.linkText("Schema"))
-                .shouldBe(Condition.visible)
-                .exists());
-        $(By.linkText(CSV_1_ACCOUNT_OBJECT_CLASS_LINK))
-                .shouldBe(Condition.visible)
-                .click();
-        //Attributes table visibility check
-        Assert.assertTrue($(Schrodinger.byDataId("attributeTable"))
-                .shouldBe(Condition.visible)
-                .exists());
+        SchemaStepSchemaTab schemaStepSchemaTab = resourceWizard
+                .selectSchemaStep()
+                .selectSchemaTab();
+        Assert.assertTrue(schemaStepSchemaTab.isObjectClassPresent(CSV_1_ACCOUNT_OBJECT_CLASS_LINK));
 
+        schemaStepSchemaTab.clickObjectClass(CSV_1_ACCOUNT_OBJECT_CLASS_LINK);
         //check resource attributes are present
         CSV_1_RESOURCE_ATTRIBUTES.forEach(attr ->
-                Assert.assertTrue($(Schrodinger.byElementValue("div", attr))
-                        .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
-                        .exists()));
+                Assert.assertTrue(schemaStepSchemaTab.getAttributesTable().containsText(attr)));
 
-        importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE,true);
+        importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE, true);
 
         csv2TargetFile = new File(getTestTargetDir(), CSV_2_FILE_SOURCE_NAME);
         FileUtils.copyFile(CSV_2_SOURCE_FILE, csv2TargetFile);
 
-        importObject(CSV_2_RESOURCE_FILE,true);
+        importObject(CSV_2_RESOURCE_FILE, true);
 
         changeResourceAttribute(CSV_2_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv2TargetFile.getAbsolutePath(), true);
 
         csv3TargetFile = new File(getTestTargetDir(), CSV_3_FILE_SOURCE_NAME);
         FileUtils.copyFile(CSV_3_SOURCE_FILE, csv3TargetFile);
 
-        importObject(CSV_3_RESOURCE_FILE,true);
+        importObject(CSV_3_RESOURCE_FILE, true);
 
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
     }

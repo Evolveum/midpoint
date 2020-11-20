@@ -39,7 +39,7 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
         hrTargetFile = new File(getTestTargetDir(), HR_FILE_SOURCE_NAME);
         FileUtils.copyFile(HR_SOURCE_FILE, hrTargetFile);
 
-        importObject(HR_NO_EXTENSION_RESOURCE_FILE,true);
+        addObjectFromFile(HR_NO_EXTENSION_RESOURCE_FILE);
         changeResourceAttribute(HR_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, hrTargetFile.getAbsolutePath(), true);
 
         ResourceAccountsTab<ViewResourcePage> accountTab = basicPage.listResources()
@@ -50,7 +50,6 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         accountTab.table()
                 .selectCheckboxByName("001212")
-                    .clickHeaderActionDropDown()
                     .clickImport()
                     .and()
                 .and()
@@ -81,7 +80,7 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
 
         Assert.assertEquals(showTask("Initial import from HR")
                 .selectTabOperationStatistics()
-                    .getSuccessfullyProcessed(), 14);
+                    .getSuccessfullyProcessed(), Integer.valueOf(14));
         Assert.assertEquals(basicPage.listUsers(ARCHETYPE_EMPLOYEE_PLURAL_LABEL).getCountOfObjects(), 15);
     }
 

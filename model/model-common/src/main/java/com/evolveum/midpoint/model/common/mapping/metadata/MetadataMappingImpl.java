@@ -34,6 +34,11 @@ public class MetadataMappingImpl<V extends PrismValue, D extends ItemDefinition>
     }
 
     @Override
+    protected boolean determinePushChangesRequested() {
+        return false;
+    }
+
+    @Override
     public MetadataMappingImpl<V, D> clone() {
         return new MetadataMappingImpl<>(this);
     }

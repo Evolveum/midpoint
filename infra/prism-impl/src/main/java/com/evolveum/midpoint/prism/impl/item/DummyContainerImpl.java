@@ -252,10 +252,6 @@ public class DummyContainerImpl<C extends Containerable> extends DummyItem<Prism
         return delegate().diff(other, strategy);
     }
 
-    public List<? extends ItemDelta> diffModifications(PrismContainer<C> other) {
-        return delegate().diffModifications(other);
-    }
-
     public List<? extends ItemDelta> diffModifications(PrismContainer<C> other,
             ParameterizedEquivalenceStrategy strategy) {
         return delegate().diffModifications(other, strategy);

@@ -1,11 +1,22 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.page.admin.certification.dto;
+
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -16,18 +27,10 @@ import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.admin.certification.CertDecisionHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.util.*;
-
-import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 
 /**
  * A common superclass for CertCaseDto + CertWorkItemDto.
- *
+ * <p>
  * TODO cleanup a bit
  *
  * @author mederly
@@ -44,11 +47,11 @@ public class CertCaseOrWorkItemDto extends Selectable {
     public static final String F_CONFLICTING_TARGETS = "conflictingTargets";
     public static final String F_ITERATION = "iteration";
 
-    private AccessCertificationCaseType certCase;
-    private String objectName;
-    private String targetName;
-    private String deadlineAsString;
-    private QName defaultRelation;
+    private final AccessCertificationCaseType certCase;
+    private final String objectName;
+    private final String targetName;
+    private final String deadlineAsString;
+    private final QName defaultRelation;
 
     CertCaseOrWorkItemDto(@NotNull AccessCertificationCaseType _case, PageBase page) {
         this.certCase = _case;
@@ -81,9 +84,12 @@ public class CertCaseOrWorkItemDto extends Selectable {
 
     public QName getObjectType(CertDecisionHelper.WhichObject which) {
         switch (which) {
-            case OBJECT: return getObjectType();
-            case TARGET: return getTargetType();
-            default: return null;
+            case OBJECT:
+                return getObjectType();
+            case TARGET:
+                return getTargetType();
+            default:
+                return null;
         }
     }
 
@@ -219,7 +225,7 @@ public class CertCaseOrWorkItemDto extends Selectable {
             if (conflicting.getTargetName() != null) {
                 exclusions.add(conflicting.getTargetName().getOrig());
             } else {
-                exclusions.add(conflicting.getOid());            // TODO try to resolve?
+                exclusions.add(conflicting.getOid()); // TODO try to resolve?
             }
         }
         return StringUtils.join(exclusions, ", ");

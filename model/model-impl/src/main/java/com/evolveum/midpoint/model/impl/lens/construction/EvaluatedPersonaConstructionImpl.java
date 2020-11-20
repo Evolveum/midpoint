@@ -16,7 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * @author Radovan Semancik
  */
-public class EvaluatedPersonaConstructionImpl<AH extends AssignmentHolderType> implements EvaluatedConstructible<AH> {
+public class EvaluatedPersonaConstructionImpl<AH extends AssignmentHolderType> implements EvaluatedAbstractConstruction<AH> {
 
     private static final Trace LOGGER = TraceManager.getTrace(EvaluatedPersonaConstructionImpl.class);
 

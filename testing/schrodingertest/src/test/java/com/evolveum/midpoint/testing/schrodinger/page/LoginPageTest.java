@@ -7,21 +7,12 @@
 
 package com.evolveum.midpoint.testing.schrodinger.page;
 
-import com.codeborne.selenide.Condition;
-
 import com.codeborne.selenide.Selenide;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
-import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
-import com.evolveum.midpoint.schrodinger.component.configuration.InfrastructureTab;
-import com.evolveum.midpoint.schrodinger.component.configuration.NotificationsTab;
-import com.evolveum.midpoint.schrodinger.page.configuration.SystemPage;
 import com.evolveum.midpoint.schrodinger.page.login.*;
-import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
-import org.openqa.selenium.By;
 import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -54,7 +45,8 @@ public class LoginPageTest extends AbstractLoginPageTest {
         String linkTag = "link='";
         String link = notification.substring(notification.indexOf(linkTag) + linkTag.length(), notification.lastIndexOf("''"));
         open(link);
-        $(Schrodinger.byDataId("successPanel")).waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S);
+        RegistrationConfirmationPage registrationConfirmationPage = new RegistrationConfirmationPage();
+        Assert.assertTrue(registrationConfirmationPage.successPanelExists());
         String actualUrl = basicPage.getCurrentUrl();
         Assert.assertTrue(actualUrl.endsWith("/registration"));
     }
@@ -62,14 +54,15 @@ public class LoginPageTest extends AbstractLoginPageTest {
     @Test
     public void test030resetPassowordMailNonce() throws IOException, InterruptedException {
         basicPage.loggedUser().logoutIfUserIsLogin();
+
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         FormLoginPage login = midPoint.formLogin();
         open("/login");
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         open("/");
-        login.forgotPassword();
-        $(Schrodinger.byDataId("email")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).setValue(MAIL_OF_ENABLED_USER);
-        $(Schrodinger.byDataId("submitButton")).click();
+        login.forgotPassword()
+                .setEmailValue(MAIL_OF_ENABLED_USER)
+                .clickSubmitButton();
         TimeUnit.SECONDS.sleep(6);
         String notification = readLastNotification();
         String bodyTag = "body='";
@@ -87,14 +80,18 @@ public class LoginPageTest extends AbstractLoginPageTest {
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         open("/");
         login.loginWithReloadLoginPage("administrator", "5ecr3t");
-        importObject(SEC_QUES_RESET_PASS_SECURITY_POLICY, true);
+        addObjectFromFile(SEC_QUES_RESET_PASS_SECURITY_POLICY);
         basicPage.loggedUser().logoutIfUserIsLogin();
-        login.forgotPassword();
-        $(Schrodinger.byDataId("username")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).setValue(NAME_OF_ENABLED_USER);
-        $(Schrodinger.byDataId("email")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).setValue(MAIL_OF_ENABLED_USER);
-        $(Schrodinger.byDataId("submitButton")).click();
-        $(Schrodinger.byDataId("answerTF")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).setValue("10");
-        $(Schrodinger.byDataId("send")).click();
+        login.forgotPassword()
+                .setUsernameValue(NAME_OF_ENABLED_USER)
+                .setEmailValue(MAIL_OF_ENABLED_USER)
+                .clickSubmitButton();
+        ForgetPasswordSecurityQuestionsPage securityQuestionsPage = new ForgetPasswordSecurityQuestionsPage();
+        securityQuestionsPage
+                .getPasswordQuestionsPanel()
+                .setMyPasswordTFValue("10")
+                .and()
+                .clickSendButton();
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         String actualUrl = basicPage.getCurrentUrl();
         Assert.assertTrue(actualUrl.endsWith("/resetpasswordsuccess"));
@@ -109,8 +106,7 @@ public class LoginPageTest extends AbstractLoginPageTest {
         open("/");
 
         login.changeLanguage("de");
-
-        $(By.cssSelector(".btn.btn-primary")).shouldHave(Condition.value("Anmelden"));
+        Assert.assertTrue(login.signInButtonTitleMatch("Anmelden"));
     }
 
     @Test
@@ -120,9 +116,7 @@ public class LoginPageTest extends AbstractLoginPageTest {
         login.goToUrl();
 
         login.changeLanguage("us");
-
-        $(By.xpath("/html/body/div[2]/div/section/div[2]/div/div/div/h4"))
-                .shouldHave(Condition.text("Select an Identity Provider"));
+        Assert.assertTrue(login.elementWithTextExists("Select an Identity Provider"));
     }
 
     @Override

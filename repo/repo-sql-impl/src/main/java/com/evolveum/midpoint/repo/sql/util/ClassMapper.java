@@ -1,31 +1,27 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.util;
 
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import java.util.*;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.jetbrains.annotations.Contract;
 
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import java.util.*;
-
-/**
- * @author lazyman
- */
 public final class ClassMapper {
 
     private static final Trace LOGGER = TraceManager.getTrace(ClassMapper.class);
@@ -80,7 +76,7 @@ public final class ClassMapper {
         try {
             computeDescendants();
         } catch (Throwable t) {
-            t.printStackTrace();
+            LoggingUtils.logUnexpectedException(LOGGER, t);
             throw t;
         }
     }
@@ -97,7 +93,7 @@ public final class ClassMapper {
     private static Collection<RObjectType> getAncestors(RObjectType type) {
         Set<RObjectType> rv = new HashSet<>();
         Class<? extends ObjectType> jaxbClass = type.getJaxbClass();
-        for (;;) {
+        for (; ; ) {
             RObjectType rType = RObjectType.getByJaxbTypeIfExists(jaxbClass);
             if (rType != null) {
                 // this check is because of auxiliary classes like AbstractAccessCertificationDefinitionType

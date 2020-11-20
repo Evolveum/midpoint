@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -18,7 +18,7 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.api.Cacheable;
+import com.evolveum.midpoint.repo.api.Cache;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -58,7 +58,7 @@ import java.util.*;
 /**
  * Takes care about node registration in repository.
  */
-public class NodeRegistrar implements Cacheable {
+public class NodeRegistrar implements Cache {
 
     private static final Trace LOGGER = TraceManager.getTrace(NodeRegistrar.class);
     private static final Trace LOGGER_CONTENT = TraceManager.getTrace(NodeRegistrar.class.getName() + ".content");
@@ -99,11 +99,11 @@ public class NodeRegistrar implements Cacheable {
     }
 
     void postConstruct() {
-        taskManager.getCacheRegistry().registerCacheableService(this);
+        taskManager.getCacheRegistry().registerCache(this);
     }
 
     void preDestroy() {
-        taskManager.getCacheRegistry().unregisterCacheableService(this);
+        taskManager.getCacheRegistry().unregisterCache(this);
     }
 
     /**
@@ -144,7 +144,7 @@ public class NodeRegistrar implements Cacheable {
                 nodeToBe.setSecret(nodeInRepo.asObjectable().getSecret());
                 nodeToBe.setSecretUpdateTimestamp(nodeInRepo.asObjectable().getSecretUpdateTimestamp());
             }
-            ObjectDelta<NodeType> nodeDelta = nodeInRepo.diff(nodeToBe.asPrismObject(), EquivalenceStrategy.LITERAL);
+            ObjectDelta<NodeType> nodeDelta = nodeInRepo.diff(nodeToBe.asPrismObject(), EquivalenceStrategy.DATA);
             LOGGER.debug("Applying delta to existing node object:\n{}", nodeDelta.debugDumpLazily());
             try {
                 getRepositoryService().modifyObject(NodeType.class, nodeInRepo.getOid(), nodeDelta.getModifications(), result);

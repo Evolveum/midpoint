@@ -543,6 +543,9 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
         if (referentialIntegrity != null) {
             sb.append(", RI=").append(referentialIntegrity);
         }
+        if (isTransient()) {
+            sb.append(", transient");
+        }
         sb.append(")");
         return sb.toString();
     }
@@ -563,9 +566,10 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
                     throw new SystemException("Couldn't create jaxb object instance of '" + clazz + "': " + e.getMessage(),
                             e);
                 }
+                referencable.setupReferenceValue(this);
+                return referencable;
             }
-            referencable.setupReferenceValue(this);
-            return referencable;
+
         }
 
         // A hack, just to avoid crashes. TODO think about this!

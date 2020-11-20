@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Evolveum and contributors
+ * Copyright (C) 2018-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,8 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -36,26 +34,21 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.EditableColumn;
 import com.evolveum.midpoint.gui.impl.component.form.TriStateFormGroup;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.EditableLinkColumn;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
+import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -70,13 +63,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MailConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MailServerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MailTransportSecurityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author skublik
@@ -84,8 +71,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<NotificationConfigurationType>> {
 
     private static final long serialVersionUID = 1L;
-
-    private static final Trace LOGGER = TraceManager.getTrace(NotificationConfigTabPanel.class);
 
     private static final String DOT_CLASS = NotificationConfigTabPanel.class.getName() + ".";
     private static final String OPERATION_CREATE_NEW_VALUE = DOT_CLASS + "createNewValue";
@@ -135,17 +120,17 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
         PropertyModel<MailConfigurationType> mailConfigType = new ItemRealValueModel<>(new PropertyModel<>(mailConfig, "values[0]"));
 
-        if(mailConfigType.getObject() == null) {
+        if (mailConfigType.getObject() == null) {
             mailConfigType.setObject(new MailConfigurationType());
         }
 
-        add(new TextFormGroup(ID_DEFAULT_FROM, new PropertyModel<String>(mailConfigType, "defaultFrom"), createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".defaultFrom"), "", getInputCssClass(), false, true));
+        add(new TextFormGroup(ID_DEFAULT_FROM, new PropertyModel<>(mailConfigType, "defaultFrom"), createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".defaultFrom"), "", getInputCssClass(), false, true));
 
-        add(new TextFormGroup(ID_REDIRECT_TO_FILE, new PropertyModel<String>(mailConfigType, "redirectToFile"), createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".redirectToFile"), "", getInputCssClass(), false, true));
+        add(new TextFormGroup(ID_REDIRECT_TO_FILE, new PropertyModel<>(mailConfigType, "redirectToFile"), createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".redirectToFile"), "", getInputCssClass(), false, true));
 
-        add(new TextFormGroup(ID_LOG_TO_FILE, new PropertyModel<String>(mailConfigType, "logToFile"), createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".logToFile"), "", getInputCssClass(), false, true));
+        add(new TextFormGroup(ID_LOG_TO_FILE, new PropertyModel<>(mailConfigType, "logToFile"), createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".logToFile"), "", getInputCssClass(), false, true));
 
-        add(new TriStateFormGroup(ID_DEBUG, new PropertyModel<Boolean>(mailConfigType, "debug"), createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".debug"), "", getInputCssClass(), false, true));
+        add(new TriStateFormGroup(ID_DEBUG, new PropertyModel<>(mailConfigType, "debug"), createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".debug"), "", getInputCssClass(), false, true));
 
         add(createHeader(ID_MAIL_SERVER_CONFIG_HEADER, MailServerConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details"));
 
@@ -153,7 +138,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
         add(createHeader(ID_FILE_CONFIG_HEADER, FileConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details"));
 
-        IModel<PrismPropertyWrapper<FileConfigurationType>> fileConfig =  PrismPropertyWrapperModel.fromContainerWrapper(getModel(), NotificationConfigurationType.F_FILE);
+        IModel<PrismPropertyWrapper<FileConfigurationType>> fileConfig = PrismPropertyWrapperModel.fromContainerWrapper(getModel(), NotificationConfigurationType.F_FILE);
 
         WebMarkupContainer files = new WebMarkupContainer(ID_FILE_CONFIG);
         files.setOutputMarkupId(true);
@@ -161,81 +146,81 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
         ListView<PrismPropertyValueWrapper<FileConfigurationType>> values = new ListView<PrismPropertyValueWrapper<FileConfigurationType>>("values",
                 new PropertyModel<>(fileConfig, "values")) {
-                private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-                @Override
-                protected void populateItem(final ListItem<PrismPropertyValueWrapper<FileConfigurationType>> item) {
+            @Override
+            protected void populateItem(final ListItem<PrismPropertyValueWrapper<FileConfigurationType>> item) {
 
-                    FileConfigurationType fileConfigType = item.getModelObject().getRealValue();
+                FileConfigurationType fileConfigType = item.getModelObject().getRealValue();
 
-                    item.add(createHeader(ID_VALUE_HEADER, fileConfigType == null || fileConfigType.getName() == null || fileConfigType.getName().isEmpty() ? (FileConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details") : fileConfigType.getName()));
+                item.add(createHeader(ID_VALUE_HEADER, fileConfigType == null || fileConfigType.getName() == null || fileConfigType.getName().isEmpty() ? (FileConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details") : fileConfigType.getName()));
 
-                    AjaxLink<Void> removeButton = new AjaxLink<Void>(ID_REMOVE_BUTTON) {
-                        private static final long serialVersionUID = 1L;
+                AjaxLink<Void> removeButton = new AjaxLink<Void>(ID_REMOVE_BUTTON) {
+                    private static final long serialVersionUID = 1L;
 
-                        @Override
-                        public void onClick(AjaxRequestTarget target) {
-                            ((PrismPropertyValue<FileConfigurationType>)item.getModelObject()).setValue(null);
-                            item.getParent().remove(item.getId());
-                            target.add(files);
-                        }
-                    };
-                    item.add(removeButton);
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        ((PrismPropertyValue<FileConfigurationType>) item.getModelObject()).setValue(null);
+                        item.getParent().remove(item.getId());
+                        target.add(files);
+                    }
+                };
+                item.add(removeButton);
 
-                    TextFormGroup name = new TextFormGroup(ID_FILE_NAME, fileConfigType != null ? new PropertyModel<String>(fileConfigType, "name") : Model.of(""), createStringResource(fileConfigType == null ? "" : (fileConfigType.COMPLEX_TYPE.getLocalPart() + ".name")), "", getInputCssClass(), false, true);
-                    name.getField().add(new OnChangeAjaxBehavior() {
+                TextFormGroup name = new TextFormGroup(ID_FILE_NAME, fileConfigType != null ? new PropertyModel<>(fileConfigType, "name") : Model.of(""), createStringResource(fileConfigType == null ? "" : (fileConfigType.COMPLEX_TYPE.getLocalPart() + ".name")), "", getInputCssClass(), false, true);
+                name.getField().add(new OnChangeAjaxBehavior() {
 
-                        private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
-                        @Override
-                        protected void onUpdate(AjaxRequestTarget target) {
-                            ((FileConfigurationType)item.getModelObject().getRealValue()).setName(name.getModelObject());
-                        }
-                    });
-                    item.add(name);
+                    @Override
+                    protected void onUpdate(AjaxRequestTarget target) {
+                        ((FileConfigurationType) item.getModelObject().getRealValue()).setName(name.getModelObject());
+                    }
+                });
+                item.add(name);
 
-                    TextFormGroup file = new TextFormGroup(ID_FILE_PATH, fileConfigType != null ? new PropertyModel<String>(fileConfigType, "file") : Model.of(""), createStringResource(fileConfigType == null ? "" : (fileConfigType.COMPLEX_TYPE.getLocalPart() + ".file")), "", getInputCssClass(), false, true);
-                    file.getField().add(new OnChangeAjaxBehavior() {
+                TextFormGroup file = new TextFormGroup(ID_FILE_PATH, fileConfigType != null ? new PropertyModel<>(fileConfigType, "file") : Model.of(""), createStringResource(fileConfigType == null ? "" : (fileConfigType.COMPLEX_TYPE.getLocalPart() + ".file")), "", getInputCssClass(), false, true);
+                file.getField().add(new OnChangeAjaxBehavior() {
 
-                        private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
-                        @Override
-                        protected void onUpdate(AjaxRequestTarget target) {
-                            ((FileConfigurationType)item.getModelObject().getRealValue()).setFile(file.getModelObject());
-                        }
-                    });
-                    item.add(file);
+                    @Override
+                    protected void onUpdate(AjaxRequestTarget target) {
+                        item.getModelObject().getRealValue().setFile(file.getModelObject());
+                    }
+                });
+                item.add(file);
 
-                    item.add(new VisibleEnableBehaviour() {
+                item.add(new VisibleEnableBehaviour() {
 
-                        @Override
-                        public boolean isVisible() {
-                            return fileConfigType != null;
-                        }
-                    });
-                }
-            };
-            values.add(new AttributeModifier("class", "col-md-6"));
-            values.setReuseItems(true);
-            files.add(values);
+                    @Override
+                    public boolean isVisible() {
+                        return fileConfigType != null;
+                    }
+                });
+            }
+        };
+        values.add(new AttributeModifier("class", "col-md-6"));
+        values.setReuseItems(true);
+        files.add(values);
 
-            AjaxLink<Void> addButton = new AjaxLink<Void>(ID_ADD_BUTTON) {
-                private static final long serialVersionUID = 1L;
+        AjaxLink<Void> addButton = new AjaxLink<Void>(ID_ADD_BUTTON) {
+            private static final long serialVersionUID = 1L;
 
-                @Override
-                public void onClick(AjaxRequestTarget target) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
 
-                    PrismPropertyWrapper<FileConfigurationType> propertyWrapper = fileConfig.getObject();
-                    PrismPropertyValue<FileConfigurationType> newValue = getPrismContext().itemFactory().createPropertyValue();
+                PrismPropertyWrapper<FileConfigurationType> propertyWrapper = fileConfig.getObject();
+                PrismPropertyValue<FileConfigurationType> newValue = getPrismContext().itemFactory().createPropertyValue();
 
-                    PrismPropertyValueWrapper<FileConfigurationType> newValueWrapper = WebPrismUtil.createNewValueWrapper(propertyWrapper, newValue, getPageBase(), target);
-                    //TODO: do we really need to set real value?? why??
-                    newValueWrapper.setRealValue(new FileConfigurationType());
+                PrismPropertyValueWrapper<FileConfigurationType> newValueWrapper = WebPrismUtil.createNewValueWrapper(propertyWrapper, newValue, getPageBase(), target);
+                //TODO: do we really need to set real value?? why??
+                newValueWrapper.setRealValue(new FileConfigurationType());
 
-                    target.add(files);
-                }
-            };
-            add(addButton);
+                target.add(files);
+            }
+        };
+        add(addButton);
 
     }
 
@@ -252,20 +237,20 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
                     public void setObject(List<MailServerConfiguration> object) {
                         super.setObject(object);
                         mailConfigType.getObject().getServer().clear();
-                        for(MailServerConfiguration value : object) {
+                        for (MailServerConfiguration value : object) {
                             mailConfigType.getObject().server(value.getValue());
                         }
 
                     }
 
-        }) {
+                }) {
 
-                    private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-                    @Override
-                    protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
-                        pageStorage.setPaging(paging);
-                    }
+            @Override
+            protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
+                pageStorage.setPaging(paging);
+            }
 
         };
 
@@ -329,7 +314,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
     private List<IColumn<MailServerConfiguration, String>> initMailServersColumns() {
         List<IColumn<MailServerConfiguration, String>> columns = new ArrayList<>();
-        columns.add(new CheckBoxHeaderColumn<MailServerConfiguration>());
+        columns.add(new CheckBoxHeaderColumn<>());
 
         columns.add(new IconColumn<MailServerConfiguration>(Model.of("")) {
 
@@ -342,7 +327,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
         });
 
-        columns.add(new EditableLinkColumn<MailServerConfiguration>(createStringResource("MailServerConfigurationType.host")){
+        columns.add(new EditableAjaxLinkColumn<MailServerConfiguration>(createStringResource("MailServerConfigurationType.host")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -364,7 +349,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
             }
         });
 
-        columns.add(new EditableColumn<MailServerConfiguration, String>(createStringResource("MailServerConfigurationType.port")){
+        columns.add(new EditableColumn<MailServerConfiguration, String>(createStringResource("MailServerConfigurationType.port")) {
 
             private static final long serialVersionUID = 1L;
 
@@ -382,7 +367,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
             }
         });
 
-        columns.add(new EditableColumn<MailServerConfiguration, String>(createStringResource("MailServerConfigurationType.username")){
+        columns.add(new EditableColumn<MailServerConfiguration, String>(createStringResource("MailServerConfigurationType.username")) {
 
             private static final long serialVersionUID = 1L;
 
@@ -400,7 +385,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
             }
         });
 
-        columns.add(new EditableColumn<MailServerConfiguration, String>(createStringResource("MailServerConfigurationType.password")){
+        columns.add(new EditableColumn<MailServerConfiguration, String>(createStringResource("MailServerConfigurationType.password")) {
 
             private static final long serialVersionUID = 1L;
 
@@ -416,7 +401,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
             }
         });
 
-        columns.add(new EditableColumn<MailServerConfiguration, String>(createStringResource("MailServerConfigurationType.transportSecurity")){
+        columns.add(new EditableColumn<MailServerConfiguration, String>(createStringResource("MailServerConfigurationType.transportSecurity")) {
 
             private static final long serialVersionUID = 1L;
 
@@ -491,7 +476,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
     }
 
     private void deleteItemPerformed(AjaxRequestTarget target, List<MailServerConfiguration> toDelete) {
-        if (toDelete == null){
+        if (toDelete == null) {
             return;
         }
 
@@ -501,14 +486,12 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
                 new ItemRealValueModel<>(new PropertyModel<>(mailConfigModel, "value"));
         List<MailServerConfigurationType> servers = mailConfigType.getObject().getServer();
 
-        toDelete.forEach(value -> {
-            servers.remove(value.getValue());
-        });
+        toDelete.forEach(value -> servers.remove(value.getValue()));
         target.add(this.addOrReplace(initServersTable(mailConfigType)));
         reloadSavePreviewButtons(target);
     }
 
-    private void reloadSavePreviewButtons(AjaxRequestTarget target){
+    private void reloadSavePreviewButtons(AjaxRequestTarget target) {
         FocusMainPanel mainPanel = findParent(FocusMainPanel.class);
         if (mainPanel != null) {
             mainPanel.reloadSavePreviewButtons(target);
@@ -536,12 +519,12 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
     private void mailServerEditPerformed(AjaxRequestTarget target, IModel<MailServerConfiguration> rowModel,
             List<MailServerConfiguration> listItems) {
 
-        if(rowModel != null) {
+        if (rowModel != null) {
             MailServerConfiguration server = rowModel.getObject();
             server.setEditing(true);
             server.setSelected(true);
         } else {
-            for(MailServerConfiguration server : listItems) {
+            for (MailServerConfiguration server : listItems) {
                 server.setSelected(true);
                 server.setEditing(true);
             }
@@ -554,23 +537,24 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
     }
 
     private String getInputCssClass() {
-        return"col-xs-10";
+        return "col-xs-10";
     }
 
-    private List<MailServerConfiguration> getListOfMailServerConfiguration(List<MailServerConfigurationType> mailServersType){
-        List<MailServerConfiguration> list = new ArrayList<MailServerConfiguration>();
-            for(MailServerConfigurationType value : mailServersType) {
-                list.add(new MailServerConfiguration(value));
-            }
+    private List<MailServerConfiguration> getListOfMailServerConfiguration(List<MailServerConfigurationType> mailServersType) {
+        List<MailServerConfiguration> list = new ArrayList<>();
+        for (MailServerConfigurationType value : mailServersType) {
+            list.add(new MailServerConfiguration(value));
+        }
         return list;
     }
 
-    public class MailServerConfiguration extends Selectable<MailServerConfigurationType> implements Editable{
+    public class MailServerConfiguration extends Selectable<MailServerConfigurationType> implements Editable {
 
         private static final long serialVersionUID = 1L;
 
+        private final MailServerConfigurationType mailServer;
+
         private boolean editable;
-        private MailServerConfigurationType mailServer;
 
         public MailServerConfiguration(MailServerConfigurationType mailServer) {
             this.mailServer = mailServer;

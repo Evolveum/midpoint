@@ -242,8 +242,11 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
     /**
      * Registers extension columns. At this moment all are treated as strings.
      */
-    public void addExtensionColumn(String propertyName, ColumnMetadata columnMetadata) {
+    public synchronized void addExtensionColumn(
+            String propertyName, ColumnMetadata columnMetadata) {
         extensionColumns.put(propertyName, columnMetadata);
+        // to assure that the next defaultAlias() provides it with current extension columns
+        defaultAlias = null;
     }
 
     public Map<String, ColumnMetadata> getExtensionColumns() {

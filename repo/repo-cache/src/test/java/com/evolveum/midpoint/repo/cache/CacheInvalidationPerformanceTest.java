@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeSuite;
@@ -62,7 +63,7 @@ public class CacheInvalidationPerformanceTest extends AbstractSpringTest impleme
     @Test
     public void test100InvalidationPerformance() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
-        final int CACHED_SEARCHES = 10000;
+        final int CACHED_SEARCHES = 40000;
 
         given();
         OperationResult result = createOperationResult();
@@ -78,8 +79,7 @@ public class CacheInvalidationPerformanceTest extends AbstractSpringTest impleme
                 .end();
         repositoryCache.addObject(archetype.asPrismObject(), null, result);
 
-        modifyArchetypeName(archetype, "name-intermediate", "Initial modification duration", result);
-        modifyArchetypeName(archetype, "name", "Initial modification duration (repeated)", result);
+        modifyArchetypeName(archetype, "Initial modification duration", 50, result);
 
         // fill-in cache with queries
         for (int i = 0; i < CACHED_SEARCHES; i++) {
@@ -96,21 +96,23 @@ public class CacheInvalidationPerformanceTest extends AbstractSpringTest impleme
         displayCollection("cache state information", stateInformation);
 
         when();
-        modifyArchetypeName(archetype, "name-0", "Second modification duration (with cached searches)", result);
+        modifyArchetypeName(archetype, "Modification duration with cache", 50, result);
 
         then();
     }
 
-    private void modifyArchetypeName(ArchetypeType archetype, String name, String label, OperationResult result)
+    private void modifyArchetypeName(ArchetypeType archetype, String label, int iterations, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        List<ItemDelta<?, ?>> itemDeltas = getPrismContext().deltaFor(ArchetypeType.class)
-                .item(ArchetypeType.F_NAME)
-                .replace(PolyString.fromOrig(name))
-                .asItemDeltas();
-
         long start = System.currentTimeMillis();
-        repositoryCache.modifyObject(ArchetypeType.class, archetype.getOid(), itemDeltas, result);
+        for (int i = 0; i < iterations; i++) {
+            List<ItemDelta<?, ?>> itemDeltas = getPrismContext().deltaFor(ArchetypeType.class)
+                    .item(ArchetypeType.F_NAME)
+                    .replace(PolyString.fromOrig(RandomStringUtils.randomAlphabetic(10)))
+                    .asItemDeltas();
+            repositoryCache.modifyObject(ArchetypeType.class, archetype.getOid(), itemDeltas, result);
+        }
         long duration = System.currentTimeMillis() - start;
-        displayValue(label, duration);
+        double average = (double) duration / iterations;
+        displayValue(label, String.format("%,.2f ms", average));
     }
 }

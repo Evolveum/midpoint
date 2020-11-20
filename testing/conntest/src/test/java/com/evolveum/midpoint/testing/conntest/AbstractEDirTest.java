@@ -190,11 +190,11 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         assertTrue("No native activation capability", ResourceTypeUtil.hasResourceNativeActivationCapability(resourceType));
         assertTrue("No native activation status capability", ResourceTypeUtil.hasResourceNativeActivationStatusCapability(resourceType));
         assertTrue("No native lockout capability", ResourceTypeUtil.hasResourceNativeActivationLockoutCapability(resourceType));
-        assertTrue("No native credentias capability", ResourceTypeUtil.isCredentialsCapabilityEnabled(resourceType, null));     // todo ok?
+        assertTrue("No native credentials capability", ResourceTypeUtil.isCredentialsCapabilityEnabled(resourceType, null));     // todo ok?
     }
 
     @Test
-    public void test100SeachJackByLdapUid() throws Exception {
+    public void test100SearchJackByLdapUid() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -231,7 +231,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
     }
 
     @Test
-    public void test105SeachPiratesByCn() throws Exception {
+    public void test105SearchPiratesByCn() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -342,7 +342,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
      * No paging. It should return all accounts.
      */
     @Test
-    public void test150SeachAllAccounts() throws Exception {
+    public void test150SearchAllAccounts() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -361,7 +361,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
     }
 
     @Test
-    public void test190SeachLockedAccounts() throws Exception {
+    public void test190SearchLockedAccounts() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -833,7 +833,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
     }
 
     @Test
-    public void test810SeachLockedAccounts() throws Exception {
+    public void test810SearchLockedAccounts() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();

@@ -1,10 +1,10 @@
-package com.evolveum.midpoint.testing.conntest;
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
+package com.evolveum.midpoint.testing.conntest;
 
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -182,7 +182,6 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 
     }
 
-
     @Test
     public void test810SyncAddGroupMonkeys() throws Exception {
         // GIVEN
@@ -193,7 +192,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 
         // WHEN
         when();
-        if (needsGroupFakeMemeberEntry()) {
+        if (needsGroupFakeMemberEntry()) {
             addLdapGroup(GROUP_MONKEYS_CN, GROUP_MONKEYS_DESCRIPTION, "uid=fake," + getPeopleLdapSuffix());
         } else {
             addLdapGroup(GROUP_MONKEYS_CN, GROUP_MONKEYS_DESCRIPTION);
@@ -262,7 +261,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 
     protected void syncWait() throws InterruptedException {
         // Nothing to do here. It can be overridden in subclasses to give us better chance to "catch" the event (e.g. in timestamp-based sync).
-    };
+    }
 
     protected String getAccountHtmCnAfterRename() {
         return ACCOUNT_HT_CN;
@@ -516,7 +515,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
     }
 
     @Test
-    public void test839DeleteSyncTask() throws Exception {
+    public void test849DeleteSyncTask() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task oid="33d6642a-6251-4b53-b78a-0cf44460e5c9"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:ext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+
+    <name>Live Sync Multi Changes</name>
+
+    <extension>
+        <ext:objectclass>ri:AccountObjectClass</ext:objectclass>
+    </extension>
+
+    <taskIdentifier>33d6642a-6251-4b53-b78a-0cf44460e5c9</taskIdentifier>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
+    <objectRef oid="5448264d-cf1a-497e-bfa1-7aa8972247de" type="ResourceType"/>
+    <recurrence>single</recurrence>
+</task>

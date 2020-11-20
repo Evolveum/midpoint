@@ -140,5 +140,7 @@ public final class CompiledTracingProfile implements Serializable {
         return rv;
     }
 
-
+    public boolean isMeasureCpuTime() {
+        return definition.isMeasureCpuTime() == null || Boolean.TRUE.equals(definition.isMeasureCpuTime());
+    }
 }

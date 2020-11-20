@@ -1,10 +1,10 @@
-package com.evolveum.midpoint.testing.conntest;
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
+package com.evolveum.midpoint.testing.conntest;
 
 import static org.testng.AssertJUnit.*;
 
@@ -241,7 +241,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
     protected abstract String getLdapGroupMemberAttribute();
 
-    protected boolean needsGroupFakeMemeberEntry() {
+    protected boolean needsGroupFakeMemberEntry() {
         return false;
     }
 
@@ -448,18 +448,15 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
     protected SearchResultList<PrismObject<ShadowType>> doSearch(ObjectQuery query, GetOperationOptions rootOptions, int expectedSize, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         final List<PrismObject<ShadowType>> foundObjects = new ArrayList<>(expectedSize);
-        ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
-            @Override
-            public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
-                String name = object.asObjectable().getName().getOrig();
-                for (PrismObject<ShadowType> foundShadow : foundObjects) {
-                    if (!allowDuplicateSearchResults() && foundShadow.asObjectable().getName().getOrig().equals(name)) {
-                        AssertJUnit.fail("Duplicate name " + name);
-                    }
+        ResultHandler<ShadowType> handler = (object, parentResult) -> {
+            String name = object.asObjectable().getName().getOrig();
+            for (PrismObject<ShadowType> foundShadow : foundObjects) {
+                if (!allowDuplicateSearchResults() && foundShadow.asObjectable().getName().getOrig().equals(name)) {
+                    AssertJUnit.fail("Duplicate name " + name);
                 }
-                foundObjects.add(object);
-                return true;
             }
+            foundObjects.add(object);
+            return true;
         };
 
         Collection<SelectorOptions<GetOperationOptions>> options = null;
@@ -568,7 +565,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         }
     }
 
-    protected void assertAttributeContains(Entry entry, String attrName, String expectedValue) throws LdapInvalidAttributeValueException, SchemaException {
+    protected void assertAttributeContains(Entry entry, String attrName, String expectedValue) throws SchemaException {
         assertAttributeContains(entry, attrName, expectedValue, null);
     }
 
@@ -603,7 +600,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         }
     }
 
-    protected void assertAttributeNotContains(Entry entry, String attrName, String expectedValue) throws LdapInvalidAttributeValueException, SchemaException {
+    protected void assertAttributeNotContains(Entry entry, String attrName, String expectedValue) throws SchemaException {
         assertAttributeNotContains(entry, attrName, expectedValue, null);
     }
 
@@ -764,13 +761,12 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
     }
 
     protected Entry createAccountEntry(String uid, String cn, String givenName, String sn) throws LdapException {
-        Entry entry = new DefaultEntry(toAccountDn(uid),
+        return new DefaultEntry(toAccountDn(uid),
                 "objectclass", getLdapAccountObjectClass(),
                 "uid", uid,
                 "cn", cn,
                 "givenName", givenName,
                 "sn", sn);
-        return entry;
     }
 
     protected Entry addLdapGroup(String cn, String description, String... memberDns)
@@ -955,15 +951,16 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         }
     }
 
-    protected void assertLdapConnectorInstances(int expectedConnectorInstancesShortcut, int expectedConnectorInstancesNoShortcut) throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected void assertLdapConnectorReasonableInstances() throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         if (isUsingGroupShortcutAttribute()) {
-            assertLdapConnectorInstances(expectedConnectorInstancesShortcut);
+            assertLdapConnectorInstancesRange(1,2);
         } else {
-            assertLdapConnectorInstances(expectedConnectorInstancesNoShortcut);
+            // Maybe two, maybe higher, adjust as needed
+            assertLdapConnectorInstancesRange(1,2);
         }
     }
 
-    protected void assertLdapConnectorInstances(int expectedConnectorInstances) throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected void assertLdapConnectorInstancesRange(int expectedConnectorInstancesLow, int expectedConnectorInstancesHigh) throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         if (runsInIdea()) {
             // IntelliJ IDEA affects management of connector instances in some way.
             // This makes the number of connector instances different when compared to a test executed from command-line.
@@ -979,16 +976,22 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         ConnectorOperationalStatus stat = findLdapConnectorStat(stats);
         assertNotNull("No stat for LDAP connector", stat);
 
-        assertEquals("Unexpected number of LDAP connector instances", expectedConnectorInstances,
-                stat.getPoolStatusNumIdle() + stat.getPoolStatusNumActive());
+        int actualConnectorInstances = stat.getPoolStatusNumIdle() + stat.getPoolStatusNumActive();
+
+        if (actualConnectorInstances < expectedConnectorInstancesLow) {
+            fail("Number of LDAP connector instances too low, expected at least "+expectedConnectorInstancesLow+" instances, but was "+actualConnectorInstances);
+        }
+        if (actualConnectorInstances > expectedConnectorInstancesHigh) {
+            fail("Number of LDAP connector instances too high, expected at most "+expectedConnectorInstancesHigh+" instances, but was "+actualConnectorInstances);
+        }
 
         if (!isAssertOpenFiles()) {
             return;
         }
-        if (expectedConnectorInstances == 1) {
+        if (actualConnectorInstances == 1) {
             assertStableSystem();
         } else {
-            lsof.assertFdIncrease((expectedConnectorInstances - 1) * getNumberOfFdsPerLdapConnectorInstance());
+            lsof.assertFdIncrease((actualConnectorInstances - 1) * getNumberOfFdsPerLdapConnectorInstance());
         }
     }
 

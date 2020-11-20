@@ -170,6 +170,8 @@ public class TestMapping extends AbstractMappingTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TYPE_CARTHESIAN, USER_TEMPLATE_CARTHESIAN_OID, initResult);
+//
+//        setGlobalTracingOverride(createModelLoggingTracingProfile());
     }
 
     /**
@@ -1489,11 +1491,17 @@ public class TestMapping extends AbstractMappingTest {
 
         // WHEN
         when();
+        setTracing(task, createDefaultTracingProfile());
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
         then();
         assertSuccess(result); // MID-6372
+        assertOperationResult(result)
+                .assertLogEntry(text ->
+                        text.contains(" WARN ") &&
+                                text.contains("Attempt to delete value") &&
+                                text.contains("but that value is mandated by a strong mapping mapping"));
 
         userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);

@@ -339,11 +339,6 @@ public class ValueMetadataAdapter implements ValueMetadata {
     }
 
     @Override
-    public List<? extends ItemDelta> diffModifications(PrismContainer<Containerable> other) {
-        return delegate.diffModifications(other);
-    }
-
-    @Override
     public List<? extends ItemDelta> diffModifications(PrismContainer<Containerable> other, ParameterizedEquivalenceStrategy strategy) {
         return delegate.diffModifications(other, strategy);
     }
@@ -679,12 +674,6 @@ public class ValueMetadataAdapter implements ValueMetadata {
     @Override
     public void recomputeAllValues() {
         delegate.recomputeAllValues();
-    }
-
-    @Override
-    public void filterValues(
-            Function<PrismContainerValue<Containerable>, Boolean> function) {
-        delegate.filterValues(function);
     }
 
     @Override

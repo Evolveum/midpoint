@@ -11,20 +11,23 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SystemException;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Wrapper for "process change" request and its execution.
+ *
+ * These requests are ordered according to local sequence number in embedded Change.
+ * See {@link RequestsBuffer}.
  */
-public class ProcessChangeRequest {
+public class ProcessChangeRequest implements Comparable<ProcessChangeRequest> {
 
     @NotNull private final Change change;
     private final ProvisioningContext globalContext;
     private final boolean simulate;
-    private boolean success;
+    private boolean successfullyProcessed;
 
     /**
      * True if the request was processed (successfully or not).
@@ -51,24 +54,34 @@ public class ProcessChangeRequest {
         return simulate;
     }
 
-    public boolean isSuccess() {
-        return success;
+    public boolean isSuccessfullyProcessed() {
+        return successfullyProcessed;
     }
 
-    public void setSuccess(boolean success) {
-        this.success = success;
+    public void setSuccessfullyProcessed(boolean successfullyProcessed) {
+        this.successfullyProcessed = successfullyProcessed;
     }
 
-    public void onSuccess() {
+    /**
+     * Called when the request was successfully processed.
+     * (Or there was nothing to be processed at all.)
+     */
+    public void onSuccessfullyProcessed() {
     }
 
-    public void onError(OperationResult result) {
+    /**
+     * Called when there was a processing error, represented by the operation result.
+     */
+    public void onProcessingError(OperationResult result) {
         // Probably nothing to do here. The error is already recorded in operation result.
     }
 
-    public void onError(Throwable t, OperationResult result) {
-        // TODO consider better exception reporting
-        throw new SystemException(t.getMessage(), t);
+    /**
+     * Called when there was a processing error, represented by an exception (that was stored into
+     * operation result as a fatal error).
+     */
+    public void onProcessingError(Throwable t, OperationResult result) {
+        // Probably nothing to do here. The error is already recorded in operation result.
     }
 
     Object getPrimaryIdentifierRealValue() {
@@ -98,7 +111,12 @@ public class ProcessChangeRequest {
         return "ProcessChangeRequest{" +
                 "change=" + change +
                 ", done=" + done +
-                ", success=" + success +
+                ", success=" + successfullyProcessed +
                 '}';
+    }
+
+    @Override
+    public int compareTo(@NotNull ProcessChangeRequest o) {
+        return Integer.compare(change.getLocalSequenceNumber(), o.getChange().getLocalSequenceNumber());
     }
 }

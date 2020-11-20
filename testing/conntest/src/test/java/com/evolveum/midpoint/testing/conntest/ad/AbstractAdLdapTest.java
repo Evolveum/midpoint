@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.testing.conntest.ad;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
@@ -236,13 +237,13 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
     public void test020Schema() throws Exception {
         accountObjectClassDefinition = assertAdResourceSchema(resource, getAccountObjectClass(), prismContext);
 
-        assertLdapConnectorInstances(1);
+        assertLdapConnectorReasonableInstances();
     }
 
     // test050 in subclasses
 
     @Test
-    public void test100SeachJackBySamAccountName() throws Exception {
+    public void test100SearchJackBySamAccountName() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -274,11 +275,11 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
             assertFalse(metadata.isPartialResults());
         }
 
-        assertLdapConnectorInstances(1);
+        assertLdapConnectorReasonableInstances();
     }
 
     @Test
-    public void test105SeachPiratesByCn() throws Exception {
+    public void test105SearchPiratesByCn() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -311,7 +312,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
             assertFalse(metadata.isPartialResults());
         }
 
-        assertLdapConnectorInstances(1);
+        assertLdapConnectorReasonableInstances();
     }
 
     @Test
@@ -345,14 +346,14 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
-        assertLdapConnectorInstances(1);
+        assertLdapConnectorReasonableInstances();
     }
 
     /**
      * No paging. It should return all accounts.
      */
     @Test
-    public void test150SeachAllAccounts() throws Exception {
+    public void test150SearchAllAccounts() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -375,14 +376,14 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
             assertFalse(metadata.isPartialResults());
         }
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorReasonableInstances();
     }
 
     /**
      * Blocksize is 5, so this is in one block.
      */
     @Test
-    public void test152SeachFirst2Accounts() throws Exception {
+    public void test152SearchFirst2Accounts() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -403,14 +404,14 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
             assertFalse(metadata.isPartialResults());
         }
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorReasonableInstances();
     }
 
     /**
      * Blocksize is 5, so this gets more than two blocks.
      */
     @Test
-    public void test154SeachFirst11Accounts() throws Exception {
+    public void test154SearchFirst11Accounts() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -431,11 +432,11 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
             assertFalse(metadata.isPartialResults());
         }
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorReasonableInstances();
     }
 
     @Test
-    public void test162SeachFirst2AccountsOffset0() throws Exception {
+    public void test162SearchFirst2AccountsOffset0() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -457,7 +458,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
             assertFalse(metadata.isPartialResults());
         }
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorReasonableInstances();
     }
 
     /**
@@ -486,7 +487,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
             assertFalse(metadata.isPartialResults());
         }
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorReasonableInstances();
     }
 
     /**
@@ -495,7 +496,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
      * No explicit sorting.
      */
     @Test
-    public void test174SeachFirst11AccountsOffset2() throws Exception {
+    public void test174SearchFirst11AccountsOffset2() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -521,7 +522,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
             assertFalse(metadata.isPartialResults());
         }
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorReasonableInstances();
     }
 
     /**
@@ -557,7 +558,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
             assertFalse(metadata.isPartialResults());
         }
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorReasonableInstances();
     }
 
     @Test
@@ -603,7 +604,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         // LDAP server may be on a different host. Allow for some clock offset.
         TestUtil.assertBetween("Wrong createTimestamp in " + shadow, roundTsDown(tsStart) - 120000, roundTsUp(tsEnd) + 120000, XmlTypeConverter.toMillis(createTimestamp));
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorReasonableInstances();
     }
 
     @Test
@@ -637,7 +638,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         String shadowOid = getSingleLinkOid(user);
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorReasonableInstances();
     }
 
     @Test
@@ -671,7 +672,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         String shadowOid = getSingleLinkOid(user);
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorReasonableInstances();
     }
 
     /**
@@ -708,7 +709,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         String shadowOid = getSingleLinkOid(user);
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorReasonableInstances();
     }
 
     @Test
@@ -737,7 +738,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         String shadowOid = getSingleLinkOid(user);
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorReasonableInstances();
     }
 
     /**
@@ -769,7 +770,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         String shadowOid = getSingleLinkOid(user);
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorReasonableInstances();
     }
 
     @Test
@@ -789,7 +790,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         then();
         assertSuccess(result);
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorReasonableInstances();
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         assertAdministrativeStatus(user, ActivationStatusType.DISABLED);
@@ -808,7 +809,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
             // this is expected
         }
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorReasonableInstances();
     }
 
     @Test
@@ -835,7 +836,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
         assertAccountEnabled(shadow);
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorReasonableInstances();
     }
 
     /**
@@ -871,7 +872,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
         assertAccountDisabled(shadow);
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorReasonableInstances();
     }
 
     @Test
@@ -902,7 +903,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
             // this is expected, account is disabled
         }
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorReasonableInstances();
     }
 
     @Test
@@ -932,7 +933,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 
         assertLdapPasswordByFullName(USER_GUYBRUSH_FULL_NAME, "wanna.be.a.123");
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorReasonableInstances();
     }
 
     @Test
@@ -963,7 +964,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorReasonableInstances();
     }
 
     @Test
@@ -1001,7 +1002,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 
         assertNoLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorReasonableInstances();
     }
 
     // TODO: create account with a group membership
@@ -1036,7 +1037,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
         IntegrationTestTools.assertNoAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorReasonableInstances();
     }
 
     @Test
@@ -1060,7 +1061,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         assertNoLinkedAccount(user);
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorReasonableInstances();
     }
 
     @Test
@@ -1096,7 +1097,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         PrismObject<ShadowType> shadow = getShadowModel(groupMeleeOid);
         display("Shadow (model)", shadow);
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorReasonableInstances();
     }
 
     @Test
@@ -1124,7 +1125,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupMeleeOid);
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorReasonableInstances();
     }
 
     @Override
@@ -1237,16 +1238,20 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         PrismProperty<String> syncTokenProperty = task.getExtensionPropertyOrClone(SchemaConstants.SYNC_TOKEN);
         assertNotNull("No sync token", syncTokenProperty);
         assertNotNull("No sync token value", syncTokenProperty.getRealValue());
-        assertNotNull("Empty sync token value", StringUtils.isBlank(syncTokenProperty.getRealValue()));
+        assertThat(StringUtils.isBlank(syncTokenProperty.getRealValue()))
+                .as("Empty sync token value")
+                .isTrue();
         result.computeStatus();
         TestUtil.assertSuccess(result);
     }
 
-    public <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
+    @SafeVarargs
+    public final <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
         assertAttribute(shadow, new QName(getResourceNamespace(), attrName), expectedValues);
     }
 
-    public <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrQname, T... expectedValues) {
+    @SafeVarargs
+    public final <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrQname, T... expectedValues) {
         List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
         PrismAsserts.assertSets("attribute " + attrQname + " in " + shadow, actualValues, expectedValues);
     }

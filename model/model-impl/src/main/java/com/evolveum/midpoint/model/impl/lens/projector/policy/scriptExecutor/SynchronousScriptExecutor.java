@@ -12,9 +12,10 @@ import static com.evolveum.midpoint.schema.util.ExecuteScriptUtil.implantInput;
 
 import com.evolveum.midpoint.util.exception.*;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -22,7 +23,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExecutionPolicyActionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ValueListType;
 
@@ -80,6 +80,7 @@ class SynchronousScriptExecutor {
         VariablesMap rv = new VariablesMap();
         actx.putIntoVariables(rv);
         rv.put(ExpressionConstants.VAR_MODEL_CONTEXT, actx.context, ModelContext.class);
+        rv.put(ExpressionConstants.VAR_FOCUS, actx.focusContext.getObjectAny(), ObjectType.class);
         return rv;
     }
 }

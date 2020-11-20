@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -74,17 +74,32 @@ public interface AuditService {
     }
 
     /**
-     * @see com.evolveum.midpoint.repo.api.RepositoryService#countObjects
+     * Returns the number of audit events that match the specified query.
+     * If query is null or no filter in query is specified, count of all audit events is returned.
+     * Ignores any paging and ordering from the query.
+     *
+     * @param query search query
+     * @param parentResult parent operation result (in/out)
+     * @return count of audit events of specified type that match the search criteria
      */
     int countObjects(
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @Nullable OperationResult parentResult);
+            @NotNull OperationResult parentResult);
 
+    /**
+     * Returns the result list of audit events that match the specified query.
+     * If query is null or no filter in query is specified, all audit events are returned,
+     * subject to paging or internal sanity limit.
+     *
+     * @param query search query
+     * @param parentResult parent operation result (in/out)
+     * @return list of audit events of specified type that match the search criteria
+     */
     @NotNull
     SearchResultList<AuditEventRecordType> searchObjects(
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @Nullable OperationResult parentResult)
+            @NotNull OperationResult parentResult)
             throws SchemaException;
 }

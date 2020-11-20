@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.schrodinger.page;
 
+import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.$;
 
 import com.codeborne.selenide.Condition;
@@ -13,6 +14,12 @@ import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
 import com.codeborne.selenide.ex.ElementShould;
+
+import com.evolveum.midpoint.schrodinger.component.common.UserMenuPanel;
+import com.evolveum.midpoint.schrodinger.page.objectcollection.ListObjectCollectionsPage;
+import com.evolveum.midpoint.schrodinger.page.objectcollection.ObjectCollectionPage;
+import com.evolveum.midpoint.schrodinger.page.service.ServicePage;
+
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 
@@ -41,7 +48,6 @@ import com.evolveum.midpoint.schrodinger.page.self.HomePage;
 import com.evolveum.midpoint.schrodinger.page.self.ProfilePage;
 import com.evolveum.midpoint.schrodinger.page.self.RequestRolePage;
 import com.evolveum.midpoint.schrodinger.page.service.ListServicesPage;
-import com.evolveum.midpoint.schrodinger.page.service.NewServicePage;
 import com.evolveum.midpoint.schrodinger.page.task.ListTasksPage;
 import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 import com.evolveum.midpoint.schrodinger.page.user.FormSubmittablePage;
@@ -127,9 +133,9 @@ public class BasicPage {
         return new ListServicesPage();
     }
 
-    public NewServicePage newService() {
+    public ServicePage newService() {
         clickAdministrationMenu("PageAdmin.menu.top.services", "PageAdmin.menu.top.services.new");
-        return new NewServicePage();
+        return new ServicePage();
     }
 
     public ListArchetypesPage listArchetypes() {
@@ -265,6 +271,16 @@ public class BasicPage {
         return new AuditLogViewerPage();
     }
 
+    public ListObjectCollectionsPage listObjectCollections() {
+        clickAdministrationMenu("PageAdmin.menu.top.objectCollections", "PageAdmin.menu.top.objectCollections.list");
+        return new ListObjectCollectionsPage();
+    }
+
+    public ObjectCollectionPage newObjectCollection() {
+        clickAdministrationMenu("PageAdmin.menu.top.objectCollections", "PageAdmin.menu.top.objectCollections.new");
+        return new ObjectCollectionPage();
+    }
+
     public ImportResourceDefinitionPage importResourceDefinition() {
         clickAdministrationMenu("PageAdmin.menu.top.resources", "PageAdmin.menu.top.resources.import");
         return new ImportResourceDefinitionPage();
@@ -376,7 +392,7 @@ public class BasicPage {
     }
 
     public FeedbackBox<? extends BasicPage> feedback() {
-        SelenideElement feedback = $(By.cssSelector("div.feedbackContainer")).waitUntil(Condition.appears, MidPoint.TIMEOUT_LONG_1_M);
+        SelenideElement feedback = $(By.cssSelector("div.feedbackContainer")).waitUntil(Condition.appears, MidPoint.TIMEOUT_EXTRA_LONG_10_M);
         return new FeedbackBox<>(this, feedback);
     }
 
@@ -456,5 +472,41 @@ public class BasicPage {
         String url = WebDriverRunner.url();
         url = url.split("\\?")[0];
         return url;
+    }
+
+    public SelenideElement getMainHeaderPanelElement() {
+        return $(Schrodinger.byDataId("header", "mainHeader"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+    }
+
+    public boolean mainHeaderPanelStyleMatch(String styleToCompare) {
+        return getMainHeaderPanelElement().getCssValue("background-color").equals(styleToCompare);
+    }
+
+    public SelenideElement getPageTitleElement() {
+        return $(Schrodinger.byDataId("span", "pageTitle"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+    }
+
+    public boolean pageTitleStartsWith(String titleStartText) {
+        return getPageTitleElement().getText().startsWith(titleStartText);
+    }
+
+    public UserMenuPanel clickUserMenu() {
+        if(userMenuExists()) {
+            SelenideElement userMenu = $(".dropdown.user.user-menu").waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+            userMenu.$(By.cssSelector(".dropdown-toggle")).click();
+            SelenideElement userMenuPanel = userMenu.$(By.cssSelector(".user-footer")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+            return new UserMenuPanel(this, userMenuPanel);
+        }
+        return null;
+    }
+
+    public boolean userMenuExists() {
+        return $(".dropdown.user.user-menu").exists();
+    }
+
+    public boolean elementWithTextExists(String text) {
+        return $(byText(text)).exists();
     }
 }

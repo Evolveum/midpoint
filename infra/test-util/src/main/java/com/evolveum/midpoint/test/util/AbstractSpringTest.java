@@ -20,6 +20,7 @@ import org.testng.annotations.BeforeMethod;
 import com.evolveum.midpoint.tools.testng.MidpointTestContext;
 import com.evolveum.midpoint.tools.testng.MidpointTestMixin;
 import com.evolveum.midpoint.tools.testng.SimpleMidpointTestContext;
+import com.evolveum.midpoint.tools.testng.TestMonitor;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -35,6 +36,17 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
      * Hides parent's logger, but that one is from commons-logging and we don't want that.
      */
     protected final Trace logger = TraceManager.getTrace(getClass());
+
+    private TestMonitor testMonitor;
+
+    // called only by tests that need it
+    public void initializeTestMonitor() {
+        testMonitor = new TestMonitor();
+    }
+
+    public TestMonitor testMonitor() {
+        return testMonitor;
+    }
 
     @BeforeClass
     public void displayTestClassTitle() {
@@ -77,6 +89,8 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
      * because test class instances are not GCed immediately.
      * If they hold autowired fields like sessionFactory (for example
      * through SqlRepositoryService impl), their memory footprint is getting big.
+     * This can manifest as failed test initialization because of OOM in modules like model-intest.
+     * Strangely, this will not fail the Jenkins build (but makes it much slower).
      * <p>
      * Note that this does not work for components injected through constructor into
      * final fields - if we need this cleanup, make the field non-final.
@@ -93,7 +107,9 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
         }
 
         for (Field field : forClass.getDeclaredFields()) {
-            if (Modifier.isFinal(field.getModifiers())
+            // we need to skip testMonitor to have it non-null in PerformanceTestMixin#dumpReport
+            if (field.getName().equals("testMonitor")
+                    || Modifier.isFinal(field.getModifiers())
                     || Modifier.isStatic(field.getModifiers())
                     || field.getType().isPrimitive()) {
                 continue;
@@ -106,7 +122,7 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
     private void nullField(Object obj, Field field) throws Exception {
         logger.info("Setting {} to null on {}.", field.getName(), obj.getClass().getSimpleName());
         boolean accessible = field.isAccessible();
-//        boolean accessible = field.canAccess(obj); // TODO: after ditching JDK 8
+        //        boolean accessible = field.canAccess(obj); // TODO: after ditching JDK 8
         if (!accessible) {
             field.setAccessible(true);
         }

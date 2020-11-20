@@ -13,7 +13,12 @@
     <archetypePolicy>
         <display>
             <label>Live synchronization task</label>
-            <pluralLabel>Live synchronization tasks</pluralLabel>
+            <pluralLabel>
+                <orig>Live synchronization tasks</orig>
+                <translation>
+                    <key>LiveSynchronizationTasks.title</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fa fa-refresh</cssClass>
                 <color>green</color>
@@ -94,14 +99,6 @@
                     </item>
                     <item>
                         <c:path>extension/mext:updateLiveSyncTokenInDryRun</c:path>
-                    </item>
-                </container>
-                <container>
-                    <display>
-                        <label>LiveSynchronizationTask.synchronizationState</label>
-                    </display>
-                    <item>
-                        <c:path>extension/livesync:token</c:path>
                     </item>
                 </container>
             </objectDetails>

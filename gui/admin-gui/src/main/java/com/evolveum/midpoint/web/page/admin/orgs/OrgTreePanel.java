@@ -19,6 +19,7 @@ import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.component.AbstractTreeTablePanel;
 import com.evolveum.midpoint.web.page.admin.users.component.OrgTreeProvider;
@@ -39,10 +40,7 @@ import org.apache.wicket.markup.repeater.ReuseIfModelsEqualStrategy;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class OrgTreePanel extends AbstractTreeTablePanel {
     private static final long serialVersionUID = 1L;
@@ -124,9 +122,8 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
         Label treeTitle = new Label(ID_TREE_TITLE, createStringResource(title));
         treeHeader.add(treeTitle);
 
-//        InlineMenu treeMenu = new InlineMenu(ID_TREE_MENU,
-//                new Model((Serializable) createTreeMenuInternal(serviceLocator.getCompiledGuiProfile())));
-        DropdownButtonDto model = new DropdownButtonDto(null, "fa fa-cog", null, createTreeMenuInternal(serviceLocator.getCompiledGuiProfile()));
+        List<InlineMenuItem> actions = createTreeMenu();
+        DropdownButtonDto model = new DropdownButtonDto(null, "fa fa-cog", null, actions);
         DropdownButtonPanel treeMenu = new DropdownButtonPanel(ID_TREE_MENU, model) {
             private static final long serialVersionUID = 1L;
 
@@ -140,6 +137,12 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
                 return false;
             }
         };
+        treeMenu.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible() {
+                return !actions.isEmpty();
+            }
+        });
         treeMenu.setOutputMarkupId(true);
         treeMenu.setOutputMarkupPlaceholderTag(true);
         treeHeader.add(treeMenu);
@@ -149,7 +152,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 
             @Override
             protected List<InlineMenuItem> createInlineMenuItems(TreeSelectableBean<OrgType> org) {
-                return createTreeChildrenMenu(org);
+                return createTreeChildrenMenuInternal(org, serviceLocator.getCompiledGuiProfile());
             }
 
             @Override
@@ -186,12 +189,12 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
                 return OrgTreePanel.this.getExpandedItems(getOrgTreeStateStorage());
             }
             @Override
-            public TreeSelectableBean<OrgType> getCollapsedItem(){
-                return OrgTreePanel.this.getCollapsedItem(getOrgTreeStateStorage());
+            public Set<TreeSelectableBean<OrgType>> getCollapsedItems(){
+                return OrgTreePanel.this.getCollapsedItems(getOrgTreeStateStorage());
             }
             @Override
-            public void setCollapsedItem(TreeSelectableBean<OrgType> item){
-                OrgTreePanel.this.setCollapsedItem(null, getOrgTreeStateStorage());
+            public void setCollapsedItems(TreeStateSet items){
+                OrgTreePanel.this.setCollapsedItems(null, getOrgTreeStateStorage());
             }
         };
 
@@ -233,26 +236,24 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
                     items.remove(collapsedItem);
                 }
                 OrgTreePanel.this.setExpandedItems((TreeStateSet) items, getOrgTreeStateStorage());
-                OrgTreePanel.this.setCollapsedItem(collapsedItem, getOrgTreeStateStorage());
+                OrgTreePanel.this.addCollapsedItem(collapsedItem, getOrgTreeStateStorage());
             }
 
             @Override
-            protected void onModelChanged() {
-                super.onModelChanged();
+            public void expand(TreeSelectableBean<OrgType> expandedItem) {
+                super.expand(expandedItem);
 
-                TreeStateSet<TreeSelectableBean<OrgType>> items = (TreeStateSet) getModelObject();
-                boolean isInverse = getOrgTreeStateStorage() != null ? getOrgTreeStateStorage().isInverse() : items.isInverse();
-                if (!isInverse) {
-                    OrgTreePanel.this.setExpandedItems(items, getOrgTreeStateStorage());
+                Set<TreeSelectableBean<OrgType>> items = OrgTreePanel.this.getCollapsedItems(getOrgTreeStateStorage());
+                if (items != null && items.contains(expandedItem)) {
+                    items.remove(expandedItem);
                 }
+                OrgTreePanel.this.setCollapsedItems((TreeStateSet) items, getOrgTreeStateStorage());
+                OrgTreePanel.this.addExpandedItem(expandedItem, getOrgTreeStateStorage());
             }
-
         };
         tree.setItemReuseStrategy(new ReuseIfModelsEqualStrategy());
         tree.setOutputMarkupId(true);
-//        tree.getTable().add(AttributeModifier.replace("class", "table table-striped table-condensed"));
         tree.add(new WindowsTheme());
-//        tree.add(AttributeModifier.replace("class", "tree-midpoint"));
         treeContainer.add(tree);
     }
 
@@ -268,18 +269,27 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
             this.panel = panel;
             this.provider = provider;
             this.storage = storage;
-            set.setInverse(storage != null ? storage.isInverse() : false);
         }
 
         @Override
         public Set<TreeSelectableBean<OrgType>> getObject() {
             Set<TreeSelectableBean<OrgType>> dtos = TreeStateModel.this.getExpandedItems();
-            TreeSelectableBean<OrgType> collapsedItem = TreeStateModel.this.getCollapsedItem();
+            Set<TreeSelectableBean<OrgType>> collapsedItems = TreeStateModel.this.getCollapsedItems();
 
-            if (collapsedItem != null) {
-                if (set.contains(collapsedItem)) {
-                    set.remove(collapsedItem);
-                    TreeStateModel.this.setCollapsedItem(null);
+            // just to have root expanded at all time
+            Iterator<TreeSelectableBean<OrgType>> iterator = provider.getRoots();
+            if (iterator.hasNext()) {
+                TreeSelectableBean<OrgType> root = iterator.next();
+                if (set.isEmpty() || !set.contains(root)) {
+                    set.add(root);
+                }
+            }
+
+            if (collapsedItems != null) {
+                for (TreeSelectableBean<OrgType> collapsedItem : collapsedItems) {
+                    if (set.contains(collapsedItem)) {
+                        set.remove(collapsedItem);
+                    }
                 }
             }
             if (dtos != null && (dtos instanceof TreeStateSet)) {
@@ -289,39 +299,20 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
                     }
                 }
             }
-            // just to have root expanded at all time
-            Iterator<TreeSelectableBean<OrgType>> iterator = provider.getRoots();
-            if (iterator.hasNext()) {
-                TreeSelectableBean<OrgType> root = iterator.next();
-                if (set.isEmpty() || !set.contains(root)) {
-                    set.add(root);
-                }
-            }
             return set;
-        }
-
-        public void expandAll() {
-            set.expandAll();
-        }
-
-        public void collapseAll() {
-            if (getExpandedItems() != null) {
-                getExpandedItems().clear();
-            }
-            set.collapseAll();
         }
 
         public Set<TreeSelectableBean<OrgType>> getExpandedItems(){
             return storage != null ? storage.getExpandedItems() : null;
         }
 
-        public TreeSelectableBean<OrgType> getCollapsedItem(){
-            return storage != null ? storage.getCollapsedItem() : null;
+        public Set<TreeSelectableBean<OrgType>> getCollapsedItems(){
+            return storage != null ? storage.getCollapsedItems() : null;
         }
 
-        public void setCollapsedItem(TreeSelectableBean<OrgType> item){
+        public void setCollapsedItems(TreeStateSet<TreeSelectableBean<OrgType>> items){
             if (storage != null){
-                storage.setCollapsedItem(item);
+                storage.setCollapsedItems(items);
             }
         }
     }
@@ -330,7 +321,11 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
         return null;
     }
 
-    private List<InlineMenuItem> createTreeMenuInternal(CompiledGuiProfile adminGuiConfig) {
+    protected List<InlineMenuItem> createTreeMenu() {
+        return new ArrayList<>();
+    }
+
+    private List<InlineMenuItem> createTreeChildrenMenuInternal(TreeSelectableBean<OrgType> org, CompiledGuiProfile adminGuiConfig) {
         List<InlineMenuItem> items = new ArrayList<>();
 
         if (adminGuiConfig.isFeatureVisible(GuiFeature.ORGTREE_COLLAPSE_ALL.getUri())) {
@@ -344,7 +339,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            collapseAllPerformed(target);
+                            collapseAllPerformed(org, target);
                         }
                     };
                 }
@@ -362,7 +357,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            expandAllPerformed(target);
+                            expandAllPerformed(org, target);
                         }
                     };
                 }
@@ -370,46 +365,73 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
             items.add(item);
         }
 
-        List<InlineMenuItem> additionalActions = createTreeMenu();
+        List<InlineMenuItem> additionalActions = createTreeChildrenMenu(org);
         if (additionalActions != null) {
             items.addAll(additionalActions);
         }
         return items;
     }
 
-    protected List<InlineMenuItem> createTreeMenu() {
-        return null;
-    }
-
     protected List<InlineMenuItem> createTreeChildrenMenu(TreeSelectableBean<OrgType> org) {
-        return new ArrayList<>();
+        return null;
     }
 
     protected void selectTreeItemPerformed(TreeSelectableBean<OrgType> selected, AjaxRequestTarget target) {
 
     }
 
-    private void collapseAllPerformed(AjaxRequestTarget target) {
-        MidpointNestedTree tree = getTree();
-        TreeStateModel model = (TreeStateModel) tree.getDefaultModel();
-        model.collapseAll();
-        if (getOrgTreeStateStorage() != null){
-            getOrgTreeStateStorage().setInverse(false);
+    private void expandAllPerformed(TreeSelectableBean<OrgType> org, AjaxRequestTarget target) {
+        TreeStateSet expandItems = new TreeStateSet<>();
+        if (getExpandedItems(getOrgTreeStateStorage()) != null) {
+            expandItems.addAll(getExpandedItems(getOrgTreeStateStorage()));
         }
-
-        target.add(tree);
+        if (!expandItems.contains(org)) {
+            expandItems.add(org);
+        }
+        TreeStateSet collapsedItems = new TreeStateSet<>();
+        if (getCollapsedItems(getOrgTreeStateStorage()) != null) {
+            collapsedItems.addAll(getCollapsedItems(getOrgTreeStateStorage()));
+        }
+        if (!collapsedItems.contains(org)) {
+            collapsedItems.remove(org);
+        }
+        Iterator<? extends TreeSelectableBean<OrgType>> childIterator = getTree().getProvider().getChildren(org);
+        while (childIterator.hasNext()) {
+            TreeSelectableBean<OrgType> child = childIterator.next();
+            if (!expandItems.contains(child)) {
+                expandItems.add(child);
+            }
+            if (collapsedItems.contains(child)) {
+                collapsedItems.remove(child);
+            }
+        }
+        setCollapsedItems(collapsedItems, getOrgTreeStateStorage());
+        setExpandedItems(expandItems, getOrgTreeStateStorage());
+        target.add(getTree());
     }
 
-    private void expandAllPerformed(AjaxRequestTarget target) {
-        MidpointNestedTree tree = getTree();
-        TreeStateModel model = (TreeStateModel) tree.getDefaultModel();
-        model.expandAll();
-
-        if (getOrgTreeStateStorage() != null){
-            getOrgTreeStateStorage().setInverse(true);
+    private void collapseAllPerformed(TreeSelectableBean<OrgType> org, AjaxRequestTarget target) {
+        TreeStateSet expandItems = new TreeStateSet<>();
+        if (getExpandedItems(getOrgTreeStateStorage()) != null) {
+            expandItems.addAll(getExpandedItems(getOrgTreeStateStorage()));
         }
-
-        target.add(tree);
+        TreeStateSet collapsedItems = new TreeStateSet<>();
+        if (getCollapsedItems(getOrgTreeStateStorage()) != null) {
+            collapsedItems.addAll(getCollapsedItems(getOrgTreeStateStorage()));
+        }
+        Iterator<? extends TreeSelectableBean<OrgType>> childIterator = getTree().getProvider().getChildren(org);
+        while (childIterator.hasNext()) {
+            TreeSelectableBean<OrgType> child = childIterator.next();
+            if (expandItems.contains(child)) {
+                expandItems.remove(child);
+            }
+            if (!collapsedItems.contains(child)) {
+                collapsedItems.add(child);
+            }
+        }
+        setCollapsedItems(collapsedItems, getOrgTreeStateStorage());
+        setExpandedItems(expandItems, getOrgTreeStateStorage());
+        target.add(getTree());
     }
 
     public Set<TreeSelectableBean<OrgType>> getExpandedItems(OrgTreeStateStorage storage){
@@ -422,13 +444,42 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
         }
     }
 
-    public TreeSelectableBean<OrgType> getCollapsedItem(OrgTreeStateStorage storage){
-        return storage != null ? storage.getCollapsedItem() : null;
+    public void addExpandedItem(TreeSelectableBean<OrgType> item, OrgTreeStateStorage storage){
+        if (storage == null) {
+            return;
+        }
+
+        Set<TreeSelectableBean<OrgType>> expandedItems = storage.getExpandedItems();
+        if (expandedItems == null) {
+            TreeStateSet<TreeSelectableBean<OrgType>> expanded = new TreeStateSet<>();
+            expanded.add(item);
+            storage.setExpandedItems(expanded);
+        } else {
+            expandedItems.add(item);
+        }
     }
 
-    public void setCollapsedItem(TreeSelectableBean<OrgType> item, OrgTreeStateStorage storage){
+    public Set<TreeSelectableBean<OrgType>> getCollapsedItems(OrgTreeStateStorage storage){
+        return storage != null ? storage.getCollapsedItems() : null;
+    }
+
+    public void setCollapsedItems(TreeStateSet<TreeSelectableBean<OrgType>> items, OrgTreeStateStorage storage){
         if (storage != null){
-            storage.setCollapsedItem(item);
+            storage.setCollapsedItems(items);
+        }
+    }
+
+    public void addCollapsedItem(TreeSelectableBean<OrgType> item, OrgTreeStateStorage storage){
+        if (storage == null ) {
+            return;
+        }
+        Set<TreeSelectableBean<OrgType>> collapsedItems = storage.getCollapsedItems();
+        if (collapsedItems == null) {
+            TreeStateSet<TreeSelectableBean<OrgType>> collapsed = new TreeStateSet<>();
+            collapsed.add(item);
+            storage.setCollapsedItems(collapsed);
+        } else {
+            collapsedItems.add(item);
         }
     }
 

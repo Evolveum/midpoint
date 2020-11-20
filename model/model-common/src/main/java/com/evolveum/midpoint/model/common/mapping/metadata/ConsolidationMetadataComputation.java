@@ -40,7 +40,7 @@ public class ConsolidationMetadataComputation extends ValueMetadataComputation {
     private ConsolidationMetadataComputation(
             @NotNull List<ValueMetadataType> nonNegativeValues,
             @NotNull List<ValueMetadataType> existingValues,
-            @NotNull ValueMetadataProcessingSpec processingSpec,
+            @NotNull ItemValueMetadataProcessingSpec processingSpec,
             @Nullable MappingSpecificationType mappingSpecification,
             @NotNull ModelCommonBeans beans,
             MappingEvaluationEnvironment env) throws SchemaException {
@@ -62,7 +62,7 @@ public class ConsolidationMetadataComputation extends ValueMetadataComputation {
     }
 
     public static ConsolidationMetadataComputation forConsolidation(@NotNull List<ValueMetadataType> nonNegativeValues,
-            @NotNull List<ValueMetadataType> existingValues, ValueMetadataProcessingSpec processingSpec,
+            @NotNull List<ValueMetadataType> existingValues, ItemValueMetadataProcessingSpec processingSpec,
             ModelCommonBeans beans, MappingEvaluationEnvironment env) throws SchemaException {
         return new ConsolidationMetadataComputation(nonNegativeValues, existingValues, processingSpec, null, beans, env.createChild("metadata evaluation in"));
     }

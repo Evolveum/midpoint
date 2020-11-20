@@ -228,7 +228,7 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
         PrismObject<SystemConfigurationType> systemConfiguration = ctx.ae.systemObjectCache.getSystemConfiguration(result);
         ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(segment.source, null,
                 null, systemConfiguration.asObjectable(), ctx.ae.prismContext);
-        variables.put(ExpressionConstants.VAR_SOURCE, segment.getOrderOneObject(), ObjectType.class);
+        variables.put(ExpressionConstants.VAR_SOURCE, segment.source, ObjectType.class);
         AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);
         if (assignmentPathVariables != null) {
             ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variables, ctx.ae.prismContext);

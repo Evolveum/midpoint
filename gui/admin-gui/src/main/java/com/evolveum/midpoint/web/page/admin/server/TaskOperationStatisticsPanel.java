@@ -74,7 +74,6 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
 
         TaskIterativeInformationPanel infoPanel = new TaskIterativeInformationPanel(ID_PROCESSING_INFO, new PropertyModel<>(statisticsModel, OperationStatsType.F_ITERATIVE_TASK_INFORMATION.getLocalPart())) {
 
-
             @Override
             protected Long getWallClockAverage(int objectsTotal) {
                 if (objectsTotal == 0) {
@@ -86,16 +85,8 @@ public class TaskOperationStatisticsPanel extends BasePanel<PrismObjectWrapper<T
                     return null;
                 }
 
-                Long started = WebComponentUtil.xgc2long(task.getLastRunStartTimestamp());
-                if (started == null) {
-                    return null;
-                }
-                Long finished = WebComponentUtil.xgc2long(task.getLastRunFinishTimestamp());
-                if (finished == null || finished < started) {
-                    finished = System.currentTimeMillis();
-                }
-
-                return (finished - started) / objectsTotal;
+                Long executionTime = TaskDisplayUtil.getExecutionTime(task);
+                return executionTime != null ? executionTime / objectsTotal : null;
             }
         };
         infoPanel.setOutputMarkupId(true);

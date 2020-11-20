@@ -1,16 +1,16 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.page.admin.home.dto;
 
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
-import org.apache.commons.lang.Validate;
-
 import java.io.Serializable;
+
+import org.apache.commons.lang3.Validate;
+
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 
 /**
  * TODO: unify with AssignmentEditorDto
@@ -25,10 +25,10 @@ public class AssignmentItemDto implements Serializable, Comparable<AssignmentIte
     public static final String F_DESCRIPTION = "description";
     public static final String F_RELATION = "relation";
 
-    private AssignmentEditorDtoType type;
-    private String name;
-    private String description;
-    private String relation;
+    private final AssignmentEditorDtoType type;
+    private final String name;
+    private final String description;
+    private final String relation;
 
     public AssignmentItemDto(AssignmentEditorDtoType type, String name, String description, String relation) {
         this.type = type;

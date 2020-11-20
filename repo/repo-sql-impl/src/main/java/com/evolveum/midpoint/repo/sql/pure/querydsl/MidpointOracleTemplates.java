@@ -15,10 +15,8 @@ public class MidpointOracleTemplates extends OracleTemplates {
     public static final MidpointOracleTemplates DEFAULT = new MidpointOracleTemplates();
 
     public MidpointOracleTemplates() {
-        super('\\', false);
+        // varchar2 is the type we want to generate for missing varchar columns
         addTypeNameToCode("varchar2", Types.VARCHAR, true);
-        // We expect properly set Oracle DB where nationalized strings are also VARCHAR2.
-        addTypeNameToCode("varchar2", Types.NVARCHAR, true);
 
         // While supported it produces constraint violation with auto-generated IDs.
         // We would need sequences + row-level trigger added to them, it's not worth the hassle.

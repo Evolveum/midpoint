@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,7 +9,7 @@ package com.evolveum.midpoint.provisioning.impl;
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.api.Cacheable;
+import com.evolveum.midpoint.repo.api.Cache;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -45,7 +45,7 @@ import static com.evolveum.midpoint.util.caching.CacheConfiguration.StatisticsLe
  * @author Radovan Semancik
  */
 @Component
-public class ResourceCache implements Cacheable {
+public class ResourceCache implements Cache {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceCache.class);
     private static final Trace LOGGER_CONTENT = TraceManager.getTrace(ResourceCache.class.getName() + ".content");
@@ -57,12 +57,12 @@ public class ResourceCache implements Cacheable {
 
     @PostConstruct
     public void register() {
-        cacheRegistry.registerCacheableService(this);
+        cacheRegistry.registerCache(this);
     }
 
     @PreDestroy
     public void unregister() {
-        cacheRegistry.unregisterCacheableService(this);
+        cacheRegistry.unregisterCache(this);
     }
 
     /**

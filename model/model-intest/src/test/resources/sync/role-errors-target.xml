@@ -1,0 +1,40 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="582af892-2490-4fb1-bc83-368ade2c5eb4">
+    <name>errors-target</name>
+    <inducement>
+        <construction>
+            <resourceRef oid="10079e05-b98e-4630-92aa-26fa4ed8d0eb"/> <!-- errors-target -->
+        </construction>
+    </inducement>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <strength>strong</strength>
+                <source>
+                    <path>name</path>
+                </source>
+                <expression>
+                    <script>
+                        <code>import com.evolveum.midpoint.model.intest.sync.TestLiveSyncTaskMechanics
+
+                        if (name != null &amp;&amp; TestLiveSyncTaskMechanics.produceErrors) {
+                            index = Integer.parseInt(basic.stringify(name).substring(2))
+
+                            if (index % 9 == 0) {
+                                throw new IllegalStateException("Fatally failing on 9-th user: " + name)
+                            }
+                        }
+                        </code>
+                    </script>
+                </expression>
+            </mapping>
+        </focusMappings>
+    </inducement>
+</role>

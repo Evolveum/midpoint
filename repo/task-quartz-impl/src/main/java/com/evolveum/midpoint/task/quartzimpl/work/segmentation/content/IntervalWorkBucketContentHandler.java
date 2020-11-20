@@ -9,12 +9,10 @@ package com.evolveum.midpoint.task.quartzimpl.work.segmentation.content;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -22,9 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-/**
- * @author mederly
- */
 public abstract class IntervalWorkBucketContentHandler extends BaseWorkBucketContentHandler {
 
     @NotNull
@@ -59,18 +54,6 @@ public abstract class IntervalWorkBucketContentHandler extends BaseWorkBucketCon
                     .buildFilter());
         }
         return filters;
-    }
-
-    @NotNull
-    private ItemPath getDiscriminator(AbstractWorkSegmentationType configuration, AbstractWorkBucketContentType content) {
-        ItemPathType discriminatorPathType = configuration.getDiscriminator();
-        if (discriminatorPathType != null) {
-            return discriminatorPathType.getItemPath();
-        } else if (configuration instanceof OidWorkSegmentationType) {
-            return ItemName.fromQName(PrismConstants.T_ID);     // fixme
-        } else {
-            throw new IllegalStateException("No buckets discriminator defined; bucket content = " + content);
-        }
     }
 
     protected abstract boolean hasNoBoundaries(AbstractWorkBucketContentType bucketContent);

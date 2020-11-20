@@ -1,19 +1,11 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.data;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
-
-import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
@@ -25,6 +17,12 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.validation.validator.RangeValidator;
+
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -39,8 +37,6 @@ public class TableConfigurationPanel extends BasePanel {
     private static final String ID_INPUT = "input";
     private static final String ID_BUTTON = "button";
 
-//    private static final String ID_FEEDBACK = "feedback";
-
     public TableConfigurationPanel(String id) {
         super(id);
         setRenderBodyOnly(true);
@@ -51,17 +47,15 @@ public class TableConfigurationPanel extends BasePanel {
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("initPageSizePopover('");
-        sb.append(get(createComponentPath(ID_COG_BUTTON, ID_PAGE_SIZE)).getMarkupId());
-        sb.append("','").append(get(ID_POPOVER).getMarkupId());
-        sb.append("','").append(get(ID_COG_BUTTON).getMarkupId());
-        sb.append("');");
-
-        response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
+        response.render(OnDomReadyHeaderItem.forScript(
+                "initPageSizePopover('"
+                        + get(createComponentPath(ID_COG_BUTTON, ID_PAGE_SIZE)).getMarkupId()
+                        + "','" + get(ID_POPOVER).getMarkupId()
+                        + "','" + get(ID_COG_BUTTON).getMarkupId()
+                        + "');"));
     }
 
-//    @Override
+    //    @Override
     protected void initLayout() {
         WebMarkupContainer cogButton = new WebMarkupContainer(ID_COG_BUTTON);
         cogButton.setOutputMarkupId(true);
@@ -89,7 +83,7 @@ public class TableConfigurationPanel extends BasePanel {
         popover.setOutputMarkupId(true);
         add(popover);
 
-        Form form = new com.evolveum.midpoint.web.component.form.Form(ID_FORM);
+        Form<?> form = new MidpointForm<>(ID_FORM);
         popover.add(form);
 
         AjaxSubmitButton button = new AjaxSubmitButton(ID_BUTTON) {
@@ -106,8 +100,8 @@ public class TableConfigurationPanel extends BasePanel {
         };
         form.add(button);
 
-        TextField input = new TextField(ID_INPUT, createInputModel());
-        input.add(new RangeValidator(5, 100));
+        TextField<?> input = new TextField<>(ID_INPUT, createInputModel());
+        input.add(new RangeValidator<>(5, 100));
         input.setLabel(createStringResource("PageSizePopover.title"));
         input.add(new SearchFormEnterBehavior(button));
         input.setType(Integer.class);
@@ -159,6 +153,5 @@ public class TableConfigurationPanel extends BasePanel {
     }
 
     protected void onPageSizeChangedError(AjaxRequestTarget target) {
-
     }
 }

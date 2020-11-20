@@ -52,7 +52,7 @@ abstract public class ValueMetadataComputation {
     /**
      * Metadata processing specification: how should we compute the resulting metadata?
      */
-    @NotNull private final ValueMetadataProcessingSpec processingSpec;
+    @NotNull private final ItemValueMetadataProcessingSpec processingSpec;
 
     /**
      * Mapping specification - present only for transformational situations.
@@ -72,19 +72,19 @@ abstract public class ValueMetadataComputation {
     /**
      * Necessary beans.
      */
-    @NotNull final ModelCommonBeans beans;
+    @NotNull private final ModelCommonBeans beans;
 
     /**
      * Definition of ValueMetadataType container.
      */
-    @NotNull final PrismContainerDefinition<ValueMetadataType> metadataDefinition;
+    @NotNull private final PrismContainerDefinition<ValueMetadataType> metadataDefinition;
 
     /**
      * Result of the computation: the metadata.
      */
     @NotNull private final PrismContainerValue<ValueMetadataType> outputMetadata;
 
-    ValueMetadataComputation(@NotNull ValueMetadataProcessingSpec processingSpec,
+    ValueMetadataComputation(@NotNull ItemValueMetadataProcessingSpec processingSpec,
             @Nullable MappingSpecificationType mappingSpecification,
             @NotNull ModelCommonBeans beans, MappingEvaluationEnvironment env) {
         this.processingSpec = processingSpec;
@@ -107,12 +107,28 @@ abstract public class ValueMetadataComputation {
             processCustomMappings();
             processBuiltinMappings();
             recordOutput();
+            applyPersistence();
             return outputMetadata.asContainerable();
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
         } finally {
             result.computeStatusIfUnknown();
+        }
+    }
+
+    private void applyPersistence() {
+        for (ItemPath transientPath : processingSpec.getTransientPaths()) {
+            markValuesTransient(transientPath);
+        }
+    }
+
+    // We assume there is only a single item corresponding to given path
+    private void markValuesTransient(ItemPath path) {
+        Item<PrismValue, ItemDefinition> item = outputMetadata.findItem(path);
+        if (item != null) {
+            LOGGER.trace("Marking {} values of {} as transient", item.size(), path);
+            item.getValues().forEach(value -> value.setTransient(true));
         }
     }
 
@@ -144,6 +160,7 @@ abstract public class ValueMetadataComputation {
         MetadataMappingBuilder<?, ?> builder = beans.metadataMappingEvaluator.mappingFactory
                 .createMappingBuilder(mappingBean, env.contextDescription);
         createSources(builder, mappingBean);
+        createCustomMappingVariables(builder, mappingBean);
         builder.targetContext(metadataDefinition)
                 .now(env.now)
                 .conditionMaskOld(false); // We are not interested in old values (deltas are irrelevant in metadata mappings).
@@ -166,6 +183,9 @@ abstract public class ValueMetadataComputation {
         }
     }
 
+    void createCustomMappingVariables(MetadataMappingBuilder<?,?> builder, MetadataMappingType mappingBean) {
+    }
+
     @NotNull
     private MutableItemDefinition getAdaptedSourceDefinition(ItemPath sourcePath) {
         ItemDefinition sourceDefinition =
@@ -179,11 +199,11 @@ abstract public class ValueMetadataComputation {
 
     abstract Collection<?> getSourceValues(ItemPath sourcePath);
 
-    private QName getSourceName(VariableBindingDefinitionType sourceDef, ItemPath sourcePath) {
+    QName getSourceName(VariableBindingDefinitionType sourceDef, ItemPath sourcePath) {
         return sourceDef.getName() != null ? sourceDef.getName() : ItemPath.toName(sourcePath.last());
     }
 
-    private ItemPath getSourcePath(VariableBindingDefinitionType sourceDef) {
+    ItemPath getSourcePath(VariableBindingDefinitionType sourceDef) {
         return Objects.requireNonNull(sourceDef.getPath(), () -> "No source path in " + env.contextDescription)
                 .getItemPath();
     }

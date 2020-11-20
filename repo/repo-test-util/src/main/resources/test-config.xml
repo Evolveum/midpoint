@@ -30,10 +30,14 @@
             </auditService>
             <auditService>
                 <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>
-                <!-- Needed for model-intest where the property is used. -->
+                <!-- Needed for model-intest where these properties are used. -->
                 <customColumn>
                     <columnName>foo</columnName>
                     <eventRecordPropertyName>foo</eventRecordPropertyName>
+                </customColumn>
+                <customColumn>
+                    <columnName>ship</columnName>
+                    <eventRecordPropertyName>ship</eventRecordPropertyName>
                 </customColumn>
             </auditService>
             <auditService>

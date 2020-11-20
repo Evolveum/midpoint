@@ -13,19 +13,20 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
+
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCustomColumnPropertyType;
+
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SchemaHelper;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.AuditConstants;
 import com.evolveum.midpoint.task.api.TaskUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -67,23 +68,6 @@ public class DefaultColumnUtils {
                         .put(ItemPath.create(ResourceType.F_CONNECTOR_REF, ConnectorType.F_CONNECTOR_VERSION),
                                 "ConnectorType.connectorVersion")
                         .build())
-                .put(AuditEventRecordType.class, ImmutableMap.<ItemPath, String>builder()
-                        .put(new ItemName(AuditConstants.TIME_COLUMN), AuditConstants.TIME_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.INITIATOR_COLUMN), AuditConstants.INITIATOR_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.EVENT_STAGE_COLUMN), AuditConstants.EVENT_STAGE_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.EVENT_TYPE_COLUMN), AuditConstants.EVENT_TYPE_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.TARGET_COLUMN), AuditConstants.TARGET_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.OUTCOME_COLUMN), AuditConstants.OUTCOME_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.MESSAGE_COLUMN), AuditConstants.MESSAGE_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.DELTA_COLUMN), AuditConstants.DELTA_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.TARGET_OWNER_COLUMN), AuditConstants.TARGET_OWNER_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.CHANNEL_COLUMN), AuditConstants.CHANNEL_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.TASK_OID_COLUMN), AuditConstants.TASK_OID_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.NODE_IDENTIFIER_COLUMN), AuditConstants.NODE_IDENTIFIER_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.ATTORNEY_COLUMN), AuditConstants.ATTORNEY_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.RESULT_COLUMN), AuditConstants.RESULT_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.RESOURCE_OID_COLUMN), AuditConstants.RESOURCE_OID_COLUMN_KEY)
-                        .build())
                 .build();
 
         NUMBER_COLUMNS = Collections.singletonList(
@@ -92,14 +76,14 @@ public class DefaultColumnUtils {
         OBJECT_COLUMNS_DEF = Collections.singletonList(ObjectType.F_NAME);
 
         DEFAULT_AUDIT_COLUMNS_DEF = Arrays.asList(
-                new ItemName(AuditConstants.TIME_COLUMN),
-                new ItemName(AuditConstants.INITIATOR_COLUMN),
-                new ItemName(AuditConstants.EVENT_STAGE_COLUMN),
-                new ItemName(AuditConstants.EVENT_TYPE_COLUMN),
-                new ItemName(AuditConstants.TARGET_COLUMN),
-                new ItemName(AuditConstants.OUTCOME_COLUMN),
-                new ItemName(AuditConstants.MESSAGE_COLUMN),
-                new ItemName(AuditConstants.DELTA_COLUMN)
+                AuditEventRecordType.F_TIMESTAMP,
+                AuditEventRecordType.F_INITIATOR_REF,
+                AuditEventRecordType.F_EVENT_STAGE,
+                AuditEventRecordType.F_EVENT_TYPE,
+                AuditEventRecordType.F_TARGET_REF,
+                AuditEventRecordType.F_OUTCOME,
+                AuditEventRecordType.F_MESSAGE,
+                AuditEventRecordType.F_DELTA
         );
 
         COLUMNS_DEF = ImmutableMap.<Class<? extends ObjectType>, List<ItemPath>>builder()
@@ -280,52 +264,9 @@ public class DefaultColumnUtils {
         }
     }
 
-    public static Object getObjectByAuditColumn(AuditEventRecord record, ItemPath path) {
-        switch (path.toString()) {
-            case AuditConstants.TIME_COLUMN:
-                return record.getTimestamp();
-            case AuditConstants.INITIATOR_COLUMN:
-                return record.getInitiatorRef();
-            case AuditConstants.EVENT_STAGE_COLUMN:
-                return record.getEventStage();
-            case AuditConstants.EVENT_TYPE_COLUMN:
-                return record.getEventType();
-            case AuditConstants.TARGET_COLUMN:
-                return record.getTargetRef();
-            case AuditConstants.TARGET_OWNER_COLUMN:
-                return record.getTargetOwnerRef();
-            case AuditConstants.CHANNEL_COLUMN:
-                return record.getChannel();
-            case AuditConstants.OUTCOME_COLUMN:
-                return record.getOutcome();
-            case AuditConstants.MESSAGE_COLUMN:
-                return record.getMessage();
-            case AuditConstants.DELTA_COLUMN:
-                return record.getDeltas();
-            case AuditConstants.TASK_OID_COLUMN:
-                return record.getTaskOid();
-            case AuditConstants.NODE_IDENTIFIER_COLUMN:
-                return record.getNodeIdentifier();
-            case AuditConstants.ATTORNEY_COLUMN:
-                return record.getAttorneyRef();
-            case AuditConstants.RESULT_COLUMN:
-                return record.getResult();
-            case AuditConstants.RESOURCE_OID_COLUMN:
-                return record.getResourceOids();
-            default:
-                String value = record.getCustomColumnProperty().get(path.toString());
-                if (value != null) {
-                    return value;
-                }
-
-                LOGGER.error("Unknown name of column for AuditReport " + path);
-                throw new IllegalArgumentException("Unknown name of column for AuditReport " + path);
-        }
-    }
-
-    public static <O extends ObjectType> String processSpecialColumn(
-            ItemPath itemPath, PrismObject<O> object, LocalizationService localization) {
-        @Nullable Class<O> type = object.getCompileTimeClass();
+    public static  String processSpecialColumn(
+            ItemPath itemPath, PrismContainer<? extends Containerable> object, LocalizationService localization) {
+        @Nullable Class type = object.getCompileTimeClass();
         if (type == null || itemPath == null) {
             return null;
         }
@@ -362,12 +303,18 @@ public class DefaultColumnUtils {
                 Object[] params = localizationObject.isEmpty() ? null : localizationObject.toArray();
                 return localization.translate(key, params, Locale.getDefault(), key);
             }
+        } else if (type.isAssignableFrom(AuditEventRecordType.class)) {
+            for (AuditEventRecordCustomColumnPropertyType customColumn : ((AuditEventRecordType)object.getValue().asContainerable()).getCustomColumnProperty()) {
+                if (customColumn.getName().equals(itemPath.toString())) {
+                    return customColumn.getValue();
+                }
+            }
         }
         return null;
     }
 
-    public static <O extends ObjectType> boolean isSpecialColumn(ItemPath itemPath, PrismObject<O> object) {
-        @Nullable Class<O> type = object.getCompileTimeClass();
+    public static boolean isSpecialColumn(ItemPath itemPath, PrismContainer<? extends Containerable> object) {
+        @Nullable Class type = object.getCompileTimeClass();
         if (type == null || itemPath == null) {
             return false;
         }
@@ -378,6 +325,12 @@ public class DefaultColumnUtils {
                     IterativeTaskInformationType.F_TOTAL_FAILURE_COUNT))
                     || itemPath.equivalent(TaskType.F_PROGRESS)) {
                 return true;
+            }
+        } else if (type.isAssignableFrom(AuditEventRecordType.class)) {
+            for (AuditEventRecordCustomColumnPropertyType customColumn : ((AuditEventRecordType)object.getValue().asContainerable()).getCustomColumnProperty()) {
+                if (customColumn.getName().equals(itemPath.toString())) {
+                    return true;
+                }
             }
         }
         return false;

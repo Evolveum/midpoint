@@ -7,10 +7,13 @@
 package com.evolveum.midpoint.gui.api.factory.wrapper;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.model.api.MetadataItemProcessingSpec;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItemSpecificationType;
@@ -49,6 +52,8 @@ public class WrapperContext {
 
     private Collection<VirtualContainersSpecificationType> virtualContainers;
     private List<VirtualContainerItemSpecificationType>  virtualItemSpecification;
+
+    private MetadataItemProcessingSpec metadataItemProcessingSpec;
 
     public WrapperContext(Task task, OperationResult result) {
         this.task = task;
@@ -147,6 +152,18 @@ public class WrapperContext {
         return virtualItemSpecification;
     }
 
+    public void setMetadataItemProcessingSpec(MetadataItemProcessingSpec metadataItemProcessingSpec) {
+        this.metadataItemProcessingSpec = metadataItemProcessingSpec;
+    }
+
+    public boolean isProcessMetadataFor(ItemPath path) throws SchemaException {
+        if (metadataItemProcessingSpec == null) {
+            return false;
+        }
+
+        return metadataItemProcessingSpec.isFullProcessing(path);
+    }
+
     @NotNull
     public PrismObject<?> getObject() {
         return object;
@@ -178,6 +195,7 @@ public class WrapperContext {
         ctx.setVirtualItemSpecification(virtualItemSpecification);
         ctx.setObject(object);
         ctx.setMetadata(isMetadata);
+        ctx.setMetadataItemProcessingSpec(metadataItemProcessingSpec);
         return ctx;
     }
 }

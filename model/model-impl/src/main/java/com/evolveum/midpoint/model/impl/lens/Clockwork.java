@@ -120,11 +120,16 @@ public class Clockwork {
         OperationResultBuilder builder = parentResult.subresult(Clockwork.class.getName() + ".run");
         boolean tracingRequested = startTracingIfRequested(context, task, builder, parentResult);
         OperationResult result = builder.build();
+
+        // There are some parts of processing (e.g. notifications deep in provisioning module) that have no access
+        // to context.channel value, only to task.channel. So we have to get the two into sync. To return to the original
+        // state, we restore task.channel afterwards.
+        String originalTaskChannel = task.getChannel();
+        task.setChannel(context.getChannel());
+
         ClockworkRunTraceType trace = null;
         try {
-            if (result.isTraced()) {
-                trace = recordTraceAtStart(context, result);
-            }
+            trace = recordTraceAtStart(context, result);
 
             LOGGER.trace("Running clockwork for context {}", context);
             context.checkConsistenceIfNeeded();
@@ -184,6 +189,8 @@ public class Clockwork {
             result.recordFatalError(t.getMessage(), t);
             throw t;
         } finally {
+            task.setChannel(originalTaskChannel);
+
             recordTraceAtEnd(context, trace, result);
             if (tracingRequested) {
                 tracer.storeTrace(task, result, parentResult);
@@ -256,11 +263,15 @@ public class Clockwork {
 
     private <F extends ObjectType> ClockworkRunTraceType recordTraceAtStart(LensContext<F> context,
             OperationResult result) throws SchemaException {
-        ClockworkRunTraceType trace = new ClockworkRunTraceType(prismContext);
-        trace.setInputLensContextText(context.debugDump());
-        trace.setInputLensContext(context.toLensContextType(getExportTypeTraceOrReduced(trace, result)));
-        result.addTrace(trace);
-        return trace;
+        if (result.isTracingAny(ClockworkRunTraceType.class)) {
+            ClockworkRunTraceType trace = new ClockworkRunTraceType(prismContext);
+            trace.setInputLensContextText(context.debugDump());
+            trace.setInputLensContext(context.toLensContextType(getExportTypeTraceOrReduced(trace, result)));
+            result.addTrace(trace);
+            return trace;
+        } else {
+            return null;
+        }
     }
 
     private <F extends ObjectType> void recordTraceAtEnd(LensContext<F> context, ClockworkRunTraceType trace,
@@ -287,7 +298,7 @@ public class Clockwork {
 
             projector.projectAllWaves(context, "preview", task, result);
             clockworkHookHelper.invokePreview(context, task, result);
-            policyRuleEnforcer.execute(context);
+            policyRuleEnforcer.execute(context, result);
             policyRuleSuspendTaskExecutor.execute(context, task, result);
 
         } catch (ConfigurationException | SecurityViolationException | ObjectNotFoundException | SchemaException |
@@ -380,7 +391,7 @@ public class Clockwork {
                 .build();
 
         ClockworkClickTraceType trace;
-        if (result.isTraced()) {
+        if (result.isTracingAny(ClockworkClickTraceType.class)) {
             trace = new ClockworkClickTraceType(prismContext);
             if (result.isTracingNormal(ClockworkClickTraceType.class)) {
                 trace.setInputLensContextText(context.debugDump());
@@ -476,7 +487,7 @@ public class Clockwork {
             ExpressionEvaluationException, PreconditionViolationException {
         switch (state) {
             case INITIAL:
-                processInitialToPrimary(context);
+                processInitialToPrimary(context, result);
                 break;
             case PRIMARY:
                 processPrimaryToSecondary(context, task, result);
@@ -500,9 +511,10 @@ public class Clockwork {
         context.setState(newState);
     }
 
-    private <F extends ObjectType> void processInitialToPrimary(LensContext<F> context) throws PolicyViolationException {
+    private <F extends ObjectType> void processInitialToPrimary(LensContext<F> context, OperationResult result)
+            throws PolicyViolationException {
         // To mimic operation of the original enforcer hook, we execute the following only in the initial state.
-        policyRuleEnforcer.execute(context);
+        policyRuleEnforcer.execute(context, result);
 
         switchState(context, ModelState.PRIMARY);
     }
@@ -610,6 +622,7 @@ public class Clockwork {
         reconTask.setInitialExecutionStatus(TaskExecutionStatus.RUNNABLE);
         reconTask.setHandlerUri(RecomputeTaskHandler.HANDLER_URI);
         reconTask.setCategory(TaskCategory.RECOMPUTATION);
+        reconTask.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value());
         taskManager.switchToBackground(reconTask, result);
         result.setBackgroundTaskOid(reconTask.getOid());
         result.recordStatus(OperationResultStatus.IN_PROGRESS, "Reconciliation task switched to background");
@@ -639,15 +652,31 @@ public class Clockwork {
         }
     }
 
-
     private <F extends ObjectType> void processClockworkException(LensContext<F> context, Throwable e, Task task, OperationResult result, OperationResult overallResult)
             throws SchemaException {
         LOGGER.trace("Processing clockwork exception {}", e.toString());
         result.recordFatalErrorNotFinish(e);
         clockworkAuditHelper.auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result, overallResult);
         operationExecutionRecorder.recordOperationExecution(context, e, task, result);
-        LensUtil.reclaimSequences(context, repositoryService, task, result);
+
+        reclaimSequencesIfPossible(context, task, result);
         result.recordEnd();
+    }
+
+    /**
+     * An exception occurred, so it's quite possible that allocated sequence values have to be reclaimed.
+     *
+     * But this is safe to do only if we are sure they were not used. Currently the only way how
+     * to be sure is to know that no focus/projection deltas were applied. It is an approximate
+     * solution (because sequence values were maybe not used in these deltas), but we have nothing
+     * better at hand now.
+     */
+    private <F extends ObjectType> void reclaimSequencesIfPossible(LensContext<F> context, Task task, OperationResult result) throws SchemaException {
+        if (!context.wasAnythingExecuted()) {
+            LensUtil.reclaimSequences(context, repositoryService, task, result);
+        } else {
+            LOGGER.trace("Something was executed, so we are not reclaiming sequence values");
+        }
     }
 
     /**
@@ -679,7 +708,6 @@ public class Clockwork {
         if (channel != null) {
             sb.append("Channel: ").append(channel).append("\n");
         }
-
 
         if (hasSyncDelta) {
             sb.append("Triggered by synchronization delta\n");

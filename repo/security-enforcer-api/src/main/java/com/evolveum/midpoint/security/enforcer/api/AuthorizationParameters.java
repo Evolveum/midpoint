@@ -210,13 +210,19 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
 
         public static <O extends ObjectType> AuthorizationParameters<O,ObjectType> buildObjectAdd(PrismObject<O> object) {
             // TODO: Do we need to create delta here?
-            ObjectDeltaObject<O> odo = new ObjectDeltaObject<>(null, null, object, object.getDefinition());
+            ObjectDeltaObject<O> odo = null;
+            if (object != null) {
+                odo = new ObjectDeltaObject<>(null, null, object, object.getDefinition());
+            }
             return new AuthorizationParameters<>(odo, null, null, null);
         }
 
         public static <O extends ObjectType> AuthorizationParameters<O,ObjectType> buildObjectDelete(PrismObject<O> object) {
             // TODO: Do we need to create delta here?
-            ObjectDeltaObject<O> odo = new ObjectDeltaObject<>(object, null, null, object.getDefinition());
+            ObjectDeltaObject<O> odo = null;
+            if (object != null) {
+                odo = new ObjectDeltaObject<>(object, null, null, object.getDefinition());
+            }
             return new AuthorizationParameters<>(odo, null, null, null);
         }
 

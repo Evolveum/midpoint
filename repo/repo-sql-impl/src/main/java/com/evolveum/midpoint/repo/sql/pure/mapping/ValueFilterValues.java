@@ -105,7 +105,7 @@ public class ValueFilterValues<T> {
         }
         try {
             return conversionFunction.apply(value.getRealValue());
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | ClassCastException e) {
             throw new QueryException(e);
         }
     }

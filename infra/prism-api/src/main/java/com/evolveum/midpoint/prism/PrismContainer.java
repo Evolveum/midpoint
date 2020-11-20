@@ -43,11 +43,16 @@ import java.util.function.Consumer;
 public interface PrismContainer<C extends Containerable>
         extends Item<PrismContainerValue<C>, PrismContainerDefinition<C>>, PrismContainerable<C> {
 
+
+    @Override
+    PrismContainerDefinition<C> getDefinition();
+
     /**
      * Returns the static type of data represented by values of this container,
      * if known and applicable. (There are containers that are purely dynamic, i.e.
      * without any compile time class.)
      */
+    @Override
     @Nullable
     Class<C> getCompileTimeClass();
 
@@ -76,6 +81,7 @@ public interface PrismContainer<C extends Containerable>
     @Override
     Collection<C> getRealValues();
 
+    @Override
     @NotNull
     C getRealValue();
 
@@ -83,6 +89,7 @@ public interface PrismContainer<C extends Containerable>
 
     void setValue(@NotNull PrismContainerValue<C> value) throws SchemaException;
 
+    @Override
     @NotNull
     PrismContainerValue<C> getValue();
 
@@ -119,6 +126,7 @@ public interface PrismContainer<C extends Containerable>
      *
      * @param definition the definition to set
      */
+    @Override
     void setDefinition(PrismContainerDefinition<C> definition);
 
     @Override
@@ -204,8 +212,6 @@ public interface PrismContainer<C extends Containerable>
     ContainerDelta<C> diff(PrismContainer<C> other);
 
     ContainerDelta<C> diff(PrismContainer<C> other, ParameterizedEquivalenceStrategy strategy);
-
-    List<? extends ItemDelta> diffModifications(PrismContainer<C> other);
 
     List<? extends ItemDelta> diffModifications(PrismContainer<C> other, ParameterizedEquivalenceStrategy strategy);
 

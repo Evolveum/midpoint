@@ -20,6 +20,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * @author semancik
  */
@@ -27,6 +29,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
 
     private final ValueSetDefinitionType setDefinitionBean;
     private final D itemDefinition;
+    private final PrismContainerDefinition<ValueMetadataType> valueMetadataDefinition;
     private final ExpressionProfile expressionProfile;
     private final String additionalVariableName;
     private final MappingSpecificationType mappingSpecification;
@@ -37,14 +40,18 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
     private ValueSetDefinitionPredefinedType predefinedRange;
     private ExpressionVariables additionalVariables;
     private Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> condition;
+    private Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> yieldCondition;
 
-    public ValueSetDefinition(ValueSetDefinitionType setDefinitionBean, D itemDefinition, ExpressionProfile expressionProfile, String additionalVariableName,
+    public ValueSetDefinition(ValueSetDefinitionType setDefinitionBean, D itemDefinition,
+            PrismContainerDefinition<ValueMetadataType> valueMetadataDefinition,
+            ExpressionProfile expressionProfile, String additionalVariableName,
             MappingSpecificationType mappingSpecification,
             String localContextDescription, String shortDesc, Task task, OperationResult result) {
         super();
         this.setDefinitionBean = setDefinitionBean;
         Validate.notNull(itemDefinition, "No item definition for value set in %s", shortDesc);
         this.itemDefinition = itemDefinition;
+        this.valueMetadataDefinition = valueMetadataDefinition;
         this.expressionProfile = expressionProfile;
         this.additionalVariableName = additionalVariableName;
         this.mappingSpecification = mappingSpecification;
@@ -56,9 +63,13 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
 
     public void init(ExpressionFactory expressionFactory) throws SchemaException, ObjectNotFoundException, SecurityViolationException {
         predefinedRange = setDefinitionBean.getPredefined();
-        ExpressionType conditionType = setDefinitionBean.getCondition();
-        if (conditionType != null) {
-            condition = ExpressionUtil.createCondition(conditionType, expressionProfile, expressionFactory, shortDesc, task, result);
+        ExpressionType conditionBean = setDefinitionBean.getCondition();
+        if (conditionBean != null) {
+            condition = ExpressionUtil.createCondition(conditionBean, expressionProfile, expressionFactory, shortDesc, task, result);
+        }
+        ExpressionType yieldConditionBean = setDefinitionBean.getYieldCondition();
+        if (yieldConditionBean != null) {
+            yieldCondition = ExpressionUtil.createCondition(yieldConditionBean, expressionProfile, expressionFactory, shortDesc, task, result);
         }
     }
 
@@ -79,8 +90,13 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
                     throw new IllegalStateException("Unknown pre value: "+ predefinedRange);
             }
         } else {
-            return evalCondition(pval);
+            return condition == null || evalCondition(pval);
         }
+    }
+
+    public boolean containsYield(IV pval, ValueMetadataType metadata) throws SchemaException, ExpressionEvaluationException,
+            ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+        return yieldCondition == null || evalYieldCondition(pval, metadata);
     }
 
     private boolean isOfMatchingProvenance(IV pval) {
@@ -101,6 +117,19 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
         }
     }
 
+    /**
+     * Same as containsYield, but wraps exceptions in TunnelException.
+     */
+    public boolean containsYieldTunnel(IV pval, @Nullable PrismContainerValue<?> metadataValue) {
+        try {
+            ValueMetadataType metadataBean = metadataValue != null ?
+                    (ValueMetadataType) metadataValue.asContainerable() : null;
+            return containsYield(pval, metadataBean);
+        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+            throw new TunnelException(e);
+        }
+    }
+
     private boolean evalCondition(IV pval) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         ExpressionVariables variables = new ExpressionVariables();
         Object value = getInputValue(pval);
@@ -115,6 +144,32 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
         context.setLocalContextDescription(localContextDescription);
         context.setSkipEvaluationMinus(true);
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = condition.evaluate(context, result);
+
+        //noinspection SimplifiableIfStatement
+        if (outputTriple == null) {
+            return false;
+        } else {
+            return ExpressionUtil.computeConditionResult(outputTriple.getNonNegativeValues());
+        }
+    }
+
+    // TODO deduplicate with evalCondition
+    private boolean evalYieldCondition(IV pval, ValueMetadataType metadata) throws SchemaException, ExpressionEvaluationException,
+            ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+        ExpressionVariables variables = new ExpressionVariables();
+        Object value = getInputValue(pval);
+        variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, value, itemDefinition);
+        variables.addVariableDefinition(ExpressionConstants.VAR_METADATA, metadata, valueMetadataDefinition);
+        if (additionalVariableName != null) {
+            variables.addVariableDefinition(additionalVariableName, value, itemDefinition);
+        }
+        if (additionalVariables != null) {
+            variables.addVariableDefinitions(additionalVariables, variables.keySet());
+        }
+        ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task);
+        context.setLocalContextDescription(localContextDescription);
+        context.setSkipEvaluationMinus(true);
+        PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = yieldCondition.evaluate(context, result);
 
         //noinspection SimplifiableIfStatement
         if (outputTriple == null) {

@@ -1599,7 +1599,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     @Override
     public void fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> initialTokenProperty,
             AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter,
-            ChangeHandler changeHandler, OperationResult parentResult)
+            LiveSyncChangeListener changeHandler, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException {
 
         OperationResult result = parentResult.subresult(OP_FETCH_CHANGES)
@@ -1666,10 +1666,13 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                     }
                     Change change = null;
                     try {
-                        change = getChangeFromSyncDelta(requestConnIdObjectClass, objectClass, delta, handleResult);
-                        boolean canContinue = changeHandler.handleChange(change, handleResult);
-                        int processed = deltasProcessed.incrementAndGet();
-                        boolean doContinue = canContinue && canRun(reporter) && (maxChanges == null || maxChanges == 0 || processed < maxChanges);
+                        // Here we again assume we are called in a single thread, and that changes received here are in
+                        // the correct order - i.e. in the order in which they are to be processed.
+                        int sequentialNumber = deltasProcessed.incrementAndGet();
+
+                        change = getChangeFromSyncDelta(requestConnIdObjectClass, objectClass, delta, sequentialNumber, handleResult);
+                        boolean canContinue = changeHandler.onChange(change, handleResult);
+                        boolean doContinue = canContinue && canRun(reporter) && (maxChanges == null || maxChanges == 0 || sequentialNumber < maxChanges);
                         if (!doContinue) {
                             allChangesFetched.set(false);
                         }
@@ -1677,7 +1680,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                     } catch (Throwable t) {
                         PrismProperty<?> token = delta.getToken() != null ? createTokenProperty(delta.getToken()) : null;
                         handleResult.recordFatalError(t);
-                        boolean doContinue = changeHandler.handleError(token, change, t, handleResult);
+                        boolean doContinue = changeHandler.onChangePreparationError(token, change, t, handleResult);
                         if (!doContinue) {
                             allChangesFetched.set(false);
                         }
@@ -1736,7 +1739,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                     // We might consider finalToken value here. I.e. it it's non null, we could declare all changes to be fetched.
                     // But as mentioned above, this is not supported explicitly in SyncApiOp. So let's be a bit conservative.
                     LOGGER.trace("Signalling 'all changes fetched' with finalToken = {}", finalToken);
-                    changeHandler.handleAllChangesFetched(createTokenProperty(finalToken), result);
+                    changeHandler.onAllChangesFetched(createTokenProperty(finalToken), result);
                 }
             } catch (Throwable t) {
                 connIdResult.recordFatalError(t);
@@ -2302,7 +2305,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
     @NotNull
     private Change getChangeFromSyncDelta(ObjectClass requestConnIdObjectClass,
-            ObjectClassComplexTypeDefinition requestObjectClass, SyncDelta connIdDelta, OperationResult result)
+            ObjectClassComplexTypeDefinition requestObjectClass, SyncDelta connIdDelta, int localSequenceNumber, OperationResult result)
             throws SchemaException, GenericFrameworkException {
 
         ObjectClassComplexTypeDefinition deltaObjectClass;
@@ -2336,7 +2339,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.DELETE);
             Uid uid = connIdDelta.getUid();
             Collection<ResourceAttribute<?>> identifiers = ConnIdUtil.convertToIdentifiers(uid, deltaObjectClass, resourceSchema);
-            change = new Change(uid.getUidValue(), identifiers, null, objectDelta, createTokenProperty(connIdDelta.getToken()));
+            change = new Change(uid.getUidValue(), identifiers, null, objectDelta, createTokenProperty(connIdDelta.getToken()), localSequenceNumber);
 
         } else if (icfDeltaType == SyncDeltaType.CREATE || icfDeltaType == SyncDeltaType.CREATE_OR_UPDATE || icfDeltaType == SyncDeltaType.UPDATE) {
 
@@ -2353,9 +2356,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             if (icfDeltaType == SyncDeltaType.CREATE) {
                 ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.ADD);
                 objectDelta.setObjectToAdd(currentResourceObject);
-                change = new Change(uid.getUidValue(), identifiers, null, objectDelta, createTokenProperty(connIdDelta.getToken()));
+                change = new Change(uid.getUidValue(), identifiers, null, objectDelta, createTokenProperty(connIdDelta.getToken()), localSequenceNumber);
             } else {
-                change = new Change(uid.getUidValue(), identifiers, currentResourceObject, null, createTokenProperty(connIdDelta.getToken()));
+                change = new Change(uid.getUidValue(), identifiers, currentResourceObject, null, createTokenProperty(connIdDelta.getToken()), localSequenceNumber);
             }
 
         } else {

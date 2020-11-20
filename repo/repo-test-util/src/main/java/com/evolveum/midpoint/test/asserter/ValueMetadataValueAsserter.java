@@ -11,7 +11,9 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.util.ProvenanceMetadataUtil;
 import com.evolveum.midpoint.test.asserter.prism.PrismContainerValueAsserter;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 public class ValueMetadataValueAsserter<RA extends AbstractAsserter> extends PrismContainerValueAsserter<ValueMetadataType, RA> {
@@ -46,7 +48,7 @@ public class ValueMetadataValueAsserter<RA extends AbstractAsserter> extends Pri
     }
 
     @Override
-    public <T> ValueMetadataValueAsserter<RA> assertNoItem(QName itemName) {
+    public <T> ValueMetadataValueAsserter<RA> assertNoItem(ItemPath itemName) {
         return (ValueMetadataValueAsserter<RA>) super.assertNoItem(itemName);
     }
 
@@ -60,6 +62,12 @@ public class ValueMetadataValueAsserter<RA extends AbstractAsserter> extends Pri
         return (PrismContainerValueAsserter<CC, ValueMetadataValueAsserter<RA>>) super.containerSingle(subcontainerQName);
     }
 
+    public ValueMetadataValueAsserter<RA> assertInternalOrigin() {
+        if (!ProvenanceMetadataUtil.hasOrigin(getPrismValue().asContainerable(), SystemObjectsType.ORIGIN_INTERNAL.value())) {
+            fail("Internal origin is not present in the metadata: " + getPrismValue().debugDump());
+        }
+        return this;
+    }
 
     protected String desc() {
         // TODO handling of details

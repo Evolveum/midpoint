@@ -1,27 +1,25 @@
 /*
- * Copyright (c) 2015-2019 Evolveum and contributors
+ * Copyright (C) 2015-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.testing.conntest.ad;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
@@ -38,6 +36,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -66,8 +65,8 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.testing.conntest.AbstractLdapTest;
 import com.evolveum.midpoint.testing.conntest.UserLdapConnectionConfig;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -76,7 +75,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * Active Directory multidomain test abstract superclass.
  * This tests configuration of Active Directory forrest with two domains: parent domain and child domain.
  * Whole forrest is configured as a single resource.
- *
+ * <p>
  * This is a "live and conservative" conntest.
  * Which means that it runs on very realy and very live Active Directory forrest.
  * The AD servers are NOT cleaned and reset after/before test.
@@ -163,6 +162,9 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
     private static final String VERY_STRANGE_PARAMETER = "This iš a véry stándže p§räméteř!";
 
+    private static final String SHADOW_GHOST_OID = "0c244f74-0169-11eb-a13f-77a028a1ab97";
+    protected static final File SHADOW_GHOST_FILE = new File(TEST_DIR, "shadow-ghost.xml");
+
     private boolean allowDuplicateSearchResults = false;
 
     protected String jackAccountOid;
@@ -176,8 +178,6 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
     protected String groupMeleeIslandPiratesOid;
 
     private String accountSubmanOid;
-
-    private String accountSubmarineOid;
 
     @Override
     protected String getResourceOid() {
@@ -301,10 +301,6 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         return false;
     }
 
-    protected int getNormalNumberOfLdapConnectorInstances() {
-        return 2;
-    }
-
     protected abstract String getAccountJackSid();
 
     private UserLdapConnectionConfig getSubLdapConnectionConfig() {
@@ -357,8 +353,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         Properties p = System.getProperties();
         Enumeration keys = p.keys();
         while (keys.hasMoreElements()) {
-            String key = (String)keys.nextElement();
-            String value = (String)p.get(key);
+            String key = (String) keys.nextElement();
+            String value = (String) p.get(key);
             System.out.println("PROP: " + key + ": " + value);
         }
 
@@ -398,11 +394,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         }
         assertEquals("Unexpected number of schema definitions (limited by generation constraints)", expectedDefinitions, resourceSchema.getDefinitions().size());
 
-        assertLdapConnectorInstances(1);
+        assertLdapConnectorReasonableInstances();
     }
 
     @Test
-    public void test100SeachJackBySamAccountName() throws Exception {
+    public void test100SearchJackBySamAccountName() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -438,14 +434,14 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
             assertFalse(metadata.isPartialResults());
         }
 
-        assertLdapConnectorInstances(1);
+        assertLdapConnectorReasonableInstances();
     }
 
     /**
      * MID-3730
      */
     @Test
-    public void test101SeachJackByDn() throws Exception {
+    public void test101SearchJackByDn() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -480,7 +476,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
             assertFalse(metadata.isPartialResults());
         }
 
-        assertLdapConnectorInstances(1);
+        assertLdapConnectorReasonableInstances();
     }
 
     /**
@@ -490,7 +486,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
      * MID-3730
      */
     @Test
-    public void test102SeachNotExistByDn() throws Exception {
+    public void test102SearchNotExistByDn() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -514,11 +510,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 //        assertConnectorOperationIncrement(2);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
-        assertLdapConnectorInstances(1);
+        assertLdapConnectorReasonableInstances();
     }
 
     @Test
-    public void test105SeachPiratesByCn() throws Exception {
+    public void test105SearchPiratesByCn() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -552,7 +548,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
             assertFalse(metadata.isPartialResults());
         }
 
-        assertLdapConnectorInstances(1);
+        assertLdapConnectorReasonableInstances();
     }
 
     @Test
@@ -579,7 +575,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
 
-        assertAttribute(shadow, "dn", "CN=Jack Sparrow,"+getPeopleLdapSuffix());
+        assertAttribute(shadow, "dn", "CN=Jack Sparrow," + getPeopleLdapSuffix());
         assertAttribute(shadow, "cn", ACCOUNT_JACK_FULL_NAME);
         assertAttribute(shadow, "sn", "Sparrow");
         assertAttribute(shadow, "description", "The best pirate the world has ever seen");
@@ -594,14 +590,14 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
-        assertLdapConnectorInstances(1);
+        assertLdapConnectorReasonableInstances();
     }
 
     /**
      * No paging. It should return all accounts.
      */
     @Test
-    public void test150SeachAllAccounts() throws Exception {
+    public void test150SearchAllAccounts() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -628,14 +624,14 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
             assertFalse(metadata.isPartialResults());
         }
 
-        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
+        assertLdapConnectorReasonableInstances();
     }
 
     /**
      * This is in one block.
      */
     @Test
-    public void test152SeachFirst2Accounts() throws Exception {
+    public void test152SearchFirst2Accounts() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -657,11 +653,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
             assertFalse(metadata.isPartialResults());
         }
 
-        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
+        assertLdapConnectorReasonableInstances();
     }
 
     @Test
-    public void test154SeachFirst5Accounts() throws Exception {
+    public void test154SearchFirst5Accounts() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -683,11 +679,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
             assertFalse(metadata.isPartialResults());
         }
 
-        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
+        assertLdapConnectorReasonableInstances();
     }
 
     @Test
-    public void test162SeachFirst2AccountsOffset0() throws Exception {
+    public void test162SearchFirst2AccountsOffset0() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -710,7 +706,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
             assertFalse(metadata.isPartialResults());
         }
 
-        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
+        assertLdapConnectorReasonableInstances();
     }
 
     /**
@@ -739,7 +735,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
             assertFalse(metadata.isPartialResults());
         }
 
-        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
+        assertLdapConnectorReasonableInstances();
     }
 
     /**
@@ -747,7 +743,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
      * No explicit sorting.
      */
     @Test
-    public void test174SeachFirst5AccountsOffset2() throws Exception {
+    public void test174SearchFirst5AccountsOffset2() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -774,7 +770,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
             assertFalse(metadata.isPartialResults());
         }
 
-        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
+        assertLdapConnectorReasonableInstances();
     }
 
     /**
@@ -808,11 +804,45 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
             assertFalse(metadata.isPartialResults());
         }
 
-        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
+        assertLdapConnectorReasonableInstances();
     }
 
     protected String getExpected182FirstShadow() {
-        return "CN=Administrator,"+getPeopleLdapSuffix();
+        return "CN=Administrator," + getPeopleLdapSuffix();
+    }
+
+    /**
+     * Try to get account that does not exist.
+     * The goal is to check that our error handling is at least a bit sane.
+     * We need to create a fake shadow for this, otherwise midPoint won't try the AD operation at all.
+     */
+    @Test
+    public void test190GetGhost() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        importObjectFromFile(SHADOW_GHOST_FILE);
+
+        rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
+        long startOfTestMsTimestamp = getWin32Filetime(System.currentTimeMillis());
+
+        // WHEN
+        when();
+        PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, SHADOW_GHOST_OID, null, task, result);
+
+        // THEN
+        then();
+        assertHadnledError(result);
+
+        assertRepoShadow(SHADOW_GHOST_OID)
+                .assertDead();
+
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
+
+        assertLdapConnectorReasonableInstances();
     }
 
     @Test
@@ -898,7 +928,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         String shadowOid = getSingleLinkOid(user);
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 
-//        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
+//        assertLdapConnectorReasonableInstances();
     }
 
     @Test
@@ -933,7 +963,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         String shadowOid = getSingleLinkOid(user);
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 
-        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
+        assertLdapConnectorReasonableInstances();
     }
 
     /**
@@ -972,7 +1002,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         String shadowOid = getSingleLinkOid(user);
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 
-        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
+        assertLdapConnectorReasonableInstances();
     }
 
     /**
@@ -1055,8 +1085,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
         assertModelShadow(shadowOid)
                 .attributes()
-                    .attribute(ATTRIBUTE_USER_PARAMETERS_NAME)
-                        .assertRealValues(VERY_STRANGE_PARAMETER);
+                .attribute(ATTRIBUTE_USER_PARAMETERS_NAME)
+                .assertRealValues(VERY_STRANGE_PARAMETER);
 
 //        assertLdapConnectorInstances(2);
     }
@@ -1106,7 +1136,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         login(USER_BARBOSSA_USERNAME);
 
         Task task = getTestTask();
-        task.setChannel(SchemaConstants.CHANNEL_GUI_SELF_SERVICE_URI);
+        task.setChannel(SchemaConstants.CHANNEL_SELF_SERVICE_URI);
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> objectDelta = createOldNewPasswordDelta(USER_BARBOSSA_OID,
@@ -1125,7 +1155,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, newPassword);
 
-        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
+        assertLdapConnectorReasonableInstances();
     }
 
     protected void testModifyUserBarbossaPasswordSelfServiceFailure(
@@ -1134,7 +1164,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         login(USER_BARBOSSA_USERNAME);
 
         Task task = getTestTask();
-        task.setChannel(SchemaConstants.CHANNEL_GUI_SELF_SERVICE_URI);
+        task.setChannel(SchemaConstants.CHANNEL_SELF_SERVICE_URI);
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> objectDelta = createOldNewPasswordDelta(USER_BARBOSSA_OID,
@@ -1155,7 +1185,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, oldPassword);
 
-        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
+        assertLdapConnectorReasonableInstances();
     }
 
     @Test
@@ -1221,7 +1251,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
         assertBarbossaEnabled(USER_BARBOSSA_PASSWORD_AD_1);
 
-        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
+        assertLdapConnectorReasonableInstances();
     }
 
     /**
@@ -1243,7 +1273,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
         assertBarbossaEnabled(USER_BARBOSSA_PASSWORD_AD_1);
 
-        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
+        assertLdapConnectorReasonableInstances();
     }
 
     /**
@@ -1268,7 +1298,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
         assertBarbossaDisabled(USER_BARBOSSA_PASSWORD_AD_1);
 
-        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
+        assertLdapConnectorReasonableInstances();
     }
 
     /**
@@ -1293,7 +1323,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
         assertBarbossaEnabled(USER_BARBOSSA_PASSWORD_AD_1);
 
-        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
+        assertLdapConnectorReasonableInstances();
     }
 
     protected PrismObject<UserType> assertBarbossaEnabled(String ldapPassword) throws Exception {
@@ -1343,7 +1373,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
             // this is expected
         }
 
-        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
+        assertLdapConnectorReasonableInstances();
     }
 
     /**
@@ -1391,7 +1421,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 //            // this is expected, account is disabled
 //        }
 
-        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
+        assertLdapConnectorReasonableInstances();
     }
 
     @Test
@@ -1453,7 +1483,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
         assertLdapPassword(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, "wanna.be.a.123");
 
-        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
+        assertLdapConnectorReasonableInstances();
     }
 
     /**
@@ -1482,7 +1512,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
         assertMessageContains(result.getMessage(), "does not meet the length, complexity, or history requirement");
 
-        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
+        assertLdapConnectorReasonableInstances();
     }
 
     /**
@@ -1505,7 +1535,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
         // Test is disposing connector facade and the entire connector pool.
         // Therefore we are back at 1 instance.
-        assertLdapConnectorInstances(1);
+        assertLdapConnectorReasonableInstances();
     }
 
     @Test
@@ -1536,7 +1566,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
 
-        assertLdapConnectorInstances(1);
+        assertLdapConnectorReasonableInstances();
     }
 
     @Test
@@ -2197,7 +2227,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         String shadowOid = getSingleLinkOid(userAfter);
         PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
         display("Shadow (model)", shadow);
-        accountSubmarineOid = shadow.getOid();
+        assertThat(shadow.getOid()).isNotBlank();
         Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
         String accountIcfUid = (String) identifiers.iterator().next().getRealValue();
         assertNotNull("No identifier in " + shadow, accountIcfUid);
@@ -2251,7 +2281,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
     // DISABLED because we do not know how to properly configure sync privileges in a AD forrest.
     // More experiments are needed, but only after we migrate our old AD servers.
-    @Test(enabled=false)
+    @Test(enabled = false)
     public void test900ImportSyncTask() throws Exception {
         // GIVEN
         Task task = getTestTask();
@@ -2276,7 +2306,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
     // DISABLED because we do not know how to properly configure sync privileges in a AD forrest.
     // More experiments are needed, but only after we migrate our old AD servers.
-    @Test(enabled=false)
+    @Test(enabled = false)
     public void test901SyncAddAccountHt() throws Exception {
         // GIVEN
         Task task = getTestTask();
@@ -2311,7 +2341,9 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         PrismProperty<String> syncTokenProperty = task.getExtensionPropertyOrClone(SchemaConstants.SYNC_TOKEN);
         assertNotNull("No sync token", syncTokenProperty);
         assertNotNull("No sync token value", syncTokenProperty.getRealValue());
-        assertNotNull("Empty sync token value", StringUtils.isBlank(syncTokenProperty.getRealValue()));
+        assertThat(StringUtils.isBlank(syncTokenProperty.getRealValue()))
+                .as("Empty sync token value")
+                .isTrue();
         assertSuccess(result);
     }
 
@@ -2477,11 +2509,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
     private byte[] encodePassword(String password) {
         String quotedPassword = "\"" + password + "\"";
-        try {
-            return quotedPassword.getBytes("UTF-16LE");
-        } catch (UnsupportedEncodingException e) {
-            throw new SystemException(e.getMessage(), e);
-        }
+        return quotedPassword.getBytes(StandardCharsets.UTF_16LE);
     }
 
     public <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {

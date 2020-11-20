@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
- *    This work is dual-licensed under the Apache License 2.0
- *    and European Union Public License. See LICENSE file for details.
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.self;
 
@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -45,6 +45,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
 import com.evolveum.midpoint.web.page.self.component.ChangePasswordPanel;
@@ -75,8 +76,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
     private static final String OPERATION_CHECK_PASSWORD = DOT_CLASS + "checkPassword";
     private static final String OPERATION_GET_CREDENTIALS_POLICY = DOT_CLASS + "getCredentialsPolicy";
 
-
-    private LoadableModel<MyPasswordsDto> model;
+    private final LoadableModel<MyPasswordsDto> model;
 
     public PageAbstractSelfCredentials() {
         model = new LoadableModel<MyPasswordsDto>(false) {
@@ -119,7 +119,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
 
             PrismReference reference = focus.findReference(FocusType.F_LINK_REF);
             if (reference == null || CollectionUtils.isEmpty(reference.getValues())) {
-                LOGGER.debug("No accounts found for user {}.", new Object[]{focusOid});
+                LOGGER.debug("No accounts found for user {}.", focusOid);
                 return dto;
             }
 
@@ -180,7 +180,6 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                 PrismObject<ShadowType> account = getModelService().getObject(ShadowType.class,
                         accountOid, options, task, subResult);
 
-
                 dto.getAccounts().add(createPasswordAccountDto(account, task, subResult));
                 subResult.recordSuccessIfUnknown();
             } catch (Exception ex) {
@@ -190,9 +189,8 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         }
     }
 
-
     private void initLayout() {
-        Form<?> mainForm = new com.evolveum.midpoint.web.component.form.Form<>(ID_MAIN_FORM);
+        Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
 
         List<ITab> tabs = new ArrayList<>();
         tabs.add(new AbstractTab(createStringResource("PageSelfCredentials.tabs.password")) {
@@ -284,7 +282,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
             LOGGER.debug("Check old password");
             MyPasswordsDto modelObject = getModelObject();
             if (modelObject.getOldPassword() == null
-                    || modelObject.getOldPassword().trim().equals("")){
+                    || modelObject.getOldPassword().trim().equals("")) {
                 warn(getString("PageSelfCredentials.specifyOldPasswordMessage"));
                 target.add(getFeedbackPanel());
                 return;
@@ -313,7 +311,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
             }
         }
 
-        if (getModelObject().getPassword() == null ) {
+        if (getModelObject().getPassword() == null) {
             warn(getString("PageSelfCredentials.emptyPasswordFiled"));
             target.add(getFeedbackPanel());
             return;
@@ -339,22 +337,22 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
             Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 
             for (PasswordAccountDto accDto : selectedAccounts) {
-                    PrismObjectDefinition objDef = accDto.isMidpoint() ?
-                            registry.findObjectDefinitionByCompileTimeClass(UserType.class) :
-                            registry.findObjectDefinitionByCompileTimeClass(ShadowType.class);
+                PrismObjectDefinition objDef = accDto.isMidpoint() ?
+                        registry.findObjectDefinitionByCompileTimeClass(UserType.class) :
+                        registry.findObjectDefinitionByCompileTimeClass(ShadowType.class);
 
-                    PropertyDelta<ProtectedStringType> delta = getPrismContext().deltaFactory().property()
-                            .createModificationReplaceProperty(valuePath, objDef, password);
-                    if (oldPassword != null) {
-                        delta.addEstimatedOldValue(getPrismContext().itemFactory().createPropertyValue(oldPassword));
-                    }
+                PropertyDelta<ProtectedStringType> delta = getPrismContext().deltaFactory().property()
+                        .createModificationReplaceProperty(valuePath, objDef, password);
+                if (oldPassword != null) {
+                    delta.addEstimatedOldValue(getPrismContext().itemFactory().createPropertyValue(oldPassword));
+                }
 
-                    Class<? extends ObjectType> type = accDto.isMidpoint() ? UserType.class : ShadowType.class;
+                Class<? extends ObjectType> type = accDto.isMidpoint() ? UserType.class : ShadowType.class;
 
-                    deltas.add(getPrismContext().deltaFactory().object().createModifyDelta(accDto.getOid(), delta, type
-                    ));
+                deltas.add(getPrismContext().deltaFactory().object().createModifyDelta(accDto.getOid(), delta, type
+                ));
             }
-            getModelService().executeChanges(deltas, null, createSimpleTask(OPERATION_SAVE_PASSWORD, SchemaConstants.CHANNEL_GUI_SELF_SERVICE_URI), result);
+            getModelService().executeChanges(deltas, null, createSimpleTask(OPERATION_SAVE_PASSWORD, SchemaConstants.CHANNEL_SELF_SERVICE_URI), result);
 
             result.computeStatus();
         } catch (Exception ex) {
@@ -371,7 +369,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
     protected void setNullEncryptedPasswordData() {
         MyPasswordsDto dto = model.getObject();
         ProtectedStringType password = dto.getPassword();
-        if (password != null){
+        if (password != null) {
             password.setEncryptedData(null);
         }
     }
@@ -380,11 +378,11 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
 
     protected abstract void finishChangePassword(OperationResult result, AjaxRequestTarget target);
 
-    protected List<PasswordAccountDto> getSelectedAccountsList(){
+    protected List<PasswordAccountDto> getSelectedAccountsList() {
         List<PasswordAccountDto> passwordAccountDtos = model.getObject().getAccounts();
         List<PasswordAccountDto> selectedAccountList = new ArrayList<>();
         if (model.getObject().getPropagation() != null
-                && model.getObject().getPropagation().equals(CredentialsPropagationUserControlType.MAPPING)){
+                && model.getObject().getPropagation().equals(CredentialsPropagationUserControlType.MAPPING)) {
             selectedAccountList.addAll(passwordAccountDtos);
         } else {
             for (PasswordAccountDto passwordAccountDto : passwordAccountDtos) {
@@ -395,15 +393,18 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         }
         return selectedAccountList;
     }
+
     private void onCancelPerformed() {
         redirectBack();
     }
 
-    private boolean getPasswordOutbound(PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private boolean getPasswordOutbound(PrismObject<ShadowType> shadow, Task task, OperationResult result)
+            throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         try {
 
             //TODO cannot be null?
-            PrismObject<ResourceType> resource = shadow.asObjectable().getResourceRef().asReferenceValue().getObject();
+            PrismObject<ResourceType> resource =
+                    shadow.asObjectable().getResourceRef().asReferenceValue().getObject();
             //what to return when we don't have resource?
             if (resource == null) {
                 return false;
@@ -411,7 +412,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
 
             RefinedObjectClassDefinition rOCDef = getModelInteractionService().getEditObjectClassDefinition(shadow,
                     resource, AuthorizationPhaseType.REQUEST, task, result);
-            if (rOCDef == null){
+            if (rOCDef == null) {
                 return false;
             }
 
@@ -441,18 +442,17 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
 
     }
 
-
     private boolean hasPasswordCapability(PrismObject<ShadowType> shadow) {
 
         ShadowType shadowType = shadow.asObjectable();
         ResourceType resource = (ResourceType) shadowType.getResourceRef().asReferenceValue().getObject().asObjectable();
         ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource.asPrismObject(), shadowType.getKind(), shadowType.getIntent());
 
-         return ResourceTypeUtil.isPasswordCapabilityEnabled(resource, resourceObjectTypeDefinitionType);
+        return ResourceTypeUtil.isPasswordCapabilityEnabled(resource, resourceObjectTypeDefinitionType);
 
     }
 
-    private CredentialsPolicyType getPasswordCredentialsPolicy (PrismObject<? extends FocusType> focus){
+    private CredentialsPolicyType getPasswordCredentialsPolicy(PrismObject<? extends FocusType> focus) {
         LOGGER.debug("Getting credentials policy");
         Task task = createSimpleTask(OPERATION_GET_CREDENTIALS_POLICY);
         OperationResult result = new OperationResult(OPERATION_GET_CREDENTIALS_POLICY);

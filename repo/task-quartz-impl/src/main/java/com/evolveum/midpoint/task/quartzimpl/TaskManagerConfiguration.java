@@ -1,10 +1,19 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.task.quartzimpl;
+
+import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database;
+
+import java.util.*;
+
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -16,21 +25,13 @@ import com.evolveum.midpoint.task.api.UseThreadInterrupt;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionLimitationsType;
-import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.*;
-
-import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database;
 
 /**
  * Task Manager configuration, derived from "taskManager" section of midPoint config,
  * SQL repository configuration (if present), and some system properties.
- *
+ * <p>
  * See also the description in midPoint wiki (TODO URL).
- *
+ * <p>
  * On configuration failures, it throws TaskManagerConfigurationException.
  *
  * @author Pavol Mederly
@@ -186,20 +187,20 @@ public class TaskManagerConfiguration {
     private boolean databaseIsEmbedded;
 
     /*
-      * Are we in the test mode?
-      *
-      * It affects e.g. whether to allow reusing quartz scheduler after task manager shutdown.
-      *
-      * Concretely, if in test mode, quartz scheduler will not be shut down, only paused.
-      * This allows for restarting it (scheduler cannot be started, if it was shut down:
-      * http://quartz-scheduler.org/api/2.1.0/org/quartz/Scheduler.html#shutdown())
-      *
-      * If not run in test mode (i.e. within Tomcat), we do not, because pausing
-      * the scheduler does NOT stop the execution threads.
-      *
-      * We determine whether in test mode by examining testMode property and, if not present,
-      * by looking for SUREFIRE_PRESENCE_PROPERTY.
-      */
+     * Are we in the test mode?
+     *
+     * It affects e.g. whether to allow reusing quartz scheduler after task manager shutdown.
+     *
+     * Concretely, if in test mode, quartz scheduler will not be shut down, only paused.
+     * This allows for restarting it (scheduler cannot be started, if it was shut down:
+     * http://quartz-scheduler.org/api/2.1.0/org/quartz/Scheduler.html#shutdown())
+     *
+     * If not run in test mode (i.e. within Tomcat), we do not, because pausing
+     * the scheduler does NOT stop the execution threads.
+     *
+     * We determine whether in test mode by examining testMode property and, if not present,
+     * by looking for SUREFIRE_PRESENCE_PROPERTY.
+     */
     private boolean midPointTestMode = false;
 
     private static final List<String> KNOWN_KEYS = Arrays.asList(
@@ -258,7 +259,7 @@ public class TaskManagerConfiguration {
         Set<String> knownKeysSet = new HashSet<>(TaskManagerConfiguration.KNOWN_KEYS);
 
         Iterator<String> keyIterator = c.getKeys();
-        while (keyIterator.hasNext())  {
+        while (keyIterator.hasNext()) {
             String keyName = keyIterator.next();
             String normalizedKeyName = StringUtils.substringBefore(keyName, ".");                       // because of subkeys
             normalizedKeyName = StringUtils.substringBefore(normalizedKeyName, "[");                    // because of [@xmlns:c]
@@ -320,7 +321,7 @@ public class TaskManagerConfiguration {
         String useTI = c.getString(USE_THREAD_INTERRUPT_CONFIG_ENTRY, USE_THREAD_INTERRUPT_DEFAULT);
         try {
             useThreadInterrupt = UseThreadInterrupt.fromValue(useTI);
-        } catch(IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             throw new TaskManagerConfigurationException("Illegal value for " + USE_THREAD_INTERRUPT_CONFIG_ENTRY + ": " + useTI, e);
         }
 

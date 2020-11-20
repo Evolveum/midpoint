@@ -9,17 +9,25 @@
 <body>
 <wicket:panel>
     <div class="box box-primary">
-        <form wicket:id="mainForm">
 
+
+        <wicket:enclosure child="collectionRefPanel">
+            <div class="box-body">
+                <div wicket:id="collectionRefPanel"></div>
+            </div>
+        </wicket:enclosure>
+        <form wicket:id="mainForm">
             <div wicket:id="parametersPanel" class="box-body">
+
                 <div class="col-md-6 form-horizontal">
-                    <div class="form-group">
-                        <div class="col-sm-3 control-label">
-                            <label><wicket:message key="PageAuditLogViewer.fromLabel" /></label>
-                            <i class="helpTextIcon" wicket:id="fromFieldHelp"/>
+
+                        <div class="form-group">
+                            <div class="col-sm-3 control-label">
+                                <label><wicket:message key="PageAuditLogViewer.fromLabel" /></label>
+                                <i class="helpTextIcon" wicket:id="fromFieldHelp"/>
+                            </div>
+                            <div class="col-sm-9" wicket:id="fromField"/>
                         </div>
-                        <div class="col-sm-9" wicket:id="fromField"/>
-                    </div>
                     <div class="form-group">
                         <div class="col-sm-3 control-label">
                             <label><wicket:message key="PageAuditLogViewer.toLabel" /></label>
@@ -133,8 +141,9 @@
                     </div>
                 </div>
             </div>
-            <div wicket:id="table"/>
         </form>
+        <div wicket:id="table"/>
+
     </div>
 </wicket:panel>
 </body>

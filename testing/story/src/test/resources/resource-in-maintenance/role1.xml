@@ -1,0 +1,9 @@
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="6ec32c86-66d4-4101-a25f-931db8d1e999">
+    <name>CSV1 LR</name>
+    <inducement>
+        <construction>
+             <resourceRef oid="25dd0010-5115-4ac0-960f-4889d1b960ff" type="ResourceType" />
+        </construction>
+    </inducement>
+</role>
+

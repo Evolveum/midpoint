@@ -8,9 +8,7 @@
 package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import com.evolveum.midpoint.model.impl.lens.*;
-import com.evolveum.midpoint.model.impl.lens.construction.Construction;
-import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
-import com.evolveum.midpoint.model.impl.lens.construction.PersonaConstruction;
+import com.evolveum.midpoint.model.impl.lens.construction.*;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.AssignedFocusMappingEvaluationRequest;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
@@ -48,7 +46,7 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
             // Directly assigned assignments are visited even if they are not valid (i.e. effectively disabled) - see below
 
             if (segment.isMatchingOrder) {
-                collectConstruction(); // constructions (from invalid direct assignments) are collected
+                collectResourceObjectConstruction(); // constructions (from invalid direct assignments) are collected
                 collectPersonaConstruction(); // constructions (from invalid direct assignments) are collected
                 if (segment.isFullPathActive()) {
                     collectFocusMappings(); // but mappings from invalid direct assignments are not
@@ -68,27 +66,14 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
         }
     }
 
-    private void collectConstruction() {
+    private void collectResourceObjectConstruction() {
         ConstructionType constructionBean = segment.assignment.getConstruction();
         if (constructionBean != null) {
-
             LOGGER.trace("Preparing construction '{}' in {}", constructionBean.getDescription(), segment.source);
 
-            Construction<AH, EvaluatedConstructionImpl<AH>> construction = new Construction<>(constructionBean, segment.source);
-            // We have to clone here as the path is constantly changing during evaluation
-            construction.setAssignmentPath(ctx.assignmentPath.clone());
-            construction.setFocusOdoAbsolute(ctx.ae.focusOdoAbsolute); // TODO
-            construction.setLensContext(ctx.ae.lensContext);
-            construction.setObjectResolver(ctx.ae.objectResolver);
-            construction.setPrismContext(ctx.ae.prismContext);
-            construction.setMappingFactory(ctx.ae.mappingFactory);
-            construction.setMappingEvaluator(ctx.ae.mappingEvaluator);
-            construction.setNow(ctx.ae.now);
-            construction.setContextLoader(ctx.ae.contextLoader);
-            construction.setOriginType(OriginType.ASSIGNMENTS);
-            construction.setChannel(ctx.ae.channel);
-            construction.setOrderOneObject(segment.varThisObject);
-            construction.setValid(segment.isFullPathActive() && segment.getOverallConditionState().isNewTrue());
+            AssignedConstructionBuilder<AH> builder = new AssignedConstructionBuilder<>();
+            populateConstructionBuilder(builder, constructionBean);
+            AssignedResourceObjectConstruction<AH> construction = builder.build();
 
             // Do not evaluate the construction here. We will do it in the second pass. Just prepare everything to be evaluated.
             ctx.evalAssignment.addConstruction(construction, segment.getAbsoluteAssignmentRelativityMode()); // TODO
@@ -98,22 +83,26 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
     private void collectPersonaConstruction() {
         PersonaConstructionType constructionBean = segment.assignment.getPersonaConstruction();
         if (constructionBean != null) {
-
             LOGGER.trace("Preparing persona construction '{}' in {}", constructionBean.getDescription(), segment.source);
 
-            PersonaConstruction<AH> construction = new PersonaConstruction<>(constructionBean, segment.source);
-            // We have to clone here as the path is constantly changing during evaluation
-            construction.setAssignmentPath(ctx.assignmentPath.clone());
-            construction.setFocusOdoAbsolute(ctx.ae.focusOdoAbsolute); // TODO
-            construction.setLensContext(ctx.ae.lensContext);
-            construction.setObjectResolver(ctx.ae.objectResolver);
-            construction.setPrismContext(ctx.ae.prismContext);
-            construction.setOriginType(OriginType.ASSIGNMENTS);
-            construction.setChannel(ctx.ae.channel);
-            construction.setValid(segment.isFullPathActive() && segment.getOverallConditionState().isNewTrue());
+            PersonaConstructionBuilder<AH> builder = new PersonaConstructionBuilder<>();
+            populateConstructionBuilder(builder, constructionBean);
+            PersonaConstruction<AH> construction = builder.build();
 
             ctx.evalAssignment.addPersonaConstruction(construction, segment.getAbsoluteAssignmentRelativityMode()); // TODO
         }
+    }
+
+    private <ACT extends AbstractConstructionType> void populateConstructionBuilder(AbstractConstructionBuilder<AH, ACT, ? extends EvaluatedAbstractConstruction<AH>, ?> builder,
+            ACT constructionBean) {
+        builder.constructionBean(constructionBean)
+                .assignmentPath(ctx.assignmentPath.clone()) // We have to clone here as the path is constantly changing during evaluation
+                .source(segment.source)
+                .lensContext(ctx.ae.lensContext)
+                .now(ctx.ae.now)
+                .modelBeans(ctx.ae.beans)
+                .originType(OriginType.ASSIGNMENTS)
+                .valid(segment.isFullPathActive() && segment.getOverallConditionState().isNewTrue());
     }
 
     private void collectFocusMappings() throws SchemaException {

@@ -22,6 +22,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
 public class EqualFilterImpl<T> extends PropertyValueFilterImpl<T> implements EqualFilter<T> {
     private static final long serialVersionUID = 3284478412180258355L;
 
@@ -102,18 +104,15 @@ public class EqualFilterImpl<T> extends PropertyValueFilterImpl<T> implements Eq
 
     @Override
     public boolean match(PrismContainerValue objectValue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-        if (!super.match(objectValue, matchingRuleRegistry)) {
-            return false;
-        }
         Collection<PrismValue> objectItemValues = getObjectItemValues(objectValue);
+        Collection<? extends PrismValue> filterValues = emptyIfNull(getValues());
         if (objectItemValues.isEmpty()) {
-            return true;                    // because filter item is empty as well (checked by super.match)
+            return filterValues.isEmpty();
         }
-        Item filterItem = getFilterItem();
-        MatchingRule<?> matchingRule = getMatchingRuleFromRegistry(matchingRuleRegistry, filterItem);
-        for (Object filterItemValue : filterItem.getValues()) {
+        MatchingRule<?> matchingRule = getMatchingRuleFromRegistry(matchingRuleRegistry);
+        for (PrismValue filterItemValue : filterValues) {
             checkPrismPropertyValue(filterItemValue);
-            for (Object objectItemValue : objectItemValues) {
+            for (PrismValue objectItemValue : objectItemValues) {
                 checkPrismPropertyValue(objectItemValue);
                 if (matches((PrismPropertyValue<?>) filterItemValue, (PrismPropertyValue<?>) objectItemValue, matchingRule)) {
                     return true;
@@ -123,21 +122,13 @@ public class EqualFilterImpl<T> extends PropertyValueFilterImpl<T> implements Eq
         return false;
     }
 
-    private void checkPrismPropertyValue(Object value) {
-        if (!(value instanceof PrismPropertyValue)) {
-            throw new IllegalArgumentException("Not supported prism value for equals filter. It must be an instance of PrismPropertyValue but it is " + value.getClass());
-        }
-    }
-
     private <T1> boolean matches(PrismPropertyValue<?> filterValue, PrismPropertyValue<?> objectValue, MatchingRule<T1> matchingRule) {
         Object filterRealValue = filterValue.getRealValue();
         Object objectRealValue = objectValue.getRealValue();
         try {
             if (!(objectRealValue instanceof RawType)) {
                 //noinspection unchecked
-                if (matchingRule.match((T1) filterRealValue, (T1) objectRealValue)) {
-                    return true;
-                }
+                return matchingRule.match((T1) filterRealValue, (T1) objectRealValue);
             } else {
                 PrismPropertyDefinition<?> definition = getDefinition();
                 if (definition != null) {

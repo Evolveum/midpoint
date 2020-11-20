@@ -1278,11 +1278,9 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         when();
 
         // Originally here was unassign (delete assignment) operation. But such assignment does not exist.
-        // Primary delta consolidation (since 4.2) removes such phantom changes.
+        // As we updated the expression evaluation, such phantom changes are ignored.
         //
         // So assignment deletion is here replaced by simple unlink operation.
-        //
-        // See MID-6377.
         ObjectDelta<UserType> delta = createModifyUserUnlinkAccount(USER_JACK_OID, RESOURCE_DUMMY_OID);
         executeChanges(delta, null, task, result);
 

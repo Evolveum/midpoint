@@ -6,20 +6,19 @@
  */
 package com.evolveum.midpoint.schrodinger.component.assignmentholder;
 
+import static com.codeborne.selenide.Selenide.$;
+
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
-import com.evolveum.midpoint.schrodinger.MidPoint;
-import com.evolveum.midpoint.schrodinger.component.ProjectionsTab;
-import com.evolveum.midpoint.schrodinger.component.common.Search;
-import com.evolveum.midpoint.schrodinger.component.common.table.TableWithPageRedirect;
-import com.evolveum.midpoint.schrodinger.component.user.ProjectionsDropDown;
-import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
-import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
 
-import static com.codeborne.selenide.Selenide.$;
+import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.component.common.Search;
+import com.evolveum.midpoint.schrodinger.component.common.table.TableWithPageRedirect;
+import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
+import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 /**
  * Created by honchar
@@ -32,10 +31,9 @@ public abstract class AssignmentHolderObjectListTable<P, PD extends AssignmentHo
 
 
     @Override
-    public TableWithPageRedirect<P> selectCheckboxByName(String name) {
-
-        //TODO implement
-        return null;
+    public AssignmentHolderObjectListTable<P, PD> selectCheckboxByName(String name) {
+        rowByColumnLabel(getNameColumnLabel(), name).clickCheckBox();
+        return this;
     }
 
     @Override
@@ -43,8 +41,12 @@ public abstract class AssignmentHolderObjectListTable<P, PD extends AssignmentHo
 
         getParentElement().$(Schrodinger.byElementValue("span", "data-s-id", "label", name))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        Selenide.sleep(getDetailsPageLoadingTimeToWait());
         return getObjectDetailsPage();
+    }
+
+    public long getDetailsPageLoadingTimeToWait() {
+        return MidPoint.TIMEOUT_DEFAULT_2_S;
     }
 
     public PD clickByPartialName(String name) {
@@ -74,17 +76,17 @@ public abstract class AssignmentHolderObjectListTable<P, PD extends AssignmentHo
     }
 
     public SelenideElement getToolbarButton(String iconCssClass){
-        SelenideElement buttonToolbar = getButtonToolbar();
-        SelenideElement buttonElement = null;
-        ElementsCollection toolbarButtonsList = buttonToolbar
-                .findAll(By.tagName("button"));
-        for (SelenideElement button : toolbarButtonsList) {
-            SelenideElement iconElement = button.$(By.tagName("i")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
-            if (iconElement != null && iconElement.exists() && iconElement.getAttribute("class") != null && iconElement.getAttribute("class").contains(iconCssClass)) {
-                buttonElement = button;
-            }
-        }
-        return buttonElement;
+//        SelenideElement buttonToolbar = getButtonToolbar();
+//        SelenideElement buttonElement = null;
+//        ElementsCollection toolbarButtonsList = buttonToolbar
+//                .findAll(By.tagName("button"));
+//        for (SelenideElement button : toolbarButtonsList) {
+//            SelenideElement iconElement = button.$(By.tagName("i")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+//            if (iconElement != null && iconElement.exists() && iconElement.getAttribute("class") != null && iconElement.getAttribute("class").contains(iconCssClass)) {
+//                buttonElement = button;
+//            }
+//        }
+        return getButtonToolbar().$(By.cssSelector(iconCssClass));
     }
 
     public PD newObjectButtonClickPerformed(String iconCssClass){
@@ -95,6 +97,40 @@ public abstract class AssignmentHolderObjectListTable<P, PD extends AssignmentHo
         return getObjectDetailsPage();
     }
 
+    public PD newObjectCollectionButtonClickPerformed(String mainButtonIconCssClass, String objCollectionButtonIconCssClass){
+        SelenideElement mainButtonElement = getToolbarButton(mainButtonIconCssClass)
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+        mainButtonElement.click();
+        if (mainButtonElement.exists()) {
+            mainButtonElement.parent().parent()
+                    .$(By.cssSelector(".dropdown-menu.auto-width"))
+                    .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                    .$(By.cssSelector(objCollectionButtonIconCssClass))
+                    .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                    .click();
+            Selenide.sleep(2000);
+        }
+        return getObjectDetailsPage();
+    }
+
+    public int countDropdownButtonChildrenButtons(String mainButtonIconCssClass) {
+        SelenideElement mainButtonElement = getToolbarButton(mainButtonIconCssClass)
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+        mainButtonElement.click();
+        if (mainButtonElement.exists()) {
+            ElementsCollection childrenButtonCollection = mainButtonElement.parent().parent()
+                    .$(By.cssSelector(".dropdown-menu.auto-width"))
+                    .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                    .findAll(By.tagName("i"));
+            return childrenButtonCollection != null ? childrenButtonCollection.size() : 0;
+        }
+        return 0;
+    }
+
     public abstract PD getObjectDetailsPage();
+
+    protected String getNameColumnLabel() {
+        return "Name";
+    }
 
 }

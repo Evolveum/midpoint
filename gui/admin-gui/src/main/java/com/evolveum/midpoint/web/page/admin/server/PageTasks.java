@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.page.admin.server;
 
 import java.util.ArrayList;
@@ -14,7 +13,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.time.DurationFormatUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -59,7 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
                         description = PageAdminTasks.AUTH_TASKS_ALL_DESCRIPTION),
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TASKS_URL,
                         label = "PageTasks.auth.tasks.label",
-                        description = "PageTasks.auth.tasks.description")})
+                        description = "PageTasks.auth.tasks.description") })
 public class PageTasks extends PageAdmin {
     private static final long serialVersionUID = 1L;
 
@@ -89,10 +88,13 @@ public class PageTasks extends PageAdmin {
 
             @Override
             protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
+                if (isCollectionViewPanel()) {
+                    return query;
+                }
                 if (query == null) {
                     query = getPrismContext().queryFactory().createQuery();
                 }
-                if (predefinedQuery != null){
+                if (predefinedQuery != null) {
                     query.addFilter(predefinedQuery.getFilter());
                 }
                 query.addFilter(getPrismContext().queryFor(TaskType.class)
@@ -113,8 +115,9 @@ public class PageTasks extends PageAdmin {
     }
 
     private void addCustomColumns(List<IColumn<SelectableBean<TaskType>, String>> columns) {
-        columns.add(2, new ObjectReferenceColumn<SelectableBean<TaskType>>(createStringResource("pageTasks.task.objectRef"), SelectableBeanImpl.F_VALUE+"."+TaskType.F_OBJECT_REF.getLocalPart()){
+        columns.add(2, new ObjectReferenceColumn<SelectableBean<TaskType>>(createStringResource("pageTasks.task.objectRef"), SelectableBeanImpl.F_VALUE + "." + TaskType.F_OBJECT_REF.getLocalPart()) {
             private static final long serialVersionUID = 1L;
+
             @Override
             public IModel<ObjectReferenceType> extractDataModel(IModel<SelectableBean<TaskType>> rowModel) {
                 SelectableBean<TaskType> bean = rowModel.getObject();
@@ -128,7 +131,7 @@ public class PageTasks extends PageAdmin {
 
             @Override
             public void populateItem(final Item<ICellPopulator<SelectableBean<TaskType>>> item, final String componentId,
-                                     final IModel<SelectableBean<TaskType>> rowModel) {
+                    final IModel<SelectableBean<TaskType>> rowModel) {
 
                 DateLabelComponent dateLabel = new DateLabelComponent(componentId, new IModel<Date>() {
                     private static final long serialVersionUID = 1L;
@@ -171,7 +174,7 @@ public class PageTasks extends PageAdmin {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> item, String componentId,
-                                     final IModel<SelectableBean<TaskType>> rowModel) {
+                    final IModel<SelectableBean<TaskType>> rowModel) {
                 item.add(new Label(componentId, () -> createScheduledToRunAgain(rowModel)));
             }
 
@@ -306,5 +309,4 @@ public class PageTasks extends PageAdmin {
     private Long xgc2long(XMLGregorianCalendar gc) {
         return gc != null ? XmlTypeConverter.toMillis(gc) : null;
     }
-
 }

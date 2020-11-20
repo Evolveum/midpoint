@@ -1,11 +1,23 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.input;
+
+import java.util.Arrays;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -15,26 +27,14 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.model.IModel;
-
-import javax.xml.namespace.QName;
-import java.util.Arrays;
-import java.util.List;
 
 /**
- *  @author shood
- *
- *  Item paths edited by this component are limited to single segment.
- *  TODO - this component should probably be renamed to ItemPathType editor
- * */
-public class QNameEditorPanel extends BasePanel<ItemPathType>{
+ * @author shood
+ * <p>
+ * Item paths edited by this component are limited to single segment.
+ * TODO - this component should probably be renamed to ItemPathType editor
+ */
+public class QNameEditorPanel extends BasePanel<ItemPathType> {
 
     private static final String ID_LOCAL_PART = "localPart";
     private static final String ID_NAMESPACE = "namespace";
@@ -45,16 +45,16 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
     private static final String ID_T_LOCAL_PART = "localPartTooltip";
     private static final String ID_T_NAMESPACE = "namespaceTooltip";
 
-    private IModel<ItemPathType> itemPathModel;
-    private IModel<String> localpartModel;
-    private IModel<String> namespaceModel;
+    private final IModel<ItemPathType> itemPathModel;
+    private final IModel<String> localPartModel;
+    private final IModel<String> namespaceModel;
 
     public QNameEditorPanel(String id, IModel<ItemPathType> model, String localPartTooltipKey,
-                            String namespaceTooltipKey, boolean markLocalPartAsRequired, boolean markNamespaceAsRequired) {
+            String namespaceTooltipKey, boolean markLocalPartAsRequired, boolean markNamespaceAsRequired) {
         super(id, model);
         this.itemPathModel = model;
 
-        localpartModel = new IModel<String>() {
+        localPartModel = new IModel<String>() {
             @Override
             public String getObject() {
                 QName qName = itemPathToQName();
@@ -83,10 +83,10 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
 
             @Override
             public void setObject(String object) {
-                if (StringUtils.isBlank(localpartModel.getObject())) {
+                if (StringUtils.isBlank(localPartModel.getObject())) {
                     itemPathModel.setObject(null);
                 } else {
-                    itemPathModel.setObject(new ItemPathType(ItemPath.create(new QName(object, localpartModel.getObject()))));
+                    itemPathModel.setObject(new ItemPathType(ItemPath.create(new QName(object, localPartModel.getObject()))));
                 }
             }
 
@@ -112,15 +112,13 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
         }
     }
 
-
-
     @Override
     public IModel<ItemPathType> getModel() {
         IModel<ItemPathType> model = super.getModel();
         ItemPathType modelObject = model.getObject();
 
         // TODO consider removing this
-        if (modelObject == null){
+        if (modelObject == null) {
             model.setObject(new ItemPathType());
         }
 
@@ -128,7 +126,7 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
     }
 
     private void initLayout(String localPartTooltipKey,
-            String namespaceTooltipKey, boolean markLocalPartAsRequired, boolean markNamespaceAsRequired){
+            String namespaceTooltipKey, boolean markLocalPartAsRequired, boolean markNamespaceAsRequired) {
 
         Label localPartLabel = new Label(ID_LOCAL_PART_LABEL, getString("SchemaHandlingStep.association.label.associationName"));
         localPartLabel.setOutputMarkupId(true);
@@ -137,12 +135,12 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
         add(localPartLabel);
 
         WebMarkupContainer localPartRequired = new WebMarkupContainer(ID_LOCAL_PART_REQUIRED);
-        localPartRequired.add(new VisibleEnableBehaviour(){
+        localPartRequired.add(new VisibleEnableBehaviour() {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return markLocalPartAsRequired;
             }
         });
@@ -155,25 +153,25 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
         add(namespaceLabel);
 
         WebMarkupContainer namespaceRequired = new WebMarkupContainer(ID_NAMESPACE_REQUIRED);
-        namespaceRequired.add(new VisibleEnableBehaviour(){
+        namespaceRequired.add(new VisibleEnableBehaviour() {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return markNamespaceAsRequired;
             }
         });
         add(namespaceRequired);
 
-        TextField localPart = new TextField<>(ID_LOCAL_PART, localpartModel);
+        TextField<?> localPart = new TextField<>(ID_LOCAL_PART, localPartModel);
         localPart.setOutputMarkupId(true);
         localPart.setOutputMarkupPlaceholderTag(true);
         localPart.setRequired(isLocalPartRequired());
         localPart.add(new UpdateBehavior());
         add(localPart);
 
-        DropDownChoice namespace = new DropDownChoice<>(ID_NAMESPACE, namespaceModel, prepareNamespaceList());
+        DropDownChoice<?> namespace = new DropDownChoice<>(ID_NAMESPACE, namespaceModel, prepareNamespaceList());
         namespace.setOutputMarkupId(true);
         namespace.setOutputMarkupPlaceholderTag(true);
         namespace.setNullValid(false);
@@ -185,11 +183,11 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
         localPartTooltip.add(new AttributeAppender("data-original-title", getString(localPartTooltipKey)));
         localPartTooltip.add(new InfoTooltipBehavior());
         localPartTooltip.setOutputMarkupPlaceholderTag(true);
-        localPartTooltip.add(new VisibleEnableBehaviour(){
+        localPartTooltip.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return localPartTooltipKey != null;
             }
         });
@@ -197,11 +195,11 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
 
         Label namespaceTooltip = new Label(ID_T_NAMESPACE);
         namespaceTooltip.add(new AttributeAppender("data-original-title", getString(namespaceTooltipKey)));
-        namespaceTooltip.add(new VisibleEnableBehaviour(){
+        namespaceTooltip.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return namespaceTooltipKey != null;
             }
         });
@@ -211,14 +209,14 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
     }
 
     /**
-     *  Override to provide custom list of namespaces
-     *  for QName editor
-     * */
-    protected List<String> prepareNamespaceList(){
+     * Override to provide custom list of namespaces
+     * for QName editor
+     */
+    protected List<String> prepareNamespaceList() {
         return Arrays.asList(SchemaConstants.NS_ICF_SCHEMA, MidPointConstants.NS_RI);
     }
 
-    public boolean isLocalPartRequired(){
+    public boolean isLocalPartRequired() {
         return false;
     }
 
@@ -236,7 +234,7 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
     protected void onUpdate(AjaxRequestTarget target) {
     }
 
-    protected AttributeAppender getSpecificLabelStyleAppender(){
+    protected AttributeAppender getSpecificLabelStyleAppender() {
         return AttributeAppender.append("style", "");
     }
 }

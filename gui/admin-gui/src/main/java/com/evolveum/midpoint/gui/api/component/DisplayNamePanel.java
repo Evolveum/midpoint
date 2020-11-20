@@ -58,9 +58,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C> {
     }
 
     private void initLayout() {
-        WebMarkupContainer typeImage = new WebMarkupContainer(ID_TYPE_IMAGE);
-        typeImage.setOutputMarkupId(true);
-        typeImage.add(AttributeModifier.append("class", createImageModel()));
+        WebMarkupContainer typeImage = createTypeImagePanel(ID_TYPE_IMAGE);
         add(typeImage);
 
         Label name = new Label(ID_DISPLAY_NAME, createHeaderModel());
@@ -85,6 +83,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C> {
             }
         };
         navigateToObject.add(new VisibleBehaviour(() -> DisplayNamePanel.this.getModelObject() instanceof ObjectType &&
+                StringUtils.isNotEmpty(((ObjectType) DisplayNamePanel.this.getModelObject()).getOid()) &&
                 WebComponentUtil.getObjectDetailsPage(((ObjectType) DisplayNamePanel.this.getModelObject()).getClass()) != null));
         navigateToObject.setOutputMarkupId(true);
         add(navigateToObject);
@@ -114,6 +113,13 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C> {
 
 //        add(new Label(ID_DESCRIPTION, getDescriptionLabelsModel()));
 //        add(new Label(ID_PENDING_OPERATION, getPendingOperationLabelModel()));
+    }
+
+    protected WebMarkupContainer createTypeImagePanel(String idTypeImage) {
+        WebMarkupContainer typeImage = new WebMarkupContainer(idTypeImage);
+        typeImage.setOutputMarkupId(true);
+        typeImage.add(AttributeModifier.append("class", createImageModel()));
+        return typeImage;
     }
 
     private boolean isObjectPolicyConfigurationType() {

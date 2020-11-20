@@ -133,7 +133,7 @@ public class AssociationFromLinkExpressionEvaluator
         Integer assignmentPathIndex = expressionEvaluatorBean.getAssignmentPathIndex();
         if (assignmentPathIndex == null) {
             // Legacy ... or default in simple cases
-            thisRole = getOrderOneObject(context);
+            thisRole = getLegacyRole(context);
         } else {
             AssignmentPathSegment segment = getSpecifiedAssignmentPathSegment(context, assignmentPathIndex);
             thisRole = (AbstractRoleType) segment.getSource();
@@ -142,10 +142,10 @@ public class AssociationFromLinkExpressionEvaluator
     }
 
     @NotNull
-    private AbstractRoleType getOrderOneObject(ExpressionEvaluationContext context)
+    private AbstractRoleType getLegacyRole(ExpressionEvaluationContext context)
             throws ExpressionEvaluationException {
         @SuppressWarnings("unchecked")
-        TypedValue<AbstractRoleType> orderOneObjectTypedValue = context.getVariables().get(ExpressionConstants.VAR_ORDER_ONE_OBJECT);
+        TypedValue<AbstractRoleType> orderOneObjectTypedValue = context.getVariables().get(ExpressionConstants.VAR_THIS_OBJECT);
         if (orderOneObjectTypedValue == null || orderOneObjectTypedValue.getValue() == null) {
             throw new ExpressionEvaluationException("No order one object variable in " + context.getContextDescription() +
                     "; the expression may be used in a wrong place. It is only supposed to work in a role.");

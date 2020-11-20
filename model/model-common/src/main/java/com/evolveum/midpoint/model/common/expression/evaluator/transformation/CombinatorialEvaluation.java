@@ -145,7 +145,8 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition, E 
         List<Collection<PrismValue>> domains = createDomainsForSets(sets);
         logDomainsForSets(domains, sets, outputSet);
         MiscUtil.carthesian(domains, valuesTuple -> {
-            try (ValueTupleTransformation<V> valueTupleTransformation = new ValueTupleTransformation<>(valuesTuple, outputSet, this, parentResult)) {
+            try (ValueTupleTransformation<V> valueTupleTransformation =
+                    new ValueTupleTransformation<>(sets, valuesTuple, outputSet, this, parentResult)) {
                 valueTupleTransformation.evaluate();
             }
         });

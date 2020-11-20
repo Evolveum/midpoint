@@ -78,8 +78,8 @@ public class AbstractLabTest extends AbstractSchrodingerTest {
     protected static final String HR_RESOURCE_NAME = "ExAmPLE, Inc. HR Source";
     protected static final String NOTIFICATION_FILE_NAME = "notification.txt";
 
-    protected static final String PASSWORD_ATTRIBUTE_RESOURCE_KEY = "User password attribute name";
-    protected static final String UNIQUE_ATTRIBUTE_RESOURCE_KEY = "Unique attribute name";
+    protected static final String PASSWORD_ATTRIBUTE_NAME = "User password attribute name";
+    protected static final String UNIQUE_ATTRIBUTE_NAME = "Unique attribute name";
 
     protected static final String CSV_1_UNIQUE_ATTRIBUTE_NAME = "login";
     protected static final String CSV_1_PASSWORD_ATTRIBUTE_NAME = "password";
@@ -111,84 +111,4 @@ public class AbstractLabTest extends AbstractSchrodingerTest {
         return testTargetDir;
     }
 
-    public UserPage showUser(String userName){
-        UserPage user = showUserInTable(userName).clickByName(userName);
-        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
-        return user;
-    }
-
-    public AssignmentHolderObjectListTable<ListUsersPage, UserPage> showUserInTable(String userName) {
-        return basicPage.listUsers()
-                .table()
-                    .search()
-                        .byName()
-                            .inputValue(userName)
-                            .updateSearch()
-                        .and();
-    }
-
-    public AccountPage showShadow(String resourceName, String searchedItem, String itemValue){
-        return showShadow(resourceName, searchedItem, itemValue, null, false);
-    }
-
-    public AccountPage showShadow(String resourceName, String searchedItem, String itemValue, String intent, boolean useRepository){
-        return getShadowTable(resourceName, searchedItem, itemValue, intent, useRepository)
-                .clickByName(itemValue);
-    }
-
-    public boolean existShadow(String resourceName, String searchedItem, String itemValue){
-        return existShadow(resourceName, searchedItem, itemValue, null, false);
-    }
-
-    public boolean existShadow(String resourceName, String searchedItem, String itemValue, String intent,  boolean useRepository){
-        ResourceShadowTable table = getShadowTable(resourceName, searchedItem, itemValue, intent, useRepository);
-        return table.containsText(itemValue);
-    }
-    public ResourceShadowTable getShadowTable(String resourceName, String searchedItem, String itemValue) {
-        return getShadowTable(resourceName, searchedItem, itemValue, null, false);
-    }
-
-    public ResourceShadowTable getShadowTable(String resourceName, String searchedItem, String itemValue, String intent, boolean useRepository) {
-        ResourceAccountsTab<ViewResourcePage> tab = basicPage.listResources()
-                .table()
-                    .search()
-                        .byName()
-                            .inputValue(resourceName)
-                            .updateSearch()
-                        .and()
-                    .clickByName(resourceName)
-                        .clickAccountsTab();
-        if (useRepository) {
-            tab.clickSearchInRepository();
-        } else {
-            tab.clickSearchInResource();
-        }
-        Selenide.sleep(1000);
-        if (intent != null && !intent.isEmpty()) {
-            tab.setIntent(intent);
-            Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
-        }
-        return tab.table()
-                    .search()
-                        .resetBasicSearch()
-                        .byItemName(searchedItem)
-                            .inputValue(itemValue)
-                        .updateSearch()
-                        .and();
-    }
-
-    protected TaskPage showTask(String name, String menuKey) {
-        return basicPage.listTasks(menuKey)
-                .table()
-                    .search()
-                        .byName()
-                        .inputValue(name)
-                        .updateSearch()
-                    .and()
-                    .clickByName(name);
-    }
-
-    protected TaskPage showTask(String name) {
-        return showTask(name, "");
-    }
 }

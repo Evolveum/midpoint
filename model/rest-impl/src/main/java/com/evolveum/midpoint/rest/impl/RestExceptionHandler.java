@@ -9,8 +9,10 @@ package com.evolveum.midpoint.rest.impl;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 
+import java.nio.file.AccessDeniedException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.naming.AuthenticationException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -70,21 +72,18 @@ public class RestExceptionHandler {
         return errorResponse(HttpStatus.BAD_REQUEST, request, message);
     }
 
-    /* TODO: check if needed, but this is probably covered by auth filters before the controller
-    @ExceptionHandler({AuthenticationException.class})
-    public ResponseEntity<?> unauthorizedHandler(
-            Exception ex, HttpServletRequest request)
-    {
+    // Normally not used, auth filter before the controller will not let it here.
+    // Left here as a fallback if something in the chain changes.
+    @ExceptionHandler({ AuthenticationException.class })
+    public ResponseEntity<?> unauthorizedHandler(Exception ex, HttpServletRequest request) {
         return errorResponse(HttpStatus.UNAUTHORIZED, request, ex.getMessage());
     }
 
-    @ExceptionHandler({AccessDeniedException.class})
-    public ResponseEntity<?> forbiddenHandler(
-            Exception ex, HttpServletRequest request)
-    {
+    // Not used currently, left here as a fallback if something in the chain changes.
+    @ExceptionHandler({ AccessDeniedException.class })
+    public ResponseEntity<?> forbiddenHandler(Exception ex, HttpServletRequest request) {
         return errorResponse(HttpStatus.FORBIDDEN, request, ex.getMessage());
     }
-    */
 
     @ExceptionHandler({ HttpRequestMethodNotSupportedException.class })
     public ResponseEntity<?> methodNotAllowedHandler(

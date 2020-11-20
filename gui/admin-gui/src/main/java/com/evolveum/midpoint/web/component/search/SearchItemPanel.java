@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.search;
 
 import java.io.Serializable;
@@ -12,10 +11,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -33,8 +34,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.input.CheckPanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
@@ -50,8 +49,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 public class SearchItemPanel<S extends SearchItem, T extends Serializable> extends BasePanel<S> {
 
     private static final long serialVersionUID = 1L;
-
-    private static final Trace LOG = TraceManager.getTrace(SearchItemPanel.class);
 
     private static final String ID_SEARCH_ITEM_CONTAINER = "searchItemContainer";
     private static final String ID_SEARCH_ITEM_LABEL = "searchItemLabel";
@@ -76,7 +73,7 @@ public class SearchItemPanel<S extends SearchItem, T extends Serializable> exten
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         initLayout();
     }
@@ -115,18 +112,27 @@ public class SearchItemPanel<S extends SearchItem, T extends Serializable> exten
     }
 
     private void initSearchItemField(WebMarkupContainer searchItemContainer) {
-        Component searchItemField = null;
-        if (getModelObject() instanceof FilterSearchItem){
+        Component searchItemField;
+        if (getModelObject() instanceof FilterSearchItem) {
             searchItemField = new CheckPanel(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), FilterSearchItem.F_APPLY_FILTER));
-            searchItemField.add(AttributeModifier.append("class", "col-sm-2"));
-            searchItemField.add(AttributeAppender.append("style", "margin-top: 5px;"));
+            ((CheckPanel) searchItemField).getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
+                    searchPerformed(ajaxRequestTarget);
+                }
+            });
+            searchItemField.add(AttributeModifier.append("class", "pull-right"));
+            searchItemField.add(AttributeAppender.append("style", "margin-top: 3px;"));
             ((InputPanel) searchItemField).getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         } else {
             PropertySearchItem<T> item = (PropertySearchItem<T>) getModelObject();
             IModel<List<DisplayableValue<T>>> choices = null;
             switch (item.getType()) {
                 case REFERENCE:
-                    searchItemField = new ReferenceValueSearchPanel(ID_SEARCH_ITEM_FIELD, new PropertyModel(getModel(), "value.value"),
+                    searchItemField = new ReferenceValueSearchPanel(ID_SEARCH_ITEM_FIELD,
+                            new PropertyModel<>(getModel(), "value.value"),
                             (PrismReferenceDefinition) item.getDefinition());
                     break;
                 case BOOLEAN:
@@ -135,8 +141,7 @@ public class SearchItemPanel<S extends SearchItem, T extends Serializable> exten
                     if (choices == null) {
                         choices = new ListModel<>(item.getAllowedValues());
                     }
-                    DisplayableValue<T> val = item.getValue();
-                    searchItemField = new DropDownChoicePanel<DisplayableValue>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value.value"),
+                    searchItemField = new DropDownChoicePanel<>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value.value"),
                             choices, new IChoiceRenderer<DisplayableValue>() {
                         private static final long serialVersionUID = 1L;
 
@@ -195,10 +200,10 @@ public class SearchItemPanel<S extends SearchItem, T extends Serializable> exten
                 default:
                     searchItemField = new TextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value"));
             }
-            searchItemField.add(AttributeModifier.append("class", "col-sm-7"));
-            if (searchItemField instanceof InputPanel && !(searchItemField instanceof AutoCompleteTextPanel)){
+            searchItemField.add(AttributeModifier.append("class", "col-sm-6"));
+            if (searchItemField instanceof InputPanel && !(searchItemField instanceof AutoCompleteTextPanel)) {
                 ((InputPanel) searchItemField).getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
-                ((InputPanel) searchItemField).getBaseFormComponent().add(AttributeAppender.append("style", "width: 200px; max-width: 400px !important;"));
+                ((InputPanel) searchItemField).getBaseFormComponent().add(AttributeAppender.append("style", "width: 140px; max-width: 400px !important;"));
                 ((InputPanel) searchItemField).getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
             }
         }
@@ -207,7 +212,7 @@ public class SearchItemPanel<S extends SearchItem, T extends Serializable> exten
         searchItemContainer.add(searchItemField);
     }
 
-    protected boolean canRemoveSearchItem(){
+    protected boolean canRemoveSearchItem() {
         return false;
     }
 
@@ -220,7 +225,7 @@ public class SearchItemPanel<S extends SearchItem, T extends Serializable> exten
 
     private IModel<String> createLabelModel() {
         SearchItem item = getModelObject();
-        if (item == null){
+        if (item == null) {
             return Model.of();
         }
         return Model.of(item.getName());
@@ -228,10 +233,13 @@ public class SearchItemPanel<S extends SearchItem, T extends Serializable> exten
 
     private IModel<String> createTitleModel() {
         SearchItem item = getModelObject();
-        if (item == null){
+        if (item == null) {
             return Model.of();
         }
-        return Model.of(item.getTitle());
+        return Model.of(item.getTitle(getPageBase()));
+    }
+
+    protected void searchPerformed(AjaxRequestTarget target){
     }
 
     private void deletePerformed(AjaxRequestTarget target) {

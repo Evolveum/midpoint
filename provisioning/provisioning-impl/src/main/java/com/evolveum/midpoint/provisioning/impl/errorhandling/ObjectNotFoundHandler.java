@@ -145,11 +145,15 @@ public class ObjectNotFoundHandler extends HardErrorHandler {
 
         LOGGER.debug("DISCOVERY: discovered deleted shadow {}", repositoryShadow);
 
-        repositoryShadow = shadowManager.markShadowTombstone(repositoryShadow, result);
+        // Do NOT use return value of the markShadowTombstone method.
+        // It may return null in case that the shadow is deleted from repository already.
+        // However, in that case we will have nothing to base notifications on.
+        // Using the "old" repo shadow is still a better option. (MID-6574)
+        shadowManager.markShadowTombstone(repositoryShadow, result);
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         change.setResource(ctx.getResource().asPrismObject());
-        change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
+        change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_DISCOVERY));
         change.setObjectDelta(repositoryShadow.createDeleteDelta());
         change.setOldShadow(repositoryShadow);
         // Current shadow is a tombstone. This means that the object was deleted. But we need current shadow here.

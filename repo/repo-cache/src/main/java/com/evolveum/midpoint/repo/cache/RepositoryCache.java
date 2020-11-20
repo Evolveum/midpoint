@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,16 +9,10 @@ package com.evolveum.midpoint.repo.cache;
 import static com.evolveum.midpoint.repo.cache.other.MonitoringUtil.repoOpEnd;
 import static com.evolveum.midpoint.repo.cache.other.MonitoringUtil.repoOpStart;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import javax.annotation.PreDestroy;
-
-import com.evolveum.midpoint.repo.cache.global.GlobalObjectCache;
-import com.evolveum.midpoint.repo.cache.global.GlobalQueryCache;
-import com.evolveum.midpoint.repo.cache.global.GlobalVersionCache;
-import com.evolveum.midpoint.repo.cache.handlers.*;
-import com.evolveum.midpoint.repo.cache.local.LocalRepoCacheCollection;
-import com.evolveum.midpoint.repo.cache.invalidation.Invalidator;
-import com.evolveum.midpoint.repo.api.CacheRegistry;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +26,15 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
+import com.evolveum.midpoint.repo.cache.global.GlobalObjectCache;
+import com.evolveum.midpoint.repo.cache.global.GlobalQueryCache;
+import com.evolveum.midpoint.repo.cache.global.GlobalVersionCache;
+import com.evolveum.midpoint.repo.cache.handlers.GetObjectOpHandler;
+import com.evolveum.midpoint.repo.cache.handlers.GetVersionOpHandler;
+import com.evolveum.midpoint.repo.cache.handlers.ModificationOpHandler;
+import com.evolveum.midpoint.repo.cache.handlers.SearchOpHandler;
+import com.evolveum.midpoint.repo.cache.invalidation.Invalidator;
+import com.evolveum.midpoint.repo.cache.local.LocalRepoCacheCollection;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -42,11 +45,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Read-through write-through repository cache.
  * <p>
- * This is an umbrella class providing RepositoryService and Cacheable interfaces.
+ * This is an umbrella class providing RepositoryService and {@link Cache} interfaces.
  * Majority of the work is delegated to operation handlers (and other classes).
  */
 @Component(value = "cacheRepositoryService")
-public class RepositoryCache implements RepositoryService, Cacheable {
+public class RepositoryCache implements RepositoryService, Cache {
 
     public static final String CLASS_NAME_WITH_DOT = RepositoryCache.class.getName() + ".";
     private static final String EXECUTE_QUERY_DIAGNOSTICS = CLASS_NAME_WITH_DOT + "executeQueryDiagnostics";
@@ -347,12 +350,12 @@ public class RepositoryCache implements RepositoryService, Cacheable {
         globalObjectCache.initialize();
         globalVersionCache.initialize();
         globalQueryCache.initialize();
-        cacheRegistry.registerCacheableService(this);
+        cacheRegistry.registerCache(this);
     }
 
     @PreDestroy
     public void unregister() {
-        cacheRegistry.unregisterCacheableService(this);
+        cacheRegistry.unregisterCache(this);
     }
 
     //region Cacheable interface

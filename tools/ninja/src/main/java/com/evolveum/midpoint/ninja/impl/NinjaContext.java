@@ -32,12 +32,17 @@ public class NinjaContext {
 
     private static final String CTX_NINJA = "classpath:ctx-ninja.xml";
 
-    private static final String[] CTX_MIDPOINT = new String[]{
+    private static final String[] CTX_MIDPOINT = new String[] {
             "classpath:ctx-common.xml",
             "classpath:ctx-configuration.xml",
             "classpath:ctx-repository.xml",
             "classpath:ctx-repo-cache.xml",
             "classpath:ctx-audit.xml"
+    };
+
+    private static final String[] CTX_MIDPOINT_NO_REPO = new String[] {
+            "classpath:ctx-common.xml",
+            "classpath:ctx-configuration-no-repo.xml"
     };
 
     private JCommander jc;
@@ -87,7 +92,9 @@ public class NinjaContext {
     }
 
     private RepositoryService setupRepositoryViaMidPointHome(ConnectionOptions options) {
-        log.info("Initializing repository using midpoint home");
+        boolean connectRepo = !options.isOffline();
+
+        log.info("Initializing using midpoint home; {} repository connection", connectRepo ? "with" : "WITHOUT");
 
         System.setProperty(MidpointConfiguration.MIDPOINT_SILENT_PROPERTY, "true");
 
@@ -107,12 +114,12 @@ public class NinjaContext {
         GenericXmlApplicationContext ctx = new GenericXmlApplicationContext();
         ctx.addBeanFactoryPostProcessor(beanFactory -> beanFactory.addBeanPostProcessor(postprocessor));
         ctx.load(CTX_NINJA);
-        ctx.load(CTX_MIDPOINT);
+        ctx.load(connectRepo ? CTX_MIDPOINT : CTX_MIDPOINT_NO_REPO);
         ctx.refresh();
 
         context = ctx;
 
-        return context.getBean(REPOSITORY_SERVICE_BEAN, RepositoryService.class);
+        return connectRepo ? context.getBean(REPOSITORY_SERVICE_BEAN, RepositoryService.class) : null;
     }
 
     public ApplicationContext getApplicationContext() {

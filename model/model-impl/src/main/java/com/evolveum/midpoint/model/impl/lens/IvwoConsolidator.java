@@ -13,6 +13,8 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
@@ -41,6 +43,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 import com.evolveum.prism.xml.ns._public.types_3.DeltaSetTripleType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Consolidate the output of mappings for a single item to a delta. It takes the convenient structure of ItemValueWithOrigin triple.
@@ -382,6 +386,8 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         private void consolidate() throws ExpressionEvaluationException, SchemaException,
                 ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 
+            checkDeletionOfStrongValue();
+
             // This division is quite simplistic in the presence of metadata (yields).
             // But let's keep it for the time being.
 
@@ -398,7 +404,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                 addingOrigins.addAll(equivalenceClass.zeroOrigins);
             } else if (addUnchangedValuesExceptForNormalMappings) {
                 for (I zeroIvwo : equivalenceClass.zeroOrigins) {
-                    if (zeroIvwo.isStrong() || zeroIvwo.isNormal() && zeroIvwo.isSourceless() || zeroIvwo.isWeak()) {
+                    if (zeroIvwo.isStrong() || zeroIvwo.isNormal() && (zeroIvwo.isSourceless() || zeroIvwo.isPushChanges()) || zeroIvwo.isWeak()) {
                         addingOrigins.add(zeroIvwo);
                     }
                 }
@@ -598,6 +604,33 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                     .collect(Collectors.toList());
         }
 
+        private void checkDeletionOfStrongValue() {
+            if (aprioriItemDelta != null && aprioriItemDelta.getValuesToDelete() != null &&
+                    ItemCollectionsUtil.contains(aprioriItemDelta.getValuesToDelete(), equivalenceClass.getRepresentative(), EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS)) {
+                checkIfStrong(equivalenceClass.zeroOrigins);
+                checkIfStrong(equivalenceClass.plusOrigins);
+            }
+        }
+
+        private void checkIfStrong(Collection<I> origins) {
+            PrismValueDeltaSetTripleProducer<V, D> strongMapping = findStrongMapping(origins);
+            if (strongMapping != null) {
+                LOGGER.warn("Attempt to delete value {} from item {} but that value is mandated by a strong mapping {} (for {})",
+                        equivalenceClass.getRepresentative(), itemPath, strongMapping.toHumanReadableDescription(), contextDescription);
+            }
+        }
+
+        @Nullable
+        private PrismValueDeltaSetTripleProducer<V, D> findStrongMapping(Collection<I> ivwos) {
+            for (ItemValueWithOrigin<V,D> pvwo : MiscUtil.emptyIfNull(ivwos)) {
+                PrismValueDeltaSetTripleProducer<V,D> mapping = pvwo.getMapping();
+                if (mapping.getStrength() == MappingStrengthType.STRONG) {
+                    return mapping;
+                }
+            }
+            return null;
+        }
+
         private class MetadataBasedConsolidation {
 
             private final String situation;
@@ -759,7 +792,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                 }
 
                 private boolean isPresent(ValueMetadataType toBeAdded) {
-                    // TODO Consider the strategy. REAL_VALUE (instead of NOT_LITERAL) prevents uninteresting changes to be applied.
+                    // TODO Consider the strategy. REAL_VALUE (instead of DATA) prevents uninteresting changes to be applied.
                     //  But what about timestamps, channels, actors, etc?
                     return existing.stream()
                             .anyMatch(e -> e.asPrismContainerValue().equals(toBeAdded.asPrismContainerValue(), EquivalenceStrategy.REAL_VALUE));
@@ -818,7 +851,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 
     private void logEnd() {
         LOGGER.trace("Consolidated {} IVwO triple to delta:\n{}", itemPath, itemDelta.debugDumpLazily(1));
-        if (result.isTraced()) {
+        if (result.isTracingNormal(ItemConsolidationTraceType.class)) {
             ItemConsolidationTraceType trace = new ItemConsolidationTraceType(prismContext);
             trace.setItemPath(new ItemPathType(itemPath));
             try {

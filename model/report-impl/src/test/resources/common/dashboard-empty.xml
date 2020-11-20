@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<dashboard oid="00000000-0000-0000-0001-000000kj1231">
+    <name>test-dashboard-empty</name>
+    <display>
+        <label>Test dashboard</label>
+    </display>
+    <widget>
+        <identifier>user-all</identifier>
+        <display>
+            <label>User all</label>
+            <color>#00a65a</color>
+            <icon>
+                <cssClass>fa fa-user</cssClass>
+            </icon>
+        </display>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="72b1f98e-f587-4b9f-b92b-72e251dbb201" relation="default" type="ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField>
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ProportionalExpressionEvaluatorType">
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+            <dataField>
+                <fieldType>unit</fieldType>
+                <expression>
+                    <value>users</value>
+                </expression>
+            </dataField>
+        </presentation>
+    </widget>
+    <widget>
+        <identifier>all audit</identifier>
+        <display>
+            <label>Audit records</label>
+            <color>#00a65a</color>
+            <icon>
+                <cssClass>fa fa-cog</cssClass>
+            </icon>
+        </display>
+        <data>
+            <sourceType>auditSearch</sourceType>
+            <collection>
+                <collectionRef oid="00000000-0000-0000-0001-000000gh1234" relation="default" type="ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField>
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ProportionalExpressionEvaluatorType">
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+            <dataField>
+                <fieldType>unit</fieldType>
+                <expression>
+                    <value>records</value>
+                </expression>
+            </dataField>
+        </presentation>
+    </widget>
+</dashboard>

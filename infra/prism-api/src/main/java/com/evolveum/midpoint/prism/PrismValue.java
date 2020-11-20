@@ -164,16 +164,6 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
 
     boolean equals(PrismValue otherValue, @NotNull ParameterizedEquivalenceStrategy strategy);
 
-    // TODO: No caller found
-    @Deprecated
-    boolean equals(PrismValue thisValue, PrismValue otherValue);
-
-    /**
-     * Assumes matching representations. I.e. it assumes that both this and otherValue represent the same instance of item.
-     * E.g. the container with the same ID.
-     */
-    Collection<? extends ItemDelta> diff(PrismValue otherValue);
-
     /**
      * Assumes matching representations. I.e. it assumes that both this and otherValue represent the same instance of item.
      * E.g. the container with the same ID.
@@ -228,4 +218,14 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
 //            Collection<? extends ItemDelta> deltas, boolean ignoreMetadata, boolean isLiteral);
 
     Object find(ItemPath path);
+
+    /**
+     * @return True if the value is transient, so it won't be serialized if serialization
+     * of transient value is disabled.
+     */
+    @Experimental
+    boolean isTransient();
+
+    @Experimental
+    void setTransient(boolean value);
 }

@@ -36,7 +36,7 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
     ValueStatus getStatus();
     void setStatus(ValueStatus status);
 
-    <T extends Containerable> List<PrismContainerWrapper<T>> getContainers();
+    List<PrismContainerWrapper<? extends Containerable>> getContainers();
 
     List<ItemWrapper<?, ?>> getNonContainers();
 
@@ -79,5 +79,9 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
 
     @Override
     PrismContainerValue<C> getNewValue();
+
+    PrismContainerWrapper<? extends Containerable> getSelectedChild();
+
+    void addItem(ItemWrapper<?, ?> newItem);
 }
 

@@ -1,30 +1,32 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
+
+import java.util.Objects;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
  */
-public class ObjectClassDto extends Selectable implements Comparable<ObjectClassDto> {
+public class ObjectClassDto extends Selectable<ObjectClassDto>
+        implements Comparable<ObjectClassDto> {
 
     public static final String F_DISPLAY_NAME = "displayName";
 
     @NotNull private final RefinedObjectClassDefinition refinedDefinition;
 
-    public ObjectClassDto(@NotNull RefinedObjectClassDefinition definition){
+    public ObjectClassDto(@NotNull RefinedObjectClassDefinition definition) {
         Validate.notNull(definition, "Refined object class definition must not be null.");
         this.refinedDefinition = definition;
     }
@@ -55,19 +57,16 @@ public class ObjectClassDto extends Selectable implements Comparable<ObjectClass
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ObjectClassDto)) return false;
+        if (this == o) { return true; }
+        if (!(o instanceof ObjectClassDto)) { return false; }
 
         ObjectClassDto that = (ObjectClassDto) o;
 
-        if (refinedDefinition != null ? !refinedDefinition.equals(that.refinedDefinition) : that.refinedDefinition != null)
-            return false;
-
-        return true;
+        return Objects.equals(refinedDefinition, that.refinedDefinition);
     }
 
     @Override
     public int hashCode() {
-        return refinedDefinition != null ? refinedDefinition.hashCode() : 0;
+        return Objects.hash(refinedDefinition);
     }
 }

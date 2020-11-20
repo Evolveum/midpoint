@@ -11,7 +11,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.provisioning.ucf.api.async.ChangeListener;
+import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncChangeListener;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -308,7 +308,7 @@ public interface ConnectorInstance {
      */
     void fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
             AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter,
-            ChangeHandler changeHandler, OperationResult parentResult)
+            LiveSyncChangeListener changeHandler, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException,
             ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException;
 
@@ -343,7 +343,7 @@ public interface ConnectorInstance {
      * @param canRunSupplier Supplier of "canRun" information. If it returns false we should stop listening.
      * @param parentResult Operation result to use for listening for changes.
      */
-    default void listenForChanges(@NotNull ChangeListener changeListener, @NotNull Supplier<Boolean> canRunSupplier,
+    default void listenForChanges(@NotNull AsyncChangeListener changeListener, @NotNull Supplier<Boolean> canRunSupplier,
             @NotNull OperationResult parentResult) throws SchemaException {
         throw new UnsupportedOperationException();
     }

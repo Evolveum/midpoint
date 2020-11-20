@@ -1,10 +1,15 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
+
+import javax.annotation.PostConstruct;
+
+import org.apache.wicket.markup.html.panel.Panel;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
@@ -12,14 +17,8 @@ import com.evolveum.midpoint.gui.impl.component.VariableBindingDefinitionTypePan
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 
-import org.apache.wicket.markup.html.panel.Panel;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-
 @Component
 public class VariableBindingDefinitionTypePanelFactory extends AbstractGuiComponentFactory<VariableBindingDefinitionType> {
-
 
     @PostConstruct
     public void register() {
@@ -32,7 +31,7 @@ public class VariableBindingDefinitionTypePanelFactory extends AbstractGuiCompon
     }
 
     @Override
-    public <IW extends ItemWrapper> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
         return QNameUtil.match(VariableBindingDefinitionType.COMPLEX_TYPE, wrapper.getTypeName());
     }
 }

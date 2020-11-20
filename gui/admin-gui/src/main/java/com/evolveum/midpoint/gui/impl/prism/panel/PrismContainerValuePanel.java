@@ -6,47 +6,33 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
-import java.text.Collator;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-import com.evolveum.midpoint.gui.impl.factory.panel.ItemPanelContext;
-import com.evolveum.midpoint.gui.impl.factory.panel.PrismContainerPanelContext;
-import com.evolveum.midpoint.gui.impl.prism.panel.component.ListContainersPopup;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ResourceAttributeWrapper;
-import com.evolveum.midpoint.prism.*;
-
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LambdaModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.*;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectValueWrapper;
+import com.evolveum.midpoint.gui.impl.factory.panel.ItemPanelContext;
+import com.evolveum.midpoint.gui.impl.factory.panel.PrismContainerPanelContext;
+import com.evolveum.midpoint.gui.impl.prism.panel.component.ListContainersPopup;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -62,18 +48,10 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     private static final long serialVersionUID = 1L;
 
     protected static final String ID_LABEL = "label";
-    protected static final String ID_LABEL_CONTAINER = "labelContainer";
     protected static final String ID_HELP = "help";
-
-
     private static final String ID_SORT_PROPERTIES = "sortProperties";
-    private static final String ID_SHOW_METADATA = "showMetadata";
     private static final String ID_ADD_CHILD_CONTAINER = "addChildContainer";
-    private static final String ID_REMOVE_CONTAINER = "removeContainer";
-
     private static final String ID_EXPAND_COLLAPSE_BUTTON = "expandCollapseButton";
-
-
 
     public PrismContainerValuePanel(String id, IModel<CVW> model, ItemPanelSettings settings) {
         super(id, model, settings);
@@ -83,6 +61,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     protected <PC extends ItemPanelContext> PC createPanelCtx(IModel<PrismContainerWrapper<C>> wrapper) {
         PrismContainerPanelContext<C> ctx = new PrismContainerPanelContext<>(wrapper);
         ctx.setSettings(getSettings());
+        //noinspection unchecked
         return (PC) ctx;
     }
 
@@ -105,11 +84,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
     @Override
     protected void addToHeader(WebMarkupContainer header) {
-        WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
-        labelContainer.setOutputMarkupId(true);
-
-        header.add(labelContainer);
-
         LoadableDetachableModel<String> headerLabelModel = getLabelModel();
         AjaxButton labelComponent = new AjaxButton(ID_LABEL, headerLabelModel) {
             private static final long serialVersionUID = 1L;
@@ -120,10 +94,9 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         };
         labelComponent.setOutputMarkupId(true);
         labelComponent.setOutputMarkupPlaceholderTag(true);
-        labelComponent.add(AttributeAppender.append("style", "cursor: pointer;"));
-        labelContainer.add(labelComponent);
+        header.add(labelComponent);
 
-        labelContainer.add(getHelpLabel());
+        header.add(getHelpLabel());
 
         initButtons(header);
 
@@ -137,17 +110,16 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     @Override
     protected Component createDefaultPanel(String id) {
         throw new IllegalArgumentException("Cannot create default panel");
-//        return new DefaultContainerablePanel(id, getModel(), getSettings());
     }
 
     @Override
     protected <PV extends PrismValue> PV createNewValue(PrismContainerWrapper<C> itemWrapper) {
+        //noinspection unchecked
         return (PV) itemWrapper.getItem().createNewValue();
     }
 
     private void initButtons(WebMarkupContainer header) {
         header.add(createExpandCollapseButton());
-//        header.add(createMetadataButton());
         header.add(createSortButton());
         header.add(createAddMoreButton());
     }
@@ -162,36 +134,12 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     protected Label getHelpLabel() {
 
         Label help = new Label(ID_HELP);
-        help.add(AttributeModifier.replace("title", LambdaModel.of(getModel(), PrismContainerValueWrapper::getHelpText)));
+        help.add(AttributeModifier.replace("title", new PropertyModel<>(getModel(), "helpText")));
         help.add(new InfoTooltipBehavior());
-        help.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getModelObject().getHelpText())));
+        help.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getModelObject().getHelpText()) && shouldBeButtonsShown()));
         help.setOutputMarkupId(true);
         return help;
     }
-
-//    private ToggleIconButton<String> createMetadataButton() {
-//        ToggleIconButton<String> showMetadataButton = new ToggleIconButton<String>(ID_SHOW_METADATA,
-//                GuiStyleConstants.CLASS_ICON_SHOW_METADATA, GuiStyleConstants.CLASS_ICON_SHOW_METADATA) {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                onShowMetadataClicked(target);
-//            }
-//
-//            @Override
-//            public boolean isOn() {
-//                return PrismContainerValuePanel.this.getModelObject().isShowMetadata();
-//            }
-//
-//
-//        };
-//        showMetadataButton.add(new AttributeModifier("title", new StringResourceModel("PrismContainerValuePanel.showMetadata.${showMetadata}", getModel())));
-//        showMetadataButton.add(new VisibleBehaviour(() -> getModelObject().hasMetadata() && shouldBeButtonsShown()));
-//        showMetadataButton.setOutputMarkupId(true);
-//        showMetadataButton.setOutputMarkupPlaceholderTag(true);
-//        return showMetadataButton;
-//    }
 
     private ToggleIconButton<String> createSortButton() {
         ToggleIconButton<String> sortPropertiesButton = new ToggleIconButton<String>(ID_SORT_PROPERTIES,
@@ -209,7 +157,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
                 return PrismContainerValuePanel.this.getModelObject().isSorted();
             }
         };
-        sortPropertiesButton.add(new VisibleBehaviour(() -> shouldBeButtonsShown()));
+        sortPropertiesButton.add(new VisibleBehaviour(this::shouldBeButtonsShown));
         sortPropertiesButton.setOutputMarkupId(true);
         sortPropertiesButton.setOutputMarkupPlaceholderTag(true);
         return sortPropertiesButton;
@@ -244,7 +192,8 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
                 @Override
                 public boolean isVisible() {
-                    return shouldBeButtonsShown() && getModelObject()!= null && getModelObject().isHeterogenous();
+                    return shouldBeButtonsShown() && getModelObject()!= null && getModelObject().isHeterogenous() &&
+                            !getModelObject().isVirtual();
                 }
             });
             addChildContainerButton.setOutputMarkupId(true);
@@ -279,7 +228,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
             try {
                 ItemWrapper iw = getPageBase().createItemWrapper(container, getModelObject(), ctx);
                 if (iw != null) {
-                    ((List) getModelObject().getItems()).add(iw);
+                    getModelObject().addItem(iw);
                 }
             } catch (SchemaException e) {
                 OperationResult result = ctx.getResult();
@@ -299,8 +248,13 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     private void onSortClicked(AjaxRequestTarget target) {
         CVW wrapper = getModelObject();
         wrapper.setSorted(!wrapper.isSorted());
+        target.add(getValuePanel());
+        target.add(getSortButton());
+        target.add(getPageBase().getFeedbackPanel());
+    }
 
-        refreshPanel(target);
+    private ToggleIconButton<Void> getSortButton() {
+        return (ToggleIconButton) get(createComponentPath(ID_VALUE_FORM, ID_HEADER_CONTAINER, ID_SORT_PROPERTIES));
     }
 
     private void refreshPanel(AjaxRequestTarget target) {
@@ -335,6 +289,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
     @Override
     protected boolean isRemoveButtonVisible() {
-        return super.isRemoveButtonVisible() && getModelObject().isExpanded() && !(getModelObject() instanceof PrismObjectValueWrapper);
+        return super.isRemoveButtonVisible() && getModelObject().isExpanded() && !(getModelObject() instanceof PrismObjectValueWrapper)
+                && !getModelObject().isVirtual();
     }
 }

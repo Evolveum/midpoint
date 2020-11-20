@@ -235,9 +235,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                 // we optimize here are consider the assignments that were there before replace and still are there
                 // after it as unchanged.
                 //
-                // TODO consider using augmented origin here (isOld / isCurrent / isNew values) -- MID-6404
                 boolean hadValue = assignmentElement.isCurrent();
-                boolean willHaveValue = currentAssignmentDelta.isValueToReplace(assignmentCVal, true);
+                boolean willHaveValue = assignmentElement.isNew();
                 if (hadValue && willHaveValue) {
                     // No change
                     EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(createAssignmentIdiNoChange(assignmentCVal), PlusMinusZero.ZERO, false, assignmentPlacementDesc, assignmentElement);
@@ -278,8 +277,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                 if (isAssignmentChanged) {
                     // There was some change
 
-                    boolean isAdd = currentAssignmentDelta.isValueToAdd(assignmentCVal, true);
-                    boolean isDelete = currentAssignmentDelta.isValueToDelete(assignmentCVal, true);
+                    boolean isAdd = assignmentElement.getOrigin().isInDeltaAdd();
+                    boolean isDelete = assignmentElement.getOrigin().isInDeltaDelete();
                     if (isAdd & !isDelete) {
                         // Entirely new assignment is added
                         if (assignmentElement.isCurrent() && assignmentElement.isOld()) {

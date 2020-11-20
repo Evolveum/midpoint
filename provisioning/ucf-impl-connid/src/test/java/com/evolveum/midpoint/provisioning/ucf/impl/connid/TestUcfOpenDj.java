@@ -344,7 +344,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         assertNotNull("No last token", lastToken);
         assertNotNull("No last token value", lastToken.getRealValue());
 
-        CollectingChangeHandler handler = new CollectingChangeHandler();
+        CollectingChangeListener handler = new CollectingChangeListener();
         cc.fetchChanges(accountDefinition, lastToken, null, null, null, handler, result);
 
         List<Change> changes = handler.getChanges();

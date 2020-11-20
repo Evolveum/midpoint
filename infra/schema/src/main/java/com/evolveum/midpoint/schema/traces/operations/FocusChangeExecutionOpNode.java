@@ -11,43 +11,39 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.traces.OpNode;
 import com.evolveum.midpoint.schema.traces.OpResultInfo;
 import com.evolveum.midpoint.schema.traces.TraceInfo;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LensObjectDeltaOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteDeltaTraceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
-/**
- *
- */
-public class FocusChangeExecutionOpNode extends OpNode {
-
-    private boolean initialized;
-
-    private ModelExecuteDeltaTraceType trace;
-    private ObjectDeltaOperationType objectDeltaOperation;
+public class FocusChangeExecutionOpNode extends AbstractChangeExecutionOpNode {
 
     public FocusChangeExecutionOpNode(PrismContext prismContext, OperationResultType result, OpResultInfo info, OpNode parent,
             TraceInfo traceInfo) {
         super(prismContext, result, info, parent, traceInfo);
     }
 
-    public ModelExecuteDeltaTraceType getTrace() {
+    @Override
+    protected void postProcess() {
         initialize();
-        return trace;
-    }
-
-    public ObjectDeltaOperationType getObjectDeltaOperation() {
-        initialize();
-        return objectDeltaOperation;
-    }
-
-    private void initialize() {
-        if (!initialized) {
-            trace = getTraceDownwards(ModelExecuteDeltaTraceType.class, 1);
-            LensObjectDeltaOperationType lensObjectDeltaOperation = trace != null ? trace.getDelta() : null;
-            objectDeltaOperation = lensObjectDeltaOperation != null ? lensObjectDeltaOperation.getObjectDeltaOperation() : null;
-            initialized = true;
+        if (getTrace() != null) {
+            setDisabled(isDeltaEmpty());
+        } else {
+            setDisabled(children.isEmpty());
         }
+    }
+
+    public String getInfo() {
+        initialize();
+        ObjectDeltaType objectDelta = getObjectDelta();
+
+        if (objectDelta == null) {
+            if (children.isEmpty()) {
+                return "none";
+            } else {
+                return ""; // TODO some info from OperationResult
+            }
+        }
+
+        return getDeltaInfo(objectDelta);
     }
 
 }

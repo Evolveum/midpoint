@@ -23,6 +23,8 @@ import com.evolveum.midpoint.web.component.input.DatePanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * @author katka
@@ -38,7 +40,7 @@ public class DatePanelFactory extends AbstractInputGuiComponentFactory<XMLGregor
     }
 
     @Override
-    public <IW extends ItemWrapper> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
         return DOMUtil.XSD_DATETIME.equals(wrapper.getTypeName());
     }
 
@@ -47,13 +49,21 @@ public class DatePanelFactory extends AbstractInputGuiComponentFactory<XMLGregor
         DatePanel panel = new DatePanel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
 
         Form<?> form = Form.findForm(panelCtx.getForm());
-        DateValidator validator = WebComponentUtil.getRangeValidator(form, SchemaConstants.PATH_ACTIVATION);
-        if (ActivationType.F_VALID_FROM.equals(panelCtx.getDefinitionName())) {
+        DateValidator validator;
+        String validatorErrorMessageKey;
+        if (ScheduleType.F_EARLIEST_START_TIME.equals(panelCtx.getDefinitionName()) || ScheduleType.F_LATEST_START_TIME.equals(panelCtx.getDefinitionName())) {
+            validator = WebComponentUtil.getRangeValidator(form, TaskType.F_SCHEDULE);
+            validatorErrorMessageKey = "ScheduleType.dateValidator.errorMessage";
+        } else {
+            validator = WebComponentUtil.getRangeValidator(form, SchemaConstants.PATH_ACTIVATION);
+            validatorErrorMessageKey = "DateValidator.message.fromAfterTo";
+        }
+        if (ActivationType.F_VALID_FROM.equals(panelCtx.getDefinitionName()) || ScheduleType.F_EARLIEST_START_TIME.equals(panelCtx.getDefinitionName())) {
             validator.setDateFrom((DateTimeField) panel.getBaseFormComponent());
-        } else if (ActivationType.F_VALID_TO.equals(panelCtx.getDefinitionName())) {
+        } else if (ActivationType.F_VALID_TO.equals(panelCtx.getDefinitionName()) || ScheduleType.F_LATEST_START_TIME.equals(panelCtx.getDefinitionName())) {
             validator.setDateTo((DateTimeField) panel.getBaseFormComponent());
         }
-
+        validator.setMessageKey(validatorErrorMessageKey);
         return panel;
     }
 }

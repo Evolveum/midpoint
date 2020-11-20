@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -15,8 +15,8 @@ import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -47,16 +47,16 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
 
     private static final Trace LOGGER = TraceManager.getTrace(ItemWrapperImpl.class);
 
-    private PrismContainerValueWrapper<?> parent;
+    private final PrismContainerValueWrapper<?> parent;
 
-    private ItemStatus status;
+    private final ItemStatus status;
+
+    private final List<VW> values = new ArrayList<>();
+
+    private final I oldItem;
+    private final I newItem;
 
     private String displayName;
-
-    private List<VW> values = new ArrayList<>();
-
-    private I oldItem;
-    private I newItem;
 
     private boolean column;
 
@@ -68,6 +68,8 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
 
     private boolean isMetadata;
     private boolean showMetadataDetails;
+
+    private boolean processProvenanceMetadata;
 
     //consider
     private boolean readOnly;
@@ -81,7 +83,6 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         this.newItem = item;
         this.oldItem = (I) item.clone();
         this.status = status;
-
     }
 
     @Override
@@ -245,7 +246,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
                     displayName = val.getRealClass().getSimpleName() + "." + displayName;
                     String localizedName = localizeName(displayName, displayName);
                     //try to find by super class name + item name
-                    if (localizedName.equals(displayName) && val.getRealClass().getSuperclass() != null){
+                    if (localizedName.equals(displayName) && val.getRealClass().getSuperclass() != null) {
                         return getItemDisplayNameFromSuperClassName(val.getRealClass().getSuperclass(), name.getLocalPart());
                     }
                 } else if (val.getTypeName() != null) {
@@ -259,16 +260,16 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         return localizeName(displayName, name.getLocalPart());
     }
 
-    private String getItemDisplayNameFromSuperClassName(Class superClass, String itemName){
+    private String getItemDisplayNameFromSuperClassName(Class superClass, String itemName) {
         if (superClass == null) {
             return "";
         }
         String displayNameParentClass = superClass.getSimpleName() + "." + itemName;
         String localizedName = localizeName(displayNameParentClass, displayNameParentClass);
-        if (localizedName.equals(displayNameParentClass) && superClass.getSuperclass() != null){
+        if (localizedName.equals(displayNameParentClass) && superClass.getSuperclass() != null) {
             return getItemDisplayNameFromSuperClassName(superClass.getSuperclass(), itemName);
         }
-        if (!localizedName.equals(displayNameParentClass)){
+        if (!localizedName.equals(displayNameParentClass)) {
             return localizedName;
         } else {
             return itemName;
@@ -623,15 +624,15 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         this.readOnly = readOnly;
     }
 
-    @Override
-    public boolean isStripe() {
-        return stripe;
-    }
-
-    @Override
-    public void setStripe(boolean stripe) {
-        this.stripe = stripe;
-    }
+//    @Override
+//    public boolean isStripe() {
+//        return stripe;
+//    }
+//
+//    @Override
+//    public void setStripe(boolean stripe) {
+//        this.stripe = stripe;
+//    }
 
     public I getOldItem() {
         return oldItem;
@@ -732,13 +733,19 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     private void removeValue(VW valueWrapper) {
         switch (valueWrapper.getStatus()) {
             case ADDED:
+            case MODIFIED:
                 values.remove(valueWrapper);
                 getItem().remove(valueWrapper.getOldValue());
                 getItem().remove(valueWrapper.getNewValue());
                 break;
             case NOT_CHANGED:
-                getItem().remove(valueWrapper.getNewValue());
-                valueWrapper.setStatus(ValueStatus.DELETED);
+                if (isSingleValue()) {
+                    valueWrapper.setRealValue(null);
+                    valueWrapper.setStatus(ValueStatus.MODIFIED);
+                } else {
+                    getItem().remove(valueWrapper.getNewValue());
+                    valueWrapper.setStatus(ValueStatus.DELETED);
+                }
                 break;
         }
     }
@@ -748,8 +755,8 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     @Override
     public <PV extends PrismValue> void add(PV newValue, ModelServiceLocator locator) throws SchemaException {
         getItem().add(newValue);
-        VW newContainerValue = WebPrismUtil.createNewValueWrapper(this, newValue, locator);
-        values.add(newContainerValue);
+        VW newItemValue = WebPrismUtil.createNewValueWrapper(this, newValue, locator);
+        values.add(newItemValue);
     }
 
     private int countUsableValues(List<VW> values) {
@@ -794,5 +801,15 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     @Override
     public boolean isShowMetadataDetails() {
         return showMetadataDetails;
+    }
+
+    @Override
+    public boolean isProcessProvenanceMetadata() {
+        return processProvenanceMetadata;
+    }
+
+    @Override
+    public void setProcessProvenanceMetadata(boolean processProvenanceMetadata) {
+        this.processProvenanceMetadata = processProvenanceMetadata;
     }
 }

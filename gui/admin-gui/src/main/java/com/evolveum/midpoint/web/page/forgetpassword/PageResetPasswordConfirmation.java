@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,13 +8,7 @@ package com.evolveum.midpoint.web.page.forgetpassword;
 
 import java.util.*;
 
-import com.evolveum.midpoint.model.api.authentication.*;
-import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
-import com.evolveum.midpoint.web.security.factory.channel.ResetPasswordChannelFactory;
-import com.evolveum.midpoint.web.security.factory.module.LoginFormModuleFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Session;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -25,10 +19,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.api.context.NonceAuthenticationContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
@@ -41,12 +37,14 @@ import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.login.PageRegistrationBase;
 import com.evolveum.midpoint.web.page.login.PageRegistrationConfirmation;
+import com.evolveum.midpoint.web.security.factory.channel.ResetPasswordChannelFactory;
+import com.evolveum.midpoint.web.security.factory.module.LoginFormModuleFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-@PageDescriptor(urls = {@Url(mountUrl = SchemaConstants.PASSWORD_RESET_CONFIRMATION_PREFIX)}, permitAll = true)
-public class PageResetPasswordConfirmation extends PageRegistrationBase{
+@PageDescriptor(urls = { @Url(mountUrl = SchemaConstants.PASSWORD_RESET_CONFIRMATION_PREFIX) }, permitAll = true)
+public class PageResetPasswordConfirmation extends PageRegistrationBase {
 
-
-private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfirmation.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfirmation.class);
 
     private static final String DOT_CLASS = PageRegistrationConfirmation.class.getName() + ".";
 
@@ -106,19 +104,10 @@ private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfir
             Collection<Authorization> authz = principal.getAuthorities();
 
             if (authz != null) {
-                Iterator<Authorization> authzIterator = authz.iterator();
-                while (authzIterator.hasNext()) {
-                    Authorization authzI= authzIterator.next();
-                    Iterator<String> actionIterator = authzI.getAction().iterator();
-                    while (actionIterator.hasNext()) {
-                        String action = actionIterator.next();
-                        if (action.contains(AuthorizationConstants.NS_AUTHORIZATION_UI)) {
-                            actionIterator.remove();
-                        }
-                    }
-
+                for (Authorization authzI : authz) {
+                    authzI.getAction().removeIf(action ->
+                            action.contains(AuthorizationConstants.NS_AUTHORIZATION_UI));
                 }
-
             }
 
             AuthorizationType authorizationType = new AuthorizationType();
@@ -126,7 +115,7 @@ private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfir
             Authorization selfServiceCredentialsAuthz = new Authorization(authorizationType);
             authz.add(selfServiceCredentialsAuthz);
             AuthenticationSequenceType sequence = SecurityPolicyUtil.createPasswordResetSequence();
-            Map<Class<? extends Object>, Object> sharedObjects = new HashMap<>();
+            Map<Class<?>, Object> sharedObjects = new HashMap<>();
             AuthenticationModulesType modules = new AuthenticationModulesType();
             LoginFormAuthenticationModuleType loginForm = new LoginFormAuthenticationModuleType();
             loginForm.name(SecurityPolicyUtil.DEFAULT_MODULE_NAME);
@@ -141,7 +130,7 @@ private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfir
                 LOGGER.error("Couldn't build filter for module moduleFactory", e);
             }
             MidpointAuthentication mpAuthentication = new MidpointAuthentication(sequence);
-            List<AuthModule> authModules = new ArrayList<AuthModule>();
+            List<AuthModule> authModules = new ArrayList<>();
             authModules.add(authModule);
             mpAuthentication.setAuthModules(authModules);
             mpAuthentication.setSessionId(Session.get().getId());
@@ -160,7 +149,7 @@ private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfir
     }
 
     private UsernamePasswordAuthenticationToken authenticateUser(String username, String nonce, OperationResult result) {
-        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
+        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI);
         try {
             return getAuthenticationEvaluator().authenticate(connEnv, new NonceAuthenticationContext(username, UserType.class,
                     nonce, getResetPasswordPolicy().getNoncePolicy()));
@@ -169,17 +158,14 @@ private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfir
                     .error(getString(ex.getMessage()));
             result.recordFatalError(getString("PageResetPasswordConfirmation.message.authenticateUser.fatalError"));
             LoggingUtils.logException(LOGGER, ex.getMessage(), ex);
-             return null;
+            return null;
         } catch (Exception ex) {
             getSession()
-            .error(createStringResource("PageResetPasswordConfirmation.authnetication.failed").getString());
+                    .error(createStringResource("PageResetPasswordConfirmation.authnetication.failed").getString());
             LoggingUtils.logException(LOGGER, "Failed to confirm registration", ex);
             return null;
         }
     }
-
-
-
 
     private void initLayout(final OperationResult result) {
 

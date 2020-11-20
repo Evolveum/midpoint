@@ -261,6 +261,21 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="orphaned" type="tns:OrphanedPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The object (currently supported are tasks) is orphaned i.e. has declared a parent but the parent does not exist.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                                <a:experimental>true</a:experimental>
+                                <xsd:appinfo>
+                                    <a:displayName>PolicyConstraintsType.orphaned</a:displayName>
+                                    <a:help>PolicyConstraintsType.orphaned.help</a:help>
+                                </xsd:appinfo>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="and" type="tns:PolicyConstraintsType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1140,6 +1155,25 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="alwaysTruePolicyConstraint" type="tns:AlwaysTruePolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+
+    <xsd:complexType name="OrphanedPolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                    The object (currently supported are tasks) is orphaned i.e. has declared a parent but the parent does not exist.
+                </p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="orphanedPolicyConstraint" type="tns:OrphanedPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
 
     <xsd:complexType name="TransitionPolicyConstraintType">
         <xsd:annotation>

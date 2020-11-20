@@ -23,10 +23,10 @@ import org.jetbrains.annotations.NotNull;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ParentPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -40,7 +40,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DomAsserts;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -71,6 +70,11 @@ public class TestQueryConverter extends AbstractUnitTest {
     private static final File FILTER_OR_COMPOSITE = new File(TEST_DIR, "filter-or-composite.xml");
     private static final File FILTER_CONNECTOR_BY_TYPE_FILE = new File(TEST_DIR, "filter-connector-by-type.xml");
     private static final File FILTER_BY_TYPE_FILE = new File(TEST_DIR, "filter-by-type.xml");
+    private static final File FILTER_EQUALS_WITH_TYPED_VALUE = new File(TEST_DIR, "filter-equals-with-typed-value.xml");
+    private static final File FILTER_NOT_EQUALS_NULL = new File(TEST_DIR, "filter-not-equals-null.xml");
+
+    private static final ItemName EXT_LONG_TYPE = new ItemName(NS_EXTENSION, "longType");
+    private static final ItemPath EXT_LONG_TYPE_PATH = ItemPath.create(UserType.F_EXTENSION, EXT_LONG_TYPE);
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -750,4 +754,54 @@ public class TestQueryConverter extends AbstractUnitTest {
         System.out.println(bean1.hashCode() == bean2.hashCode());
     }
 
+    /**
+     * MID-6658
+     */
+    @Test
+    public void test930EqualsWithTypedValue() throws Exception {
+        SearchFilterType filterBean = PrismTestUtil.parseAtomicValue(FILTER_EQUALS_WITH_TYPED_VALUE, SearchFilterType.COMPLEX_TYPE);
+        ObjectQuery query;
+        try {
+            query = getQueryConverter().createObjectQuery(UserType.class, filterBean);
+            displayQuery(query);
+            assertNotNull(query);
+
+            ObjectFilter filter = query.getFilter();
+            PrismAsserts.assertEqualsFilter(query.getFilter(), EXT_LONG_TYPE, DOMUtil.XSD_LONG, EXT_LONG_TYPE_PATH);
+            PrismAsserts.assertEqualsFilterValue((EqualFilter) filter, 4L);
+
+            QueryType convertedQueryBean = toQueryType(query);
+            displayQueryType(convertedQueryBean);
+        } catch (Exception ex) {
+            logger.error("Error while converting query: {}", ex.getMessage(), ex);
+            throw ex;
+        }
+    }
+
+    /**
+     * MID-6657
+     */
+    @Test
+    public void test935NotEqualsNull() throws Exception {
+        SearchFilterType filterBean = PrismTestUtil.parseAtomicValue(FILTER_NOT_EQUALS_NULL, SearchFilterType.COMPLEX_TYPE);
+        ObjectQuery query;
+        try {
+            query = getQueryConverter().createObjectQuery(UserType.class, filterBean);
+            displayQuery(query);
+            assertNotNull(query);
+
+            ObjectFilter filter = query.getFilter();
+            assertTrue(filter instanceof NotFilter);
+            ObjectFilter innerFilter = ((NotFilter) filter).getFilter();
+            assertTrue(innerFilter instanceof EqualFilter);
+            List<? extends PrismPropertyValue<?>> values = ((EqualFilter<?>) innerFilter).getValues();
+            assertTrue(values == null || values.isEmpty());
+
+            QueryType convertedQueryBean = toQueryType(query);
+            displayQueryType(convertedQueryBean);
+        } catch (Exception ex) {
+            logger.error("Error while converting query: {}", ex.getMessage(), ex);
+            throw ex;
+        }
+    }
 }

@@ -1,44 +1,44 @@
 /*
-\ * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.assignment;
 
 import java.io.Serializable;
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
+import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * TODO: unify with AssignmentItemDto
@@ -69,11 +69,11 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
     public static final String F_ALT_NAME = "altName";
     public static final String F_IS_ORG_UNIT_MANAGER = "isOrgUnitManager";
 
-    private String name;
+    private final String name;
+    private final AssignmentEditorDtoType type;
+    private final AssignmentType oldAssignment;
     private String altName;
-    private AssignmentEditorDtoType type;
     private UserDtoStatus status;
-    private AssignmentType oldAssignment;
     private List<AssignmentInfoDto> privilegeLimitationList;
     private ObjectViewDto<OrgType> tenantRef;
     private ObjectViewDto<OrgType> orgRef;
@@ -84,13 +84,13 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
     private boolean simpleView = false;
 
     private boolean isAlreadyAssigned = false;        //used only for role request functionality
-    private AssignmentConstraintsType defualtAssignmentConstraints;                //used only for role request functionality
+    private AssignmentConstraintsType defaultAssignmentConstraints;                //used only for role request functionality
     private List<QName> assignedRelationsList = new ArrayList<>(); //used only for role request functionalityp
 
-    private Boolean isOrgUnitManager = Boolean.FALSE;
-    private AssignmentType newAssignment;
+    private Boolean isOrgUnitManager;
+    private final AssignmentType newAssignment;
     private List<ACAttributeDto> attributes;
-    private PageBase pageBase;
+    private final PageBase pageBase;
     private UserType delegationOwner;
 
     public AssignmentEditorDto(UserDtoStatus status, AssignmentType assignment, PageBase pageBase) {
@@ -145,11 +145,12 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
     }
 
     public static AssignmentEditorDto createDtoAddFromSelectedObject(ObjectType object,
-                                                                     QName relation, PageBase pageBase) {
+            QName relation, PageBase pageBase) {
         return createDtoAddFromSelectedObject(object, relation, pageBase, null);
     }
+
     public static AssignmentEditorDto createDtoAddFromSelectedObject(ObjectType object, QName relation,
-                                                                     PageBase pageBase, UserType delegationOwner) {
+            PageBase pageBase, UserType delegationOwner) {
         AssignmentEditorDto dto = createDtoFromObject(object, UserDtoStatus.ADD, relation, pageBase);
         dto.setDelegationOwner(delegationOwner);
         if (pageBase.getRelationRegistry().isDelegation(relation)) {
@@ -175,7 +176,7 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
     }
 
     public static AssignmentEditorDto createDtoFromObject(ObjectType object, UserDtoStatus status,
-                                                          PageBase pageBase) {
+            PageBase pageBase) {
 
         return createDtoFromObject(object, status, null, pageBase);
     }
@@ -189,7 +190,7 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
         targetRef.setType(aType.getQname());
         targetRef.setDescription(object.getDescription());
         targetRef.setTargetName(object.getName());
-        if (relation != null){
+        if (relation != null) {
             targetRef.setRelation(relation);
         }
         targetRef.asReferenceValue().setObject(object.asPrismObject());
@@ -209,7 +210,7 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
             return AssignmentEditorDtoType.getType(assignment.getTargetRef().getType());
         }
         if (assignment.asPrismContainerValue() != null
-                && getPolicyRuleContainer(assignment) != null){
+                && getPolicyRuleContainer(assignment) != null) {
             return AssignmentEditorDtoType.POLICY_RULE;
         }
         // account assignment through account construction
@@ -217,12 +218,12 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
 
     }
 
-    private List<AssignmentInfoDto> getAssignmentPrivilegesList(AssignmentType assignment){
+    private List<AssignmentInfoDto> getAssignmentPrivilegesList(AssignmentType assignment) {
         List<AssignmentInfoDto> list = new ArrayList<>();
         AssignmentSelectorType assignmentSelectorType = assignment.getLimitTargetContent();
-        if (assignmentSelectorType != null && assignmentSelectorType.getTargetRef() != null){
-            for (ObjectReferenceType objectRef : assignmentSelectorType.getTargetRef()){
-                if (objectRef == null || objectRef.getType() == null){
+        if (assignmentSelectorType != null && assignmentSelectorType.getTargetRef() != null) {
+            for (ObjectReferenceType objectRef : assignmentSelectorType.getTargetRef()) {
+                if (objectRef == null || objectRef.getType() == null) {
                     continue;
                 }
                 AssignmentInfoDto dto = new AssignmentInfoDto();
@@ -237,6 +238,7 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
         }
         return list;
     }
+
     private boolean isOrgUnitManager(AssignmentType assignment) {
         RelationRegistry relationRegistry = pageBase.getRelationRegistry();
         return assignment != null
@@ -383,10 +385,10 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
             return null;
         }
 
-        if (AssignmentEditorDtoType.POLICY_RULE.equals(type)){
+        if (AssignmentEditorDtoType.POLICY_RULE.equals(type)) {
             PrismContainer<PolicyRuleType> policyRuleContainer = getPolicyRuleContainer(assignment);
             PrismProperty<?> policyRuleNameProperty = policyRuleContainer != null && policyRuleContainer.getValue() != null ?
-                    (PrismProperty)policyRuleContainer.getValue().find(PolicyRuleType.F_NAME) : null;
+                    (PrismProperty) policyRuleContainer.getValue().find(PolicyRuleType.F_NAME) : null;
             String policyRuleName = policyRuleNameProperty != null ?
                     policyRuleNameProperty.getValue().getValue().toString() : "";
             return pageBase.createStringResource("AssignmentEditorDto.policyRuleTitle").getString() +
@@ -544,7 +546,7 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
             newAssignment.setActivation(null);
         }
         //hack for delegation panel. this code should be rewritten
-        if (newAssignment.getMetadata() != null && newAssignment.getMetadata().asPrismContainerValue().isEmpty()){
+        if (newAssignment.getMetadata() != null && newAssignment.getMetadata().asPrismContainerValue().isEmpty()) {
             newAssignment.setMetadata(null);
         }
 
@@ -695,22 +697,22 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
     }
 
     public AssignmentConstraintsType getDefaultAssignmentConstraints() {
-        return defualtAssignmentConstraints;
+        return defaultAssignmentConstraints;
     }
 
-    public PrismContainer<PolicyRuleType> getPolicyRuleContainer(AssignmentType assignment){
-        if (assignment == null){
+    public PrismContainer<PolicyRuleType> getPolicyRuleContainer(AssignmentType assignment) {
+        if (assignment == null) {
             assignment = this.newAssignment;
         }
-        if (assignment == null){
+        if (assignment == null) {
             return null;
         }
         PrismContainer policyRuleContainer = assignment.asPrismContainerValue().findContainer(AssignmentType.F_POLICY_RULE);
         return policyRuleContainer != null ? (PrismContainer<PolicyRuleType>) policyRuleContainer : null;
     }
 
-    public void setDefualtAssignmentConstraints(AssignmentConstraintsType defualtAssignmentConstraints) {
-        this.defualtAssignmentConstraints = defualtAssignmentConstraints;
+    public void setDefaultAssignmentConstraints(AssignmentConstraintsType defaultAssignmentConstraints) {
+        this.defaultAssignmentConstraints = defaultAssignmentConstraints;
     }
 
     public List<QName> getAssignedRelationsList() {
@@ -730,11 +732,11 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
             newAssignment.setLimitTargetContent(new AssignmentSelectorType());
         }
         List<ObjectReferenceType> referencesList = newAssignment.getLimitTargetContent().getTargetRef();
-        if (referencesList == null){
+        if (referencesList == null) {
             referencesList = new ArrayList<>();
         }
         referencesList.clear();
-        for (AssignmentInfoDto previewDto : privilegeLimitationList){
+        for (AssignmentInfoDto previewDto : privilegeLimitationList) {
             ObjectReferenceType ref = new ObjectReferenceType();
             ref.setOid(previewDto.getTargetOid());
             ref.setTargetName(new PolyStringType(previewDto.getTargetName()));
@@ -777,17 +779,17 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
         this.delegationOwner = delegationOwner;
     }
 
-    public List<QName> getNotAssignedRelationsList(){
+    public List<QName> getNotAssignedRelationsList() {
         List<QName> availableRelations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, pageBase);
         List<QName> assignedRelationsList = getAssignedRelationsList();
-        if (assignedRelationsList == null || assignedRelationsList.size() == 0){
+        if (assignedRelationsList == null || assignedRelationsList.size() == 0) {
             return availableRelations;
         }
-        for (QName assignedRelation : assignedRelationsList){
+        for (QName assignedRelation : assignedRelationsList) {
             Iterator<QName> availableRelationsIterator = availableRelations.iterator();
-            while (availableRelationsIterator.hasNext()){
+            while (availableRelationsIterator.hasNext()) {
                 QName rel = availableRelationsIterator.next();
-                if (QNameUtil.match(assignedRelation, rel)){
+                if (QNameUtil.match(assignedRelation, rel)) {
                     availableRelationsIterator.remove();
                     break;
                 }
@@ -797,45 +799,39 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
     }
 
     public boolean isAssignable() {
-        if (!isAlreadyAssigned){
+        if (!isAlreadyAssigned) {
             return true;
         }
-        if (defualtAssignmentConstraints == null) {
+        if (defaultAssignmentConstraints == null) {
             return true;
         }
-        if (defualtAssignmentConstraints.isAllowSameTarget() && defualtAssignmentConstraints.isAllowSameRelation()){
+        if (defaultAssignmentConstraints.isAllowSameTarget() && defaultAssignmentConstraints.isAllowSameRelation()) {
             return true;
         }
         List<QName> availableRelations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, pageBase);
         int relationsListSize = availableRelations == null ? 0 : availableRelations.size();
-        if (defualtAssignmentConstraints.isAllowSameTarget() && !defualtAssignmentConstraints.isAllowSameRelation()
-                && getAssignedRelationsList().size() < relationsListSize){
+        if (defaultAssignmentConstraints.isAllowSameTarget() && !defaultAssignmentConstraints.isAllowSameRelation()
+                && getAssignedRelationsList().size() < relationsListSize) {
             return true;
         }
-        if (!defualtAssignmentConstraints.isAllowSameTarget()){
+        if (!defaultAssignmentConstraints.isAllowSameTarget()) {
             return false;
         }
         return false;
     }
 
-    public boolean isMultyAssignable(){
-        if (defualtAssignmentConstraints == null) {
+    public boolean isMultyAssignable() {
+        if (defaultAssignmentConstraints == null) {
             return true;
         }
-        if (defualtAssignmentConstraints.isAllowSameTarget() && defualtAssignmentConstraints.isAllowSameRelation()){
-            return true;
-        }
-        return false;
+        return defaultAssignmentConstraints.isAllowSameTarget() && defaultAssignmentConstraints.isAllowSameRelation();
     }
 
-    public boolean isSingleAssignable(){
-        if (defualtAssignmentConstraints == null) {
+    public boolean isSingleAssignable() {
+        if (defaultAssignmentConstraints == null) {
             return false;
         }
-        if (!defualtAssignmentConstraints.isAllowSameTarget() && !defualtAssignmentConstraints.isAllowSameRelation()){
-            return true;
-        }
-        return false;
+        return !defaultAssignmentConstraints.isAllowSameTarget() && !defaultAssignmentConstraints.isAllowSameRelation();
     }
 
 //    public void setDefaultRelation(){
@@ -862,47 +858,29 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof AssignmentEditorDto))
-            return false;
+        if (this == o) { return true; }
+        if (!(o instanceof AssignmentEditorDto)) { return false; }
 
         AssignmentEditorDto that = (AssignmentEditorDto) o;
 
-        if (isOrgUnitManager != that.isOrgUnitManager)
-            return false;
-        if (minimized != that.minimized)
-            return false;
-        if (showEmpty != that.showEmpty)
-            return false;
-        if (editable != that.editable)
-            return false;
-        if (simpleView != that.simpleView)
-            return false;
-        if (altName != null ? !altName.equals(that.altName) : that.altName != null)
-            return false;
-        if (attributes != null ? !attributes.equals(that.attributes) : that.attributes != null)
-            return false;
-        if (name != null ? !name.equals(that.name) : that.name != null)
-            return false;
-        if (newAssignment != null ? !newAssignment.equals(that.newAssignment) : that.newAssignment != null)
-            return false;
-        if (oldAssignment != null ? !oldAssignment.equals(that.oldAssignment) : that.oldAssignment != null)
-            return false;
-        if (status != that.status)
-            return false;
-        if (tenantRef != null ? !tenantRef.equals(that.tenantRef) : that.tenantRef != null)
-            return false;
-        if (orgRef != null ? !orgRef.equals(that.orgRef) : that.orgRef != null)
-            return false;
-        if (type != that.type)
-            return false;
-
-        return true;
+        if (isOrgUnitManager != that.isOrgUnitManager) { return false; }
+        if (minimized != that.minimized) { return false; }
+        if (showEmpty != that.showEmpty) { return false; }
+        if (editable != that.editable) { return false; }
+        if (simpleView != that.simpleView) { return false; }
+        if (altName != null ? !altName.equals(that.altName) : that.altName != null) { return false; }
+        if (attributes != null ? !attributes.equals(that.attributes) : that.attributes != null) { return false; }
+        if (name != null ? !name.equals(that.name) : that.name != null) { return false; }
+        if (newAssignment != null ? !newAssignment.equals(that.newAssignment) : that.newAssignment != null) { return false; }
+        if (oldAssignment != null ? !oldAssignment.equals(that.oldAssignment) : that.oldAssignment != null) { return false; }
+        if (status != that.status) { return false; }
+        if (tenantRef != null ? !tenantRef.equals(that.tenantRef) : that.tenantRef != null) { return false; }
+        if (orgRef != null ? !orgRef.equals(that.orgRef) : that.orgRef != null) { return false; }
+        return type == that.type;
     }
 
     @Override
-    public AssignmentEditorDto clone(){
+    public AssignmentEditorDto clone() {
         AssignmentEditorDto dto = new AssignmentEditorDto(UserDtoStatus.ADD, newAssignment, pageBase);
         dto.setSimpleView(isSimpleView());
         return dto;
