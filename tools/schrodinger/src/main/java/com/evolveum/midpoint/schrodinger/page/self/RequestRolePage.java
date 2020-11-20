@@ -11,6 +11,8 @@ import com.codeborne.selenide.SelenideElement;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.TabPanel;
+import com.evolveum.midpoint.schrodinger.component.self.RequestRoleTab;
+import com.evolveum.midpoint.schrodinger.component.self.RoleCatalogViewTab;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
