@@ -6,6 +6,7 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.component.common.table.Table;
+import com.evolveum.midpoint.schrodinger.component.common.table.TableRow;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -51,5 +52,13 @@ public class ChangePasswordPanel<T> extends Component<T> {
 
     public Table<ChangePasswordPanel> accountsTable() {
         return new Table<>(this, $(Schrodinger.byDataId("accounts")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S));
+    }
+
+    public Table<ChangePasswordPanel> clickAccountCheckboxIconByResourceValue(String resourceValue) {
+        Table<ChangePasswordPanel> accountsTable = new Table<>(this, $(Schrodinger.byDataId("accounts"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S));
+        TableRow row = accountsTable.rowByColumnResourceKey("ChangePasswordPanel.resourceName", resourceValue);
+        row.clickColumnByName("Name", "i");
+        return accountsTable;
     }
 }
