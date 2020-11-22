@@ -2,41 +2,42 @@
 -- Describes c_object.objectClassType
 CREATE TABLE c_objtype (
     id INT PRIMARY KEY,
-    name VARCHAR(64)
+    name VARCHAR(64),
+    table_name VARCHAR(64)
 );
 
 -- Based on RObjectType
-INSERT INTO c_objtype VALUES (0, 'CONNECTOR');
-INSERT INTO c_objtype VALUES (1, 'CONNECTOR_HOST');
-INSERT INTO c_objtype VALUES (2, 'GENERIC_OBJECT');
-INSERT INTO c_objtype VALUES (3, 'OBJECT');
-INSERT INTO c_objtype VALUES (4, 'VALUE_POLICY');
-INSERT INTO c_objtype VALUES (5, 'RESOURCE');
-INSERT INTO c_objtype VALUES (6, 'SHADOW');
-INSERT INTO c_objtype VALUES (7, 'ROLE');
-INSERT INTO c_objtype VALUES (8, 'SYSTEM_CONFIGURATION');
-INSERT INTO c_objtype VALUES (9, 'TASK');
-INSERT INTO c_objtype VALUES (10, 'USER');
-INSERT INTO c_objtype VALUES (11, 'REPORT');
-INSERT INTO c_objtype VALUES (12, 'REPORT_DATA');
-INSERT INTO c_objtype VALUES (13, 'OBJECT_TEMPLATE');
-INSERT INTO c_objtype VALUES (14, 'NODE');
-INSERT INTO c_objtype VALUES (15, 'ORG');
-INSERT INTO c_objtype VALUES (16, 'ABSTRACT_ROLE');
-INSERT INTO c_objtype VALUES (17, 'FOCUS');
-INSERT INTO c_objtype VALUES (18, 'ASSIGNMENT_HOLDER');
-INSERT INTO c_objtype VALUES (19, 'SECURITY_POLICY');
-INSERT INTO c_objtype VALUES (20, 'LOOKUP_TABLE');
-INSERT INTO c_objtype VALUES (21, 'ACCESS_CERTIFICATION_DEFINITION');
-INSERT INTO c_objtype VALUES (22, 'ACCESS_CERTIFICATION_CAMPAIGN');
-INSERT INTO c_objtype VALUES (23, 'SEQUENCE');
-INSERT INTO c_objtype VALUES (24, 'SERVICE');
-INSERT INTO c_objtype VALUES (25, 'FORM');
-INSERT INTO c_objtype VALUES (26, 'CASE');
-INSERT INTO c_objtype VALUES (27, 'FUNCTION_LIBRARY');
-INSERT INTO c_objtype VALUES (28, 'OBJECT_COLLECTION');
-INSERT INTO c_objtype VALUES (29, 'ARCHETYPE');
-INSERT INTO c_objtype VALUES (30, 'DASHBOARD');
+INSERT INTO c_objtype VALUES (0, 'CONNECTOR', 'm_connector');
+INSERT INTO c_objtype VALUES (1, 'CONNECTOR_HOST', 'm_connector_host');
+INSERT INTO c_objtype VALUES (2, 'GENERIC_OBJECT', 'm_generic_object');
+INSERT INTO c_objtype VALUES (3, 'OBJECT', 'm_object');
+INSERT INTO c_objtype VALUES (4, 'VALUE_POLICY', 'm_value_policy');
+INSERT INTO c_objtype VALUES (5, 'RESOURCE', 'm_resource');
+INSERT INTO c_objtype VALUES (6, 'SHADOW', 'm_shadow');
+INSERT INTO c_objtype VALUES (7, 'ROLE', 'm_role');
+INSERT INTO c_objtype VALUES (8, 'SYSTEM_CONFIGURATION', 'm_system_configuration');
+INSERT INTO c_objtype VALUES (9, 'TASK', 'm_task');
+INSERT INTO c_objtype VALUES (10, 'USER', 'm_user');
+INSERT INTO c_objtype VALUES (11, 'REPORT', 'm_report');
+INSERT INTO c_objtype VALUES (12, 'REPORT_DATA', 'm_report_output');
+INSERT INTO c_objtype VALUES (13, 'OBJECT_TEMPLATE', 'm_object_template');
+INSERT INTO c_objtype VALUES (14, 'NODE', 'm_node');
+INSERT INTO c_objtype VALUES (15, 'ORG', 'm_org');
+INSERT INTO c_objtype VALUES (16, 'ABSTRACT_ROLE', 'm_abstract_role');
+INSERT INTO c_objtype VALUES (17, 'FOCUS', 'm_focus');
+INSERT INTO c_objtype VALUES (18, 'ASSIGNMENT_HOLDER', NULL);
+INSERT INTO c_objtype VALUES (19, 'SECURITY_POLICY', 'm_security_policy');
+INSERT INTO c_objtype VALUES (20, 'LOOKUP_TABLE', 'm_lookup_table');
+INSERT INTO c_objtype VALUES (21, 'ACCESS_CERTIFICATION_DEFINITION', 'm_acc_cert_definition');
+INSERT INTO c_objtype VALUES (22, 'ACCESS_CERTIFICATION_CAMPAIGN', 'm_acc_cert_campaign');
+INSERT INTO c_objtype VALUES (23, 'SEQUENCE', 'm_sequence');
+INSERT INTO c_objtype VALUES (24, 'SERVICE', 'm_service');
+INSERT INTO c_objtype VALUES (25, 'FORM', 'm_form');
+INSERT INTO c_objtype VALUES (26, 'CASE', 'm_case');
+INSERT INTO c_objtype VALUES (27, 'FUNCTION_LIBRARY', 'm_function_library');
+INSERT INTO c_objtype VALUES (28, 'OBJECT_COLLECTION', 'm_object_collection');
+INSERT INTO c_objtype VALUES (29, 'ARCHETYPE', 'm_archetype');
+INSERT INTO c_objtype VALUES (30, 'DASHBOARD', 'm_dashboard');
 
 -- Describes c_reference.referenceType
 CREATE TABLE c_reftype (
