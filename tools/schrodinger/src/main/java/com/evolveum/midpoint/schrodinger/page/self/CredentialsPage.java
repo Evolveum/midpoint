@@ -15,6 +15,7 @@ import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.sleep;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -26,5 +27,12 @@ public class CredentialsPage extends BasicPage {
                 $(Schrodinger.byDataId("tabPanel")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S));
         return new PasswordTab(this,
                 tabPanel.clickTab("PageSelfCredentials.tabs.password").waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S));
+    }
+
+    public CredentialsPage save() {
+        $(Schrodinger.byDataId("save"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        return this;
     }
 }
