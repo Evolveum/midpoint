@@ -14,16 +14,21 @@ select * from pg_available_extensions order by name;
 
 -- DB data initialization (after pgnew-repo.sql)
 -- one user with random name
-INSERT INTO m_user (oid, name_orig, version)
-VALUES (gen_random_uuid(), md5(random()::TEXT), 1);
+INSERT INTO m_user (oid, name_norm, name_orig, version)
+VALUES (gen_random_uuid(), md5(random()::TEXT), md5(random()::TEXT), 1);
 
 select * from m_resource;
--- should fail the second time because oid is PK of the table
-insert into m_resource (name_orig, version) VALUES ('resource1', 1) RETURNING OID;
-insert into m_resource (oid, name_orig, version) VALUES ('66eb4861-867d-4a41-b6f0-41a3874bd48f', 'resource1', 1);
+-- creates new row with generated UUID, repeated run must fail on unique name_norm
+insert into m_resource (name_norm, name_orig, version) VALUES ('resource0', 'resource0', 1) RETURNING OID;
+-- should fail the second time because oid is PK of the table (even with changed name_norm)
+insert into m_resource (oid, name_norm, name_orig, version)
+    VALUES ('66eb4861-867d-4a41-b6f0-41a3874bd48f', 'resource1', 'resource1', 1);
 -- this should fail after previous due to cross-table m_object unique constraint
-insert into m_user (oid, name_orig, version) VALUES ('66eb4861-867d-4a41-b6f0-41a3874bd48e', 'conflict', 1);
-update m_user set oid='66eb4861-867d-4a41-b6f0-41a3874bd48f' where oid='66eb4861-867d-4a41-b6f0-41a3874bd48e';
+insert into m_user (oid, name_norm, name_orig, version)
+    VALUES ('66eb4861-867d-4a41-b6f0-41a3874bd48f', 'conflict', 'conflict', 1);
+-- must fail, update trigger does not allow OID changes
+update m_object set oid='66eb4861-867d-4a41-b6f0-41a3874bd48e'
+    where oid='66eb4861-867d-4a41-b6f0-41a3874bd48f';
 
 SELECT * from m_object;
 SELECT * from m_object_oid where oid not in (SELECT oid FROM m_object);
@@ -32,12 +37,15 @@ SELECT * from m_object_oid where oid not in (SELECT oid FROM m_object);
 delete from m_object where oid='66eb4861-867d-4a41-b6f0-41a3874bd48f';
 -- switch Tx to manual in IDE to avoid autocommit
 START TRANSACTION;
-insert into m_resource (oid, name_orig, version) VALUES ('66eb4861-867d-4a41-b6f0-41a3874bd48f', 'resource1', 1);
+insert into m_resource (oid, name_norm, name_orig, version)
+    VALUES ('66eb4861-867d-4a41-b6f0-41a3874bd48f', 'resource1', 'resource1', 1);
 
     START TRANSACTION;
-    insert into m_user (oid, name_orig, version) VALUES ('66eb4861-867d-4a41-b6f0-41a3874bd48f', 'conflict', 1);
+    insert into m_user (oid, name_norm, name_orig, version)
+        VALUES ('66eb4861-867d-4a41-b6f0-41a3874bd48f', 'conflict', 'conflict', 1);
     commit;
 commit;
+
 -- switch Tx back to Auto if desired - only resource1 should be inserted
 select * from m_object where oid='66eb4861-867d-4a41-b6f0-41a3874bd48f';
 
@@ -67,23 +75,19 @@ vacuum analyze; -- this is normal operation version (can run in parallel, ~25s/2
 
 -- 100k takes 6s, whether we commit after each 1000 or not
 -- This answer also documents that LOOP is 2x slower than generate_series: https://stackoverflow.com/a/53242452/658826
-DO
-$$
-    BEGIN
-        FOR r IN 1000001..1100000
-            LOOP
-                INSERT INTO m_user (name_norm, name_orig, version)
-                VALUES ('user-' || LPAD(r::text, 10, '0'), 'user-' || LPAD(r::text, 10, '0'), 1);
---                 INSERT INTO m_user (oid, name_orig, version)
---                 VALUES (gen_random_uuid(), 'user-' || LPAD(r::text, 10, '0'), 1);
+DO $$ BEGIN
+    FOR r IN 1000001..1100000 LOOP
+        INSERT INTO m_user (name_norm, name_orig, version)
+        VALUES ('user-' || LPAD(r::text, 10, '0'), 'user-' || LPAD(r::text, 10, '0'), 1);
+--      INSERT INTO m_user (oid, name_orig, version)
+--      VALUES (gen_random_uuid(), 'user-' || LPAD(r::text, 10, '0'), 1);
 
-                -- regular commit to avoid running out of memory with locks (NOT NECESSARY NOW)
---                 IF r % 1000 = 0 THEN
---                     COMMIT;
---                 END IF;
-            END LOOP;
-    END;
-$$;
+        -- regular commit to keep transactions reasonable (negligible performance impact)
+        IF r % 1000 = 0 THEN
+            COMMIT;
+        END IF;
+    END LOOP;
+END; $$;
 
 -- 100k takes 4s, gets slower with volume, of course
 INSERT INTO m_user (name_norm, name_orig, version)
@@ -167,5 +171,6 @@ WHERE nspname NOT IN ('pg_catalog', 'information_schema')
 ORDER BY pg_relation_size(C.oid) DESC
 LIMIT 20;
 
+vacuum full analyze;
 -- database size
 SELECT pg_size_pretty( pg_database_size('midpoint') );
