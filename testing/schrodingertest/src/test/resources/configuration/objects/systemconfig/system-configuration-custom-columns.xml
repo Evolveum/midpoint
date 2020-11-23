@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
+                     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                     xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+                     xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <name>SystemConfiguration</name>
+    <globalSecurityPolicyRef oid="00000000-0000-0000-0000-000000000120"/>
+    <adminGuiConfiguration>
+        <objectCollectionViews>
+            <objectCollectionView>
+                <identifier>custom-columns-simple-test</identifier>
+                <display>
+                    <label>Custom columns view</label>
+                    <pluralLabel>
+                        <orig>Custom columns view</orig>
+                    </pluralLabel>
+                </display>
+                <type>UserType</type>
+                <collection>
+                    <collectionRef oid="kk3pk98e-f587-4b11-b92b-723251dbb299" relation="org:default" type="c:ObjectCollectionType">
+                    </collectionRef>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>custom-columns-label-keys-test</identifier>
+                <display>
+                    <label>Custom columns label test</label>
+                    <pluralLabel>
+                        <orig>Custom columns label test</orig>
+                    </pluralLabel>
+                </display>
+                <type>UserType</type>
+                <collection>
+                    <collectionRef oid="kker398e-ff47-4b11-b92b-74ff21dbb299" relation="org:default" type="c:ObjectCollectionType">
+                    </collectionRef>
+                </collection>
+            </objectCollectionView>
+        </objectCollectionViews>
+    </adminGuiConfiguration>
+</systemConfiguration>
