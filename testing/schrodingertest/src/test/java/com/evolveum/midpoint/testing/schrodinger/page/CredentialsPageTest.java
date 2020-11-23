@@ -73,4 +73,29 @@ public class CredentialsPageTest extends AbstractSchrodingerTest {
         Assert.assertTrue(basicPage.userMenuExists(), "User should be logged in with old password");
     }
 
+    @Test(priority = 3, dependsOnMethods = {"test0010changeUserPasswordSuccessfully"})
+    public void test0030changeUserPasswordNewPasswordDoesntMatch() {
+        basicPage.loggedUser().logout();
+        midPoint.formLogin()
+                .loginWithReloadLoginPage("CredentialsPageTestUser", "password1");
+        Assert.assertTrue(basicPage.credentials()
+                .passwordTab()
+                    .changePasswordPanel()
+                        .setOldPasswordValue("password1")
+                        .setNewPasswordValue("passwordNew1")
+                        .setRepeatPasswordValue("passwordNew2")
+                .and()
+                    .and()
+                .save()
+                .feedback()
+                .isError());
+        basicPage.loggedUser().logout();
+        midPoint.formLogin()
+                .loginWithReloadLoginPage("CredentialsPageTestUser", "passwordNew1");
+        Assert.assertFalse(basicPage.userMenuExists(), "User should not be logged in with new password");
+        midPoint.formLogin()
+                .loginWithReloadLoginPage("CredentialsPageTestUser", "password1");
+        Assert.assertTrue(basicPage.userMenuExists(), "User should be logged in with old password");
+    }
+
 }
