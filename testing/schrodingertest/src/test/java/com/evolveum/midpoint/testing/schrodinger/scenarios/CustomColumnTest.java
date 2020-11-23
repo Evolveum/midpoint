@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
+import com.evolveum.midpoint.schrodinger.component.common.table.Table;
+import com.evolveum.midpoint.schrodinger.component.modal.ExportPopupPanel;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 
@@ -33,7 +35,7 @@ public class CustomColumnTest extends AbstractSchrodingerTest {
                 CUSTOM_COLUMNS_OBJECT_COLLECTION_KEY_LABELS_FILE);
     }
 
-    @Test
+    @Test(priority = 1)
     public void test00100checkUserCustomColumns() {
         Assert.assertEquals(basicPage.listUsers("Custom columns view")
                 .table()
@@ -46,10 +48,9 @@ public class CustomColumnTest extends AbstractSchrodingerTest {
                     .findColumnByLabel("Preferred language"), 5, "Preferred language column index doesn't match");
     }
 
-    @Test
+    @Test(priority = 2)
     public void test00200checkUserCustomColumnsKeyLabels() {
         ListUsersPage usersPage = basicPage.listUsers("Custom columns label test");
-        screenshot("customColumnsLabelsTest");
         Assert.assertEquals(usersPage
                 .table()
                     .findColumnByLabel("Enable"), 3, "Enable column index doesn't match");
@@ -59,5 +60,23 @@ public class CustomColumnTest extends AbstractSchrodingerTest {
         Assert.assertEquals(usersPage
                 .table()
                     .findColumnByLabel("Unlink"), 5, "Unlink column index doesn't match");
+    }
+
+    @Test(priority = 3)
+    public void test00300checkExportColumns() {
+        ListUsersPage usersPage = basicPage.listUsers("Custom columns view");
+        Table<ExportPopupPanel<ListUsersPage>> exportTable = usersPage.table()
+                .clickExportButton()
+                    .table();
+        screenshot("exportTable");
+        Assert.assertNotNull(exportTable
+                .rowByColumnLabel("Column name", "Name (custom)"),
+                "Name column (in Export popup) doesn't exist,");
+        Assert.assertNotNull(exportTable
+                .rowByColumnLabel("Column name", "Role membership"),
+                "Role membership column (in Export popup) doesn't exist,");
+        Assert.assertNotNull(exportTable
+                .rowByColumnLabel("Column name", "Preferred language"),
+                "Preferred language column (in Export popup) doesn't exist,");
     }
 }
