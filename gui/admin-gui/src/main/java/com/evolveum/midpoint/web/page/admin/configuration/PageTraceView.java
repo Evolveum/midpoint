@@ -67,7 +67,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
                         label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TRACE_VIEW_URL,
                         label = "PageTraceView.auth.view.label", description = "PageTraceView.auth.view.description")
-})
+        }, experimental = true)
 public class PageTraceView extends PageAdminConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageTraceView.class);

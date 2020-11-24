@@ -24,6 +24,7 @@
         <link href="../../../../../../webjars/AdminLTE/2.4.18/bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
         <link href="../../../../../../webjars/AdminLTE/2.4.18/bower_components/Ionicons/css/ionicons.min.css" rel="stylesheet" type="text/css" />
         <link href="../../../../../../webjars/AdminLTE/2.4.18/bower_components/datatables.net-bs/css/dataTables.bootstrap.css" rel="stylesheet" type="text/css" />
+<!--        <link href="../../../../../../webjars/AdminLTE/2.4.18/dist/css/AdminLTE.min.css" rel="stylesheet" type="text/css" />-->
     </wicket:link>
 
     <link href="wro/admin-lte.css" type="text/css" rel="stylesheet"/>
@@ -49,7 +50,7 @@
     <link type="text/css" rel="stylesheet" href="wro/midpoint-theme.css"/>
 </head>
 
-<body wicket:id="body" class="">
+<body wicket:id="body">
     <div wicket:id="mainPopup"/>
     <div class="wrapper">
         <header wicket:id="mainHeader" class="main-header" style="max-height:550px;">
@@ -106,13 +107,15 @@
             </nav>
         </header>
         <wicket:enclosure child="sidebarMenu">
-            <aside class="main-sidebar">
-                <!-- sidebar: style can be found in sidebar.less -->
-                <section class="sidebar" style="height: auto;">
-                    <wicket:container wicket:id="sidebarMenu"/>
-                </section>
-                <!-- /.sidebar -->
-            </aside>
+<!--            <aside class="main-sidebar">-->
+<!--                &lt;!&ndash; sidebar: style can be found in sidebar.less &ndash;&gt;-->
+<!--                <section class="sidebar" style="height: auto;">-->
+<!--                    <wicket:container wicket:id="sidebarMenu"/>-->
+<!--                </section>-->
+<!--                &lt;!&ndash; /.sidebar &ndash;&gt;-->
+<!--            </aside>-->
+            <aside class="main-sidebar" wicket:id="sidebarMenu"/>
+
         </wicket:enclosure>
         <div class="content-wrapper" style="min-height: 916px; overflow: auto; overflow-x: hidden;">
             <!-- Main content -->

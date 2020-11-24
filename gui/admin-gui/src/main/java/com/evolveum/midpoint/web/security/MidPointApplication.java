@@ -184,6 +184,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Autowired private ApplicationContext applicationContext;
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
     @Autowired private Clock clock;
+    @Autowired private AccessCertificationService certificationService;
 
     private WebApplicationConfiguration webApplicationConfiguration;
 
@@ -527,6 +528,10 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
     public RelationRegistry getRelationRegistry() {
         return relationRegistry;
+    }
+
+    public AccessCertificationService getCertificationService() {
+        return certificationService;
     }
 
     public static boolean containsLocale(Locale locale) {

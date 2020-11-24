@@ -10,8 +10,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.wicket.model.IModel;
-
 /**
  * @author Viliam Repan (lazyman)
  */
@@ -20,11 +18,13 @@ public class SideBarMenuItem implements Serializable {
     public static final String F_NAME = "name";
     public static final String F_ITEMS = "items";
 
-    private final IModel<String> name;
+    private final String name;
     private List<MainMenuItem> items;
+    private boolean experimentalFeaturesEnabled;
 
-    public SideBarMenuItem(IModel<String> name) {
+    public SideBarMenuItem(String name, boolean experimentalFeaturesEnabled) {
         this.name = name;
+        this.experimentalFeaturesEnabled = experimentalFeaturesEnabled;
     }
 
     public List<MainMenuItem> getItems() {
@@ -34,7 +34,7 @@ public class SideBarMenuItem implements Serializable {
         return items;
     }
 
-    public IModel<String> getName() {
+    public String getName() {
         return name;
     }
 
@@ -45,4 +45,11 @@ public class SideBarMenuItem implements Serializable {
                 ", items=" + items +
                 '}';
     }
+
+    public void addMainMenuItem(MainMenuItem mainMenuItem) {
+        if (mainMenuItem.shouldBeMenuAdded(experimentalFeaturesEnabled)) {
+            getItems().add(mainMenuItem);
+        }
+    }
+
 }

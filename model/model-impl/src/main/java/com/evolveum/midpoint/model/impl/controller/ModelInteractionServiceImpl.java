@@ -1690,7 +1690,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         for (PrismObject<ArchetypeType> archetype : archetypes) {
             List<QName> archetypeFocusTypes = null;
             for (AssignmentType inducement : archetype.asObjectable().getInducement()) {
-                for (AssignmentRelationType assignmentRelation : inducement.getAssignmentRelation()) {
+                for (AssignmentRelationType assignmentRelation: inducement.getAssignmentRelation()) {
                     if (canBeAssignmentHolder(assignmentRelation, object)) {
                         if (archetypeFocusTypes == null) {
                             archetypeFocusTypes = determineArchetypeFocusTypes(archetype);

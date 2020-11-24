@@ -148,6 +148,24 @@ public class SecurityUtils {
         return WebComponentUtil.isAuthorized(list.toArray(new String[0]));
     }
 
+    public static List<String> getPageAuthorizations(Class<?> page) {
+        List<String> list = new ArrayList<>();
+        if (page == null) {
+            return list;
+        }
+
+        PageDescriptor descriptor = page.getAnnotation(PageDescriptor.class);
+        if (descriptor == null) {
+            return list;
+        }
+
+        AuthorizationAction[] actions = descriptor.action();
+        for (AuthorizationAction action : actions) {
+            list.add(action.actionUri());
+        }
+        return list;
+    }
+
     public static WebMarkupContainer createHiddenInputForCsrf(String id) {
         WebMarkupContainer field = new WebMarkupContainer(id) {
 

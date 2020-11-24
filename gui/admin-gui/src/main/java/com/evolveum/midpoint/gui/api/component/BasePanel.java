@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;

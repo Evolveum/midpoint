@@ -170,7 +170,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
     }
 
     @Override
-    protected boolean isSideMenuVisible(boolean visibleIfLoggedIn) {
+    protected boolean isSideMenuVisible() {
         return false;
     }
 
