@@ -20,4 +20,9 @@ public class TestAsyncProvisioningMockFullData extends TestAsyncProvisioningMock
     protected File getResourceFile() {
         return RESOURCE_MOCK_FILE;
     }
+
+    @Override
+    protected boolean isFullData() {
+        return true;
+    }
 }

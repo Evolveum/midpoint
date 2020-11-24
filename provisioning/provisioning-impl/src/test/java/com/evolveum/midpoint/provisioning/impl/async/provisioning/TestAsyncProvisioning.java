@@ -7,32 +7,38 @@
 
 package com.evolveum.midpoint.provisioning.impl.async.provisioning;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+
 import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
-
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
+import com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.provisioning.JsonRequest;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import org.testng.annotations.Test;
+import javax.xml.namespace.QName;
 
 /**
  * Tests "asynchronous provisioning" functionality.
- *
+ * <p>
  * TODO: name
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
@@ -43,10 +49,10 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
 
     private static final String ASYNC_PROVISIONING_CONNECTOR = "AsyncProvisioningConnector";
 
-    private static final ItemName ATTR_DRINK = new ItemName(MidPointConstants.NS_RI, "drink");
+    private static final ItemName ATTR_DRINK = new ItemName(NS_RI, "drink");
     private static final ItemPath ATTR_DRINK_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_DRINK);
 
-    private static final ItemName ATTR_SHOE_SIZE = new ItemName(MidPointConstants.NS_RI, "shoeSize");
+    private static final ItemName ATTR_SHOE_SIZE = new ItemName(NS_RI, "shoeSize");
     private static final ItemPath ATTR_SHOE_SIZE_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_SHOE_SIZE);
 
     PrismObject<ResourceType> resource;
@@ -54,6 +60,14 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
     private String jackAccountOid;
 
     protected boolean isUsingConfirmations() {
+        return false;
+    }
+
+    protected boolean isQualified() {
+        return false;
+    }
+
+    protected boolean isFullData() {
         return false;
     }
 
@@ -73,6 +87,7 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
 
     protected abstract void testSanity() throws Exception;
 
+    @SuppressWarnings("unchecked")
     @Test
     public void test100AddAccount() throws Exception {
         given();
@@ -86,13 +101,26 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
         jackAccountOid = provisioningService.addObject(jack, null, null, task, result);
 
         then();
-        dumpRequests();
+        assertSuccessOrInProgress(result);
 
-        assertRepoShadow(jackAccountOid)
-                .display();
-        assertShadowFuture(jackAccountOid);
+        String req = getRequest();
+        JsonRequest jsonRequest = JsonRequest.from(req);
+        assertThat(jsonRequest.getOperation()).isEqualTo("add");
+        assertThat(jsonRequest.getObjectClass()).isEqualTo(getAccountObjectClassName());
+        assertThat(jsonRequest.getAttributes()).containsOnlyKeys(icfsUid(), icfsName(), riDrink());
+        assertThat((Collection<Object>) jsonRequest.getAttributes().get(icfsUid())).containsExactly("jack");
+        assertThat((Collection<Object>) jsonRequest.getAttributes().get(icfsName())).containsExactly("jack");
+        assertThat((Collection<Object>) jsonRequest.getAttributes().get(riDrink())).containsExactly("rum");
+
+        assertRepoShadow(jackAccountOid); // todo
+        assertShadowFuture(jackAccountOid)
+                .attributes()
+                    .assertValue(ICFS_NAME, "jack")
+                    .assertValue(ICFS_UID, "jack")
+                    .assertValue(ATTR_DRINK, "rum");
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void test110ModifyAccount() throws Exception {
         given();
@@ -110,13 +138,40 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
         provisioningService.modifyObject(ShadowType.class, jackAccountOid, modifications, null, null, task, result);
 
         then();
-        dumpRequests();
+        assertSuccessOrInProgress(result);
 
-        assertRepoShadow(jackAccountOid)
-                .display();
-        assertShadowFuture(jackAccountOid);
+        String req = getRequest();
+        JsonRequest jsonRequest = JsonRequest.from(req);
+        assertThat(jsonRequest.getOperation()).isEqualTo("modify");
+        assertThat(jsonRequest.getObjectClass()).isEqualTo(getAccountObjectClassName());
+        assertThat(jsonRequest.getAttributes()).isNull();
+        assertThat(jsonRequest.getPrimaryIdentifiers()).containsOnlyKeys(icfsUid());
+        assertThat((Collection<Object>) jsonRequest.getPrimaryIdentifiers().get(icfsUid())).containsExactly("jack");
+        assertThat(jsonRequest.getSecondaryIdentifiers()).containsOnlyKeys(icfsName());
+        assertThat((Collection<Object>) jsonRequest.getSecondaryIdentifiers().get(icfsName())).containsExactly("jack");
+        if (isFullData()) {
+            assertThat(jsonRequest.getChanges()).containsOnlyKeys(icfsUid(), icfsName(), riShoeSize(), riDrink());
+            assertThat((Collection<Object>) jsonRequest.getChanges().get(icfsUid()).getReplace()).containsExactly("jack");
+            assertThat((Collection<Object>) jsonRequest.getChanges().get(icfsName()).getReplace()).containsExactly("jack");
+            assertThat((Collection<Object>) jsonRequest.getChanges().get(riShoeSize()).getReplace()).containsExactly(42);
+            assertThat((Collection<Object>) jsonRequest.getChanges().get(riDrink()).getReplace()).containsExactlyInAnyOrder("water", "rum");
+        } else {
+            assertThat(jsonRequest.getChanges()).containsOnlyKeys(riShoeSize(), riDrink());
+            assertThat((Collection<Object>) jsonRequest.getChanges().get(riShoeSize()).getAdd()).containsExactly(42);
+            assertThat((Collection<Object>) jsonRequest.getChanges().get(riDrink()).getAdd()).containsExactly("water");
+        }
+
+
+        assertRepoShadow(jackAccountOid); // todo
+        assertShadowFuture(jackAccountOid)
+                .attributes()
+                    .assertValue(ICFS_NAME, "jack")
+                    .assertValue(ICFS_UID, "jack")
+                    .assertValue(ATTR_DRINK, "rum", "water")
+                    .assertValue(ATTR_SHOE_SIZE, 42);
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void test120ModifyAccountAgain() throws Exception {
         given();
@@ -134,13 +189,39 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
         provisioningService.modifyObject(ShadowType.class, jackAccountOid, modifications, null, null, task, result);
 
         then();
-        dumpRequests();
+        assertSuccessOrInProgress(result);
 
-        assertRepoShadow(jackAccountOid)
-                .display();
-        assertShadowFuture(jackAccountOid);
+        String req = getRequest();
+        JsonRequest jsonRequest = JsonRequest.from(req);
+        assertThat(jsonRequest.getOperation()).isEqualTo("modify");
+        assertThat(jsonRequest.getObjectClass()).isEqualTo(getAccountObjectClassName());
+        assertThat(jsonRequest.getAttributes()).isNull();
+        assertThat(jsonRequest.getPrimaryIdentifiers()).containsOnlyKeys(icfsUid());
+        assertThat((Collection<Object>) jsonRequest.getPrimaryIdentifiers().get(icfsUid())).containsExactly("jack");
+        assertThat(jsonRequest.getSecondaryIdentifiers()).containsOnlyKeys(icfsName());
+        assertThat((Collection<Object>) jsonRequest.getSecondaryIdentifiers().get(icfsName())).containsExactly("jack");
+        if (isFullData()) {
+            assertThat(jsonRequest.getChanges()).containsOnlyKeys(icfsUid(), icfsName(), riShoeSize(), riDrink());
+            assertThat((Collection<Object>) jsonRequest.getChanges().get(icfsUid()).getReplace()).containsExactly("jack");
+            assertThat((Collection<Object>) jsonRequest.getChanges().get(icfsName()).getReplace()).containsExactly("jack");
+            assertThat((Collection<Object>) jsonRequest.getChanges().get(riShoeSize()).getReplace()).containsExactly(44);
+            assertThat((Collection<Object>) jsonRequest.getChanges().get(riDrink()).getReplace()).containsExactlyInAnyOrder("rum");
+        } else {
+            assertThat(jsonRequest.getChanges()).containsOnlyKeys(riShoeSize(), riDrink());
+            assertThat((Collection<Object>) jsonRequest.getChanges().get(riShoeSize()).getReplace()).containsExactly(44);
+            assertThat((Collection<Object>) jsonRequest.getChanges().get(riDrink()).getDelete()).containsExactly("water");
+        }
+
+        assertRepoShadow(jackAccountOid); // todo
+        assertShadowFuture(jackAccountOid)
+                .attributes()
+                    .assertValue(ICFS_NAME, "jack")
+                    .assertValue(ICFS_UID, "jack")
+                    .assertValue(ATTR_DRINK, "rum")
+                    .assertValue(ATTR_SHOE_SIZE, 44);
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void test130DeleteAccount() throws Exception {
         given();
@@ -153,23 +234,78 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
         provisioningService.deleteObject(ShadowType.class, jackAccountOid, null, null, task, result);
 
         then();
-        dumpRequests();
+        assertSuccessOrInProgress(result);
+
+        String req = getRequest();
+        JsonRequest jsonRequest = JsonRequest.from(req);
+        assertThat(jsonRequest.getOperation()).isEqualTo("delete");
+        assertThat(jsonRequest.getObjectClass()).isEqualTo(getAccountObjectClassName());
+        assertThat(jsonRequest.getAttributes()).isNull();
+        assertThat(jsonRequest.getPrimaryIdentifiers()).containsOnlyKeys(icfsUid());
+        assertThat((Collection<Object>) jsonRequest.getPrimaryIdentifiers().get(icfsUid())).containsExactly("jack");
+        assertThat(jsonRequest.getSecondaryIdentifiers()).containsOnlyKeys(icfsName());
+        assertThat((Collection<Object>) jsonRequest.getSecondaryIdentifiers().get(icfsName())).containsExactly("jack");
 
         if (isUsingConfirmations()) {
-            assertRepoShadow(jackAccountOid)
-                    .display();
+            assertRepoShadow(jackAccountOid);
             assertShadowFuture(jackAccountOid);
         } else {
             assertNoRepoShadow(jackAccountOid);
         }
     }
 
-    // TODO
-    private void dumpRequests() {
-        displayMap("Requests", MockAsyncProvisioningTarget.INSTANCE.getRequestsMap());
+    private void assertSuccessOrInProgress(OperationResult result) {
+        if (isUsingConfirmations()) {
+            assertInProgress(result);
+        } else {
+            assertSuccess(result);
+        }
     }
 
-    private void clearRequests() {
-        MockAsyncProvisioningTarget.INSTANCE.clear();
+    private String ns(String uri) {
+        if (isQualified()) {
+            return uri + "#";
+        } else {
+            return "";
+        }
     }
+
+    private String getAccountObjectClassName() {
+        return treatNamespace(RI_ACCOUNT_OBJECT_CLASS);
+    }
+
+    private String riDrink() {
+        return treatNamespace(ATTR_DRINK);
+    }
+
+    private String riShoeSize() {
+        return treatNamespace(ATTR_SHOE_SIZE);
+    }
+
+    private String icfsName() {
+        return treatNamespace(ICFS_NAME);
+    }
+
+    private String icfsUid() {
+        return treatNamespace(ICFS_UID);
+    }
+
+    private String treatNamespace(QName qName) {
+        return ns(qName.getNamespaceURI()) + qName.getLocalPart();
+    }
+
+    private Object water() {
+        return null;
+    }
+
+    private Object add42() {
+        return null;
+    }
+
+    protected abstract String getRequest();
+
+    protected abstract void dumpRequests();
+
+    protected abstract void clearRequests();
+
 }

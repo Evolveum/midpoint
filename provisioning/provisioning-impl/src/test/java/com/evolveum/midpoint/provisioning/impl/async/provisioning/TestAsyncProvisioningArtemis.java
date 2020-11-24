@@ -47,4 +47,18 @@ public abstract class TestAsyncProvisioningArtemis extends TestAsyncProvisioning
         embeddedBroker.stop();
     }
 
+    @Override
+    protected String getRequest() {
+        return null;
+    }
+
+    @Override
+    protected void dumpRequests() {
+
+    }
+
+    @Override
+    protected void clearRequests() {
+
+    }
 }

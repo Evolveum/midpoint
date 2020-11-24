@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.provisioning;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.Collection;
 import java.util.Map;
 
@@ -115,9 +118,12 @@ public class JsonRequest {
      * added/deleted/replaced.
      */
     public static class DeltaValues {
-        private final Collection<?> add;
-        private final Collection<?> delete;
-        private final Collection<?> replace;
+        private Collection<?> add;
+        private Collection<?> delete;
+        private Collection<?> replace;
+
+        public DeltaValues() {
+        }
 
         public DeltaValues(Collection<?> add, Collection<?> delete, Collection<?> replace) {
             this.add = add;
@@ -129,12 +135,30 @@ public class JsonRequest {
             return add;
         }
 
+        public void setAdd(Collection<?> add) {
+            this.add = add;
+        }
+
         public Collection<?> getDelete() {
             return delete;
+        }
+
+        public void setDelete(Collection<?> delete) {
+            this.delete = delete;
         }
 
         public Collection<?> getReplace() {
             return replace;
         }
+
+        public void setReplace(Collection<?> replace) {
+            this.replace = replace;
+        }
+    }
+
+    public static JsonRequest from(String req) throws JsonProcessingException {
+        return new ObjectMapper()
+                .readerFor(JsonRequest.class)
+                .readValue(req);
     }
 }

@@ -9,9 +9,6 @@ package com.evolveum.midpoint.provisioning.impl.async.provisioning;
 
 import java.io.File;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-
 /**
  *
  */
@@ -26,6 +23,11 @@ public class TestAsyncProvisioningMockConfirmation extends TestAsyncProvisioning
 
     @Override
     protected boolean isUsingConfirmations() {
+        return true;
+    }
+
+    @Override
+    protected boolean isQualified() {
         return true;
     }
 }

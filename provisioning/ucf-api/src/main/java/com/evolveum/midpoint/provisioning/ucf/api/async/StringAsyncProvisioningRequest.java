@@ -28,4 +28,8 @@ public class StringAsyncProvisioningRequest implements AsyncProvisioningRequest 
     public String debugDump(int indent) {
         return stringValue;
     }
+
+    public @NotNull String getStringValue() {
+        return stringValue;
+    }
 }
