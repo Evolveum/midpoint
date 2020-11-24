@@ -28,6 +28,7 @@
         <module>system-init</module>
         <module>repo-common</module>
         <module>repo-test-util</module>
+        <module>repo-sqlbase</module>
         <module>repo-sql-impl</module>
         <module>repo-sql-impl-test</module>
         <module>task-api</module>

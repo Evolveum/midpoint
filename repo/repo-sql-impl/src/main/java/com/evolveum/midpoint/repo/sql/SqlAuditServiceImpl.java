@@ -8,7 +8,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
-import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord.*;
+import static com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditEventRecord.*;
 import static com.evolveum.midpoint.schema.util.SystemConfigurationAuditUtil.isEscapingInvalidCharacters;
 
 import java.sql.*;
@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database;
+import com.evolveum.midpoint.repo.sql.audit.mapping.*;
 import com.evolveum.midpoint.repo.sql.data.SelectQueryBuilder;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
@@ -48,12 +49,11 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sql.helpers.JdbcSession;
 import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
-import com.evolveum.midpoint.repo.sql.pure.SqlQueryExecutor;
-import com.evolveum.midpoint.repo.sql.pure.querymodel.*;
-import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditDelta;
-import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditEventRecord;
-import com.evolveum.midpoint.repo.sql.pure.querymodel.mapping.*;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.audit.SqlQueryExecutor;
+import com.evolveum.midpoint.repo.sql.audit.querymodel.*;
+import com.evolveum.midpoint.repo.sql.audit.beans.MAuditDelta;
+import com.evolveum.midpoint.repo.sql.audit.beans.MAuditEventRecord;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sql.util.TemporaryTableDialect;
@@ -172,7 +172,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         QAuditEventRecordMapping aerMapping = QAuditEventRecordMapping.INSTANCE;
         QAuditEventRecord aer = aerMapping.defaultAlias();
         MAuditEventRecord aerBean = aerMapping
-                .createTransformer(prismContext, baseHelper.querydslConfiguration())
+                .createTransformer(prismContext, baseHelper.sqlNewConfiguration())
                 .from(record);
         SQLInsertClause insert = jdbcSession.insert(aer).populate(aerBean);
 

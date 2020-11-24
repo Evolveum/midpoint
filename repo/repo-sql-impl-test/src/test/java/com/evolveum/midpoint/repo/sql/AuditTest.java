@@ -18,12 +18,12 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.helpers.JdbcSession;
-import com.evolveum.midpoint.repo.sql.pure.PageOf;
-import com.evolveum.midpoint.repo.sql.pure.SqlQueryContext;
-import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord;
-import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditEventRecord;
-import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditRefValue;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sqlbase.PageOf;
+import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
+import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditEventRecord;
+import com.evolveum.midpoint.repo.sql.audit.beans.MAuditEventRecord;
+import com.evolveum.midpoint.repo.sql.audit.beans.MAuditRefValue;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
@@ -145,7 +145,7 @@ public class AuditTest extends BaseSQLRepoTest {
             throws QueryException {
         SqlQueryContext<AuditEventRecordType, QAuditEventRecord, MAuditEventRecord> context =
                 SqlQueryContext.from(AuditEventRecordType.class,
-                        prismContext, baseHelper.querydslConfiguration());
+                        prismContext, baseHelper.sqlNewConfiguration());
         QAuditEventRecord aer = context.root();
         context.sqlQuery().orderBy(aer.id.asc());
 

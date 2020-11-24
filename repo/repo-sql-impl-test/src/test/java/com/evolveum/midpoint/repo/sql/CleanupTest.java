@@ -20,9 +20,9 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.repo.sql.audit.mapping.*;
 import com.evolveum.midpoint.repo.sql.helpers.JdbcSession;
-import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditEventRecord;
-import com.evolveum.midpoint.repo.sql.pure.querymodel.mapping.*;
+import com.evolveum.midpoint.repo.sql.audit.beans.MAuditEventRecord;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
