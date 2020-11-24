@@ -46,6 +46,26 @@ public class InternalsConfigurationPage extends BasicPage {
         return new CountersTab(this, element);
     }
 
+    public CacheManagementTab cacheManagementTab() {
+        SelenideElement element = findTabPanel().clickTab("PageInternals.tab.cache");
+        return new CacheManagementTab(this, element);
+    }
+
+    public MemoryTab memoryTab() {
+        SelenideElement element = findTabPanel().clickTab("PageInternals.tab.memory");
+        return new MemoryTab(this, element);
+    }
+
+    public ThreadsTab threadsTab() {
+        SelenideElement element = findTabPanel().clickTab("PageInternals.tab.threads");
+        return new ThreadsTab(this, element);
+    }
+
+    public PerformanceTab performanceTab() {
+        SelenideElement element = findTabPanel().clickTab("PageInternals.tab.performance");
+        return new PerformanceTab(this, element);
+    }
+
     protected TabPanel findTabPanel() {
         SelenideElement tabPanelElement = $(Schrodinger.byDataId("div", "tabPanel"))
                 .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);

@@ -1,175 +1,176 @@
 -- @formatter:off because of terribly unreliable IDEA reformat for SQL
 
--- TODO: unique oid across tables:
---  http://blog.ioguix.net/postgresql/2015/02/05/Partitionning-and-constraints-part-1.html
---  or having dedicated centralized unrelated m_object_oid table?
+-- various internal PG selects
+SELECT version();
+select * from pg_tables where tableowner='midpoint' order by tablename ;
+select * from pg_tables where schemaname='public' order by tablename ;
+select * from pg_trigger order by tgname;
+select * from pg_available_extensions order by name;
 
--- To support gen_random_uuid() pgcrypto extension must be enabled for the database.
--- select * from pg_available_extensions order by name;
--- create EXTENSION pgcrypto;
+-- DB clean: drop schema does it all with one command
+-- drop schema public CASCADE;
+-- drop table m_object;
+-- DROP TRIGGER m_resource_oid_insert_tr ON m_resource;
 
-drop table m_user;
-drop table m_focus;
-drop table m_resource;
-drop table m_object;
-
-CREATE TABLE m_object (
-    oid UUID NOT NULL DEFAULT gen_random_uuid(),
--- will be overridden with GENERATED value in concrete table
-    objectTypeClass INT4 DEFAULT 3,
-    name_norm VARCHAR(255),
-    name_orig VARCHAR(255),
-    fullObject BYTEA,
-    createChannel VARCHAR(255),
-    createTimestamp TIMESTAMP,
-    creatorRef_relation VARCHAR(157),
-    creatorRef_targetOid VARCHAR(36),
-    creatorRef_targetType INT4,
-    lifecycleState VARCHAR(255),
-    modifierRef_relation VARCHAR(157),
-    modifierRef_targetOid VARCHAR(36),
-    modifierRef_targetType INT4,
-    modifyChannel VARCHAR(255),
-    modifyTimestamp TIMESTAMP,
-    tenantRef_relation VARCHAR(157),
-    tenantRef_targetOid VARCHAR(36),
-    tenantRef_targetType INT4,
-    version INT4 NOT NULL,
-
--- prevents inserts to this table, but not to inherited ones
-    CHECK (FALSE) NO INHERIT
-);
-
--- "concrete" table, allows insert and defines "final" objectTypeClass with GENERATED
-CREATE TABLE m_resource (
-    objectTypeClass INT4 GENERATED ALWAYS AS (5) STORED,
-    administrativeState INT4,
-    connectorRef_relation VARCHAR(157),
-    connectorRef_targetOid VARCHAR(36),
-    connectorRef_targetType INT4,
-    o16_lastAvailabilityStatus INT4,
-
-    CONSTRAINT m_resource_pk PRIMARY KEY (OID)
-)
-    INHERITS (m_object);
-
--- extending m_object, but still abstract, hence DEFAULT for objectTypeClass and CHECK (false)
-CREATE TABLE m_focus (
-    -- will be overridden with GENERATED value in concrete table
-    objectTypeClass INT4 DEFAULT 17,
-    administrativeStatus INT4,
-    archiveTimestamp TIMESTAMP,
-    disableReason VARCHAR(255),
-    disableTimestamp TIMESTAMP,
-    effectiveStatus INT4,
-    enableTimestamp TIMESTAMP,
-    validFrom TIMESTAMP,
-    validTo TIMESTAMP,
-    validityChangeTimestamp TIMESTAMP,
-    validityStatus INT4,
-    costCenter VARCHAR(255),
-    emailAddress VARCHAR(255),
-    hasPhoto BOOLEAN DEFAULT FALSE NOT NULL,
-    locale VARCHAR(255),
-    locality_norm VARCHAR(255),
-    locality_orig VARCHAR(255),
-    preferredLanguage VARCHAR(255),
-    telephoneNumber VARCHAR(255),
-    timezone VARCHAR(255),
-    passwordCreateTimestamp TIMESTAMP,
-    passwordModifyTimestamp TIMESTAMP,
-
-    CHECK (FALSE) NO INHERIT
-)
-    INHERITS (m_object);
-
-CREATE TABLE m_user (
-    objectTypeClass INT4 GENERATED ALWAYS AS (10) STORED,
-
-    additionalName_norm VARCHAR(255),
-    additionalName_orig VARCHAR(255),
-    employeeNumber VARCHAR(255),
-    familyName_norm VARCHAR(255),
-    familyName_orig VARCHAR(255),
-    fullName_norm VARCHAR(255),
-    fullName_orig VARCHAR(255),
-    givenName_norm VARCHAR(255),
-    givenName_orig VARCHAR(255),
-    honorificPrefix_norm VARCHAR(255),
-    honorificPrefix_orig VARCHAR(255),
-    honorificSuffix_norm VARCHAR(255),
-    honorificSuffix_orig VARCHAR(255),
-    name_norm VARCHAR(255),
-    name_orig VARCHAR(255),
-    nickName_norm VARCHAR(255),
-    nickName_orig VARCHAR(255),
-    title_norm VARCHAR(255),
-    title_orig VARCHAR(255),
-
-    CONSTRAINT m_user_pk PRIMARY KEY (OID)
-)
-    INHERITS (m_focus);
-
--- See: http://blog.ioguix.net/postgresql/2015/02/05/Partitionning-and-constraints-part-1.html
--- this checks provided OID, we will probably want unique generated OID
-CREATE OR REPLACE FUNCTION object_oid_pk()
-    RETURNS trigger
-    LANGUAGE plpgsql
-AS $function$
-BEGIN
-    PERFORM pg_advisory_xact_lock(hashtext(NEW.oid::text));
-
-    IF count(1) > 1 FROM m_object WHERE oid = NEW.oid THEN
-        RAISE EXCEPTION 'duplicate m_object.OID value "%" while inserting into "%"',
-            NEW.oid, TG_TABLE_NAME;
-    END IF;
-
-    RETURN NULL;
-END
-$function$;
-
-DROP TRIGGER m_resource_oid_check_tr ON m_resource;
-DROP TRIGGER m_user_oid_check_tr ON m_user;
-CREATE TRIGGER m_resource_oid_check_tr AFTER INSERT OR UPDATE ON m_resource
-    FOR EACH ROW EXECUTE PROCEDURE object_oid_pk();
-CREATE TRIGGER m_user_oid_check_tr AFTER INSERT OR UPDATE ON m_user
-    FOR EACH ROW EXECUTE PROCEDURE object_oid_pk();
-
-
+-- DB data initialization (after pgnew-repo.sql)
 -- one user with random name
-INSERT INTO m_user (oid, name_orig, version)
-VALUES (gen_random_uuid(), md5(random()::TEXT), 1);
+INSERT INTO m_user (oid, name_norm, name_orig, version)
+VALUES (gen_random_uuid(), md5(random()::TEXT), md5(random()::TEXT), 1);
 
-insert into m_resource (oid, name_orig, version) VALUES ('66eb4861-867d-4a41-b6f0-41a3874bd48f', 'resource1', 1);
-insert into m_user (oid, name_orig, version) VALUES ('66eb4861-867d-4a41-b6f0-41a3874bd48f', 'conflict', 1);
+select * from m_resource;
+-- creates new row with generated UUID, repeated run must fail on unique name_norm
+insert into m_resource (name_norm, name_orig, version) VALUES ('resource0', 'resource0', 1) RETURNING OID;
+-- should fail the second time because oid is PK of the table (even with changed name_norm)
+insert into m_resource (oid, name_norm, name_orig, version)
+    VALUES ('66eb4861-867d-4a41-b6f0-41a3874bd48f', 'resource1', 'resource1', 1);
+-- this should fail after previous due to cross-table m_object unique constraint
+insert into m_user (oid, name_norm, name_orig, version)
+    VALUES ('66eb4861-867d-4a41-b6f0-41a3874bd48f', 'conflict', 'conflict', 1);
+-- must fail, update trigger does not allow OID changes
+update m_object set oid='66eb4861-867d-4a41-b6f0-41a3874bd48e'
+    where oid='66eb4861-867d-4a41-b6f0-41a3874bd48f';
 
+SELECT * from m_object;
+SELECT * from m_object_oid where oid not in (SELECT oid FROM m_object);
+
+-- inner transaction should fail due to cross-table m_object unique constraint
+delete from m_object where oid='66eb4861-867d-4a41-b6f0-41a3874bd48f';
+-- switch Tx to manual in IDE to avoid autocommit
+START TRANSACTION;
+insert into m_resource (oid, name_norm, name_orig, version)
+    VALUES ('66eb4861-867d-4a41-b6f0-41a3874bd48f', 'resource1', 'resource1', 1);
+
+    START TRANSACTION;
+    insert into m_user (oid, name_norm, name_orig, version)
+        VALUES ('66eb4861-867d-4a41-b6f0-41a3874bd48f', 'conflict', 'conflict', 1);
+    commit;
+commit;
+
+-- switch Tx back to Auto if desired - only resource1 should be inserted
+select * from m_object where oid='66eb4861-867d-4a41-b6f0-41a3874bd48f';
+
+-- Delete in two steps without trigger, much faster than normal.
+SET session_replication_role = replica; -- disables triggers for the current session
+-- HERE the delete you want, e.g.:
+delete from m_user where name_norm > 'user-0001000000';
+
+-- this is the cleanup of unused OIDs
+DELETE FROM m_object_oid oo WHERE NOT EXISTS (SELECT * from m_object o WHERE o.oid = oo.oid);
+SET session_replication_role = default; -- re-enables normal operation (triggers)
+SHOW session_replication_role;
+
+-- TODO measure impact of UPDATE trigger on the performance
+
+-- adding x users
+-- 100_000 inserts: 3 inherited tables ~6s, for 25 inherited tables ~13s, for 50 ~20s, for 100 ~34s
+-- change with volume (100 inherited tables): 200k previous rows ~34s, with 1m rows ~37s
+-- with 3 inherited tables and 5M existing rows, adding 100k rows takes ~7s
+-- delete from m_object;
+-- delete from m_object_oid;
+select count(*) from m_object_oid;
+explain
+select count(*) from m_user;
+-- vacuum full analyze; -- this requires exclusive lock on processed table and can be very slow, with 1M rows it takes 10s
+vacuum analyze; -- this is normal operation version (can run in parallel, ~25s/25m rows)
+
+-- 100k takes 6s, whether we commit after each 1000 or not
+-- This answer also documents that LOOP is 2x slower than generate_series: https://stackoverflow.com/a/53242452/658826
+DO $$ BEGIN
+    FOR r IN 1000001..1100000 LOOP
+        INSERT INTO m_user (name_norm, name_orig, version)
+        VALUES ('user-' || LPAD(r::text, 10, '0'), 'user-' || LPAD(r::text, 10, '0'), 1);
+--      INSERT INTO m_user (oid, name_orig, version)
+--      VALUES (gen_random_uuid(), 'user-' || LPAD(r::text, 10, '0'), 1);
+
+        -- regular commit to keep transactions reasonable (negligible performance impact)
+        IF r % 1000 = 0 THEN
+            COMMIT;
+        END IF;
+    END LOOP;
+END; $$;
+
+-- 100k takes 4s, gets slower with volume, of course
+INSERT INTO m_user (name_norm, name_orig, version)
+    SELECT 'user-' || LPAD(n::text, 10, '0'), 'user-' || LPAD(n::text, 10, '0'), 1
+    FROM generate_series(38000001, 40000000) AS n;
+
+-- MUST fail on OID constraint if existing OID is used in SET:
+update m_object
+set oid='66eb4861-867d-4a41-b6f0-41a3874bd48f'
+where oid='f7a0362f-37a5-4dea-ac16-9c84dce333dc';
+
+select * from m_user;
+
+select * from m_object
+where oid<'812c5e7a-8a94-4bd1-944d-389e7294b831'
+order by oid;
+
+-- EXPLAIN selects
+EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
+SELECT *
+FROM m_object
+where oid='cf72947b-f7b5-4b44-a2b1-07452b9056cc'
+;
+
+EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
 SELECT count(*)
 -- SELECT *
 FROM m_focus
 ;
 
+--------------
+-- sandbox
+
+select ctid, * from m_object
+;
+
+select count(*) from pg_inherits
+;
+
+-- creating more tables inherited from m_object or m_focus
 DO
 $$
     BEGIN
-        FOR r IN 1..100000
+        FOR r IN 51..75
             LOOP
-                INSERT INTO m_user (oid, name_orig, version)
-                VALUES (gen_random_uuid(), 'user-' || LPAD(r::text, 7, '0'), 1);
-
-                -- regular commit to avoid running out of memory with locks
-                IF r % 1000 = 0 THEN
-                    COMMIT;
-                END IF;
+                EXECUTE 'CREATE TABLE m_omore' || r || '(
+                    objectTypeClass INT4 GENERATED ALWAYS AS (101) STORED,
+                    PRIMARY KEY (oid)
+                )
+                    INHERITS (m_object)';
+                EXECUTE 'CREATE TABLE m_fmore' || r || '(
+                    objectTypeClass INT4 GENERATED ALWAYS AS (101) STORED,
+                    PRIMARY KEY (oid)
+                )
+                    INHERITS (m_focus)';
             END LOOP;
     END;
 $$;
 
-EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
-SELECT *
-FROM m_object
-where oid='50c7746e-3c6d-4e24-8d7b-b18043c6c7bb'
-;
+DO
+$$
+    BEGIN
+        FOR r IN 1..47
+            LOOP
+                EXECUTE 'DROP TABLE m_fmore' || r ;
+                EXECUTE 'DROP TABLE m_omore' || r ;
+            END LOOP;
+    END
+$$;
 
-select hashtext(gen_random_uuid()::text);
+-- MANAGEMENT queries
 
-select * from pg_trigger
+-- See: https://wiki.postgresql.org/wiki/Disk_Usage
+
+-- biggest relations
+SELECT nspname || '.' || relname AS "relation",
+    pg_size_pretty(pg_relation_size(C.oid)) AS "size"
+FROM pg_class C
+    LEFT JOIN pg_namespace N ON (N.oid = C.relnamespace)
+WHERE nspname NOT IN ('pg_catalog', 'information_schema')
+ORDER BY pg_relation_size(C.oid) DESC
+LIMIT 20;
+
+vacuum full analyze;
+-- database size
+SELECT pg_size_pretty( pg_database_size('midpoint') );
