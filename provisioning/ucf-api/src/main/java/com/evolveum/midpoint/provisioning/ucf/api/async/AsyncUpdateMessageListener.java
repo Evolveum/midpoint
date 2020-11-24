@@ -11,7 +11,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateMessageType;
 
 /**
- *  Listener that receives "raw" async update messages from asynchronous update source (e.g. AMQP, JMS, REST, ...).
+ * Listener that receives "raw" async update messages from asynchronous update source (e.g. AMQP, JMS, REST, ...).
  */
 public interface AsyncUpdateMessageListener {
 

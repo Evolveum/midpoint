@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.provisioning.impl.async;
+package com.evolveum.midpoint.provisioning.impl.async.update;
 
 import static org.testng.AssertJUnit.*;
 
@@ -60,7 +60,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @DirtiesContext
 public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTest {
 
-    protected static final File TEST_DIR = new File("src/test/resources/async/");
+    protected static final File TEST_DIR = new File("src/test/resources/async/update/");
 
     private static final String RESOURCE_ASYNC_OID = "fb04d113-ebf8-41b4-b13b-990a597d110b";
 
@@ -75,7 +75,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     private static final QName RESOURCE_ACCOUNT_OBJECTCLASS = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
 
-    static final String ASYNC_CONNECTOR_TYPE = "AsyncUpdateConnector";
+    static final String ASYNC_UPDATE_CONNECTOR = "AsyncUpdateConnector";
 
     private static final String ATTR_TEST = "test";
     private static final String ATTR_MEMBER_OF = "memberOf";

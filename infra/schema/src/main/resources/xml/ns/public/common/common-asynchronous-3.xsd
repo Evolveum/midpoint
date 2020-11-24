@@ -84,7 +84,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:documentation" minOccurs="0"/>
             <xsd:element name="className" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -467,5 +467,380 @@
         </xsd:restriction>
     </xsd:simpleType>
     <xsd:element name="asyncUpdateErrorHandlingAction" type="tns:AsyncUpdateErrorHandlingActionType"/>
+
+    <xsd:complexType name="AsyncProvisioningTargetsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Connection to asynchronous provisioning targets.
+                Only a single one can be specified for now.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="jms" type="tns:JmsProvisioningTargetType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        JMS 1.1 provisioning target.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="artemis" type="tns:ArtemisProvisioningTargetType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Active MQ Artemis provisioning target.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="other" type="tns:AsyncProvisioningTargetType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Custom target.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="asyncProvisioningTargets" type="tns:AsyncProvisioningTargetsType"/>
+
+    <xsd:complexType name="AsyncProvisioningTargetType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Connection to asynchronous provisioning target.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="order" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Order in which this target has to be used.
+                        This is to provide application-level high availability / load balancing feature.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the target. Usually a short string.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        More detailed description of the target.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" />
+            <xsd:element name="className" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Java class name implementing AsyncProvisioningTarget interface. Usually it does not need to be specified,
+                        as it is derived from the target element type.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="asyncProvisioningTarget" type="tns:AsyncProvisioningTargetType"/>
+
+    <xsd:complexType name="JmsProvisioningTargetType">
+        <xsd:annotation>
+            <xsd:documentation>
+                JMS asynchronous provisioning target.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AsyncProvisioningTargetType">
+                <xsd:sequence>
+                    <xsd:element name="destination" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Destination (queue or topic) to send messages to. It is looked up via JNDI.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="jmsProvisioningTarget" type="tns:JmsProvisioningTargetType"/>
+
+    <xsd:complexType name="ArtemisProvisioningTargetType">
+        <xsd:annotation>
+            <xsd:documentation>
+                ActiveMQ Artemis target.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AsyncProvisioningTargetType">
+                <xsd:sequence>
+                    <xsd:element name="uri" type="xsd:anyURI" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Connection URI.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="username" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                User name used to authenticate to ActiveMQ server.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="password" type="t:ProtectedStringType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Password used to authenticate to ActiveMQ server.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="address" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Address to send messages to.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="artemisProvisioningTarget" type="tns:ArtemisProvisioningTargetType"/>
+
+    <!-- In fact, asyncProvisioningRequest has to be of type AsyncProvisioningRequest but this type is not XSD describable now -->
+    <xsd:element name="asyncProvisioningRequest" type="xsd:anyType"/>
+
+    <xsd:complexType name="AsyncProvisioningOperationRequestedType">
+        <xsd:annotation>
+            <xsd:documentation>
+                JAXB version of OperationRequested class.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.3</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="shadowRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Shadow affected.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>c:ShadowType</a:objectReferenceTargetType>
+                        <a:composite>true</a:composite>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="asyncProvisioningOperationRequested" type="tns:AsyncProvisioningOperationRequestedType"/>
+
+    <xsd:complexType name="AsyncProvisioningAddOperationRequestedType">
+        <xsd:annotation>
+            <xsd:documentation>
+                JAXB version of OperationRequested.Add class.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.3</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AsyncProvisioningOperationRequestedType">
+                <xsd:sequence>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="asyncProvisioningAddOperationRequested" type="tns:AsyncProvisioningAddOperationRequestedType"/>
+
+    <xsd:complexType name="AsyncProvisioningModifyOperationRequestedType">
+        <xsd:annotation>
+            <xsd:documentation>
+                JAXB version of OperationRequested.Modify class.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.3</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AsyncProvisioningOperationRequestedType">
+                <xsd:sequence>
+                    <xsd:element name="identification" type="c:ResourceObjectIdentityType" minOccurs="0" />
+                    <xsd:element name="operation" type="tns:PropertyModificationOperationType" minOccurs="0" maxOccurs="unbounded"/> <!-- TODO generalize to OperationType -->
+                    <!-- TODO add ConnectorOperationOptions support -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="asyncProvisioningModifyOperationRequested" type="tns:AsyncProvisioningModifyOperationRequestedType"/>
+
+    <xsd:complexType name="AsyncProvisioningDeleteOperationRequestedType">
+        <xsd:annotation>
+            <xsd:documentation>
+                JAXB version of OperationRequested.Delete class.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.3</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AsyncProvisioningOperationRequestedType">
+                <xsd:sequence>
+                    <xsd:element name="identification" type="c:ResourceObjectIdentityType" minOccurs="0" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="asyncProvisioningDeleteOperationRequested" type="tns:AsyncProvisioningDeleteOperationRequestedType"/>
+
+    <xsd:complexType name="PropertyModificationOperationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                JAXB version of PropertyModificationOperation class.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.3</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="delta" type="t:ItemDeltaType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="matchingRule" type="xsd:QName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="propertyModificationOperation" type="tns:PropertyModificationOperationType"/>
+
+    <!-- TODO should be named ResourceObjectIdentificationType but such type already exists in api-types-3 -->
+    <xsd:complexType name="ResourceObjectIdentityType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.3</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="objectClass" type="xsd:QName" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="primaryIdentifiers" type="c:ResourceObjectIdentifiersType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="secondaryIdentifiers" type="c:ResourceObjectIdentifiersType" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ResourceObjectIdentifiersType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.3</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:any namespace="##other" minOccurs="1" maxOccurs="unbounded" processContents="lax">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xjc:dom/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:any>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:simpleType name="PredefinedOperationRequestTransformationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Predefined transformation of an operation requested to specific request.
+                Can be used as a starting point before writing custom transformations.
+                (And useful also for the development tests.)
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.3</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="fullJson">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Full dump to a JSON object.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FULL_JSON"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="fullJsonWithoutShadow">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Full dump to a JSON object - but without current shadow (except for ADD operation where shadow is necessary).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FULL_JSON_WITHOUT_SHADOW"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="simplifiedJson">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Simplified dump to JSON.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SIMPLIFIED_JSON"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="simplifiedQualifiedJson">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Simplified dump to JSON - but using qualified attribute names.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SIMPLIFIED_QUALIFIED_JSON"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:element name="predefinedOperationRequestTransformation" type="tns:PredefinedOperationRequestTransformationType"/>
 
 </xsd:schema>

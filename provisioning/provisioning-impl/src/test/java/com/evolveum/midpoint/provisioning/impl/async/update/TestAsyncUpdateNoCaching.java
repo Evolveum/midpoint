@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.provisioning.impl.async;
+package com.evolveum.midpoint.provisioning.impl.async.update;
 
 import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -44,7 +44,7 @@ public class TestAsyncUpdateNoCaching extends TestAsyncUpdate {
     @NotNull
     @Override
     public List<String> getConnectorTypes() {
-        return Arrays.asList(ASYNC_CONNECTOR_TYPE, IntegrationTestTools.DUMMY_CONNECTOR_TYPE);
+        return Arrays.asList(ASYNC_UPDATE_CONNECTOR, IntegrationTestTools.DUMMY_CONNECTOR_TYPE);
     }
 
     @Override

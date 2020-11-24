@@ -949,10 +949,10 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         result.addArbitraryObjectAsParam("identification", identification);
         result.addArbitraryObjectCollectionAsParam("changes", changes);
 
-        if (changes.isEmpty()){
+        if (changes.isEmpty()) {
             LOGGER.info("No modifications for connector object specified. Skipping processing.");
             result.recordNotApplicableIfUnknown();
-            return AsynchronousOperationReturnValue.wrap(new ArrayList<PropertyModificationOperation>(0), result);
+            return AsynchronousOperationReturnValue.wrap(new ArrayList<>(0), result);
         }
 
         ObjectClass objClass = connIdNameMapper.objectClassToConnId(identification.getObjectClassDefinition(), getSchemaNamespace(), connectorType, legacySchema);

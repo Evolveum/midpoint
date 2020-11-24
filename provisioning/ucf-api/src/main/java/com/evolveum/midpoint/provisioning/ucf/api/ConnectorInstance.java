@@ -271,7 +271,7 @@ public interface ConnectorInstance {
     AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(
             ResourceObjectIdentification identification,
             PrismObject<ShadowType> shadow,
-            Collection<Operation> changes,
+            @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options,
             StateReporter reporter, OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,

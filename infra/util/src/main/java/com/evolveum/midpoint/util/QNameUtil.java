@@ -58,14 +58,14 @@ public class QNameUtil {
     }
 
     public static String qNameToUri(QName qname, boolean unqualifiedStartsWithHash, char separatorChar) {
-        String qUri = qname.getNamespaceURI();
-        StringBuilder sb = new StringBuilder(qUri);
+        String nsUri = qname.getNamespaceURI();
+        StringBuilder sb = new StringBuilder(nsUri);
 
         // TODO: Check if there's already a fragment
         // e.g. http://foo/bar#baz
 
-        if (!qUri.endsWith("#") && !qUri.endsWith("/")) {
-            if (unqualifiedStartsWithHash || !qUri.isEmpty()) {
+        if (!nsUri.endsWith("#") && !nsUri.endsWith("/")) {
+            if (unqualifiedStartsWithHash || !nsUri.isEmpty()) {
                 sb.append(separatorChar);
             }
         }

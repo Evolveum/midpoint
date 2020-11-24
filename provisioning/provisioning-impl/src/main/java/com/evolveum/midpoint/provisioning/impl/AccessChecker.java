@@ -79,7 +79,7 @@ public class AccessChecker {
                 continue;
             }
             if (access.isAdd() == null || !access.isAdd()) {
-                String message = "Attempt to add shadow with non-createable attribute "+attribute.getElementName();
+                String message = "Attempt to add shadow with non-creatable attribute "+attribute.getElementName();
                 LOGGER.error(message);
                 result.recordFatalError(message);
                 throw new SecurityViolationException(message);

@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.provisioning.ucf.api;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateListeningActivityInformationType;
-
 /**
  * Single listening activity, e.g. accepting notifications from message queue, or listening on REST endpoint.
  */

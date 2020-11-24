@@ -12,7 +12,7 @@
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin.async/AsyncUpdateConnector"
+          xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.update/AsyncUpdateConnector"
           xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
@@ -21,13 +21,31 @@
     <connectorRef oid="will-be-supplied-by-the-test-code"/>
     <connectorConfiguration>
         <conf:sources>
-            <amqp091>
-                <uri>amqp://localhost:5672/</uri>
-                <username>guest</username>
-                <password>guest</password>
-                <queue>testQueue</queue>
-            </amqp091>
+            <other>
+                <className>com.evolveum.midpoint.provisioning.impl.async.update.MockAsyncUpdateSource</className>
+            </other>
         </conf:sources>
+<!--        <conf:processTracingConfiguration>-->
+<!--            <interval>1</interval>-->
+<!--            <tracingProfile>-->
+<!--                <name>functional-model-logging</name>-->
+<!--                <displayName>Functional tracing (with model logging)</displayName>-->
+<!--                <visible>true</visible>-->
+<!--                <fileNamePattern>functional-trace %{timestamp} %{focusName}</fileNamePattern>-->
+<!--                <createRepoObject>true</createRepoObject>-->
+<!--                <compressOutput>true</compressOutput>-->
+<!--                <collectLogEntries>true</collectLogEntries>-->
+<!--                <loggingOverride>-->
+<!--                    <levelOverride>-->
+<!--                        <logger>com.evolveum.midpoint.model</logger>-->
+<!--                        <level>TRACE</level>-->
+<!--                    </levelOverride>-->
+<!--                </loggingOverride>-->
+<!--                <tracingTypeProfile>-->
+<!--                    <level>normal</level>-->
+<!--                </tracingTypeProfile>-->
+<!--            </tracingProfile>-->
+<!--        </conf:processTracingConfiguration>-->
     </connectorConfiguration>
     <schema>
         <definition>

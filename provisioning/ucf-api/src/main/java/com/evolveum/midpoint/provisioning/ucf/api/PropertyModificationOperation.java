@@ -6,8 +6,14 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyModificationOperationType;
+
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
@@ -17,7 +23,7 @@ import javax.xml.namespace.QName;
  */
 public final class PropertyModificationOperation<T> extends Operation {
 
-    private PropertyDelta<T> propertyDelta;
+    @NotNull private final PropertyDelta<T> propertyDelta;
 
     // Matching rule for entitlements can be specified at the level of association definition.
     // And we need this information, if avoidDuplicateValues == true.
@@ -25,8 +31,7 @@ public final class PropertyModificationOperation<T> extends Operation {
 
     private QName matchingRuleQName;
 
-    public PropertyModificationOperation(PropertyDelta<T> propertyDelta) {
-        super();
+    public PropertyModificationOperation(@NotNull PropertyDelta<T> propertyDelta) {
         this.propertyDelta = propertyDelta;
     }
 
@@ -38,12 +43,9 @@ public final class PropertyModificationOperation<T> extends Operation {
         this.matchingRuleQName = matchingRuleQName;
     }
 
-    public PropertyDelta getPropertyDelta() {
+    @NotNull
+    public PropertyDelta<T> getPropertyDelta() {
         return propertyDelta;
-    }
-
-    public void setPropertyDelta(PropertyDelta<T> propertyDelta) {
-        this.propertyDelta = propertyDelta;
     }
 
     @Override
@@ -51,10 +53,11 @@ public final class PropertyModificationOperation<T> extends Operation {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((matchingRuleQName == null) ? 0 : matchingRuleQName.hashCode());
-        result = prime * result + ((propertyDelta == null) ? 0 : propertyDelta.hashCode());
+        result = prime * result + propertyDelta.hashCode();
         return result;
     }
 
+    @SuppressWarnings("RedundantIfStatement")
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -74,11 +77,7 @@ public final class PropertyModificationOperation<T> extends Operation {
         } else if (!matchingRuleQName.equals(other.matchingRuleQName)) {
             return false;
         }
-        if (propertyDelta == null) {
-            if (other.propertyDelta != null) {
-                return false;
-            }
-        } else if (!propertyDelta.equals(other.propertyDelta)) {
+        if (!propertyDelta.equals(other.propertyDelta)) {
             return false;
         }
         return true;
@@ -98,4 +97,11 @@ public final class PropertyModificationOperation<T> extends Operation {
         return propertyDelta.toString();
     }
 
+    @Override
+    public PropertyModificationOperationType asBean(PrismContext prismContext) throws SchemaException {
+        PropertyModificationOperationType bean = new PropertyModificationOperationType(prismContext);
+        bean.getDelta().addAll(DeltaConvertor.toItemDeltaTypes(propertyDelta));
+        bean.setMatchingRule(matchingRuleQName);
+        return bean;
+    }
 }
