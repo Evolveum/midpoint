@@ -101,4 +101,8 @@ public class FeedbackBox<T> extends Component<T> {
         return getParentElement().isDisplayed();
     }
 
+    public Boolean doesMessageExist(String messageText) {
+        return $(By.linkText(messageText)).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).exists();
+    }
+
 }

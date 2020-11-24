@@ -980,7 +980,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
     }
 
-
     private void setDebugListener() {
         mockListener = new MockLensDebugListener();
         DiagnosticContextManager manager = new DiagnosticContextManager() {

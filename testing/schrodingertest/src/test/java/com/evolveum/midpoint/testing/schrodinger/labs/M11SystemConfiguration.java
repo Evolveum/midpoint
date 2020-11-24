@@ -6,15 +6,12 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.labs;
 
-import static com.codeborne.selenide.Selenide.$;
-
 import com.codeborne.selenide.Selenide;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
 
 import com.evolveum.midpoint.schrodinger.page.configuration.AboutPage;
 import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
-import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
@@ -22,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -129,9 +125,8 @@ public class M11SystemConfiguration extends AbstractLabTest {
         addObjectFromFile(SYSTEM_CONFIGURATION_FILE_11_2);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
 
-        Assert.assertTrue($(Schrodinger.byDataId("header", "mainHeader"))
-                .getCssValue("background-color").equals("rgba(48, 174, 48, 1)"));
-        Assert.assertTrue($(Schrodinger.byDataId("span", "pageTitle")).getText().startsWith("DEV:"));
+        Assert.assertTrue(basicPage.mainHeaderPanelStyleMatch("rgba(48, 174, 48, 1)"));
+        Assert.assertTrue(basicPage.pageTitleStartsWith("DEV:"));
 
         basicPage.deploymentInformation()
                 .form()
@@ -142,8 +137,7 @@ public class M11SystemConfiguration extends AbstractLabTest {
                 .feedback()
                     .isSuccess();
 
-        Assert.assertTrue($(Schrodinger.byDataId("header", "mainHeader"))
-                .getCssValue("background-color").equals("rgba(173, 216, 230, 1)"));
+        Assert.assertTrue(basicPage.mainHeaderPanelStyleMatch("rgba(173, 216, 230, 1)"));
 
         basicPage.deploymentInformation()
                 .form()
@@ -153,8 +147,7 @@ public class M11SystemConfiguration extends AbstractLabTest {
             .clickSave()
                 .feedback()
                     .isSuccess();
-        Assert.assertTrue($(Schrodinger.byDataId("header", "mainHeader"))
-        .getCssValue("background-color").equals("rgba(48, 174, 48, 1)"));
+        Assert.assertTrue(basicPage.mainHeaderPanelStyleMatch("rgba(48, 174, 48, 1)"));
     }
 
     @Test(dependsOnMethods = {"mod11test02ConfiguringDeploymentInformation"},groups={"M11"}, dependsOnGroups={"M10"})

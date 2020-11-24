@@ -11,6 +11,7 @@ import com.codeborne.selenide.Condition;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.modal.ObjectBrowserModal;
 import com.evolveum.midpoint.schrodinger.component.modal.ObjectBrowserModalTable;
+import com.evolveum.midpoint.schrodinger.component.self.RequestRoleTab;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import com.evolveum.midpoint.schrodinger.util.Utils;

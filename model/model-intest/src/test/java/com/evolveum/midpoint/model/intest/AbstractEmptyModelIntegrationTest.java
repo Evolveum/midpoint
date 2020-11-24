@@ -97,7 +97,6 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
     }
 
     // To be used when needed
-    @SuppressWarnings("WeakerAccess")
     protected void importTaskArchetypes(OperationResult initResult) throws SchemaException,
             ObjectAlreadyExistsException, EncryptionException, IOException {
         repoAdd(ARCHETYPE_TASK_ITERATIVE_BULK_ACTION, initResult);
@@ -110,8 +109,11 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
      * Note that the task must be imported before using this method. This method can be then run
      * repeatedly.
      */
-    @SuppressWarnings("WeakerAccess")
     protected Task runTriggerScannerOnDemand(OperationResult result) throws CommonException {
         return rerunTask(TASK_TRIGGER_SCANNER_ON_DEMAND.oid, result);
+    }
+
+    protected Task runTriggerScannerOnDemandErrorsOk(OperationResult result) throws CommonException {
+        return rerunTaskErrorsOk(TASK_TRIGGER_SCANNER_ON_DEMAND.oid, result);
     }
 }

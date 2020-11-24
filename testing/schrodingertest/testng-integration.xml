@@ -108,6 +108,21 @@
             <class name="com.evolveum.midpoint.testing.schrodinger.page.TaskPageTest"/>
         </classes>
     </test>
+    <test name="Schrodinger.component.FilterConfigPanelTest" preserve-order="true" parallel="false" verbose="3" enabled="true">
+        <classes>
+            <class name="com.evolveum.midpoint.testing.schrodinger.component.FilterConfigPanelTest"/>
+        </classes>
+    </test>
+    <test name="Schrodinger.component.SearchPanelTest" preserve-order="true" parallel="false" verbose="3" enabled="true">
+        <classes>
+            <class name="com.evolveum.midpoint.testing.schrodinger.component.SearchPanelTest"/>
+        </classes>
+    </test>
+    <test name="Schrodinger.page.CredentialsPageTest" preserve-order="true" parallel="false" verbose="3" enabled="true">
+        <classes>
+            <class name="com.evolveum.midpoint.testing.schrodinger.page.CredentialsPageTest"/>
+        </classes>
+    </test>
     <test name="Schrodinger.mid-101.labs" preserve-order="true" parallel="false" verbose="3" enabled="true">
         <classes>
             <class name="com.evolveum.midpoint.testing.schrodinger.labs.M3ResourcesAttributesAndMappingsTest"/>

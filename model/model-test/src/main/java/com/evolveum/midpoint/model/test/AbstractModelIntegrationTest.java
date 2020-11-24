@@ -142,7 +142,7 @@ import com.evolveum.prism.xml.ns._public.types_3.*;
  */
 public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 
-    protected static final int DEFAULT_TASK_WAIT_TIMEOUT = 25000;
+    protected static final int DEFAULT_TASK_WAIT_TIMEOUT = 250000;
     protected static final long DEFAULT_TASK_SLEEP_TIME = 200;
 
     protected static final String CONNECTOR_DUMMY_TYPE = "com.evolveum.icf.dummy.connector.DummyConnector";
@@ -3719,6 +3719,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         long startTime = System.currentTimeMillis();
         restartTask(taskOid, result);
         return waitForTaskFinish(taskOid, true, startTime, DEFAULT_TASK_WAIT_TIMEOUT, false);
+    }
+
+    protected Task rerunTaskErrorsOk(String taskOid, OperationResult result) throws CommonException {
+        long startTime = System.currentTimeMillis();
+        restartTask(taskOid, result);
+        return waitForTaskFinish(taskOid, true, startTime, DEFAULT_TASK_WAIT_TIMEOUT, true);
     }
 
     protected void assertTaskExecutionStatus(String taskOid, TaskExecutionStatus expectedExecutionStatus) throws ObjectNotFoundException, SchemaException {

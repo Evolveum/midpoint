@@ -72,7 +72,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * - HANDLER_URI_STACK: manipulation of the URI stack (probably obsolete as URI stack is not used much)
  * <p>
  * Note that PRISM_ACCESS could be replaced by taskPrism object; but unfortunately taskPrism is changed in updateTaskInstance().
- * Quartz and Pending modification synchronization is perhaps not so useful, because we do not expact two threads to modify
+ * Quartz and Pending modification synchronization is perhaps not so useful, because we do not expect two threads to modify
  * a task at the same time. But let's play it safe.
  * <p>
  * PRISM_ACCESS by itself is NOT sufficient, though. TODO explain

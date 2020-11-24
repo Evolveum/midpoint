@@ -12,9 +12,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
 /**
- * Processes changes encountered on a resource
+ * Processes asynchronous changes encountered on a resource.
  */
-public interface ChangeListener {
+public interface AsyncChangeListener {
 
     /**
      * Called when the connector learns about a resource change.

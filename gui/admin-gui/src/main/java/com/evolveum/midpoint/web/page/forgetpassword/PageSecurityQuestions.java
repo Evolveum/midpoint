@@ -508,26 +508,8 @@ public class PageSecurityQuestions extends PageBase {
             message.addRecipient(Message.RecipientType.TO, new InternetAddress(receiver));
 
             Transport.send(message);
-
-            /*
-             * Session mailSession = Session.getDefaultInstance(props);
-             * MimeMessage message = new MimeMessage(mailSession);
-             *
-             * message.setSubject("Engerek KYS Yeni Şifreniz");
-             *
-             * message.setLocalizableText("User Login : " + userLogin + "\n Password : " +
-             * password + "\n"); message.setFrom(new InternetAddress(sender));
-             * message.addRecipient(Message.RecipientType.TO, new
-             * InternetAddress(receiver)); Transport transport =
-             * mailSession.getTransport(); transport.connect();
-             * transport.sendMessage(message,
-             * message.getRecipients(Message.RecipientType.TO));
-             * transport.close();
-             */
         } catch (MessagingException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Mail send Exception", ex);
         }
-
     }
-
 }

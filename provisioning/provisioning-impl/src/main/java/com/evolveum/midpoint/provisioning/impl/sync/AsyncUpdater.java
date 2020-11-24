@@ -10,7 +10,7 @@ package com.evolveum.midpoint.provisioning.impl.sync;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
 import com.evolveum.midpoint.provisioning.impl.ResourceObjectConverter;
-import com.evolveum.midpoint.provisioning.ucf.api.async.ChangeListener;
+import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncChangeListener;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -52,7 +52,7 @@ public class AsyncUpdater {
         ChangeProcessingCoordinator coordinator = new ChangeProcessingCoordinator(globalContext::canRun, changeProcessor,
                 callerTask, null);
 
-        ChangeListener listener = (change, listenerTask, listenerResult) -> {
+        AsyncChangeListener listener = (change, listenerTask, listenerResult) -> {
             /*
              * This code can execute in arbitrary thread. It can be the caller one (e.g. for passive sources)
              * or provider-created one (e.g. for AMQP client library).
@@ -127,7 +127,7 @@ public class AsyncUpdater {
                 LOGGER.warn("Execution was interrupted in {} (caller task: {})", listenerTask, callerTask);
                 return false;
             }
-            return request.isSuccess();
+            return request.isSuccessfullyProcessed();
         };
         resourceObjectConverter.listenForAsynchronousUpdates(globalContext, listener, callerResult);
 

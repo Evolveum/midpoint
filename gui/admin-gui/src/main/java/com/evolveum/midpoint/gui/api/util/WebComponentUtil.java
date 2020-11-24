@@ -1516,12 +1516,22 @@ public final class WebComponentUtil {
     }
 
     public static PolyStringType createPolyFromOrigString(String str) {
+        return createPolyFromOrigString(str, null);
+    }
+
+    public static PolyStringType createPolyFromOrigString(String str, String key) {
         if (str == null) {
             return null;
         }
 
         PolyStringType poly = new PolyStringType();
         poly.setOrig(str);
+
+        if (StringUtils.isNotEmpty(key)){
+            PolyStringTranslationType translation = new PolyStringTranslationType();
+            translation.setKey(key);
+            poly.setTranslation(translation);
+        }
 
         return poly;
     }
@@ -2953,12 +2963,45 @@ public final class WebComponentUtil {
     public static List<QName> getCategoryRelationChoices(AreaCategoryType category, ModelServiceLocator pageBase) {
         List<QName> relationsList = new ArrayList<>();
         List<RelationDefinitionType> defList = getRelationDefinitions(pageBase);
+        defList.sort(new Comparator<RelationDefinitionType>() {
+            @Override
+            public int compare(RelationDefinitionType rD1, RelationDefinitionType rD2) {
+                if (rD1 == null || rD2 == null) {
+                    return 0;
+                }
+                RelationKindType rK1 = rD1.getDefaultFor() != null ? rD1.getDefaultFor() : getHighestRelationKind(rD1.getKind());
+                RelationKindType rK2 = rD2.getDefaultFor() != null ? rD2.getDefaultFor() : getHighestRelationKind(rD2.getKind());
+                int int1 = rK1 != null ? rK1.ordinal() : 100;
+                int int2 = rK2 != null ? rK2.ordinal() : 100;
+                int compare = Integer.compare(int1, int2);
+                if (compare == 0){
+                    if(rD1.getDisplay() == null || rD1.getDisplay().getLabel() == null
+                            || rD2.getDisplay() == null || rD2.getDisplay().getLabel() == null) {
+                        return compare;
+                    }
+                    String display1 = getTranslatedPolyString(rD1.getDisplay().getLabel());
+                    String display2 = getTranslatedPolyString(rD2.getDisplay().getLabel());
+                    return String.CASE_INSENSITIVE_ORDER.compare(display1, display2);
+                }
+                return compare;
+            }
+        });
         defList.forEach(def -> {
             if (def.getCategory() != null && def.getCategory().contains(category)) {
                 relationsList.add(def.getRef());
             }
         });
         return relationsList;
+    }
+
+    private static RelationKindType getHighestRelationKind(List<RelationKindType> kinds) {
+        RelationKindType ret = null;
+        for (RelationKindType kind : kinds){
+            if (ret == null || ret.ordinal() < kind.ordinal()) {
+                ret = kind;
+            }
+        }
+        return ret;
     }
 
     public static List<QName> getAllRelations(ModelServiceLocator pageBase) {
@@ -4040,12 +4083,13 @@ public final class WebComponentUtil {
                         displayType.getIcon().setCssClass(def.getDisplay().getIcon().getCssClass());
                         displayType.getIcon().setColor(def.getDisplay().getIcon().getColor());
                     }
+                    displayType.setLabel(def.getDisplay().getLabel());
                 }
-                if (displayType.getLabel() != null && StringUtils.isNotEmpty(displayType.getLabel().getOrig())) {
-                    relationValue = pageBase.createStringResource(displayType.getLabel().getOrig()).getString();
+                if (displayType.getLabel() != null) {
+                    relationValue = getTranslatedPolyString(displayType.getLabel());
                 } else {
                     String relationKey = "RelationTypes." + RelationTypes.getRelationTypeByRelationValue(relation);
-                    relationValue = pageBase.createStringResource(relationValue).getString();
+                    relationValue = pageBase.createStringResource(relationKey).getString();
                     if (StringUtils.isEmpty(relationValue) || relationKey.equals(relationValue)) {
                         relationValue = relation.getLocalPart();
                     }

@@ -4,12 +4,16 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.schrodinger.page.self;
+package com.evolveum.midpoint.schrodinger.component.self;
 
 import static com.codeborne.selenide.Selenide.$;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+
+import com.evolveum.midpoint.schrodinger.page.self.AssignmentsListPage;
+import com.evolveum.midpoint.schrodinger.page.self.RequestRolePage;
+
 import org.openqa.selenium.By;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;

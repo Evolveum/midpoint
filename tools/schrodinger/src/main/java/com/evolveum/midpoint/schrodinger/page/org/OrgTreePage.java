@@ -16,6 +16,8 @@ import com.evolveum.midpoint.schrodinger.component.user.UserTasksTab;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
+import org.openqa.selenium.By;
+
 import static com.codeborne.selenide.Selenide.$;
 
 /**
@@ -27,6 +29,11 @@ public class OrgTreePage extends BasicPage {
         SelenideElement element = getTabPanel().clickTabWithName(rootOrgName);
 
         return new OrgRootTab(this, element);
+    }
+
+    public boolean doesRootOrgExists(String rootOrgName) {
+        SelenideElement element = getTabPanel().getParentElement().$(By.linkText(rootOrgName));
+        return element != null;
     }
 
     private TabPanel getTabPanel() {

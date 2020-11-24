@@ -27,6 +27,7 @@ public class PrismReferencePanel<R extends Referencable>
     private static final long serialVersionUID = 1L;
 
     private static final String ID_HEADER = "header";
+    private static final String ID_VALUE = "value";
 
     public PrismReferencePanel(String id, IModel<PrismReferenceWrapper<R>> model, ItemPanelSettings settings) {
         super(id, model, settings);
@@ -44,7 +45,7 @@ public class PrismReferencePanel<R extends Referencable>
 
     @Override
     protected Component createValuePanel(ListItem<PrismReferenceValueWrapperImpl<R>> item) {
-        PrismReferenceValuePanel<R> valuePanel = new PrismReferenceValuePanel<R>("value", item.getModel(), getSettings()) {
+        PrismReferenceValuePanel<R> valuePanel = new PrismReferenceValuePanel<R>(ID_VALUE, item.getModel(), getSettings()) {
             @Override
             protected void removeValue(
                     PrismReferenceValueWrapperImpl<R> valueToRemove, AjaxRequestTarget target)

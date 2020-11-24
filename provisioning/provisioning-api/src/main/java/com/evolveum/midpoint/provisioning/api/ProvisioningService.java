@@ -465,7 +465,6 @@ public interface ProvisioningService {
     /**
      * Returns a diagnostic information.
      * @see com.evolveum.midpoint.schema.ProvisioningDiag
-     * @return
      */
     ProvisioningDiag getProvisioningDiag();
 

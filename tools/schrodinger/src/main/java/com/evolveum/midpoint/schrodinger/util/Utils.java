@@ -12,6 +12,7 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.AssignmentsTab;
 import com.evolveum.midpoint.schrodinger.component.FocusTableWithChoosableElements;
+import com.evolveum.midpoint.schrodinger.component.common.CheckFormGroupPanel;
 import com.evolveum.midpoint.schrodinger.component.common.table.AbstractTableWithPrismView;
 import com.evolveum.midpoint.schrodinger.component.modal.FocusSetAssignmentsModal;
 import com.evolveum.midpoint.schrodinger.component.modal.ModalBox;
@@ -36,8 +37,28 @@ public class Utils {
         }
     }
 
-    public static void setOptionChecked(String optionName, boolean checked) {
-        $(By.name(optionName)).setSelected(checked);
+    public static void setOptionCheckedByName(String optionName, boolean checked) {
+        SelenideElement checkBox = $(By.name(optionName)).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+        checkBox.setSelected(checked);
+        checkBox.waitUntil(Condition.attribute("checked", "checked"), MidPoint.TIMEOUT_DEFAULT_2_S);
+    }
+
+    public static void setOptionCheckedById(String id, boolean checked) {
+        SelenideElement checkBox = $(Schrodinger.byDataId(id)).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+        checkBox.setSelected(checked);
+        checkBox.waitUntil(Condition.attribute("checked", "checked"), MidPoint.TIMEOUT_DEFAULT_2_S);
+    }
+
+    public static void setCheckFormGroupOptionCheckedById(String id, boolean checked) {
+        CheckFormGroupPanel checkBoxGroup = new CheckFormGroupPanel(null,
+                $(Schrodinger.byDataId(id)).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S));
+        checkBoxGroup.setOptionCheckedById(checked);
+    }
+
+    public static void setCheckFormGroupOptionCheckedByTitleResourceKey(String titleResourceKey, boolean checked) {
+        CheckFormGroupPanel checkBoxGroup = new CheckFormGroupPanel(null,
+                $(Schrodinger.byDataResourceKey(titleResourceKey)).parent().parent().waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S));
+        checkBoxGroup.setOptionCheckedById(checked);
     }
 
     public static <P extends AssignmentHolderDetailsPage> void removeAssignments(AssignmentsTab<P> tab, String... assignments){
@@ -88,7 +109,7 @@ public class Utils {
     }
 
     public static SelenideElement getModalWindowSelenideElement() {
-        if ($(By.className("wicket-modal")).waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S).exists()) {
+        if ($(By.className("wicket-modal")).waitUntil(Condition.appear, MidPoint.TIMEOUT_SHORT_4_S).exists()) {
             return $(By.className("wicket-modal"))
                     .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
         } else {

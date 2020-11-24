@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -42,7 +42,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
-import com.evolveum.midpoint.repo.api.Cacheable;
+import com.evolveum.midpoint.repo.api.Cache;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -74,7 +74,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
  *
  */
 @Component
-public class ConnectorManager implements Cacheable {
+public class ConnectorManager implements Cache {
 
     private static final String USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA = ConnectorManager.class.getName()+".parsedSchema";
 
@@ -88,12 +88,12 @@ public class ConnectorManager implements Cacheable {
 
     @PostConstruct
     public void register() {
-        cacheRegistry.registerCacheableService(this);
+        cacheRegistry.registerCache(this);
     }
 
     @PreDestroy
     public void unregister() {
-        cacheRegistry.unregisterCacheableService(this);
+        cacheRegistry.unregisterCache(this);
     }
 
     private static final Trace LOGGER = TraceManager.getTrace(ConnectorManager.class);

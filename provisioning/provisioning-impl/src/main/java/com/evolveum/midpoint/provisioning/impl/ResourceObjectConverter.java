@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
-import com.evolveum.midpoint.provisioning.ucf.api.async.ChangeListener;
+import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncChangeListener;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.*;
@@ -549,9 +549,7 @@ public class ResourceObjectConverter {
                 // We need to filter out the deltas that add duplicate values or remove values that are not there
                 LOGGER.trace("Pre-reading resource shadow");
                 preReadShadow = preReadShadow(ctx, identifiers, operations, true, repoShadow, result);  // yes, we need associations here
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Pre-read object (straight from the resource):\n{}", preReadShadow==null?null:preReadShadow.debugDump(1));
-                }
+                LOGGER.trace("Pre-read object (straight from the resource):\n{}", DebugUtil.debugDumpLazily(preReadShadow, 1));
                 // If there are pending changes in the shadow then we have to apply to pre-read object.
                 // The pre-read object may be out of date (e.g. in case of semi-manual connectors).
                 // In that case we may falsely remove some of the modifications. E.g. in case that
@@ -598,9 +596,7 @@ public class ResourceObjectConverter {
                 // There may be other changes that were not detected by the connector. Re-read the object and compare.
                 LOGGER.trace("Post-reading resource shadow");
                 postReadShadow = preReadShadow(ctx, identifiers, operations, true, repoShadow, result);
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Post-read object:\n{}", postReadShadow.debugDump());
-                }
+                LOGGER.trace("Post-read object:\n{}", DebugUtil.debugDumpLazily(postReadShadow));
                 ObjectDelta<ShadowType> resourceShadowDelta = preReadShadow.diff(postReadShadow);
                 LOGGER.trace("Determined side-effect changes by old-new diff:\n{}", resourceShadowDelta.debugDumpLazily());
                 for (ItemDelta modification: resourceShadowDelta.getModifications()) {
@@ -661,23 +657,27 @@ public class ResourceObjectConverter {
     }
 
     @SuppressWarnings("rawtypes")
-    private AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> executeModify(ProvisioningContext ctx, PrismObject<ShadowType> currentShadow, Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> operations, OperationProvisioningScriptsType scripts, OperationResult parentResult, ConnectorOperationOptions connOptions)
-            throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, PolicyViolationException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+    private AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> executeModify(ProvisioningContext ctx,
+            PrismObject<ShadowType> currentShadow, Collection<? extends ResourceAttribute<?>> identifiers,
+            Collection<Operation> operations, OperationProvisioningScriptsType scripts, OperationResult result,
+            ConnectorOperationOptions connOptions)
+            throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
+            PolicyViolationException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 
         Collection<PropertyModificationOperation> sideEffectChanges = new HashSet<>();
 
         RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
-        if (operations.isEmpty()){
+        if (operations.isEmpty()) {
             LOGGER.trace("No modifications for resource object. Skipping modification.");
             return null;
         } else {
             LOGGER.trace("Resource object modification operations: {}", operations);
         }
 
-        checkForCapability(ctx, UpdateCapabilityType.class, parentResult);
+        checkForCapability(ctx, UpdateCapabilityType.class, result);
 
         if (!ShadowUtil.hasPrimaryIdentifier(identifiers, objectClassDefinition)) {
-            Collection<? extends ResourceAttribute<?>> primaryIdentifiers = resourceObjectReferenceResolver.resolvePrimaryIdentifier(ctx, identifiers, "modification of resource object "+identifiers, parentResult);
+            Collection<? extends ResourceAttribute<?>> primaryIdentifiers = resourceObjectReferenceResolver.resolvePrimaryIdentifier(ctx, identifiers, "modification of resource object "+identifiers, result);
             if (primaryIdentifiers == null || primaryIdentifiers.isEmpty()) {
                 throw new ObjectNotFoundException("Cannot find repository shadow for identifiers "+identifiers);
             }
@@ -687,10 +687,10 @@ public class ResourceObjectConverter {
             identifiers = allIdentifiers;
         }
 
-        executeProvisioningScripts(ctx, ProvisioningOperationTypeType.MODIFY, BeforeAfterType.BEFORE, scripts, parentResult);
+        executeProvisioningScripts(ctx, ProvisioningOperationTypeType.MODIFY, BeforeAfterType.BEFORE, scripts, result);
 
         // Invoke connector operation
-        ConnectorInstance connector = ctx.getConnector(UpdateCapabilityType.class, parentResult);
+        ConnectorInstance connector = ctx.getConnector(UpdateCapabilityType.class, result);
         AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> connectorAsyncOpRet = null;
         try {
 
@@ -698,7 +698,7 @@ public class ResourceObjectConverter {
 
                 if (currentShadow == null) {
                     LOGGER.trace("Fetching shadow for duplicate filtering");
-                    currentShadow = preReadShadow(ctx, identifiers, operations, false, currentShadow, parentResult);
+                    currentShadow = preReadShadow(ctx, identifiers, operations, false, currentShadow, result);
                 }
 
                 if (currentShadow == null) {
@@ -731,7 +731,7 @@ public class ResourceObjectConverter {
                     }
                     if (filteredOperations.isEmpty()) {
                         LOGGER.debug("No modifications for connector object specified (after filtering). Skipping processing.");
-                        parentResult.recordSuccess();
+                        result.recordSuccess();
                         return null;
                     }
                     operations = filteredOperations;
@@ -745,14 +745,14 @@ public class ResourceObjectConverter {
                         SchemaDebugUtil.debugDump(identifiers, 1), SchemaDebugUtil.debugDump(operations, 1));
             }
 
-            if (!ResourceTypeUtil.isUpdateCapabilityEnabled(ctx.getResource())){
+            if (!ResourceTypeUtil.isUpdateCapabilityEnabled(ctx.getResource())) {
                 if (operations == null || operations.isEmpty()){
                     LOGGER.debug("No modifications for connector object specified (after filtering). Skipping processing.");
-                    parentResult.recordSuccess();
+                    result.recordSuccess();
                     return null;
                 }
                 UnsupportedOperationException e = new UnsupportedOperationException("Resource does not support 'update' operation");
-                parentResult.recordFatalError(e);
+                result.recordFatalError(e);
                 throw e;
             }
 
@@ -762,11 +762,11 @@ public class ResourceObjectConverter {
             boolean inProgress = false;
             String asynchronousOperationReference = null;
             for (Collection<Operation> operationsWave : operationsWaves) {
-                operationsWave = convertToReplaceAsNeeded(ctx, operationsWave, identifiersWorkingCopy, objectClassDefinition, parentResult);
+                operationsWave = convertToReplaceAsNeeded(ctx, operationsWave, identifiersWorkingCopy, objectClassDefinition, result);
 
                 if (!operationsWave.isEmpty()) {
                     ResourceObjectIdentification identification = ResourceObjectIdentification.create(objectClassDefinition, identifiersWorkingCopy);
-                    connectorAsyncOpRet = connector.modifyObject(identification, currentShadow, operationsWave, connOptions, ctx, parentResult);
+                    connectorAsyncOpRet = connector.modifyObject(identification, currentShadow, operationsWave, connOptions, ctx, result);
                     Collection<PropertyModificationOperation> sideEffects = connectorAsyncOpRet.getReturnValue();
                     if (sideEffects != null) {
                         sideEffectChanges.addAll(sideEffects);
@@ -779,39 +779,37 @@ public class ResourceObjectConverter {
                 }
             }
 
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("PROVISIONING MODIFY successful, inProgress={}, side-effect changes {}", inProgress, DebugUtil.debugDump(sideEffectChanges));
-            }
+            LOGGER.debug("PROVISIONING MODIFY successful, inProgress={}, side-effect changes {}", inProgress, DebugUtil.debugDumpLazily(sideEffectChanges));
 
             if (inProgress) {
-                parentResult.recordInProgress();
-                parentResult.setAsynchronousOperationReference(asynchronousOperationReference);
+                result.recordInProgress();
+                result.setAsynchronousOperationReference(asynchronousOperationReference);
             }
 
         } catch (ObjectNotFoundException ex) {
-            parentResult.recordFatalError("Object to modify not found: " + ex.getMessage(), ex);
+            result.recordFatalError("Object to modify not found: " + ex.getMessage(), ex);
             throw new ObjectNotFoundException("Object to modify not found: " + ex.getMessage(), ex);
         } catch (CommunicationException ex) {
-            parentResult.recordFatalError(
+            result.recordFatalError(
                     "Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
             throw new CommunicationException("Error communicating with connector " + connector + ": "
                     + ex.getMessage(), ex);
         } catch (GenericFrameworkException ex) {
-            parentResult.recordFatalError(
+            result.recordFatalError(
                     "Generic error in the connector " + connector + ": " + ex.getMessage(), ex);
             throw new GenericConnectorException("Generic error in connector connector " + connector + ": "
                     + ex.getMessage(), ex);
         } catch (ObjectAlreadyExistsException ex) {
-            parentResult.recordFatalError("Conflict during modify: " + ex.getMessage(), ex);
+            result.recordFatalError("Conflict during modify: " + ex.getMessage(), ex);
             throw new ObjectAlreadyExistsException("Conflict during modify: " + ex.getMessage(), ex);
         } catch (SchemaException | ConfigurationException | ExpressionEvaluationException | SecurityViolationException | PolicyViolationException | RuntimeException | Error ex) {
-            parentResult.recordFatalError(ex.getMessage(), ex);
+            result.recordFatalError(ex.getMessage(), ex);
             throw ex;
         }
 
-        executeProvisioningScripts(ctx, ProvisioningOperationTypeType.MODIFY, BeforeAfterType.AFTER, scripts, parentResult);
+        executeProvisioningScripts(ctx, ProvisioningOperationTypeType.MODIFY, BeforeAfterType.AFTER, scripts, result);
 
-        AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> asyncOpRet = AsynchronousOperationReturnValue.wrap(sideEffectChanges, parentResult);
+        AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> asyncOpRet = AsynchronousOperationReturnValue.wrap(sideEffectChanges, result);
         if (connectorAsyncOpRet != null) {
             asyncOpRet.setOperationType(connectorAsyncOpRet.getOperationType());
         }
@@ -1827,7 +1825,7 @@ public class ResourceObjectConverter {
         return ShadowType.F_ATTRIBUTES.equivalent(itemDelta.getParentPath());
     }
 
-    public void fetchChanges(ProvisioningContext ctx, @NotNull PrismProperty<?> initialToken, ChangeHandler changeHandler,
+    public void fetchChanges(ProvisioningContext ctx, @NotNull PrismProperty<?> initialToken, LiveSyncChangeListener upstreamListener,
             OperationResult parentResult) throws SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, GenericFrameworkException, ObjectNotFoundException, ExpressionEvaluationException {
 
@@ -1846,9 +1844,9 @@ public class ResourceObjectConverter {
         Holder<PrismProperty<?>> finalTokenHolder = new Holder<>();         // for diag purposes
 
         AtomicInteger processed = new AtomicInteger(0);
-        ChangeHandler localHandler = new ChangeHandler() {
+        LiveSyncChangeListener localListener = new LiveSyncChangeListener() {
             @Override
-            public boolean handleChange(Change change, OperationResult parentResult) {
+            public boolean onChange(Change change, OperationResult parentResult) {
                 int changeNumber = processed.getAndIncrement();
 
                 Task task = ctx.getTask();
@@ -1872,7 +1870,7 @@ public class ResourceObjectConverter {
                         tracingRequested = setTracingInOperationResultIfRequested(resultBuilder,
                                 TracingRootType.LIVE_SYNC_CHANGE_PROCESSING, task, parentResult);
                     } catch (Throwable t) {
-                        return changeHandler.handleError(change.getToken(), change, t, parentResult);
+                        return upstreamListener.onChangePreparationError(change.getToken(), change, t, parentResult);
                     }
                     OperationResult result = resultBuilder.build();
 
@@ -1884,9 +1882,9 @@ public class ResourceObjectConverter {
                             }
                         } catch (Throwable t) {
                             result.addReturn("status", "failed: " + t);
-                            return changeHandler.handleError(change.getToken(), change, t, result);
+                            return upstreamListener.onChangePreparationError(change.getToken(), change, t, result);
                         }
-                        boolean cont = changeHandler.handleChange(change, result);
+                        boolean cont = upstreamListener.onChange(change, result);
                         result.addReturn("status", "handled with continue=" + cont);
 
                         return cont;
@@ -1907,21 +1905,21 @@ public class ResourceObjectConverter {
             }
 
             @Override
-            public boolean handleError(PrismProperty<?> token, @Nullable Change change,
+            public boolean onChangePreparationError(PrismProperty<?> token, @Nullable Change change,
                     @NotNull Throwable exception, @NotNull OperationResult result) {
-                return changeHandler.handleError(token, change, exception, result);
+                return upstreamListener.onChangePreparationError(token, change, exception, result);
             }
 
             @Override
-            public void handleAllChangesFetched(PrismProperty<?> finalToken, OperationResult result) {
+            public void onAllChangesFetched(PrismProperty<?> finalToken, OperationResult result) {
                 allChangesFetchedHolder.setValue(true);
                 finalTokenHolder.setValue(finalToken);
-                changeHandler.handleAllChangesFetched(finalToken, result);
+                upstreamListener.onAllChangesFetched(finalToken, result);
             }
         };
 
         // get changes from the connector
-        connector.fetchChanges(ctx.getObjectClassDefinition(), initialToken, attrsToReturn, maxChanges, ctx, localHandler, parentResult);
+        connector.fetchChanges(ctx.getObjectClassDefinition(), initialToken, attrsToReturn, maxChanges, ctx, localListener, parentResult);
 
         computeResultStatus(parentResult);
 
@@ -2022,13 +2020,13 @@ public class ResourceObjectConverter {
     }
 
     public void listenForAsynchronousUpdates(@NotNull ProvisioningContext ctx,
-            @NotNull ChangeListener outerListener, @NotNull OperationResult parentResult) throws SchemaException,
+            @NotNull AsyncChangeListener outerListener, @NotNull OperationResult parentResult) throws SchemaException,
             CommunicationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
 
         LOGGER.trace("Listening for async updates, objectClass: {}", ctx.getObjectClassDefinition());
         ConnectorInstance connector = ctx.getConnector(AsyncUpdateCapabilityType.class, parentResult);
 
-        ChangeListener innerListener = (change, listenerTask, listenerResult) -> {
+        AsyncChangeListener innerListener = (change, listenerTask, listenerResult) -> {
             try {
                 LOGGER.trace("Start processing change:\n{}", change.debugDumpLazily());
                 setResourceOidIfMissing(change, ctx.getResourceOid());

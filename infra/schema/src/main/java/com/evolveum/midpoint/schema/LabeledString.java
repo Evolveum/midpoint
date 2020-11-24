@@ -19,11 +19,10 @@ import java.io.Serializable;
  */
 public class LabeledString implements Serializable {
 
-    private String label;
-    private String data;
+    private final String label;
+    private final String data;
 
     public LabeledString(String label, String data) {
-        super();
         this.label = label;
         this.data = data;
     }
