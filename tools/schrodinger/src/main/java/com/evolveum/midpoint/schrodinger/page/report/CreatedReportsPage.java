@@ -7,22 +7,21 @@
 package com.evolveum.midpoint.schrodinger.page.report;
 
 import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListPage;
-import com.evolveum.midpoint.schrodinger.component.report.ReportTable;
-import com.evolveum.midpoint.schrodinger.page.BasicPage;
+import com.evolveum.midpoint.schrodinger.component.report.CreatedReportsTable;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class CreatedReportsPage extends BasicPage {
+public class CreatedReportsPage extends AssignmentHolderObjectListPage<CreatedReportsTable, ReportPage> {
 
-//    @Override
-//    public ReportTable table() {
-//        return new ReportTable(this, getTableBoxElement());
-//    }
-//
-//    @Override
-//    public ReportPage getObjectDetailsPage() {
-//        return new ReportPage();
-//    }
+    @Override
+    public CreatedReportsTable table() {
+        return new CreatedReportsTable(this, getTableBoxElement());
+    }
+
+    @Override
+    public ReportPage getObjectDetailsPage() {
+        return new ReportPage();
+    }
 
 }

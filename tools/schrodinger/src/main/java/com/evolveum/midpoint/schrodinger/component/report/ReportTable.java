@@ -35,9 +35,9 @@ public class ReportTable extends AssignmentHolderObjectListTable<ListReportsPage
         return new ReportPage();
     }
 
-    public ReportConfigurationModal<ListReportsPage> runReport(String report) {
-        clickMenuItemButton("ObjectType.name", "Users in MidPoint", "fa.fa-play");
-        return new ReportConfigurationModal<>(getParent(), Utils.getModalWindowSelenideElement());
+    public void runReport(String report) {
+        clickMenuItemButton("ObjectType.name", report, ".fa.fa-play");
+//        return new ReportConfigurationModal<>(getParent(), Utils.getModalWindowSelenideElement());
     }
 
 

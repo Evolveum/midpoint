@@ -43,19 +43,17 @@ public class ReportTests extends AbstractSchrodingerTest {
 
     @Test
     public void test00200runUsersReport() {
-        Assert.assertTrue(basicPage.listReports()
-        .newReport()
-            .selectTabBasic()
-                .form()
-                    .addAttributeValue("Name", "Users in MidPoint")
-                    .and()
-                .and()
-            .clickSave()
-            .feedback()
-            .isSuccess(),
-                "Couldn't create new report");
         ReportTable reportTable = basicPage.listReports().table();
-        reportTable.runReport("Users in MidPoint")
-                .runReport();
+        reportTable.runReport("All audit records report");
+//                .runReport();
+        Assert.assertEquals(1, basicPage.createdReports()
+            .table()
+                .search()
+                    .byName()
+                    .inputValue("All audit records report")
+                    .updateSearch()
+                    .and()
+                .countTableObjects(),
+                "Report isn't found after run");
     }
 }
