@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.component;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,21 +16,17 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 
 /**
  * @author skublik
  */
 
-public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Containerable, S extends Serializable>
-        extends MultivalueContainerListPanel<C, S> {
+public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Containerable>
+        extends MultivalueContainerListPanel<C> {
 
     private static final long serialVersionUID = 1L;
 
@@ -47,12 +42,8 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
     private final List<PrismContainerValueWrapper<C>> detailsPanelItemsList = new ArrayList<>();
     private boolean itemDetailsVisible;
 
-    public MultivalueContainerListPanelWithDetailsPanel(String id, IModel<PrismContainerWrapper<C>> model, TableId tableId, PageStorage pageStorage) {
-        super(id, model, tableId, pageStorage);
-    }
-
-    public MultivalueContainerListPanelWithDetailsPanel(String id, PrismContainerDefinition<C> def, TableId tableId, PageStorage pageStorage) {
-        super(id, def, tableId, pageStorage);
+    public MultivalueContainerListPanelWithDetailsPanel(String id, Class<C> type) {
+        super(id, type);
     }
 
     @Override
@@ -140,11 +131,11 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
     protected abstract MultivalueContainerDetailsPanel<C> getMultivalueContainerDetailsPanel(ListItem<PrismContainerValueWrapper<C>> item);
 
     public void itemDetailsPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel) {
-        itemPerformedForDefaultAction(target, rowModel, null);
+        editItemPerformed(target, rowModel, null);
     }
 
     public void itemDetailsPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<C>> listItems) {
-        itemPerformedForDefaultAction(target, null, listItems);
+        editItemPerformed(target, null, listItems);
     }
 
     protected void cancelItemDetailsPerformed(AjaxRequestTarget target) {
@@ -155,7 +146,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
     }
 
     @Override
-    public void itemPerformedForDefaultAction(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel,
+    public void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel,
             List<PrismContainerValueWrapper<C>> listItems) {
 
         if ((listItems != null && !listItems.isEmpty()) || rowModel != null) {

@@ -6,9 +6,16 @@
  */
 package com.evolveum.midpoint.audit.api;
 
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+
 public interface AuditResultHandler {
 
-    boolean handle(AuditEventRecord auditRecord);
+    @Deprecated
+    default boolean handle(AuditEventRecord auditRecord){
+        return true;
+    }
+
+    boolean handle(AuditEventRecordType auditRecord);
 
     int getProgress();
 }

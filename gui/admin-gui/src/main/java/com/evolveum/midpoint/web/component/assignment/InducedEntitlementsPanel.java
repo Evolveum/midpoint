@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.web.session.SessionStorage;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -28,7 +30,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -147,21 +148,6 @@ public class InducedEntitlementsPanel extends InducementsPanel {
     }
 
     @Override
-    protected void initCustomPaging() {
-        getInducedEntitlementsTabStorage().setPaging(getPrismContext().queryFactory()
-                .createPaging(0, ((int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.INDUCED_ENTITLEMENTS_TAB_TABLE))));
-    }
-
-    @Override
-    protected UserProfileStorage.TableId getTableId() {
-        return UserProfileStorage.TableId.INDUCED_ENTITLEMENTS_TAB_TABLE;
-    }
-
-    private ObjectTabStorage getInducedEntitlementsTabStorage() {
-        return getParentPage().getSessionStorage().getInducedEntitlementsTabStorage();
-    }
-
-    @Override
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
@@ -240,25 +226,6 @@ public class InducedEntitlementsPanel extends InducementsPanel {
         return getConstructionAssociationPanel(idPanel, model);
     }
 
-//    @Override
-//    protected void addCustomSpecificContainers(Fragment specificContainers, IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
-//        specificContainers.add(getConstructionAssociationPanel(modelObject));
-//
-//    }
-
-//    @Override
-//    protected Panel getBasicContainerPanel(String idPanel,
-//            IModel<PrismContainerValueWrapper<AssignmentType>> model) {
-//        Panel panel = super.getBasicContainerValuePanel(idPanel, model);
-//        panel.add(new VisibleEnableBehaviour() {
-//            @Override
-//            public boolean isVisible() {
-//                return false;
-//            }
-//        });
-//        return panel;
-//    }
-
     private ConstructionAssociationPanel getConstructionAssociationPanel(String idPanel, IModel<PrismContainerValueWrapper<AssignmentType>> model) {
         IModel<PrismContainerWrapper<ConstructionType>> constructionModel = PrismContainerWrapperModel.fromContainerValueWrapper(model, AssignmentType.F_CONSTRUCTION);
         ConstructionAssociationPanel constructionDetailsPanel = new ConstructionAssociationPanel(idPanel, constructionModel);
@@ -336,5 +303,15 @@ public class InducedEntitlementsPanel extends InducementsPanel {
             LOGGER.error("Unable to find association container in the construction: {}", ex.getLocalizedMessage());
         }
         return null;
+    }
+
+    @Override
+    protected UserProfileStorage.TableId getTableId() {
+        return UserProfileStorage.TableId.INDUCED_ENTITLEMENTS_TAB_TABLE;
+    }
+
+    @Override
+    protected String getAssignmentsTabStorageKey() {
+        return SessionStorage.KEY_INDUCED_ENTITLEMENTS_TAB;
     }
 }

@@ -44,8 +44,6 @@ import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
@@ -248,15 +246,14 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
-                pageStorage.setPaging(paging);
+            protected PageStorage getPageStorage() {
+                return pageStorage;
             }
-
         };
 
         UserProfileStorage userProfile = getPageBase().getSessionStorage().getUserProfile();
         UserProfileStorage.TableId tableId = UserProfileStorage.TableId.NOTIFICATION_TAB_MAIL_SERVER_TABLE;
-        BoxedTablePanel<MailServerConfiguration> table = new BoxedTablePanel<MailServerConfiguration>(ID_MAIL_SERVERS_TABLE, provider, initMailServersColumns(), tableId, userProfile.getPagingSize(tableId)) {
+        BoxedTablePanel<MailServerConfiguration> table = new BoxedTablePanel<MailServerConfiguration>(ID_MAIL_SERVERS_TABLE, provider, initMailServersColumns(), tableId) {
 
             private static final long serialVersionUID = 1L;
 

@@ -134,7 +134,7 @@ public class ExportingPanel extends BasePanel<ExportingPanel> implements Popupab
 
     private void performSelectedColumns(BoxedTablePanel<SelectableBean<Integer>> table) {
         exportedColumnsIndex.clear();
-        List<Integer> availableData = ((SelectableListDataProvider) table.getDataTable().getDataProvider()).getSelectedObjects();
+        List<Integer> availableData = ((SelectableListDataProvider) table.getDataTable().getDataProvider()).getSelectedRealObjects();
         exportedColumnsIndex.addAll(availableData);
     }
 
@@ -190,7 +190,7 @@ public class ExportingPanel extends BasePanel<ExportingPanel> implements Popupab
                 };
 
         BoxedTablePanel<SelectableBean<Integer>> table =
-                new BoxedTablePanel<SelectableBean<Integer>>(id, provider, columns, null, 20) {
+                new BoxedTablePanel<SelectableBean<Integer>>(id, provider, columns) {
                     private static final long serialVersionUID = 1L;
 
                     @Override

@@ -248,13 +248,21 @@ public enum ObjectTypes {
 
     @NotNull
     public static <O extends ObjectType> Class<O> getObjectTypeClass(QName typeName) {
+        Class<O> rv = getObjectTypeClassIfKnown(typeName);
+        if (rv == null) {
+            throw new IllegalArgumentException("Unsupported object type " + typeName);
+        }
+        return rv;
+    }
+
+    public static <O extends ObjectType> Class<O> getObjectTypeClassIfKnown(QName typeName) {
         for (ObjectTypes type : values()) {
             if (QNameUtil.match(type.getTypeQName(), typeName)) {
                 //noinspection unchecked
                 return (Class<O>) type.getClassDefinition();
             }
         }
-        throw new IllegalArgumentException("Unsupported object type " + typeName);
+        return null;
     }
 
     @NotNull

@@ -7,6 +7,14 @@
 
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -45,7 +53,7 @@ public class PrismReferenceWrapperColumn<C extends Containerable, R extends Refe
 
 
     @Override
-    public IModel<?> getDataModel(IModel<PrismContainerValueWrapper<C>> rowModel) {
+    public PrismReferenceWrapperModel<C, R> getDataModel(IModel<PrismContainerValueWrapper<C>> rowModel) {
         return PrismReferenceWrapperModel.fromContainerValueWrapper(rowModel, itemName);
     }
 
@@ -74,11 +82,38 @@ public class PrismReferenceWrapperColumn<C extends Containerable, R extends Refe
             protected void onClick(AjaxRequestTarget target, PrismContainerValueWrapper<?> rowModel) {
                 PrismReferenceWrapperColumn.this.onClick(target, (IModel) Model.of(rowModel));
             }
+
+            @Override
+            protected boolean isClickEnabled() {
+                return PrismReferenceWrapperColumn.this.isClickEnabled((IModel<PrismReferenceWrapper<R>>)rowModel);
+            }
         };
     }
 
     protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> model) {
+        PrismReferenceWrapperModel<C, R> refModel = getDataModel(model);
+        PrismReferenceWrapper<R> ref = refModel.getObject();
+        if (ref != null) {
+            try {
+                WebComponentUtil.dispatchToObjectDetailsPage(ref.getItem().getValue(), pageBase, true);
 
+            } catch (Exception e) {
+                pageBase.error("Cannot determine details page for " + ref.getItem().getValue());
+                target.add(pageBase.getFeedbackPanel());
+            }
+        }
+    }
+
+    public boolean isClickEnabled(IModel<PrismReferenceWrapper<R>> rowModel) {
+        PrismReferenceWrapper<R> ref = rowModel.getObject();
+        if (ref != null) {
+            Referencable referencable = ref.getItem().getRealValue();
+            if (referencable != null) {
+                Class targetClass = WebComponentUtil.qnameToClass(pageBase.getPrismContext(), referencable.getType());
+                return WebComponentUtil.isAuthorized(targetClass);
+            }
+        }
+        return false;
     }
 }
 

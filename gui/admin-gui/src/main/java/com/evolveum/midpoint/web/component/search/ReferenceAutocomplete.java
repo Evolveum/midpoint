@@ -11,6 +11,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.IAutoCompleteRenderer;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -28,6 +30,8 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author honchar
@@ -49,13 +53,14 @@ public abstract class ReferenceAutocomplete extends AutoCompleteTextPanel<Object
         if (StringUtils.isEmpty(realInput)) {
             return Collections.emptyIterator();
         }
-        ObjectQuery query = pageBase.getPrismContext().queryFor(AbstractRoleType.class)
+        Class<ObjectType> type = getReferenceTargetObjectType();
+        ObjectQuery query = pageBase.getPrismContext().queryFor(type)
                 .item(ObjectType.F_NAME)
                 .containsPoly(realInput)
                 .matchingNorm()
                 .build();
         query.setPaging(pageBase.getPrismContext().queryFactory().createPaging(0, getMaxRowsCount()));
-        List<PrismObject<AbstractRoleType>> objectsList = WebModelServiceUtils.searchObjects(AbstractRoleType.class, query,
+        List<PrismObject<ObjectType>> objectsList = WebModelServiceUtils.searchObjects(type, query,
                 new OperationResult("searchObjects"), pageBase);
         return ObjectTypeUtil.objectListToReferences(objectsList).iterator();
     }
@@ -63,10 +68,17 @@ public abstract class ReferenceAutocomplete extends AutoCompleteTextPanel<Object
     @Override
     protected <C> IConverter<C> getAutoCompleteConverter(Class<C> type, IConverter<C> originConverter) {
         IConverter<C> converter = super.getAutoCompleteConverter(type, originConverter);
-        return (IConverter<C>) new ReferenceConverter((IConverter<ObjectReferenceType>) converter, new ArrayList<>(), getBaseFormComponent(), pageBase);
+        return (IConverter<C>) new ReferenceConverter((IConverter<ObjectReferenceType>) converter, new ArrayList<>(), getBaseFormComponent(), pageBase){
+            @Override
+            protected <O extends ObjectType> Class<O> getReferenceTargetObjectType() {
+                return ReferenceAutocomplete.this.getReferenceTargetObjectType();
+            }
+        };
     }
 
-    protected abstract <O extends ObjectType> Class<O> getReferenceTargetObjectType();
+    protected <O extends ObjectType> Class<O> getReferenceTargetObjectType(){
+        return (Class<O>) AbstractRoleType.class;
+    }
 
     protected int getMaxRowsCount() {
         return 20;

@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.component.objectdetails;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
@@ -19,6 +20,7 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -54,50 +56,43 @@ public class FocusTriggersTabPanel<F extends FocusType> extends AbstractObjectTa
         PrismContainerWrapperModel<F, TriggerType> triggersModel = PrismContainerWrapperModel.fromContainerWrapper(
                 getObjectWrapperModel(), FocusType.F_TRIGGER);
 
-        MultivalueContainerListPanel<TriggerType, AssignmentObjectRelation> multivalueContainerListPanel =
-                new MultivalueContainerListPanel<TriggerType, AssignmentObjectRelation>(ID_TRIGGERS_PANEL, triggersModel,
-                        UserProfileStorage.TableId.TRIGGERS_TAB_TABLE,
-                        getPageBase().getSessionStorage().getTriggersTabStorage()) {
+        MultivalueContainerListPanel<TriggerType> multivalueContainerListPanel =
+                new MultivalueContainerListPanel<TriggerType>(ID_TRIGGERS_PANEL, TriggerType.class) {
 
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected void initPaging() {
-//                        initCustomPaging();
-                    }
-
-                    @Override
-                    protected List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<TriggerType> containerDef) {
-                        return new ArrayList<>();
-                    }
-
-                    @Override
-                    protected boolean enableActionNewObject() {
+                    protected boolean isCreateNewObjectVisible() {
                         return false;
                     }
 
                     @Override
-                    protected ObjectQuery createQuery() {
-                        return null;
+                    protected IModel<PrismContainerWrapper<TriggerType>> getContainerModel() {
+                        return triggersModel;
                     }
 
-                    protected boolean isSearchEnabled(){
+                    @Override
+                    protected boolean isHeaderVisible(){
                         return false;
                     }
 
                     @Override
-                    protected List<IColumn<PrismContainerValueWrapper<TriggerType>, String>> createColumns() {
+                    protected String getStorageKey() {
+                        return SessionStorage.KEY_TRIGGERS_TAB;
+                    }
+
+                    @Override
+                    protected UserProfileStorage.TableId getTableId() {
+                        return UserProfileStorage.TableId.TRIGGERS_TAB_TABLE;
+                    }
+
+                    @Override
+                    protected List<IColumn<PrismContainerValueWrapper<TriggerType>, String>> createDefaultColumns() {
                         return createTriggersColumns();
                     }
 
                     @Override
-                    protected List<PrismContainerValueWrapper<TriggerType>> postSearch(
-                            List<PrismContainerValueWrapper<TriggerType>> triggersList) {
-                        return triggersList;
-                    }
-
-                    @Override
-                    protected void itemPerformedForDefaultAction(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<TriggerType>> rowModel,
+                    protected void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<TriggerType>> rowModel,
                                                                  List<PrismContainerValueWrapper<TriggerType>> listItems) {
 
                     }

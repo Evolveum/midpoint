@@ -91,7 +91,7 @@ public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
         assignParametricRole(USER_ADMINISTRATOR_OID, role2Oid, ORG_SAVE_ELAINE_OID, null, task, task.getResult());
 
         String panel = "mainPanel:mainForm:tabPanel:panel";
-        String memberTable = panel + ":form:memberContainer:memberTable:mainForm:table:box:tableContainer:table";
+        String memberTable = panel + ":form:memberContainer:memberTable:items:itemsTable:box:tableContainer:table";
 
         // WHEN
         // Open Role0001 page
@@ -110,7 +110,7 @@ public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
         // WHEN
         // Choose P0001 in 'Org/Project' filter selection
         tester.clickLink(panel + ":form:project:inputContainer:choose");
-        tester.clickLink("mainPopup:content:table:mainForm:table:box:tableContainer:table:body:rows:7:cells:2:cell:link");
+        tester.clickLink("mainPopup:content:table:items:itemsTable:box:tableContainer:table:body:rows:7:cells:2:cell:link");
         executeModalWindowCloseCallback("mainPopup");
 
         // THEN

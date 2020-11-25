@@ -9,9 +9,9 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
-import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
-import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import org.apache.wicket.model.IModel;
@@ -38,24 +38,23 @@ public abstract class CaseWorkItemsTableWithDetailsPanel extends BasePanel<Prism
         setOutputMarkupId(true);
 
         CaseWorkItemListWithDetailsPanel caseWorkItems =
-                new CaseWorkItemListWithDetailsPanel(ID_WORKITEMS_TABLE, getModel(), getTableId(), getWorkitemsTabStorage()) {
+                new CaseWorkItemListWithDetailsPanel(ID_WORKITEMS_TABLE) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected ObjectQuery createQuery() {
-                        return CaseWorkItemsTableWithDetailsPanel.this.createQuery();
+                    protected IModel<PrismContainerWrapper<CaseWorkItemType>> getContainerModel() {
+                        return CaseWorkItemsTableWithDetailsPanel.this.getModel();
+                    }
+
+                    @Override
+                    protected String getStorageKey() {
+                        return SessionStorage.KEY_CASE_WORKITEMS_TAB;
                     }
 
                     @Override
                     protected UserProfileStorage.TableId getTableId() {
                         return CaseWorkItemsTableWithDetailsPanel.this.getTableId();
                     }
-
-//                    @Override
-//                    public void itemDetailsPerformed(AjaxRequestTarget target,  IModel<PrismContainerValueWrapper<CaseWorkItemType>> model){
-//                        getCaseWorkItemsTablePanel().itemDetailsPerformed(target, model);
-//                    }
-
                 };
         caseWorkItems.setOutputMarkupId(true);
         add(caseWorkItems);
@@ -64,16 +63,9 @@ public abstract class CaseWorkItemsTableWithDetailsPanel extends BasePanel<Prism
 
     }
 
-    protected MultivalueContainerListPanelWithDetailsPanel<CaseWorkItemType, AssignmentCandidatesSpecification> getCaseWorkItemsTablePanel() {
-        return ((MultivalueContainerListPanelWithDetailsPanel<CaseWorkItemType, AssignmentCandidatesSpecification>)get(ID_WORKITEMS_TABLE));
+    protected MultivalueContainerListPanelWithDetailsPanel<CaseWorkItemType> getCaseWorkItemsTablePanel() {
+        return ((MultivalueContainerListPanelWithDetailsPanel<CaseWorkItemType>)get(ID_WORKITEMS_TABLE));
     }
-
-    protected abstract ObjectQuery createQuery();
 
     protected abstract UserProfileStorage.TableId getTableId();
-
-    private ObjectTabStorage getWorkitemsTabStorage(){
-        return getPageBase().getSessionStorage().getCaseWorkitemsTabStorage();
-    }
-
 }

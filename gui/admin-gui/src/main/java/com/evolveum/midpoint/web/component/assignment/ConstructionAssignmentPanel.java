@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 
@@ -59,10 +61,9 @@ public class ConstructionAssignmentPanel extends AssignmentPanel {
     }
 
     @Override
-    protected ObjectQuery createObjectQuery(){
+    protected ObjectQuery getCustomizeQuery() {
         return getParentPage().getPrismContext().queryFor(AssignmentType.class)
-                .exists(AssignmentType.F_CONSTRUCTION)
-                .build();
+                .exists(AssignmentType.F_CONSTRUCTION).build();
     }
 
     @Override

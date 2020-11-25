@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.component.box;
 import java.util.HashMap;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.AttributeModifier;
@@ -36,7 +38,6 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
@@ -181,7 +182,7 @@ public abstract class InfoBoxPanel extends BasePanel<DashboardWidgetType> {
                 navigateToObjectCollectionPage(dashboardWidget);
                 break;
             case AUDIT_SEARCH:
-                navigateToAuditPage(dashboardWidget);
+                navigateToObjectCollectionPage(dashboardWidget);
                 break;
             case OBJECT:
                 navigateToObjectPage();
@@ -212,19 +213,6 @@ public abstract class InfoBoxPanel extends BasePanel<DashboardWidgetType> {
             parameters.add(PageBase.PARAMETER_DASHBOARD_TYPE_OID, getDashboardOid());
             parameters.add(PageBase.PARAMETER_DASHBOARD_WIDGET_NAME, dashboardWidget.getIdentifier());
             getPageBase().navigateToNext(pageType, parameters);
-        }  else {
-            LOGGER.error("CollectionType from collectionRef is null in widget " + dashboardWidget.getIdentifier());
-        }
-    }
-
-    private void navigateToAuditPage(DashboardWidgetType dashboardWidget) {
-        Task task = getPageBase().createSimpleTask("Is audit collection");
-        CollectionRefSpecificationType collectionRefSpecificationType = getObjectCollectionRef();
-        if(DashboardUtils.isAuditCollection(collectionRefSpecificationType, getPageBase().getModelService(), task, task.getResult())) {
-            PageParameters params = new PageParameters();
-            params.add(PageAuditLogViewer.PARAM_DASHBOARD, getDashboardOid());
-            params.add(PageAuditLogViewer.PARAM_DASHBOARD_WIDGET, getModelObject().getIdentifier());
-            getPageBase().navigateToNext(PageAuditLogViewer.class, params);
         }  else {
             LOGGER.error("CollectionType from collectionRef is null in widget " + dashboardWidget.getIdentifier());
         }

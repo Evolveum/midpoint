@@ -406,6 +406,11 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                     }
 
                     @Override
+                    public boolean handle(AuditEventRecordType auditRecord) {
+                        return true;
+                    }
+
+                    @Override
                     public int getProgress() {
                         return 0;
                     }

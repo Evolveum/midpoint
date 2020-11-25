@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.web.page.admin.reports;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -18,12 +19,13 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
-import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
+import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.reports.component.ImportReportPopupPanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.RunReportPopupPanel;
@@ -33,8 +35,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
@@ -55,8 +57,11 @@ import java.util.List;
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORTS_URL,
                 label = "PageReports.auth.reports.label",
                 description = "PageReports.auth.reports.description")})
-public class PageReports extends PageAdminObjectList<ReportType> {
+public class PageReports extends PageAdmin {
     private static final long serialVersionUID = 1L;
+
+    private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_TABLE = "table";
 
     private static final String DOT_CLASS = PageReports.class.getName() + ".";
     private static final String OPERATION_RUN_REPORT = DOT_CLASS + "runReport";
@@ -66,35 +71,55 @@ public class PageReports extends PageAdminObjectList<ReportType> {
     }
 
     @Override
-    protected void objectDetailsPerformed(AjaxRequestTarget target, ReportType reportType) {
-        PageParameters pageParameters = new PageParameters();
-        pageParameters.add(OnePageParameterEncoder.PARAMETER, reportType.getOid());
-        if (reportType.getJasper() != null) {
-            navigateToNext(PageJasperReport.class, pageParameters);
-        } else {
-            navigateToNext(PageReport.class, pageParameters);
-        }
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
     }
 
-    @Override
-    protected Class<ReportType> getType() {
-        return ReportType.class;
-    }
+    private void initLayout() {
+        Form mainForm = new MidpointForm(ID_MAIN_FORM);
+        add(mainForm);
 
-    @Override
-    protected List<IColumn<SelectableBean<ReportType>, String>> initColumns() {
+        MainObjectListPanel<ReportType> table = new MainObjectListPanel<ReportType>(ID_TABLE, ReportType.class) {
+            @Override
+            protected void objectDetailsPerformed(AjaxRequestTarget target, ReportType reportType) {
+                PageParameters pageParameters = new PageParameters();
+                pageParameters.add(OnePageParameterEncoder.PARAMETER, reportType.getOid());
+                if (reportType.getJasper() != null) {
+                    navigateToNext(PageJasperReport.class, pageParameters);
+                } else {
+                    navigateToNext(PageReport.class, pageParameters);
+                }
+            }
 
-        return ColumnUtils.getDefaultObjectColumns();
-    }
+            @Override
+            protected UserProfileStorage.TableId getTableId() {
+                return UserProfileStorage.TableId.PAGE_REPORTS;
+            }
 
-    @Override
-    protected List<InlineMenuItem> createRowActions() {
-        return createInlineMenu();
-    }
+            @Override
+            protected List<IColumn<SelectableBean<ReportType>, String>> createDefaultColumns() {
+                return ColumnUtils.getDefaultObjectColumns();
+            }
 
-    @Override
-    protected UserProfileStorage.TableId getTableId() {
-        return UserProfileStorage.TableId.PAGE_REPORTS;
+            @Override
+            protected IColumn<SelectableBean<ReportType>, String> createCheckboxColumn() {
+                return null;
+            }
+
+            @Override
+            protected List<InlineMenuItem> createInlineMenu() {
+                return PageReports.this.createInlineMenu();
+            }
+
+            @Override
+            protected boolean isCreateNewObjectEnabled() {
+                return false;
+            }
+        };
+        table.setOutputMarkupId(true);
+        mainForm.add(table);
+
     }
 
     private List<InlineMenuItem> createInlineMenu(){
@@ -293,15 +318,5 @@ public class PageReports extends PageAdminObjectList<ReportType> {
         PageParameters params = new PageParameters();
         params.add(OnePageParameterEncoder.PARAMETER, report.getOid());
         navigateToNext(PageJasperReport.class, params);
-    }
-
-    @Override
-    protected boolean isCreateCheckColumnEnabled() {
-        return false;
-    }
-
-    @Override
-    protected boolean getNewObjectGenericButtonVisibility() {
-        return false;
     }
 }
