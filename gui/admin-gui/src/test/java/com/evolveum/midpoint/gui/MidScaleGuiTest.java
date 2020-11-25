@@ -9,12 +9,21 @@ package com.evolveum.midpoint.gui;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
+import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.page.self.*;
+
+import org.apache.wicket.util.tester.WicketTester;
 import org.javasimon.Split;
 import org.javasimon.Stopwatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -36,7 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ActiveProfiles("test")
 @SpringBootTest(classes = TestMidPointSpringApplication.class)
-public class TestPageUsers extends AbstractInitializedGuiIntegrationTest implements PerformanceTestMixin {
+public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest implements PerformanceTestMixin {
 
     @Autowired TestQueryListener queryListener;
 
@@ -57,6 +66,8 @@ public class TestPageUsers extends AbstractInitializedGuiIntegrationTest impleme
         modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
                 ItemPath.create(SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_ENABLE_EXPERIMENTAL_FEATURES),
                 initTask, initResult, true);
+
+
     }
 
     @BeforeMethod
@@ -65,18 +76,47 @@ public class TestPageUsers extends AbstractInitializedGuiIntegrationTest impleme
     }
 
     @Test
-    public void test100listUsers() {
-        logger.info(getTestName());
+    public void test010PageSelfDashboard() {
+        displayTestTitle(getTestName());
+        runTestFor(PageSelfDashboard.class, "selfDashboard", "Home");
+    }
+
+    @Test
+    public void test020PageSelfProfile() {
+        displayTestTitle(getTestName());
+        runTestFor(PageUserSelfProfile.class, "selfProfile", "Profile");
+    }
+
+    @Test
+    public void test030PageSelfCredentials() {
+        displayTestTitle(getTestName());
+        runTestFor(PageSelfCredentials.class, "rcredentials", "Credentials");
+    }
+
+    @Test
+    public void test040PageRequestRole() {
+        displayTestTitle(getTestName());
+        runTestFor(PageAssignmentShoppingCart.class, "requestRole", "Request a role");
+    }
+
+
+    @Test
+    public void test110PageDashboard() {
+        displayTestTitle(getTestName());
+        runTestFor(PageDashboardInfo.class, "dashboard", "Info Dashboard");
+    }
+
+    private void runTestFor(Class pageToRender, String stopwathName, String stopwatchDescription) {
         OperationsPerformanceMonitor.INSTANCE.clearGlobalPerformanceInformation();
-        Stopwatch stopwatch = stopwatch("list users");
-        for (int i = 0; i < 100; i++) {
+        Stopwatch stopwatch = stopwatch(stopwathName, stopwatchDescription);
+        for (int i = 0; i < 1; i++) {
             try (Split ignored = stopwatch.start()) {
                 queryListener.start();
-                tester.startPage(PageUsers.class);
+                tester.startPage(pageToRender);
             }
         }
         queryListener.dumpAndStop();
-        tester.assertRenderedPage(PageUsers.class);
+        tester.assertRenderedPage(pageToRender);
         OperationsPerformanceInformationType performanceInformation =
                 OperationsPerformanceInformationUtil.toOperationsPerformanceInformationType(
                         OperationsPerformanceMonitor.INSTANCE.getGlobalPerformanceInformation());
@@ -85,14 +125,33 @@ public class TestPageUsers extends AbstractInitializedGuiIntegrationTest impleme
         displayValue("Operation performance (by time)",
                 OperationsPerformanceInformationUtil.format(performanceInformation,
                         new AbstractStatisticsPrinter.Options(AbstractStatisticsPrinter.Format.TEXT, AbstractStatisticsPrinter.SortBy.TIME), null, null));
-//        tester.destroy();
+    }
+
+
+    @Test
+    public void test210listUsers() {
+        logger.info(getTestName());
+        runTestFor(PageUsers.class, "listUsers", "List users");
+    }
+
+    @Test
+    public void test220newUser() {
+        logger.info(getTestName());
+        runTestFor(PageUser.class, "newUser", "New user");
+
+    }
+
+    @Test
+    public void test310orgTree() {
+        logger.info(getTestName());
+        runTestFor(PageOrgTree.class, "orgTree", "Organization tree");
     }
 
     @Test(enabled = false) // doesn't work beacuse of getPageBase usages
     public void test200sidebarMenu() {
         logger.info(getTestName());
         OperationsPerformanceMonitor.INSTANCE.clearGlobalPerformanceInformation();
-        Stopwatch stopwatch = stopwatch("sidebar");
+        Stopwatch stopwatch = stopwatch("sidebar", "sidebar perf");
         try (Split ignored = stopwatch.start()) {
             queryListener.start();
             tester.startComponentInPage(LeftMenuPanel.class);
