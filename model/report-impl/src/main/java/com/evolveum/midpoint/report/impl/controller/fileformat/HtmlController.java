@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -372,7 +373,8 @@ public class HtmlController extends FileFormatController {
                 try {
                     writeRecord = evaluateCondition(condition, value, task, result);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LOGGER.error("Couldn't evaluate condition for report record.");
+                    return false;
                 }
             }
             if (writeRecord) {
@@ -400,18 +402,90 @@ public class HtmlController extends FileFormatController {
     }
 
     private ContainerTag createTableBoxForAuditView(
-            String label, CollectionRefSpecificationType collection, @NotNull CompiledObjectCollectionView compiledCollection,
+            String tableLabel, CollectionRefSpecificationType collection, @NotNull CompiledObjectCollectionView compiledCollection,
             ExpressionType condition, Task task, OperationResult result, boolean recordProgress) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         long startMillis = getReportService().getClock().currentTimeMillis();
-        List<AuditEventRecordType> records = getReportService().getDashboardService().searchObjectFromCollection(collection, null, task, result);
+        ContainerTag table = createTable();
+        ContainerTag tHead = TagCreator.thead();
+        ContainerTag tBody = TagCreator.tbody();
 
+        List<GuiObjectColumnType> columns;
         if (compiledCollection.getColumns().isEmpty()) {
-            getReportService().getModelInteractionService().applyView(compiledCollection, DefaultColumnUtils.getDefaultAuditEventsView());
+            columns = MiscSchemaUtil.orderCustomColumns(DefaultColumnUtils.getDefaultAuditEventsView().getColumn());
+        } else {
+            columns = MiscSchemaUtil.orderCustomColumns(compiledCollection.getColumns());
         }
-        ContainerTag table = createTable(compiledCollection, records, recordProgress, condition, task, result);
+        ContainerTag trForHead = TagCreator.tr().withStyle("width: 100%;");
+        PrismContainerDefinition<AuditEventRecordType> def = getReportService().getPrismContext().getSchemaRegistry()
+                .findItemDefinitionByCompileTimeClass(AuditEventRecordType.class, PrismContainerDefinition.class);
+        columns.forEach(column -> {
+            Validate.notNull(column.getName(), "Name of column is null");
+
+            DisplayType columnDisplay = column.getDisplay();
+            String label = getColumnLabel(column, def);
+            ContainerTag th = TagCreator.th(TagCreator.div(TagCreator.span(label).withClass("sortableLabel")));
+            if (columnDisplay != null) {
+                if (StringUtils.isNotBlank(columnDisplay.getCssClass())) {
+                    th.withClass(columnDisplay.getCssClass());
+                }
+                if (StringUtils.isNotBlank(columnDisplay.getCssStyle())) {
+                    th.withStyle(columnDisplay.getCssStyle());
+                }
+            }
+            trForHead.with(th);
+        });
+        tHead.with(trForHead);
+        table.with(tHead);
+
+        AuditResultHandler handler = new AuditResultHandler() {
+            private int i =1;
+
+            @Override
+            public boolean handle(AuditEventRecordType auditRecord) {
+                if (recordProgress) {
+                    recordProgress(task, i, result, LOGGER);
+                    i++;
+                }
+                boolean writeRecord = true;
+                if (condition != null) {
+                    try {
+                        writeRecord = evaluateCondition(condition, auditRecord, task, result);
+                    } catch (Exception e) {
+                        LOGGER.error("Couldn't evaluate condition for report record.");
+                        return false;
+                    }
+                }
+
+                if (writeRecord) {
+                    ContainerTag tr = TagCreator.tr();
+                    columns.forEach(column -> {
+                        ExpressionType expression = column.getExport() != null ? column.getExport().getExpression() : null;
+                        ItemPath path = column.getPath() == null ? null : column.getPath().getItemPath();
+                        try {
+                            tr.with(TagCreator
+                                    .th(TagCreator.div(getRealValueAsString(column, getAuditRecordAsContainer(auditRecord),
+                                            path, expression, task, result))
+                                            .withStyle("white-space: pre-wrap")));
+                        } catch (SchemaException e) {
+                            LOGGER.error("Couldn't create singleValueContainer for audit record " + auditRecord);
+                        }
+                    });
+                    tBody.with(tr);
+                }
+                return true;
+            }
+
+            @Override
+            public int getProgress() {
+                return i;
+            }
+        };
+        table.with(tBody);
+
+        getReportService().getDashboardService().searchObjectFromCollection(collection, handler, null, task, result, recordProgress);
         DisplayType display = compiledCollection.getDisplay();
-        return createTableBox(table, label, records.size(),
+        return createTableBox(table, tableLabel, (handler.getProgress() - 1),
                 convertMillisToString(startMillis), display);
     }
 
