@@ -11,7 +11,7 @@ import java.util.Objects;
 
 import org.hibernate.criterion.MatchMode;
 
-import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query.restriction.ItemRestrictionOperation;

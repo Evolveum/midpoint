@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.sql.query.restriction;
 
 import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.ExistsFilter;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaDataNodeDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaPropertyDefinition;

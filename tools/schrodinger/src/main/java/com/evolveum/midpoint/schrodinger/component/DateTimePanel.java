@@ -65,19 +65,19 @@ public class DateTimePanel<T> extends Component<T> {
         return findAmOrPmChoice().getSelectedText();
     }
 
-    private SelenideElement findDate() {
+    public SelenideElement findDate() {
         return getParentElement().$(Schrodinger.byDataId("date")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
     }
 
-    private SelenideElement findHours() {
+    public SelenideElement findHours() {
         return getParentElement().$(Schrodinger.byDataId("hours")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
     }
 
-    private SelenideElement findMinutes() {
+    public SelenideElement findMinutes() {
         return getParentElement().$(Schrodinger.byDataId("minutes")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
     }
 
-    private SelenideElement findAmOrPmChoice() {
+    public SelenideElement findAmOrPmChoice() {
         return getParentElement().$(Schrodinger.byDataId("amOrPmChoice")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
     }
 }

@@ -142,13 +142,13 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
 
     @Test(dependsOnMethods = {"mod05test04CreatingRoles"}, groups={"M5"}, dependsOnGroups={"M4"})
     public void mod05test05DisableOnUnassign() {
-        addObjectFromFile(CSV_1_RESOURCE_FILE_5_5);
+        importObject(CSV_1_RESOURCE_FILE_5_5, true);
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
 
-        addObjectFromFile(CSV_2_RESOURCE_FILE_5_5);
+        importObject(CSV_2_RESOURCE_FILE_5_5, true);
         changeResourceAttribute(CSV_2_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv2TargetFile.getAbsolutePath(), true);
 
-        addObjectFromFile(CSV_3_RESOURCE_FILE_5_5);
+        importObject(CSV_3_RESOURCE_FILE_5_5, true);
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
 
         Utils.removeAssignments(showUser("kirk").selectTabAssignments(), "Internal Employee");

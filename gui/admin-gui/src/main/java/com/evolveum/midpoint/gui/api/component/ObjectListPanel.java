@@ -20,6 +20,8 @@ import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import static java.util.Collections.singleton;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;

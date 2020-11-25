@@ -838,12 +838,8 @@ public class ShadowManager {
         computeUpdateShadowAttributeChanges(ctx, internalShadowModifications, resourceShadow, repoShadow);
         addModifyMetadataDeltas(repoShadow, internalShadowModifications);
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Updading repository shadow\n{}", DebugUtil.debugDump(internalShadowModifications, 1));
-        }
-
+        LOGGER.trace("Updating repository shadow\n{}", DebugUtil.debugDumpLazily(internalShadowModifications, 1));
         repositoryService.modifyObject(ShadowType.class, repoShadow.getOid(), internalShadowModifications, parentResult);
-
         LOGGER.trace("Repository shadow updated");
 
         parentResult.recordSuccess();

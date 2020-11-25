@@ -54,11 +54,15 @@ public class TableRow<X, T extends Table<X>> extends Component<T> {
     }
 
     public TableRow clickColumnByName(String name) {
+        return clickColumnByName(name, "a");
+    }
+
+    public TableRow clickColumnByName(String name, String cellElementTagName) {
         int index = getParent().findColumnByLabel(name);
         if (index < 0) {
             return this;
         }
-        SelenideElement a = getParentElement().$(By.cssSelector("td:nth-child(" + index + ") a"));
+        SelenideElement a = getParentElement().$(By.cssSelector("td:nth-child(" + index + ") " + cellElementTagName));
         a.click();
         // todo implement
         return this;
