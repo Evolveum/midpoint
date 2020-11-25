@@ -147,7 +147,7 @@ public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest imple
         runTestFor(PageOrgTree.class, "orgTree", "Organization tree");
     }
 
-    @Test(enabled = false) // doesn't work beacuse of getPageBase usages
+    @Test(enabled = false) // doesn't work because of getPageBase usages
     public void test200sidebarMenu() {
         logger.info(getTestName());
         OperationsPerformanceMonitor.INSTANCE.clearGlobalPerformanceInformation();
