@@ -15,6 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
@@ -34,12 +35,18 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import javax.jms.JMSException;
 import javax.xml.namespace.QName;
 
 /**
- * Tests "asynchronous provisioning" functionality.
- * <p>
- * TODO: name
+ * Tests basic asynchronous provisioning functionality:
+ *  - addObject
+ *  - modifyObject
+ *  - deleteObject
+ *
+ * Subclasses uses various options like:
+ * - target: mock or JMS
+ * - options: confirmations (yes/no), full data (or deltas), qualified JSON (yes/no)
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
@@ -55,7 +62,7 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
     private static final ItemName ATTR_SHOE_SIZE = new ItemName(NS_RI, "shoeSize");
     private static final ItemPath ATTR_SHOE_SIZE_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_SHOE_SIZE);
 
-    PrismObject<ResourceType> resource;
+    private PrismObject<ResourceType> resource;
 
     private String jackAccountOid;
 
@@ -82,10 +89,23 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
 
     @Test
     public void test000Sanity() throws Exception {
-        testSanity();
+        testResource();
+        testSanityExtra();
     }
 
-    protected abstract void testSanity() throws Exception;
+    private void testResource() throws Exception {
+        given();
+        Task task = getTestTask();
+
+        when();
+        OperationResult testResult = provisioningService.testResource(resource.getOid(), task);
+
+        then();
+        assertSuccess(testResult);
+    }
+
+    protected void testSanityExtra() throws Exception {
+    }
 
     @SuppressWarnings("unchecked")
     @Test
@@ -103,6 +123,7 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
         then();
         assertSuccessOrInProgress(result);
 
+        dumpRequests();
         String req = getRequest();
         JsonRequest jsonRequest = JsonRequest.from(req);
         assertThat(jsonRequest.getOperation()).isEqualTo("add");
@@ -112,7 +133,7 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
         assertThat((Collection<Object>) jsonRequest.getAttributes().get(icfsName())).containsExactly("jack");
         assertThat((Collection<Object>) jsonRequest.getAttributes().get(riDrink())).containsExactly("rum");
 
-        assertRepoShadow(jackAccountOid); // todo
+        assertRepoShadow(jackAccountOid);
         assertShadowFuture(jackAccountOid)
                 .attributes()
                     .assertValue(ICFS_NAME, "jack")
@@ -140,6 +161,7 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
         then();
         assertSuccessOrInProgress(result);
 
+        dumpRequests();
         String req = getRequest();
         JsonRequest jsonRequest = JsonRequest.from(req);
         assertThat(jsonRequest.getOperation()).isEqualTo("modify");
@@ -161,8 +183,7 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
             assertThat((Collection<Object>) jsonRequest.getChanges().get(riDrink()).getAdd()).containsExactly("water");
         }
 
-
-        assertRepoShadow(jackAccountOid); // todo
+        assertRepoShadow(jackAccountOid);
         assertShadowFuture(jackAccountOid)
                 .attributes()
                     .assertValue(ICFS_NAME, "jack")
@@ -191,6 +212,7 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
         then();
         assertSuccessOrInProgress(result);
 
+        dumpRequests();
         String req = getRequest();
         JsonRequest jsonRequest = JsonRequest.from(req);
         assertThat(jsonRequest.getOperation()).isEqualTo("modify");
@@ -212,7 +234,7 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
             assertThat((Collection<Object>) jsonRequest.getChanges().get(riDrink()).getDelete()).containsExactly("water");
         }
 
-        assertRepoShadow(jackAccountOid); // todo
+        assertRepoShadow(jackAccountOid);
         assertShadowFuture(jackAccountOid)
                 .attributes()
                     .assertValue(ICFS_NAME, "jack")
@@ -236,6 +258,7 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
         then();
         assertSuccessOrInProgress(result);
 
+        dumpRequests();
         String req = getRequest();
         JsonRequest jsonRequest = JsonRequest.from(req);
         assertThat(jsonRequest.getOperation()).isEqualTo("delete");
@@ -262,50 +285,37 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
         }
     }
 
-    private String ns(String uri) {
-        if (isQualified()) {
-            return uri + "#";
-        } else {
-            return "";
-        }
-    }
-
     private String getAccountObjectClassName() {
-        return treatNamespace(RI_ACCOUNT_OBJECT_CLASS);
+        return qNameAsString(RI_ACCOUNT_OBJECT_CLASS);
     }
 
     private String riDrink() {
-        return treatNamespace(ATTR_DRINK);
+        return qNameAsString(ATTR_DRINK);
     }
 
     private String riShoeSize() {
-        return treatNamespace(ATTR_SHOE_SIZE);
+        return qNameAsString(ATTR_SHOE_SIZE);
     }
 
     private String icfsName() {
-        return treatNamespace(ICFS_NAME);
+        return qNameAsString(ICFS_NAME);
     }
 
     private String icfsUid() {
-        return treatNamespace(ICFS_UID);
+        return qNameAsString(ICFS_UID);
     }
 
-    private String treatNamespace(QName qName) {
-        return ns(qName.getNamespaceURI()) + qName.getLocalPart();
+    private String qNameAsString(QName qName) {
+        if (isQualified()) {
+            return qName.getNamespaceURI() + "#" + qName.getLocalPart();
+        } else {
+            return qName.getLocalPart();
+        }
     }
 
-    private Object water() {
-        return null;
-    }
+    protected abstract String getRequest() throws JMSException, IOException;
 
-    private Object add42() {
-        return null;
-    }
+    protected abstract void dumpRequests() throws JMSException;
 
-    protected abstract String getRequest();
-
-    protected abstract void dumpRequests();
-
-    protected abstract void clearRequests();
-
+    protected abstract void clearRequests() throws JMSException;
 }

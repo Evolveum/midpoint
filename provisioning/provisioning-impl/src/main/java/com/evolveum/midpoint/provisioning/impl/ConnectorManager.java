@@ -147,7 +147,7 @@ public class ConnectorManager implements Cache {
     ConnectorInstance getConfiguredConnectorInstance(ConnectorSpec connectorSpec, boolean forceFresh, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 
-        ConfiguredConnectorInstanceEntry connectorCacheEntry = getConnectorInstanceCacheEntry(connectorSpec, result);
+        ConfiguredConnectorInstanceEntry connectorCacheEntry = getOrCreateConnectorInstanceCacheEntry(connectorSpec, result);
         ConnectorInstance connectorInstance = connectorCacheEntry.getConnectorInstance();
 
         if (forceFresh && connectorCacheEntry.isConfigured()) {
@@ -183,8 +183,8 @@ public class ConnectorManager implements Cache {
      * connector may be returned.
      * This is exposed mostly to allow proper handling of errors in the testConnection methods of ResourceManager.
      */
-    ConfiguredConnectorInstanceEntry getConnectorInstanceCacheEntry(ConnectorSpec connectorSpec, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+    ConfiguredConnectorInstanceEntry getOrCreateConnectorInstanceCacheEntry(ConnectorSpec connectorSpec, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
         ConfiguredConnectorCacheKey cacheKey = connectorSpec.getCacheKey();
         ConfiguredConnectorInstanceEntry connectorInstanceCacheEntry = connectorInstanceCache.get(cacheKey);
 
@@ -226,13 +226,8 @@ public class ConnectorManager implements Cache {
     }
 
     private boolean isFresh(ConfiguredConnectorInstanceEntry configuredConnectorInstanceEntry, ConnectorSpec connectorSpec) {
-        if (!configuredConnectorInstanceEntry.getConnectorOid().equals(connectorSpec.getConnectorOid())) {
-            return false;
-        }
-        if (!configuredConnectorInstanceEntry.getConfiguration().equivalent(connectorSpec.getConnectorConfiguration())) {
-            return false;
-        }
-        return true;
+        return configuredConnectorInstanceEntry.getConnectorOid().equals(connectorSpec.getConnectorOid())
+                && configuredConnectorInstanceEntry.getConfiguration().equivalent(connectorSpec.getConnectorConfiguration());
     }
 
     // should only be used by this class and testConnection in Resource manager
@@ -248,23 +243,23 @@ public class ConnectorManager implements Cache {
     private ConnectorInstance createConnectorInstance(ConnectorSpec connectorSpec, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
 
-        ConnectorType connectorType = getConnector(connectorSpec, result);
+        ConnectorType connectorBean = getConnector(connectorSpec, result);
 
-        ConnectorFactory connectorFactory = determineConnectorFactory(connectorType);
+        ConnectorFactory connectorFactory = determineConnectorFactory(connectorBean);
 
-        ConnectorInstance connector;
+        ConnectorInstance connectorInstance;
         try {
 
             InternalMonitor.recordCount(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
 
-            connector = connectorFactory.createConnectorInstance(connectorType,
+            connectorInstance = connectorFactory.createConnectorInstance(connectorBean,
                     ResourceTypeUtil.getResourceNamespace(connectorSpec.getResource()),
                     connectorSpec.getResource().getName().toString(),
                     connectorSpec.toString());
 
             // FIXME temporary -- remove when no longer needed (MID-5931)
-            if (connector instanceof AbstractManagedConnectorInstance) {
-                ((AbstractManagedConnectorInstance) connector).setResourceOid(connectorSpec.getResource().getOid());
+            if (connectorInstance instanceof AbstractManagedConnectorInstance) {
+                ((AbstractManagedConnectorInstance) connectorInstance).setResourceOid(connectorSpec.getResource().getOid());
             }
 
         } catch (ObjectNotFoundException e) {
@@ -276,9 +271,9 @@ public class ConnectorManager implements Cache {
         // If it happens often, it may be an
         // indication of a problem. Therefore it is good for admin to see it.
         LOGGER.info("Created new connector instance for {}: {} v{}",
-                connectorSpec, connectorType.getConnectorType(), connectorType.getConnectorVersion());
+                connectorSpec, connectorBean.getConnectorType(), connectorBean.getConnectorVersion());
 
-        return connector;
+        return connectorInstance;
 
     }
 
@@ -597,7 +592,7 @@ public class ConnectorManager implements Cache {
 
     public void connectorFrameworkSelfTest(OperationResult parentTestResult, Task task) {
         for (ConnectorFactory connectorFactory: getConnectorFactories()) {
-                connectorFactory.selfTest(parentTestResult);
+            connectorFactory.selfTest(parentTestResult);
         }
     }
 

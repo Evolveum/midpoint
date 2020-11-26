@@ -10,7 +10,7 @@ package com.evolveum.midpoint.provisioning.impl.async.provisioning;
 import java.io.File;
 
 /**
- *
+ * Mock target, full data (no deltas).
  */
 public class TestAsyncProvisioningMockFullData extends TestAsyncProvisioningMock {
 

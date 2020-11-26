@@ -7,34 +7,78 @@
 
 package com.evolveum.midpoint.provisioning.impl.async.provisioning;
 
-import javax.annotation.PreDestroy;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Enumeration;
+import javax.annotation.PreDestroy;
+import javax.jms.*;
+import javax.naming.InitialContext;
+
+import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
+import org.apache.activemq.artemis.jms.client.ActiveMQMessage;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
 /**
+ * Tests with real Artemis broker.
  *
+ * We use embedded one, but we can (temporarily) switch to real external broker, if needed.
+ *
+ * Using JMS to access the broker from the tests.
+ * On the sending (midPoint) side, either JMS or Core API is used.
  */
 public abstract class TestAsyncProvisioningArtemis extends TestAsyncProvisioning {
 
-    static final boolean EXTERNAL_BROKER_TESTS_ENABLED = true;
+    protected static class BrokerAccess {
+        private final String connectionFactory;
+        private final String username;
+        private final String password;
 
-    static final String EXTERNAL_BROKER_URL = "tcp://localhost:61616";
-    static final String EXTERNAL_BROKER_LOGIN = "admin";
-    static final String EXTERNAL_BROKER_PASSWORD = "secret";
+        private BrokerAccess(String connectionFactory, String username, String password) {
+            this.connectionFactory = connectionFactory;
+            this.username = username;
+            this.password = password;
+        }
+    }
+
+    private static final BrokerAccess EMBEDDED = new BrokerAccess("invmConnectionFactory", null, null);
+    @SuppressWarnings("unused")
+    private static final BrokerAccess EXTERNAL = new BrokerAccess("tcpConnectionFactory", "admin", "secret");
+
+    private static final BrokerAccess BROKER = EMBEDDED;
+
+    private static final String SANITY_TEST_QUEUE = "SanityTestQueue";
+    private static final String PROVISIONING_QUEUE = "ProvisioningQueue";
 
     protected EmbeddedActiveMQ embeddedBroker;
+
+    private Connection connection;
+    private MessageConsumer consumer;
+    private QueueBrowser browser;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
         startEmbeddedBroker();
+
+        InitialContext ic = new InitialContext();
+        ConnectionFactory cf = (ConnectionFactory) ic.lookup(BROKER.connectionFactory);
+        Queue provisioningQueue = (Queue) ic.lookup(PROVISIONING_QUEUE);
+        connection = cf.createConnection(BROKER.username, BROKER.password);
+        connection.start();
+
+        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        consumer = session.createConsumer(provisioningQueue);
+        browser = session.createBrowser(provisioningQueue);
     }
 
     @PreDestroy
     public void preDestroy() throws Exception {
+        if (connection != null) {
+            connection.close();
+        }
         stopEmbeddedBroker();
     }
 
@@ -48,17 +92,69 @@ public abstract class TestAsyncProvisioningArtemis extends TestAsyncProvisioning
     }
 
     @Override
-    protected String getRequest() {
-        return null;
+    protected String getRequest() throws JMSException {
+        Message msg = consumer.receiveNoWait();
+        displayValue("Message received", msg);
+        if (msg instanceof TextMessage) {
+            String text = ((TextMessage) msg).getText();
+            displayValue("Message " + msg.getJMSMessageID(), text);
+            return text;
+        } else if (msg instanceof ActiveMQMessage) {
+            ClientMessage coreMessage = ((ActiveMQMessage) msg).getCoreMessage();
+            String text = coreMessage.getBodyBuffer().readUTF();
+            displayValue("Message " + coreMessage.getMessageID(), text);
+            return text;
+        } else {
+            return null;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    protected void dumpRequests() throws JMSException {
+        // Looks like the browser does not see messages "seen" by the consumer (although not received yet)
+        Enumeration<TextMessage> enumeration = browser.getEnumeration();
+        StringBuilder sb = new StringBuilder();
+        while (enumeration.hasMoreElements()) {
+            TextMessage message = enumeration.nextElement();
+            sb.append(message.getJMSMessageID()).append(" -> ").append(message.getText()).append("\n");
+        }
+        displayValue("Messages", sb.toString());
     }
 
     @Override
-    protected void dumpRequests() {
-
+    protected void clearRequests() throws JMSException {
+        while (consumer.receiveNoWait() != null) {
+            // No processing needed
+        }
     }
 
     @Override
-    protected void clearRequests() {
+    protected void testSanityExtra() throws Exception {
+        testBrokerSanity();
+        dumpRequests();
+    }
 
+    private void testBrokerSanity() throws Exception {
+        InitialContext ic = new InitialContext();
+        ConnectionFactory cf = (ConnectionFactory) ic.lookup(BROKER.connectionFactory);
+        Queue queue = (Queue) ic.lookup(SANITY_TEST_QUEUE);
+        try (Connection connection = cf.createConnection(BROKER.username, BROKER.password)) {
+            connection.start();
+            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+            MessageProducer producer = session.createProducer(queue);
+            MessageConsumer consumer = session.createConsumer(queue);
+
+            String textSent = "Hello, world.";
+            TextMessage message = session.createTextMessage(textSent);
+            producer.send(message);
+
+            TextMessage receivedMessage = (TextMessage) consumer.receive();
+            String textReceived = receivedMessage.getText();
+            displayValue("Message received", textReceived);
+
+            assertThat(textReceived).as("text received").isEqualTo(textSent);
+            session.close();
+        }
     }
 }

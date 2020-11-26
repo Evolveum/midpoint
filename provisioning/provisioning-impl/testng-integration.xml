@@ -72,6 +72,11 @@
             <class name="com.evolveum.midpoint.provisioning.impl.async.update.TestAsyncUpdateCachingIndexOnly" />
             <class name="com.evolveum.midpoint.provisioning.impl.async.update.TestAsyncUpdateNoCaching" />
             <class name="com.evolveum.midpoint.provisioning.impl.async.update.TestAsyncUpdateCachingAmqp" />
+            <class name="com.evolveum.midpoint.provisioning.impl.async.provisioning.TestAsyncProvisioningMockPlain" />
+            <class name="com.evolveum.midpoint.provisioning.impl.async.provisioning.TestAsyncProvisioningMockFullData" />
+            <class name="com.evolveum.midpoint.provisioning.impl.async.provisioning.TestAsyncProvisioningMockConfirmationsQualified" />
+            <class name="com.evolveum.midpoint.provisioning.impl.async.provisioning.TestAsyncProvisioningArtemisJms" />
+            <class name="com.evolveum.midpoint.provisioning.impl.async.provisioning.TestAsyncProvisioningArtemisCore" />
         </classes>
     </test>
 </suite>

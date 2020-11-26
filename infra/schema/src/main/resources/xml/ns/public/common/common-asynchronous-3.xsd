@@ -564,6 +564,27 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AsyncProvisioningTargetType">
                 <xsd:sequence>
+                    <xsd:element name="connectionFactory" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Connection factory name. It is looked up via JNDI.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="username" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                User name used to authenticate to JMS broker.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="password" type="t:ProtectedStringType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Password used to authenticate to JMS broker.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="destination" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>

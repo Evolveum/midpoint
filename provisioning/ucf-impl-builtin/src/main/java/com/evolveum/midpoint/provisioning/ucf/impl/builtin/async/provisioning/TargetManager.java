@@ -13,7 +13,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.provisioning.targets.JmsProvisioningTarget;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArtemisProvisioningTargetType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.JmsProvisioningTargetType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -73,6 +76,8 @@ class TargetManager {
             }
         } else if (cfg instanceof ArtemisProvisioningTargetType) {
             return ArtemisProvisioningTarget.class;
+        } else if (cfg instanceof JmsProvisioningTargetType) {
+            return JmsProvisioningTarget.class;
         } else {
             throw new SystemException("Couldn't find async provisioning target class for configuration: " + cfg.getClass());
         }

@@ -280,7 +280,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
     @Override
     public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(
-            ResourceObjectIdentification identification, PrismObject<ShadowType> shadow, Collection<Operation> changes,
+            ResourceObjectIdentification identification, PrismObject<ShadowType> shadow, @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options, StateReporter reporter, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("modifyObject");
         return null;

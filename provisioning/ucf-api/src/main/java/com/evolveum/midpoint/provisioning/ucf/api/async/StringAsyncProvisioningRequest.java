@@ -32,4 +32,9 @@ public class StringAsyncProvisioningRequest implements AsyncProvisioningRequest 
     public @NotNull String getStringValue() {
         return stringValue;
     }
+
+    @Override
+    public @NotNull String asString() {
+        return stringValue;
+    }
 }

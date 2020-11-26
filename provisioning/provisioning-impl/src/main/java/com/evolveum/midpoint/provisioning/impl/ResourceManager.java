@@ -833,7 +833,7 @@ public class ResourceManager {
         ConfiguredConnectorInstanceEntry connectorInstanceCacheEntry;
         try {
             // Make sure we are getting non-configured instance.
-            connectorInstanceCacheEntry = connectorManager.getConnectorInstanceCacheEntry(connectorSpec, initResult);
+            connectorInstanceCacheEntry = connectorManager.getOrCreateConnectorInstanceCacheEntry(connectorSpec, initResult);
             initResult.recordSuccess();
         } catch (ObjectNotFoundException e) {
             // The connector was not found. The resource definition is either
@@ -851,18 +851,6 @@ public class ResourceManager {
             return;
         } catch (RuntimeException | Error e) {
             String msg = "Unexpected runtime error: "+e.getMessage();
-            operationCtx += " failed while getting connector instance. " + msg;
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
-            initResult.recordFatalError(msg, e);
-            return;
-        } catch (CommunicationException e) {
-            String msg = "Communication error: "+e.getMessage();
-            operationCtx += " failed while getting connector instance. " + msg;
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.DOWN, operationCtx, task, parentResult, true);
-            initResult.recordFatalError(msg, e);
-            return;
-        } catch (ConfigurationException e) {
-            String msg = "Configuration error: "+e.getMessage();
             operationCtx += " failed while getting connector instance. " + msg;
             modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
             initResult.recordFatalError(msg, e);

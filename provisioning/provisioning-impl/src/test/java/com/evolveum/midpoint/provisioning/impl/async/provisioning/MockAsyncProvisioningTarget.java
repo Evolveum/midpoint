@@ -19,7 +19,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 
 /**
- * TODO
+ * Mock async provisioning target - holding requests in memory.
  */
 public class MockAsyncProvisioningTarget implements AsyncProvisioningTarget {
 
@@ -33,6 +33,16 @@ public class MockAsyncProvisioningTarget implements AsyncProvisioningTarget {
     public static MockAsyncProvisioningTarget create(AsyncProvisioningTargetType configuration, AsyncProvisioningConnectorInstance connectorInstance) {
         LOGGER.info("create() method called");
         return INSTANCE;
+    }
+
+    @Override
+    public void connect() {
+        LOGGER.info("prepare() method called");
+    }
+
+    @Override
+    public void disconnect() {
+        LOGGER.info("done() method called");
     }
 
     @Override

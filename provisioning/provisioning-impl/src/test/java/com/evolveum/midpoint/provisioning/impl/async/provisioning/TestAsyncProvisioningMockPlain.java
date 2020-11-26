@@ -10,7 +10,7 @@ package com.evolveum.midpoint.provisioning.impl.async.provisioning;
 import java.io.File;
 
 /**
- *
+ * Mock target, plain serialization. (Simplified JSON.)
  */
 public class TestAsyncProvisioningMockPlain extends TestAsyncProvisioningMock {
 

@@ -12,5 +12,12 @@
         <acceptors>
             <acceptor name="in-vm">vm://0</acceptor>
         </acceptors>
+        <addresses>
+            <address name="ProvisioningQueue">
+                <anycast>
+                    <queue name="ProvisioningQueue"/>
+                </anycast>
+            </address>
+        </addresses>
     </core>
 </configuration>

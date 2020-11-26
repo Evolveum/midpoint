@@ -10,9 +10,22 @@ package com.evolveum.midpoint.provisioning.ucf.api.async;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 /**
- * TODO
+ * Represents a connection to asynchronous provisioning target (e.g. JMS queue residing in a broker).
  */
 public interface AsyncProvisioningTarget {
+
+    /**
+     * Prepares this object for use. This may mean connecting to the real target (e.g. JMS broker).
+     * Another option is to defer connecting until there is a real need to do that (testing
+     * connection or sending a message).
+     */
+    void connect();
+
+    /**
+     * Informs this object that it can disconnect from the real target (e.g. JMS broker);
+     * after all pending operations are done.
+     */
+    void disconnect();
 
     /**
      * Tests this target for reachability.

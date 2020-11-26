@@ -10,9 +10,10 @@ package com.evolveum.midpoint.provisioning.impl.async.provisioning;
 import java.io.File;
 
 /**
- *
+ * Mock target, using confirmations + qualified names.
+ * Note that confirmations are not fully supported yet.
  */
-public class TestAsyncProvisioningMockConfirmation extends TestAsyncProvisioningMock {
+public class TestAsyncProvisioningMockConfirmationsQualified extends TestAsyncProvisioningMock {
 
     private static final File RESOURCE_MOCK_FILE = new File(TEST_DIR, "resource-async-provisioning-mock-confirmation.xml");
 

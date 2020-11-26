@@ -6,30 +6,30 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<resource oid="c89f00c1-4446-48b6-a9eb-f9f094bdf2cd"
+<resource oid="acfa8b57-dbd2-473b-9e19-92a540d6b7f9"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.provisioning/AsyncProvisioningConnector">
 
-    <name>Async Provisioning Resource (Artemis Core)</name>
+    <name>Async Provisioning Resource (Artemis JMS)</name>
     <connectorRef oid="will-be-supplied-by-the-test-code"/>
     <connectorConfiguration>
         <conf:targets>
-            <artemis>
-                <uri>vm://0</uri>
+            <jms>
+                <connectionFactory>invmConnectionFactory</connectionFactory>
                 <!--<username>admin</username>-->
                 <!--<password>secret</password>-->
-                <address>ProvisioningQueue</address>
-            </artemis>
+                <destination>ProvisioningQueue</destination>
+            </jms>
         </conf:targets>
         <conf:predefinedTransformation>simplifiedJson</conf:predefinedTransformation>
     </connectorConfiguration>
     <schema>
         <definition>
             <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
-                    xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
-                    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+                        xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+                        targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
                 <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
