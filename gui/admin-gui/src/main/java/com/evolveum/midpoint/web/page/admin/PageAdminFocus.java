@@ -8,19 +8,25 @@ package com.evolveum.midpoint.web.page.admin;
 
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.factory.wrapper.AssignmentWrapperFactoryImpl;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.AssignmentValueWrapperImpl;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ShadowWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -48,6 +54,8 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
 
 public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjectDetails<F>
         implements ProgressReportingAwarePage {
@@ -639,21 +647,18 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
         }
     }
 
-    public List<AssignmentInfoDto> showAllAssignmentsPerformed(AjaxRequestTarget ajaxRequestTarget) {
+    public List<AssignmentValueWrapper> showAllAssignmentsPerformed(IModel<PrismContainerWrapper<AssignmentType>> parent) {
         LOGGER.debug("Recompute user assignments");
         Task task = createSimpleTask(OPERATION_RECOMPUTE_ASSIGNMENTS);
         OperationResult result = new OperationResult(OPERATION_RECOMPUTE_ASSIGNMENTS);
         ObjectDelta<F> delta;
-        Set<AssignmentInfoDto> assignmentInfoDtoSet = new TreeSet<>();
+        Set<AssignmentValueWrapper> assignmentValueWrapperSet = new TreeSet<>();
 
         try {
             reviveModels();
 
             PrismObjectWrapper<F> focusWrapper = getObjectWrapper();
             delta = focusWrapper.getObjectDelta();
-//            if (focusWrapper.getOldDelta() != null) {
-//                delta = ObjectDeltaCollectionsUtil.summarize(focusWrapper.getOldDelta(), delta);
-//            }
 
             switch (focusWrapper.getStatus()) {
                 case ADDED:
@@ -692,14 +697,12 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
                 modelContext = getModelInteractionService().previewChanges(Collections.singleton(delta), options, task, result);
             } catch (NoFocusNameSchemaException e) {
                 info(getString("pageAdminFocus.message.noUserName"));
-                ajaxRequestTarget.add(getFeedbackPanel());
                 return null;
             }
 
             Collection<? extends EvaluatedAssignment<?>> evaluatedAssignments = modelContext.getNonNegativeEvaluatedAssignments();
             if (evaluatedAssignments.isEmpty()) {
                 info(getString("pageAdminFocus.message.noAssignmentsAvailable"));
-                ajaxRequestTarget.add(getFeedbackPanel());
                 return null;
             }
 
@@ -715,7 +718,16 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
                         continue;
                     }
                     if (target.appliesToFocusWithAnyRelation(getRelationRegistry())) {
-                        assignmentInfoDtoSet.add(createAssignmentsPreviewDto(target, task, result));
+                        AssignmentType assignmentType = target.getAssignment();
+                        assignmentType.setDescription(target.getTarget().asObjectable().getDescription());
+                        assignmentType.getTargetRef().setTargetName(new PolyStringType(target.getTarget().getName()));
+                        assignmentType.getTargetRef().setType(target.getTarget().getComplexTypeDefinition().getTypeName());
+                        ValueStatus status = evaluatedAssignment.getAssignmentType(true) == null ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED;
+                        AssignmentValueWrapper assignmentValueWrapper = WebPrismUtil.createNewValueWrapper(parent.getObject(),
+                                assignmentType.asPrismContainerValue(), status, this);
+                        assignmentValueWrapper.setDirectAssignment(target.isDirectlyAssigned());
+                        assignmentValueWrapper.setAssignmentParent(target.getAssignmentPath());
+                        assignmentValueWrapperSet.add(assignmentValueWrapper);
                     }
                 }
 
@@ -726,25 +738,36 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
                         .getNonNegativeValues();
                 for (EvaluatedResourceObjectConstruction construction : evaluatedConstructions) {
                     if (!construction.isWeak()) {
-                        assignmentInfoDtoSet.add(createAssignmentsPreviewDto(construction));
+                        PrismContainerDefinition<AssignmentType> assignmentDef = getPrismContext().getSchemaRegistry()
+                                .findContainerDefinitionByCompileTimeClass(AssignmentType.class);
+                        AssignmentType assignmentType = assignmentDef.instantiate().createNewValue().asContainerable();
+                        ObjectReferenceType targetRef = new ObjectReferenceType();
+                        targetRef.setOid(construction.getResource().getOid());
+                        targetRef.setType(ResourceType.COMPLEX_TYPE);
+                        targetRef.setTargetName(new PolyStringType(construction.getResource().getName()));
+                        assignmentType.setTargetRef(targetRef);
+                        ConstructionType constructionType = new ConstructionType();
+                        constructionType.setKind(construction.getKind());
+                        constructionType.setIntent(construction.getIntent());
+                        assignmentType.setConstruction(constructionType);
+                        assignmentType.setDescription(construction.getResource().asObjectable().getDescription());
+                        ValueStatus status = evaluatedAssignment.getAssignmentType(true) == null ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED;
+                        AssignmentValueWrapper assignmentValueWrapper = WebPrismUtil.createNewValueWrapper(parent.getObject(),
+                                assignmentType.asPrismContainerValue(), status, this);
+                        assignmentValueWrapper.setDirectAssignment(construction.isDirectlyAssigned());
+                        assignmentValueWrapper.setAssignmentParent(construction.getAssignmentPath());
+                        assignmentValueWrapperSet.add(assignmentValueWrapper);
                     }
                 }
             }
 
-            return new ArrayList<>(assignmentInfoDtoSet);
+            return new ArrayList<>(assignmentValueWrapperSet);
 
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Could not create assignments preview.", e);
             error("Could not create assignments preview. Reason: " + e);
-            ajaxRequestTarget.add(getFeedbackPanel());
         }
         return null;
-    }
-
-    private AssignmentInfoDto createAssignmentsPreviewDto(EvaluatedAssignmentTarget evaluatedAbstractRole,
-            Task task, OperationResult result) {
-        return createAssignmentsPreviewDto(evaluatedAbstractRole.getTarget(), evaluatedAbstractRole.isDirectlyAssigned(),
-                evaluatedAbstractRole.getAssignmentPath(), evaluatedAbstractRole.getAssignment());
     }
 
     protected AssignmentInfoDto createDelegableAssignmentsPreviewDto(AssignmentType assignment, Task task, OperationResult result) {
@@ -800,20 +823,6 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
             }
         }
         return PolyString.getOrig(target.asObjectable().getName());
-    }
-
-    private AssignmentInfoDto createAssignmentsPreviewDto(EvaluatedResourceObjectConstruction evaluatedConstruction) {
-        AssignmentInfoDto dto = new AssignmentInfoDto();
-        PrismObject<ResourceType> resource = evaluatedConstruction.getResource();
-        dto.setTargetOid(resource.getOid());
-        dto.setTargetName(PolyString.getOrig(resource.asObjectable().getName()));
-        dto.setTargetDescription(resource.asObjectable().getDescription());
-        dto.setTargetClass(resource.getCompileTimeClass());
-        dto.setDirect(evaluatedConstruction.isDirectlyAssigned());
-        dto.setAssignmentParent(evaluatedConstruction.getAssignmentPath());
-        dto.setKind(evaluatedConstruction.getKind());
-        dto.setIntent(evaluatedConstruction.getIntent());
-        return dto;
     }
 
     @Override

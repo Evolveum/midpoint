@@ -21,22 +21,16 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.data.column.*;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.FocusListInlineMenuHelper;
-import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
-import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
+import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -81,7 +75,7 @@ import javax.xml.namespace.QName;
                         label = "PageUsers.auth.users.view.label",
                         description = "PageUsers.auth.users.view.description")
         })
-public class PageUsers extends PageAdminObjectList<UserType> {
+public class PageUsers extends PageAdmin {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUsers.class);
@@ -121,53 +115,49 @@ public class PageUsers extends PageAdminObjectList<UserType> {
     }
 
     @Override
-    protected List<IColumn<SelectableBean<UserType>, String>> initColumns() {
-        List<IColumn<SelectableBean<UserType>, String>> columns = new ArrayList<>();
-
-        IColumn<SelectableBean<UserType>, String> column = new PolyStringPropertyColumn<SelectableBean<UserType>>(
-                createStringResource("UserType.givenName"), UserType.F_GIVEN_NAME.getLocalPart(),
-                SelectableBeanImpl.F_VALUE + ".givenName");
-        columns.add(column);
-
-        column = new PolyStringPropertyColumn<SelectableBean<UserType>>(createStringResource("UserType.familyName"),
-                UserType.F_FAMILY_NAME.getLocalPart(), SelectableBeanImpl.F_VALUE + ".familyName");
-        columns.add(column);
-
-        column = new PolyStringPropertyColumn<SelectableBean<UserType>>(createStringResource("UserType.fullName"),
-                UserType.F_FULL_NAME.getLocalPart(), SelectableBeanImpl.F_VALUE + ".fullName");
-        columns.add(column);
-
-        column = new PropertyColumn<SelectableBean<UserType>, String>(createStringResource("UserType.emailAddress"),
-                null, SelectableBeanImpl.F_VALUE + ".emailAddress");
-        columns.add(column);
-
-        column = new AbstractExportableColumn<SelectableBean<UserType>, String>(
-                createStringResource("pageUsers.accounts")) {
-
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<UserType>>> cellItem,
-                    String componentId, IModel<SelectableBean<UserType>> model) {
-                cellItem.add(new Label(componentId,
-                        model.getObject().getValue() != null ?
-                                model.getObject().getValue().getLinkRef().size() : null));
-            }
-
-            @Override
-            public IModel<String> getDataModel(IModel<SelectableBean<UserType>> rowModel) {
-                return Model.of(rowModel.getObject().getValue() != null ?
-                        Integer.toString(rowModel.getObject().getValue().getLinkRef().size()) : "");
-            }
-
-
-        };
-
-        columns.add(column);
-
-        return columns;
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
     }
 
-    @Override
-    protected List<InlineMenuItem> createRowActions() {
+    protected void initLayout() {
+
+        Form mainForm = new MidpointForm(ID_MAIN_FORM);
+        add(mainForm);
+
+        MainObjectListPanel<UserType> table = new MainObjectListPanel<UserType>(ID_TABLE, UserType.class) {
+            @Override
+            protected void objectDetailsPerformed(AjaxRequestTarget target, UserType user) {
+                PageParameters parameters = new PageParameters();
+                parameters.add(OnePageParameterEncoder.PARAMETER, user.getOid());
+                navigateToNext(PageUser.class, parameters);
+            }
+
+            @Override
+            protected UserProfileStorage.TableId getTableId() {
+                return TableId.TABLE_USERS;
+            }
+
+            @Override
+            protected List<InlineMenuItem> createInlineMenu() {
+                return createRowActions();
+            }
+
+            @Override
+            protected List<ItemPath> getFixedSearchItems() {
+                List<ItemPath> fixedSearchItems = new ArrayList<>();
+                fixedSearchItems.add(UserType.F_NAME);
+                fixedSearchItems.add(UserType.F_GIVEN_NAME);
+                fixedSearchItems.add(UserType.F_FAMILY_NAME);
+                return fixedSearchItems;
+            }
+
+        };
+        table.setOutputMarkupId(true);
+        mainForm.add(table);
+    }
+
+    private List<InlineMenuItem> createRowActions() {
         List<InlineMenuItem> menu = new ArrayList<>();
         ButtonInlineMenuItem enableItem = new ButtonInlineMenuItem(createStringResource("pageUsers.menu.enable")) {
             private static final long serialVersionUID = 1L;
@@ -366,31 +356,6 @@ public class PageUsers extends PageAdminObjectList<UserType> {
         return menu;
     }
 
-    @Override
-    protected void objectDetailsPerformed(AjaxRequestTarget target, UserType user) {
-        PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, user.getOid());
-        navigateToNext(PageUser.class, parameters);
-    }
-
-    @Override
-    protected Class getType(){
-        return UserType.class;
-    }
-
-    @Override
-    protected UserProfileStorage.TableId getTableId(){
-        return TableId.TABLE_USERS;
-    }
-
-    @Override
-    protected List<ItemPath> getFixedSearchItems() {
-        List<ItemPath> fixedSearchItems = new ArrayList<>();
-        fixedSearchItems.add(UserType.F_NAME);
-        fixedSearchItems.add(UserType.F_GIVEN_NAME);
-        fixedSearchItems.add(UserType.F_FAMILY_NAME);
-        return fixedSearchItems;
-    }
 
     private MainObjectListPanel<UserType> getTable() {
         return (MainObjectListPanel<UserType>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
@@ -537,7 +502,7 @@ public class PageUsers extends PageAdminObjectList<UserType> {
             users = new ArrayList<>();
             users.add(selectedUser);
         } else {
-            users = getTable().getSelectedObjects();
+            users = getTable().getSelectedRealObjects();
             if (users.isEmpty()) {
                 warn(getString("pageUsers.message.nothingSelected"));
                 target.add(getFeedbackPanel());
@@ -604,11 +569,6 @@ public class PageUsers extends PageAdminObjectList<UserType> {
                     actionName, ((ObjectType)((SelectableBean)action.getRowModel().getObject()).getValue()).getName());
         }
 
-    }
-
-    private boolean isShowConfirmationDialog(ColumnMenuAction action){
-        return action.getRowModel() != null ||
-                getTable().getSelectedObjectsCount() > 0;
     }
 
     protected ObjectFilter getUsersViewFilter(){

@@ -46,11 +46,6 @@ public class CaseWorkitemsTabPanel extends AbstractObjectTabPanel<CaseType> {
             protected UserProfileStorage.TableId getTableId(){
                 return UserProfileStorage.TableId.PAGE_CASE_WORKITEMS_TAB;
             }
-
-            @Override
-            protected ObjectQuery createQuery(){
-                return null;
-            }
         });
     }
 }

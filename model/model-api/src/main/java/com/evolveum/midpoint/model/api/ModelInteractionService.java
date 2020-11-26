@@ -14,6 +14,7 @@ import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -465,7 +466,7 @@ public interface ModelInteractionService {
 
     @Experimental
     @NotNull
-    CompiledObjectCollectionView compileObjectCollectionView(@NotNull CollectionRefSpecificationType collection, @Nullable Class<? extends ObjectType> targetTypeClass, @NotNull Task task, @NotNull OperationResult result)
+    CompiledObjectCollectionView compileObjectCollectionView(@NotNull CollectionRefSpecificationType collection, @Nullable Class<? extends Containerable> targetTypeClass, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException;
 

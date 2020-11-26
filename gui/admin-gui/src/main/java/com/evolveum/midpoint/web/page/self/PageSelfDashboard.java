@@ -12,6 +12,10 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemT
 
 import java.util.*;
 
+import com.evolveum.midpoint.web.page.admin.server.CasesTablePanel;
+
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Application;
 import org.apache.wicket.Component;
@@ -49,7 +53,6 @@ import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.util.CallableResult;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.cases.CaseWorkItemsPanel;
-import com.evolveum.midpoint.web.page.admin.cases.CasesListPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.AsyncDashboardPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.MyAccountsPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.MyAssignmentsPanel;
@@ -225,7 +228,7 @@ public class PageSelfDashboard extends PageSelf {
 
                     @Override
                     protected Component getMainComponent(String markupId) {
-                        CasesListPanel casesPanel = new CasesListPanel(markupId) {
+                        CasesTablePanel casesPanel = new CasesTablePanel(markupId) {
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -239,6 +242,11 @@ public class PageSelfDashboard extends PageSelf {
                             @Override
                             protected boolean isDashboard() {
                                 return true;
+                            }
+
+                            @Override
+                            protected UserProfileStorage.TableId getTableId() {
+                                return UserProfileStorage.TableId.PAGE_CASE_CHILD_CASES_TAB;
                             }
                         };
                         return casesPanel;

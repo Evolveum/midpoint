@@ -27,15 +27,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 /**
  * @author honchar
  */
-public class ReferenceValueSearchPanel extends BasePanel<ObjectReferenceType> {
+public class ReferenceValueSearchPanel extends SpecialPopoverSearchPanel<ObjectReferenceType> {
 
     private static final long serialVersionUID = 1L;
-
-    private static final String ID_REFERENCE_VALUE_TEXT_FIELD = "referenceValueTextField";
-    private static final String ID_EDIT_BUTTON = "editReferenceButton";
-    private static final String ID_REF_POPOVER_PANEL = "refPopoverPanel";
-    private static final String ID_REF_POPOVER_BODY = "refPopoverBody";
-    private static final String ID_REF_POPOVER = "refPopover";
 
     private final PrismReferenceDefinition referenceDef;
 
@@ -45,43 +39,9 @@ public class ReferenceValueSearchPanel extends BasePanel<ObjectReferenceType> {
     }
 
     @Override
-    protected void onInitialize() {
-        super.onInitialize();
-        initLayout();
-    }
-
-    private void initLayout() {
-        setOutputMarkupId(true);
-
-        TextPanel<String> referenceTextValueField =
-                new TextPanel<>(ID_REFERENCE_VALUE_TEXT_FIELD, getReferenceTextValueModel());
-        referenceTextValueField.add(AttributeAppender.append("title", getReferenceTextValueModel()));
-        referenceTextValueField.setOutputMarkupId(true);
-        referenceTextValueField.setEnabled(false);
-        add(referenceTextValueField);
-
-        AjaxButton editButton = new AjaxButton(ID_EDIT_BUTTON) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                togglePopover(target, ReferenceValueSearchPanel.this.get(ID_REFERENCE_VALUE_TEXT_FIELD),
-                        ReferenceValueSearchPanel.this.get(createComponentPath(ID_REF_POPOVER)), 0);
-            }
-        };
-        editButton.setOutputMarkupId(true);
-        add(editButton);
-
-        WebMarkupContainer popover = new WebMarkupContainer(ID_REF_POPOVER);
-        popover.setOutputMarkupId(true);
-        add(popover);
-
-        WebMarkupContainer popoverBody = new WebMarkupContainer(ID_REF_POPOVER_BODY);
-        popoverBody.setOutputMarkupId(true);
-        popover.add(popoverBody);
-
+    protected SpecialPopoverSearchPopupPanel createPopupPopoverPanel(String id) {
         ReferenceValueSearchPopupPanel<?> value =
-                new ReferenceValueSearchPopupPanel(ID_REF_POPOVER_PANEL, getModel()) {
+                new ReferenceValueSearchPopupPanel(id, getModel()) {
 
                     private static final long serialVersionUID = 1L;
 
@@ -102,11 +62,11 @@ public class ReferenceValueSearchPanel extends BasePanel<ObjectReferenceType> {
                     }
                 };
         value.setRenderBodyOnly(true);
-        popoverBody.add(value);
-
+        return value;
     }
 
-    private LoadableModel<String> getReferenceTextValueModel() {
+    @Override
+    protected LoadableModel<String> getTextValue() {
         return new LoadableModel<String>() {
             @Override
             protected String load() {
@@ -116,12 +76,5 @@ public class ReferenceValueSearchPanel extends BasePanel<ObjectReferenceType> {
     }
 
     protected void referenceValueUpdated(ObjectReferenceType ort) {
-    }
-
-    public void togglePopover(AjaxRequestTarget target, Component button, Component popover, int paddingRight) {
-        target.appendJavaScript("toggleSearchPopover('"
-                + button.getMarkupId() + "','"
-                + popover.getMarkupId() + "',"
-                + paddingRight + ");");
     }
 }

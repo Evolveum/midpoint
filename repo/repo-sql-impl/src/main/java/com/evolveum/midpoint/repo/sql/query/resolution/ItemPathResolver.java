@@ -22,7 +22,7 @@ import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.query.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sql.query.definition.*;
 import com.evolveum.midpoint.repo.sql.query.hqm.JoinSpecification;
 import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;

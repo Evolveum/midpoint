@@ -344,7 +344,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
     }
 
     private List<T> getSelectedData(String id){
-        return ((ObjectListPanel) get(createComponentPath(ID_TABLES_CONTAINER, id))).getSelectedObjects();
+        return ((ObjectListPanel) get(createComponentPath(ID_TABLES_CONTAINER, id))).getSelectedRealObjects();
     }
 
     private QName getSelectedRelation(){
@@ -382,7 +382,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
     }
 
     private Label  createCountLabel(String id, ObjectListPanel panel){
-        Label label = new Label(id, panel.getSelectedObjects().size());
+        Label label = new Label(id, panel.getSelectedRealObjects().size());
         label.setOutputMarkupId(true);
         return label;
     }
@@ -397,7 +397,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
     }
 
     private PopupObjectListPanel<T> createObjectListPanel(String id, final String countId, final ObjectTypes type) {
-        PopupObjectListPanel<T> listPanel = new PopupObjectListPanel<T>(id, (Class) type.getClassDefinition(), true, getPageBase()) {
+        PopupObjectListPanel<T> listPanel = new PopupObjectListPanel<T>(id, (Class) type.getClassDefinition(), true) {
 
             private static final long serialVersionUID = 1L;
 
@@ -427,7 +427,8 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
             }
 
             @Override
-            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
+            protected ObjectQuery getCustomizeContentQuery() {
+                ObjectQuery query = null;
                 if (type.equals(RoleType.COMPLEX_TYPE)) {
                     LOGGER.debug("Loading roles which the current user has right to assign");
                     Task task = TypedAssignablePanel.this.getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);
@@ -435,10 +436,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
                     ObjectFilter filter = WebComponentUtil.getAssignableRolesFilter(SecurityUtils.getPrincipalUser().getFocus().asPrismObject(), AbstractRoleType.class,
                             WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, TypedAssignablePanel.this.getPageBase());
-                    if (query == null){
-                        query = getPrismContext().queryFactory().createQuery();
-                    }
-                    query.addFilter(filter);
+                    query = getPrismContext().queryFactory().createQuery(filter);
                 }
                 return query;
             }
@@ -506,7 +504,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
             protected List<String> load(){
                 List<String> availableIntentValues = new ArrayList<>();
                 if (getResourceTable() != null) {
-                    List<T> selectedResources = getResourceTable().getSelectedObjects();
+                    List<T> selectedResources = getResourceTable().getSelectedRealObjects();
                     if (selectedResources != null && selectedResources.size() > 0) {
                         ResourceType selectedResource = (ResourceType) selectedResources.get(0);
 

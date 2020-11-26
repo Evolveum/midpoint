@@ -15,6 +15,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
@@ -29,6 +30,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.*;
 
 import javax.xml.namespace.QName;
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -63,30 +65,22 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
         Label subtasksLabel = new Label(ID_SUBTASKS_LABEL, new ResourceModel("pageTaskEdit.subtasksLabel"));
         add(subtasksLabel);
 
-        TaskTablePanel subtasksPanel = new TaskTablePanel(ID_SUBTASKS_PANEL, UserProfileStorage.TableId.TABLE_SUBTASKS, createOperationOptions()) {
+        TaskTablePanel subtasksPanel = new TaskTablePanel(ID_SUBTASKS_PANEL, createOperationOptions()) {
             @Override
-            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
-
+            protected ObjectQuery getCustomizeContentQuery() {
                 String parent = getParentIdentifier();
                 if (parent == null) {
-                    return query;
+                    return null;
                 }
-
-                if (query == null) {
-                    query = getPrismContext().queryFactory().createQuery();
-                }
-
-                query.addFilter(getPrismContext().queryFor(TaskType.class)
+                return getPrismContext().queryFor(TaskType.class)
                         .item(TaskType.F_PARENT)
                         .eq(parent)
-                        .buildFilter());
-
-                return query;
+                        .build();
             }
 
             @Override
-            protected List<IColumn<SelectableBean<TaskType>, String>> createColumns() {
-                List<IColumn<SelectableBean<TaskType>, String>> columns = super.createColumns();
+            protected List<IColumn<SelectableBean<TaskType>, String>> createDefaultColumns() {
+                List<IColumn<SelectableBean<TaskType>, String>> columns = super.createDefaultColumns();
                 columns.add(2, new EnumPropertyColumn<SelectableBean<TaskType>>(createStringResource("SubtasksPanel.label.kind"), createTaskKindExpression()) {
 
                     @Override
@@ -98,8 +92,8 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
             }
 
             @Override
-            protected WebMarkupContainer createTableButtonToolbar(String id) {
-                return null;
+            protected UserProfileStorage.TableId getTableId() {
+                return UserProfileStorage.TableId.TABLE_SUBTASKS;
             }
         };
 
@@ -108,16 +102,16 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
         Label workerThreadsTableLabel = new Label(ID_WORKER_THREADS_TABLE_LABEL, new ResourceModel("TaskStatePanel.workerThreads"));
         add(workerThreadsTableLabel);
 
-        TaskTablePanel workerThreadsTable = new TaskTablePanel(ID_WORKER_THREADS_TABLE, UserProfileStorage.TableId.TABLE_WORKERS, null) {
+        TaskTablePanel workerThreadsTable = new TaskTablePanel(ID_WORKER_THREADS_TABLE, null) {
 
             @Override
-            protected BaseSortableDataProvider<SelectableBean<TaskType>> initProvider() {
+            protected ISelectableDataProvider createProvider() {
                 return new SelectableListDataProvider<>(TaskSubtasksAndThreadsTabPanel.this, createWorkersModel());
             }
 
             @Override
-            protected WebMarkupContainer createTableButtonToolbar(String id) {
-                return null;
+            protected UserProfileStorage.TableId getTableId() {
+                return UserProfileStorage.TableId.TABLE_WORKERS;
             }
 
             @Override

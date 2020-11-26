@@ -155,7 +155,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                List<O> selected = ((PopupObjectListPanel) getParent().get(ID_TABLE)).getSelectedObjects();
+                List<O> selected = ((PopupObjectListPanel) getParent().get(ID_TABLE)).getSelectedRealObjects();
                 ObjectTypes type = ObjectBrowserPanel.this.typeModel.getObject();
                 QName qname = type != null ? type.getTypeQName() : null;
                 ObjectBrowserPanel.this.addPerformed(target, qname, selected);
@@ -187,7 +187,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
         Class typeClass = type.getClassDefinition();
 
         PopupObjectListPanel<O> listPanel = new PopupObjectListPanel<O>(ID_TABLE, typeClass, getOptions(),
-                multiselect, parentPage) {
+                multiselect) {
 
             private static final long serialVersionUID = 1L;
 
@@ -197,12 +197,10 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
             }
 
             @Override
-            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
+            protected ObjectQuery getCustomizeContentQuery() {
+                ObjectQuery query = null;
                 if (queryFilter != null) {
-                    if (query == null) {
-                        query = parentPage.getPrismContext().queryFactory().createQuery();
-                    }
-                    query.addFilter(queryFilter);
+                    query = parentPage.getPrismContext().queryFactory().createQuery(queryFilter);
                 }
                 return query;
             }

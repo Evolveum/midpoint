@@ -38,7 +38,7 @@ public class TablePanel<T> extends Panel implements Table {
     private final IModel<Boolean> showPaging = new Model<>(true);
     private final IModel<Boolean> showCount = new Model<>(true);
 
-    private final UserProfileStorage.TableId tableId;
+    private UserProfileStorage.TableId tableId;
 
     public TablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns) {
         this(id, provider, columns, null, UserProfileStorage.DEFAULT_PAGING_SIZE);
@@ -78,7 +78,7 @@ public class TablePanel<T> extends Panel implements Table {
 
             @Override
             protected boolean isPageSizePopupVisible() {
-                return tableId != null;
+                return tableId != null && enableSavePageSize();
             }
 
         };
@@ -95,6 +95,11 @@ public class TablePanel<T> extends Panel implements Table {
     @Override
     public UserProfileStorage.TableId getTableId() {
         return tableId;
+    }
+
+    @Override
+    public boolean enableSavePageSize() {
+        return true;
     }
 
     private void addVisibleBehaviour(Component comp, final IModel<Boolean> model) {

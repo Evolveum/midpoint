@@ -14,7 +14,9 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -43,6 +45,13 @@ public class TestMonitor {
      * Stopwatches are stored under specific names, but their names are null, always use the key.
      */
     private final Map<String, Stopwatch> stopwatches = new LinkedHashMap<>();
+
+    /**
+     * Extension for already preformatted reports can be added under specified section name.
+     * This is really crude (read primitive), but also very easy.
+     * This obviously can't assure report formatting consistency, etc.
+     */
+    private final List<TestReportSection> reportSections = new ArrayList<>();
 
     // TODO other monitors later
 
@@ -119,12 +128,13 @@ public class TestMonitor {
         out.println("Branch: " + reportMetadata.branch);
         out.println("Test: " + reportMetadata.testName);
 
-        // millis are more practical, but sometimes too big for avg and min and we don't wanna mix ms/us
-        out.println("\n[stopwatch]\ntest,monitor,count,total(us),avg(us),min(us),max(us),note");
+        TestReportSection section = addReportSection("stopwatch")
+                // millis are more practical, but sometimes too big for avg and min and we don't wanna mix ms/us
+                .withColumns("monitor", "count", "total(us)", "avg(us)", "min(us)", "max(us)", "note");
         for (Map.Entry<String, Stopwatch> stopwatchEntry : stopwatches.entrySet()) {
-            String monitorName = stopwatchEntry.getKey();
             Stopwatch stopwatch = stopwatchEntry.getValue();
-            out.printf("%s,%s,%d,%d,%d,%d,%d,%s\n", reportMetadata.testName, monitorName,
+            section.addRow(
+                    stopwatchEntry.getKey(),
                     stopwatch.getCounter(),
                     TimeUnit.NANOSECONDS.toMicros(stopwatch.getTotal()),
                     TimeUnit.NANOSECONDS.toMicros((long) stopwatch.getMean()),
@@ -132,6 +142,16 @@ public class TestMonitor {
                     TimeUnit.NANOSECONDS.toMicros(stopwatch.getMax()),
                     stopwatch.getNote());
         }
+
+        for (TestReportSection reportSection : reportSections) {
+            reportSection.dump(reportMetadata.testName, out);
+        }
+    }
+
+    public TestReportSection addReportSection(String sectionName) {
+        TestReportSection reportSection = new TestReportSection(sectionName);
+        reportSections.add(reportSection);
+        return reportSection;
     }
 
     private static class ReportMetadata {

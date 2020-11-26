@@ -142,9 +142,8 @@ public class PageCertDecisions extends PageAdminCertification {
         Form mainForm = new MidpointForm(ID_MAIN_FORM);
         add(mainForm);
         CertWorkItemDtoProvider provider = createProvider();
-        int itemsPerPage = (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_DECISIONS_PANEL);
         BoxedTablePanel<CertWorkItemDto> table = new BoxedTablePanel<CertWorkItemDto>(ID_DECISIONS_TABLE, provider, initColumns(),
-                UserProfileStorage.TableId.PAGE_CERT_DECISIONS_PANEL, itemsPerPage) {
+                UserProfileStorage.TableId.PAGE_CERT_DECISIONS_PANEL) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -155,7 +154,6 @@ public class PageCertDecisions extends PageAdminCertification {
         };
         table.setShowPaging(true);
         table.setOutputMarkupId(true);
-        table.setItemsPerPage(itemsPerPage);        // really don't know why this is necessary, as e.g. in PageRoles the size setting works without it
         mainForm.add(table);
 
         // adding this on outer feedback panel prevents displaying the error messages

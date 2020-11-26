@@ -25,7 +25,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
-import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
+import com.evolveum.midpoint.gui.impl.session.ContainerTabStorage;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
@@ -37,7 +37,6 @@ import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.workflow.WorkItemDetailsPanel;
-import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -45,7 +44,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 /**
  * Created by honchar
  */
-public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContainerListPanelWithDetailsPanel<CaseWorkItemType, String> {
+public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContainerListPanelWithDetailsPanel<CaseWorkItemType> {
 
     private static final long serialVersionUID = 1L;
 
@@ -53,8 +52,8 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
     private static final String ID_CANCEL_BUTTON = "cancelButton";
     private WorkItemDetailsPanel workItemDetails = null;
 
-    public CaseWorkItemListWithDetailsPanel(String id, IModel<PrismContainerWrapper<CaseWorkItemType>> model, UserProfileStorage.TableId tableId, PageStorage pageStorage) {
-        super(id, model, tableId, pageStorage);
+    public CaseWorkItemListWithDetailsPanel(String id){
+        super(id, CaseWorkItemType.class);
     }
 
     @Override
@@ -124,42 +123,23 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
         getDetailsPanelContainer().add(actionsPanel);
     }
 
-    @Override
-    protected void initPaging() {
-        getWorkitemsTabStorage().setPaging(getPrismContext().queryFactory()
-                .createPaging(0, ((int) CaseWorkItemListWithDetailsPanel.this.getPageBase().getItemsPerPage(getTableId()))));
-    }
-
     protected abstract UserProfileStorage.TableId getTableId();
 
     @Override
-    protected abstract ObjectQuery createQuery();
-
-    @Override
-    protected boolean enableActionNewObject() {
+    protected boolean isCreateNewObjectVisible() {
         return false;
     }
 
     @Override
-    protected boolean isSearchEnabled() {
+    protected boolean isHeaderVisible() {
         return false;
     }
 
     @Override
-    protected List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> createColumns() {
+    protected List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> createDefaultColumns() {
         return getWorkItemColumns();
     }
 
-    @Override
-    protected WebMarkupContainer getSearchPanel(String contentAreaId) {
-        return new WebMarkupContainer(contentAreaId);
-    }
-
-    @Override
-    protected List<PrismContainerValueWrapper<CaseWorkItemType>> postSearch(
-            List<PrismContainerValueWrapper<CaseWorkItemType>> workItems) {
-        return workItems;
-    }
 
     @Override
     protected boolean isButtonPanelVisible() {
@@ -181,9 +161,9 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
 //    @Override
 //    public void itemDetailsPerformed(AjaxRequestTarget target,  IModel<PrismContainerValueWrapper<CaseWorkItemType>> model){}
 
-    private ObjectTabStorage getWorkitemsTabStorage() {
-        return getPageBase().getSessionStorage().getCaseWorkitemsTabStorage();
-    }
+//    private ContainerTabStorage getWorkitemsTabStorage() {
+//        return getPageBase().getSessionStorage().getCaseWorkitemsTabStorage();
+//    }
 
     private MultivalueContainerDetailsPanel<CaseWorkItemType> createWorkItemDetailsPanel(
             ListItem<PrismContainerValueWrapper<CaseWorkItemType>> item) {

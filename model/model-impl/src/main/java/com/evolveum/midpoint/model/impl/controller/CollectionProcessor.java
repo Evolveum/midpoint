@@ -13,6 +13,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.lens.assignments.ConditionState;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
@@ -221,7 +223,7 @@ public class CollectionProcessor {
     }
 
     public CompiledObjectCollectionView compileObjectCollectionView(CollectionRefSpecificationType collectionRef,
-            Class<? extends ObjectType> targetTypeClass, Task task, OperationResult result)
+            Class<? extends Containerable> targetTypeClass, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
         CompiledObjectCollectionView view = new CompiledObjectCollectionView();
@@ -230,7 +232,7 @@ public class CollectionProcessor {
     }
 
     public void compileObjectCollectionView(CompiledObjectCollectionView existingView, CollectionRefSpecificationType collectionSpec,
-            Class<? extends ObjectType> targetTypeClass, Task task, OperationResult result)
+            Class<? extends Containerable> targetTypeClass, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
 
@@ -312,20 +314,27 @@ public class CollectionProcessor {
     }
 
     private void compileObjectCollectionView(CompiledObjectCollectionView existingView, CollectionRefSpecificationType baseCollectionSpec,
-            ObjectCollectionType objectCollectionType, Class<? extends ObjectType> targetTypeClass, Task task, OperationResult result)
+            ObjectCollectionType objectCollectionType, Class<? extends Containerable> targetTypeClass, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
 
         if (targetTypeClass == null) {
-            if (existingView.getObjectType() == null) {
+            if (existingView.getContainerType() == null) {
                 QName targetTypeQName = objectCollectionType.getType();
                 if (targetTypeQName == null) {
-                    throw new SchemaException("Target object type not specified in "+objectCollectionType);
+                    throw new SchemaException("Target container type not specified in "+objectCollectionType);
                 }
-                targetTypeClass = ObjectTypes.getObjectTypeClass(targetTypeQName);
-                existingView.setObjectType(targetTypeQName);
+                targetTypeClass = ObjectTypes.getObjectTypeClassIfKnown(targetTypeQName);
+                if (targetTypeClass == null) {
+                    PrismContainerDefinition<Containerable> def = prismContext.getSchemaRegistry().findContainerDefinitionByType(targetTypeQName);
+                    if (def == null) {
+                        throw new IllegalArgumentException("Unsupported container type " + targetTypeQName);
+                    }
+                    targetTypeClass = def.getTypeClass();
+                }
+                existingView.setContainerType(targetTypeQName);
             } else {
-                QName targetTypeQName = existingView.getObjectType();
+                QName targetTypeQName = existingView.getContainerType();
                 targetTypeClass = ObjectTypes.getObjectTypeClass(targetTypeQName);
             }
         }
@@ -385,14 +394,14 @@ public class CollectionProcessor {
     }
 
     private void compileBaseCollectionSpec(ObjectFilter objectFilter, CompiledObjectCollectionView existingView, Collection<SelectorOptions<GetOperationOptions>> options,
-            CollectionRefSpecificationType baseCollectionRef, Class<? extends ObjectType> targetTypeClass, Task task, OperationResult result)
+            CollectionRefSpecificationType baseCollectionRef, Class<? extends Containerable> targetTypeClass, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         compileObjectCollectionView(existingView, baseCollectionRef, targetTypeClass, task, result);
         mergeCollectionFilterAndOptions(objectFilter, existingView, options);
     }
 
     private void compileBaseCollectionSpec(SearchFilterType filter, CompiledObjectCollectionView existingView, Collection<SelectorOptions<GetOperationOptions>> options,
-            CollectionRefSpecificationType baseCollectionRef, Class<? extends ObjectType> targetTypeClass, Task task, OperationResult result)
+            CollectionRefSpecificationType baseCollectionRef, Class<? extends Containerable> targetTypeClass, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         if (targetTypeClass != null) {
             ObjectFilter objectFilter = prismContext.getQueryConverter().parseFilter(filter, targetTypeClass);
@@ -447,8 +456,8 @@ public class CollectionProcessor {
     }
 
     private void compileObjectType(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
-        if (existingView.getObjectType() == null) {
-            existingView.setObjectType(objectListViewType.getType());
+        if (existingView.getContainerType() == null) {
+            existingView.setContainerType(objectListViewType.getType());
         }
     }
 

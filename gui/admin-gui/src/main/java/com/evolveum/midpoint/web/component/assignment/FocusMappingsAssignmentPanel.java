@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.component.assignment;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
@@ -42,12 +44,10 @@ public class FocusMappingsAssignmentPanel extends AssignmentPanel {
         return defs;
     }
 
-
     @Override
-    protected ObjectQuery createObjectQuery(){
+    protected ObjectQuery getCustomizeQuery() {
         return getParentPage().getPrismContext().queryFor(AssignmentType.class)
-                .exists(AssignmentType.F_FOCUS_MAPPINGS)
-                .build();
+                .exists(AssignmentType.F_FOCUS_MAPPINGS).build();
     }
 
     @Override

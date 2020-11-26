@@ -6,9 +6,14 @@
  */
 package com.evolveum.midpoint.web.component.objectdetails;
 
-import static java.util.Arrays.asList;
-
 import java.util.List;
+
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPanel;
+
+import com.evolveum.midpoint.web.session.PageStorage;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -27,7 +32,6 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -37,14 +41,11 @@ import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPanel;
-import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
 import com.evolveum.midpoint.web.page.admin.users.PageXmlDataReview;
 import com.evolveum.midpoint.web.session.AuditLogStorage;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * Created by honchar.
@@ -67,36 +68,34 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
     protected void onInitialize() {
         super.onInitialize();
 
-        //TODO seriously???
-        getPageBase().getSessionStorage().setUserHistoryAuditLog(new AuditLogStorage());
+        getPageBase().getSessionStorage().setObjectHistoryAuditLog(getObjectWrapper().getTypeName(), new AuditLogStorage());
 
         initLayout();
     }
 
     private void initLayout() {
-        AuditSearchDto auditSearchDto = createAuditSearchDto(getObjectWrapper().getObject().asObjectable());
-        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_MAIN_PANEL, Model.of(auditSearchDto), true) {
+        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_MAIN_PANEL) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected List<IColumn<AuditEventRecordType, String>> initColumns() {
-                List<IColumn<AuditEventRecordType, String>> columns = super.initColumns();
+            protected List<IColumn<SelectableBean<AuditEventRecordType>, String>> createColumns() {
+                List<IColumn<SelectableBean<AuditEventRecordType>, String>> columns = super.createColumns();
 
-                IColumn<AuditEventRecordType, String> column
-                        = new AbstractColumn<AuditEventRecordType, String>(new Model<>()) {
+                IColumn<SelectableBean<AuditEventRecordType>, String> column
+                        = new AbstractColumn<SelectableBean<AuditEventRecordType>, String>(new Model<>()) {
 
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    public void populateItem(Item<ICellPopulator<AuditEventRecordType>> cellItem, String componentId,
-                                             IModel<AuditEventRecordType> rowModel) {
+                    public void populateItem(Item<ICellPopulator<SelectableBean<AuditEventRecordType>>> cellItem, String componentId,
+                                             IModel<SelectableBean<AuditEventRecordType>> rowModel) {
 
-                        cellItem.add(new MultiButtonPanel<AuditEventRecordType>(componentId, rowModel, 2) {
+                        cellItem.add(new MultiButtonPanel<SelectableBean<AuditEventRecordType>>(componentId, rowModel, 2) {
 
                             private static final long serialVersionUID = 1L;
 
                             @Override
-                            protected Component createButton(int index, String componentId, IModel<AuditEventRecordType> model) {
+                            protected Component createButton(int index, String componentId, IModel<SelectableBean<AuditEventRecordType>> model) {
                                 AjaxIconButton btn = null;
                                 switch (index) {
                                     case 0:
@@ -105,8 +104,8 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
                                                 new Model<>("btn btn-sm " + DoubleButtonColumn.ButtonColorClass.INFO),
                                                 target ->
                                                         currentStateButtonClicked(target, getReconstructedObject(getObjectWrapper().getOid(),
-                                                                model.getObject().getEventIdentifier(), getObjectWrapper().getCompileTimeClass()),
-                                                                WebComponentUtil.getLocalizedDate(model.getObject().getTimestamp(), DateLabelComponent.SHORT_NOTIME_STYLE)));
+                                                                unwrapModel(model).getEventIdentifier(), getObjectWrapper().getCompileTimeClass()),
+                                                                WebComponentUtil.getLocalizedDate(unwrapModel(model).getTimestamp(), DateLabelComponent.SHORT_NOTIME_STYLE)));
                                         break;
                                     case 1:
                                         btn = buildDefaultButton(componentId, new Model<>(GuiStyleConstants.CLASS_FILE_TEXT),
@@ -114,9 +113,9 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
                                                 new Model<>("btn btn-sm " + DoubleButtonColumn.ButtonColorClass.SUCCESS),
                                                 target ->
                                                         viewObjectXmlButtonClicked(getObjectWrapper().getOid(),
-                                                                model.getObject().getEventIdentifier(),
+                                                                unwrapModel(model).getEventIdentifier(),
                                                                 getObjectWrapper().getCompileTimeClass(),
-                                                                WebComponentUtil.getLocalizedDate(model.getObject().getTimestamp(), DateLabelComponent.SHORT_NOTIME_STYLE)));
+                                                                WebComponentUtil.getLocalizedDate(unwrapModel(model).getTimestamp(), DateLabelComponent.SHORT_NOTIME_STYLE)));
                                         break;
                                 }
 
@@ -131,47 +130,34 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
                 return columns;
             }
 
-            @Override
-            protected AuditLogStorage getAuditLogStorage(){
-                return getPageBase().getSessionStorage().getUserHistoryAuditLog();
+            protected ObjectQuery getCustomizeContentQuery(ObjectQuery query, PageStorage pageStorage){
+                ObjectFilter historyTabFilter = getPageBase().getPrismContext().queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_TARGET_REF)
+                        .ref(getObjectWrapper().getOid())
+                        .and()
+                        .item(AuditEventRecordType.F_EVENT_STAGE)
+                        .eq(AuditEventStageType.EXECUTION)
+                        .buildFilter();
+                if (query == null) {
+                    query = getPageBase().getPrismContext().queryFor(AuditEventRecordType.class).build();
+                }
+                query.addFilter(historyTabFilter);
+                return query;
             }
 
             @Override
-            protected void updateAuditSearchStorage(AuditSearchDto searchDto) {
-                getPageBase().getSessionStorage().getUserHistoryAuditLog().setSearchDto(searchDto);
-                getPageBase().getSessionStorage().getUserHistoryAuditLog().setPageNumber(0);
-
-
+            protected AuditLogStorage getAuditLogViewerStorage(){
+                return getPageBase().getSessionStorage().getObjectHistoryAuditLog(getObjectWrapper().getTypeName());
             }
 
             @Override
-            protected void resetAuditSearchStorage() {
-                getPageBase().getSessionStorage().getUserHistoryAuditLog().setSearchDto(createAuditSearchDto(getObjectWrapper().getObject().asObjectable()));
-
-            }
-
-            @Override
-            protected void updateCurrentPage(long current) {
-                getPageBase().getSessionStorage().getUserHistoryAuditLog().setPageNumber(current);
-
-            }
-
-            @Override
-            protected long getCurrentPage() {
-                return getPageBase().getSessionStorage().getUserHistoryAuditLog().getPageNumber();
+            protected boolean isObjectHistoryPanel() {
+                return true;
             }
 
         };
         panel.setOutputMarkupId(true);
         add(panel);
-    }
-
-    private AuditSearchDto createAuditSearchDto(F focus) {
-        AuditSearchDto searchDto = new AuditSearchDto();
-        ObjectReferenceType ort = ObjectTypeUtil.createObjectRef(focus, getPrismContext());
-        searchDto.setTargetNames(asList(ort));
-        searchDto.setEventStage(AuditEventStageType.EXECUTION);
-        return searchDto;
     }
 
     protected abstract void currentStateButtonClicked(AjaxRequestTarget target, PrismObject<F> object, String date);

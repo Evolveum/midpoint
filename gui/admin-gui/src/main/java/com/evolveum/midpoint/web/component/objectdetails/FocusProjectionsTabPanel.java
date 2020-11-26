@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.session.SessionStorage;
+
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -45,7 +47,6 @@ import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapper
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismReferenceWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ShadowPanel;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.*;
@@ -70,7 +71,6 @@ import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -109,15 +109,10 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
     }
 
     private void initLayout() {
+        MultivalueContainerListPanelWithDetailsPanel<ShadowType> multivalueContainerListPanel =
+                new MultivalueContainerListPanelWithDetailsPanel<ShadowType>(ID_SHADOW_TABLE, ShadowType.class) {
 
-        TableId tableId = UserProfileStorage.TableId.FOCUS_PROJECTION_TABLE;
-        PageStorage pageStorage = getPageBase().getSessionStorage().getFocusProjectionTableStorage();
-
-        MultivalueContainerListPanelWithDetailsPanel<ShadowType, F> multivalueContainerListPanel =
-                new MultivalueContainerListPanelWithDetailsPanel<ShadowType, F>(ID_SHADOW_TABLE, getShadowDefinition(),
-                        tableId, pageStorage) {
-
-                    private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
                     @Override
                     protected IModel<List<PrismContainerValueWrapper<ShadowType>>> loadValuesModel() {
@@ -135,13 +130,6 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                             }
                         };
 
-                    }
-
-                    @Override
-                    protected List<PrismContainerValueWrapper<ShadowType>> postSearch(
-                            List<PrismContainerValueWrapper<ShadowType>> items) {
-
-                        return items;
                     }
 
                     @Override
@@ -168,29 +156,34 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                     }
 
                     @Override
-                    protected void initPaging() {
-                        FocusProjectionsTabPanel.this.initPaging();
-                    }
-
-                    @Override
-                    protected boolean enableActionNewObject() {
+                    protected boolean isCreateNewObjectVisible() {
                         PrismObjectDefinition<F> def = getObjectWrapper().getObject().getDefinition();
                         PrismReferenceDefinition ref = def.findReferenceDefinition(UserType.F_LINK_REF);
                         return (ref.canRead() && ref.canAdd());
                     }
 
                     @Override
-                    protected ObjectQuery createQuery() {
+                    protected IModel<PrismContainerWrapper<ShadowType>> getContainerModel() {
                         return null;
                     }
 
                     @Override
-                    protected List<IColumn<PrismContainerValueWrapper<ShadowType>, String>> createColumns() {
+                    protected String getStorageKey() {
+                        return SessionStorage.KEY_FOCUS_PROJECTION_TABLE;
+                    }
+
+                    @Override
+                    protected TableId getTableId() {
+                        return UserProfileStorage.TableId.FOCUS_PROJECTION_TABLE;
+                    }
+
+                    @Override
+                    protected List<IColumn<PrismContainerValueWrapper<ShadowType>, String>> createDefaultColumns() {
                         return initBasicColumns();
                     }
 
                     @Override
-                    public void itemPerformedForDefaultAction(AjaxRequestTarget target,
+                    public void editItemPerformed(AjaxRequestTarget target,
                             IModel<PrismContainerValueWrapper<ShadowType>> rowModel,
                             List<PrismContainerValueWrapper<ShadowType>> listItems) {
 
@@ -206,7 +199,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                                 }
                             });
                         }
-                        super.itemPerformedForDefaultAction(target, rowModel, listItems);
+                        super.editItemPerformed(target, rowModel, listItems);
                     }
 
                     @Override
@@ -227,11 +220,6 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                 };
         add(multivalueContainerListPanel);
         setOutputMarkupId(true);
-    }
-
-    private void initPaging() {
-        getPageBase().getSessionStorage().getFocusProjectionTableStorage().setPaging(
-                getPrismContext().queryFactory().createPaging(0, (int) ((PageBase) getPage()).getItemsPerPage(UserProfileStorage.TableId.FOCUS_PROJECTION_TABLE)));
     }
 
     private MultivalueContainerDetailsPanel<ShadowType> getMultivalueContainerDetailsPanel(
@@ -379,8 +367,8 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
         return shadow;
     }
 
-    private MultivalueContainerListPanelWithDetailsPanel<ShadowType, F> getMultivalueContainerListPanel() {
-        return ((MultivalueContainerListPanelWithDetailsPanel<ShadowType, F>) get(ID_SHADOW_TABLE));
+    private MultivalueContainerListPanelWithDetailsPanel<ShadowType> getMultivalueContainerListPanel() {
+        return ((MultivalueContainerListPanelWithDetailsPanel<ShadowType>) get(ID_SHADOW_TABLE));
     }
 
     private void addSelectedAccountPerformed(AjaxRequestTarget target, List<ResourceType> newResources) {
@@ -583,7 +571,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        getMultivalueContainerListPanel().itemPerformedForDefaultAction(target,
+                        getMultivalueContainerListPanel().editItemPerformed(target,
                                 getRowModel(), getMultivalueContainerListPanel().getSelectedItems());
                         target.add(getFeedbackPanel());
                     }
