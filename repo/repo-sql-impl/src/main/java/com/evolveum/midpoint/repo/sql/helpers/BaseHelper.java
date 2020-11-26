@@ -23,9 +23,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.repo.sql.*;
-import com.evolveum.midpoint.repo.sql.pure.querydsl.MidpointOracleTemplates;
-import com.evolveum.midpoint.repo.sql.pure.querydsl.MidpointSQLServerTemplates;
-import com.evolveum.midpoint.repo.sql.pure.querymodel.support.InstantType;
+import com.evolveum.midpoint.repo.sql.audit.mapping.QueryModelMappingConfig;
+import com.evolveum.midpoint.repo.sqlbase.SqlConfiguration;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.MidpointOracleTemplates;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.MidpointSQLServerTemplates;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.InstantType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.backoff.BackoffComputer;
@@ -71,8 +73,8 @@ public class BaseHelper {
 
     private final DataSource dataSource;
 
-    // don't access outside of querydslConfiguration() method, always use the method to lazy-init
-    private Configuration querydslConfiguration;
+    // don't access outside of sqlNewConfiguration() method, always use the method to lazy-init
+    private SqlConfiguration sqlConfiguration;
 
     // used for non-bean creation
     public BaseHelper(
@@ -283,13 +285,15 @@ public class BaseHelper {
         return dataSource;
     }
 
-    public synchronized Configuration querydslConfiguration() {
-        if (querydslConfiguration != null) {
-            return querydslConfiguration;
+    // TODO: rather explicit "new" here for some time to clearly distinguish from getConfiguration()
+    public synchronized SqlConfiguration sqlNewConfiguration() {
+        if (sqlConfiguration != null) {
+            return sqlConfiguration;
         }
 
         SqlRepositoryConfiguration.Database database =
                 sqlRepositoryConfiguration.getDatabaseType();
+        Configuration querydslConfiguration;
         switch (database) {
             case H2:
                 querydslConfiguration =
@@ -320,7 +324,11 @@ public class BaseHelper {
         // See InstantType javadoc for the reasons why we need this to support Instant.
         querydslConfiguration.register(new InstantType());
         // Alternatively we may stick to Timestamp and go on with our miserable lives. ;-)
-        return querydslConfiguration;
+
+        // TODO: This kinda hard-codes the audit configuration mapping, currently only audit uses it.
+        //  Later this will be parametrized, but it will also probably look differently in midScale repo.
+        sqlConfiguration = new SqlConfiguration(querydslConfiguration, QueryModelMappingConfig.AUDIT_MAPPING);
+        return sqlConfiguration;
     }
 
     /**
@@ -333,7 +341,7 @@ public class BaseHelper {
             return new JdbcSession(
                     dataSource().getConnection(),
                     sqlRepositoryConfiguration,
-                    querydslConfiguration());
+                    sqlNewConfiguration());
         } catch (SQLException e) {
             throw new SystemException("Cannot create JDBC connection", e);
         }

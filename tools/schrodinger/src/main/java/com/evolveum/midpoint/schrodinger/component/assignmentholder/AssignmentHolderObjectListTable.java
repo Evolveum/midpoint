@@ -12,6 +12,11 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
+
+import com.evolveum.midpoint.schrodinger.component.modal.ExportPopupPanel;
+
+import com.evolveum.midpoint.schrodinger.util.Utils;
+
 import org.openqa.selenium.By;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
@@ -41,8 +46,12 @@ public abstract class AssignmentHolderObjectListTable<P, PD extends AssignmentHo
 
         getParentElement().$(Schrodinger.byElementValue("span", "data-s-id", "label", name))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        Selenide.sleep(getDetailsPageLoadingTimeToWait());
         return getObjectDetailsPage();
+    }
+
+    public long getDetailsPageLoadingTimeToWait() {
+        return MidPoint.TIMEOUT_DEFAULT_2_S;
     }
 
     public PD clickByPartialName(String name) {
@@ -72,16 +81,6 @@ public abstract class AssignmentHolderObjectListTable<P, PD extends AssignmentHo
     }
 
     public SelenideElement getToolbarButton(String iconCssClass){
-//        SelenideElement buttonToolbar = getButtonToolbar();
-//        SelenideElement buttonElement = null;
-//        ElementsCollection toolbarButtonsList = buttonToolbar
-//                .findAll(By.tagName("button"));
-//        for (SelenideElement button : toolbarButtonsList) {
-//            SelenideElement iconElement = button.$(By.tagName("i")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
-//            if (iconElement != null && iconElement.exists() && iconElement.getAttribute("class") != null && iconElement.getAttribute("class").contains(iconCssClass)) {
-//                buttonElement = button;
-//            }
-//        }
         return getButtonToolbar().$(By.cssSelector(iconCssClass));
     }
 
@@ -91,6 +90,14 @@ public abstract class AssignmentHolderObjectListTable<P, PD extends AssignmentHo
                 .click();
         Selenide.sleep(2000);
         return getObjectDetailsPage();
+    }
+
+    public ExportPopupPanel<P> clickExportButton() {
+        getToolbarButton(".fa.fa-download")
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .click();
+        Selenide.sleep(2000);
+        return new ExportPopupPanel<>(getParent(), Utils.getModalWindowSelenideElement());
     }
 
     public PD newObjectCollectionButtonClickPerformed(String mainButtonIconCssClass, String objCollectionButtonIconCssClass){

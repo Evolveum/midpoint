@@ -9,6 +9,11 @@
     <name>All assignment holder</name>
     <type>AssignmentHolderType</type>
     <filter>
-        <all/>
+        <not>
+            <equal>
+                <path>name</path>
+                <value>Dummy Resource</value>
+            </equal>
+        </not>
     </filter>
 </objectCollection>

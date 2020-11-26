@@ -11,11 +11,8 @@ import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
-import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
-import com.evolveum.midpoint.schrodinger.component.AssignmentsTab;
 import com.evolveum.midpoint.schrodinger.component.ProjectionsTab;
 import com.evolveum.midpoint.schrodinger.component.common.SummaryPanel;
-import com.evolveum.midpoint.schrodinger.component.user.*;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
@@ -23,7 +20,7 @@ import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Selenide.$;
 
-import static com.evolveum.midpoint.schrodinger.util.Utils.setOptionChecked;
+import static com.evolveum.midpoint.schrodinger.util.Utils.setOptionCheckedByName;
 
 /**
  * @author skublik
@@ -32,47 +29,53 @@ import static com.evolveum.midpoint.schrodinger.util.Utils.setOptionChecked;
 public class FocusPage<F extends FocusPage> extends AssignmentHolderDetailsPage<F> {
 
     public FocusPage checkForce() {
-        setOptionChecked("executeOptions:force", true);
+        setOptionCheckedByName("executeOptions:force", true);
         return this;
     }
 
     public FocusPage checkReconcile() {
-        setOptionChecked("executeOptions:reconcileContainer:container:check", true);
+        setOptionCheckedByName("executeOptions:reconcileContainer:container:check", true);
         return this;
     }
 
     public FocusPage checkExecuteAfterAllApprovals() {
-        setOptionChecked("executeOptions:executeAfterAllApprovals", true);
+        setOptionCheckedByName("executeOptions:executeAfterAllApprovals", true);
         return this;
     }
 
     public FocusPage checkKeepDisplayingResults() {
-        setOptionChecked("executeOptions:keepDisplayingResultsContainer:container:check", true);
+        setOptionCheckedByName("executeOptions:keepDisplayingResultsContainer:container:check", true);
         return this;
     }
 
     public FocusPage uncheckForce() {
-        setOptionChecked("executeOptions:force", false);
+        setOptionCheckedByName("executeOptions:force", false);
         return this;
     }
 
     public FocusPage uncheckReconcile() {
-        setOptionChecked("executeOptions:reconcileLabel:reconcile", false);
+        setOptionCheckedByName("executeOptions:reconcileLabel:reconcile", false);
         return this;
     }
 
     public FocusPage uncheckExecuteAfterAllApprovals() {
-        setOptionChecked("executeOptions:executeAfterAllApprovals", false);
+        setOptionCheckedByName("executeOptions:executeAfterAllApprovals", false);
         return this;
     }
 
     public FocusPage uncheckKeepDisplayingResults() {
-        setOptionChecked("executeOptions:keepDisplayingResultsContainer:keepDisplayingResults", false);
+        setOptionCheckedByName("executeOptions:keepDisplayingResultsContainer:keepDisplayingResults", false);
         return this;
     }
 
     public ProjectionsTab<F> selectTabProjections() {
         SelenideElement element = getTabPanel().clickTab("pageAdminFocus.projections");
+        Selenide.sleep(2000);
+        return new ProjectionsTab<F>(this, element);
+    }
+
+    public ProjectionsTab<F> selectTabCases() {
+        SelenideElement element = getTabPanel().clickTab("pageAdminFocus.cases");
         Selenide.sleep(2000);
         return new ProjectionsTab<F>(this, element);
     }

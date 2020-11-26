@@ -156,7 +156,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                     search = storage.getSearch();
                 }
                 Search newSearch = createSearch();
-                if (search == null || !search.getAvailableDefinitions().containsAll(newSearch.getAvailableDefinitions())) {
+                if (search == null || !search.getAllDefinitions().containsAll(newSearch.getAllDefinitions())) {
                     search = newSearch;
                 }
 
@@ -425,11 +425,16 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             }
 
             if (WebComponentUtil.getElementVisibility(customColumn.getVisibility())) {
+                DisplayType displayType = customColumn.getDisplay();
+                PolyStringType label = displayType != null ? displayType.getLabel() : null;
+                String labelKey = label != null && label.getTranslation() != null ? label.getTranslation().getKey() : null;
                 IModel<String> columnDisplayModel =
-                        customColumn.getDisplay() != null && customColumn.getDisplay().getLabel() != null ?
-                                createStringResource(customColumn.getDisplay().getLabel().getOrig()) :
-                                (customColumn.getPath() != null ? createStringResource(getItemDisplayName(customColumn)) :
-                                        Model.of(customColumn.getName()));
+                        StringUtils.isNotEmpty(labelKey) ? createStringResource(labelKey) :
+                                (label != null && StringUtils.isNotEmpty(label.getOrig()) ?
+                                        Model.of(label.getOrig()) : (customColumn.getPath() != null ?
+                                            createStringResource(getItemDisplayName(customColumn)) :
+                                            Model.of(customColumn.getName())));
+
                 if (customColumns.indexOf(customColumn) == 0) {
                     // TODO what if a complex path is provided here?
                     column = createNameColumn(columnDisplayModel, customColumn.getPath() == null ? "" : customColumn.getPath().toString(), null); //TODO check expression

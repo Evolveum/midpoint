@@ -739,8 +739,13 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
                 getItem().remove(valueWrapper.getNewValue());
                 break;
             case NOT_CHANGED:
-                getItem().remove(valueWrapper.getNewValue());
-                valueWrapper.setStatus(ValueStatus.DELETED);
+                if (isSingleValue()) {
+                    valueWrapper.setRealValue(null);
+                    valueWrapper.setStatus(ValueStatus.MODIFIED);
+                } else {
+                    getItem().remove(valueWrapper.getNewValue());
+                    valueWrapper.setStatus(ValueStatus.DELETED);
+                }
                 break;
         }
     }
@@ -750,8 +755,8 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     @Override
     public <PV extends PrismValue> void add(PV newValue, ModelServiceLocator locator) throws SchemaException {
         getItem().add(newValue);
-        VW newContainerValue = WebPrismUtil.createNewValueWrapper(this, newValue, locator);
-        values.add(newContainerValue);
+        VW newItemValue = WebPrismUtil.createNewValueWrapper(this, newValue, locator);
+        values.add(newItemValue);
     }
 
     private int countUsableValues(List<VW> values) {

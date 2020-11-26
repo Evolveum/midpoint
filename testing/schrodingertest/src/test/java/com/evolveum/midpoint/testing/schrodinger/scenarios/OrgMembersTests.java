@@ -10,6 +10,15 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.schrodinger.component.org.MemberPanel;
+import com.evolveum.midpoint.schrodinger.component.org.MemberTable;
+
+import com.evolveum.midpoint.schrodinger.component.org.OrgRootTab;
+
+import com.evolveum.midpoint.schrodinger.page.role.RolePage;
+
+import com.evolveum.midpoint.schrodinger.page.service.ServicePage;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import com.evolveum.midpoint.schrodinger.page.org.OrgPage;
@@ -40,7 +49,7 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
     }
 
     @Test (priority = 1)
-    public void createOrgWithinMenuItem(){
+    public void test00100createOrgWithinMenuItem(){
         OrgPage newOrgPage = basicPage.newOrgUnit();
         newOrgPage
                 .selectTabBasic()
@@ -55,7 +64,7 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
     }
 
     @Test (dependsOnMethods = {"createOrgWithinMenuItem"}, priority = 2)
-    public void assignDefaultRelationMember(){
+    public void test00200assignDefaultRelationMember(){
         UserPage user = basicPage.newUser();
 
         Assert.assertTrue(user.selectTabBasic()
@@ -91,7 +100,7 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
     }
 
     @Test (priority = 3)
-    public void assignExistingUserAsMember(){
+    public void test00300assignExistingUserAsMember(){
         basicPage.orgStructure()
                     .selectTabWithRootOrg(ORG_WITH_MEMBER_NAME)
                         .getMemberPanel()
@@ -119,5 +128,135 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
                                     .assignMember()
                                         .table()
                                             .rowByColumnLabel("Name", "NotMemberUser"));
+    }
+
+    @Test
+    public void test00400createNewUserMemberObject() {
+        UserPage newUserPage = (UserPage) basicPage.orgStructure()
+                .selectTabWithRootOrg(ORG_WITH_MEMBER_NAME)
+                    .getMemberPanel()
+                        .newMember()
+                            .setType("User")
+                            .setRelation("Member")
+                            .clickOk();
+        newUserPage.selectTabBasic()
+                    .form()
+                        .addAttributeValue("name", "NewUserAsOrgMember")
+                        .and()
+                    .and()
+                .clickSave()
+                .feedback()
+                .isSuccess();
+        MemberTable<MemberPanel<OrgRootTab>> memberTable = basicPage.orgStructure()
+                .selectTabWithRootOrg(ORG_WITH_MEMBER_NAME)
+                .getMemberPanel()
+                .table();
+        Assert.assertEquals(memberTable
+                            .search()
+                            .byName()
+                            .inputValue("NewUserAsOrgMember")
+                .updateSearch()
+                .and()
+                .countTableObjects(), 1, "Created member is absent in org members table");
+        Assert.assertTrue(memberTable.containsText("default"));
+    }
+
+    @Test
+    public void test00500createNewRoleMemberObject() {
+        RolePage newRolePage = (RolePage) basicPage.orgStructure()
+                .selectTabWithRootOrg(ORG_WITH_MEMBER_NAME)
+                    .getMemberPanel()
+                        .newMember()
+                            .setType("Role")
+                            .setRelation("Manager")
+                            .clickOk();
+        newRolePage.selectTabBasic()
+                    .form()
+                        .addAttributeValue("name", "NewRoleAsOrManager")
+                        .and()
+                    .and()
+                .clickSave()
+                .feedback()
+                .isSuccess();
+        MemberPanel<OrgRootTab> memberPanel = basicPage.orgStructure()
+                .selectTabWithRootOrg(ORG_WITH_MEMBER_NAME)
+                .getMemberPanel();
+        MemberTable<MemberPanel<OrgRootTab>> memberTable = memberPanel
+                .table();
+        memberPanel.selectType("All");
+        Assert.assertEquals(memberTable
+                            .search()
+                            .byName()
+                            .inputValue("NewRoleAsOrManager")
+                .updateSearch()
+                .and()
+                .countTableObjects(), 1, "Created member is absent in org members table");
+        Assert.assertTrue(memberTable.containsText("manager"));
+    }
+
+    @Test
+    public void test00600createNewOrgOwnerObject() {
+        OrgPage newOrgPage = (OrgPage) basicPage.orgStructure()
+                .selectTabWithRootOrg(ORG_WITH_MEMBER_NAME)
+                    .getMemberPanel()
+                        .newMember()
+                            .setType("Organization")
+                            .setRelation("Owner")
+                            .clickOk();
+        newOrgPage.selectTabBasic()
+                    .form()
+                        .addAttributeValue("name", "NewOrgAsOrgOwner")
+                        .and()
+                    .and()
+                .clickSave()
+                .feedback()
+                .isSuccess();
+        MemberPanel<OrgRootTab> memberPanel = basicPage.orgStructure()
+                .selectTabWithRootOrg(ORG_WITH_MEMBER_NAME)
+                .getMemberPanel();
+        MemberTable<MemberPanel<OrgRootTab>> memberTable = memberPanel
+                .table();
+        memberPanel.selectType("All");
+        Assert.assertEquals(memberTable
+                            .search()
+                            .byName()
+                            .inputValue("NewOrgAsOrgOwner")
+                .updateSearch()
+                .and()
+                .countTableObjects(), 1, "Created member is absent in org members table");
+        Assert.assertTrue(memberTable.containsText("owner"));
+    }
+
+    @Test
+    public void test00700createNewServiceApproverObject() {
+        ServicePage newServicePage = (ServicePage) basicPage.orgStructure()
+                .selectTabWithRootOrg(ORG_WITH_MEMBER_NAME)
+                    .getMemberPanel()
+                        .newMember()
+                            .setType("Service")
+                            .setRelation("Approver")
+                            .clickOk();
+        newServicePage.selectTabBasic()
+                    .form()
+                        .addAttributeValue("name", "NewServiceAsOrgApprover")
+                        .and()
+                    .and()
+                .clickSave()
+                .feedback()
+                .isSuccess();
+        MemberPanel<OrgRootTab> memberPanel = basicPage.orgStructure()
+                .selectTabWithRootOrg(ORG_WITH_MEMBER_NAME)
+                .getMemberPanel();
+        MemberTable<MemberPanel<OrgRootTab>> memberTable = memberPanel
+                .table();
+        memberPanel.selectType("All");
+        Assert.assertEquals(memberTable
+                            .search()
+                            .byName()
+                            .inputValue("NewServiceAsOrgApprover")
+                .updateSearch()
+                .and()
+                .countTableObjects(), 1, "Created member is absent in org members table");
+        Assert.assertTrue(memberTable.containsText("approver"));
     }
 }

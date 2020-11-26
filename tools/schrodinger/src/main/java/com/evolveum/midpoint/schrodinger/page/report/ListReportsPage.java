@@ -6,10 +6,34 @@
  */
 package com.evolveum.midpoint.schrodinger.page.report;
 
-import com.evolveum.midpoint.schrodinger.page.BasicPage;
+import com.codeborne.selenide.SelenideElement;
+
+import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListPage;
+import com.evolveum.midpoint.schrodinger.component.report.ReportTable;
+import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+
+import org.openqa.selenium.By;
+
+import static com.codeborne.selenide.Selenide.$;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ListReportsPage extends BasicPage {
+public class ListReportsPage extends AssignmentHolderObjectListPage {
+
+    @Override
+    public ReportTable table() {
+        return new ReportTable(this, getTableBoxElement());
+    }
+
+    @Override
+    public ReportPage getObjectDetailsPage() {
+        return new ReportPage();
+    }
+
+    public ReportPage newReport() {
+        SelenideElement mainButton = $(By.xpath("//button[@type='button'][@" + Schrodinger.DATA_S_ID + "='mainButton']"));
+        mainButton.click();
+        return new ReportPage();
+    }
 }

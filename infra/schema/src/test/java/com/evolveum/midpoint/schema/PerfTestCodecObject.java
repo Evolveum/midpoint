@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.schema;
 
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -24,6 +25,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismParser;
+import com.evolveum.midpoint.prism.PrismSerializer;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.tools.testng.PerformanceTestMixin;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -33,7 +35,7 @@ public class PerfTestCodecObject extends AbstractSchemaTest implements Performan
     static final List<String> FORMAT = ImmutableList.of("xml", "json", "yaml");
     static final List<String> NS = ImmutableList.of("no-ns", "ns");
 
-    static final int REPETITIONS = 20_000;
+    static final int REPETITIONS = 1000;
 
     @Test
     void testAll() throws SchemaException, IOException {
@@ -47,15 +49,26 @@ public class PerfTestCodecObject extends AbstractSchemaTest implements Performan
     void testCombination(String format, String ns) throws SchemaException, IOException {
         String inputStream = getCachedStream(Paths.get("common", format, ns, "user-jack." + format));
 
-        Stopwatch timer = stopwatch(monitorName("parse", format, ns),
+        Stopwatch parseTimer = stopwatch(monitorName("parse", format, ns),
                 "Parsing user as " + format + " with " + ns);
-        PrismObject<Objectable> result;
+        Stopwatch serializeTimer = stopwatch(monitorName("serialize", format, ns),
+                "Serializing user as " + format + " with " + ns);
+
         for (int i = 1; i <= REPETITIONS; i++) {
-            try (Split ignored = timer.start()) {
+            PrismObject<Objectable> result;
+            try (Split ignored = parseTimer.start()) {
                 PrismParser parser = PrismTestUtil.getPrismContext().parserFor(inputStream);
                 result = parser.parse();
             }
             assertNotNull(result);
+
+            PrismSerializer<String> serializer = PrismTestUtil.getPrismContext().serializerFor(format);
+            String serialized;
+            try (Split ignored = serializeTimer.start() ) {
+                serialized = serializer.serialize(result);
+            }
+            assertNotNull(serialized);
+            assertTrue(!serialized.isEmpty());
         }
     }
 

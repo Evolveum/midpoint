@@ -36,7 +36,7 @@ import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertification
 import com.evolveum.midpoint.repo.sql.data.common.container.RCertWorkItemReference;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.query.QueryEngine;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
 import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;

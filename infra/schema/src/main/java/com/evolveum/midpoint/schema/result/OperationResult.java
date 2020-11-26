@@ -266,19 +266,22 @@ public class OperationResult
     }
 
     private void recordStart(String operation, Object[] arguments) {
-        if (isTraced()) {
-            collectingLogEntries = tracingProfile.isCollectingLogEntries();
-            if (collectingLogEntries) {
-                LoggingLevelOverrideConfiguration loggingOverrideConfiguration = tracingProfile.getLoggingLevelOverrideConfiguration();
-                if (loggingOverrideConfiguration != null && !LevelOverrideTurboFilter.isActive()) {
-                    LevelOverrideTurboFilter.overrideLogging(loggingOverrideConfiguration);
-                    startedLoggingOverride = true;
-                }
-                TracingAppender.openSink(this::appendLoggedEvents);
+        collectingLogEntries = tracingProfile != null && tracingProfile.isCollectingLogEntries();
+        if (collectingLogEntries) {
+            LoggingLevelOverrideConfiguration loggingOverrideConfiguration = tracingProfile.getLoggingLevelOverrideConfiguration();
+            if (loggingOverrideConfiguration != null && !LevelOverrideTurboFilter.isActive()) {
+                LevelOverrideTurboFilter.overrideLogging(loggingOverrideConfiguration);
+                startedLoggingOverride = true;
             }
-            invocationRecord = OperationInvocationRecord.create(operation, arguments, tracingProfile.isMeasureCpuTime());
-            invocationId = invocationRecord.getInvocationId();
+            TracingAppender.openSink(this::appendLoggedEvents);
         }
+        // TODO for very minor operation results (e.g. those dealing with mapping and script execution)
+        //  we should consider skipping creation of invocationRecord. It includes some string manipulation(s)
+        //  and a call to System.nanoTime that could unnecessarily slow down midPoint operation.
+        //  But beware, it would disable measurements of these operations e.g. in task internal performance info panel.
+        boolean measureCpuTime = tracingProfile != null && tracingProfile.isMeasureCpuTime();
+        invocationRecord = OperationInvocationRecord.create(operation, arguments, measureCpuTime);
+        invocationId = invocationRecord.getInvocationId();
         start = System.currentTimeMillis();
     }
 

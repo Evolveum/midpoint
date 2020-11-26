@@ -56,7 +56,6 @@ import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.ProvisioningDiag;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -108,8 +107,6 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
     private static final Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImpl.class);
 
-    private static final String DETAILS_CONNECTOR_FRAMEWORK_VERSION = "ConnId framework version";       // TODO generalize
-
     /**
      * Get the value of repositoryService.
      *
@@ -117,18 +114,6 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
      */
     public RepositoryService getCacheRepositoryService() {
         return cacheRepositoryService;
-    }
-
-    /**
-     * Set the value of repositoryService
-     *
-     * Expected to be injected.
-     *
-     * @param repositoryService
-     *            new value of repositoryService
-     */
-    public void setCacheRepositoryService(RepositoryService repositoryService) {
-        this.cacheRepositoryService = repositoryService;
     }
 
     @SuppressWarnings("unchecked")
@@ -274,6 +259,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         if (object.canRepresent(ShadowType.class)) {
             try {
                 // calling shadow cache to add object
+                //noinspection unchecked
                 oid = shadowCache.addShadow((PrismObject<ShadowType>) object, scripts,
                         null, options, task, result);
                 LOGGER.trace("Added shadow object {}", oid);
@@ -557,9 +543,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         query = simplifyQueryFilter(query);
         ObjectFilter filter = query != null ? query.getFilter() : null;
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Start of counting objects. Query:\n{}", query != null ? query.debugDump(1) : "  (null)");
-        }
+        LOGGER.trace("Start of counting objects. Query:\n{}", DebugUtil.debugDumpLazily(query, 1));
 
         if (filter instanceof NoneFilter) {
             result.recordSuccessIfUnknown();
@@ -590,10 +574,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             result.cleanupResult();
         }
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Finished counting objects: {}", count);
-        }
-
+        LOGGER.trace("Finished counting objects: {}", count);
         return count;
     }
 
@@ -681,11 +662,9 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         result.addArbitraryObjectAsParam("scripts", scripts);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-        //TODO: is critical when shadow does not exits anymore?? do we need to log it?? if not, change null to allowNotFound options
+        //TODO: is critical when shadow does not exist anymore?? do we need to log it?? if not, change null to allowNotFound options
         PrismObject<T> object = getRepoObject(type, oid, null, result);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Object from repository to delete:\n{}", object.debugDump(1));
-        }
+        LOGGER.trace("Object from repository to delete:\n{}", object.debugDumpLazily(1));
 
         PrismObject<T> deadShadow = null;
 
@@ -693,6 +672,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
             try {
 
+                //noinspection unchecked
                 deadShadow = (PrismObject<T>) shadowCache.deleteShadow((PrismObject<ShadowType>)object, options, scripts, task, result);
 
             } catch (CommunicationException e) {
@@ -726,9 +706,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         } else {
 
             try {
-
-                getCacheRepositoryService().deleteObject(type, oid, result);
-
+                cacheRepositoryService.deleteObject(type, oid, result);
             } catch (ObjectNotFoundException ex) {
                 result.recordFatalError(ex);
                 result.cleanupResult(ex);
@@ -747,9 +725,6 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         return deadShadow;
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.provisioning.api.ProvisioningService#executeScript(java.lang.Class, java.lang.String, com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
-     */
     @Override
     public Object executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
@@ -945,13 +920,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             }
         }
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Finished searching. Metadata: {}", metadata != null ? metadata.shortDump() : "(null)");
-        }
-
+        LOGGER.trace("Finished searching. Metadata: {}", DebugUtil.shortDumpLazily(metadata));
         return metadata;
-
-
     }
 
     private ObjectQuery simplifyQueryFilter(ObjectQuery query) {
@@ -1020,8 +990,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Override
     public <T extends ObjectType> void applyDefinition(ObjectDelta<T> delta, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-
-            applyDefinition(delta, null, task, parentResult);
+        applyDefinition(delta, null, task, parentResult);
     }
 
     @SuppressWarnings("unchecked")
@@ -1063,9 +1032,9 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         try {
 
-            if (ShadowType.class.isAssignableFrom(object.getCompileTimeClass())){
+            if (object.isOfType(ShadowType.class)) {
                 shadowCache.applyDefinition((PrismObject<ShadowType>) object, result);
-            } else if (ResourceType.class.isAssignableFrom(object.getCompileTimeClass())){
+            } else if (object.isOfType(ResourceType.class)) {
                 resourceManager.applyDefinition((PrismObject<ResourceType>) object, task, result);
             } else {
                 throw new IllegalArgumentException("Could not apply definition to object type: " + object.getCompileTimeClass());
@@ -1126,12 +1095,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Override
     public ProvisioningDiag getProvisioningDiag() {
         ProvisioningDiag provisioningDiag = new ProvisioningDiag();
-
-        String frameworkVersion = connectorManager.getFrameworkVersion();
-        if (frameworkVersion == null) {
-            frameworkVersion = "unknown";
-        }
-        provisioningDiag.getAdditionalDetails().add(new LabeledString(DETAILS_CONNECTOR_FRAMEWORK_VERSION, frameworkVersion));
+        provisioningDiag.setConnectorFrameworkVersion(connectorManager.getFrameworkVersion());
         return provisioningDiag;
     }
 
@@ -1211,11 +1175,12 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         ConstraintsChecker.exitCache();
     }
 
+    @NotNull
     private <T extends ObjectType> PrismObject<T> getRepoObject(Class<T> type, String oid,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         try {
-            return getCacheRepositoryService().getObject(type, oid, options, result);
+            return cacheRepositoryService.getObject(type, oid, options, result);
         } catch (ObjectNotFoundException e) {
             GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
             if (!GetOperationOptions.isAllowNotFound(rootOptions)) {
@@ -1242,7 +1207,6 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             throw new UnsupportedOperationException("Only shadow compare is supported");
         }
 
-        // Result type for this operation
         OperationResult result = parentResult.createMinorSubresult(ProvisioningService.class.getName() + ".compare");
         result.addParam(OperationResult.PARAM_OID, oid);
         result.addParam(OperationResult.PARAM_TYPE, type);
@@ -1251,17 +1215,15 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         try {
 
             PrismObject<O> repositoryObject = getRepoObject(type, oid, null, result);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Retrieved repository object:\n{}", repositoryObject.debugDump());
-            }
+            LOGGER.trace("Retrieved repository object:\n{}", repositoryObject.debugDumpLazily());
 
+            //noinspection unchecked
             comparisonResult = shadowCache.compare((PrismObject<ShadowType>) (repositoryObject), path, expectedValue, task, result);
 
         } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | EncryptionException | RuntimeException | Error e) {
             ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
             throw e;
         }
-
 
         result.computeStatus();
         result.cleanupResult();

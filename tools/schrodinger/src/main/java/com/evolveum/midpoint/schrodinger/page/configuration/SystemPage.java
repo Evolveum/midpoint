@@ -58,4 +58,8 @@ public class SystemPage extends AssignmentHolderDetailsPage {
         return new RoleManagementTab(this, getTabSelenideElement("pageSystemConfiguration.roleManagement.title"));
     }
 
+    public InternalsConfigurationTab internalsConfigurationsTab(){
+        return new InternalsConfigurationTab(this, getTabSelenideElement("pageSystemConfiguration.internals.title"));
+    }
+
 }

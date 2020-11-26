@@ -30,16 +30,6 @@ public class TasksPageTable extends AssignmentHolderObjectListTable<ListTasksPag
     }
 
     @Override
-    public TaskPage clickByName(String name) {
-
-        SelenideElement label = getParentElement().$(Schrodinger.byElementValue("span", "data-s-id", "label", name));
-        label.waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-        label.waitWhile(Condition.exist, MidPoint.TIMEOUT_MEDIUM_6_S);
-
-        return new TaskPage();
-    }
-
-    @Override
     protected TableHeaderDropDownMenu<TasksPageTable> clickHeaderActionDropDown() {
         //todo looks like the same code for all tables
         $(Schrodinger.bySelfOrAncestorElementAttributeValue("button", "data-toggle", "dropdown", "class", "sortableLabel"))
@@ -54,6 +44,11 @@ public class TasksPageTable extends AssignmentHolderObjectListTable<ListTasksPag
     @Override
     public TaskPage getObjectDetailsPage(){
         return new TaskPage();
+    }
+
+    @Override
+    public long getDetailsPageLoadingTimeToWait() {
+        return MidPoint.TIMEOUT_MEDIUM_6_S;
     }
 
     public ConfirmationModal<TasksPageTable> suspendTask() {

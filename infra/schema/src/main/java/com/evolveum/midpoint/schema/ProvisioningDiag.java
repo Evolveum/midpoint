@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.schema;
 
+import org.apache.commons.lang3.ObjectUtils;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,13 +22,17 @@ import java.util.List;
  * @author Radovan Semancik
  * @author mederly
  *
+ * TODO Remove GUI-specific things from this class (e.g. localized/default values).
  */
 public class ProvisioningDiag implements Serializable {
+
+    public static final String DETAILS_CONNECTOR_FRAMEWORK_VERSION = "ConnId framework version";
+    private static final String UNKNOWN_VERSION = "unknown";
 
     // TODO some information about connector frameworks used etc
 
     /**
-     * Additional repository information that do not fit the structured data above.
+     * Additional information that do not fit the structured data above.
      * May be anything that the implementations thinks is important.
      *
      * Currently used as a hack to display connId version
@@ -46,5 +52,9 @@ public class ProvisioningDiag implements Serializable {
         return "ProvisioningDiag(additionalDetails=" + additionalDetails + ")";
     }
 
-
+    public void setConnectorFrameworkVersion(String version) {
+        additionalDetails.add(new LabeledString(
+                DETAILS_CONNECTOR_FRAMEWORK_VERSION,
+                ObjectUtils.defaultIfNull(version, UNKNOWN_VERSION)));
+    }
 }

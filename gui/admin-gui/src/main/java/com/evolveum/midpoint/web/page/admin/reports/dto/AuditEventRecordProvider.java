@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.reports.dto;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
@@ -217,7 +218,19 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
         if (collection != null && (collection.getFilter() != null || collectionRef.getFilter() != null)) {
             try {
                 ObjectPaging paging = getPrismContext().queryFactory().createPaging(WebComponentUtil.safeLongToInteger(first), WebComponentUtil.safeLongToInteger(count));
-                auditRecordList = getPage().getDashboardService().searchObjectFromCollection(collectionRef, paging, task, task.getResult());
+                AuditResultHandler handler = new AuditResultHandler() {
+                    @Override
+                    public boolean handle(AuditEventRecordType auditRecord) {
+                        auditRecordList.add(auditRecord);
+                        return true;
+                    }
+
+                    @Override
+                    public int getProgress() {
+                        return 0;
+                    }
+                };
+                getPage().getDashboardService().searchObjectFromCollection(collectionRef, handler, paging, task, task.getResult(), false);
             } catch (Exception e) {
                 result.recordFatalError(
                         getPage().createStringResource("AuditEventRecordProvider.message.listRecords.fatalError", e.getMessage()).getString(), e);

@@ -15,7 +15,6 @@ import java.sql.Types;
 import java.util.Objects;
 
 import com.querydsl.sql.ColumnMetadata;
-import com.querydsl.sql.Configuration;
 import com.querydsl.sql.RelationalPath;
 import com.querydsl.sql.SQLQuery;
 import com.querydsl.sql.dml.SQLDeleteClause;
@@ -25,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.TransactionIsolation;
+import com.evolveum.midpoint.repo.sqlbase.SqlConfiguration;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -43,24 +43,27 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * Provides convenient methods for handling exceptions and {@link OperationResult}s.
  * <p>
  * All {@link SQLException}s are translated to {@link SystemException}.
+ * <p>
+ * TODO: Move to sqlbase during midScale.
  */
 public class JdbcSession implements AutoCloseable {
 
     private static final Trace LOGGER = TraceManager.getTrace(JdbcSession.class);
 
     private final Connection connection;
+    // TODO: this is repo-sql-impl class, should be replaced/abstracted
     private final SqlRepositoryConfiguration repoConfiguration;
-    private final Configuration querydslConfiguration;
+    private final SqlConfiguration sqlConfiguration;
 
     private boolean rollbackForReadOnly;
 
     public JdbcSession(
             @NotNull Connection connection,
             @NotNull SqlRepositoryConfiguration repoConfiguration,
-            @NotNull Configuration querydslConfiguration) {
+            @NotNull SqlConfiguration sqlConfiguration) {
         this.connection = Objects.requireNonNull(connection);
         this.repoConfiguration = repoConfiguration;
-        this.querydslConfiguration = querydslConfiguration;
+        this.sqlConfiguration = sqlConfiguration;
 
         try {
             // Connection has its transaction isolation set by Hikari, except for obscure ones.
@@ -209,7 +212,7 @@ public class JdbcSession implements AutoCloseable {
      * Creates Querydsl query based on current Querydsl configuration and session's connection.
      */
     public SQLQuery<?> query() {
-        return new SQLQuery<>(connection, querydslConfiguration);
+        return sqlConfiguration.newQuery(connection);
     }
 
     /**
@@ -218,15 +221,15 @@ public class JdbcSession implements AutoCloseable {
      * for more about various ways how to use it.
      */
     public SQLInsertClause insert(RelationalPath<?> entity) {
-        return new SQLInsertClause(connection, querydslConfiguration, entity);
+        return sqlConfiguration.newInsert(connection, entity);
     }
 
     public SQLDeleteClause delete(RelationalPath<?> entity) {
-        return new SQLDeleteClause(connection, querydslConfiguration, entity);
+        return sqlConfiguration.newDelete(connection, entity);
     }
 
     public String getNativeTypeName(int typeCode) {
-        return querydslConfiguration.getTemplates().getTypeNameForCode(typeCode);
+        return sqlConfiguration.getQuerydslTemplates().getTypeNameForCode(typeCode);
     }
 
     public Connection connection() {

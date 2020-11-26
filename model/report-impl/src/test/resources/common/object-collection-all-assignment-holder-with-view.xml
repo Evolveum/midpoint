@@ -9,7 +9,12 @@
     <name>All assignment holder with view</name>
     <type>AssignmentHolderType</type>
     <filter>
-        <all/>
+        <not>
+            <equal>
+                <path>name</path>
+                <value>Dummy Resource</value>
+            </equal>
+        </not>
     </filter>
     <defaultView>
         <column>

@@ -36,6 +36,7 @@ import com.evolveum.midpoint.repo.sql.query.resolution.ItemPathResolver;
 import com.evolveum.midpoint.repo.sql.query.resolution.ProperDataSearchResult;
 import com.evolveum.midpoint.repo.sql.query.restriction.*;
 import com.evolveum.midpoint.repo.sql.util.*;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SelectorOptions;
