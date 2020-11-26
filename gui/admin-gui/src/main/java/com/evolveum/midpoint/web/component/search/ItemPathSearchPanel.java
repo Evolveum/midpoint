@@ -7,21 +7,15 @@
 package com.evolveum.midpoint.web.component.search;
 
 import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
-import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.web.component.DateLabelComponent;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
-
-import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * @author honchar
  */
-public class ItemPathSearchPanel extends SpecialPopoverSearchPanel<ItemPathDto> {
+public class ItemPathSearchPanel extends PopoverSearchPanel<ItemPathDto> {
 
     private static final long serialVersionUID = 1L;
 
@@ -38,7 +32,7 @@ public class ItemPathSearchPanel extends SpecialPopoverSearchPanel<ItemPathDto> 
     }
 
     @Override
-    protected SpecialPopoverSearchPopupPanel createPopupPopoverPanel(String id) {
+    protected PopoverSearchPopupPanel createPopupPopoverPanel(String id) {
         return new ItemPathSearchPopupPanel(id, getModel()) {
 
             private static final long serialVersionUID = 1L;

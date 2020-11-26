@@ -17,6 +17,8 @@ public abstract class SearchItem implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    public static final String F_HELP = "help";
+
     public enum Type {
         TEXT, BOOLEAN, ENUM, BROWSER, REFERENCE, FILTER, DATE, ITEM_PATH
     }
@@ -35,6 +37,10 @@ public abstract class SearchItem implements Serializable {
     public abstract Type getType();
 
     protected String getTitle(PageBase pageBase) {
+        return "";
+    }
+
+    public String getHelp() {
         return "";
     }
 

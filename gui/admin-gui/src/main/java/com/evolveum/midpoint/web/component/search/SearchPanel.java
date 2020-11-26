@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
@@ -87,6 +88,7 @@ public class SearchPanel extends BasePanel<Search> {
     private static final String ID_CLOSE = "close";
     private static final String ID_PROPERTIES = "properties";
     private static final String ID_CHECK = "check";
+    private static final String ID_HELP = "help";
     private static final String ID_PROP_NAME = "propName";
     private static final String ID_PROP_LINK = "propLink";
     private static final String ID_PROP_LIST = "propList";
@@ -184,19 +186,36 @@ public class SearchPanel extends BasePanel<Search> {
 
             @Override
             protected void populateItem(ListItem<S> item) {
-                SearchItemPanel<S, T> searchItem = new SearchItemPanel<S, T>(ID_ITEM, item.getModel()) {
-                    private static final long serialVersionUID = 1L;
+                AbstractSearchItemPanel searchItem;
+                if (item.getModelObject() instanceof FilterSearchItem) {
+                    searchItem = new SearchFilterPanel(ID_ITEM, (IModel<FilterSearchItem>) item.getModel()) {
+                        private static final long serialVersionUID = 1L;
 
-                    @Override
-                    protected boolean canRemoveSearchItem() {
-                        return SearchPanel.this.getModelObject().isCanConfigure();
-                    }
+                        @Override
+                        protected boolean canRemoveSearchItem() {
+                            return SearchPanel.this.getModelObject().isCanConfigure();
+                        }
 
-                    @Override
-                    protected void searchPerformed(AjaxRequestTarget target){
-                        SearchPanel.this.searchPerformed(target);
-                    }
-                };
+                        @Override
+                        protected void searchPerformed(AjaxRequestTarget target) {
+                            SearchPanel.this.searchPerformed(target);
+                        }
+                    };
+                } else {
+                    searchItem = new SearchItemPanel<T>(ID_ITEM, (IModel<PropertySearchItem<T>>) item.getModel()) {
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        protected boolean canRemoveSearchItem() {
+                            return SearchPanel.this.getModelObject().isCanConfigure();
+                        }
+
+                        @Override
+                        protected void searchPerformed(AjaxRequestTarget target) {
+                            SearchPanel.this.searchPerformed(target);
+                        }
+                    };
+                }
                 item.add(searchItem);
             }
         };
@@ -609,14 +628,14 @@ public class SearchPanel extends BasePanel<Search> {
         propList.setOutputMarkupId(true);
         popover.add(propList);
 
-        ListView properties = new ListView<Property>(ID_PROPERTIES,
+        ListView properties = new ListView<SearchItemDefinition>(ID_PROPERTIES,
                 new PropertyModel<>(moreDialogModel, MoreDialogDto.F_PROPERTIES)) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void populateItem(final ListItem<Property> item) {
+            protected void populateItem(final ListItem<SearchItemDefinition> item) {
                 CheckBox check = new CheckBox(ID_CHECK,
-                        new PropertyModel<>(item.getModel(), Property.F_SELECTED));
+                        new PropertyModel<>(item.getModel(), SearchItemDefinition.F_SELECTED));
                 check.add(new AjaxFormComponentUpdatingBehavior("change") {
 
                     private static final long serialVersionUID = 1L;
@@ -639,9 +658,21 @@ public class SearchPanel extends BasePanel<Search> {
                 };
                 item.add(propLink);
 
-                Label name = new Label(ID_PROP_NAME, new PropertyModel<>(item.getModel(), Property.F_NAME));
+                Label name = new Label(ID_PROP_NAME, new PropertyModel<>(item.getModel(), SearchItemDefinition.F_NAME));
                 name.setRenderBodyOnly(true);
                 propLink.add(name);
+
+                Label help = new Label(ID_HELP);
+                IModel<String> helpModel = new PropertyModel<>(item.getModel(), SearchItemDefinition.F_HELP);
+                help.add(AttributeModifier.replace("title",createStringResource(helpModel.getObject() != null ? helpModel.getObject() : "")));
+                help.add(new InfoTooltipBehavior(){
+                    @Override
+                    public String getDataPlacement() {
+                        return "left";
+                    }
+                });
+                help.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(helpModel.getObject())));
+                item.add(help);
 
                 item.add(new VisibleEnableBehaviour() {
 
@@ -649,16 +680,16 @@ public class SearchPanel extends BasePanel<Search> {
 
                     @Override
                     public boolean isVisible() {
-                        Property property = item.getModelObject();
+                        SearchItemDefinition property = item.getModelObject();
 
                         Search search = SearchPanel.this.getModelObject();
-                        if (!search.getAvailableDefinitions().contains(property.getDefinition())) {
+                        if (!search.getAvailableDefinitions().contains(property)) {
                             return false;
                         }
 
                         MoreDialogDto dto = moreDialogModel.getObject();
 
-                        ItemPath propertyPath = property.getFullPath();
+                        ItemPath propertyPath = property.getPath();
                         for (SearchItem searchItem : search.getItems()) {
                             if (searchItem instanceof FilterSearchItem) {
                                 return true;
@@ -729,25 +760,20 @@ public class SearchPanel extends BasePanel<Search> {
         popover.add(close);
     }
 
-    private List<Property> createPropertiesList() {
-        List<Property> list = new ArrayList<>();
+    private List<SearchItemDefinition> createPropertiesList() {
+        List<SearchItemDefinition> list = new ArrayList<>();
 
         Search search = getModelObject();
-        List<SearchItemDefinition> defs = search.getAllDefinitions();
-        for (SearchItemDefinition def : defs) {
-            Property property = new Property(def.getDef(), def.getDef().getItemName());
-            property.setDisplayName(def.getDisplayName());
-            list.add(property);
-        }
+        list.addAll(search.getAllDefinitions());
 
         Collections.sort(list);
 
         return list;
     }
 
-    private void addOneItemPerformed(Property property, AjaxRequestTarget target) {
+    private void addOneItemPerformed(SearchItemDefinition property, AjaxRequestTarget target) {
         Search search = getModelObject();
-        SearchItem item = search.addItem(property.getDefinition());
+        SearchItem item = search.addItem(property.getDef());
         item.setEditWhenVisible(true);
 
         refreshSearchForm(target);
@@ -757,12 +783,12 @@ public class SearchPanel extends BasePanel<Search> {
         Search search = getModelObject();
 
         MoreDialogDto dto = moreDialogModel.getObject();
-        for (Property property : dto.getProperties()) {
+        for (SearchItemDefinition property : dto.getProperties()) {
             if (!property.isSelected()) {
                 continue;
             }
 
-            search.addItem(property.getDefinition());
+            search.addItem(property.getDef());
         }
 
         refreshSearchForm(target);

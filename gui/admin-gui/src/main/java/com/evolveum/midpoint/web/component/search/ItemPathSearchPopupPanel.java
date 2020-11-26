@@ -8,19 +8,11 @@ package com.evolveum.midpoint.web.component.search;
 
 import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
 import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.input.DatePanel;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import com.evolveum.midpoint.web.util.DateValidator;
 
-import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.model.IModel;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-
-public class ItemPathSearchPopupPanel extends SpecialPopoverSearchPopupPanel {
+public class ItemPathSearchPopupPanel extends PopoverSearchPopupPanel {
 
     private static final long serialVersionUID = 1L;
 

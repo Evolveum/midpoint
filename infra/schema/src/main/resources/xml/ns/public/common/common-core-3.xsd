@@ -25564,6 +25564,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="parameter" type="c:ExpressionParameterType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Parameter used in filter expression.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SearchItemType.parameter</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

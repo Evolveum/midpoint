@@ -8,21 +8,35 @@ package com.evolveum.midpoint.web.component.search;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-public class SearchItemDefinition implements Serializable {
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.model.StringResourceModel;
+
+import javax.xml.namespace.QName;
+
+public class SearchItemDefinition implements Serializable, Comparable<SearchItemDefinition> {
+
+    public static final String F_SELECTED = "selected";
+    public static final String F_NAME = "name";
+    public static final String F_HELP = "help";
 
     private ItemPath path;
     private ItemDefinition def;
     private SearchItemType predefinedFilter;
     private PolyStringType displayName;
-    private List<?> allowedValues;
+    private List<QName> allowedValues;
+    private String description;
+    private boolean isSelected = false;
 
-    public SearchItemDefinition(ItemPath path, ItemDefinition def, List<?> allowedValues) {
+    public SearchItemDefinition(ItemPath path, ItemDefinition def, List<QName> allowedValues) {
         this.path = path;
         this.def = def;
         this.allowedValues = allowedValues;
@@ -30,6 +44,7 @@ public class SearchItemDefinition implements Serializable {
 
     public SearchItemDefinition(SearchItemType predefinedFilter) {
         this.predefinedFilter = predefinedFilter;
+        this.description = predefinedFilter != null ? predefinedFilter.getDescription() : null;
     }
 
     public ItemPath getPath() {
@@ -40,7 +55,7 @@ public class SearchItemDefinition implements Serializable {
         return def;
     }
 
-    public List<?> getAllowedValues() {
+    public List<QName> getAllowedValues() {
         return allowedValues;
     }
 
@@ -58,5 +73,67 @@ public class SearchItemDefinition implements Serializable {
 
     public void setDisplayName(PolyStringType displayName) {
         this.displayName = displayName;
+    }
+
+    public boolean isSelected() {
+        return isSelected;
+    }
+
+    public void setSelected(boolean selected) {
+        isSelected = selected;
+    }
+
+    public String getName() {
+        if (getDisplayName() != null){
+            return WebComponentUtil.getTranslatedPolyString(getDisplayName());
+        }
+
+        if (getDef() != null && StringUtils.isNotEmpty(getDef().getDisplayName())) {
+            return PageBase.createStringResourceStatic(null, getDef().getDisplayName()).getString();
+        }
+        return WebComponentUtil.getItemDefinitionDisplayNameOrName(getDef(), null);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
+
+        SearchItemDefinition property = (SearchItemDefinition) o;
+
+        if (isSelected != property.isSelected()) { return false; }
+        return !(getDef() != null ? !getDef().equals(property.getDef()) : property.getDef() != null);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(path, def, predefinedFilter, displayName, allowedValues, description);
+    }
+
+    @Override
+    public int compareTo(SearchItemDefinition o) {
+        String n1 = WebComponentUtil.getItemDefinitionDisplayNameOrName(getDef(), null);
+        String n2 = WebComponentUtil.getItemDefinitionDisplayNameOrName(o.getDef(), null);
+
+        if (n1 == null || n2 == null) {
+            return 0;
+        }
+        return String.CASE_INSENSITIVE_ORDER.compare(n1, n2);
+    }
+
+    public String getHelp(){
+        if (StringUtils.isNotBlank(description)) {
+            return description;
+        }
+        String help;
+        if (StringUtils.isNotEmpty(def.getHelp())) {
+            help = def.getHelp();
+        } else {
+            help = def.getDocumentation();
+        }
+        if (StringUtils.isNotBlank(help)) {
+            help = help.replace("\n", "").replace("\r", "").replaceAll("^ +| +$|( )+", "$1");
+        }
+        return help;
     }
 }

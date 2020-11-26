@@ -2220,9 +2220,8 @@ public final class WebComponentUtil {
         return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON);
     }
 
-    public static ObjectFilter evaluateExpressionsInFilter(ObjectFilter objectFilter, OperationResult result, PageBase pageBase) {
+    public static ObjectFilter evaluateExpressionsInFilter(ObjectFilter objectFilter, ExpressionVariables variables, OperationResult result, PageBase pageBase) {
         try {
-            ExpressionVariables variables = new ExpressionVariables();
             return ExpressionUtil.evaluateFilterExpressions(objectFilter, variables, MiscSchemaUtil.getExpressionProfile(),
                     pageBase.getExpressionFactory(), pageBase.getPrismContext(), "collection filter",
                     pageBase.createSimpleTask(result.getOperation()), result);
@@ -2232,6 +2231,11 @@ public final class WebComponentUtil {
             pageBase.error("Unable to evaluate filter exception, " + ex.getMessage());
         }
         return objectFilter;
+    }
+
+    public static ObjectFilter evaluateExpressionsInFilter(ObjectFilter objectFilter, OperationResult result, PageBase pageBase) {
+        ExpressionVariables variables = new ExpressionVariables();
+        return evaluateExpressionsInFilter(objectFilter, variables, result, pageBase);
     }
 
     public static String createReportIcon() {

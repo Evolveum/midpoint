@@ -13,21 +13,15 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteReferenceRenderer;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -35,7 +29,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurA
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends SpecialPopoverSearchPopupPanel<ObjectReferenceType> {
+public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends PopoverSearchPopupPanel<ObjectReferenceType> {
 
     private static final long serialVersionUID = 1L;
 

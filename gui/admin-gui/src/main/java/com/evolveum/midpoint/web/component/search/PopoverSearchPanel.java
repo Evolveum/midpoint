@@ -19,7 +19,7 @@ import org.apache.wicket.model.IModel;
 /**
  * @author honchar
  */
-public abstract class SpecialPopoverSearchPanel<T> extends BasePanel<T> {
+public abstract class PopoverSearchPanel<T> extends BasePanel<T> {
 
     private static final long serialVersionUID = 1L;
 
@@ -28,11 +28,11 @@ public abstract class SpecialPopoverSearchPanel<T> extends BasePanel<T> {
     private static final String ID_POPOVER_PANEL = "popoverPanel";
     private static final String ID_POPOVER = "popover";
 
-    public SpecialPopoverSearchPanel(String id) {
+    public PopoverSearchPanel(String id) {
         super(id);
     }
 
-    public SpecialPopoverSearchPanel(String id, IModel<T> model) {
+    public PopoverSearchPanel(String id, IModel<T> model) {
         super(id, model);
     }
 
@@ -56,8 +56,8 @@ public abstract class SpecialPopoverSearchPanel<T> extends BasePanel<T> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                togglePopover(target, SpecialPopoverSearchPanel.this.get(ID_TEXT_FIELD),
-                        SpecialPopoverSearchPanel.this.get(ID_POPOVER), 0);
+                togglePopover(target, PopoverSearchPanel.this.get(ID_TEXT_FIELD),
+                        PopoverSearchPanel.this.get(ID_POPOVER), 0);
             }
         };
         setDateButton.setOutputMarkupId(true);
@@ -74,7 +74,7 @@ public abstract class SpecialPopoverSearchPanel<T> extends BasePanel<T> {
 
     protected abstract IModel<String> getTextValue();
 
-    protected abstract SpecialPopoverSearchPopupPanel createPopupPopoverPanel(String id);
+    protected abstract PopoverSearchPopupPanel createPopupPopoverPanel(String id);
 
     public void togglePopover(AjaxRequestTarget target, Component button, Component popover, int paddingRight) {
         StringBuilder script = new StringBuilder();

@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.web.component.search;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.util.DisplayableValue;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,6 +20,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
+import java.io.Serializable;
+
 /**
  * @author honchar
  */
@@ -26,9 +31,13 @@ public class FilterSearchItem extends SearchItem {
     private static final Trace LOGGER = TraceManager.getTrace(FilterSearchItem.class);
 
     public static final String F_APPLY_FILTER = "applyFilter";
+    public static final String F_INPUT_VALUE = "input.value";
+    public static final String F_INPUT = "input";
+
 
     private SearchItemType predefinedFilter;
     private boolean applyFilter;
+    private DisplayableValue<? extends Serializable> input = new SearchValue<>();
 
     public FilterSearchItem(Search search, @NotNull SearchItemType predefinedFilter) {
         super(search);
@@ -76,10 +85,34 @@ public class FilterSearchItem extends SearchItem {
     }
 
     @Override
+    public String getHelp() {
+        return predefinedFilter.getDescription();
+    }
+
+    public DisplayableValue getInput() {
+        return input;
+    }
+
+    public void setInput(DisplayableValue<? extends Serializable> input) {
+        this.input = input;
+    }
+
+    public Type getInputType(Class clazz) {
+        if(Boolean.class.isAssignableFrom(clazz) || boolean.class.isAssignableFrom(clazz)) {
+            return Type.BOOLEAN;
+        }
+        if(Enum.class.isAssignableFrom(clazz)) {
+            return Type.ENUM;
+        }
+        return Type.TEXT;
+    }
+
+    @Override
     public String toString() {
         return "FilterSearchItem{" +
-                "search=" + getSearch() +
+                "applyFilter=" + applyFilter +
                 ", predefinedFilter=" + predefinedFilter +
+                ", input=" + input +
                 '}';
     }
 }

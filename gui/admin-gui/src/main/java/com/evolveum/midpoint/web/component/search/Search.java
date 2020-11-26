@@ -15,6 +15,9 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.*;
 
@@ -36,6 +39,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+import org.apache.wicket.Component;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -63,7 +68,7 @@ public class Search implements Serializable, DebugDumpable {
     private final Class<? extends Containerable> type;
     private final List<SearchItemDefinition> allDefinitions;
 
-    private final List<ItemDefinition> availableDefinitions = new ArrayList<>();
+    private final List<SearchItemDefinition> availableDefinitions = new ArrayList<>();
     private final List<SearchItem> items = new ArrayList<>();
     private CompiledObjectCollectionView dashboardWidgetView;
 
@@ -84,7 +89,7 @@ public class Search implements Serializable, DebugDumpable {
         } else {
             searchType = SearchBoxModeType.BASIC;
         }
-        allDefinitions.forEach(searchItemDef -> availableDefinitions.add(searchItemDef.getDef()));
+        allDefinitions.forEach(searchItemDef -> availableDefinitions.add(searchItemDef));
     }
 
     public List<SearchItem> getItems() {
@@ -119,7 +124,7 @@ public class Search implements Serializable, DebugDumpable {
         return Collections.unmodifiableList(filterItems);
     }
 
-    public List<ItemDefinition> getAvailableDefinitions() {
+    public List<SearchItemDefinition> getAvailableDefinitions() {
         return Collections.unmodifiableList(availableDefinitions);
     }
 
@@ -129,9 +134,9 @@ public class Search implements Serializable, DebugDumpable {
 
     public SearchItem addItem(ItemDefinition def) {
         boolean isPresent = false;
-        for (ItemDefinition itemDefinition : availableDefinitions) {
-            if (itemDefinition.getItemName() != null &&
-                    itemDefinition.getItemName().equals(def.getItemName())) {
+        for (SearchItemDefinition searchItemDefinition : availableDefinitions) {
+            if (searchItemDefinition.getDef() != null && searchItemDefinition.getDef().getItemName() != null
+                    && searchItemDefinition.getDef().getItemName().equals(def.getItemName())) {
                 isPresent = true;
                 break;
             }
@@ -154,10 +159,9 @@ public class Search implements Serializable, DebugDumpable {
 
         PropertySearchItem item;
         if (QNameUtil.match(itemToRemove.getDef().getTypeName(), DOMUtil.XSD_DATETIME)) {
-            item = new DateSearchItem(this, itemToRemove.getPath(), def, itemToRemove.getDisplayName());
+            item = new DateSearchItem(this, itemToRemove);
         } else {
-            item = new PropertySearchItem(this, itemToRemove.getPath(), def, itemToRemove.getAllowedValues(),
-                    itemToRemove.getDisplayName());
+            item = new PropertySearchItem(this, itemToRemove);
         }
         if (def instanceof PrismReferenceDefinition) {
             ObjectReferenceType ref = new ObjectReferenceType();
@@ -232,6 +236,17 @@ public class Search implements Serializable, DebugDumpable {
                 SearchFilterType filter = item.getPredefinedFilter().getFilter();
                 try {
                     ObjectFilter convertedFilter = pageBase.getQueryConverter().parseFilter(filter, getType());
+                    ExpressionVariables variables = new ExpressionVariables();
+
+                    ExpressionParameterType functionParameter = item.getPredefinedFilter().getParameter();
+                    QName returnType = functionParameter.getType();
+                    if (returnType != null) {
+                        Class<?> inputClass = pageBase.getPrismContext().getSchemaRegistry().determineClassForType(returnType);
+                        TypedValue value = new TypedValue(item.getInput() != null ? item.getInput().getValue() : null, inputClass);
+                        variables.put(functionParameter.getName(), value);
+                    }
+
+                    convertedFilter = WebComponentUtil.evaluateExpressionsInFilter(convertedFilter, variables, new OperationResult("evaluated filter"), pageBase);
                     if (convertedFilter != null) {
                         conditions.add(convertedFilter);
                     }
@@ -282,7 +297,7 @@ public class Search implements Serializable, DebugDumpable {
     private ObjectFilter createFilterForSearchValue(PropertySearchItem item, DisplayableValue searchValue,
             PrismContext ctx) {
 
-        ItemDefinition definition = item.getDefinition();
+        ItemDefinition definition = item.getDefinition().getDef();
         ItemPath path = item.getPath();
 
         if (definition instanceof PrismReferenceDefinition) {
