@@ -74,6 +74,12 @@ public class FocusPage<F extends FocusPage> extends AssignmentHolderDetailsPage<
         return new ProjectionsTab<F>(this, element);
     }
 
+    public ProjectionsTab<F> selectTabCases() {
+        SelenideElement element = getTabPanel().clickTab("pageAdminFocus.cases");
+        Selenide.sleep(2000);
+        return new ProjectionsTab<F>(this, element);
+    }
+
 
     public SummaryPanel<UserPage> summary() {
 
