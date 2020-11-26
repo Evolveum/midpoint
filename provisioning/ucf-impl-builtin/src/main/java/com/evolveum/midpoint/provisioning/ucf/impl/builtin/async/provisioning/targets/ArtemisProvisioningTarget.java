@@ -55,7 +55,7 @@ public class ArtemisProvisioningTarget extends AbstractMessagingTarget<ArtemisPr
 
     @Override
     protected void validate() {
-        Objects.requireNonNull(configuration.getUri(), "URI must be specified");
+        Objects.requireNonNull(configuration.getUrl(), "URI must be specified");
         Objects.requireNonNull(configuration.getAddress(), "address must be specified");
     }
 
@@ -121,7 +121,7 @@ public class ArtemisProvisioningTarget extends AbstractMessagingTarget<ArtemisPr
      */
     private synchronized ClientSessionFactory getOrCreateClientSessionFactory() throws Exception {
         if (clientSessionFactory == null) {
-            ServerLocator serverLocator = ActiveMQClient.createServerLocator(configuration.getUri());
+            ServerLocator serverLocator = ActiveMQClient.createServerLocator(configuration.getUrl());
             clientSessionFactory = serverLocator.createSessionFactory();
         }
         return clientSessionFactory;
@@ -162,7 +162,7 @@ public class ArtemisProvisioningTarget extends AbstractMessagingTarget<ArtemisPr
     @Override
     public String toString() {
         return "ArtemisProvisioningTarget{" +
-                "url='" + configuration.getUri() +
+                "url='" + configuration.getUrl() +
                 "',address='" + configuration.getAddress() +
                 "'}";
     }
