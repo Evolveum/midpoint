@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>SystemConfiguration</name>
+    <logging>
+        <rootLoggerAppender>File Appender</rootLoggerAppender>
+        <rootLoggerLevel>INFO</rootLoggerLevel>
+<!--        <classLogger>-->
+<!--            <level>TRACE</level>-->
+<!--            <package>com.evolveum.midpoint.repo</package>-->
+<!--        </classLogger>-->
+<!--        <classLogger>-->
+<!--            <level>TRACE</level>-->
+<!--            <package>com.evolveum.midpoint.provisioning</package>-->
+<!--        </classLogger>-->
+        <appender xsi:type="c:FileAppenderConfigurationType" name="File Appender" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+            <fileName>target/test.log</fileName>
+            <append>true</append>
+        </appender>
+    </logging>
+    <internals>
+        <tracing>
+            <profile>
+                <name>functional</name>
+                <displayName>Functional tracing</displayName>
+                <visible>true</visible>
+                <fileNamePattern>functional-trace %{timestamp} %{focusName}</fileNamePattern>
+                <createRepoObject>true</createRepoObject>
+                <compressOutput>true</compressOutput>
+                <collectLogEntries>true</collectLogEntries>
+                <tracingTypeProfile>
+                    <level>normal</level>
+                </tracingTypeProfile>
+            </profile>
+        </tracing>
+    </internals>
+    <workflowConfiguration>
+        <useLegacyApproversSpecification>never</useLegacyApproversSpecification>
+        <useDefaultApprovalPolicyRules>never</useDefaultApprovalPolicyRules>
+    </workflowConfiguration>
+</systemConfiguration>

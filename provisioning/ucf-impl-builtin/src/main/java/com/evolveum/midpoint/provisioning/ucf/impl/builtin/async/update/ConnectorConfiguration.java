@@ -72,6 +72,7 @@ public class ConnectorConfiguration {
     List<AsyncUpdateSourceType> getAllSources() {
         List<AsyncUpdateSourceType> allSources = new ArrayList<>();
         if (sources != null) {
+            allSources.addAll(sources.getJms());
             allSources.addAll(sources.getAmqp091());
             allSources.addAll(sources.getOther());
         }

@@ -468,15 +468,16 @@ public class ResourceTypeUtil {
         if (kind == null) {
             kind = ShadowKindType.ACCOUNT;
         }
+        // TODO review the code below
         for (ResourceObjectTypeDefinitionType objType: schemaHandling.getObjectType()) {
             if (objType.getKind() == kind || (objType.getKind() == null && kind == ShadowKindType.ACCOUNT)) {
-                if (intent == null && objType.isDefault()) {
+                if (intent == null && Boolean.TRUE.equals(objType.isDefault())) {
                     return objType;
                 }
                 if (objType.getIntent() != null && objType.getIntent().equals(intent)) {
                     return objType;
                 }
-                if (objType.getIntent() == null && objType.isDefault() && intent != null && intent.equals(SchemaConstants.INTENT_DEFAULT)) {
+                if (objType.getIntent() == null && Boolean.TRUE.equals(objType.isDefault()) && intent != null && intent.equals(SchemaConstants.INTENT_DEFAULT)) {
                     return objType;
                 }
             }

@@ -9,10 +9,13 @@ package com.evolveum.midpoint.model.impl.messaging;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.Amqp091MessageAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.Amqp091MessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.JmsTextMessageType;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jetbrains.annotations.NotNull;
@@ -49,7 +52,13 @@ public class MessageWrapper {
     }
 
     public String getText() {
-        return new String(((Amqp091MessageType) message).getBody(), StandardCharsets.UTF_8);
+        if (message instanceof Amqp091MessageType) {
+            return new String(((Amqp091MessageType) message).getBody(), StandardCharsets.UTF_8);
+        } else if (message instanceof JmsTextMessageType) {
+            return ((JmsTextMessageType) message).getText();
+        } else {
+            throw new UnsupportedOperationException("Unsupported message: " + MiscUtil.getClass(message));
+        }
     }
 
     public AsyncUpdateMessageType getOriginalMessage() {

@@ -49,6 +49,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="jms" type="tns:JmsSourceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        JMS sources.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="other" type="tns:AsyncUpdateSourceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -164,6 +171,60 @@
     </xsd:complexType>
     <xsd:element name="amqp091SourceType" type="tns:Amqp091SourceType"/>
 
+    <xsd:complexType name="JmsSourceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                JMS client configuration
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AsyncUpdateSourceType">
+                <xsd:sequence>
+                    <xsd:element name="connectionFactory" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Connection factory. It is looked up via JNDI.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="username" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                User name used to authenticate to JMS broker.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="password" type="t:ProtectedStringType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Password used to authenticate to JMS broker.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="destination" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name of the queue/topic to receive messages from. It is looked up via JNDI.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="connectionHandlingThreads" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Number of connection handling threads. The default is 10.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="jmsSource" type="tns:JmsSourceType"/>
+
     <xsd:complexType name="CustomAsyncUpdateSourceType">
         <xsd:annotation>
             <xsd:documentation>
@@ -266,7 +327,7 @@
     <xsd:complexType name="Amqp091MessageAttributesType">
         <xsd:annotation>
             <xsd:documentation>
-                Representation AMQP 0-9-1 message attributes.
+                Representation of AMQP 0-9-1 message attributes.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.0</a:since>
@@ -359,6 +420,46 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+
+    <xsd:complexType name="JmsMessageType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Representation of JMS message.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AsyncUpdateMessageType">
+                <xsd:sequence>
+                    <!-- TODO headers and properties -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="jmsMessage" type="tns:JmsMessageType"/>
+
+    <xsd:complexType name="JmsTextMessageType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Representation of JMS text message.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:JmsMessageType">
+                <xsd:sequence>
+                    <xsd:element name="text" type="xsd:string" minOccurs="0" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="jmsTextMessage" type="tns:JmsTextMessageType"/>
 
     <xsd:complexType name="AsyncUpdateListeningActivityInformationType">
         <xsd:annotation>

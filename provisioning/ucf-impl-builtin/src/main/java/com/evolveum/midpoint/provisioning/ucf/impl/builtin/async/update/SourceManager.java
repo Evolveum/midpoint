@@ -9,11 +9,14 @@ package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.update;
 
 import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncUpdateSource;
 import com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.update.sources.Amqp091AsyncUpdateSource;
+import com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.update.sources.JmsAsyncUpdateSource;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.Amqp091SourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateSourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.JmsSourceType;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.InvocationTargetException;
@@ -68,6 +71,8 @@ class SourceManager {
             } catch (ClassNotFoundException e) {
                 throw new SystemException("Couldn't find async source implementation class: " + cfg.getClassName());
             }
+        } else if (cfg instanceof JmsSourceType) {
+            return JmsAsyncUpdateSource.class;
         } else if (cfg instanceof Amqp091SourceType) {
             return Amqp091AsyncUpdateSource.class;
         } else {

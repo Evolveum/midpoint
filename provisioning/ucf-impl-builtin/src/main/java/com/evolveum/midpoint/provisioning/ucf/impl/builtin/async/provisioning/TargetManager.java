@@ -62,7 +62,7 @@ class TargetManager {
             }
             return target;
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | ClassCastException e) {
-            throw new SystemException("Couldn't instantiate asynchronous update source class " + targetClass + ": " + e.getMessage(), e);
+            throw new SystemException("Couldn't instantiate asynchronous provisioning target class " + targetClass + ": " + e.getMessage(), e);
         }
     }
 

@@ -34,8 +34,10 @@ class ConnectorListeningHelper {
 
     @NotNull private final AsyncUpdateConnectorInstance connectorInstance;
 
-    // do not forget to synchronize on these two lists
+    // guarded by: sources
     @NotNull private final List<AsyncUpdateSource> sources = new ArrayList<>();
+
+    // guarded by: activities
     @NotNull private final List<ListeningActivity> activities = new ArrayList<>();
 
     @NotNull private final AsyncChangeListener changeListener;

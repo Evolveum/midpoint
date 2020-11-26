@@ -101,7 +101,11 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
         LOGGER.info("Setting new configuration in {}", this); // todo debug
         configuration.validate();
         this.configuration = configuration;
-        targetsReference.set(unmodifiableList(targetManager.createTargets(configuration.getAllTargets())));
+    }
+
+    @NotNull
+    private List<AsyncProvisioningTarget> createNewTargets() {
+        return unmodifiableList(targetManager.createTargets(configuration.getAllTargets()));
     }
 
     /**
@@ -141,14 +145,14 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
 
     @Override
     protected void connect(OperationResult result) {
-        targetsReference.get()
-                .forEach(AsyncProvisioningTarget::connect);
+        List<AsyncProvisioningTarget> newTargets = createNewTargets();
+        newTargets.forEach(AsyncProvisioningTarget::connect);
+        targetsReference.set(newTargets);
     }
 
     @Override
     protected void disconnect(OperationResult result) {
-        targetsReference.get()
-                .forEach(AsyncProvisioningTarget::disconnect);
+        targetsReference.get().forEach(AsyncProvisioningTarget::disconnect);
     }
 
     @Override

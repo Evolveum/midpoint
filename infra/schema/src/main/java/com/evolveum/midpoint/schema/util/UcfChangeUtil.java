@@ -18,6 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UcfChangeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import javax.xml.namespace.QName;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -41,7 +42,13 @@ public class UcfChangeUtil {
             throws SchemaException {
         for (Map.Entry<QName, Object> entry : attributes.entrySet()) {
             PrismProperty<Object> attribute = prismContext.itemFactory().createProperty(entry.getKey());
-            attribute.setValue(prismContext.itemFactory().createPropertyValue(entry.getValue()));
+            if (entry.getValue() instanceof Collection) {
+                for (Object value : (Collection) entry.getValue()) {
+                    attribute.addValue(prismContext.itemFactory().createPropertyValue(value));
+                }
+            } else {
+                attribute.setValue(prismContext.itemFactory().createPropertyValue(entry.getValue()));
+            }
             target.add(attribute);
         }
     }

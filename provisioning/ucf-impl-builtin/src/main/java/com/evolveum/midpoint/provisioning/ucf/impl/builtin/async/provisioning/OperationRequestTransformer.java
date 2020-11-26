@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PredefinedOperationRequestTransformationType.FULL_JSON;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PredefinedOperationRequestTransformationType.SIMPLIFIED_JSON;
 
 /**
  * Transforms asynchronous operation (i.e. abstract description what has to be done) into specific request
@@ -71,7 +72,7 @@ public class OperationRequestTransformer {
                     throw new IllegalStateException("Transformational script should provide an AsyncProvisioningRequest but created " + MiscUtil.getClass(o) + " instead");
                 }
             } else {
-                return transformerHelper.applyPredefinedTransformation(operationRequested, FULL_JSON);
+                return transformerHelper.applyPredefinedTransformation(operationRequested, SIMPLIFIED_JSON);
             }
         } catch (RuntimeException | SchemaException | ObjectNotFoundException | SecurityViolationException |
                 CommunicationException | ConfigurationException | ExpressionEvaluationException | IOException e) {
