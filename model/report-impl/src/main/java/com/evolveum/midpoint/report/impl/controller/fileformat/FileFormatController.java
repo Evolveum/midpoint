@@ -33,7 +33,6 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -351,7 +350,7 @@ public abstract class FileFormatController {
             ObjectCollectionType collection = (ObjectCollectionType) getObjectFromReference(collectionRef.getBaseCollectionRef().getCollectionRef()).asObjectable();
             type = collection.getType();
         } else {
-            type = compiledCollection.getObjectType();
+            type = compiledCollection.getContainerType();
         }
         if (type == null) {
             LOGGER.error("Couldn't define type for objects");

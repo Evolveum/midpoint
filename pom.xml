@@ -2123,6 +2123,16 @@
             </properties>
         </profile>
 
+        <!--
+        See Maven modules using this profile, e.g. schema or repo-impl-sql-test.
+        The profile is NOT active by default and typically configures this:
+        - Declares the right plugin (surefire or failsafe) depending on the one normally used in the module.
+          Technically, even both can be used, but go with the one used in that POM.
+        - Test testing plugin says skipTests=false (that is to run the tests).
+        - It defines system property mp.perf.report.prefix=target/PERF (without it CSV goes to stdout).
+        - It defines suiteXmlFile=testng-perf.xml - suite file is different then normaly used ones.
+          Typically, perf test classes are ONLY in perf suite as they would slow down default builds.
+        -->
         <profile>
             <id>perftest</id>
             <properties>

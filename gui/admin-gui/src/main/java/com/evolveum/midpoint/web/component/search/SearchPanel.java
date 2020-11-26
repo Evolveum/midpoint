@@ -12,10 +12,15 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
 import com.evolveum.midpoint.prism.path.ItemPath;
-
-import com.evolveum.midpoint.prism.path.ItemPathComparatorUtil;
-import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 
 import com.evolveum.midpoint.util.QNameUtil;
 
@@ -43,10 +48,7 @@ import org.apache.wicket.util.time.Duration;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -101,6 +103,10 @@ public class SearchPanel extends BasePanel<Search> {
     private static final String ID_ADVANCED_ERROR = "advancedError";
     private static final String ID_MENU_ITEM = "menuItem";
     private static final String ID_MENU_ITEM_BODY = "menuItemBody";
+    private static final String ID_COLLECTION_REF_PANEL = "collectionRefPanel";
+
+    private static final String OPERATION_LOAD_COLLECTION_REF_WRAPPER = SearchPanel.class.getSimpleName()
+            + ".loadCollectionRefWrapper()";
 
     private LoadableModel<MoreDialogDto> moreDialogModel;
     boolean advancedSearch;
@@ -114,10 +120,47 @@ public class SearchPanel extends BasePanel<Search> {
         super(id, model);
         this.advancedSearch = advancedSearch;
         queryPlaygroundAccessible = SecurityUtils.isPageAuthorized(PageRepositoryQuery.class);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
         initLayout();
     }
 
     private <S extends SearchItem, T extends Serializable> void initLayout() {
+        LoadableModel<PrismContainerWrapper<CollectionRefSpecificationType>> collectionRefModel = new LoadableModel<PrismContainerWrapper<CollectionRefSpecificationType>>(false) {
+
+            @Override
+            protected PrismContainerWrapper<CollectionRefSpecificationType> load() {
+                Task task = getPageBase().createSimpleTask(OPERATION_LOAD_COLLECTION_REF_WRAPPER);
+                WrapperContext ctx = new WrapperContext(task, task.getResult());
+                ctx.setCreateIfEmpty(false);
+                ctx.setReadOnly(Boolean.TRUE);
+                if (getModelObject().getCollectionView() == null
+                        || getModelObject().getCollectionView().getCollection() == null) {
+                    return null;
+                }
+                PrismContainerValue<CollectionRefSpecificationType> collectionRefContainerVal =
+                        getModelObject().getCollectionView().getCollection().asPrismContainerValue();
+                PrismContainerDefinition<CollectionRefSpecificationType> collectionDef = collectionRefContainerVal.getDefinition();
+                try {
+                    PrismContainer<CollectionRefSpecificationType> collectionRef = collectionDef.instantiate();
+                    collectionRef.add(collectionRefContainerVal.clone());
+                    return getPageBase().createItemWrapper(collectionRef, ItemStatus.NOT_CHANGED, ctx);
+                } catch (SchemaException e) {
+                    LOG.error("Cannot create wrapper for collection ref");
+
+                }
+                return null;
+            }
+        };
+
+        collectionRefModel.getObject(); //TODO brutal hack, we need to load object to create wrapper. without this, no panels are registered, so nothing is shown in GUI.
+        SingleContainerPanel<CollectionRefSpecificationType> collectionRefContainer = new SingleContainerPanel<>(ID_COLLECTION_REF_PANEL, collectionRefModel, CollectionRefSpecificationType.COMPLEX_TYPE);
+        add(collectionRefContainer);
+        collectionRefContainer.add(new VisibleBehaviour(() -> collectionRefModel != null && collectionRefModel.getObject() != null));
+
         moreDialogModel = new LoadableModel<MoreDialogDto>(false) {
 
             private static final long serialVersionUID = 1L;
@@ -551,7 +594,8 @@ public class SearchPanel extends BasePanel<Search> {
 
             @Override
             public boolean isVisible() {
-                return getModelObject() != null && getModelObject().getSearchType().equals(searchType);
+                return getModelObject() != null && getModelObject().getSearchType() != null
+                        && getModelObject().getSearchType().equals(searchType);
             }
         };
     }
@@ -689,9 +733,11 @@ public class SearchPanel extends BasePanel<Search> {
         List<Property> list = new ArrayList<>();
 
         Search search = getModelObject();
-        List<ItemDefinition> defs = search.getAllDefinitions();
-        for (ItemDefinition def : defs) {
-            list.add(new Property(def, def.getItemName()));
+        List<SearchItemDefinition> defs = search.getAllDefinitions();
+        for (SearchItemDefinition def : defs) {
+            Property property = new Property(def.getDef(), def.getDef().getItemName());
+            property.setDisplayName(def.getDisplayName());
+            list.add(property);
         }
 
         Collections.sort(list);
@@ -728,11 +774,8 @@ public class SearchPanel extends BasePanel<Search> {
     }
 
     void searchPerformed(AjaxRequestTarget target) {
-        PageBase page = (PageBase) getPage();
-        PrismContext ctx = page.getPrismContext();
-
         Search search = getModelObject();
-        ObjectQuery query = search.createObjectQuery(ctx);
+        ObjectQuery query = search.createObjectQuery(getPageBase());
         LOG.debug("Created query: {}", query);
         searchPerformed(query, target);
     }

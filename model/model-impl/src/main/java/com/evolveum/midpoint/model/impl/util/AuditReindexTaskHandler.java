@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -68,6 +70,11 @@ public class AuditReindexTaskHandler implements TaskHandler {
                 auditService.reindexEntry(auditRecord);
                 processedObjects.incrementAndGet();
 
+                return true;
+            }
+
+            @Override
+            public boolean handle(AuditEventRecordType auditRecord) {
                 return true;
             }
 

@@ -16629,6 +16629,11 @@
 
     <!-- Configuration types -->
 
+    <xsd:element name="objectPolicyConfiguration" type="c:ObjectPolicyConfigurationType"/>
+    <xsd:element name="classLoggerConfiguration" type="c:ClassLoggerConfigurationType"/>
+    <xsd:element name="appenderConfigurationType" type="c:AppenderConfigurationType"/>
+    <xsd:element name="globalPolicyRule" type="c:GlobalPolicyRuleType"/>
+
     <xsd:complexType name="SystemConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -25823,7 +25828,7 @@
                                    Specifies the kind of view of value.
                                </p>
                                <p>
-                                   Column expressions are EXPERIMENTAL. They work only under a very
+                                   Display value are EXPERIMENTAL. They work only under a very
                                    specific circumstances.
                                </p>
                            </xsd:documentation>
@@ -25834,7 +25839,26 @@
                            </xsd:appinfo>
                        </xsd:annotation>
                    </xsd:element>
-                   <!-- TODO later: sorting -->
+                   <xsd:element name="sortProperty" type="xsd:string" minOccurs="0" maxOccurs="1">
+                       <xsd:annotation>
+                           <xsd:documentation>
+                               <p>
+                                   Contains name of property which will be used
+                                   for sorting of this column in GUI.
+                                   For example 'name' or 'fullName' for column for UserType.
+                               </p>
+                               <p>
+                                   Sort property are EXPERIMENTAL. They work only for GUI
+                                   and under a very specific circumstances.
+                               </p>
+                           </xsd:documentation>
+                           <xsd:appinfo>
+                               <a:displayName>GuiObjectColumnType.sortProperty</a:displayName>
+                               <a:experimental>true</a:experimental>
+                               <a:since>4.2</a:since>
+                           </xsd:appinfo>
+                       </xsd:annotation>
+                   </xsd:element>
                </xsd:sequence>
     </xsd:complexType>
 

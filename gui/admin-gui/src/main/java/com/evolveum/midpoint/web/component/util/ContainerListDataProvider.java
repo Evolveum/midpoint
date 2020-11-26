@@ -6,11 +6,19 @@
  */
 package com.evolveum.midpoint.web.component.util;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
+
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactory;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -22,22 +30,20 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.page.error.PageError;
-import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by honchar
  */
-public class ContainerListDataProvider<C extends Containerable> extends BaseSortableDataProvider<PrismContainerValueWrapper<C>> {
+public class ContainerListDataProvider<C extends Containerable> extends BaseSortableDataProvider<PrismContainerValueWrapper<C>>
+        implements ISelectableDataProvider<C, PrismContainerValueWrapper<C>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerListDataProvider.class);
-    private static final String DOT_CLASS = ObjectDataProvider.class.getName() + ".";
+    private static final String DOT_CLASS = ContainerListDataProvider.class.getName() + ".";
     private static final String OPERATION_SEARCH_CONTAINERS = DOT_CLASS + "searchContainers";
     private static final String OPERATION_COUNT_CONTAINERS = DOT_CLASS + "countContainers";
 
@@ -75,7 +81,7 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSort
                 LOGGER.trace("Query {} with {}", type.getSimpleName(), query.debugDump());
             }
 
-            List<C> list = getModel().searchContainers(type, query, options, task, result);
+            List<C> list = WebModelServiceUtils.searchContainers(type, query, options, result, getPage());
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Query {} resulted in {} containers", type.getSimpleName(), list.size());
@@ -102,34 +108,13 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSort
         return getAvailableData().iterator();
     }
 
-//    @SuppressWarnings("unchecked")
-//    protected <V extends Comparable<V>> void sort(List<PrismContainerValueWrapper<C>> list) {
-//        Collections.sort(list, new Comparator<PrismContainerValueWrapper<C>>() {
-//            @Override
-//            public int compare(PrismContainerValueWrapper<C> o1, PrismContainerValueWrapper<C> o2) {
-//                SortParam<String> sortParam = getSort();
-//                String propertyName = sortParam.getProperty();
-//                V prop1, prop2;
-//                try {
-//                    prop1 = (V) PropertyUtils.getProperty(o1.getRealValue(), propertyName);
-//                    prop2 = (V) PropertyUtils.getProperty(o2.getRealValue(), propertyName);
-//                } catch (RuntimeException|IllegalAccessException|InvocationTargetException |NoSuchMethodException e) {
-//                    throw new SystemException("Couldn't sort the object list: " + e.getMessage(), e);
-//                }
-//                int comparison = ObjectUtils.compare(prop1, prop2, true);
-//                return sortParam.isAscending() ? comparison : -comparison;
-//            }
-//        });
-//    }
-
     @Override
     protected int internalSize() {
         LOGGER.trace("begin::internalSize()");
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_CONTAINERS);
         try {
-            Task task = getPage().createSimpleTask(OPERATION_COUNT_CONTAINERS);
-            count = getModel().countContainers(type, getQuery(), options, task, result);
+            count = WebModelServiceUtils.countContainers(type, getQuery(), options,  getPage());
         } catch (Exception ex) {
             result.recordFatalError(getPage().createStringResource("ContainerListDataProvider.message.listContainers.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count containers", ex);
@@ -147,8 +132,17 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSort
         return count;
     }
 
-    public List<PrismContainerValueWrapper<C>> getSelectedData() {
+    @Override
+    public List<PrismContainerValueWrapper<C>> getSelectedObjects() {
         return getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
     }
 
+    @Override
+    public @NotNull List<C> getSelectedRealObjects() {
+        return getAvailableData().stream().filter(a -> a.isSelected()).map(w -> w.getRealValue()).collect(Collectors.toList());
+    }
+
+    public void setType(Class<C> type) {
+        this.type = type;
+    }
 }

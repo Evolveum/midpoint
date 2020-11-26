@@ -93,11 +93,11 @@ public class WebPrismUtil {
     }
 
     public static <IW extends ItemWrapper, PV extends PrismValue, VW extends PrismValueWrapper> VW createNewValueWrapper(IW itemWrapper, PV newValue, ModelServiceLocator modelServiceLocator) throws SchemaException {
-        LOGGER.debug("Adding value to {}", itemWrapper);
+        return createNewValueWrapper(itemWrapper, newValue, ValueStatus.ADDED, modelServiceLocator);
+    }
 
-//            if (!(itemWrapper instanceof PrismContainerWrapper)) {
-//                itemWrapper.getItem().add(newValue);
-//            }
+    public static <IW extends ItemWrapper, PV extends PrismValue, VW extends PrismValueWrapper> VW createNewValueWrapper(IW itemWrapper, PV newValue, ValueStatus status, ModelServiceLocator modelServiceLocator) throws SchemaException {
+        LOGGER.debug("Adding value to {}", itemWrapper);
 
         Task task = modelServiceLocator.createSimpleTask(OPERATION_CREATE_NEW_VALUE);
         OperationResult result = new OperationResult(OPERATION_CREATE_NEW_VALUE);
@@ -107,7 +107,7 @@ public class WebPrismUtil {
         context.setShowEmpty(true);
         context.setCreateIfEmpty(true);
 
-        VW newValueWrapper = modelServiceLocator.createValueWrapper(itemWrapper, newValue, ValueStatus.ADDED, context);
+        VW newValueWrapper = modelServiceLocator.createValueWrapper(itemWrapper, newValue, status, context);
         result.recordSuccess();
 
         return newValueWrapper;

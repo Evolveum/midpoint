@@ -11,13 +11,11 @@ import static com.evolveum.midpoint.model.api.util.DashboardUtils.*;
 import java.util.*;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-import com.evolveum.midpoint.schema.SchemaHelper;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 
@@ -500,8 +498,8 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
-    public List<PrismObject<ObjectType>> searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter,
-            Collection<SelectorOptions<GetOperationOptions>> defaultOptions, Task task, OperationResult result)
+    public void searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter, ResultHandler<ObjectType> handler,
+            Collection<SelectorOptions<GetOperationOptions>> defaultOptions, Task task, OperationResult result, boolean recordProgress)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Class<ObjectType> type = null;
 
@@ -543,52 +541,53 @@ public class DashboardServiceImpl implements DashboardService {
         } else {
             options = compiledCollection.getOptions();
         }
-
-        List<PrismObject<ObjectType>> values;
-        values = modelService.searchObjects(type, query, options, task, result);
-        return values;
+        if (recordProgress) {
+            long count = modelService.countObjects(type, query, options, task, result);
+            task.setExpectedTotal(count);
+        }
+        modelService.searchObjectsIterative(type, query, handler, options, task, result);
     }
 
     @Override
-    public List<AuditEventRecordType> searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, ObjectPaging paging, Task task, OperationResult result)
+    public void searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, AuditResultHandler handler,
+            ObjectPaging paging, Task task, OperationResult result, boolean recordProgress)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        List<AuditEventRecordType> auditRecords = new ArrayList<>();
+
+        if (collectionConfig.getCollectionRef() != null && collectionConfig.getFilter() != null) {
+            LOGGER.error("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
+            throw new IllegalArgumentException("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
+        }
+        CompiledObjectCollectionView compiledCollection = modelInteractionService.compileObjectCollectionView(
+                collectionConfig, AuditEventRecordType.class, task, task.getResult());
+
+        ExpressionVariables variables = new ExpressionVariables();
+        ObjectFilter filter = ExpressionUtil.evaluateFilterExpressions(compiledCollection.getFilter(), variables, MiscSchemaUtil.getExpressionProfile(),
+                expressionFactory, prismContext, "collection filter", task, result);
+        if (filter == null ) {
+            LOGGER.error("Couldn't find filter");
+            throw new ConfigurationException("Couldn't find filter");
+        }
+
+        filter = collectionProcessor.evaluateExpressionsInFilter(filter, result, task);
+        ObjectQuery query = prismContext.queryFactory().createQuery();
+        query.setFilter(filter);
+        query.setPaging(paging);
+        ObjectCollectionType collection = null;
         if (collectionConfig.getCollectionRef() != null) {
             ObjectReferenceType ref = collectionConfig.getCollectionRef();
             Class<ObjectType> refType = prismContext.getSchemaRegistry().determineClassForType(ref.getType());
-            ObjectCollectionType collection = (ObjectCollectionType) modelService
+            collection = (ObjectCollectionType) modelService
                     .getObject(refType, ref.getOid(), null, task, result).asObjectable();
-            if ((collection != null && collection.getFilter() != null) || collectionConfig.getFilter() != null) {
-                SearchFilterType filter;
-                if (collection != null) {
-                    filter = collection.getFilter();
-                } else {
-                    filter = collectionConfig.getFilter();
-                }
-                ObjectFilter objectFilter = combineAuditFilter(collectionConfig, filter, task, result);
-                ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(objectFilter, new ExpressionVariables(), MiscSchemaUtil.getExpressionProfile(),
-                        expressionFactory, prismContext, "collection filter", task, result);
-                ObjectQuery query = prismContext.queryFactory().createQuery();
-                query.setFilter(evaluatedFilter);
-                query.setPaging(paging);
-                @NotNull Collection<SelectorOptions<GetOperationOptions>> option = combineAuditOption(collectionConfig, collection, task, result);
-                auditRecords.addAll(auditService.searchObjects(query, option, result));
-                if (auditRecords == null) {
-                    auditRecords = new ArrayList<>();
-                }
-            } else if (collection != null && collection.getAuditSearch() != null) {
-                Map<String, Object> parameters = new HashMap<>();
-                String query = DashboardUtils.getQueryForListRecords(DashboardUtils.createQuery(collection, parameters, false, clock));
-                List<AuditEventRecord> oldAuditRecords = auditService.listRecords(query, parameters, result);
-                if (oldAuditRecords == null) {
-                    oldAuditRecords = new ArrayList<>();
-                }
-                for (AuditEventRecord auditRecord : oldAuditRecords) {
-                    auditRecords.add(auditRecord.createAuditEventRecordType(true));
-                }
-            }
         }
-        return auditRecords;
+        @NotNull Collection<SelectorOptions<GetOperationOptions>> options = combineAuditOption(collectionConfig, collection, task, result);
+        if (recordProgress) {
+            long count = auditService.countObjects(query, options, result);
+            task.setExpectedTotal(count);
+        }
+        @NotNull SearchResultList<AuditEventRecordType> auditRecords = auditService.searchObjects(query, options, result);
+        auditRecords.forEach(audit -> {
+            handler.handle(audit);
+        });
     }
 
     @Override

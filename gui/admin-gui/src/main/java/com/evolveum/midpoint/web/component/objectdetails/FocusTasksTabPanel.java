@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.web.component.objectdetails;
 
+import com.evolveum.midpoint.web.page.admin.server.CasesTablePanel;
+
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.basic.Label;
 
@@ -15,7 +19,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.cases.CasesListPanel;
 import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -50,7 +53,7 @@ public class FocusTasksTabPanel<F extends FocusType>
         label.setOutputMarkupId(true);
         add(label);
 
-        CasesListPanel casesPanel = new CasesListPanel(ID_TASK_TABLE) {
+        CasesTablePanel casesPanel = new CasesTablePanel(ID_TASK_TABLE) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -69,6 +72,11 @@ public class FocusTasksTabPanel<F extends FocusType>
             @Override
             protected boolean isDashboard() {
                 return true;
+            }
+
+            @Override
+            protected UserProfileStorage.TableId getTableId() {
+                return UserProfileStorage.TableId.PAGE_CASE_CHILD_CASES_TAB;
             }
         };
         casesPanel.add(new VisibleBehaviour(() -> tasksExist));

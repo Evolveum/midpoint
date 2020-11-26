@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.web.session.SessionStorage;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
@@ -68,8 +71,8 @@ public class PolicyRulesPanel extends AssignmentPanel {
 
     @Override
     protected void initCustomPaging() {
-        getAssignmentsTabStorage().setPaging(getPrismContext().queryFactory()
-                .createPaging(0, ((int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.POLICY_RULES_TAB_TABLE))));
+//        getAssignmentsTabStorage().setPaging(getPrismContext().queryFactory()
+//                .createPaging(0, ((int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.POLICY_RULES_TAB_TABLE))));
 
     }
 
@@ -96,10 +99,9 @@ public class PolicyRulesPanel extends AssignmentPanel {
     }
 
     @Override
-    protected ObjectQuery createObjectQuery() {
+    protected ObjectQuery getCustomizeQuery() {
         return getParentPage().getPrismContext().queryFor(AssignmentType.class)
-                .exists(AssignmentType.F_POLICY_RULE)
-                .build();
+                .exists(AssignmentType.F_POLICY_RULE).build();
     }
 
     @Override
@@ -108,7 +110,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
 
         SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), defs);
         SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), defs);
-        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME), defs);
+        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME), defs, "AssignmentPanel.search.policyRule.name");
         SearchFactory.addSearchRefDef(containerDef,
                 ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS,
                         PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF), defs, AreaCategoryType.POLICY, getPageBase());

@@ -6,7 +6,10 @@
  */
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
+
+import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -38,7 +41,10 @@ public class PrismReferenceWrapperColumnPanel<R extends Referencable> extends Ab
 
     @Override
     protected String createLabel(PrismValueWrapper<R> object) {
-        return WebComponentUtil.getReferencedObjectDisplayNamesAndNames(object.getRealValue(), false, true);
+        if (object.getRealValue() != null){
+            return WebModelServiceUtils.resolveReferenceName(object.getRealValue(), getPageBase());
+        }
+        return "";
     }
 
     @Override
@@ -73,10 +79,18 @@ public class PrismReferenceWrapperColumnPanel<R extends Referencable> extends Ab
                 PrismReferenceWrapperColumnPanel.this.onClick(target, getModelObject().getParent());
             }
 
+            @Override
+            public boolean isEnabled() {
+                return PrismReferenceWrapperColumnPanel.this.isClickEnabled();
+            }
         };
         return ajaxLinkPanel;
     }
 
     protected void onClick(AjaxRequestTarget target, PrismContainerValueWrapper<?> rowModel) {
+    }
+
+    protected boolean isClickEnabled() {
+        return true;
     }
 }

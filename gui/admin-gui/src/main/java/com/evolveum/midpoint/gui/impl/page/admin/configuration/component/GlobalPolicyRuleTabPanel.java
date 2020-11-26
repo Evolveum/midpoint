@@ -13,6 +13,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.web.session.SessionStorage;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -20,7 +22,6 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
@@ -43,7 +44,6 @@ import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
-import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
@@ -78,21 +78,10 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
     }
 
     protected void initLayout() {
-
-        TableId tableId = UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE;
-        PageStorage pageStorage = ((PageBase)GlobalPolicyRuleTabPanel.this.getPage()).getSessionStorage().getObjectPoliciesConfigurationTabStorage();
-
-        MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType, S> multivalueContainerListPanel =
-                new MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType, S>(ID_GLOBAL_POLICY_RULE, getModel(),
-                tableId, pageStorage) {
+        MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType> multivalueContainerListPanel =
+                new MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType>(ID_GLOBAL_POLICY_RULE, GlobalPolicyRuleType.class) {
 
             private static final long serialVersionUID = 1L;
-
-            @Override
-            protected List<PrismContainerValueWrapper<GlobalPolicyRuleType>> postSearch(
-                    List<PrismContainerValueWrapper<GlobalPolicyRuleType>> items) {
-                return getObjects();
-            }
 
             @Override
             protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation) {
@@ -100,26 +89,30 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
             }
 
             @Override
-            protected void initPaging() {
-                GlobalPolicyRuleTabPanel.this.initPaging();
-            }
-
-            @Override
-            protected boolean enableActionNewObject() {
+            protected boolean isCreateNewObjectVisible() {
                 return true;
             }
 
             @Override
-            protected ObjectQuery createQuery() {
-                    return GlobalPolicyRuleTabPanel.this.createQuery();
+            protected IModel<PrismContainerWrapper<GlobalPolicyRuleType>> getContainerModel() {
+                return GlobalPolicyRuleTabPanel.this.getModel();
             }
 
             @Override
-            protected List<IColumn<PrismContainerValueWrapper<GlobalPolicyRuleType>, String>> createColumns() {
-                return (List) initBasicColumns();
+            protected String getStorageKey() {
+                return SessionStorage.KEY_OBJECT_POLICIES_TAB;
             }
 
             @Override
+            protected TableId getTableId() {
+                return UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE;            }
+
+            @Override
+            protected List<IColumn<PrismContainerValueWrapper<GlobalPolicyRuleType>, String>> createDefaultColumns() {
+                return initBasicColumns();
+            }
+
+                    @Override
             protected MultivalueContainerDetailsPanel<GlobalPolicyRuleType> getMultivalueContainerDetailsPanel(
                     ListItem<PrismContainerValueWrapper<GlobalPolicyRuleType>> item) {
                 return GlobalPolicyRuleTabPanel.this.getMultivalueContainerDetailsPanel(item);
@@ -147,10 +140,6 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
         setOutputMarkupId(true);
     }
 
-    private List<PrismContainerValueWrapper<GlobalPolicyRuleType>> getObjects() {
-        return getModelObject().getValues();
-    }
-
     protected void newGlobalPolicuRuleClickPerformed(AjaxRequestTarget target) {
         //TODO maybe change to itemFactory.createContainerValue()???
         PrismContainerValue<GlobalPolicyRuleType> newObjectPolicy = getModelObject().getItem().createNewValue();
@@ -176,19 +165,8 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
         return detailsPanel;
     }
 
-    private MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType, S> getMultivalueContainerListPanel(){
-        return ((MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType, S>)get(ID_GLOBAL_POLICY_RULE));
-    }
-
-    private ObjectQuery createQuery() {
-        QueryFactory factory = getPrismContext().queryFactory();
-        TypeFilter filter = factory.createType(GlobalPolicyRuleType.COMPLEX_TYPE, factory.createAll());
-        return factory.createQuery(filter);
-    }
-
-    private void initPaging() {
-        getPageBase().getSessionStorage().getGlobalPolicyRulesTabStorage()
-                .setPaging(getPrismContext().queryFactory().createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.GLOBAL_POLICY_RULES_TAB_TABLE)));
+    private MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType> getMultivalueContainerListPanel(){
+        return ((MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType>)get(ID_GLOBAL_POLICY_RULE));
     }
 
     private List<IColumn<PrismContainerValueWrapper<GlobalPolicyRuleType>, String>> initBasicColumns() {
@@ -213,9 +191,9 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
 
         columns.add(linkColumn);
 
-        columns.add(new PrismContainerWrapperColumn<GlobalPolicyRuleType>(getModel(), GlobalPolicyRuleType.F_POLICY_CONSTRAINTS, getPageBase()));
+        columns.add(new PrismContainerWrapperColumn<>(getModel(), GlobalPolicyRuleType.F_POLICY_CONSTRAINTS, getPageBase()));
 
-        columns.add(new PrismContainerWrapperColumn<GlobalPolicyRuleType>(getModel(),GlobalPolicyRuleType.F_POLICY_ACTIONS, getPageBase()));
+        columns.add(new PrismContainerWrapperColumn<>(getModel(),GlobalPolicyRuleType.F_POLICY_ACTIONS, getPageBase()));
 
         columns.add(new PrismPropertyWrapperColumn<GlobalPolicyRuleType, String>(getModel(), GlobalPolicyRuleType.F_POLICY_SITUATION, ColumnType.STRING, getPageBase()));
 

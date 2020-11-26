@@ -11,44 +11,26 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * Created by honchar.
  */
 public class AuditLogStorage implements PageStorage {
     private AuditEventRecordType auditRecord;
-    private AuditSearchDto searchDto;
-    private long pageNumber = 0;
     private ObjectPaging auditLogPaging;
+
+    private Search search;
 
     public AuditLogStorage() {
     }
 
     public Search getSearch() {
-        return null;
+        return search;
     }
 
     public void setSearch(Search search) {
-
-    }
-
-    public AuditSearchDto getSearchDto() {
-        if (searchDto == null){
-            searchDto = new AuditSearchDto();
-        }
-        return searchDto;
-    }
-
-    public void setSearchDto(AuditSearchDto searchDto) {
-        this.searchDto = searchDto;
-    }
-
-    public long getPageNumber() {
-        return pageNumber;
-    }
-
-    public void setPageNumber(long pageNumber) {
-        this.pageNumber = pageNumber;
+        this.search = search;
     }
 
     @Override

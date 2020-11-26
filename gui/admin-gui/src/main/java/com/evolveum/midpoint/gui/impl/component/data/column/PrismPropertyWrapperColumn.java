@@ -60,9 +60,13 @@ public class PrismPropertyWrapperColumn<C extends Containerable, T> extends Abst
             protected boolean isButtonEnabled() {
                 return false;
             }
+
+            @Override
+            protected boolean isHelpTextVisible() {
+                return PrismPropertyWrapperColumn.this.isHelpTextVisible(super.isHelpTextVisible());
+            }
         };
     }
-
 
     @Override
     protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
@@ -78,7 +82,10 @@ public class PrismPropertyWrapperColumn<C extends Containerable, T> extends Abst
     }
 
     protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> model) {
+    }
 
+    protected boolean isHelpTextVisible(boolean originalHelpTextVisible) {
+        return originalHelpTextVisible;
     }
 }
 

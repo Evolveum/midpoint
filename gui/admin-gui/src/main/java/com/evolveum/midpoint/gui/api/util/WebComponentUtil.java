@@ -23,6 +23,7 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
@@ -618,6 +619,10 @@ public final class WebComponentUtil {
         return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz).getTypeName();
     }
 
+    public static <T extends Containerable> QName containerClassToQName(PrismContext prismContext, Class<T> clazz) {
+        return prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(clazz).getTypeName();
+    }
+
     public static TaskType createSingleRecurrenceTask(String taskName, QName applicableType, ObjectQuery query,
             ObjectDelta delta, ModelExecuteOptions options, String category, PageBase pageBase) throws SchemaException {
 
@@ -972,7 +977,10 @@ public final class WebComponentUtil {
     }
 
     public static <T extends Enum> IModel<String> createLocalizedModelForEnum(T value, Component comp) {
-        String key = value != null ? value.getClass().getSimpleName() + "." + value.name() : "";
+        if (value == null) {
+            return Model.of("");
+        }
+        String key = value.getClass().getSimpleName() + "." + value.name();
         return new StringResourceModel(key, comp, null);
     }
 
@@ -1705,8 +1713,8 @@ public final class WebComponentUtil {
         if (provider instanceof BaseSortableDataProvider) {
             ((BaseSortableDataProvider) provider).clearCache();
         }
-        if (provider instanceof SelectableBeanObjectDataProvider) {
-            ((SelectableBeanObjectDataProvider) provider).clearSelectedObjects();
+        if (provider instanceof SelectableBeanContainerDataProvider) {
+            ((SelectableBeanContainerDataProvider) provider).clearSelectedObjects();
         }
     }
 
@@ -2003,6 +2011,20 @@ public final class WebComponentUtil {
 
     public static boolean isDefaultRelation(QName relation) {
         return getRelationRegistry().isDefault(relation);
+    }
+
+    public static String getRelationLabelValue(PrismContainerValueWrapper<AssignmentType> assignmentWrapper, PageBase pageBase) {
+        if (assignmentWrapper == null || assignmentWrapper.getRealValue() == null
+                || assignmentWrapper.getRealValue().getTargetRef() == null
+                || assignmentWrapper.getRealValue().getTargetRef().getRelation() == null) {
+            return "";
+        }
+
+        QName relation = assignmentWrapper.getRealValue().getTargetRef().getRelation();
+        String relationDisplayName = WebComponentUtil.getRelationHeaderLabelKeyIfKnown(relation);
+        return StringUtils.isNotEmpty(relationDisplayName) ?
+                pageBase.createStringResource(relationDisplayName).getString() :
+                pageBase.createStringResource(relation.getLocalPart()).getString();
     }
 
     @SuppressWarnings("WeakerAccess")
@@ -2681,7 +2703,7 @@ public final class WebComponentUtil {
             ColumnMenuAction action, MainObjectListPanel<AR> abstractRoleTable, PageBase pageBase) {
         List<AR> selectedRoles = new ArrayList<>();
         if (action.getRowModel() == null) {
-            selectedRoles.addAll(abstractRoleTable.getSelectedObjects());
+            selectedRoles.addAll(abstractRoleTable.getSelectedRealObjects());
         } else {
             selectedRoles.add(((SelectableBeanImpl<AR>) action.getRowModel().getObject()).getValue());
         }
@@ -4554,9 +4576,9 @@ public final class WebComponentUtil {
         return sb.toString();
     }
 
-    public static String getObjectListPageStorageKey(String additionalKeyValue) {
-        if (StringUtils.isEmpty(additionalKeyValue)) {
-            return SessionStorage.KEY_OBJECT_LIST;
+    public static String getObjectListPageStorageKey(String additionalKeyValue){
+        if (StringUtils.isEmpty(additionalKeyValue)){
+            return null;
         }
         return SessionStorage.KEY_OBJECT_LIST + "." + additionalKeyValue;
     }
@@ -4589,7 +4611,7 @@ public final class WebComponentUtil {
         }
 
         for (CompiledObjectCollectionView view : views) {
-            if (QNameUtil.match(type, view.getObjectType())) {
+            if (QNameUtil.match(type, view.getContainerType())) {
                 if (view.getRefreshInterval() != null) {
                     return true;
                 }
@@ -4739,5 +4761,15 @@ public final class WebComponentUtil {
         collator.setStrength(Collator.SECONDARY);       // e.g. "a" should be different from "á"
         collator.setDecomposition(Collator.FULL_DECOMPOSITION);
         return collator;
+    }
+
+    public static CompositedIcon createCreateReportIcon() {
+        final CompositedIconBuilder builder = new CompositedIconBuilder();
+        builder.setBasicIcon(WebComponentUtil.createReportIcon(), IconCssStyle.IN_ROW_STYLE);
+        IconType plusIcon = new IconType();
+        plusIcon.setCssClass(GuiStyleConstants.CLASS_ADD_NEW_OBJECT);
+        plusIcon.setColor("green");
+        builder.appendLayerIcon(plusIcon, LayeredIconCssStyle.BOTTOM_RIGHT_STYLE);
+        return builder.build();
     }
 }

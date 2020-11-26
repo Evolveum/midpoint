@@ -64,8 +64,7 @@ public class ApprovalCaseTabPanel extends AbstractObjectTabPanel<CaseType> {
         add(historyContainer);
 
         DecisionsPanel historyPanel = new DecisionsPanel(ID_HISTORY_PANEL,
-                Model.ofList(decisionList), UserProfileStorage.TableId.PAGE_WORK_ITEM_HISTORY_PANEL,
-                (int) getPageBase().getItemsPerPage(UserProfileStorage.TableId.PAGE_WORK_ITEM_HISTORY_PANEL));
+                Model.ofList(decisionList), UserProfileStorage.TableId.PAGE_WORK_ITEM_HISTORY_PANEL);
         historyPanel.setOutputMarkupId(true);
         historyContainer.add(historyPanel);
     }

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -34,7 +35,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurA
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends BasePanel<ObjectReferenceType> {
+public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends SpecialPopoverSearchPopupPanel<ObjectReferenceType> {
 
     private static final long serialVersionUID = 1L;
 
@@ -42,21 +43,13 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends BasePa
     private static final String ID_NAME = "name";
     private static final String ID_TYPE = "type";
     private static final String ID_RELATION = "relation";
-    private static final String ID_CONFIRM_BUTTON = "confirmButton";
 
     public ReferenceValueSearchPopupPanel(String id, IModel<ObjectReferenceType> model) {
         super(id, model);
     }
 
     @Override
-    protected void onInitialize() {
-        super.onInitialize();
-        initLayout();
-    }
-
-    private void initLayout() {
-        setOutputMarkupId(true);
-
+    protected void customizationPopoverForm(MidpointForm midpointForm) {
         TextField<String> oidField = new TextField<>(ID_OID, new PropertyModel<>(getModel(), "oid"));
         oidField.add(new AjaxFormComponentUpdatingBehavior("blur") {
 
@@ -70,7 +63,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends BasePa
         oidField.setOutputMarkupId(true);
         oidField.add(new VisibleBehaviour(() -> true));
         oidField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        add(oidField);
+        midpointForm.add(oidField);
 
         ReferenceAutocomplete nameField = new ReferenceAutocomplete(ID_NAME, Model.of(getModelObject()),
                 new AutoCompleteReferenceRenderer(),
@@ -80,11 +73,10 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends BasePa
 
             @Override
             protected Class<O> getReferenceTargetObjectType() {
-                List<QName> supportedTypes = getSupportedTargetList();
-                if (CollectionUtils.isNotEmpty(supportedTypes)) {
-                    return (Class<O>) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), supportedTypes.get(0));
+                if (getModelObject().getType() == null) {
+                    return (Class<O>) ObjectType.class;
                 }
-                return (Class<O>) ObjectType.class;
+                return (Class<O>) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), getModelObject().getType());
             }
         };
 
@@ -99,12 +91,12 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends BasePa
                     return;
                 }
                 ReferenceValueSearchPopupPanel.this.getModel().setObject(ort);
-                target.add(ReferenceValueSearchPopupPanel.this.get(ID_OID));
+                target.add(midpointForm.get(ID_OID));
             }
         });
         nameField.setOutputMarkupId(true);
         nameField.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        add(nameField);
+        midpointForm.add(nameField);
 
         DropDownChoicePanel<QName> type = new DropDownChoicePanel<QName>(ID_TYPE, new PropertyModel<>(getModel(), "type"),
                 Model.ofList(getSupportedTargetList()), new QNameObjectTypeChoiceRenderer(), true);
@@ -119,8 +111,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends BasePa
             }
         });
         type.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        type.getBaseFormComponent().add(AttributeAppender.append("style", "width: 150px;"));
-        add(type);
+        midpointForm.add(type);
 
         List<QName> allowedRelations = new ArrayList<>(getAllowedRelations());
         DropDownChoicePanel<QName> relation = new DropDownChoicePanel<QName>(ID_RELATION,
@@ -137,24 +128,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends BasePa
             }
         });
         relation.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        relation.getBaseFormComponent().add(AttributeAppender.append("style", "width: 150px;"));
-        add(relation);
-
-        AjaxButton confirm = new AjaxButton(ID_CONFIRM_BUTTON, createStringResource("Button.ok")) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                confirmPerformed(target);
-            }
-        };
-        add(confirm);
-
-    }
-
-    protected void confirmPerformed(AjaxRequestTarget target) {
-
+        midpointForm.add(relation);
     }
 
     protected List<QName> getAllowedRelations() {

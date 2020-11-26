@@ -16,7 +16,7 @@ import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.query.resolution.HqlDataInstance;
 import com.evolveum.midpoint.repo.sql.query.InterpretationContext;

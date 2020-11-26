@@ -7,10 +7,19 @@
   -->
 <objectCollection oid="11000000-0000-0000-0001-000000001234">
     <name>Audit records with view</name>
-    <auditSearch>
-        <recordQuery>select * from m_audit_event as aer where aer.eventStage=1</recordQuery>
-        <interval>P1D</interval>
-    </auditSearch>
+    <type>AuditEventRecordType</type>
+    <filter>
+        <and>
+            <equal>
+                <path>eventStage</path>
+                <value>execution</value>
+            </equal>
+            <greater>
+                <path>timestamp</path>
+                <value>2020-01-01T00:00:00.000+02:00</value>
+            </greater>
+        </and>
+    </filter>
     <defaultView>
         <column>
             <name>timeColumnCollection</name>

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -22,31 +23,26 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
-import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 
-import org.apache.wicket.Component;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
@@ -91,8 +87,14 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 
         MainObjectListPanel<AccessCertificationDefinitionType> mainPanel =
                 new MainObjectListPanel<AccessCertificationDefinitionType>(
-                ID_TABLE, AccessCertificationDefinitionType.class, TableId.PAGE_CERT_DEFINITIONS_PANEL, null) {
+                ID_TABLE, AccessCertificationDefinitionType.class, null) {
+
             private static final long serialVersionUID = 1L;
+
+            @Override
+            protected UserProfileStorage.TableId getTableId() {
+                return UserProfileStorage.TableId.PAGE_CERT_DEFINITIONS_PANEL;
+            }
 
             @Override
             protected IColumn<SelectableBean<AccessCertificationDefinitionType>, String> createCheckboxColumn() {
@@ -105,13 +107,8 @@ public class PageCertDefinitions extends PageAdminWorkItems {
             }
 
             @Override
-            protected List<IColumn<SelectableBean<AccessCertificationDefinitionType>, String>> createColumns() {
-                return PageCertDefinitions.this.initColumns();
-            }
-
-            @Override
             protected List<InlineMenuItem> createInlineMenu() {
-                return null;
+                return PageCertDefinitions.this.createInlineMenu();
             }
 
             @Override
@@ -142,56 +139,87 @@ public class PageCertDefinitions extends PageAdminWorkItems {
         };
     }
 
-    private List<IColumn<SelectableBean<AccessCertificationDefinitionType>, String>> initColumns() {
-        List<IColumn<SelectableBean<AccessCertificationDefinitionType>, String>> columns = new ArrayList<>();
-
-        IColumn column;
-
-        column = new PropertyColumn(createStringResource("PageCertDefinitions.table.description"), "value.description");
-        columns.add(column);
-
-        column = new AbstractColumn<SelectableBean<AccessCertificationDefinitionType>, String>(new Model<>()) {
-
+    private List<InlineMenuItem> createInlineMenu() {
+        List<InlineMenuItem> menu = new ArrayList<>();
+        menu.add(new ButtonInlineMenuItem(createStringResource("PageCertDefinitions.button.createCampaign")) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationDefinitionType>>> cellItem, String componentId,
-                                     IModel<SelectableBean<AccessCertificationDefinitionType>> rowModel) {
-
-                cellItem.add(new MultiButtonPanel<SelectableBean<AccessCertificationDefinitionType>>(componentId, rowModel, 3) {
-
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<AccessCertificationDefinitionType>>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected Component createButton(int index, String componentId, IModel<SelectableBean<AccessCertificationDefinitionType>> model) {
-                        AjaxIconButton btn = null;
-                        switch (index) {
-                            case 0:
-                                btn = buildDefaultButton(componentId, null, createStringResource("PageCertDefinitions.button.createCampaign"),
-                                        new Model<>("btn btn-sm " + DoubleButtonColumn.ButtonColorClass.PRIMARY),
-                                        target -> createCampaignPerformed(target, model.getObject().getValue()));
-                                btn.add(new EnableBehaviour(() -> !Boolean.TRUE.equals(model.getObject().getValue().isAdHoc())));
-                                break;
-                            case 1:
-                                btn = buildDefaultButton(componentId, null, createStringResource("PageCertDefinitions.button.showCampaigns"),
-                                        new Model<>("btn btn-sm " + DoubleButtonColumn.ButtonColorClass.DEFAULT),
-                                        target -> showCampaignsPerformed(target, model.getObject().getValue()));
-                                break;
-                            case 2:
-                                btn = buildDefaultButton(componentId, null, createStringResource("PageCertDefinitions.button.deleteDefinition"),
-                                        new Model<>("btn btn-sm " + DoubleButtonColumn.ButtonColorClass.DANGER),
-                                        target -> deleteConfirmation(target, model.getObject().getValue()));
-                                break;
-                        }
-
-                        return btn;
+                    public void onClick(AjaxRequestTarget target) {
+                        AccessCertificationDefinitionType campaign = getRowModel().getObject().getValue();
+                        createCampaignPerformed(target, campaign);
                     }
-                });
+                };
             }
-        };
-        columns.add(column);
 
-        return columns;
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_START_MENU_ITEM);
+            }
+
+            @Override
+            public boolean isHeaderMenuItem() {
+                return false;
+            }
+        });
+        menu.add(new ButtonInlineMenuItem(createStringResource("PageCertDefinitions.button.showCampaigns")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBeanImpl<AccessCertificationDefinitionType>>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        AccessCertificationDefinitionType campaign = getRowModel().getObject().getValue();
+                        showCampaignsPerformed(target, campaign);
+                    }
+                };
+            }
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder("fa fa-files-o");
+            }
+
+            @Override
+            public boolean isHeaderMenuItem() {
+                return false;
+            }
+        });
+        menu.add(new ButtonInlineMenuItem(createStringResource("PageCertDefinitions.button.deleteDefinition")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBeanImpl<AccessCertificationDefinitionType>>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        AccessCertificationDefinitionType campaign = getRowModel().getObject().getValue();
+                        deleteConfirmation(target, campaign);
+                    }
+                };
+            }
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_DELETE_MENU_ITEM);
+            }
+
+            @Override
+            public boolean isHeaderMenuItem() {
+                return false;
+            }
+        });
+        return menu;
     }
 
     protected void detailsPerformed(AjaxRequestTarget target, AccessCertificationDefinitionType service) {

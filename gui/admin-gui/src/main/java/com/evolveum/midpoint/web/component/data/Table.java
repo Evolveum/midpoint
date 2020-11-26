@@ -20,6 +20,8 @@ public interface Table {
 
     UserProfileStorage.TableId getTableId();
 
+    boolean enableSavePageSize();
+
     void setItemsPerPage(int size);
 
     int getItemsPerPage();

@@ -10,7 +10,7 @@ package com.evolveum.midpoint.repo.sql.query.matcher;
 import com.google.common.base.Strings;
 
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query.restriction.ItemRestrictionOperation;
