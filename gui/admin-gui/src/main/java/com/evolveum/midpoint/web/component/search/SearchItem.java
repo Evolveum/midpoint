@@ -20,7 +20,7 @@ public abstract class SearchItem implements Serializable {
     public static final String F_HELP = "help";
 
     public enum Type {
-        TEXT, BOOLEAN, ENUM, BROWSER, REFERENCE, FILTER, DATE, ITEM_PATH
+        TEXT, BOOLEAN, ENUM, BROWSER, REFERENCE, FILTER, DATE, ITEM_PATH, OBJECT_COLLECTION
     }
 
     private final Search search;
@@ -40,7 +40,7 @@ public abstract class SearchItem implements Serializable {
         return "";
     }
 
-    public String getHelp() {
+    public String getHelp(PageBase pageBase) {
         return "";
     }
 

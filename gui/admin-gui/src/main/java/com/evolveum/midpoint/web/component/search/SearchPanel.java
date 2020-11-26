@@ -131,37 +131,35 @@ public class SearchPanel extends BasePanel<Search> {
     }
 
     private <S extends SearchItem, T extends Serializable> void initLayout() {
-        LoadableModel<PrismContainerWrapper<CollectionRefSpecificationType>> collectionRefModel = new LoadableModel<PrismContainerWrapper<CollectionRefSpecificationType>>(false) {
-
-            @Override
-            protected PrismContainerWrapper<CollectionRefSpecificationType> load() {
-                Task task = getPageBase().createSimpleTask(OPERATION_LOAD_COLLECTION_REF_WRAPPER);
-                WrapperContext ctx = new WrapperContext(task, task.getResult());
-                ctx.setCreateIfEmpty(false);
-                ctx.setReadOnly(Boolean.TRUE);
-                if (getModelObject().getCollectionView() == null
-                        || getModelObject().getCollectionView().getCollection() == null) {
-                    return null;
-                }
-                PrismContainerValue<CollectionRefSpecificationType> collectionRefContainerVal =
-                        getModelObject().getCollectionView().getCollection().asPrismContainerValue();
-                PrismContainerDefinition<CollectionRefSpecificationType> collectionDef = collectionRefContainerVal.getDefinition();
-                try {
-                    PrismContainer<CollectionRefSpecificationType> collectionRef = collectionDef.instantiate();
-                    collectionRef.add(collectionRefContainerVal.clone());
-                    return getPageBase().createItemWrapper(collectionRef, ItemStatus.NOT_CHANGED, ctx);
-                } catch (SchemaException e) {
-                    LOG.error("Cannot create wrapper for collection ref");
-
-                }
-                return null;
-            }
-        };
-
-        collectionRefModel.getObject(); //TODO brutal hack, we need to load object to create wrapper. without this, no panels are registered, so nothing is shown in GUI.
-        SingleContainerPanel<CollectionRefSpecificationType> collectionRefContainer = new SingleContainerPanel<>(ID_COLLECTION_REF_PANEL, collectionRefModel, CollectionRefSpecificationType.COMPLEX_TYPE);
-        add(collectionRefContainer);
-        collectionRefContainer.add(new VisibleBehaviour(() -> collectionRefModel != null && collectionRefModel.getObject() != null));
+//        LoadableModel<PrismContainerWrapper<CollectionRefSpecificationType>> collectionRefModel = new LoadableModel<PrismContainerWrapper<CollectionRefSpecificationType>>(false) {
+//
+//            @Override
+//            protected PrismContainerWrapper<CollectionRefSpecificationType> load() {
+//                Task task = getPageBase().createSimpleTask(OPERATION_LOAD_COLLECTION_REF_WRAPPER);
+//                WrapperContext ctx = new WrapperContext(task, task.getResult());
+//                ctx.setCreateIfEmpty(false);
+//                ctx.setReadOnly(Boolean.TRUE);
+//                if (getModelObject().getCollectionView() == null
+//                        || getModelObject().getCollectionView().getCollection() == null) {
+//                    return null;
+//                }
+//                PrismContainerValue<CollectionRefSpecificationType> collectionRefContainerVal =
+//                        getModelObject().getCollectionView().getCollection().asPrismContainerValue();
+//                PrismContainerDefinition<CollectionRefSpecificationType> collectionDef = collectionRefContainerVal.getDefinition();
+//                try {
+//                    PrismContainer<CollectionRefSpecificationType> collectionRef = collectionDef.instantiate();
+//                    collectionRef.add(collectionRefContainerVal.clone());
+//                    return getPageBase().createItemWrapper(collectionRef, ItemStatus.NOT_CHANGED, ctx);
+//                } catch (SchemaException e) {
+//                    LOG.error("Cannot create wrapper for collection ref");
+//
+//                }
+//                return null;
+//            }
+//        };
+//
+//        collectionRefModel.getObject(); //TODO brutal hack, we need to load object to create wrapper. without this, no panels are registered, so nothing is shown in GUI.
+//        SingleContainerPanel<CollectionRefSpecificationType> collectionRefContainer = new SingleContainerPanel<>(ID_COLLECTION_REF_PANEL, collectionRefModel, CollectionRefSpecificationType.COMPLEX_TYPE);
 
         moreDialogModel = new LoadableModel<MoreDialogDto>(false) {
 
@@ -178,6 +176,11 @@ public class SearchPanel extends BasePanel<Search> {
 
         MidpointForm<?> form = new MidpointForm<>(ID_FORM);
         add(form);
+
+        PropertyModel<ObjectCollectionSearchItem> collectionModel = new PropertyModel<>(getModel(), Search.F_COLLECTION);
+        SearchObjectCollectionPanel collectionPanel = new SearchObjectCollectionPanel(ID_COLLECTION_REF_PANEL, collectionModel);
+        form.add(collectionPanel);
+        collectionPanel.add(new VisibleBehaviour(() -> collectionModel != null && collectionModel.getObject() != null));
 
         ListView<S> items = new ListView<S>(ID_ITEMS,
                 new PropertyModel<>(getModel(), Search.F_ITEMS)) {

@@ -141,7 +141,7 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem {
     }
 
     @Override
-    public String getHelp() {
+    public String getHelp(PageBase pageBase) {
         return definition.getHelp();
     }
 

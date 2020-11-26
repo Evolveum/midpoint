@@ -71,7 +71,7 @@ public abstract class AbstractSearchItemPanel<S extends SearchItem, T extends Se
         searchItemContainer.add(searchItemLabel);
 
         Label help = new Label(ID_HELP);
-        IModel<String> helpModel = new PropertyModel<>(getModel(), SearchItem.F_HELP);
+        IModel<String> helpModel = createHelpModel();
         help.add(AttributeModifier.replace("title",createStringResource(helpModel.getObject() != null ? helpModel.getObject() : "")));
         help.add(new InfoTooltipBehavior(){
             @Override
@@ -97,13 +97,21 @@ public abstract class AbstractSearchItemPanel<S extends SearchItem, T extends Se
         searchItemContainer.add(removeButton);
     }
 
+    private IModel<String> createHelpModel(){
+        SearchItem item = getModelObject();
+        if (item == null) {
+            return Model.of();
+        }
+        return Model.of(item.getHelp(getPageBase()));
+    }
+
     protected abstract void initSearchItemField(WebMarkupContainer searchItemContainer);
 
     protected boolean canRemoveSearchItem() {
         return false;
     }
 
-    private IModel<String> createLabelModel() {
+    protected IModel<String> createLabelModel() {
         SearchItem item = getModelObject();
         if (item == null) {
             return Model.of();

@@ -85,7 +85,7 @@ public class FilterSearchItem extends SearchItem {
     }
 
     @Override
-    public String getHelp() {
+    public String getHelp(PageBase pageBase) {
         return predefinedFilter.getDescription();
     }
 

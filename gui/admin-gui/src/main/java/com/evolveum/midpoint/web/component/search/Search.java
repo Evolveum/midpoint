@@ -16,7 +16,6 @@ import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.*;
@@ -39,8 +38,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
-import org.apache.wicket.Component;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -53,6 +50,7 @@ public class Search implements Serializable, DebugDumpable {
     public static final String F_ADVANCED_QUERY = "advancedQuery";
     public static final String F_ADVANCED_ERROR = "advancedError";
     public static final String F_FULL_TEXT = "fullText";
+    public static final String F_COLLECTION = "collectionView";
 
     private static final Trace LOGGER = TraceManager.getTrace(Search.class);
 
@@ -70,7 +68,7 @@ public class Search implements Serializable, DebugDumpable {
 
     private final List<SearchItemDefinition> availableDefinitions = new ArrayList<>();
     private final List<SearchItem> items = new ArrayList<>();
-    private CompiledObjectCollectionView dashboardWidgetView;
+    private ObjectCollectionSearchItem objectCollectionView;
 
     public Search(Class<? extends Containerable> type, List<SearchItemDefinition> allDefinitions) {
         this(type, allDefinitions, false, null);
@@ -97,11 +95,15 @@ public class Search implements Serializable, DebugDumpable {
     }
 
     public void setCollectionView(CompiledObjectCollectionView compiledView) {
-        dashboardWidgetView = compiledView;
+        if (compiledView == null) {
+            objectCollectionView = null;
+            return;
+        }
+        objectCollectionView = new ObjectCollectionSearchItem(this, compiledView);
     }
 
-    public CompiledObjectCollectionView getCollectionView() {
-        return dashboardWidgetView;
+    public ObjectCollectionSearchItem getCollectionView() {
+        return objectCollectionView;
     }
 
     public List<PropertySearchItem> getPropertyItems() {
@@ -426,12 +428,14 @@ public class Search implements Serializable, DebugDumpable {
     }
 
     private ObjectQuery mergeWithCollectionFilter(ObjectQuery query, PageBase pageBase) {
-        if (getCollectionView() != null && getCollectionView().getFilter() != null) {
+        if (getCollectionView() != null && getCollectionView().getObjectCollectionView().getFilter() != null
+                && getCollectionView().isApplyFilter()) {
             if (query == null) {
                 query = pageBase.getPrismContext().queryFor(getType()).build();
             }
             OperationResult result = new OperationResult("Evaluate_view_filter");
-            query.addFilter(WebComponentUtil.evaluateExpressionsInFilter(getCollectionView().getFilter(), result, pageBase));
+            query.addFilter(WebComponentUtil.evaluateExpressionsInFilter(
+                    getCollectionView().getObjectCollectionView().getFilter(), result, pageBase));
         }
         return query;
     }
