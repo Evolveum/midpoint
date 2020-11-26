@@ -15,6 +15,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncProvisioningTargetType;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Collection;
 import java.util.LinkedHashMap;
 
@@ -43,6 +45,12 @@ public class MockAsyncProvisioningTarget implements AsyncProvisioningTarget {
     @Override
     public void disconnect() {
         LOGGER.info("done() method called");
+    }
+
+    @Override
+    public @NotNull AsyncProvisioningTarget copy() {
+        LOGGER.info("copy() method called");
+        return INSTANCE;
     }
 
     @Override

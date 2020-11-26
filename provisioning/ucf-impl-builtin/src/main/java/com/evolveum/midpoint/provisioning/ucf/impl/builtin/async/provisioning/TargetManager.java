@@ -41,7 +41,7 @@ class TargetManager {
     }
 
     @NotNull
-    Collection<AsyncProvisioningTarget> createTargets(List<AsyncProvisioningTargetType> targetConfigurations) {
+    List<AsyncProvisioningTarget> createTargets(List<AsyncProvisioningTargetType> targetConfigurations) {
         if (targetConfigurations.isEmpty()) {
             throw new IllegalStateException("No asynchronous provisioning targets are configured");
         }

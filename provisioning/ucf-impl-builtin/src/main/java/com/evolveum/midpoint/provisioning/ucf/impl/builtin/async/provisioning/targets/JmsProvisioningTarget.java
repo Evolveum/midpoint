@@ -11,6 +11,7 @@ import javax.jms.*;
 import javax.naming.InitialContext;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncProvisioningTarget;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncProvisioningTargetType;
 
 import org.jetbrains.annotations.NotNull;
@@ -70,6 +71,11 @@ public class JmsProvisioningTarget extends AbstractMessagingTarget<JmsProvisioni
     public static JmsProvisioningTarget create(@NotNull AsyncProvisioningTargetType configuration,
             @NotNull AsyncProvisioningConnectorInstance connectorInstance) {
         return new JmsProvisioningTarget((JmsProvisioningTargetType) configuration, connectorInstance);
+    }
+
+    @Override
+    public @NotNull AsyncProvisioningTarget copy() {
+        return create(configuration, connectorInstance);
     }
 
     @Override
@@ -178,5 +184,13 @@ public class JmsProvisioningTarget extends AbstractMessagingTarget<JmsProvisioni
                 connection = null;
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        return "JmsProvisioningTarget{" +
+                "cf='" + configuration.getConnectionFactory() +
+                "',dest='" + configuration.getDestination() +
+                "'}";
     }
 }

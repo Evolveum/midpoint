@@ -9,10 +9,16 @@ package com.evolveum.midpoint.provisioning.impl.async.provisioning;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Collection;
 import java.util.Enumeration;
 import javax.annotation.PreDestroy;
 import javax.jms.*;
 import javax.naming.InitialContext;
+import javax.naming.NamingException;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.provisioning.JsonRequest;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
@@ -20,6 +26,8 @@ import org.apache.activemq.artemis.jms.client.ActiveMQMessage;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+
+import org.testng.annotations.Test;
 
 /**
  * Tests with real Artemis broker.
@@ -62,7 +70,10 @@ public abstract class TestAsyncProvisioningArtemis extends TestAsyncProvisioning
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
         startEmbeddedBroker();
+        connectToTestBroker();
+    }
 
+    private void connectToTestBroker() throws NamingException, JMSException {
         InitialContext ic = new InitialContext();
         ConnectionFactory cf = (ConnectionFactory) ic.lookup(BROKER.connectionFactory);
         Queue provisioningQueue = (Queue) ic.lookup(PROVISIONING_QUEUE);
@@ -80,6 +91,39 @@ public abstract class TestAsyncProvisioningArtemis extends TestAsyncProvisioning
             connection.close();
         }
         stopEmbeddedBroker();
+    }
+
+    /**
+     * We restart a broker. The targets should reconnect seamlessly.
+     */
+    @SuppressWarnings("unchecked")
+    @Test
+    public void test600Reconnect() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        stopEmbeddedBroker();
+
+        startEmbeddedBroker();
+        connectToTestBroker();
+
+        PrismObject<ShadowType> jim = createShadow(resource, "jim");
+
+        when();
+        provisioningService.addObject(jim, null, null, task, result);
+
+        then();
+        assertSuccessOrInProgress(result);
+
+        dumpRequests();
+        String req = getRequest();
+        JsonRequest jsonRequest = JsonRequest.from(req);
+        assertThat(jsonRequest.getOperation()).isEqualTo("add");
+        assertThat(jsonRequest.getObjectClass()).isEqualTo(getAccountObjectClassName());
+        assertThat(jsonRequest.getAttributes()).containsOnlyKeys(icfsUid(), icfsName());
+        assertThat((Collection<Object>) jsonRequest.getAttributes().get(icfsUid())).containsExactly("jim");
+        assertThat((Collection<Object>) jsonRequest.getAttributes().get(icfsName())).containsExactly("jim");
     }
 
     private void startEmbeddedBroker() throws Exception {

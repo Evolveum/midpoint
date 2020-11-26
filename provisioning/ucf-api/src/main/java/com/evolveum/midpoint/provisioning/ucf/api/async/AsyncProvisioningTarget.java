@@ -9,6 +9,8 @@ package com.evolveum.midpoint.provisioning.ucf.api.async;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Represents a connection to asynchronous provisioning target (e.g. JMS queue residing in a broker).
  */
@@ -26,6 +28,11 @@ public interface AsyncProvisioningTarget {
      * after all pending operations are done.
      */
     void disconnect();
+
+    /**
+     * Creates a copy of the target - in the initial (unconnected) state.
+     */
+    @NotNull AsyncProvisioningTarget copy();
 
     /**
      * Tests this target for reachability.

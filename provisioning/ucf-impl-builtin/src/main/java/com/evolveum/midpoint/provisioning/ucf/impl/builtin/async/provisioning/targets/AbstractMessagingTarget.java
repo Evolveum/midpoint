@@ -34,7 +34,7 @@ public abstract class AbstractMessagingTarget<C extends AsyncProvisioningTargetT
     @NotNull final C configuration;
 
     /** Reference to the owning connector instance */
-    @NotNull private final AsyncProvisioningConnectorInstance connectorInstance;
+    @NotNull final AsyncProvisioningConnectorInstance connectorInstance;
 
     protected AbstractMessagingTarget(@NotNull C configuration, @NotNull AsyncProvisioningConnectorInstance connectorInstance) {
         this.configuration = configuration;

@@ -62,7 +62,7 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
     private static final ItemName ATTR_SHOE_SIZE = new ItemName(NS_RI, "shoeSize");
     private static final ItemPath ATTR_SHOE_SIZE_PATH = ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_SHOE_SIZE);
 
-    private PrismObject<ResourceType> resource;
+    protected PrismObject<ResourceType> resource;
 
     private String jackAccountOid;
 
@@ -277,7 +277,7 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
         }
     }
 
-    private void assertSuccessOrInProgress(OperationResult result) {
+    protected void assertSuccessOrInProgress(OperationResult result) {
         if (isUsingConfirmations()) {
             assertInProgress(result);
         } else {
@@ -285,7 +285,7 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
         }
     }
 
-    private String getAccountObjectClassName() {
+    protected String getAccountObjectClassName() {
         return qNameAsString(RI_ACCOUNT_OBJECT_CLASS);
     }
 
@@ -297,11 +297,11 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
         return qNameAsString(ATTR_SHOE_SIZE);
     }
 
-    private String icfsName() {
+    protected String icfsName() {
         return qNameAsString(ICFS_NAME);
     }
 
-    private String icfsUid() {
+    protected String icfsUid() {
         return qNameAsString(ICFS_UID);
     }
 

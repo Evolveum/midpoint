@@ -11,6 +11,8 @@ import static org.apache.activemq.artemis.api.core.client.ActiveMQClient.DEFAULT
 
 import java.util.Objects;
 
+import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncProvisioningTarget;
+
 import org.apache.activemq.artemis.api.core.client.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,6 +46,11 @@ public class ArtemisProvisioningTarget extends AbstractMessagingTarget<ArtemisPr
 
     public static ArtemisProvisioningTarget create(@NotNull AsyncProvisioningTargetType configuration, @NotNull AsyncProvisioningConnectorInstance connectorInstance) {
         return new ArtemisProvisioningTarget((ArtemisProvisioningTargetType) configuration, connectorInstance);
+    }
+
+    @Override
+    public @NotNull AsyncProvisioningTarget copy() {
+        return create(configuration, connectorInstance);
     }
 
     @Override
@@ -150,5 +157,13 @@ public class ArtemisProvisioningTarget extends AbstractMessagingTarget<ArtemisPr
                 clientSessionThreadLocal.remove();
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        return "ArtemisProvisioningTarget{" +
+                "url='" + configuration.getUri() +
+                "',address='" + configuration.getAddress() +
+                "'}";
     }
 }

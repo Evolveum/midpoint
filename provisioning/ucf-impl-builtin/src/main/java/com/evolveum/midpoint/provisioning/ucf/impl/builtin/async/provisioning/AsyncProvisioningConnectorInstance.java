@@ -8,6 +8,7 @@ package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.provisioning;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
@@ -51,8 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.unmodifiableCollection;
+import static java.util.Collections.*;
 
 /**
  *  Connector that is able to invoke asynchronous provisioning.
@@ -76,7 +76,7 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     private ConnectorConfiguration configuration;
 
     /** Always holds immutable collection. */
-    private final AtomicReference<Collection<AsyncProvisioningTarget>> targetsReference = new AtomicReference<>(emptyList());
+    private final AtomicReference<List<AsyncProvisioningTarget>> targetsReference = new AtomicReference<>(emptyList());
 
     private final TargetManager targetManager = new TargetManager(this);
     private final OperationRequestTransformer transformer = new OperationRequestTransformer(this);
@@ -101,17 +101,54 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
         LOGGER.info("Setting new configuration in {}", this); // todo debug
         configuration.validate();
         this.configuration = configuration;
-        targetsReference.set(unmodifiableCollection(targetManager.createTargets(configuration.getAllTargets())));
+        targetsReference.set(unmodifiableList(targetManager.createTargets(configuration.getAllTargets())));
+    }
+
+    /**
+     * Gracefully shuts down existing target and then tries to replace it with its new instantiation.
+     */
+    private AsyncProvisioningTarget restartTarget(AsyncProvisioningTarget target) {
+        target.disconnect();
+
+        List<AsyncProvisioningTarget> existingTargets = targetsReference.get();
+        int i = existingTargets.indexOf(target);
+        if (i < 0) {
+            LOGGER.info("Not restarting {}, because it's no longer among the targets", target);
+            return existingTargets.isEmpty() ? null : existingTargets.get(0);
+        }
+
+        AsyncProvisioningTarget restartedTarget = target.copy();
+        restartedTarget.connect();
+
+        List<AsyncProvisioningTarget> updatedTargets = updateTargetsList(existingTargets, i, restartedTarget);
+        if (targetsReference.compareAndSet(existingTargets, updatedTargets)) {
+            LOGGER.debug("Target {} was successfully restarted and replaced in the targets list", restartedTarget);
+        } else {
+            LOGGER.info("Target {} was restarted but the targets list couldn't be updated, as it was changed in the meanwhile",
+                    restartedTarget);
+        }
+        return restartedTarget;
+    }
+
+    @NotNull
+    private List<AsyncProvisioningTarget> updateTargetsList(List<AsyncProvisioningTarget> existingTargets, int i,
+            AsyncProvisioningTarget restartedTarget) {
+        List<AsyncProvisioningTarget> updatedTargets = new ArrayList<>(existingTargets.subList(0, i));
+        updatedTargets.add(restartedTarget);
+        updatedTargets.addAll(existingTargets.subList(i + 1, existingTargets.size()));
+        return updatedTargets;
     }
 
     @Override
     protected void connect(OperationResult result) {
-        // TODO
+        targetsReference.get()
+                .forEach(AsyncProvisioningTarget::connect);
     }
 
     @Override
     protected void disconnect(OperationResult result) {
-        // TODO
+        targetsReference.get()
+                .forEach(AsyncProvisioningTarget::disconnect);
     }
 
     @Override
@@ -125,11 +162,6 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't test async provisioning targets: " + e.getMessage(), e);
         }
-    }
-
-    @Override
-    public void dispose() {
-        // TODO
     }
 
     @Override
@@ -202,7 +234,7 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     }
 
     private String sendRequest(AsyncProvisioningRequest request, OperationResult result) {
-        Collection<AsyncProvisioningTarget> targets = targetsReference.get();
+        List<AsyncProvisioningTarget> targets = targetsReference.get();
         if (targets.isEmpty()) {
             throw new IllegalStateException("No targets available");
         }
@@ -212,8 +244,20 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
             try {
                 return target.send(request, result);
             } catch (Throwable t) {
-                LOGGER.warn("Couldn't send a request to target {}, trying next one (if available)", target, t);
-                lastException = t;
+                LOGGER.warn("Couldn't send a request to target {}, restarting the target and trying again", target, t);
+                AsyncProvisioningTarget restartedTarget = restartTarget(target);
+                if (restartedTarget != null) {
+                    try {
+                        result.muteLastSubresultError();
+                        return restartedTarget.send(request, result);
+                    } catch (Throwable t2) {
+                        LOGGER.warn("Couldn't send a request to target {} again, trying the next one", target, t2);
+                        lastException = t2;
+                    }
+                } else {
+                    LOGGER.info("Target couldn't be restarted (maybe it was re-created in the meanwhile), trying the next one");
+                    lastException = t;
+                }
             }
         }
         assert lastException != null;

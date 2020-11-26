@@ -611,10 +611,10 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AsyncProvisioningTargetType">
                 <xsd:sequence>
-                    <xsd:element name="uri" type="xsd:anyURI" minOccurs="0">
+                    <xsd:element name="url" type="xsd:anyURI" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Connection URI.
+                                Connection URL.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
