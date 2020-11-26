@@ -59,8 +59,6 @@ DELETE FROM m_object_oid oo WHERE NOT EXISTS (SELECT * from m_object o WHERE o.o
 SET session_replication_role = default; -- re-enables normal operation (triggers)
 SHOW session_replication_role;
 
--- TODO measure impact of UPDATE trigger on the performance
-
 -- adding x users
 -- 100_000 inserts: 3 inherited tables ~6s, for 25 inherited tables ~13s, for 50 ~20s, for 100 ~34s
 -- change with volume (100 inherited tables): 200k previous rows ~34s, with 1m rows ~37s
@@ -70,23 +68,42 @@ SHOW session_replication_role;
 select count(*) from m_object_oid;
 explain
 select count(*) from m_user;
+select * from m_user order by name_norm offset 990 limit 50;
 -- vacuum full analyze; -- this requires exclusive lock on processed table and can be very slow, with 1M rows it takes 10s
 vacuum analyze; -- this is normal operation version (can run in parallel, ~25s/25m rows)
 
 -- 100k takes 6s, whether we commit after each 1000 or not
 -- This answer also documents that LOOP is 2x slower than generate_series: https://stackoverflow.com/a/53242452/658826
 DO $$ BEGIN
-    FOR r IN 1000001..1100000 LOOP
-        INSERT INTO m_user (name_norm, name_orig, version)
-        VALUES ('user-' || LPAD(r::text, 10, '0'), 'user-' || LPAD(r::text, 10, '0'), 1);
---      INSERT INTO m_user (oid, name_orig, version)
---      VALUES (gen_random_uuid(), 'user-' || LPAD(r::text, 10, '0'), 1);
+    FOR r IN 1001..2000 LOOP
+        INSERT INTO m_user (
+--             oid, -- normally generated automatically
+            name_norm,
+            name_orig,
+            fullobject,
+            version)
+        VALUES (
+--             gen_random_uuid(),
+            'user-' || LPAD(r::text, 10, '0'),
+            'user-' || LPAD(r::text, 10, '0'),
+--             zero_bytea(100, 20000),
+            random_bytea(100, 20000),
+            1);
 
         -- regular commit to keep transactions reasonable (negligible performance impact)
         IF r % 1000 = 0 THEN
             COMMIT;
         END IF;
     END LOOP;
+END; $$;
+
+DO $$ BEGIN
+    FOR r IN 1001..2000 LOOP
+            INSERT INTO m_user (name_norm, name_orig, fullobject, version)
+            VALUES ('user-' || LPAD(r::text, 10, '0'), 'user-' || LPAD(r::text, 10, '0'),
+                    random_bytea(100, 20000), 1);
+--                     zero_bytea(100, 20000), 1);
+        END LOOP;
 END; $$;
 
 -- 100k takes 4s, gets slower with volume, of course
@@ -127,50 +144,72 @@ select ctid, * from m_object
 select count(*) from pg_inherits
 ;
 
--- creating more tables inherited from m_object or m_focus
-DO
-$$
-    BEGIN
-        FOR r IN 51..75
-            LOOP
-                EXECUTE 'CREATE TABLE m_omore' || r || '(
-                    objectTypeClass INT4 GENERATED ALWAYS AS (101) STORED,
-                    PRIMARY KEY (oid)
-                )
-                    INHERITS (m_object)';
-                EXECUTE 'CREATE TABLE m_fmore' || r || '(
-                    objectTypeClass INT4 GENERATED ALWAYS AS (101) STORED,
-                    PRIMARY KEY (oid)
-                )
-                    INHERITS (m_focus)';
-            END LOOP;
-    END;
-$$;
-
-DO
-$$
-    BEGIN
-        FOR r IN 1..47
-            LOOP
-                EXECUTE 'DROP TABLE m_fmore' || r ;
-                EXECUTE 'DROP TABLE m_omore' || r ;
-            END LOOP;
-    END
-$$;
 
 -- MANAGEMENT queries
 
 -- See: https://wiki.postgresql.org/wiki/Disk_Usage
 
--- biggest relations
-SELECT nspname || '.' || relname AS "relation",
-    pg_size_pretty(pg_relation_size(C.oid)) AS "size"
-FROM pg_class C
-    LEFT JOIN pg_namespace N ON (N.oid = C.relnamespace)
-WHERE nspname NOT IN ('pg_catalog', 'information_schema')
-ORDER BY pg_relation_size(C.oid) DESC
+-- top 20 biggest tables or their TOAST (large object storage) from public schema
+SELECT
+    t.oid,
+    CASE
+        WHEN tft.relname IS NOT NULL
+            THEN tft.relname || ' (TOAST)'
+        ELSE t.relname
+    END AS object,
+    pg_size_pretty(pg_relation_size(t.oid)) AS size
+FROM pg_class t
+    INNER JOIN pg_namespace ns ON ns.oid = t.relnamespace
+    -- table for toast
+    LEFT JOIN pg_class tft ON tft.reltoastrelid = t.oid
+    LEFT JOIN pg_namespace tftns ON tftns.oid = tft.relnamespace
+WHERE 'public' IN (ns.nspname, tftns.nspname)
+ORDER BY pg_relation_size(t.oid) DESC
 LIMIT 20;
 
 vacuum full analyze;
 -- database size
 SELECT pg_size_pretty( pg_database_size('midpoint') );
+
+-- show tables + their toast tables ordered from the largest toast table
+-- ut = user table, tt = toast table
+select ut.oid, ut.relname, ut.relkind, tt.relkind, tt.relname, tt.relpages, tt.reltuples
+from pg_class ut
+    inner join pg_class tt on ut.reltoastrelid = tt.oid
+    inner join pg_namespace ns ON ut.relnamespace = ns.oid
+where ut.relkind = 'r' and tt.relkind = 't'
+    and ns.nspname = 'public'
+order by relpages desc;
+
+-- based on https://dba.stackexchange.com/a/22571
+CREATE OR REPLACE FUNCTION random_bytea(min_len integer, max_len integer)
+    RETURNS bytea
+    LANGUAGE sql
+    -- VOLATILE - default behavior, can't be optimized, other options are IMMUTABLE or STABLE
+AS $$
+    SELECT decode(string_agg(lpad(to_hex(width_bucket(random(), 0, 1, 256) - 1), 2, '0'), ''), 'hex')
+    -- width_bucket starts with 1, we counter it with series from 2; +1 is there to includes upper bound too
+    -- should be marginally more efficient than: generate_series(1, $1 + trunc(random() * ($2 - $1 + 1))::integer)
+    FROM generate_series(2, $1 + width_bucket(random(), 0, 1, $2 - $1 + 1));
+$$;
+
+CREATE OR REPLACE FUNCTION zero_bytea(min_len integer, max_len integer)
+    RETURNS bytea
+    LANGUAGE sql
+AS $$
+    SELECT decode(string_agg('00', ''), 'hex')
+    FROM generate_series(2, $1 + width_bucket(random(), 0, 1, $2 - $1 + 1));
+$$;
+
+select zero_bytea(1, 10);
+
+select width_bucket(random(), 0, 1, 1)
+-- select to_hex(trunc(random() * 256)::integer)
+-- select lpad(to_hex(trunc(random() * 256)::integer),2,'0')
+;
+
+-- should return 10 and 20, just to check the ranges
+select min(length(i)), max(length(i))
+from (select random_bytea(10, 20) as i from generate_series(1, 200)) q;
+
+select * from m_object
