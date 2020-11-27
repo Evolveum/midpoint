@@ -252,7 +252,15 @@ public class BasicPage {
     }
 
     public ListReportsPage listReports() {
-        clickAdministrationMenu("PageAdmin.menu.top.reports", "PageAdmin.menu.top.reports.list");
+        return listReports("");
+    }
+
+    public ListReportsPage listReports(String objectListMenuItemKey) {
+        if (StringUtils.isEmpty(objectListMenuItemKey)) {
+            clickAdministrationMenu("PageAdmin.menu.top.reports", "PageAdmin.menu.top.reports.list");
+        } else {
+            clickAdministrationMenu("PageAdmin.menu.top.reports", objectListMenuItemKey);
+        }
         return new ListReportsPage();
     }
 

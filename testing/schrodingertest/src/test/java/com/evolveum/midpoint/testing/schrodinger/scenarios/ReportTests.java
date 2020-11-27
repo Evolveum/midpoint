@@ -45,8 +45,7 @@ public class ReportTests extends AbstractSchrodingerTest {
     public void test00200runUsersReport() {
         ReportTable reportTable = basicPage.listReports().table();
         reportTable.runReport("All audit records report");
-//                .runReport();
-        Assert.assertEquals(1, basicPage.createdReports()
+        Assert.assertEquals(1, basicPage.listReports("Collection reports")
             .table()
                 .search()
                     .byName()
