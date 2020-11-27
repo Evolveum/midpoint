@@ -9,7 +9,6 @@ package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.update.sources
 
 import static javax.jms.Session.CLIENT_ACKNOWLEDGE;
 
-import java.lang.IllegalStateException;
 import java.util.Enumeration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -97,7 +96,7 @@ public class JmsAsyncUpdateSource implements ActiveAsyncUpdateSource {
                             message.acknowledge();
                         } else {
                             LOGGER.debug("Message processing was not successful. Message will not be acknowledged.");
-                            throw new IllegalStateException("Message could not be processed (successful = false)");
+                            throw new java.lang.IllegalStateException("Message could not be processed (successful = false)");
                         }
                     } catch (JMSException | SchemaException e) {
                         throw new SystemException("Couldn't process JMS message: " + e.getMessage(), e);
@@ -193,12 +192,12 @@ public class JmsAsyncUpdateSource implements ActiveAsyncUpdateSource {
         }
     }
 
-    private static final AtomicInteger poolNumber = new AtomicInteger(0);
+    private static final AtomicInteger POOL_NUMBER = new AtomicInteger(0);
 
     private static class MyThreadFactory implements ThreadFactory {
         private int counter = 0;
         public Thread newThread(@NotNull Runnable r) {
-            return new Thread(r, "JMS-consumer-" + poolNumber.get() + "-" + (counter++));
+            return new Thread(r, "JMS-consumer-" + POOL_NUMBER.get() + "-" + (counter++));
         }
     }
 
@@ -206,7 +205,7 @@ public class JmsAsyncUpdateSource implements ActiveAsyncUpdateSource {
         int size = ObjectUtils.defaultIfNull(configuration.getConnectionHandlingThreads(), DEFAULT_NUMBER_OF_THREADS);
         LOGGER.debug("Creating connection handling executor of size {}", size);
         ExecutorService executorService = Executors.newFixedThreadPool(size, new MyThreadFactory());
-        poolNumber.incrementAndGet();
+        POOL_NUMBER.incrementAndGet();
         return executorService;
     }
 

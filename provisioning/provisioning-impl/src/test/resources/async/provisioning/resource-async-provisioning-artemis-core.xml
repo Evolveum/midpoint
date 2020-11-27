@@ -17,7 +17,7 @@
     <connectorConfiguration>
         <conf:targets>
             <artemis>
-                <uri>vm://0</uri>
+                <url>vm://0</url>
                 <!--<username>admin</username>-->
                 <!--<password>secret</password>-->
                 <address>ProvisioningQueue</address>
