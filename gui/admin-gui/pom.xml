@@ -627,6 +627,23 @@
             <artifactId>bcpkix-jdk15on</artifactId>
         </dependency>
 
+        <!-- Messaging -->
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>artemis-jms-client</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>artemis-core-client</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>artemis-commons</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- TEST -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
