@@ -92,10 +92,7 @@ public class ResourceTypeUtil {
 
     public static Element getResourceXsdSchema(PrismObject<ResourceType> resource) {
         PrismContainer<XmlSchemaType> xmlSchema = resource.findContainer(ResourceType.F_SCHEMA);
-        if (xmlSchema == null) {
-            return null;
-        }
-        return ObjectTypeUtil.findXsdElement(xmlSchema);
+        return xmlSchema != null ? ObjectTypeUtil.findXsdElement(xmlSchema) : null;
     }
 
     public static void setResourceXsdSchema(ResourceType resourceType, Element xsdElement) {

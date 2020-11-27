@@ -27,6 +27,7 @@ import org.apache.activemq.artemis.jms.client.ActiveMQMessage;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
 /**
@@ -85,8 +86,8 @@ public abstract class TestAsyncProvisioningArtemis extends TestAsyncProvisioning
         browser = session.createBrowser(provisioningQueue);
     }
 
-    @PreDestroy
-    public void preDestroy() throws Exception {
+    @AfterClass
+    public void shutdown() throws Exception {
         if (connection != null) {
             connection.close();
         }
