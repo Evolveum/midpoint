@@ -5,8 +5,13 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.provisioning;
+package com.evolveum.midpoint.schema.messaging;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncProvisioningOperationRequestedType;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -14,9 +19,42 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * A translation of OperationRequested that is directly serializable to JSON form by {@link JsonRequestFormatter}.
+ * <p>
+ *     A simplified representation of a requested asynchronous provisioning operation.
+ *     MidPoint offers two such built-in representations:
+ * </p>
+ * <ol>
+ *     <li>{@link AsyncProvisioningOperationRequestedType} </li>
+ *     <li>this class</li>
+ * </ol>
+ * <p>
+ *     The first one is a direct translation of the operation being requested. It is a Prism
+ *     structure that can be serialized to any Prism language (XML, JSON, YAML, Axiom). However,
+ *     it requires Prism implementation at the receiving side in order to be easily and completely
+ *     parsed.
+ * </p>
+ * <p>
+ *     On the other hand, this class provides a simplified representation (or, better, a class of
+ *     representations) of the asynchronous provisioning operation. It can be easily parsed by any
+ *     JSON parser without the need of Prism functionality.
+ * </p>
+ * <p>
+ *     This class offers a basic structure for the request. It is up to the user how he/she decides
+ *     to use it. For example, individual item and type names can be qualified or unqualified.
+ *     "Replace-only" changes can be represented as attributes. And so on.
+ * </p>
+ * <p>
+ *     BEWARE: This class is very EXPERIMENTAL. It can change or disappear at any time.
+ * </p>
  */
-public class JsonRequest {
+@Experimental
+public class JsonAsyncProvisioningRequest {
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    private static final String ADD = "add";
+    private static final String MODIFY = "modify";
+    private static final String DELETE = "delete";
 
     /**
      * Operation name (add, modify, delete).
@@ -113,6 +151,21 @@ public class JsonRequest {
         this.additionalInformation = additionalInformation;
     }
 
+    @JsonIgnore
+    public boolean isAdd() {
+        return ADD.equals(operation);
+    }
+
+    @JsonIgnore
+    public boolean isModify() {
+        return MODIFY.equals(operation);
+    }
+
+    @JsonIgnore
+    public boolean isDelete() {
+        return DELETE.equals(operation);
+    }
+
     /**
      * Simple representation of an ItemDelta: contains collections of real values being
      * added/deleted/replaced.
@@ -156,9 +209,9 @@ public class JsonRequest {
         }
     }
 
-    public static JsonRequest from(String req) throws JsonProcessingException {
-        return new ObjectMapper()
-                .readerFor(JsonRequest.class)
+    public static JsonAsyncProvisioningRequest from(String req) throws JsonProcessingException {
+        return MAPPER
+                .readerFor(JsonAsyncProvisioningRequest.class)
                 .readValue(req);
     }
 }

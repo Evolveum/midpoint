@@ -31,79 +31,31 @@
         <conf:transformExpression>
             <script>
                 <code>
-                    import com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.provisioning.JsonRequest
-                    import com.evolveum.midpoint.xml.ns._public.common.common_3.*
-                    import com.evolveum.prism.xml.ns._public.types_3.*
+                    import com.evolveum.midpoint.schema.util.UcfChangeUtil
+                    import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI
 
-                    import javax.xml.namespace.QName
+                    wrappedMessage = midpoint.wrap(message)
+                    log.info('Message body:\n{}', wrappedMessage.bodyAsText)
 
-                    import static com.evolveum.midpoint.schema.constants.MidPointConstants.*
-                    import static com.evolveum.midpoint.schema.constants.SchemaConstants.*
-                    import com.evolveum.midpoint.schema.util.*
-                    import com.evolveum.midpoint.prism.path.*
-
-                    import static com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType.*
-
-                    String text = midpoint.wrap(message).text
-                    log.info('Message text:\n{}', text)
-
-                    // Quite a hack (using internal structure of AsyncProvisioning connector)
-                    request = JsonRequest.from(text)
-
-                    if (request.operation == 'add') {
-                        qualifiedAttributes = request.attributes.collectEntries { name, value -> [new QName(NS_RI, name), value] }
-                        log.info('Qualified attributes:\n{}', qualifiedAttributes)
-                        return UcfChangeUtil.createForNewObject(RI_ACCOUNT_OBJECT_CLASS, qualifiedAttributes, prismContext)
-                    }
-
-                    qualifiedIdentifiers = request.primaryIdentifiers.collectEntries { name, value -> [new QName(NS_RI, name), value] }
-                    ObjectDeltaType delta = new ObjectDeltaType()
-
-                    if (request.operation == 'delete') {
-                        delta.changeType = ChangeTypeType.DELETE
-                        return UcfChangeUtil.create(RI_ACCOUNT_OBJECT_CLASS, qualifiedIdentifiers, delta, prismContext)
-                    } else if (request.operation == 'modify') {
-                        delta.changeType = ChangeTypeType.MODIFY
-                        for (entry in request.changes.entrySet()) {
-                            path = new ItemPathType(ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(NS_RI, entry.key)))
-                            JsonRequest.DeltaValues deltaValues = entry.value
-                            if (deltaValues.replace != null) {
-                                delta.itemDelta.add(createItemDelta(REPLACE, path, deltaValues.replace))
-                            } else {
-                                if (deltaValues.add != null &amp;&amp; !deltaValues.add.isEmpty()) {
-                                    delta.itemDelta.add(createItemDelta(ADD, path, deltaValues.add))
-                                }
-                                if (deltaValues.delete != null &amp;&amp; !deltaValues.delete.isEmpty()) {
-                                    delta.itemDelta.add(createItemDelta(DELETE, path, deltaValues.delete))
-                                }
-                            }
-                        }
-                        return UcfChangeUtil.create(RI_ACCOUNT_OBJECT_CLASS, qualifiedIdentifiers, delta, prismContext)
-                    } else {
-                        log.error('Unsupported operation: {}', operation)
-                        return null
-                    }
-
-                    private ItemDeltaType createItemDelta(ModificationTypeType type, ItemPathType path, Collection values) {
-                        itemDelta = new ItemDeltaType()
-                        itemDelta.modificationType = type
-                        itemDelta.path = path
-                        for (value in values) {
-                            itemDelta.value.add(RawType.fromPropertyRealValue(value, null, prismContext))
-                        }
-                        itemDelta
-                    }
+                    request = wrappedMessage.bodyAsAsyncProvisioningRequest
+                    UcfChangeUtil.createFromAsyncProvisioningRequest(request, NS_RI, prismContext)
                 </code>
             </script>
         </conf:transformExpression>
+        <!--<conf:processTracingConfiguration>-->
+        <!--    <interval>100</interval>-->
+        <!--    <tracingProfile>-->
+        <!--        <ref>performance</ref>-->
+        <!--        <fileNamePattern>update %{timestamp} %{focusName}</fileNamePattern>-->
+        <!--    </tracingProfile>-->
+        <!--</conf:processTracingConfiguration>-->
     </connectorConfiguration>
     <schema>
         <definition>
             <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
                         xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
                         targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
-                <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
                 <xsd:complexType name="AccountObjectClass">
                     <xsd:annotation>
@@ -128,6 +80,24 @@
     <schemaHandling>
         <objectType>
             <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>ri:login</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:fullName</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>fullName</path>
+                    </target>
+                </inbound>
+            </attribute>
             <attribute>
                 <ref>ri:description</ref>
                 <inbound>
@@ -168,7 +138,7 @@
                 <situation>deleted</situation>
                 <synchronize>true</synchronize>
                 <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
                 </action>
             </reaction>
             <reaction>

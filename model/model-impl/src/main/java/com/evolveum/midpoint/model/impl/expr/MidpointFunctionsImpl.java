@@ -58,7 +58,7 @@ import com.evolveum.midpoint.model.impl.expr.triggerSetter.TriggerCreatorGlobalS
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.messaging.MessageWrapper;
+import com.evolveum.midpoint.schema.messaging.MessageWrapper;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationExpressionsEvaluator;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationServiceUtils;

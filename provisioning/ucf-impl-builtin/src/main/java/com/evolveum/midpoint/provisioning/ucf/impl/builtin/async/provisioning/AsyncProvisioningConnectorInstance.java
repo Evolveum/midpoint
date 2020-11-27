@@ -339,12 +339,6 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     }
 
     @Override
-    public void listenForChanges(@NotNull AsyncChangeListener changeListener, @NotNull Supplier<Boolean> canRunSupplier,
-            @NotNull OperationResult parentResult) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public ResourceSchema fetchResourceSchema(OperationResult parentResult) {
         // Schema discovery is not supported. Schema must be defined manually. Or other connector has to provide it.
         InternalMonitor.recordConnectorOperation("schema");

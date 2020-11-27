@@ -10,14 +10,9 @@ package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.update.sources
 import static javax.jms.Session.CLIENT_ACKNOWLEDGE;
 
 import java.util.Enumeration;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
 import javax.jms.*;
 import javax.naming.InitialContext;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -50,18 +45,15 @@ public class JmsAsyncUpdateSource implements ActiveAsyncUpdateSource {
     public static final String HEADER_LAST_MESSAGE = "X-LastMessage";
 
     private static final Trace LOGGER = TraceManager.getTrace(JmsAsyncUpdateSource.class);
-    private static final int DEFAULT_NUMBER_OF_THREADS = 10;
 
     @NotNull private final JmsSourceType configuration;
     @NotNull private final AsyncUpdateConnectorInstance connectorInstance;
-    @NotNull private final ExecutorService connectionHandlingExecutor;
     @NotNull private final ConnectionFactory connectionFactory;
     @NotNull private final Destination destination;
 
     private JmsAsyncUpdateSource(@NotNull JmsSourceType configuration, @NotNull AsyncUpdateConnectorInstance connectorInstance) {
         this.configuration = configuration;
         this.connectorInstance = connectorInstance;
-        this.connectionHandlingExecutor = createConnectionHandlingExecutor(configuration);
 
         try {
             InitialContext ic = new InitialContext();
@@ -192,28 +184,9 @@ public class JmsAsyncUpdateSource implements ActiveAsyncUpdateSource {
         }
     }
 
-    private static final AtomicInteger POOL_NUMBER = new AtomicInteger(0);
-
-    private static class MyThreadFactory implements ThreadFactory {
-        private int counter = 0;
-        public Thread newThread(@NotNull Runnable r) {
-            return new Thread(r, "JMS-consumer-" + POOL_NUMBER.get() + "-" + (counter++));
-        }
-    }
-
-    private ExecutorService createConnectionHandlingExecutor(JmsSourceType configuration) {
-        int size = ObjectUtils.defaultIfNull(configuration.getConnectionHandlingThreads(), DEFAULT_NUMBER_OF_THREADS);
-        LOGGER.debug("Creating connection handling executor of size {}", size);
-        ExecutorService executorService = Executors.newFixedThreadPool(size, new MyThreadFactory());
-        POOL_NUMBER.incrementAndGet();
-        return executorService;
-    }
-
     @Override
     public void close() {
-        connectionHandlingExecutor.shutdownNow();
-        // We do not try to wait for the tasks to really shut down. What we want to achieve is to do what we can
-        // to avoid leaving garbage behind.
+        // activities were already stopped, there is nothing really to do here
     }
 
     private String decrypt(ProtectedStringType protectedString) throws EncryptionException {

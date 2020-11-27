@@ -28,7 +28,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
-import com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.provisioning.JsonRequest;
+import com.evolveum.midpoint.schema.messaging.JsonAsyncProvisioningRequest;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -125,7 +125,7 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
 
         dumpRequests();
         String req = getRequest();
-        JsonRequest jsonRequest = JsonRequest.from(req);
+        JsonAsyncProvisioningRequest jsonRequest = JsonAsyncProvisioningRequest.from(req);
         assertThat(jsonRequest.getOperation()).isEqualTo("add");
         assertThat(jsonRequest.getObjectClass()).isEqualTo(getAccountObjectClassName());
         assertThat(jsonRequest.getAttributes()).containsOnlyKeys(icfsUid(), icfsName(), riDrink());
@@ -163,7 +163,7 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
 
         dumpRequests();
         String req = getRequest();
-        JsonRequest jsonRequest = JsonRequest.from(req);
+        JsonAsyncProvisioningRequest jsonRequest = JsonAsyncProvisioningRequest.from(req);
         assertThat(jsonRequest.getOperation()).isEqualTo("modify");
         assertThat(jsonRequest.getObjectClass()).isEqualTo(getAccountObjectClassName());
         assertThat(jsonRequest.getAttributes()).isNull();
@@ -214,7 +214,7 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
 
         dumpRequests();
         String req = getRequest();
-        JsonRequest jsonRequest = JsonRequest.from(req);
+        JsonAsyncProvisioningRequest jsonRequest = JsonAsyncProvisioningRequest.from(req);
         assertThat(jsonRequest.getOperation()).isEqualTo("modify");
         assertThat(jsonRequest.getObjectClass()).isEqualTo(getAccountObjectClassName());
         assertThat(jsonRequest.getAttributes()).isNull();
@@ -260,7 +260,7 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
 
         dumpRequests();
         String req = getRequest();
-        JsonRequest jsonRequest = JsonRequest.from(req);
+        JsonAsyncProvisioningRequest jsonRequest = JsonAsyncProvisioningRequest.from(req);
         assertThat(jsonRequest.getOperation()).isEqualTo("delete");
         assertThat(jsonRequest.getObjectClass()).isEqualTo(getAccountObjectClassName());
         assertThat(jsonRequest.getAttributes()).isNull();

@@ -11,13 +11,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collection;
 import java.util.Enumeration;
-import javax.annotation.PreDestroy;
 import javax.jms.*;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.provisioning.JsonRequest;
+import com.evolveum.midpoint.schema.messaging.JsonAsyncProvisioningRequest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.apache.activemq.artemis.api.core.client.ClientMessage;
@@ -119,7 +118,7 @@ public abstract class TestAsyncProvisioningArtemis extends TestAsyncProvisioning
 
         dumpRequests();
         String req = getRequest();
-        JsonRequest jsonRequest = JsonRequest.from(req);
+        JsonAsyncProvisioningRequest jsonRequest = JsonAsyncProvisioningRequest.from(req);
         assertThat(jsonRequest.getOperation()).isEqualTo("add");
         assertThat(jsonRequest.getObjectClass()).isEqualTo(getAccountObjectClassName());
         assertThat(jsonRequest.getAttributes()).containsOnlyKeys(icfsUid(), icfsName());

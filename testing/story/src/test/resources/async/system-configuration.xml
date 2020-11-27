@@ -30,15 +30,13 @@
     <internals>
         <tracing>
             <profile>
-                <name>functional</name>
-                <displayName>Functional tracing</displayName>
+                <name>performance</name>
                 <visible>true</visible>
-                <fileNamePattern>functional-trace %{timestamp} %{focusName}</fileNamePattern>
+                <fileNamePattern>performance-trace %{timestamp} %{focusName}</fileNamePattern>
                 <createRepoObject>true</createRepoObject>
                 <compressOutput>true</compressOutput>
-                <collectLogEntries>true</collectLogEntries>
                 <tracingTypeProfile>
-                    <level>normal</level>
+                    <level>off</level>
                 </tracingTypeProfile>
             </profile>
         </tracing>

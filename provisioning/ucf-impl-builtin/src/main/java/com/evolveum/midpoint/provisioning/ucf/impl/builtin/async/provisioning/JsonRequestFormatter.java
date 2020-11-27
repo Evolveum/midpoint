@@ -10,6 +10,7 @@ package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.provisioning;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 
+import com.evolveum.midpoint.schema.messaging.JsonAsyncProvisioningRequest;
 import com.evolveum.midpoint.util.QNameUtil;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -25,8 +26,9 @@ import java.util.Map;
 /**
  * Formats JSON request. This is to allow easy creation of JSON requests for asynchronous operations.
  *
- * A user can either use {@link JsonRequest} as is; or request creation of JsonGenerator
- * and write respective fields on his own.
+ * The typical way of using this class is calling {@link #format()} method that returns the request serialized into JSON.
+ * But it is also possible to construct the request partially by calling individual methods like
+ * {@link #setOperationName()}, {@link #setObjectClass()}, and so on, followed by calling {@link #toJson()} method.
  */
 public class JsonRequestFormatter {
 
@@ -38,7 +40,7 @@ public class JsonRequestFormatter {
     /**
      * Concrete request created by this formatter.
      */
-    @NotNull private final JsonRequest request = new JsonRequest();
+    @NotNull private final JsonAsyncProvisioningRequest request = new JsonAsyncProvisioningRequest();
 
     /**
      * Should we use qualified names for attributes and object class?
@@ -197,8 +199,8 @@ public class JsonRequestFormatter {
         request.setChanges(transformChangeMap(changeMap));
     }
 
-    private Map<String, JsonRequest.DeltaValues> transformChangeMap(Map<ItemName, ItemDelta<?, ?>> changeMap) {
-        Map<String, JsonRequest.DeltaValues> formatted = new HashMap<>();
+    private Map<String, JsonAsyncProvisioningRequest.DeltaValues> transformChangeMap(Map<ItemName, ItemDelta<?, ?>> changeMap) {
+        Map<String, JsonAsyncProvisioningRequest.DeltaValues> formatted = new HashMap<>();
         for (Map.Entry<ItemName, ItemDelta<?, ?>> entry : changeMap.entrySet()) {
             String name = transformQName(entry.getKey());
             if (formatted.containsKey(name)) {
@@ -209,8 +211,8 @@ public class JsonRequestFormatter {
         return formatted;
     }
 
-    private JsonRequest.DeltaValues transformItemDelta(ItemDelta<?, ?> itemDelta) {
-        return new JsonRequest.DeltaValues(
+    private JsonAsyncProvisioningRequest.DeltaValues transformItemDelta(ItemDelta<?, ?> itemDelta) {
+        return new JsonAsyncProvisioningRequest.DeltaValues(
                 itemDelta.getRealValuesToAdd(),
                 itemDelta.getRealValuesToDelete(),
                 itemDelta.getRealValuesToReplace());
@@ -229,7 +231,7 @@ public class JsonRequestFormatter {
         return operationRequested;
     }
 
-    public @NotNull JsonRequest getRequest() {
+    public @NotNull JsonAsyncProvisioningRequest getRequest() {
         return request;
     }
 }

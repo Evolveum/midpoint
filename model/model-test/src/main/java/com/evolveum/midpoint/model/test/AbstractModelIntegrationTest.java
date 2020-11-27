@@ -3433,13 +3433,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     // We assume the task is runnable/running.
     @Experimental
     protected Task waitForTaskProgress(String taskOid, long progressToReach, int timeout, OperationResult waitResult) throws Exception {
+        return waitForTaskProgress(taskOid, progressToReach, null, timeout, (int) DEFAULT_TASK_SLEEP_TIME, waitResult);
+    }
+
+    @Experimental
+    protected Task waitForTaskProgress(String taskOid, long progressToReach, CheckedProducer<Boolean> extraTest,
+            int timeout, int sleepTime, OperationResult waitResult) throws Exception {
         Checker checker = new Checker() {
             @Override
             public boolean check() throws CommonException {
                 Task freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
                 RunningTask runningTask = taskManager.getLocallyRunningTaskByIdentifier(freshTask.getTaskIdentifier()); // ugly hack
                 long progress = runningTask != null ? runningTask.getProgress() : freshTask.getProgress();
-                return freshTask.getExecutionStatus() == TaskExecutionStatus.SUSPENDED ||
+                boolean extraTestSuccess = extraTest != null && Boolean.TRUE.equals(extraTest.get());
+                return extraTestSuccess ||
+                        freshTask.getExecutionStatus() == TaskExecutionStatus.SUSPENDED ||
                         freshTask.getExecutionStatus() == TaskExecutionStatus.CLOSED ||
                         progress >= progressToReach;
             }

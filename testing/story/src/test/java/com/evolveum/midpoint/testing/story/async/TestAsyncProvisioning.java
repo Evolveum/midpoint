@@ -36,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class AsynchronousProvisioningTest extends AbstractStoryTest {
+public class TestAsyncProvisioning extends AbstractStoryTest {
 
     protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "async");
 
@@ -46,6 +46,8 @@ public class AsynchronousProvisioningTest extends AbstractStoryTest {
     private static final TestResource<ResourceType> RESOURCE_ASYNC_INBOUND = new TestResource<>(TEST_DIR, "resource-async-inbound.xml", "6628a329-4b29-4f3a-9339-8fa12c59c38f");
 
     private static final TestResource<TaskType> TASK_ASYNC_UPDATE = new TestResource<>(TEST_DIR, "task-async-update.xml", "2041e429-8ca9-4f80-a38f-1e3359627e39");
+    private static final TestResource<TaskType> TASK_ASYNC_UPDATE_MULTI = new TestResource<>(TEST_DIR, "task-async-update-multi.xml", "c1f5a293-9fc9-4ab4-b497-de8605ee7dc6");
+    private static final TestResource<TaskType> TASK_RECOMPUTE_MULTI = new TestResource<>(TEST_DIR, "task-recompute-multi.xml", "8b21b493-c85e-4a77-800f-a9063d1cfe8c");
 
     protected EmbeddedActiveMQ embeddedBroker;
 
@@ -62,6 +64,12 @@ public class AsynchronousProvisioningTest extends AbstractStoryTest {
         resourceInbound = importAndGetObjectFromFile(ResourceType.class, RESOURCE_ASYNC_INBOUND.file, RESOURCE_ASYNC_INBOUND.oid, initTask, initResult);
 
         addObject(TASK_ASYNC_UPDATE, initTask, initResult);
+    }
+
+    /** We want minimalistic logging here. */
+    @Override
+    protected boolean isAvoidLoggingChange() {
+        return false;
     }
 
     @PreDestroy
@@ -103,7 +111,12 @@ public class AsynchronousProvisioningTest extends AbstractStoryTest {
         then();
         assertSuccess(result);
         assertUserAfter(jim.getOid())
-                .assertLinks(2)
+                .assertAssignments(1)
+                .assertLinks(1);
+        assertUserAfterByUsername("_jim")
+                .assertAssignments(0)
+                .assertLinks(1)
+                .assertFullName("Jim Beam")
                 .assertDescription("This is 'jim' called 'Jim Beam'");
     }
 
@@ -126,31 +139,81 @@ public class AsynchronousProvisioningTest extends AbstractStoryTest {
         then();
         assertSuccess(result);
         assertUserAfter(jim.getOid())
-                .assertLinks(2)
+                .assertAssignments(1)
+                .assertLinks(1)
+                .assertFullName("Jim BEAM");
+        assertUserAfterByUsername("_jim")
+                .assertAssignments(0)
+                .assertLinks(1)
+                .assertFullName("Jim BEAM")
                 .assertDescription("This is 'jim' called 'Jim BEAM'");
     }
 
     @Test
-    public void test120DeleteJimOutbound() throws Exception {
+    public void test120DeleteJim() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> jim = searchObjectByName(UserType.class, "jim", task, result);
-        ObjectDelta<UserType> delta = deltaFor(UserType.class)
-                .item(UserType.F_ASSIGNMENT).replace()
-                .asObjectDelta(jim.getOid());
 
         when();
-        executeChanges(delta, null, task, result);
+        deleteObject(UserType.class, jim.getOid(), task, result);
 
         waitForTaskProgress(TASK_ASYNC_UPDATE.oid, 3, 30000, result);
 
         then();
         assertSuccess(result);
-        assertUserAfter(jim.getOid())
-                .assertAssignments(0)
-                .assertLinks(0);
+        assertNoObjectByName(UserType.class, "jim", task, result);
+        assertNoObjectByName(UserType.class, "_jim", task, result);
+    }
+
+    @Test
+    public void test200AddManyUsers() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        int usersAtStart = countUsers(result);
+
+        int users = 30;
+        for (int i = 0; i < users; i++) {
+            UserType user = new UserType(prismContext)
+                    .name(String.format("user-%06d", i))
+                    .fullName(String.format("User %06d", i))
+                    .assignment(
+                            createAssignmentWithConstruction(
+                                    resourceOutbound, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, prismContext));
+            repositoryService.addObject(user.asPrismObject(), null, result);
+        }
+
+        suspendTask(TASK_ASYNC_UPDATE.oid);
+
+        when();
+        addObject(TASK_RECOMPUTE_MULTI, task, result);
+        addObject(TASK_ASYNC_UPDATE_MULTI, task, result);
+
+        waitForTaskCloseOrSuspend(TASK_RECOMPUTE_MULTI.oid, 1800000);
+        waitForTaskProgress(TASK_ASYNC_UPDATE_MULTI.oid, users, () -> countUsers(result) - usersAtStart >= users*2,
+                1800000, 5000, result);
+
+        then();
+        assertTask(TASK_RECOMPUTE_MULTI.oid, "after")
+                .display()
+                .iterativeTaskInformation()
+                    .display();
+        assertTask(TASK_ASYNC_UPDATE_MULTI.oid, "after")
+                .display()
+                .iterativeTaskInformation()
+                    .display();
+        assertTask(TASK_ASYNC_UPDATE.oid, "after")
+                .display()
+                .iterativeTaskInformation()
+                    .display();
+    }
+
+    private int countUsers(OperationResult result) throws com.evolveum.midpoint.util.exception.SchemaException {
+        return repositoryService.countObjects(UserType.class, null, null, result);
     }
 
     private void startEmbeddedBroker() throws Exception {

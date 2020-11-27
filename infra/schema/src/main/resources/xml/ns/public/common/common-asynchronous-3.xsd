@@ -212,13 +212,6 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="connectionHandlingThreads" type="xsd:int" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Number of connection handling threads. The default is 10.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
