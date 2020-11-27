@@ -12,6 +12,7 @@ import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
 import com.evolveum.midpoint.schrodinger.component.modal.ReportConfigurationModal;
 import com.evolveum.midpoint.schrodinger.component.table.TableHeaderDropDownMenu;
 import com.evolveum.midpoint.schrodinger.component.user.UsersPageTable;
+import com.evolveum.midpoint.schrodinger.page.report.CreatedReportsPage;
 import com.evolveum.midpoint.schrodinger.page.report.ListReportsPage;
 import com.evolveum.midpoint.schrodinger.page.report.ReportPage;
 import com.evolveum.midpoint.schrodinger.util.Utils;
@@ -35,9 +36,23 @@ public class ReportTable extends AssignmentHolderObjectListTable<ListReportsPage
         return new ReportPage();
     }
 
+    public ReportConfigurationModal runJasperReport(String report) {
+        clickMenuItemButton("ObjectType.name", report, ".fa.fa-play");
+        return new ReportConfigurationModal<>(getParent(), Utils.getModalWindowSelenideElement());
+    }
+
     public void runReport(String report) {
         clickMenuItemButton("ObjectType.name", report, ".fa.fa-play");
-//        return new ReportConfigurationModal<>(getParent(), Utils.getModalWindowSelenideElement());
+    }
+
+    public ReportPage editReport(String report) {
+        clickMenuItemButton("ObjectType.name", report, ".fa.fa-edit");
+        return new ReportPage();
+    }
+
+    public CreatedReportsPage showReportOutput(String report) {
+        clickMenuItemButton("ObjectType.name", report, ".fa.fa-files-o");
+        return new CreatedReportsPage();
     }
 
 

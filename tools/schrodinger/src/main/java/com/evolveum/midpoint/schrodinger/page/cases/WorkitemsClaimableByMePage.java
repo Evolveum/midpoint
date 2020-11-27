@@ -11,5 +11,5 @@ import com.evolveum.midpoint.schrodinger.page.BasicPage;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class MyItemsPage extends BasicPage {
+public class WorkitemsClaimableByMePage extends BasicPage {
 }

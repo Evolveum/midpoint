@@ -14,12 +14,12 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 
+import com.evolveum.midpoint.schrodinger.component.cases.ChildrenCaseTable;
+import com.evolveum.midpoint.schrodinger.component.cases.WorkitemDetailsPanel;
 import com.evolveum.midpoint.schrodinger.component.common.Search;
 import com.evolveum.midpoint.schrodinger.component.common.SearchItemField;
-import com.evolveum.midpoint.schrodinger.component.modal.ObjectBrowserModal;
 
 import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;

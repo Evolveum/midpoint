@@ -178,14 +178,14 @@ public class BasicPage {
         return new AllApprovalsPage();
     }
 
-    public MyItemsPage myItems() {
+    public MyWorkitemsPage myItems() {
         clickAdministrationMenu("PageAdmin.menu.top.workItems", "PageAdmin.menu.top.workItems.list");
-        return new MyItemsPage();
+        return new MyWorkitemsPage();
     }
 
-    public ItemsClaimableByMePage itemsClaimableByMe() {
+    public WorkitemsClaimableByMePage itemsClaimableByMe() {
         clickAdministrationMenu("PageAdmin.menu.top.workItems", "PageAdmin.menu.top.workItems.listClaimable");
-        return new ItemsClaimableByMePage();
+        return new WorkitemsClaimableByMePage();
     }
 
     public AttorneyItemsPage attorneyItems() {
@@ -193,9 +193,9 @@ public class BasicPage {
         return new AttorneyItemsPage();
     }
 
-    public AllItemsPage allItems() {
+    public AllWorkitemsPage allItems() {
         clickAdministrationMenu("PageAdmin.menu.top.workItems", "PageAdmin.menu.top.workItems.listAll");
-        return new AllItemsPage();
+        return new AllWorkitemsPage();
     }
 
     public MyRequestsPage myRequests() {

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.schrodinger.page.report;
 
+import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
 import com.evolveum.midpoint.schrodinger.component.AssignmentsTab;
 import com.evolveum.midpoint.schrodinger.component.report.ReportEngineTab;
 import com.evolveum.midpoint.schrodinger.component.report.ReportExportTab;
@@ -23,11 +24,16 @@ public class ReportPage extends AssignmentHolderDetailsPage<ReportPage> {
         return null;
     }
 
-    public ReportExportTab selectTabExport() {
+    @Override
+    public AssignmentHolderBasicTab<ReportPage> selectTabBasic() {
+        return new AssignmentHolderBasicTab<>(this, getTabSelenideElement("pageReport.basic.title"));
+    }
+
+    public ReportExportTab selectCollectionReportTabExport() {
         return new ReportExportTab(this, getTabSelenideElement("pageReport.export.title"));
     }
 
-    public ReportEngineTab selectTabEngine() {
+    public ReportEngineTab selectCollectionReportTabEngine() {
         return new ReportEngineTab(this, getTabSelenideElement("pageReport.engine.title"));
     }
 }
