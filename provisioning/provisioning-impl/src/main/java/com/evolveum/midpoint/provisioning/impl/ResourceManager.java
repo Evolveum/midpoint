@@ -149,7 +149,8 @@ public class ResourceManager {
         logResourceAfterCompletion(completedResource);
         if (!isComplete(completedResource)) {
             // No not cache non-complete resources (e.g. those retrieved with noFetch)
-            LOGGER.debug("Not putting {} into cache because it's not complete", repositoryObject);
+            LOGGER.debug("Not putting {} into cache because it's not complete: hasSchema={}, hasCapabilitiesCached={}",
+                    repositoryObject, hasSchema(completedResource), hasCapabilitiesCached(completedResource));
         } else {
             OperationResult completeResourceResult = parentResult.findSubresult(OP_COMPLETE_RESOURCE);
             if (!completeResourceResult.isSuccess()) {
@@ -296,14 +297,17 @@ public class ResourceManager {
     }
 
     private boolean isComplete(PrismObject<ResourceType> resource) {
-        ResourceType resourceType = resource.asObjectable();
-        if (ResourceTypeUtil.getResourceXsdSchema(resource) == null) {
-            return false;
-        }
-        CapabilitiesType capabilitiesType = resourceType.getCapabilities();
-        return capabilitiesType != null && capabilitiesType.getCachingMetadata() != null;
+        return hasSchema(resource) && hasCapabilitiesCached(resource);
     }
 
+    private boolean hasCapabilitiesCached(PrismObject<ResourceType> resource) {
+        CapabilitiesType capabilities = resource.asObjectable().getCapabilities();
+        return capabilities != null && capabilities.getCachingMetadata() != null;
+    }
+
+    private boolean hasSchema(PrismObject<ResourceType> resource) {
+        return ResourceTypeUtil.getResourceXsdSchema(resource) != null;
+    }
 
     private void completeSchemaAndCapabilities(PrismObject<ResourceType> resource, ResourceSchema resourceSchema, boolean fetchedSchema,
             Map<String, Collection<Object>> capabilityMap, OperationResult result)
@@ -833,7 +837,7 @@ public class ResourceManager {
         ConfiguredConnectorInstanceEntry connectorInstanceCacheEntry;
         try {
             // Make sure we are getting non-configured instance.
-            connectorInstanceCacheEntry = connectorManager.getConnectorInstanceCacheEntry(connectorSpec, initResult);
+            connectorInstanceCacheEntry = connectorManager.getOrCreateConnectorInstanceCacheEntry(connectorSpec, initResult);
             initResult.recordSuccess();
         } catch (ObjectNotFoundException e) {
             // The connector was not found. The resource definition is either
@@ -851,18 +855,6 @@ public class ResourceManager {
             return;
         } catch (RuntimeException | Error e) {
             String msg = "Unexpected runtime error: "+e.getMessage();
-            operationCtx += " failed while getting connector instance. " + msg;
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
-            initResult.recordFatalError(msg, e);
-            return;
-        } catch (CommunicationException e) {
-            String msg = "Communication error: "+e.getMessage();
-            operationCtx += " failed while getting connector instance. " + msg;
-            modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.DOWN, operationCtx, task, parentResult, true);
-            initResult.recordFatalError(msg, e);
-            return;
-        } catch (ConfigurationException e) {
-            String msg = "Configuration error: "+e.getMessage();
             operationCtx += " failed while getting connector instance. " + msg;
             modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, operationCtx, task, parentResult, true);
             initResult.recordFatalError(msg, e);

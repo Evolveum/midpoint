@@ -29,6 +29,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -3425,6 +3428,48 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 + ", freshTask.getLastRunFinishTimestamp()=" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
 
         return taskResultHolder.getValue();
+    }
+
+    // We assume the task is runnable/running.
+    @Experimental
+    protected Task waitForTaskProgress(String taskOid, long progressToReach, int timeout, OperationResult waitResult) throws Exception {
+        return waitForTaskProgress(taskOid, progressToReach, null, timeout, (int) DEFAULT_TASK_SLEEP_TIME, waitResult);
+    }
+
+    @Experimental
+    protected Task waitForTaskProgress(String taskOid, long progressToReach, CheckedProducer<Boolean> extraTest,
+            int timeout, int sleepTime, OperationResult waitResult) throws Exception {
+        Checker checker = new Checker() {
+            @Override
+            public boolean check() throws CommonException {
+                Task freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
+                RunningTask runningTask = taskManager.getLocallyRunningTaskByIdentifier(freshTask.getTaskIdentifier()); // ugly hack
+                long progress = runningTask != null ? runningTask.getProgress() : freshTask.getProgress();
+                boolean extraTestSuccess = extraTest != null && Boolean.TRUE.equals(extraTest.get());
+                return extraTestSuccess ||
+                        freshTask.getExecutionStatus() == TaskExecutionStatus.SUSPENDED ||
+                        freshTask.getExecutionStatus() == TaskExecutionStatus.CLOSED ||
+                        progress >= progressToReach;
+            }
+
+            @Override
+            public void timeout() {
+                try {
+                    Task freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
+                    OperationResult result = freshTask.getResult();
+                    logger.debug("Timed-out task:\n{}", freshTask.debugDump());
+                    assert false : "Timeout (" + timeout + ") while waiting for " + freshTask + " progress. Last result " + result;
+                } catch (ObjectNotFoundException | SchemaException e) {
+                    logger.error("Exception during task refresh: {}", e, e);
+                }
+            }
+        };
+        IntegrationTestTools.waitFor("Waiting for task " + taskOid + " progress reaching " + progressToReach,
+                checker, timeout, DEFAULT_TASK_SLEEP_TIME);
+
+        Task freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
+        logger.debug("Final task:\n{}", freshTask.debugDump());
+        return freshTask;
     }
 
     protected OperationResult waitForTaskTreeNextFinishedRun(String rootTaskOid, int timeout) throws Exception {

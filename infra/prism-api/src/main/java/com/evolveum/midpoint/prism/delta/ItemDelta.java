@@ -24,6 +24,8 @@ import java.util.Comparator;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import static com.evolveum.midpoint.prism.PrismValueCollectionsUtil.getRealValuesOfCollectionPreservingNull;
+
 /**
  * @author Radovan Semancik
  *
@@ -65,13 +67,25 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
 
     Collection<V> getValuesToAdd();
 
+    default Collection<?> getRealValuesToAdd() {
+        return getRealValuesOfCollectionPreservingNull(getValuesToAdd());
+    }
+
     void clearValuesToAdd();
 
     Collection<V> getValuesToDelete();
 
+    default Collection<?> getRealValuesToDelete() {
+        return getRealValuesOfCollectionPreservingNull(getValuesToDelete());
+    }
+
     void clearValuesToDelete();
 
     Collection<V> getValuesToReplace();
+
+    default Collection<?> getRealValuesToReplace() {
+        return getRealValuesOfCollectionPreservingNull(getValuesToReplace());
+    }
 
     void clearValuesToReplace();
 

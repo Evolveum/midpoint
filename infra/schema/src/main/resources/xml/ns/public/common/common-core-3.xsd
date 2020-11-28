@@ -12871,7 +12871,18 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <!-- TODO (later): asynchronous resource operation -->
+            <xsd:enumeration value="asynchronous">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Operation executed asynchronously.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ASYNCHRONOUS"/>
+                        <a:since>4.3</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 

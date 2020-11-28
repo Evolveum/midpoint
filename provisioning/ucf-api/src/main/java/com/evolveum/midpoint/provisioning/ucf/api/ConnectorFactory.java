@@ -67,7 +67,7 @@ public interface ConnectorFactory {
      * Returns a list of all known connectors.
      *
      * The returned list contains all connectors known to the system, whether
-     * they are used or not, whethere they are configured or not. It should
+     * they are used or not, whether they are configured or not. It should
      * be used to list the "capabilities" of the system.
      *
      * Returned connector objects are "virtual". They may not be stored in the

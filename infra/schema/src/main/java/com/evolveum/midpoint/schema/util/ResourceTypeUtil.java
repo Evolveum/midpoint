@@ -92,10 +92,7 @@ public class ResourceTypeUtil {
 
     public static Element getResourceXsdSchema(PrismObject<ResourceType> resource) {
         PrismContainer<XmlSchemaType> xmlSchema = resource.findContainer(ResourceType.F_SCHEMA);
-        if (xmlSchema == null) {
-            return null;
-        }
-        return ObjectTypeUtil.findXsdElement(xmlSchema);
+        return xmlSchema != null ? ObjectTypeUtil.findXsdElement(xmlSchema) : null;
     }
 
     public static void setResourceXsdSchema(ResourceType resourceType, Element xsdElement) {
@@ -468,15 +465,16 @@ public class ResourceTypeUtil {
         if (kind == null) {
             kind = ShadowKindType.ACCOUNT;
         }
+        // TODO review the code below
         for (ResourceObjectTypeDefinitionType objType: schemaHandling.getObjectType()) {
             if (objType.getKind() == kind || (objType.getKind() == null && kind == ShadowKindType.ACCOUNT)) {
-                if (intent == null && objType.isDefault()) {
+                if (intent == null && Boolean.TRUE.equals(objType.isDefault())) {
                     return objType;
                 }
                 if (objType.getIntent() != null && objType.getIntent().equals(intent)) {
                     return objType;
                 }
-                if (objType.getIntent() == null && objType.isDefault() && intent != null && intent.equals(SchemaConstants.INTENT_DEFAULT)) {
+                if (objType.getIntent() == null && Boolean.TRUE.equals(objType.isDefault()) && intent != null && intent.equals(SchemaConstants.INTENT_DEFAULT)) {
                     return objType;
                 }
             }

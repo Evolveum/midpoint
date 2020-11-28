@@ -149,6 +149,10 @@ public class PrismValueCollectionsUtil {
         return values;
     }
 
+    public static <T> Set<T> getRealValuesOfCollectionPreservingNull(Collection<? extends PrismValue> collection) {
+        return collection != null ? getRealValuesOfCollection(collection) : null;
+    }
+
     public static <T> Set<T> getRealValuesOfCollection(Collection<? extends PrismValue> collection) {
         if (collection != null) {
             Set<T> retval = new HashSet<>(collection.size());
@@ -160,7 +164,6 @@ public class PrismValueCollectionsUtil {
             return Collections.emptySet();
         }
     }
-
 
     public static <X, V extends PrismValue> boolean containsRealValue(Collection<X> collection, V value,
             Function<X, V> valueExtractor) {

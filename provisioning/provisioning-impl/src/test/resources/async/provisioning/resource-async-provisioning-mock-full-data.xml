@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="44816f61-e07f-4a70-a983-5ac76b90094a"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.provisioning/AsyncProvisioningConnector">
+
+    <name>Async Provisioning Resource: Mock, full data</name>
+    <connectorRef oid="will-be-supplied-by-the-test-code"/>
+    <connectorConfiguration>
+        <conf:targets>
+            <other>
+                <className>com.evolveum.midpoint.provisioning.impl.async.provisioning.MockAsyncProvisioningTarget</className>
+            </other>
+        </conf:targets>
+        <conf:predefinedTransformation>simplifiedJson</conf:predefinedTransformation>
+    </connectorConfiguration>
+    <schema>
+        <definition>
+            <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
+                        xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+                        targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
+                <xsd:complexType name="AccountObjectClass">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <ra:resourceObject/>
+                            <ra:identifier>icfs:uid</ra:identifier>
+                            <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
+                            <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+                            <ra:namingAttribute>icfs:name</ra:namingAttribute>
+                            <ra:kind>account</ra:kind>
+                            <ra:default/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                    <xsd:sequence>
+                        <xsd:element ref="icfs:name"/>
+                        <xsd:element ref="icfs:uid"/>
+                        <xsd:element name="drink" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                        <xsd:element name="shoeSize" type="xsd:int" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:schema>
+        </definition>
+    </schema>
+    <schemaHandling>
+        <objectType>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <!-- for some reasons we have to provide UID when creating an object asynchronously -->
+                <ref>icfs:uid</ref>
+                <limitations>
+                    <access>
+                        <add>true</add>
+                        <modify>true</modify>
+                        <read>true</read>
+                    </access>
+                </limitations>
+            </attribute>
+        </objectType>
+    </schemaHandling>
+    <capabilities>
+        <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+            <cap:read>
+                <cap:cachingOnly>true</cap:cachingOnly>
+            </cap:read>
+            <cap:update>
+                <cap:attributeContentRequirement>all</cap:attributeContentRequirement>
+            </cap:update>
+        </configured>
+    </capabilities>
+</resource>

@@ -262,10 +262,8 @@ public class ResourceObjectConverter {
                 connectorAsyncOpRet = connector.addObject(shadowClone, ctx, result);
                 resourceAttributesAfterAdd = connectorAsyncOpRet.getReturnValue();
 
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("PROVISIONING ADD successful, returned attributes:\n{}",
-                            SchemaDebugUtil.prettyPrint(resourceAttributesAfterAdd));
-                }
+                LOGGER.debug("PROVISIONING ADD successful, returned attributes:\n{}",
+                        SchemaDebugUtil.prettyPrintLazily(resourceAttributesAfterAdd));
 
                 // Be careful not to apply this to the cloned shadow. This needs to be propagated
                 // outside this method.
@@ -2665,7 +2663,7 @@ public class ResourceObjectConverter {
             LOGGER.debug("PROVISIONING REFRESH ref={} successful on {} {}, returned status: {}", asyncRef, resource, shadow, status);
 
         } else {
-            LOGGER.trace("Ignoring refresh of shadow {}, because the connector is not async", shadow.getOid());
+            LOGGER.trace("Ignoring refresh of shadow {}, because the connector is not async operation queryable", shadow.getOid());
             result.recordNotApplicableIfUnknown();
         }
 

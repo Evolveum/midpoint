@@ -1382,9 +1382,9 @@ public class ShadowCache {
         return refreshShadowOperation;
     }
 
-
-
-    private RefreshShadowOperation refreshShadowPendingOperations(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow, ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
+    private RefreshShadowOperation refreshShadowPendingOperations(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
+            ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws ObjectNotFoundException,
+            SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
         ShadowType shadowType = repoShadow.asObjectable();
         List<PendingOperationType> pendingOperations = shadowType.getPendingOperation();
         boolean isDead = ShadowUtil.isDead(shadowType);
@@ -1439,7 +1439,9 @@ public class ShadowCache {
      * This method will get new status from resourceObjectConverter and it will process the
      * status in case that it has changed.
      */
-    private PrismObject<ShadowType> refreshShadowAsyncStatus(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow, List<PendingOperationType> sortedOperations, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
+    private PrismObject<ShadowType> refreshShadowAsyncStatus(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
+            List<PendingOperationType> sortedOperations, Task task, OperationResult parentResult) throws ObjectNotFoundException,
+            SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Duration gracePeriod = ProvisioningUtil.getGracePeriod(ctx);
 
         List<ObjectDelta<ShadowType>> notificationDeltas = new ArrayList<>();
@@ -1477,7 +1479,6 @@ public class ShadowCache {
             if (newStatusType.equals(pendingOperation.getResultStatus())) {
                 continue;
             }
-
 
             boolean operationCompleted = ProvisioningUtil.isCompleted(newStatusType) && pendingOperation.getCompletionTimestamp() == null;
 
@@ -1618,7 +1619,6 @@ public class ShadowCache {
             return PendingOperationExecutionStatusType.EXECUTING.equals(executionStatus);
         }
     }
-
 
     private RefreshShadowOperation refreshShadowRetryOperations(ProvisioningContext ctx,
                                                                 PrismObject<ShadowType> repoShadow, List<PendingOperationType> sortedOperations,
