@@ -144,6 +144,96 @@ select ctid, * from m_object
 select count(*) from pg_inherits
 ;
 
+-- JSON experiments
+
+drop table jtest;
+
+create TABLE jtest (
+    id SERIAL PRIMARY KEY,
+    text text,
+    ext jsonb
+);
+
+delete from jtest;
+insert into jtest (text,ext) values ('empty', '{}');
+insert into jtest (text,ext) values ('string', '"just string"');
+insert into jtest (text,ext) values ('array', '["first", "second", true, 4]');
+insert into jtest (text,ext) values ('Richard Richter',
+    '{"firstName": "Richard", "lastName": "Richter", "hobbies": ["photo", "video", "rowing"]}');
+insert into jtest (text,ext) values ('Robin Richter',
+    '{"firstName": "Robin", "lastName": "Richter", "hobbies": ["reading", "sleeping", "watching youtube"]}');
+insert into jtest (text,ext) values ('Someone Else',
+    '{"firstName": "Someone", "lastName": "Else", "hobbies": ["hardly", "any"]}');
+
+-- see also https://www.postgresql.org/docs/13/functions-json.html some stuff is only for JSONB
+select * from jtest
+    where ext->>'hobbies' is not null;
+select count(*) from jtest where ext->'hobbies' is not null; -- the one below does the same
+select count(*) from jtest where ext ? 'hobbies'; -- ? works with JSONB, but not JSON
+select ext->>'hobbies' from jtest where ext ? 'hobbies'; -- return values of ext as text (or number)
+select * from jtest where ext->'hobbies' @> '"video"'; -- contains in [] or as value directly
+EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
+select *
+-- select count(*)
+from jtest where ext->'hobbies' @> '"video"'
+and id >= 1307213
+order by id
+limit 500
+;
+
+EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
+-- select count(*)
+select *
+from jtest
+where
+--     text = 'hobby-problem' and
+    -- without array test jsonb_array_elements_text function can fail on scalar value (if allowed)
+    exists (select from jsonb_array_elements_text(ext->'hobbies') v
+        where jsonb_typeof(ext->'hobbies') = 'array'
+        and upper(v::text) LIKE '%ING')
+-- order by id
+;
+
+insert into jtest (text, ext) values ('hobby-problem', '{"hobbies":"just-one"}');
+
+set jit=on;
+
+-- TODO: jsonb_path_ops
+DROP INDEX jtest_ext_gin_idx;
+CREATE INDEX jtest_ext_gin_idx ON jtest USING gin (ext);
+
+/*
+60ms @ 500k
+Gather  (cost=1000.00..9841.05 rows=5000 width=55)
+  Workers Planned: 2
+  ->  Parallel Seq Scan on jtest  (cost=0.00..8341.05 rows=2083 width=55)
+"        Filter: ((ext -> 'hobbies'::text) @> '""video""'::jsonb)"
+
+70ms @ 500k (but not parallel)
+Bitmap Heap Scan on jtest  (cost=66.75..5499.17 rows=5000 width=55)
+"  Recheck Cond: ((ext -> 'hobbies'::text) @> '""video""'::jsonb)"
+  ->  Bitmap Index Scan on jtest_ext_gin_idx2  (cost=0.00..65.50 rows=5000 width=0)
+"        Index Cond: ((ext -> 'hobbies'::text) @> '""video""'::jsonb)"
+ */
+
+select count(*) from jtest;
+DO
+$$ BEGIN
+    FOR r IN 8000001..12000000 LOOP
+            IF r % 10 = 0 THEN
+                INSERT INTO jtest (text, ext)
+                VALUES ('json-' || LPAD(r::text, 10, '0'), ('{"likes": ' ||
+                    array_to_json(random_pick(ARRAY['eating', 'books', 'music', 'dancing', 'walking', 'jokes', 'video', 'photo'], 0.4))::text || '}')::jsonb);
+            ELSE
+                INSERT INTO jtest (text, ext)
+                VALUES ('json-' || LPAD(r::text, 10, '0'), ('{"fanOf": ' ||
+                    array_to_json(random_pick(ARRAY['eating', 'books', 'music', 'dancing', 'walking', 'jokes', 'video', 'photo'], 0.3))::text || '}')::jsonb);
+            END IF;
+        END LOOP;
+END $$;
+
+SELECT * from jtest
+where text > 'json-0000020000';
 
 -- MANAGEMENT queries
 
@@ -181,6 +271,8 @@ where ut.relkind = 'r' and tt.relkind = 't'
     and ns.nspname = 'public'
 order by relpages desc;
 
+-- PRACTICAL UTILITY FUNCTIONS
+
 -- based on https://dba.stackexchange.com/a/22571
 CREATE OR REPLACE FUNCTION random_bytea(min_len integer, max_len integer)
     RETURNS bytea
@@ -201,15 +293,41 @@ AS $$
     FROM generate_series(2, $1 + width_bucket(random(), 0, 1, $2 - $1 + 1));
 $$;
 
-select zero_bytea(1, 10);
-
-select width_bucket(random(), 0, 1, 1)
--- select to_hex(trunc(random() * 256)::integer)
--- select lpad(to_hex(trunc(random() * 256)::integer),2,'0')
-;
-
 -- should return 10 and 20, just to check the ranges
 select min(length(i)), max(length(i))
 from (select random_bytea(10, 20) as i from generate_series(1, 200)) q;
 
-select * from m_object
+-- returns random element from array (NULL for empty arrays)
+CREATE OR REPLACE FUNCTION random_pick(vals ANYARRAY)
+    RETURNS ANYELEMENT
+    LANGUAGE plpgsql
+AS $$ BEGIN
+    -- array_lower is used if array subscript doesn't start with 1 (which is default)
+    RETURN vals[array_lower(vals, 1) - 1 + width_bucket(random(), 0, 1, array_length(vals, 1))];
+END $$;
+
+-- returns random elements from array
+-- output is of random length based on ratio (0-1), 0 returns nothing, 1 everything
+CREATE OR REPLACE FUNCTION random_pick(vals ANYARRAY, ratio numeric, ignore ANYELEMENT = NULL)
+    RETURNS ANYARRAY
+    LANGUAGE plpgsql
+AS $$
+DECLARE
+    rval vals%TYPE := '{}';
+    val ignore%TYPE;
+BEGIN
+    IF vals IS NULL THEN
+        RETURN NULL;
+    END IF;
+
+    -- Alternative FOR i IN array_lower(vals, 1) .. array_upper(vals, 1) LOOP does not need "ignore" parameter.
+    -- Functions array_lower/upper are better if array subscript doesn't start with 1 (which is default).
+    FOREACH val IN ARRAY vals LOOP
+        IF random() < ratio THEN
+            rval := array_append(rval, val); -- alt. vals[i]
+        END IF;
+    END LOOP;
+    -- It's also possible to iterate without index with , but requires
+    -- more
+    RETURN rval;
+END $$;

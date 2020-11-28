@@ -12,10 +12,102 @@ Some of these will be moved to `config/sql` when proven worthy.
 * Create DB schema script (WIP): link:sql/pgnew-repo.sql[]
 * Useful inserts, selects, etc.: link:sql/pgnew-experiments.sql[]
 
+== Extension attributes (JSONB?)
+
+[NOTE]
+The whole section deals with *indexed extension* attributes only.
+If the attribute is not used for search, it does not have to be extracted from `fullobject` representation.
+It's likely the word "indexed" (or even "extension") will be omitted a lot in this section but is implied.
+
+It is very tempting to replace the current master-detail (or https://en.wikipedia.org/wiki/Entity%E2%80%93attribute%E2%80%93value_model[EAV])
+model for indexed extension attributes with something that does not require JOIN or EXISTS.
+Also, we need various extension tables for various data types.
+Can https://www.postgresql.org/docs/13/datatype-json.html[JSON types] (namely JSONB) be our salvation?
+We need to strike the balance between *query performance* and *extension attributes maintainability/flexibility*.
+
+=== Modeling options
+
+Following options are available, but they still must be proved:
+
+* Single JSONB for all attributes stored in an object, some of them possibly multi-valued
+with values stored in an array.
+There are two sub-options here (key values like `hobbies` can actually be another identifier,
+like PK from the global catalogue of extension attributes):
+** Using `{"hobbies": "video", ...}` style (the value can also be an array).
+The conditions then may look like `ext->'hobbies' @> '"video"'` where `ext` is JSONB extension column.
+** More normalized `[{"key": "hobbies", "value": "video"}, ...]` with condition to `key` AND `value`.
+It feels noisy and indirect if we use JSONB in the first place, requires more conditions for the same
+thing and creates bigger JSON.
+
++
+The nice thing about single JSONB column is it requires no DDL management during runtime.
+If this is usable it also eliminates the question of how to store different sets of extensions
+on different sets of the same type (e.g. shadows for different resources).
+
+* Each attribute in separate columns of various non-JSON types with multi-values stored as JSON array.
+This makes each column simpler but requires dynamic DDL management and other complications mentioned
+above that single general JSONB does not have.
+
+* Obviously, existing master-detail model is still in play as well if nothing above works well enough.
+
+The typical problems are:
+
+* How to identify attributes?
+This is beyond the scope of this section, but currently `m_ext_item.id` is used.
+Some kind of string identifiers must be used in JSON.
+These don't have to be globally unique for distinct object types, but must be unique enough for queries and stored JSON.
+
+* Check if some multi-value attribute contains a value.
+With `ext->'hobby' @> '"video"'` (`ext` being of type JSONB) it's possible to check value exactly.
+There may be problem with ignore-case and starts/endsWith operations.
+
+* Various operations can be used against simple attributes when the value is extracted, e.g.
+`ext->>'personalEmail' LIKE...
+
+* Extracting value from an array is a bit more tricky:
++
+----
+select some objects ...
+where exists (select from jsonb_array_elements_text(ext->'hobbies') v
+    where jsonb_typeof(ext->'hobbies') = 'array'
+    and upper(v::text) LIKE '%ING')
+----
++
+It is crucial to either be sure `hobbies` is always array (this should be preferable solution)
+or add the `jsonb_typeof` check.
+It is also possible to join scalar and arrays, see https://stackoverflow.com/a/39237349/658826[this answer]
+for more - but that requires union.
+I suggest we always know whether concrete extension attribute is array or scalar and *keep it consistent*.
+
+=== Other technical problems
+
+* https://vsevolod.net/postgresql-jsonb-index/[This post] points to various indexing/planning
+problems, i.e. planner guessing many more rows to be returned.
+Also, JIT slowing down execution of queries was mentioned.
+
+* Pure GIN index can be big (TODO stats) and so far the performance gain was not striking (up to 12M rows).
+
+TODO SEE: https://stackoverflow.com/a/49826693/658826
+TODO also: https://stackoverflow.com/a/12612255 see arrays, composite types, hstore options
+
+=== Attributes types in JSONB
+
+* String, booleans and numbers (whole or floating points) as native JSON types.
+
+* Dates as ISO formatted strings - do we need dates or just date+times?
+What about local vs timezones?
+We probably want to enforce timezones, but is it possible that some dates will have "local date" semantics.
+
+* Polystring TODO as `{"orig": ..., "norm": ...}`?
+
+* References TODO
+
+Is policy situation related or not?
+
 == PostgreSQL table inheritance
 
 https://www.postgresql.org/docs/current/ddl-inherit.html[Table inheritance] is a nice mechanism
-that allows creating table hierarchies so we see all objects in one table and various subtypes in
+that allows creating table hierarchies, so we see all objects in one table and various subtypes in
 inherited tables.
 *It is also an implicit method for partitioning*, at least from the perspective of the parent table(s).
 
@@ -56,7 +148,8 @@ change OID to already existing OID from another table (PK does not allow it for 
 *No, this is not possible.*
 Options:
 ** Using "application managed partitioning" with inheritance as needed.
-(I prefer this, it is more cumbersome, but possibly more flexible.)
+We prefer this, it is more cumbersome, but possibly more flexible.
+It also allows adding different extensions for different tables, e.g. based on resource.
 ** Shadow would not be part of `m_object` hierarchy.
 
 * Foreign key can't be used against `m_object.oid` because it does not enforce index (by itself).
@@ -140,7 +233,6 @@ Table sizes after x inserts (index means PK index):
 |===
 
 With user names formatted like `user-0000000001` both name indexes had 1269 MB at 40M rows.
-
 
 == Performance of searching for unused OIDs
 
