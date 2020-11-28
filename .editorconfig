@@ -381,7 +381,8 @@ ij_editorconfig_spaces_around_assignment_operators = true
 
 [{*.ad,*.adoc,*.asciidoc,.asciidoctorconfig}]
 ij_asciidoc_formatting_enabled = true
-ij_asciidoc_one_sentence_per_line = true
+# force-joins manually wrapped long sentences, I'm the master here, not the machine
+ij_asciidoc_one_sentence_per_line = false
 
 [{*.ant,*.fxml,*.jhm,*.jnlp,*.jrxml,*.pom,*.rng,*.tld,*.wsdl,*.xml,*.xsd,*.xsl,*.xslt,*.xul}]
 ij_xml_align_attributes = false

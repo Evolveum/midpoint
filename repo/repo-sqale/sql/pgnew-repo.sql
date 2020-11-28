@@ -11,14 +11,13 @@ CREATE SCHEMA IF NOT EXISTS public;
 
 -- To support gen_random_uuid() pgcrypto extension must be enabled for the database (not for PG 13).
 -- select * from pg_available_extensions order by name;
-DO
-$$
-    BEGIN
-        perform pg_get_functiondef('gen_random_uuid()'::regprocedure);
-        raise notice 'gen_random_uuid already exists, skipping create EXTENSION pgcrypto';
-    EXCEPTION WHEN undefined_function THEN
-        create EXTENSION pgcrypto;
-    END;
+DO $$
+BEGIN
+    perform pg_get_functiondef('gen_random_uuid()'::regprocedure);
+    raise notice 'gen_random_uuid already exists, skipping create EXTENSION pgcrypto';
+EXCEPTION WHEN undefined_function THEN
+    create EXTENSION pgcrypto;
+END
 $$;
 
 -- "OID pool", provides generated OID, can be referenced by FKs.
