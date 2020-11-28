@@ -55,7 +55,7 @@
     <test name="Schrodinger.UserTest" preserve-order="true" parallel="false" verbose="3" enabled="true">
         <classes>
             <class name="com.evolveum.midpoint.testing.schrodinger.UserTest"/>
-            <class name="com.evolveum.midpoint.testing.schrodinger.page.PreviewPageTest"/>
+            <!--<class name="com.evolveum.midpoint.testing.schrodinger.page.PreviewPageTest"/>-->
         </classes>
     </test>
     <test name="Schrodinger.UsersTest" preserve-order="true" parallel="false" verbose="3" enabled="true">
