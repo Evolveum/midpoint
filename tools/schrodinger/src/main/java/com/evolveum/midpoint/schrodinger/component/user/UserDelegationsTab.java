@@ -59,7 +59,6 @@ public class UserDelegationsTab extends Component<UserPage> {
     public UserDelegationsTab clickAllDelegationsCheckBox() {
         SelenideElement checkbox = $(Schrodinger.byDataId("assignmentsCheckAll")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
         checkbox.click();
-        checkbox.waitUntil(Condition.attribute("checked", "checked"), MidPoint.TIMEOUT_DEFAULT_2_S);
         return this;
     }
 

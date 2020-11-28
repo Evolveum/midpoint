@@ -77,7 +77,7 @@ public class MemberPanel<T> extends Component<T> {
     }
 
     public MemberTable<MemberPanel<T>> table() {
-        SelenideElement table = getParentElement().$x(".//div[@" + Schrodinger.DATA_S_ID + "='table']");
+        SelenideElement table = getParentElement().$x(".//div[@" + Schrodinger.DATA_S_ID + "='memberTable']");
         return new MemberTable<>(this, table);
     }
 }
