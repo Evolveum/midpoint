@@ -46,7 +46,7 @@ public class AuditRecordTable extends Table<AuditLogViewerPage> {
     }
 
     public SelenideElement getCell(int row, int column) {
-        SelenideElement tbody = getParentElement().$(By.tagName("tbody")).waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
+        SelenideElement tbody = getParentElement().$(Schrodinger.byElementAttributeValue("tbody", "data-s-id", "body")).waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
         ElementsCollection rowsElement = tbody.findAll(By.tagName("tr"));
         SelenideElement rowElement = rowsElement.get(row > 0 ? (row-1) : row);
         ElementsCollection columnsElement = rowElement.findAll(By.tagName("td"));

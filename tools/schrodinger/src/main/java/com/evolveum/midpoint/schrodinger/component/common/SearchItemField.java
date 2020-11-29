@@ -34,9 +34,9 @@ public class SearchItemField<T> extends Component<T> {
         if (getParentElement() == null){
             return getParent();
         }
-        getParentElement().$x(".//a[@" + Schrodinger.DATA_S_ID + "='editReferenceButton']")
+        getParentElement().$x(".//a[@" + Schrodinger.DATA_S_ID + "='editButton']")
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-        getParentElement().parent().$x(".//a[@" + Schrodinger.DATA_S_ID + "='editReferenceButton']")
+        getParentElement().parent().$x(".//a[@" + Schrodinger.DATA_S_ID + "='editButton']")
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
         SelenideElement inputField = getParentElement().parent().$x(".//input[@" + Schrodinger.DATA_S_ID + "='oid']")
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
@@ -53,9 +53,9 @@ public class SearchItemField<T> extends Component<T> {
         if (getParentElement() == null){
             return getParent();
         }
-        getParentElement().$x(".//a[@" + Schrodinger.DATA_S_ID + "='editReferenceButton']")
+        getParentElement().$x(".//a[@" + Schrodinger.DATA_S_ID + "='editButton']")
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-        getParentElement().parent().$x(".//a[@" + Schrodinger.DATA_S_ID + "='editReferenceButton']")
+        getParentElement().parent().$x(".//a[@" + Schrodinger.DATA_S_ID + "='editButton']")
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
         SelenideElement inputField = getParentElement().parent().$(Schrodinger.byElementValue("label", "Type:")).parent()
                 .$x(".//select[@" + Schrodinger.DATA_S_ID + "='input']")
@@ -71,9 +71,9 @@ public class SearchItemField<T> extends Component<T> {
         if (getParentElement() == null){
             return getParent();
         }
-        getParentElement().$x(".//a[@" + Schrodinger.DATA_S_ID + "='editReferenceButton']")
+        getParentElement().$x(".//a[@" + Schrodinger.DATA_S_ID + "='editButton']")
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-        getParentElement().parent().$x(".//a[@" + Schrodinger.DATA_S_ID + "='editReferenceButton']")
+        getParentElement().parent().$x(".//a[@" + Schrodinger.DATA_S_ID + "='editButton']")
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
         SelenideElement inputField = getParentElement().parent().$(Schrodinger.byElementValue("label", "Relation:")).parent()
                 .$x(".//select[@" + Schrodinger.DATA_S_ID + "='input']")
@@ -89,9 +89,9 @@ public class SearchItemField<T> extends Component<T> {
         if (getParentElement() == null){
             return getParent();
         }
-        getParentElement().$x(".//a[@" + Schrodinger.DATA_S_ID + "='editReferenceButton']")
+        getParentElement().$x(".//a[@" + Schrodinger.DATA_S_ID + "='editButton']")
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-        getParentElement().parent().$x(".//a[@" + Schrodinger.DATA_S_ID + "='editReferenceButton']")
+        getParentElement().parent().$x(".//a[@" + Schrodinger.DATA_S_ID + "='editButton']")
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
         SelenideElement inputField = getParentElement().parent().$(Schrodinger.byElementValue("label", "Name:")).parent()
                 .$x(".//input[@" + Schrodinger.DATA_S_ID + "='input']")
