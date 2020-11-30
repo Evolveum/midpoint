@@ -2219,15 +2219,6 @@ public final class WebComponentUtil {
                 AssignmentType assignment = new AssignmentType();
                 assignment.setTargetRef(ref);
                 assignmentHolder.getAssignment().add(assignment);
-
-                // Set parentOrgRef in any case. This is not strictly correct.
-                // The parentOrgRef should be added by the projector. But
-                // this is needed to successfully pass through security
-                // TODO: fix MID-3234
-                if (ref.getType() != null && OrgType.COMPLEX_TYPE.equals(ref.getType())) {
-                    assignmentHolder.getParentOrgRef().add(ref.clone());
-                }
-
             });
         }
 
