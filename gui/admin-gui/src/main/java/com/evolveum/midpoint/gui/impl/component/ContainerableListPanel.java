@@ -156,7 +156,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                     search = storage.getSearch();
                 }
                 Search newSearch = createSearch();
-                if (search == null || !search.getAllDefinitions().containsAll(newSearch.getAllDefinitions())) {
+                if (search == null ||
+                        (!SearchBoxModeType.ADVANCED.equals(search.getSearchType()) && !search.getAllDefinitions().containsAll(newSearch.getAllDefinitions()))) {
                     search = newSearch;
                 }
 
