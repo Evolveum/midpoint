@@ -85,7 +85,7 @@ public class ResourceAccountsTab<T> extends Component<T> {
 
     public ResourceShadowTable<ResourceAccountsTab<T>> table() {
 
-        SelenideElement element = $(By.cssSelector(".box.boxed-table.object-shadow-box"))
+        SelenideElement element = $(By.cssSelector(".box.boxed-table"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new ResourceShadowTable<>(this, element);
