@@ -12,15 +12,8 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.midpoint.util.QNameUtil;
@@ -131,36 +124,6 @@ public class SearchPanel extends BasePanel<Search> {
     }
 
     private <S extends SearchItem, T extends Serializable> void initLayout() {
-//        LoadableModel<PrismContainerWrapper<CollectionRefSpecificationType>> collectionRefModel = new LoadableModel<PrismContainerWrapper<CollectionRefSpecificationType>>(false) {
-//
-//            @Override
-//            protected PrismContainerWrapper<CollectionRefSpecificationType> load() {
-//                Task task = getPageBase().createSimpleTask(OPERATION_LOAD_COLLECTION_REF_WRAPPER);
-//                WrapperContext ctx = new WrapperContext(task, task.getResult());
-//                ctx.setCreateIfEmpty(false);
-//                ctx.setReadOnly(Boolean.TRUE);
-//                if (getModelObject().getCollectionView() == null
-//                        || getModelObject().getCollectionView().getCollection() == null) {
-//                    return null;
-//                }
-//                PrismContainerValue<CollectionRefSpecificationType> collectionRefContainerVal =
-//                        getModelObject().getCollectionView().getCollection().asPrismContainerValue();
-//                PrismContainerDefinition<CollectionRefSpecificationType> collectionDef = collectionRefContainerVal.getDefinition();
-//                try {
-//                    PrismContainer<CollectionRefSpecificationType> collectionRef = collectionDef.instantiate();
-//                    collectionRef.add(collectionRefContainerVal.clone());
-//                    return getPageBase().createItemWrapper(collectionRef, ItemStatus.NOT_CHANGED, ctx);
-//                } catch (SchemaException e) {
-//                    LOG.error("Cannot create wrapper for collection ref");
-//
-//                }
-//                return null;
-//            }
-//        };
-//
-//        collectionRefModel.getObject(); //TODO brutal hack, we need to load object to create wrapper. without this, no panels are registered, so nothing is shown in GUI.
-//        SingleContainerPanel<CollectionRefSpecificationType> collectionRefContainer = new SingleContainerPanel<>(ID_COLLECTION_REF_PANEL, collectionRefModel, CollectionRefSpecificationType.COMPLEX_TYPE);
-
         moreDialogModel = new LoadableModel<MoreDialogDto>(false) {
 
             private static final long serialVersionUID = 1L;
@@ -196,7 +159,7 @@ public class SearchPanel extends BasePanel<Search> {
 
                         @Override
                         protected boolean canRemoveSearchItem() {
-                            return SearchPanel.this.getModelObject().isCanConfigure();
+                            return super.canRemoveSearchItem() && SearchPanel.this.getModelObject().isCanConfigure();
                         }
 
                         @Override
@@ -210,7 +173,7 @@ public class SearchPanel extends BasePanel<Search> {
 
                         @Override
                         protected boolean canRemoveSearchItem() {
-                            return SearchPanel.this.getModelObject().isCanConfigure();
+                            return super.canRemoveSearchItem() && SearchPanel.this.getModelObject().isCanConfigure();
                         }
 
                         @Override
@@ -690,18 +653,17 @@ public class SearchPanel extends BasePanel<Search> {
                             return false;
                         }
 
-                        MoreDialogDto dto = moreDialogModel.getObject();
-
                         ItemPath propertyPath = property.getPath();
                         for (SearchItem searchItem : search.getItems()) {
                             if (searchItem instanceof FilterSearchItem) {
-                                return true;
+                                return searchItem.getDefinition().equals(property);
                             }
-                            if (QNameUtil.match(propertyPath.lastName(), ((PropertySearchItem) searchItem).getPath().lastName())) {
+                            if (propertyPath != null && QNameUtil.match(propertyPath.lastName(), ((PropertySearchItem) searchItem).getPath().lastName())) {
                                 return false;
                             }
                         }
 
+                        MoreDialogDto dto = moreDialogModel.getObject();
                         String nameFilter = dto.getNameFilter();
                         String propertyName = property.getName().toLowerCase();
                         if (StringUtils.isNotEmpty(nameFilter)
@@ -776,7 +738,7 @@ public class SearchPanel extends BasePanel<Search> {
 
     private void addOneItemPerformed(SearchItemDefinition property, AjaxRequestTarget target) {
         Search search = getModelObject();
-        SearchItem item = search.addItem(property.getDef());
+        SearchItem item = search.addItem(property);
         item.setEditWhenVisible(true);
 
         refreshSearchForm(target);
@@ -791,7 +753,8 @@ public class SearchPanel extends BasePanel<Search> {
                 continue;
             }
 
-            search.addItem(property.getDef());
+            search.addItem(property);
+            property.setSelected(false);
         }
 
         refreshSearchForm(target);

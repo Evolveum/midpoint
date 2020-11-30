@@ -189,18 +189,42 @@ public class Search implements Serializable, DebugDumpable {
     }
 
     public SearchItem addItem(SearchItemType predefinedFilter) {
+        SearchItemDefinition def = null;
+        for (SearchItemDefinition searchItemDefinition : availableDefinitions) {
+            if (searchItemDefinition.getPredefinedFilter() != null
+                    && searchItemDefinition.getPredefinedFilter().equals(predefinedFilter)) {
+                def = searchItemDefinition;
+                break;
+            }
+        }
+        if (def == null) {
+            return null;
+        }
         FilterSearchItem item = new FilterSearchItem(this, predefinedFilter);
+        item.setDefinition(def);
+
         items.add(item);
+        availableDefinitions.remove(def);
         return item;
+    }
+
+    public SearchItem addItem(SearchItemDefinition def) {
+        if (def.getDef() != null) {
+            return addItem(def.getDef());
+        } else if (def.getPredefinedFilter() != null) {
+            return addItem(def.getPredefinedFilter());
+        }
+        return null;
+    }
+
+    public void addItemToAllDefinitions(SearchItemDefinition itemDef){
+        allDefinitions.add(itemDef);
+        availableDefinitions.add(itemDef);
     }
 
     public void delete(SearchItem item) {
         if (items.remove(item)) {
-            if (item instanceof PropertySearchItem) {
-                availableDefinitions.add(((PropertySearchItem) item).getDefinition());
-            } else if (item instanceof FilterSearchItem) {
-                //todo remove filter search item
-            }
+            availableDefinitions.add(item.getDefinition());
         }
     }
 
@@ -240,7 +264,7 @@ public class Search implements Serializable, DebugDumpable {
                     ObjectFilter convertedFilter = pageBase.getQueryConverter().parseFilter(filter, getType());
                     ExpressionVariables variables = new ExpressionVariables();
 
-                    ExpressionParameterType functionParameter = item.getPredefinedFilter().getParameter();
+                    ParameterType functionParameter = item.getPredefinedFilter().getParameter();
                     QName returnType = functionParameter.getType();
                     if (returnType != null) {
                         Class<?> inputClass = pageBase.getPrismContext().getSchemaRegistry().determineClassForType(returnType);

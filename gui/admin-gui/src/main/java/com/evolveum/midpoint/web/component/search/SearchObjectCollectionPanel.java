@@ -95,4 +95,8 @@ public class SearchObjectCollectionPanel extends AbstractSearchItemPanel<ObjectC
         }
         return Model.of();
     }
+
+    protected boolean canRemoveSearchItem() {
+        return false;
+    }
 }

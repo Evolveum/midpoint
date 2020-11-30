@@ -37,8 +37,6 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem {
 
     private static final long serialVersionUID = 1L;
 
-    private final SearchItemDefinition definition;
-
     private DisplayableValue<T> value;
 
     public PropertySearchItem(Search search, @NotNull SearchItemDefinition definition) {
@@ -51,11 +49,7 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem {
             throw new IllegalArgumentException("Unknown item definition.getDef() type '" + definition.getDef() + "'");
         }
 
-        this.definition = definition;
-    }
-
-    public SearchItemDefinition getDefinition() {
-        return definition;
+        setDefinition(definition);
     }
 
     public DisplayableValue<T> getValue() {
@@ -68,32 +62,32 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem {
 
     public List<DisplayableValue<T>> getAllowedValues() {
         List<DisplayableValue<T>> list = new ArrayList<>();
-        if (!(definition.getDef() instanceof PrismPropertyDefinition)) {
+        if (!(getDefinition().getDef() instanceof PrismPropertyDefinition)) {
             return list;
         }
 
-        PrismPropertyDefinition<T> def = (PrismPropertyDefinition<T>) definition.getDef();
+        PrismPropertyDefinition<T> def = (PrismPropertyDefinition<T>) getDefinition().getDef();
         list.addAll(def.getAllowedValues());
 
         return list;
     }
 
     public List<QName> getAllowedRelations() {
-        return definition.getAllowedValues();
+        return getDefinition().getAllowedValues();
     }
 
     public ItemPath getPath() {
-        return definition.getPath();
+        return getDefinition().getPath();
     }
 
     @Override
     public String getName() {
-        if (definition.getDisplayName() != null){
-            return WebComponentUtil.getTranslatedPolyString(definition.getDisplayName());
+        if (getDefinition().getDisplayName() != null){
+            return WebComponentUtil.getTranslatedPolyString(getDefinition().getDisplayName());
         }
-        String key = definition.getDef().getDisplayName();
+        String key = getDefinition().getDef().getDisplayName();
         if (StringUtils.isEmpty(key)) {
-            key = getSearch().getType().getSimpleName() + '.' + definition.getDef().getItemName().getLocalPart();
+            key = getSearch().getType().getSimpleName() + '.' + getDefinition().getDef().getItemName().getLocalPart();
         }
 
         StringResourceModel nameModel = PageBase.createStringResourceStatic(null, key);
@@ -102,21 +96,21 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem {
                 return nameModel.getString();
             }
         }
-        String name = definition.getDef().getDisplayName();
+        String name = getDefinition().getDef().getDisplayName();
         if (StringUtils.isNotEmpty(name)) {
             return name;
         }
 
-        return definition.getDef().getItemName().getLocalPart();
+        return getDefinition().getDef().getItemName().getLocalPart();
     }
 
     @Override
     public Type getType() {
-        if (definition.getDef() instanceof PrismReferenceDefinition) {
+        if (getDefinition().getDef() instanceof PrismReferenceDefinition) {
             return Type.REFERENCE;
         }
 
-        PrismPropertyDefinition def = (PrismPropertyDefinition) definition.getDef();
+        PrismPropertyDefinition def = (PrismPropertyDefinition) getDefinition().getDef();
         if (def.getAllowedValues() != null && !def.getAllowedValues().isEmpty()) {
             return Type.ENUM;
         }
@@ -133,24 +127,24 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem {
     }
 
     public PolyStringType getDisplayName() {
-        return definition.getDisplayName();
+        return getDefinition().getDisplayName();
     }
 
     public void setDisplayName(PolyStringType displayName) {
-        this.definition.setDisplayName(displayName);
+        this.getDefinition().setDisplayName(displayName);
     }
 
     @Override
     public String getHelp(PageBase pageBase) {
-        return definition.getHelp();
+        return getDefinition().getHelp();
     }
 
     @Override
     public String toString() {
         return "PropertySearchItem{" +
-                "path=" + definition.getPath() +
-                ", definition=" + definition +
-                ", allowedRelations=" + definition.getAllowedValues() +
+                "path=" + getDefinition().getPath() +
+                ", definition=" + getDefinition() +
+                ", allowedRelations=" + getDefinition().getAllowedValues() +
                 ", value=" + value +
                 '}';
     }

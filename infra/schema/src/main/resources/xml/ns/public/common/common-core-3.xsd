@@ -10445,13 +10445,13 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:complexType name="ExpressionParameterType">
+    <xsd:complexType name="ParameterType">
         <xsd:annotation>
             <xsd:documentation>
-                Describes input parameters to the expression.
+                Describes input parameters.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>3.7</a:since>
+                <a:since>4.2</a:since>
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
@@ -10470,14 +10470,32 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Expression that determines parameter value.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ExpressionParameterType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes input parameters to the expression.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>3.7</a:since>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ParameterType">
+                <xsd:sequence>
+                    <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Expression that determines parameter value.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:simpleType name="ExpressionReturnMultiplicityType">
@@ -25564,13 +25582,23 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="parameter" type="c:ExpressionParameterType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="parameter" type="c:ParameterType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Parameter used in filter expression.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>SearchItemType.parameter</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="showAsDefault" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Define if item search panel will be showing as default or it will be available in 'more' panel.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SearchItemType.showAsDefault</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

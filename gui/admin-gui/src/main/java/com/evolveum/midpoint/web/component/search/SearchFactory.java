@@ -233,16 +233,20 @@ public class SearchFactory {
         List<SearchItemDefinition> configuredSearchItemDefs = getConfiguredSearchItemDefinitions(objectDef, useDefsFromSuperclass, searchItemsConfig);
         if (!CollectionUtils.isEmpty(configuredSearchItemDefs)) {
             configuredSearchItemDefs.forEach(searchItemDef -> {
-                SearchItem item = null;
-                if (searchItemDef.getPath() != null) {
-                    ItemDefinition def = objDef.findItemDefinition(searchItemDef.getPath());
-                    item = search.addItem(def);
-                    ((PropertySearchItem) item).setDisplayName(searchItemDef.getDisplayName());
-                } else if (searchItemDef.getPredefinedFilter() != null) {
-                    item = search.addItem(searchItemDef.getPredefinedFilter());
-                }
-                if (item != null) {
-                    item.setFixed(true);
+                search.addItemToAllDefinitions(searchItemDef);
+                if (searchItemDef.isShowAsDefault()) {
+                    SearchItem item = null;
+                    if (searchItemDef.getPath() != null) {
+                        ItemDefinition def = objDef.findItemDefinition(searchItemDef.getPath());
+                        item = search.addItem(def);
+                        ((PropertySearchItem) item).setDisplayName(searchItemDef.getDisplayName());
+                    } else if (searchItemDef.getPredefinedFilter() != null) {
+                        item = search.addItem(searchItemDef.getPredefinedFilter());
+                    }
+                    if (item != null) {
+                        item.setFixed(true);
+                        item.setDefinition(searchItemDef);
+                    }
                 }
             });
         } else {

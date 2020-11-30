@@ -17,8 +17,6 @@ public abstract class SearchItem implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    public static final String F_HELP = "help";
-
     public enum Type {
         TEXT, BOOLEAN, ENUM, BROWSER, REFERENCE, FILTER, DATE, ITEM_PATH, OBJECT_COLLECTION
     }
@@ -27,6 +25,7 @@ public abstract class SearchItem implements Serializable {
 
     private boolean fixed;
     private boolean editWhenVisible;
+    private SearchItemDefinition definition;
 
     public SearchItem(Search search) {
         this.search = search;
@@ -62,5 +61,13 @@ public abstract class SearchItem implements Serializable {
 
     public void setEditWhenVisible(boolean editWhenVisible) {
         this.editWhenVisible = editWhenVisible;
+    }
+
+    public SearchItemDefinition getDefinition() {
+        return definition;
+    }
+
+    public void setDefinition(SearchItemDefinition definition) {
+        this.definition = definition;
     }
 }

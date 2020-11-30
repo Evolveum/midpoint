@@ -17,6 +17,8 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionParameterType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ParameterType;
+
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -58,14 +60,12 @@ public class SearchFilterPanel extends AbstractSearchItemPanel<FilterSearchItem,
                 searchPerformed(ajaxRequestTarget);
             }
         });
-        checkPanel.add(AttributeModifier.append("class", "pull-right"));
-        checkPanel.add(AttributeAppender.append("style", "margin-top: 3px;"));
         checkPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 
         checkPanel.setOutputMarkupId(true);
         searchItemContainer.add(checkPanel);
 
-        ExpressionParameterType functionParameter = getModelObject().getPredefinedFilter().getParameter();
+        ParameterType functionParameter = getModelObject().getPredefinedFilter().getParameter();
         QName returnType = functionParameter !=null ? functionParameter.getType() : null;
         Component inputPanel;
         if (returnType == null) {

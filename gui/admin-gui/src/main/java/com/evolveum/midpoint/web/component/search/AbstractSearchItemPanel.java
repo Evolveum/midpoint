@@ -92,7 +92,7 @@ public abstract class AbstractSearchItemPanel<S extends SearchItem, T extends Se
                 deletePerformed(target);
             }
         };
-        removeButton.add(new VisibleBehaviour(() -> !(getModelObject() instanceof FilterSearchItem) && canRemoveSearchItem()));
+        removeButton.add(new VisibleBehaviour(() -> canRemoveSearchItem()));
         removeButton.setOutputMarkupId(true);
         searchItemContainer.add(removeButton);
     }
@@ -108,7 +108,7 @@ public abstract class AbstractSearchItemPanel<S extends SearchItem, T extends Se
     protected abstract void initSearchItemField(WebMarkupContainer searchItemContainer);
 
     protected boolean canRemoveSearchItem() {
-        return false;
+        return true;
     }
 
     protected IModel<String> createLabelModel() {

@@ -35,6 +35,7 @@ public class SearchItemDefinition implements Serializable, Comparable<SearchItem
     private List<QName> allowedValues;
     private String description;
     private boolean isSelected = false;
+    private boolean showAsDefault = true;
 
     public SearchItemDefinition(ItemPath path, ItemDefinition def, List<QName> allowedValues) {
         this.path = path;
@@ -45,6 +46,8 @@ public class SearchItemDefinition implements Serializable, Comparable<SearchItem
     public SearchItemDefinition(SearchItemType predefinedFilter) {
         this.predefinedFilter = predefinedFilter;
         this.description = predefinedFilter != null ? predefinedFilter.getDescription() : null;
+        this.showAsDefault = !Boolean.FALSE.equals(predefinedFilter.isShowAsDefault());
+        this.displayName = predefinedFilter.getDisplayName();
     }
 
     public ItemPath getPath() {
@@ -83,6 +86,10 @@ public class SearchItemDefinition implements Serializable, Comparable<SearchItem
         isSelected = selected;
     }
 
+    public boolean isShowAsDefault() {
+        return showAsDefault;
+    }
+
     public String getName() {
         if (getDisplayName() != null){
             return WebComponentUtil.getTranslatedPolyString(getDisplayName());
@@ -112,8 +119,8 @@ public class SearchItemDefinition implements Serializable, Comparable<SearchItem
 
     @Override
     public int compareTo(SearchItemDefinition o) {
-        String n1 = WebComponentUtil.getItemDefinitionDisplayNameOrName(getDef(), null);
-        String n2 = WebComponentUtil.getItemDefinitionDisplayNameOrName(o.getDef(), null);
+        String n1 = getName();
+        String n2 = o.getName();
 
         if (n1 == null || n2 == null) {
             return 0;
@@ -125,11 +132,13 @@ public class SearchItemDefinition implements Serializable, Comparable<SearchItem
         if (StringUtils.isNotBlank(description)) {
             return description;
         }
-        String help;
-        if (StringUtils.isNotEmpty(def.getHelp())) {
-            help = def.getHelp();
-        } else {
-            help = def.getDocumentation();
+        String help = "";
+        if (def != null) {
+            if (StringUtils.isNotEmpty(def.getHelp())) {
+                help = def.getHelp();
+            } else {
+                help = def.getDocumentation();
+            }
         }
         if (StringUtils.isNotBlank(help)) {
             help = help.replace("\n", "").replace("\r", "").replaceAll("^ +| +$|( )+", "$1");
