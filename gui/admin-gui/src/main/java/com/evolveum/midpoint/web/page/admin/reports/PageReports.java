@@ -111,11 +111,6 @@ public class PageReports extends PageAdmin {
             protected List<InlineMenuItem> createInlineMenu() {
                 return PageReports.this.createInlineMenu();
             }
-
-            @Override
-            protected boolean isCreateNewObjectEnabled() {
-                return false;
-            }
         };
         table.setOutputMarkupId(true);
         mainForm.add(table);
