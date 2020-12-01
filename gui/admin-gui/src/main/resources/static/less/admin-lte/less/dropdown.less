@@ -24,32 +24,6 @@
   }
 }
 
-.auto-width {
-  white-space: nowrap;
-  max-width: 20vw;
-  width: max-content;
-
-  > li {
-    padding-left: 10px;
-    padding-right: 10px;
-    display: inline-block;
-
-    .btn:first-child {
-      margin-left: -1px;
-    }
-
-    .btn:last-child {
-      margin-right: -1px;
-    }
-
-    .btn {
-      float: left;
-      margin-bottom: -1px;
-    }
-  }
-
-}
-
 //Navbar custom dropdown menu
 .navbar-nav > .notifications-menu,
 .navbar-nav > .messages-menu,
@@ -273,9 +247,9 @@
   }
   .user-image {
     float: left;
-    max-width: 25px;
+    width: 25px;
     height: 25px;
-    border-radius: 35%;
+    border-radius: 50%;
     margin-right: 10px;
     margin-top: -2px;
     @media (max-width: @screen-xs-max) {
@@ -372,23 +346,5 @@
         background: #fff;
       }
     }
-  }
-}
-
-@media (min-width: @screen-sm-max) and (max-width: @screen-md-max) {
-  .auto-width {
-    max-width: 30vw;
-  }
-}
-
-@media (min-width: @screen-xs-max) and (max-width: @screen-sm-max) {
-  .auto-width {
-    max-width: 30vw;
-  }
-}
-
-@media (max-width: @screen-xs-max) {
-  .auto-width {
-    max-width: 50vw;
   }
 }

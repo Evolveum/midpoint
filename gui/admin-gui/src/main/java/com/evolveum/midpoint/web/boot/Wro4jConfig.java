@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.PropertyResolver;
 import org.springframework.core.io.ClassPathResource;
 import ro.isdc.wro.extensions.processor.css.Less4jProcessor;
+import ro.isdc.wro.extensions.processor.css.LessCssProcessor;
 import ro.isdc.wro.http.ConfigurableWroFilter;
 import ro.isdc.wro.http.WroFilter;
 import ro.isdc.wro.manager.factory.ConfigurableWroManagerFactory;
@@ -24,6 +25,7 @@ import ro.isdc.wro.model.resource.processor.ResourcePreProcessor;
 import ro.isdc.wro.model.resource.processor.factory.SimpleProcessorsFactory;
 import ro.isdc.wro.model.resource.processor.impl.css.CssImportPreProcessor;
 import ro.isdc.wro.model.resource.processor.impl.css.CssUrlRewritingProcessor;
+import ro.isdc.wro.model.resource.processor.impl.css.LessCssImportPreProcessor;
 import ro.isdc.wro.model.resource.processor.impl.js.SemicolonAppenderPreProcessor;
 
 import java.io.IOException;
@@ -52,11 +54,12 @@ public class Wro4jConfig {
         SimpleProcessorsFactory processors = new SimpleProcessorsFactory();
         Collection<ResourcePreProcessor> preProcessors = new ArrayList<>();
         preProcessors.add(new CssUrlRewritingProcessor());
-        preProcessors.add(new CssImportPreProcessor());
+        preProcessors.add(new MidPointCssImportPreProcessor()); //CssImportPreProcessor()
         preProcessors.add(new SemicolonAppenderPreProcessor());
 
         Collection<ResourcePostProcessor> postProcessors = new ArrayList<>();
         postProcessors.add(new Less4jProcessor());
+
 
         processors.setResourcePreProcessors(preProcessors);
         processors.setResourcePostProcessors(postProcessors);

@@ -20,7 +20,4 @@
         <js>/js/midpoint-theme.js</js>
     </group>
 
-    <group name="admin-lte">
-        <css>/less/admin-lte/less/AdminLTE.less</css>
-    </group>
 </groups>
