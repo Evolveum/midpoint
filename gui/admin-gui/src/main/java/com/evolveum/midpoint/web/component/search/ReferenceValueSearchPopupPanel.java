@@ -13,21 +13,15 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteReferenceRenderer;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -62,7 +56,14 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Specia
         });
         oidField.setOutputMarkupId(true);
         oidField.add(new VisibleBehaviour(() -> true));
-        oidField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        oidField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onUpdate(AjaxRequestTarget target) {
+                ReferenceValueSearchPopupPanel.this.getModelObject().asReferenceValue().setObject(null);
+            }
+        });
         midpointForm.add(oidField);
 
         ReferenceAutocomplete nameField = new ReferenceAutocomplete(ID_NAME, Model.of(getModelObject()),
