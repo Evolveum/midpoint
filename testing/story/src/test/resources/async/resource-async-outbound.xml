@@ -28,7 +28,14 @@
                 <destination>ProvisioningQueue</destination>
             </jms>
         </conf:targets>
-        <conf:predefinedTransformation>simplifiedJson</conf:predefinedTransformation>
+        <conf:transformExpression>
+            <script>
+                <code>
+                    transformerHelper.jsonRequestFormatter(operationRequested)
+                            .format()
+                </code>
+            </script>
+        </conf:transformExpression>
     </connectorConfiguration>
     <schema>
         <definition>

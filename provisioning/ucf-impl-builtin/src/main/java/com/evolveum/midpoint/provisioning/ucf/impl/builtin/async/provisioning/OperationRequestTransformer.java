@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.provisioning;
 
 import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncProvisioningRequest;
+import com.evolveum.midpoint.provisioning.ucf.api.async.StringAsyncProvisioningRequest;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -22,8 +23,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PredefinedOperationR
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.util.List;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PredefinedOperationRequestTransformationType.FULL_JSON;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PredefinedOperationRequestTransformationType.SIMPLIFIED_JSON;
 
 /**
@@ -60,14 +61,23 @@ public class OperationRequestTransformer {
                 variables.put(VAR_OPERATION_REQUESTED, operationRequested, operationRequested.getClass());
                 variables.put(VAR_TRANSFORMER_HELPER, transformerHelper, TransformerHelper.class);
 
-                Object o = connectorInstance.getUcfExpressionEvaluator().evaluate(transformExpression, variables,
+                List<?> list = connectorInstance.getUcfExpressionEvaluator().evaluate(transformExpression, variables,
                         SchemaConstantsGenerated.C_ASYNC_PROVISIONING_REQUEST, "creating asynchronous provisioning request",
                         task, result);
+                if (list.isEmpty()) {
+                    throw new IllegalStateException("Transformational script returned no value");
+                }
+                if (list.size() > 1) {
+                    throw new IllegalStateException("Transformational script returned more than single value: " + list);
+                }
+                Object o = list.get(0);
                 if (o == null) {
                     // In the future we can call e.g. default request creator here
                     throw new IllegalStateException("Transformational script returned no value");
                 } else if (o instanceof AsyncProvisioningRequest) {
                     return (AsyncProvisioningRequest) o;
+                } else if (o instanceof String) {
+                    return StringAsyncProvisioningRequest.of((String) o);
                 } else {
                     throw new IllegalStateException("Transformational script should provide an AsyncProvisioningRequest but created " + MiscUtil.getClass(o) + " instead");
                 }

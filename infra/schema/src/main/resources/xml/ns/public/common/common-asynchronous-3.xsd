@@ -740,7 +740,8 @@
     <xsd:element name="artemisProvisioningTarget" type="tns:ArtemisProvisioningTargetType"/>
 
     <!-- In fact, asyncProvisioningRequest has to be of type AsyncProvisioningRequest but this type is not XSD describable now -->
-    <xsd:element name="asyncProvisioningRequest" type="xsd:anyType"/>
+    <!-- So this is an ugly hack for now -->
+    <xsd:element name="asyncProvisioningRequest" type="xsd:string"/>
 
     <xsd:complexType name="AsyncProvisioningOperationRequestedType">
         <xsd:annotation>
