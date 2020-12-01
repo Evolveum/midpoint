@@ -718,26 +718,26 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return midpointConfiguration;
     }
 
-    @Override
-    public void renderHead(IHeaderResponse response) {
-        super.renderHead(response);
-
-        String skinCssString = CLASS_DEFAULT_SKIN;
-        DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
-        if (info != null && StringUtils.isNotEmpty(info.getSkin())) {
-            skinCssString = info.getSkin();
-        }
-
-        String skinCssPath = String.format("../../../../../../webjars/AdminLTE/2.4.18/dist/css/skins/%s.min.css", skinCssString);
-        response.render(CssHeaderItem.forReference(
-                new CssResourceReference(
-                        PageBase.class, skinCssPath)
-                )
-        );
-
-        // this attaches jquery.js as first header item, which is used in our scripts.
-        CoreLibrariesContributor.contribute(getApplication(), response);
-    }
+//    @Override
+//    public void renderHead(IHeaderResponse response) {
+//        super.renderHead(response);
+//
+//        String skinCssString = CLASS_DEFAULT_SKIN;
+//        DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
+//        if (info != null && StringUtils.isNotEmpty(info.getSkin())) {
+//            skinCssString = info.getSkin();
+//        }
+//
+//        String skinCssPath = String.format("../../../../../../webjars/AdminLTE/2.4.18/dist/css/skins/%s.min.css", skinCssString);
+//        response.render(CssHeaderItem.forReference(
+//                new CssResourceReference(
+//                        PageBase.class, skinCssPath)
+//                )
+//        );
+//
+//        // this attaches jquery.js as first header item, which is used in our scripts.
+//        CoreLibrariesContributor.contribute(getApplication(), response);
+//    }
 
     @Override
     protected void onBeforeRender() {
