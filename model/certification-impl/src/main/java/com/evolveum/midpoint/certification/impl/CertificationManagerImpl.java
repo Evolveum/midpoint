@@ -109,7 +109,7 @@ public class CertificationManagerImpl implements CertificationManager {
     @Autowired private AccessCertificationRemediationTaskHandler remediationTaskHandler;
     @Autowired private AccessCertificationClosingTaskHandler closingTaskHandler;
 
-    private Map<String,CertificationHandler> registeredHandlers = new HashMap<>();
+    private final Map<String,CertificationHandler> registeredHandlers = new HashMap<>();
 
     public void registerHandler(String handlerUri, CertificationHandler handler) {
         if (registeredHandlers.containsKey(handlerUri)) {

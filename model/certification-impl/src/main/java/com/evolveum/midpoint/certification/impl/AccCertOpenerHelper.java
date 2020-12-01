@@ -23,11 +23,15 @@ import com.evolveum.midpoint.prism.query.TypedObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -66,6 +70,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType.F_LAST_CAMPAIGN_ID_USED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType.F_LAST_CAMPAIGN_STARTED_TIMESTAMP;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 /**
  * Supports campaign and stage opening operations.
  *
@@ -76,6 +82,10 @@ public class AccCertOpenerHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(AccCertOpenerHelper.class);
 
+    private static final String VAR_SCOPE = "scope";
+    private static final String VAR_CAMPAIGN = "campaign";
+    private static final String VAR_STAGE = "stage";
+
     @Autowired private AccCertReviewersHelper reviewersHelper;
     @Autowired private AccCertEventHelper eventHelper;
     @Autowired private PrismContext prismContext;
@@ -85,6 +95,7 @@ public class AccCertOpenerHelper {
     @Autowired private Clock clock;
     @Autowired private AccCertResponseComputationHelper computationHelper;
     @Autowired private AccCertUpdateHelper updateHelper;
+    @Autowired private ExpressionFactory expressionFactory;
     @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
@@ -175,7 +186,7 @@ public class AccCertOpenerHelper {
 
     private PolyStringType generateCampaignName(AccessCertificationDefinitionType definition, Task task, OperationResult result) throws SchemaException {
         String prefix = definition.getName().getOrig();
-        Integer lastCampaignIdUsed = definition.getLastCampaignIdUsed() != null ? definition.getLastCampaignIdUsed() : 0;
+        int lastCampaignIdUsed = defaultIfNull(definition.getLastCampaignIdUsed(), 0);
         for (int i = lastCampaignIdUsed+1;; i++) {
             String name = generateName(prefix, i);
             if (!campaignExists(name, result)) {
@@ -211,13 +222,14 @@ public class AccCertOpenerHelper {
 
     //region ================================ Stage open ================================
 
-    private class OpeningContext {
-        int casesEnteringStage;
-        int workItemsCreated;
+    private static class OpeningContext {
+        private int casesEnteringStage;
+        private int workItemsCreated;
     }
 
     void openNextStage(AccessCertificationCampaignType campaign, CertificationHandler handler, Task task,
-            OperationResult result) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+            OperationResult result) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException,
+            ConfigurationException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
         boolean skipEmptyStages = norm(campaign.getIteration()) > 1;        // TODO make configurable
         int requestedStageNumber = campaign.getStageNumber() + 1;
         for (;;) {
@@ -241,7 +253,8 @@ public class AccCertOpenerHelper {
     private ModificationsToExecute getDeltasForStageOpen(AccessCertificationCampaignType campaign,
             AccessCertificationStageType stage, CertificationHandler handler,
             OpeningContext openingContext, final Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException {
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException {
 
         int stageNumber = campaign.getStageNumber();
         int newStageNumber = stage.getNumber();
@@ -276,7 +289,8 @@ public class AccCertOpenerHelper {
     private <F extends FocusType> void getDeltasToCreateCases(AccessCertificationCampaignType campaign,
             AccessCertificationStageType stage,
             CertificationHandler handler, ModificationsToExecute modifications, OpeningContext openingContext, Task task,
-            OperationResult result) throws SchemaException, ObjectNotFoundException {
+            OperationResult result) throws SchemaException, ObjectNotFoundException, ConfigurationException,
+            CommunicationException, SecurityViolationException, ExpressionEvaluationException {
         String campaignShortName = toShortString(campaign);
 
         AccessCertificationScopeType scope = campaign.getScopeDefinition();
@@ -288,7 +302,8 @@ public class AccCertOpenerHelper {
 
         assertNoExistingCases(campaign, result);
 
-        TypedObjectQuery<F> typedQuery = prepareObjectQuery(objectBasedScope, handler, campaignShortName);
+        TypedObjectQuery<F> typedQuery = prepareObjectQuery(objectBasedScope, handler, campaignShortName,
+                campaign, stage, task, result);
 
         List<AccessCertificationCaseType> caseList = new ArrayList<>();
 
@@ -310,26 +325,26 @@ public class AccCertOpenerHelper {
 
         assert norm(campaign.getIteration()) == 1;
 
-        for (AccessCertificationCaseType acase : caseList) {
+        for (AccessCertificationCaseType aCase : caseList) {
             ContainerDelta<AccessCertificationCaseType> caseDelta = prismContext.deltaFactory().container().createDelta(F_CASE,
                     AccessCertificationCampaignType.class);
-            acase.setIteration(1);
-            acase.setStageNumber(1);
-            acase.setCurrentStageCreateTimestamp(stage.getStartTimestamp());
-            acase.setCurrentStageDeadline(stage.getDeadline());
+            aCase.setIteration(1);
+            aCase.setStageNumber(1);
+            aCase.setCurrentStageCreateTimestamp(stage.getStartTimestamp());
+            aCase.setCurrentStageDeadline(stage.getDeadline());
 
-            List<ObjectReferenceType> reviewers = reviewersHelper.getReviewersForCase(acase, campaign, reviewerSpec, task, result);
-            acase.getWorkItem().addAll(createWorkItems(reviewers, 1, 1, acase));
+            List<ObjectReferenceType> reviewers = reviewersHelper.getReviewersForCase(aCase, campaign, reviewerSpec, task, result);
+            aCase.getWorkItem().addAll(createWorkItems(reviewers, 1, 1, aCase));
 
-            openingContext.workItemsCreated += acase.getWorkItem().size();
+            openingContext.workItemsCreated += aCase.getWorkItem().size();
             openingContext.casesEnteringStage++;
 
-            AccessCertificationResponseType currentStageOutcome = computationHelper.computeOutcomeForStage(acase, campaign, 1);
-            acase.setCurrentStageOutcome(toUri(currentStageOutcome));
-            acase.setOutcome(toUri(computationHelper.computeOverallOutcome(acase, campaign, 1, currentStageOutcome)));
+            AccessCertificationResponseType currentStageOutcome = computationHelper.computeOutcomeForStage(aCase, campaign, 1);
+            aCase.setCurrentStageOutcome(toUri(currentStageOutcome));
+            aCase.setOutcome(toUri(computationHelper.computeOverallOutcome(aCase, campaign, 1, currentStageOutcome)));
 
             @SuppressWarnings({ "raw", "unchecked" })
-            PrismContainerValue<AccessCertificationCaseType> caseCVal = acase.asPrismContainerValue();
+            PrismContainerValue<AccessCertificationCaseType> caseCVal = aCase.asPrismContainerValue();
             caseDelta.addValueToAdd(caseCVal);
             LOGGER.trace("Adding certification case:\n{}", caseCVal.debugDumpLazily());
             modifications.add(caseDelta);
@@ -343,7 +358,10 @@ public class AccCertOpenerHelper {
     // create a query to find target objects from which certification cases will be created
     @NotNull
     private <F extends FocusType> TypedObjectQuery<F> prepareObjectQuery(AccessCertificationObjectBasedScopeType objectBasedScope,
-            CertificationHandler handler, String campaignShortName) throws SchemaException {
+            CertificationHandler handler, String campaignShortName, AccessCertificationCampaignType campaign,
+            AccessCertificationStageType stage, Task task, OperationResult result) throws SchemaException,
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
         QName scopeDeclaredObjectType;
         if (objectBasedScope != null) {
             scopeDeclaredObjectType = objectBasedScope.getObjectType();
@@ -367,12 +385,30 @@ public class AccCertOpenerHelper {
 
         // TODO derive search filter from certification handler (e.g. select only objects having assignments with the proper policySituation)
         // It is only an optimization but potentially a very strong one. Workaround: enter query filter manually into scope definition.
-        final SearchFilterType searchFilter = objectBasedScope != null ? objectBasedScope.getSearchFilter() : null;
+        SearchFilterType rawFilterBean = objectBasedScope != null ? objectBasedScope.getSearchFilter() : null;
         ObjectQuery query = prismContext.queryFactory().createQuery();
-        if (searchFilter != null) {
-            query.setFilter(getQueryConverter().parseFilter(searchFilter, objectClass));
+        if (rawFilterBean != null) {
+            ObjectFilter rawFilter = getQueryConverter().parseFilter(rawFilterBean, objectClass);
+            ExpressionVariables variables = createFilterEvaluationVariables(objectBasedScope, campaign, stage);
+            ObjectFilter resolvedFilter = ExpressionUtil.evaluateFilterExpressions(rawFilter, variables,
+                    MiscSchemaUtil.getExpressionProfile(), expressionFactory, prismContext, "expression in scope filter",
+                    task, result);
+            query.setFilter(resolvedFilter);
         }
         return new TypedObjectQuery<>(objectClass, query);
+    }
+
+    @NotNull
+    private ExpressionVariables createFilterEvaluationVariables(AccessCertificationObjectBasedScopeType objectBasedScope,
+            AccessCertificationCampaignType campaign, AccessCertificationStageType stage) {
+        ExpressionVariables variables = new ExpressionVariables();
+        variables.addVariableDefinition(VAR_SCOPE, objectBasedScope, prismContext.getSchemaRegistry()
+                .findContainerDefinitionByCompileTimeClass(AccessCertificationObjectBasedScopeType.class));
+        variables.addVariableDefinition(VAR_CAMPAIGN, campaign, prismContext.getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(AccessCertificationCampaignType.class));
+        variables.addVariableDefinition(VAR_STAGE, stage, prismContext.getSchemaRegistry()
+                .findContainerDefinitionByCompileTimeClass(AccessCertificationStageType.class));
+        return variables;
     }
 
     private void assertNoExistingCases(AccessCertificationCampaignType campaign, OperationResult result)

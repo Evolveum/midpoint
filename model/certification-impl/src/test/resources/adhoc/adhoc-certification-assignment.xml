@@ -29,7 +29,14 @@
         <searchFilter>
             <q:equal>
                 <q:path>name</q:path>
-                <q:value>indigo</q:value>
+                <expression>
+                    <script>
+                        <code>
+                            log.warn('ZZZ Campaign: {}\nStage: {}\nScope: {}', campaign, stage, scope)
+                            'indigo'
+                        </code>
+                    </script>
+                </expression>
             </q:equal>
         </searchFilter>
     </scopeDefinition>

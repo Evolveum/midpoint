@@ -608,6 +608,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+    <xsd:element name="accessCertificationStage" type="tns:AccessCertificationStageType" />
 
     <xsd:complexType name="AccessCertificationScopeType">
         <xsd:annotation>
@@ -663,6 +664,8 @@
                             <xsd:documentation>
                                 Filter to find objects for certification.
                                 By default, all objects of a given type will be selected.
+                                The filter can contain expressions. During their evaluation,
+                                the following variables are accessible: campaign, stage, and scope.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
