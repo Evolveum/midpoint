@@ -37,10 +37,10 @@ public class M6ConfiguringMultipleAccountTypes extends AbstractLabTest {
     @Test(groups={"M6"}, dependsOnGroups={"M5"})
     public void mod06test01UsingAccountIntentsForProvisioning() {
 
-        addObjectFromFile(CSV_1_RESOURCE_FILE_6_1);
+        importObject(CSV_1_RESOURCE_FILE_6_1, true);
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
 
-        addObjectFromFile(CSV_3_RESOURCE_FILE_6_1);
+        importObject(CSV_3_RESOURCE_FILE_6_1, true);
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
 
         addObjectFromFile(CSV1_TESTER_ROLE_FILE);

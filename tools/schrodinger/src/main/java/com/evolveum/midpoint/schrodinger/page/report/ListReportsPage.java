@@ -19,7 +19,7 @@ import static com.codeborne.selenide.Selenide.$;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ListReportsPage extends AssignmentHolderObjectListPage {
+public class ListReportsPage extends AssignmentHolderObjectListPage<ReportTable, ReportPage> {
 
     @Override
     public ReportTable table() {
