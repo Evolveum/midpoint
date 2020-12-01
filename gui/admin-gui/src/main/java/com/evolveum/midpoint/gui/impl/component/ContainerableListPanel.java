@@ -888,8 +888,13 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
             ISelectableDataProvider provider = getDataProvider();
             provider.setQuery(createQuery());
-            if (newType != null && provider instanceof ContainerListDataProvider) {
-                ((ContainerListDataProvider) provider).setType(newTypeClass);
+            if (newType != null) {
+                if (provider instanceof ContainerListDataProvider) {
+                    ((ContainerListDataProvider) provider).setType(newTypeClass);
+                }
+                if (provider instanceof SelectableBeanContainerDataProvider) {
+                    ((SelectableBeanContainerDataProvider) provider).setType(newTypeClass);
+                }
             }
 
             ((WebMarkupContainer) table.get("box")).addOrReplace(initSearch("header"));
