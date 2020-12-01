@@ -53,6 +53,12 @@ public class JsonRequestFormatter {
      */
     private boolean changeMapAsAttributes;
 
+    /**
+     * Should we put identifiers into attributes map? It is done before putting changes into attributes,
+     * so any identifiers changed will have new values in attributes map (assuming changeMapAsAttributes is also true).
+     */
+    private boolean identifiersAsAttributes;
+
     public JsonRequestFormatter(@NotNull OperationRequested operationRequested) {
         this.operationRequested = operationRequested;
     }
@@ -83,6 +89,19 @@ public class JsonRequestFormatter {
         this.changeMapAsAttributes = changeMapAsAttributes;
     }
 
+    public boolean isIdentifiersAsAttributes() {
+        return identifiersAsAttributes;
+    }
+
+    public JsonRequestFormatter identifiersAsAttributes() {
+        identifiersAsAttributes = true;
+        return this;
+    }
+
+    public void setIdentifiersAsAttributes(boolean identifiersAsAttributes) {
+        this.identifiersAsAttributes = identifiersAsAttributes;
+    }
+
     /**
      * Does default formatting: creates the request and returns its JSON form.
      */
@@ -105,7 +124,7 @@ public class JsonRequestFormatter {
      * Fills-in the request in the default way.
      * (If you need a custom way of doing this, you can use individual setXXX methods as needed.)
      */
-    public void createRequest() {
+    public JsonAsyncProvisioningRequest createRequest() {
         setOperationName();
         setObjectClass();
         if (operationRequested instanceof OperationRequested.Add) {
@@ -122,6 +141,7 @@ public class JsonRequestFormatter {
         } else {
             throw new IllegalStateException("Unsupported operation requested: " + operationRequested);
         }
+        return request;
     }
 
     /** Sets operation name in the request. */
@@ -135,22 +155,28 @@ public class JsonRequestFormatter {
     }
 
     /**
-     * Sets the attributes in the request. Uses attributes in the shadow as the source.
+     * Adds the attributes to the request. Uses attributes in the shadow as the source.
      * This is obviously fully appropriate for ADD operation. But for MODIFY/DELETE operation
      * the attributes usually contain values _before_ the operation. Nevertheless, it might make
      * some sense to call this method even in these cases.
      */
     public void setAttributes() {
-        request.setAttributes(transformAttributesMap(operationRequested.getAttributeValueMap()));
+        request.addAttributes(transformAttributesMap(operationRequested.getAttributeValueMap()));
     }
 
     /**
      * Sets primary and secondary identifiers. Useful for MODIFY and DELETE operations. Can
      * be used for ADD operations as well, if needed.
+     *
+     * If {@link #identifiersAsAttributes} is set, these identifiers are added also to the attributes section.
      */
     public void setIdentifiers() {
         request.setPrimaryIdentifiers(transformAttributesMap(operationRequested.getPrimaryIdentifiersValueMap()));
         request.setSecondaryIdentifiers(transformAttributesMap(operationRequested.getSecondaryIdentifiersValueMap()));
+        if (identifiersAsAttributes) {
+            request.addAttributes(request.getPrimaryIdentifiers());
+            request.addAttributes(request.getSecondaryIdentifiers());
+        }
     }
 
     private Map<String, Collection<?>> transformAttributesMap(Map<ItemName, Collection<?>> attributes) {
@@ -172,7 +198,7 @@ public class JsonRequestFormatter {
      */
     public void setAttributesFromChanges() {
         Map<ItemName, ItemDelta<?, ?>> changeMap = ((OperationRequested.Modify) operationRequested).getAttributeChangeMap();
-        request.setAttributes(transformChangeMapToAttributes(changeMap));
+        request.addAttributes(transformChangeMapToAttributes(changeMap));
     }
 
     private Map<String, Collection<?>> transformChangeMapToAttributes(Map<ItemName, ItemDelta<?, ?>> changeMap) {

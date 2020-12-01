@@ -15,7 +15,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -116,7 +118,36 @@ public class JsonAsyncProvisioningRequest {
     }
 
     public void setAttributes(Map<String, Collection<?>> attributes) {
-        this.attributes = attributes;
+        this.attributes = new HashMap<>(attributes);
+    }
+
+    public void addAttributes(Map<String, Collection<?>> added) {
+        if (attributes != null) {
+            attributes.putAll(added);
+        } else {
+            setAttributes(added);
+        }
+    }
+
+    /**
+     * Returns simplified version of the attributes map, suitable e.g. for presentation via Velocity.
+     * Each attribute with no values or one value is replaced by scalar, i.e. null or the single item.
+     * Attributes with multiple values are represented as lists.
+     */
+    public Map<String, Object> getAttributesSimplified() {
+        Map<String, Object> rv = new HashMap<>();
+        for (Map.Entry<String, Collection<?>> entry : attributes.entrySet()) {
+            String name = entry.getKey();
+            Collection<?> values = entry.getValue();
+            if (values.isEmpty()) {
+                rv.put(name, null);
+            } else if (values.size() == 1) {
+                rv.put(name, values.iterator().next());
+            } else {
+                rv.put(name, new ArrayList<>(values));
+            }
+        }
+        return rv;
     }
 
     public Map<String, Collection<?>> getPrimaryIdentifiers() {
