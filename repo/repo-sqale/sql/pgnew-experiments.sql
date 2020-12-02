@@ -30,6 +30,11 @@ insert into m_user (oid, name_norm, name_orig, version)
 update m_object set oid='66eb4861-867d-4a41-b6f0-41a3874bd48e'
     where oid='66eb4861-867d-4a41-b6f0-41a3874bd48f';
 
+-- MUST fail on OID constraint if existing OID is used in SET:
+update m_object
+set oid='66eb4861-867d-4a41-b6f0-41a3874bd48f'
+where oid='f7a0362f-37a5-4dea-ac16-9c84dce333dc';
+
 SELECT * from m_object;
 SELECT * from m_object_oid where oid not in (SELECT oid FROM m_object);
 
@@ -72,49 +77,36 @@ select * from m_user order by name_norm offset 990 limit 50;
 -- vacuum full analyze; -- this requires exclusive lock on processed table and can be very slow, with 1M rows it takes 10s
 vacuum analyze; -- this is normal operation version (can run in parallel, ~25s/25m rows)
 
--- 100k takes 6s, whether we commit after each 1000 or not
--- This answer also documents that LOOP is 2x slower than generate_series: https://stackoverflow.com/a/53242452/658826
-DO $$ BEGIN
-    FOR r IN 1001..2000 LOOP
-        INSERT INTO m_user (
---             oid, -- normally generated automatically
-            name_norm,
-            name_orig,
-            fullobject,
-            version)
-        VALUES (
---             gen_random_uuid(),
-            'user-' || LPAD(r::text, 10, '0'),
-            'user-' || LPAD(r::text, 10, '0'),
---             zero_bytea(100, 20000),
-            random_bytea(100, 20000),
-            1);
+INSERT INTO m_resource (name_norm, name_orig, fullobject, version)
+SELECT 'resource-' || LPAD(r::text, 10, '0'),
+    'resource-' || LPAD(r::text, 10, '0'),
+    random_bytea(100, 20000),
+    1
+from generate_series(1, 10) as r;
 
-        -- regular commit to keep transactions reasonable (negligible performance impact)
-        IF r % 1000 = 0 THEN
-            COMMIT;
-        END IF;
-    END LOOP;
-END; $$;
-
-DO $$ BEGIN
-    FOR r IN 1001..2000 LOOP
-            INSERT INTO m_user (name_norm, name_orig, fullobject, version)
-            VALUES ('user-' || LPAD(r::text, 10, '0'), 'user-' || LPAD(r::text, 10, '0'),
-                    random_bytea(100, 20000), 1);
---                     zero_bytea(100, 20000), 1);
-        END LOOP;
-END; $$;
-
--- 100k takes 4s, gets slower with volume, of course
-INSERT INTO m_user (name_norm, name_orig, version)
-    SELECT 'user-' || LPAD(n::text, 10, '0'), 'user-' || LPAD(n::text, 10, '0'), 1
-    FROM generate_series(38000001, 40000000) AS n;
-
--- MUST fail on OID constraint if existing OID is used in SET:
-update m_object
-set oid='66eb4861-867d-4a41-b6f0-41a3874bd48f'
-where oid='f7a0362f-37a5-4dea-ac16-9c84dce333dc';
+INSERT INTO m_user (name_norm, name_orig, fullobject, ext, version)
+SELECT 'user-' || LPAD(r::text, 10, '0'),
+    'user-' || LPAD(r::text, 10, '0'),
+    random_bytea(100, 2000),
+    CASE
+        WHEN r % 10 <= 1 THEN
+            ('{"likes": ' || array_to_json(random_pick(ARRAY['eating', 'books', 'music', 'dancing', 'walking', 'jokes', 'video', 'photo'], 0.4))::text || '}')::jsonb
+        WHEN r % 10 <= 3 THEN
+            -- some entries have no extension
+            NULL
+        WHEN r % 10 <= 5 THEN
+            ('{"email": "user' || r || '@mycompany.com", "other-key-' || r || '": "other-value-' || r || '"}')::jsonb
+        WHEN r % 10 = 6 THEN
+            -- some extensions are massive JSONs, we want to see they are TOAST-ed
+            (select '{' || string_agg('"key-' || i || '": "value"', ',') || '}' from generate_series(1, 1000) i)::jsonb
+        WHEN r % 10 = 7 THEN
+            -- let's add some numbers and wannabe "dates"
+            ('{' || '"hired": "' || current_date - width_bucket(random(), 0, 1, 1000) || '",' || '"rating": ' || width_bucket(random(), 0, 1, 10) || '}')::jsonb
+        ELSE
+            ('{"hobbies": ' || array_to_json(random_pick(ARRAY['eating', 'books', 'music', 'dancing', 'walking', 'jokes', 'video', 'photo'], 0.5))::text || '}')::jsonb
+        END,
+    1
+from generate_series(50001, 100000) as r;
 
 select * from m_user;
 
@@ -138,102 +130,69 @@ FROM m_focus
 --------------
 -- sandbox
 
-select ctid, * from m_object
-;
-
-select count(*) from pg_inherits
-;
-
 -- JSON experiments
-
-drop table jtest;
-
-create TABLE jtest (
-    id SERIAL PRIMARY KEY,
-    text text,
-    ext jsonb
-);
-
-delete from jtest;
-insert into jtest (text,ext) values ('empty', '{}');
-insert into jtest (text,ext) values ('string', '"just string"');
-insert into jtest (text,ext) values ('array', '["first", "second", true, 4]');
-insert into jtest (text,ext) values ('Richard Richter',
-    '{"firstName": "Richard", "lastName": "Richter", "hobbies": ["photo", "video", "rowing"]}');
-insert into jtest (text,ext) values ('Robin Richter',
-    '{"firstName": "Robin", "lastName": "Richter", "hobbies": ["reading", "sleeping", "watching youtube"]}');
-insert into jtest (text,ext) values ('Someone Else',
-    '{"firstName": "Someone", "lastName": "Else", "hobbies": ["hardly", "any"]}');
+CREATE INDEX m_user_ext_email_idx ON m_user ((ext ->> 'email'));
+-- with WHERE the index is smaller, but the same condition must be used in WHERE as well
+CREATE INDEX m_user_ext_email2_idx ON m_user ((ext ->> 'email')) WHERE ext ? 'email';
+CREATE INDEX m_user_ext_hired_idx ON m_user ((ext ->> 'hired'));
+CREATE INDEX m_user_ext_hired2_idx ON m_user ((ext ->> 'hired')) WHERE ext ? 'hired';
+-- DROP INDEX m_user_ext_hired2_idx;
+-- set jit=on; -- JIT can sometimes be slower when planner guesses wrong
 
 -- see also https://www.postgresql.org/docs/13/functions-json.html some stuff is only for JSONB
-select * from jtest
-    where ext->>'hobbies' is not null;
-select count(*) from jtest where ext->'hobbies' is not null; -- the one below does the same
-select count(*) from jtest where ext ? 'hobbies'; -- ? works with JSONB, but not JSON
-select ext->>'hobbies' from jtest where ext ? 'hobbies'; -- return values of ext as text (or number)
-select * from jtest where ext->'hobbies' @> '"video"'; -- contains in [] or as value directly
 EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
-select *
--- select count(*)
-from jtest where ext->'hobbies' @> '"video"'
-and id >= 1307213
-order by id
-limit 500
+select count(*) from m_user
+    where ext?'hobbies' -- faster, uses GIN index
+--     where ext->>'hobbies' is not null -- seq-scan
+;
+
+EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
+select ext->>'hobbies' from m_user where ext ? 'hobbies'; -- return values of ext as text (or number), uses GIN index
+
+EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
+-- contains in [] or as value directly, but use GIN index on (ext)
+-- it would use GIN index on ext->'hobbies' though
+select count(*) from m_user where ext->'hobbies' @> '"video"';
+
+EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
+-- select *
+select count(*)
+from m_user
+-- where ext ? 'email' -- uses index, still takes time with many matches (depending on limit)
+--     and ext->>'email' > 'user12666133@mycompany.com'
+where ext->>'email' > 'user12666133@mycompany.com' -- uses m_user_ext_email_idx
+--     and ext?'email' -- with this it uses m_user_ext_email2_idx, but also can benefit just from default GIN index
+
+-- where NOT (ext->>'hired' >= '2020-06-01' AND ext?'hired') -- not using function index
+--     and ext?'hired' -- using function index with this clause, super fast
+-- order by ext->>'hired'
+;
+
+analyse;
+
+-- where ext @> '{"email": "user12666133@mycompany.com"}' -- uses index, fast
+-- where ext @> '{"hobbies": ["video"]}' -- uses index, fast
+-- where ext->'email' ? 'user12666133@mycompany.com' -- doesn't use GIN(ext), but can use gin ((ext -> 'email')), then it's fast
+-- where ext->>'email' = 'user12666133@mycompany.com' -- doesn't use neither GIN(ext) nor gin ((ext -> 'email'))
+-- and id >= 900000
+-- order by id
+-- limit 500
 ;
 
 EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
 -- select count(*)
-select *
-from jtest
+select oid -- "select *" with big bytea stuff can dominate the total cost
+from m_user
 where
---     text = 'hobby-problem' and
+    ext?'hobbies' and
     -- without array test jsonb_array_elements_text function can fail on scalar value (if allowed)
     exists (select from jsonb_array_elements_text(ext->'hobbies') v
-        where jsonb_typeof(ext->'hobbies') = 'array'
-        and upper(v::text) LIKE '%ING')
--- order by id
+--         where jsonb_typeof(ext->'hobbies') = 'array'
+--             and upper(v::text) LIKE '%ING')
+        where upper(v::text) LIKE 'VID%')
+--     and oid > 14000000
+-- order by oid
 ;
-
-insert into jtest (text, ext) values ('hobby-problem', '{"hobbies":"just-one"}');
-
-set jit=on;
-
--- TODO: jsonb_path_ops
-DROP INDEX jtest_ext_gin_idx;
-CREATE INDEX jtest_ext_gin_idx ON jtest USING gin (ext);
-
-/*
-60ms @ 500k
-Gather  (cost=1000.00..9841.05 rows=5000 width=55)
-  Workers Planned: 2
-  ->  Parallel Seq Scan on jtest  (cost=0.00..8341.05 rows=2083 width=55)
-"        Filter: ((ext -> 'hobbies'::text) @> '""video""'::jsonb)"
-
-70ms @ 500k (but not parallel)
-Bitmap Heap Scan on jtest  (cost=66.75..5499.17 rows=5000 width=55)
-"  Recheck Cond: ((ext -> 'hobbies'::text) @> '""video""'::jsonb)"
-  ->  Bitmap Index Scan on jtest_ext_gin_idx2  (cost=0.00..65.50 rows=5000 width=0)
-"        Index Cond: ((ext -> 'hobbies'::text) @> '""video""'::jsonb)"
- */
-
-select count(*) from jtest;
-DO
-$$ BEGIN
-    FOR r IN 8000001..12000000 LOOP
-            IF r % 10 = 0 THEN
-                INSERT INTO jtest (text, ext)
-                VALUES ('json-' || LPAD(r::text, 10, '0'), ('{"likes": ' ||
-                    array_to_json(random_pick(ARRAY['eating', 'books', 'music', 'dancing', 'walking', 'jokes', 'video', 'photo'], 0.4))::text || '}')::jsonb);
-            ELSE
-                INSERT INTO jtest (text, ext)
-                VALUES ('json-' || LPAD(r::text, 10, '0'), ('{"fanOf": ' ||
-                    array_to_json(random_pick(ARRAY['eating', 'books', 'music', 'dancing', 'walking', 'jokes', 'video', 'photo'], 0.3))::text || '}')::jsonb);
-            END IF;
-        END LOOP;
-END $$;
-
-SELECT * from jtest
-where text > 'json-0000020000';
 
 -- MANAGEMENT queries
 
@@ -259,7 +218,7 @@ LIMIT 20;
 
 vacuum full analyze;
 -- database size
-SELECT pg_size_pretty( pg_database_size('midpoint') );
+SELECT pg_size_pretty(pg_database_size('midpoint'));
 
 -- show tables + their toast tables ordered from the largest toast table
 -- ut = user table, tt = toast table

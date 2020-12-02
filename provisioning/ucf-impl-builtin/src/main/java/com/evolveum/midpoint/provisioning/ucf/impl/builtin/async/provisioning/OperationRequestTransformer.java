@@ -38,6 +38,7 @@ public class OperationRequestTransformer {
 
     private static final String VAR_OPERATION_REQUESTED = "operationRequested";
     private static final String VAR_TRANSFORMER_HELPER = "transformerHelper";
+    private static final String VAR_REQUEST_FORMATTER = "requestFormatter";
 
     public OperationRequestTransformer(@NotNull AsyncProvisioningConnectorInstance connectorInstance) {
         this.connectorInstance = connectorInstance;
@@ -60,6 +61,7 @@ public class OperationRequestTransformer {
                 VariablesMap variables = new VariablesMap();
                 variables.put(VAR_OPERATION_REQUESTED, operationRequested, operationRequested.getClass());
                 variables.put(VAR_TRANSFORMER_HELPER, transformerHelper, TransformerHelper.class);
+                variables.put(VAR_REQUEST_FORMATTER, transformerHelper.jsonRequestFormatter(operationRequested), JsonRequestFormatter.class);
 
                 List<?> list = connectorInstance.getUcfExpressionEvaluator().evaluate(transformExpression, variables,
                         SchemaConstantsGenerated.C_ASYNC_PROVISIONING_REQUEST, "creating asynchronous provisioning request",
