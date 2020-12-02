@@ -219,6 +219,48 @@
             <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resources</authorization>
         </userDashboardLink>
         <objectCollectionViews>
+
+            <objectCollectionView>
+                <searchBoxConfiguration>
+                    <searchItems>
+                        <searchItem>
+                            <path>resourceRef</path>
+                            <displayName>Resource</displayName>
+                        </searchItem>
+                        <searchItem>
+                            <path>objectClass</path>
+                            <displayName>Object class</displayName>
+                        </searchItem>
+                    </searchItems>
+                </searchBoxConfiguration>
+                <type>ShadowType</type>
+            </objectCollectionView>
+
+            <objectCollectionView>
+                <searchBoxConfiguration>
+                    <searchItems>
+                        <searchItem>
+                            <filter>
+                                <inOid>
+                                    <expression>
+                                        <script>
+                                            <code>
+                                                return oid
+                                            </code>
+                                        </script>
+                                    </expression>
+                                </inOid>
+                            </filter>
+                            <displayName>Oid</displayName>
+                            <parameter>
+                                <name>oid</name>
+                                <type>string</type>
+                            </parameter>
+                        </searchItem>
+                    </searchItems>
+                </searchBoxConfiguration>
+                <type>ObjectType</type>
+            </objectCollectionView>
             <objectCollectionView>
                 <identifier>my-cases</identifier>
                 <display>

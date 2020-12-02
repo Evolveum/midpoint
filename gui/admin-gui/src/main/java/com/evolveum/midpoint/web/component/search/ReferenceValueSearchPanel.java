@@ -52,7 +52,7 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
                     @Override
                     protected void confirmPerformed(AjaxRequestTarget target) {
                         target.add(ReferenceValueSearchPanel.this);
-                        referenceValueUpdated(ReferenceValueSearchPanel.this.getModelObject());
+                        referenceValueUpdated(ReferenceValueSearchPanel.this.getModelObject(), target);
                     }
                 };
         value.setRenderBodyOnly(true);
@@ -69,6 +69,6 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
         };
     }
 
-    protected void referenceValueUpdated(ObjectReferenceType ort) {
+    protected void referenceValueUpdated(ObjectReferenceType ort, AjaxRequestTarget target) {
     }
 }

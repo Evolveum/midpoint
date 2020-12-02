@@ -161,7 +161,7 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected void referenceValueUpdated(ObjectReferenceType ort) {
+                    protected void referenceValueUpdated(ObjectReferenceType ort, AjaxRequestTarget target) {
                         SwitchablePropertyValuePanel.this.getModelObject().getValue().setValue(ort);
                     }
                 };

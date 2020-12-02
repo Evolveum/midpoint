@@ -162,6 +162,8 @@ public class Search implements Serializable, DebugDumpable {
         PropertySearchItem item;
         if (QNameUtil.match(itemToRemove.getDef().getTypeName(), DOMUtil.XSD_DATETIME)) {
             item = new DateSearchItem(this, itemToRemove);
+        } else if (ShadowType.F_OBJECT_CLASS.equivalent(itemToRemove.getPath())) {
+            item = new ObjectClassSearchItem(this, itemToRemove);
         } else {
             item = new PropertySearchItem(this, itemToRemove);
         }
@@ -366,6 +368,16 @@ public class Search implements Serializable, DebugDumpable {
             String text = (String) searchValue.getValue();
             return ctx.queryFor(ObjectType.class)
                     .item(path, propDef).contains(text).matchingCaseIgnore().buildFilter();
+        } else if (DOMUtil.XSD_QNAME.equals(propDef.getTypeName())) {
+            Object value = searchValue.getValue();
+            QName qName;
+            if (value instanceof QName) {
+                qName = (QName) value;
+            } else {
+                qName = new QName((String) value);
+            }
+            return ctx.queryFor(ObjectType.class)
+                    .item(path, propDef).eq(qName).buildFilter();
         } else if (DOMUtil.XSD_DATETIME.equals(propDef.getTypeName())) {
             if (((DateSearchItem) item).getFromDate() != null && ((DateSearchItem) item).getToDate() != null) {
                 return ctx.queryFor(ObjectType.class)

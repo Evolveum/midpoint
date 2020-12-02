@@ -14,6 +14,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -79,15 +81,20 @@ public class SearchItemPanel<T extends Serializable> extends AbstractSearchItemP
             case REFERENCE:
                 searchItemField = new ReferenceValueSearchPanel(ID_SEARCH_ITEM_FIELD,
                         new PropertyModel<>(getModel(), "value.value"),
-                        (PrismReferenceDefinition) item.getDefinition());
+                        (PrismReferenceDefinition) item.getDefinition().getDef()){
+                    @Override
+                    protected void referenceValueUpdated(ObjectReferenceType ort, AjaxRequestTarget target) {
+                        searchPerformed(target);
+                    }
+                };
                 break;
             case BOOLEAN:
                 choices = (IModel) createBooleanChoices();
             case ENUM:
                 if (choices == null) {
-                    choices = new ListModel<>(item.getAllowedValues());
+                    choices = new ListModel<>(item.getAllowedValues(getPageBase()));
                 }
-                searchItemField = new DropDownChoicePanel<>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value.value"),
+                searchItemField = new DropDownChoicePanel<>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value"),
                         choices, new IChoiceRenderer<DisplayableValue>() {
                     private static final long serialVersionUID = 1L;
 

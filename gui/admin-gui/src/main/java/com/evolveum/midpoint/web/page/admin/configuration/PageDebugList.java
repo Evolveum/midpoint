@@ -13,7 +13,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.session.PageStorage;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -580,6 +586,12 @@ public class PageDebugList extends PageAdminConfiguration {
         if (search == null) {
             search = SearchFactory.createSearch(type.getClassDefinition(), this);
             search.setCanConfigure(true);
+            SchemaRegistry registry = getPrismContext().getSchemaRegistry();
+            PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(ObjectType.class);
+            List<SearchItemDefinition> configuredSearchItemDefs = SearchFactory.getConfiguredSearchItemDefinitions(search.getAvailableDefinitions(), this, ObjectType.class, null);
+            if (!configuredSearchItemDefs.isEmpty()) {
+                SearchFactory.processSearchItemDefFromCompiledView(configuredSearchItemDefs, search, objDef);
+            }
         }
         dto.setSearch(search);
     }

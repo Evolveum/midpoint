@@ -60,7 +60,7 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem {
         this.value = value;
     }
 
-    public List<DisplayableValue<T>> getAllowedValues() {
+    public List<DisplayableValue<T>> getAllowedValues(PageBase pageBase) {
         List<DisplayableValue<T>> list = new ArrayList<>();
         if (!(getDefinition().getDef() instanceof PrismPropertyDefinition)) {
             return list;

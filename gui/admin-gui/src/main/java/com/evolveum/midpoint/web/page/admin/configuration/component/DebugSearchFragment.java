@@ -51,10 +51,6 @@ public class DebugSearchFragment extends Fragment {
     private static final String ID_ZIP_CHECK = "zipCheck";
     private static final String ID_SHOW_ALL_ITEMS_CHECK = "showAllItemsCheck";
     private static final String ID_SEARCH_FORM = "searchForm";
-    private static final String ID_OID_FILTER = "oidFilter";
-    private static final String ID_SEARCH_BY_OID_BUTTON = "searchByOidButton";
-    private static final String ID_RESOURCE = "resource";
-    private static final String ID_OBJECT_CLASS = "objectClass";
     private static final String ID_CHOICE_CONTAINER = "choiceContainer";
     private static final String ID_CHOICE = "choice";
 
@@ -66,14 +62,6 @@ public class DebugSearchFragment extends Fragment {
         initLayout(resourcesModel, objectClassListModel, showAllItemsModel);
     }
 
-    private PageDebugList getPageBase() {
-        Page page = getPage();
-        if (page instanceof PageDebugList) {
-            return (PageDebugList) page;
-        }
-        throw new IllegalStateException("Unexpected parent page, " + page);
-    }
-
     private IModel<DebugSearchDto> getModel() {
         //noinspection unchecked
         return (IModel<DebugSearchDto>) getDefaultModel();
@@ -82,7 +70,6 @@ public class DebugSearchFragment extends Fragment {
     private void initLayout(IModel<List<ObjectViewDto<ResourceType>>> resourcesModel, IModel<List<QName>> objectClassListModel,
             IModel<Boolean> showAllItemsModel) {
 
-        createSearchByOid();
         createSearchForm(resourcesModel, objectClassListModel);
 
         AjaxCheckBox zipCheck = new AjaxCheckBox(ID_ZIP_CHECK, new Model<>(false)) {
@@ -105,38 +92,11 @@ public class DebugSearchFragment extends Fragment {
 
     }
 
-    private void createSearchByOid() {
-        TextField<String> oidFilterField = new TextField<>(ID_OID_FILTER, new PropertyModel<>(getModel(), DebugSearchDto.F_OID_FILTER));
-        oidFilterField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        oidFilterField.setOutputMarkupId(true);
-        oidFilterField.setOutputMarkupPlaceholderTag(true);
-        add(oidFilterField);
-
-        AjaxSubmitButton searchByOidButton = new AjaxSubmitButton(ID_SEARCH_BY_OID_BUTTON) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onError(AjaxRequestTarget target) {
-                target.add(getPageBase().getFeedbackPanel());
-            }
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target) {
-                searchPerformed(target, true);
-            }
-        };
-        searchByOidButton.setOutputMarkupId(true);
-        add(searchByOidButton);
-    }
-
     private void createSearchForm(IModel<List<ObjectViewDto<ResourceType>>> resourcesModel, IModel<List<QName>> objectClassListModel) {
         final Form<?> searchForm = new MidpointForm<>(ID_SEARCH_FORM);
         add(searchForm);
         searchForm.setOutputMarkupId(true);
         searchForm.add(createTypePanel());
-        searchForm.add(createResourcePanel(resourcesModel));
-        searchForm.add(createObjectClassPanel(objectClassListModel));
         searchForm.add(createSearchPanel());
     }
 
@@ -174,80 +134,6 @@ public class DebugSearchFragment extends Fragment {
         });
 
         return choiceContainer;
-    }
-
-    private WebMarkupContainer createResourcePanel(IModel<List<ObjectViewDto<ResourceType>>> resourcesModel) {
-        DropDownChoicePanel<ObjectViewDto<ResourceType>> resource = new DropDownChoicePanel<>(ID_RESOURCE,
-                new PropertyModel<>(getModel(), DebugSearchDto.F_RESOURCE), resourcesModel,
-                createResourceRenderer(), true);
-        resource.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("blur") {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                // nothing to do, it's here just to update model
-            }
-        });
-        resource.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                DebugSearchDto searchDto = getModel().getObject();
-                searchDto.setObjectClass(null);
-                searchPerformed(target);
-            }
-        });
-        resource.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                DebugSearchDto dto = getModel().getObject();
-                return ObjectTypes.SHADOW.equals(dto.getType());
-            }
-        });
-        return resource;
-    }
-
-    private WebMarkupContainer createObjectClassPanel(IModel<List<QName>> objectClassListModel) {
-        DropDownChoicePanel<QName> objectClass = new DropDownChoicePanel<>(ID_OBJECT_CLASS,
-                new PropertyModel<>(getModel(), DebugSearchDto.F_OBJECT_CLASS), objectClassListModel,
-                new QNameIChoiceRenderer(""), true);
-        objectClass.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("blur") {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                // nothing to do, it's here just to update model
-            }
-        });
-        objectClass.getBaseFormComponent().add(AttributeAppender.append("title",
-                PageBase.createStringResourceStatic(objectClass, "pageDebugList.objectClass")));
-        objectClass.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                searchPerformed(target);
-            }
-        });
-        objectClass.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                DebugSearchDto dto = getModel().getObject();
-                return ObjectTypes.SHADOW.equals(dto.getType());
-            }
-
-            @Override
-            public boolean isEnabled() {
-                DebugSearchDto dto = getModel().getObject();
-                return dto.getResource() != null && StringUtils.isNotEmpty(dto.getResource().getOid());
-            }
-        });
-        return objectClass;
     }
 
     private WebMarkupContainer createSearchPanel() {

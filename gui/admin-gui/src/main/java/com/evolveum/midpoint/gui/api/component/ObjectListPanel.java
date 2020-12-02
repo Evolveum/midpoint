@@ -94,7 +94,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
 
     protected Search createSearch() {
         return SearchFactory.createSearch(type.getClassDefinition(), isCollectionViewPanelForCompiledView() ? getCollectionNameParameterValue().toString() : null,
-                getFixedSearchItems(), null, getPageBase(), true);
+                getFixedSearchItems(), null, getPageBase(), null, true, true);
     }
 
     protected List<ItemPath> getFixedSearchItems() {

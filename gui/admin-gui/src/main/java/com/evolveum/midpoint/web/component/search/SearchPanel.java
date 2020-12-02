@@ -653,13 +653,15 @@ public class SearchPanel extends BasePanel<Search> {
                             return false;
                         }
 
-                        ItemPath propertyPath = property.getPath();
                         for (SearchItem searchItem : search.getItems()) {
-                            if (searchItem instanceof FilterSearchItem) {
-                                return searchItem.getDefinition().equals(property);
-                            }
-                            if (propertyPath != null && QNameUtil.match(propertyPath.lastName(), ((PropertySearchItem) searchItem).getPath().lastName())) {
+                            if (searchItem.getDefinition().equals(property)) {
                                 return false;
+                            }
+                            if (searchItem instanceof PropertySearchItem) {
+                                ItemPath propertyPath = property.getPath();
+                                if (propertyPath != null && QNameUtil.match(propertyPath.lastName(), ((PropertySearchItem) searchItem).getPath().lastName())) {
+                                    return false;
+                                }
                             }
                         }
 
