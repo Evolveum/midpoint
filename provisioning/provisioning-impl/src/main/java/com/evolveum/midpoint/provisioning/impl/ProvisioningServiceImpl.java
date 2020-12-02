@@ -604,9 +604,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         result.addArbitraryObjectAsParam("options", options);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("modifyObject: object modifications:\n{}", DebugUtil.debugDump(modifications));
-        }
+        LOGGER.trace("modifyObject: object modifications:\n{}", DebugUtil.debugDumpLazily(modifications));
 
         // getting object to modify
         PrismObject<T> repoShadow = getRepoObject(type, oid, null, result);

@@ -26,12 +26,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
 import java.io.File;
-import java.io.IOException;
 
 /**
  * @author skublik
@@ -153,7 +151,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                             .clickSearchInResource()
                                 .table()
                                     .search()
-                                        .byItemName("Distinguished Name")
+                                        .textInputPanelByItemName("Distinguished Name")
                                             .inputValue("cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com")
                                         .updateSearch()
                                         .and()
@@ -163,7 +161,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                 .selectTabProjections()
                     .table()
                         .search()
-                            .byItemName("Resource")
+                            .referencePanelByItemName("Resource")
                                 .inputRefOid("10000000-9999-9999-0000-a000ff000003")
                             .updateSearch()
                         .and()
@@ -277,7 +275,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                         .selectTabProjections()
                             .table()
                                 .search()
-                                    .byItemName("Name")
+                                    .textInputPanelByItemName("Name")
                                         .inputValue("jim tiberius kirk")
                                         .updateSearch()
                                     .and())
@@ -304,7 +302,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                 .selectTabProjections()
                     .table()
                         .search()
-                            .byItemName("Name")
+                            .textInputPanelByItemName("Name")
                                 .inputValue(accountName)
                             .updateSearch()
                         .and())

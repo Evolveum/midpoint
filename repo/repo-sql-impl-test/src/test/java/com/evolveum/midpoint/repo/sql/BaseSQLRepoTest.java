@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.testng.AssertJUnit;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeSuite;
 import org.xml.sax.SAXException;
@@ -66,6 +67,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
+import com.evolveum.midpoint.test.util.TestReportUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -158,6 +160,13 @@ public class BaseSQLRepoTest extends AbstractSpringTest
         } catch (Exception ex) {
             //it's ok
             logger.debug("after test method, checking for potential open session, exception occurred: " + ex.getMessage());
+        }
+    }
+
+    @AfterClass
+    public void reportPerfData() {
+        if (testMonitor() != null) {
+            TestReportUtil.reportPerfData(testMonitor());
         }
     }
 

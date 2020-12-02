@@ -9,22 +9,14 @@ package com.evolveum.midpoint.testing.schrodinger;
 
 import com.codeborne.selenide.Selenide;
 
-import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
 import com.evolveum.midpoint.schrodinger.component.common.Paging;
-import com.evolveum.midpoint.schrodinger.component.common.Popover;
-import com.evolveum.midpoint.schrodinger.component.common.Search;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 
-import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
-
-import org.openqa.selenium.Keys;
 import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -93,7 +85,7 @@ public class UsersTest extends AbstractSchrodingerTest {
             users
                 .table()
                     .search()
-                        .byItemName("title")
+                        .textInputPanelByItemName("title")
                             .inputValue("PhD.")
                     .updateSearch()
                     .and()
@@ -104,7 +96,7 @@ public class UsersTest extends AbstractSchrodingerTest {
                 users
                 .table()
                     .search()
-                        .byItemName("title")
+                        .textInputPanelByItemName("title")
                             .inputValue("PhD")
                     .updateSearch()
                     .and()
@@ -115,7 +107,7 @@ public class UsersTest extends AbstractSchrodingerTest {
             users
                 .table()
                     .search()
-                        .byItemName("title")
+                        .textInputPanelByItemName("title")
                             .inputValue("Ing.")
                     .updateSearch()
                     .and()
@@ -126,7 +118,7 @@ public class UsersTest extends AbstractSchrodingerTest {
             users
                 .table()
                     .search()
-                        .byItemName("title")
+                        .textInputPanelByItemName("title")
                             .inputValue("Ing")
                     .updateSearch()
                     .and()

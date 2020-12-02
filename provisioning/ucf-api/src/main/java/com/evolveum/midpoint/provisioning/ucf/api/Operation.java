@@ -6,7 +6,10 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyModificationOperationType;
 
 /**
  * Abstract operation for a connector. Subclasses of this class
@@ -21,4 +24,6 @@ import com.evolveum.midpoint.util.DebugDumpable;
  */
 public abstract class Operation implements DebugDumpable {
 
+    /** Converts this Operation into respective xType bean */
+    public abstract PropertyModificationOperationType asBean(PrismContext prismContext) throws SchemaException;
 }

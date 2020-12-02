@@ -107,7 +107,7 @@ public abstract class TableWithPageRedirect<T> extends Table<T> {
      * @param rowValue
      * @param iconClass
      */
-    private void clickMenuItemButton(String columnTitleKey, String rowValue, String iconClass){
+    public void clickMenuItemButton(String columnTitleKey, String rowValue, String iconClass){
         if (columnTitleKey == null && rowValue == null) {
             getHeaderInlineMenuPanel()
                     .clickInlineMenuButtonByIconClass(iconClass);

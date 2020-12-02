@@ -160,7 +160,7 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
                     .selectTabProjections()
                         .table()
                             .search()
-                                .byItemName("Name")
+                                .textInputPanelByItemName("Name")
                                     .inputValue("kirk")
                                 .updateSearch()
                             .and()

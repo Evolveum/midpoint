@@ -63,7 +63,7 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
         Assert.assertTrue(basicPage.orgStructure().doesRootOrgExists(ORG_NAME));
     }
 
-    @Test (dependsOnMethods = {"createOrgWithinMenuItem"}, priority = 2)
+    @Test (dependsOnMethods = {"test00100createOrgWithinMenuItem"}, priority = 2)
     public void test00200assignDefaultRelationMember(){
         UserPage user = basicPage.newUser();
 

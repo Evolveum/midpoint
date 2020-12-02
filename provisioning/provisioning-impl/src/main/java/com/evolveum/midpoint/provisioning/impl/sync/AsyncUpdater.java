@@ -18,6 +18,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.jetbrains.annotations.NotNull;
@@ -92,6 +93,12 @@ public class AsyncUpdater {
                             }
                         }
                     }
+                }
+
+                @Override
+                public void onProcessingError(Throwable t, OperationResult result) {
+                    super.onProcessingError(t, result);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Exception while processing async update. Change: {}", t, change);
                 }
             };
 

@@ -2257,7 +2257,9 @@ public final class WebComponentUtil {
                 // this is needed to successfully pass through security
                 // TODO: fix MID-3234
                 if (ref.getType() != null && OrgType.COMPLEX_TYPE.equals(ref.getType())) {
-                    assignmentHolder.getParentOrgRef().add(ref.clone());
+                    if(ref.getRelation() == null || pageBase.getRelationRegistry().isStoredIntoParentOrgRef(ref.getRelation())) {
+                        assignmentHolder.getParentOrgRef().add(ref.clone());
+                    }
                 }
 
             });

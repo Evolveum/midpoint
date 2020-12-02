@@ -45,6 +45,8 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapa
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Common abstract superclass for all manual connectors. There are connectors that do not
  * talk to the resource directly. They rather rely on a human to manually execute the
@@ -117,7 +119,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
     public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(
             ResourceObjectIdentification identification,
             PrismObject<ShadowType> shadow,
-            Collection<Operation> changes,
+            @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options,
             StateReporter reporter, OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,

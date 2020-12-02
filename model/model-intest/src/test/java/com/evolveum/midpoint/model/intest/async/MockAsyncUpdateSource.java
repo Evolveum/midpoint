@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.intest.async;
 
 import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncUpdateMessageListener;
 import com.evolveum.midpoint.provisioning.ucf.api.async.PassiveAsyncUpdateSource;
-import com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.AsyncUpdateConnectorInstance;
+import com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.update.AsyncUpdateConnectorInstance;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;

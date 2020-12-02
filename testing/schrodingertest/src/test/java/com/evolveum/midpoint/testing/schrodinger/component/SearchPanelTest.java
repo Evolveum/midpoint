@@ -10,12 +10,10 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
-
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.schrodinger.component.common.Search;
+import com.evolveum.midpoint.schrodinger.component.common.search.Search;
 import com.evolveum.midpoint.schrodinger.component.user.UsersPageTable;
 import com.evolveum.midpoint.schrodinger.page.role.RolesPageTable;
 import com.evolveum.midpoint.schrodinger.page.service.ServicesPageTable;
@@ -72,7 +70,7 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
         Search<UsersPageTable> usersListSearch = (Search<UsersPageTable>) table.search();
 
         usersListSearch
-                .byItemName(NAME_ATTRIBUTE)
+                .textInputPanelByItemName(NAME_ATTRIBUTE)
                 .inputValue("searchByNameUser")
                 .updateSearch();
         Assert.assertTrue(table.containsText("searchByNameUser"));
@@ -81,7 +79,7 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
         usersListSearch.clearTextSearchItemByNameAndUpdate(NAME_ATTRIBUTE);
 
         usersListSearch
-                .byItemName(GIVEN_NAME_ATTRIBUTE)
+                .textInputPanelByItemName(GIVEN_NAME_ATTRIBUTE)
                 .inputValue("searchByGivenNameUser")
                 .updateSearch();
         Assert.assertFalse(table.containsText("searchByNameUser"));
@@ -90,7 +88,7 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
         usersListSearch.clearTextSearchItemByNameAndUpdate(GIVEN_NAME_ATTRIBUTE);
 
         usersListSearch
-                .byItemName(FAMILY_NAME_ATTRIBUTE)
+                .textInputPanelByItemName(FAMILY_NAME_ATTRIBUTE)
                 .inputValue("searchByFamilyNameUser")
                 .updateSearch();
         Assert.assertFalse(table.containsText("searchByNameUser"));
@@ -104,7 +102,7 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
         RolesPageTable table = basicPage.listRoles().table();
         Search<RolesPageTable> search = (Search<RolesPageTable>) table.search();
         search.addSearchItemByAddButtonClick(REQUESTABLE_ATTRIBUTE);
-        Assert.assertNotNull(search.byItemName(REQUESTABLE_ATTRIBUTE, false));
+        Assert.assertNotNull(search.textInputPanelByItemName(REQUESTABLE_ATTRIBUTE, false));
     }
 
     @Test
@@ -112,7 +110,7 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
         ServicesPageTable table = basicPage.listServices().table();
         Search<ServicesPageTable> search = (Search<ServicesPageTable>) table.search();
         search.addSearchItemByNameLinkClick(ROLE_MEMBERSHIP_ATTRIBUTE);
-        Assert.assertNotNull(search.byItemName(ROLE_MEMBERSHIP_ATTRIBUTE, false));
+        Assert.assertNotNull(search.textInputPanelByItemName(ROLE_MEMBERSHIP_ATTRIBUTE, false));
     }
 
     @Test
@@ -121,7 +119,7 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
         Search<RolesPageTable> search = (Search<RolesPageTable>) table.search();
         search.resetBasicSearch();
         Assert.assertNotEquals(1, table.countTableObjects());
-        search.byItemName(REQUESTABLE_ATTRIBUTE)
+        search.dropDownPanelByItemName(REQUESTABLE_ATTRIBUTE)
                 .inputDropDownValue("True")
                 .updateSearch();
         Assert.assertEquals(1, table.countTableObjects());
@@ -133,7 +131,7 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
         Search<RolesPageTable> search = (Search<RolesPageTable>) table.search();
         search.resetBasicSearch();
         Assert.assertNotEquals(1, table.countTableObjects());
-        search.byItemName(ADMINISTRATIVE_STATUS_ATTRIBUTE)
+        search.dropDownPanelByItemName(ADMINISTRATIVE_STATUS_ATTRIBUTE)
                 .inputDropDownValue("disabled")
                 .updateSearch();
         Assert.assertEquals(1, table.countTableObjects());
@@ -145,7 +143,7 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
         Search<UsersPageTable> search = (Search<UsersPageTable>) table.search();
         search.resetBasicSearch();
         Assert.assertNotEquals(1, table.countTableObjects());
-        search.byItemName(ROLE_MEMBERSHIP_ATTRIBUTE)
+        search.referencePanelByItemName(ROLE_MEMBERSHIP_ATTRIBUTE)
                 .inputRefOid("332fd5e-sdf7-4322-9ff3-1848cd6ed4aa")
                 .updateSearch();
         Assert.assertEquals(1, table.countTableObjects());
@@ -157,7 +155,7 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
         UsersPageTable table = basicPage.listUsers().table();
         Search<UsersPageTable> search = (Search<UsersPageTable>) table.search();
         search.resetBasicSearch();
-        search.byItemName(ROLE_MEMBERSHIP_ATTRIBUTE)
+        search.referencePanelByItemName(ROLE_MEMBERSHIP_ATTRIBUTE)
                 .inputRefType("Organization")
                 .updateSearch();
         Assert.assertEquals(1, table.countTableObjects());
@@ -169,7 +167,7 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
         UsersPageTable table = basicPage.listUsers().table();
         Search<UsersPageTable> search = (Search<UsersPageTable>) table.search();
         search.resetBasicSearch();
-        search.byItemName(ROLE_MEMBERSHIP_ATTRIBUTE)
+        search.referencePanelByItemName(ROLE_MEMBERSHIP_ATTRIBUTE)
                 .inputRefRelation("Manager")
                 .updateSearch();
         Assert.assertEquals(1, table.countTableObjects());
@@ -181,12 +179,12 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
         UsersPageTable table = basicPage.listUsers().table();
         Search<UsersPageTable> search = (Search<UsersPageTable>) table.search();
         search.resetBasicSearch();
-        search.byItemName(ROLE_MEMBERSHIP_ATTRIBUTE)
+        search.referencePanelByItemName(ROLE_MEMBERSHIP_ATTRIBUTE)
                 .inputRefName("roleMembershipByName", "roleMembershipByNameSearch")
                 .updateSearch();
         Assert.assertEquals(1, table.countTableObjects());
         Assert.assertTrue(table.containsLinksTextPartially("testUserWithRoleMembershipSearchByName"));
-        Assert.assertTrue(search.byItemName(ROLE_MEMBERSHIP_ATTRIBUTE).matchRefSearchFieldValue(REF_SEARCH_FIELD_VALUE));
+        Assert.assertTrue(search.referencePanelByItemName(ROLE_MEMBERSHIP_ATTRIBUTE).matchRefSearchFieldValue(REF_SEARCH_FIELD_VALUE));
     }
 
     @Test
@@ -198,14 +196,14 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
 
         UsersPageTable table = basicPage.listUsers().table();
         Search<UsersPageTable> search = (Search<UsersPageTable>) table.search();
-        search.byItemName("By employee number", false)
+        search.textInputPanelByItemName("By employee number", false)
                 .inputValue("544")
                 .updateSearch();
         Assert.assertEquals(table.countTableObjects(), 1);
         Assert.assertTrue(table.containsLinksTextPartially("searchByEmployeeNumberUser"));
 
         search.clearTextSearchItemByNameAndUpdate("By employee number");
-        search.byItemName("By email", false)
+        search.textInputPanelByItemName("By email", false)
                 .inputValue("testEmailAddress@test.com")
                 .updateSearch();
         Assert.assertEquals(table.countTableObjects(), 1);

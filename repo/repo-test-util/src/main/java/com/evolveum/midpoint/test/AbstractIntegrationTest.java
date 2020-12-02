@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -20,6 +20,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -49,6 +50,7 @@ import org.springframework.test.context.web.ServletTestExecutionListener;
 import org.testng.Assert;
 import org.testng.AssertJUnit;
 import org.testng.ITestResult;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Listeners;
@@ -145,7 +147,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected LdapShaPasswordEncoder ldapShaPasswordEncoder = new LdapShaPasswordEncoder();
 
-    private Map<InternalCounters, Long> lastCountMap = new HashMap<>();
+    private final Map<InternalCounters, Long> lastCountMap = new HashMap<>();
 
     private CachingStatistics lastResourceCacheStats;
 
@@ -299,6 +301,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 }
                 task.getResult().computeStatusIfUnknown();
             }
+        }
+    }
+
+    @AfterClass
+    public void reportPerfData() {
+        if (testMonitor() != null) {
+            TestReportUtil.reportPerfData(testMonitor());
         }
     }
 
@@ -518,6 +527,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
         repoAddObject(object, contextDesc, null, result);
     }
+
     protected <T extends ObjectType> void repoAddObject(
             PrismObject<T> object, String contextDesc, RepoAddOptions options, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
@@ -1257,18 +1267,34 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         shadowType.setObjectClass(objectClassDefinition.getTypeName());
         ResourceAttributeContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
         if (uid != null) {
-            RefinedAttributeDefinition uidAttrDef = objectClassDefinition.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "uid"));
+            RefinedAttributeDefinition<String> uidAttrDef = objectClassDefinition.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "uid"));
             ResourceAttribute<String> uidAttr = uidAttrDef.instantiate();
             uidAttr.setRealValue(uid);
             attrContainer.add(uidAttr);
         }
         if (name != null) {
-            RefinedAttributeDefinition nameAttrDef = objectClassDefinition.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"));
+            RefinedAttributeDefinition<String> nameAttrDef = objectClassDefinition.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"));
             ResourceAttribute<String> nameAttr = nameAttrDef.instantiate();
             nameAttr.setRealValue(name);
             attrContainer.add(nameAttr);
         }
         return shadow;
+    }
+
+    @SafeVarargs
+    protected final <T> void addAttributeValue(PrismObject<ResourceType> resource, PrismObject<ShadowType> shadow,
+            QName attributeName, T... values) throws SchemaException {
+        ShadowType shadowBean = shadow.asObjectable();
+        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
+        RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getDefaultRefinedDefinition(shadowBean.getKind());
+        shadowBean.setObjectClass(objectClassDefinition.getTypeName());
+        ResourceAttributeContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
+        RefinedAttributeDefinition<T> attrDef = Objects.requireNonNull(
+                objectClassDefinition.findAttributeDefinition(attributeName),
+                () -> "No attribute " + attributeName + " in " + objectClassDefinition);
+        ResourceAttribute<T> attr = attrDef.instantiate();
+        attr.addRealValues(values);
+        attrContainer.add(attr);
     }
 
     protected PrismObject<ShadowType> findAccountShadowByUsername(
@@ -1481,9 +1507,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected void assertActivationAdministrativeStatus(PrismObject<ShadowType> shadow, ActivationStatusType expectedStatus) {
         ActivationType activationType = shadow.asObjectable().getActivation();
         if (activationType == null) {
-            if (expectedStatus == null) {
-                return;
-            } else {
+            if (expectedStatus != null) {
                 AssertJUnit.fail("Expected activation administrative status of " + shadow + " to be " + expectedStatus + ", but there was no activation administrative status");
             }
         } else {
@@ -1494,9 +1518,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected void assertShadowLockout(PrismObject<ShadowType> shadow, LockoutStatusType expectedStatus) {
         ActivationType activationType = shadow.asObjectable().getActivation();
         if (activationType == null) {
-            if (expectedStatus == null) {
-                return;
-            } else {
+            if (expectedStatus != null) {
                 AssertJUnit.fail("Expected lockout status of " + shadow + " to be " + expectedStatus + ", but there was no lockout status");
             }
         } else {
@@ -1507,9 +1529,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected void assertUserLockout(PrismObject<UserType> user, LockoutStatusType expectedStatus) {
         ActivationType activationType = user.asObjectable().getActivation();
         if (activationType == null) {
-            if (expectedStatus == null) {
-                return;
-            } else {
+            if (expectedStatus != null) {
                 AssertJUnit.fail("Expected lockout status of " + user + " to be " + expectedStatus + ", but there was no lockout status");
             }
         } else {
@@ -1911,6 +1931,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         IntegrationTestTools.displayCollection(message, collection);
     }
 
+    public static void displayMap(String message, Map<?, ? extends DebugDumpable> map) {
+        IntegrationTestTools.displayMap(message, map);
+    }
+
     public static void displayObjectTypeCollection(String message, Collection<? extends ObjectType> collection) {
         IntegrationTestTools.displayObjectTypeCollection(message, collection);
     }
@@ -2279,13 +2303,14 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         assertLinked(UserType.class, userOid, accountOid);
     }
 
-    protected <F extends FocusType> void assertLinked(Class<F> type, String focusOid, String projectionOid) throws ObjectNotFoundException, SchemaException {
+    protected <F extends FocusType> void assertLinked(Class<F> type, String focusOid, String projectionOid)
+            throws ObjectNotFoundException, SchemaException {
         OperationResult result = new OperationResult("assertLinked");
         PrismObject<F> user = repositoryService.getObject(type, focusOid, null, result);
         assertLinked(user, projectionOid);
     }
 
-    protected <F extends FocusType> void assertLinked(PrismObject<F> focus, PrismObject<ShadowType> projection) throws ObjectNotFoundException, SchemaException {
+    protected <F extends FocusType> void assertLinked(PrismObject<F> focus, PrismObject<ShadowType> projection) {
         assertLinked(focus, projection.getOid());
     }
 
@@ -2307,7 +2332,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         assertNotLinked(user, accountOid);
     }
 
-    protected <F extends FocusType> void assertNotLinked(PrismObject<F> user, PrismObject<ShadowType> account) throws ObjectNotFoundException, SchemaException {
+    protected <F extends FocusType> void assertNotLinked(PrismObject<F> user, PrismObject<ShadowType> account) {
         assertNotLinked(user, account.getOid());
     }
 
@@ -2585,12 +2610,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected ObjectDelta<ShadowType> createModifyAccountShadowReplaceAttributeDelta(String accountOid,
-            PrismObject<ResourceType> resource, String attributeName, Object... newRealValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+            PrismObject<ResourceType> resource, String attributeName, Object... newRealValue) throws SchemaException {
         return createModifyAccountShadowReplaceAttributeDelta(accountOid, resource, getAttributeQName(resource, attributeName), newRealValue);
     }
 
     protected ObjectDelta<ShadowType> createModifyAccountShadowReplaceAttributeDelta(String accountOid,
-            PrismObject<ResourceType> resource, QName attributeName, Object... newRealValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+            PrismObject<ResourceType> resource, QName attributeName, Object... newRealValue) throws SchemaException {
         return createModifyAccountShadowReplaceDelta(accountOid, resource, ItemPath.create(ShadowType.F_ATTRIBUTES, attributeName), newRealValue);
     }
 

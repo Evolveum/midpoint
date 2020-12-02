@@ -11,10 +11,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectIdentifiersType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectIdentityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -22,9 +27,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public class ResourceObjectIdentification implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private ObjectClassComplexTypeDefinition objectClassDefinition;
-    private Collection<? extends ResourceAttribute<?>> primaryIdentifiers;
-    private Collection<? extends ResourceAttribute<?>> secondaryIdentifiers;
+    private final ObjectClassComplexTypeDefinition objectClassDefinition;
+    private final Collection<? extends ResourceAttribute<?>> primaryIdentifiers;
+    private final Collection<? extends ResourceAttribute<?>> secondaryIdentifiers;
     // TODO: identification strategy
 
     public ResourceObjectIdentification(ObjectClassComplexTypeDefinition objectClassDefinition,
@@ -46,6 +51,7 @@ public class ResourceObjectIdentification implements Serializable {
         if (primaryIdentifiers.size() > 1) {
             throw new SchemaException("More than one primary identifier in "+this);
         }
+        //noinspection unchecked
         return (ResourceAttribute<T>) primaryIdentifiers.iterator().next();
     }
 
@@ -60,6 +66,7 @@ public class ResourceObjectIdentification implements Serializable {
         if (secondaryIdentifiers.size() > 1) {
             throw new SchemaException("More than one secondary identifier in "+this);
         }
+        //noinspection unchecked
         return (ResourceAttribute<T>) secondaryIdentifiers.iterator().next();
     }
 
@@ -93,11 +100,13 @@ public class ResourceObjectIdentification implements Serializable {
                 if (primaryIdentifiers == null) {
                     primaryIdentifiers = new ArrayList<>();
                 }
+                //noinspection unchecked
                 ((Collection)primaryIdentifiers).add(identifier);
             } else if (objectClassDefinition.isSecondaryIdentifier(identifier.getElementName())) {
                 if (secondaryIdentifiers == null) {
                     secondaryIdentifiers = new ArrayList<>();
                 }
+                //noinspection unchecked
                 ((Collection)secondaryIdentifiers).add(identifier);
             } else {
                 throw new SchemaException("Attribute "+identifier+" is neither primary not secondary identifier in object class "+objectClassDefinition);
@@ -107,7 +116,7 @@ public class ResourceObjectIdentification implements Serializable {
     }
 
     public static ResourceObjectIdentification createFromAttributes(ObjectClassComplexTypeDefinition objectClassDefinition,
-            Collection<? extends ResourceAttribute<?>> attributes) throws SchemaException {
+            Collection<? extends ResourceAttribute<?>> attributes) {
         Collection<? extends ResourceAttribute<?>> primaryIdentifiers =  null;
         Collection<? extends ResourceAttribute<?>> secondaryIdentifiers = null;
         for (ResourceAttribute<?> identifier: attributes) {
@@ -115,11 +124,13 @@ public class ResourceObjectIdentification implements Serializable {
                 if (primaryIdentifiers == null) {
                     primaryIdentifiers = new ArrayList<>();
                 }
+                //noinspection unchecked
                 ((Collection)primaryIdentifiers).add(identifier);
             } else if (objectClassDefinition.isSecondaryIdentifier(identifier.getElementName())) {
                 if (secondaryIdentifiers == null) {
                     secondaryIdentifiers = new ArrayList<>();
                 }
+                //noinspection unchecked
                 ((Collection)secondaryIdentifiers).add(identifier);
             }
         }
@@ -127,7 +138,7 @@ public class ResourceObjectIdentification implements Serializable {
     }
 
     public static ResourceObjectIdentification createFromShadow(ObjectClassComplexTypeDefinition objectClassDefinition,
-            ShadowType shadowType) throws SchemaException {
+            ShadowType shadowType) {
         return createFromAttributes(objectClassDefinition, ShadowUtil.getAttributes(shadowType));
     }
 
@@ -150,6 +161,7 @@ public class ResourceObjectIdentification implements Serializable {
         return result;
     }
 
+    @SuppressWarnings("RedundantIfStatement")
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
@@ -175,4 +187,26 @@ public class ResourceObjectIdentification implements Serializable {
                 + ": primary=" + primaryIdentifiers + ", secondary=" + secondaryIdentifiers + ")";
     }
 
+    @NotNull
+    public ResourceObjectIdentityType asBean(PrismContext prismContext) throws SchemaException {
+        ResourceObjectIdentityType bean = new ResourceObjectIdentityType(prismContext);
+        if (objectClassDefinition != null) {
+            bean.setObjectClass(objectClassDefinition.getTypeName());
+        }
+        bean.setPrimaryIdentifiers(getIdentifiersAsBean(primaryIdentifiers, prismContext));
+        bean.setSecondaryIdentifiers(getIdentifiersAsBean(secondaryIdentifiers, prismContext));
+        return bean;
+    }
+
+    private ResourceObjectIdentifiersType getIdentifiersAsBean(Collection<? extends ResourceAttribute<?>> identifiers,
+            PrismContext prismContext) throws SchemaException {
+        if (identifiers.isEmpty()) {
+            return null;
+        }
+        ResourceObjectIdentifiersType identifiersBean = new ResourceObjectIdentifiersType(prismContext);
+        for (ResourceAttribute<?> identifier : identifiers) {
+            identifiersBean.asPrismContainerValue().add(identifier.clone());
+        }
+        return identifiersBean;
+    }
 }
