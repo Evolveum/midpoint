@@ -10,10 +10,9 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
-import com.evolveum.midpoint.schrodinger.component.common.Search;
+import com.evolveum.midpoint.schrodinger.component.common.search.Search;
 import com.evolveum.midpoint.schrodinger.component.common.table.AbstractTable;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
-import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Selenide.$;
 

@@ -1,4 +1,10 @@
-package com.evolveum.midpoint.schrodinger.component.common;
+/*
+ * Copyright (c) 2010-2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+package com.evolveum.midpoint.schrodinger.component.common.search;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
@@ -12,22 +18,12 @@ import org.openqa.selenium.By;
 import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.$;
 
-public class SearchItemField<T> extends Component<T> {
-
-    public SearchItemField(T parent, SelenideElement parentElement) {
+/**
+ * Created by honchar
+ */
+public class ReferenceSearchItemPanel<T> extends Component<T> {
+    public ReferenceSearchItemPanel(T parent, SelenideElement parentElement) {
         super(parent, parentElement);
-    }
-
-    public T inputValue(String input) {
-        if (getParentElement() == null){
-            return getParent();
-        }
-        SelenideElement inputField = getParentElement().parent().$x(".//input[@" + Schrodinger.DATA_S_ID + "='input']")
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
-        if(!input.equals(inputField.getValue())) {
-            inputField.setValue(input);
-        }
-        return getParent();
     }
 
     public T inputRefOid(String oid) {
@@ -115,13 +111,5 @@ public class SearchItemField<T> extends Component<T> {
 
     }
 
-    public T inputDropDownValue(String value) {
-        if (getParentElement() == null){
-            return getParent();
-        }
-        SelenideElement inputField = getParentElement().parent().$x(".//select[@" + Schrodinger.DATA_S_ID + "='input']")
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
-        inputField.selectOptionContainingText(value);
-        return getParent();
-    }
+
 }

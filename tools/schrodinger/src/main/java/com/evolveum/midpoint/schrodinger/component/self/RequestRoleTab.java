@@ -18,7 +18,7 @@ import org.openqa.selenium.By;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
-import com.evolveum.midpoint.schrodinger.component.common.Search;
+import com.evolveum.midpoint.schrodinger.component.common.search.Search;
 import com.evolveum.midpoint.schrodinger.component.modal.ObjectBrowserModal;
 import com.evolveum.midpoint.schrodinger.component.modal.ObjectBrowserModalTable;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;

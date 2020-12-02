@@ -417,7 +417,7 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
         return tab.table()
                 .search()
                 .resetBasicSearch()
-                .byItemName(searchedItem)
+                .textInputPanelByItemName(searchedItem)
                 .inputValue(itemValue)
                 .updateSearch()
                 .and();

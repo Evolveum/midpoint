@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.schrodinger.component.common;
+package com.evolveum.midpoint.schrodinger.component.common.search;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
@@ -57,8 +57,8 @@ public class SearchPropertiesConfigPanel<T> extends Component<T> {
     public SearchPropertiesConfigPanel<T> setPropertyObjectReferenceValue(String propertyName, String objectReferenceOid, boolean addPropertyIfAbsent) {
         TableRow propertyRow = getTableRowForProperty(propertyName, addPropertyIfAbsent);
         if (propertyRow != null) {
-            SearchItemField<SearchPropertiesConfigPanel> refConfigPanel =
-                    new SearchItemField<>(this, propertyRow.getColumnCellElementByColumnName("Value"));
+            ReferenceSearchItemPanel<SearchPropertiesConfigPanel> refConfigPanel =
+                    new ReferenceSearchItemPanel<>(this, propertyRow.getColumnCellElementByColumnName("Value"));
             refConfigPanel.inputRefOid(objectReferenceOid);
         }
         return this;

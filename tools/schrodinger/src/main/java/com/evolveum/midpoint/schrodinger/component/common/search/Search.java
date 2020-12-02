@@ -5,12 +5,13 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.schrodinger.component.common;
+package com.evolveum.midpoint.schrodinger.component.common.search;
 
 import com.codeborne.selenide.*;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
+import com.evolveum.midpoint.schrodinger.component.common.InputBox;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import org.openqa.selenium.By;
@@ -27,7 +28,7 @@ public class Search<T> extends Component<T> {
         super(parent, parentElement);
     }
 
-    public SearchItemField<Search<T>> byName() {
+    public TextInputSearchItemPanel<Search<T>> byName() {
         choiceBasicSearch();
         SelenideElement nameElement = getItemByName("Name");
         if (nameElement == null){
@@ -36,14 +37,34 @@ public class Search<T> extends Component<T> {
         }
         SelenideElement nameInput = nameElement.parent().$x(".//input[@" + Schrodinger.DATA_S_ID + "='input']")
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
-        return new SearchItemField(this, nameInput);
+        return new TextInputSearchItemPanel(this, nameInput);
     }
 
-    public SearchItemField<Search<T>> byItemName(String itemName) {
-        return byItemName(itemName, true);
+    public TextInputSearchItemPanel<Search<T>> textInputPanelByItemName(String itemName) {
+        return textInputPanelByItemName(itemName, true);
     }
 
-    public SearchItemField<Search<T>> byItemName(String itemName, boolean addIfAbsent) {
+    public TextInputSearchItemPanel<Search<T>> textInputPanelByItemName(String itemName, boolean addIfAbsent) {
+        return new TextInputSearchItemPanel(this, getItemSearchElement(itemName, addIfAbsent));
+    }
+
+    public DropDownSearchItemPanel<Search<T>> dropDownPanelByItemName(String itemName) {
+        return dropDownPanelByItemName(itemName, true);
+    }
+
+    public DropDownSearchItemPanel<Search<T>> dropDownPanelByItemName(String itemName, boolean addIfAbsent) {
+        return new DropDownSearchItemPanel(this, getItemSearchElement(itemName, addIfAbsent));
+    }
+
+    public ReferenceSearchItemPanel<Search<T>> referencePanelByItemName(String itemName) {
+        return referencePanelByItemName(itemName, true);
+    }
+
+    public ReferenceSearchItemPanel<Search<T>> referencePanelByItemName(String itemName, boolean addIfAbsent) {
+        return new ReferenceSearchItemPanel(this, getItemSearchElement(itemName, addIfAbsent));
+    }
+
+    private SelenideElement getItemSearchElement(String itemName, boolean addIfAbsent) {
         choiceBasicSearch();
         SelenideElement itemElement = getItemByName(itemName);
         if (itemElement == null && addIfAbsent){
@@ -53,9 +74,7 @@ public class Search<T> extends Component<T> {
         if (itemElement == null){
             return null;
         }
-//        SelenideElement itemElementInput = itemElement.parent().$x(".//input[@" + Schrodinger.DATA_S_ID + "='input']")
-//                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
-        return new SearchItemField(this, itemElement);
+        return itemElement;
     }
 
     public Search<T> updateSearch(){
@@ -168,7 +187,7 @@ public class Search<T> extends Component<T> {
         if (itemElement == null){
             return this;
         }
-        SearchItemField searchField = new SearchItemField(this, itemElement);
+        TextInputSearchItemPanel searchField = new TextInputSearchItemPanel(this, itemElement);
         searchField.inputValue("");
         updateSearch();
         return this;
