@@ -37,10 +37,10 @@ public class M6ConfiguringMultipleAccountTypes extends AbstractLabTest {
     @Test(groups={"M6"}, dependsOnGroups={"M5"})
     public void mod06test01UsingAccountIntentsForProvisioning() {
 
-        addObjectFromFile(CSV_1_RESOURCE_FILE_6_1);
+        importObject(CSV_1_RESOURCE_FILE_6_1, true);
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
 
-        addObjectFromFile(CSV_3_RESOURCE_FILE_6_1);
+        importObject(CSV_3_RESOURCE_FILE_6_1, true);
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
 
         addObjectFromFile(CSV1_TESTER_ROLE_FILE);
@@ -51,7 +51,7 @@ public class M6ConfiguringMultipleAccountTypes extends AbstractLabTest {
         AbstractTableWithPrismView<ProjectionsTab<UserPage>> table = showUser("kirk").selectTabProjections()
                 .table();
         Assert.assertTrue(table.search()
-                .byItemName("Resource")
+                .referencePanelByItemName("Resource")
                     .inputRefOid("10000000-9999-9999-0000-a000ff000002")
                     .updateSearch()
                 .and()
@@ -59,14 +59,14 @@ public class M6ConfiguringMultipleAccountTypes extends AbstractLabTest {
         Assert.assertTrue(table.containsText("_kirk"));
 
         Assert.assertTrue(table.search()
-                .byItemName("Resource")
+                .referencePanelByItemName("Resource")
                     .inputRefOid("10000000-9999-9999-0000-a000ff000003")
                     .updateSearch()
                 .and()
             .containsText("jkirk"));
 
         Assert.assertTrue(table.search()
-                .byItemName("Resource")
+                .referencePanelByItemName("Resource")
                     .inputRefOid("10000000-9999-9999-0000-a000ff000004")
                     .updateSearch()
                 .and()

@@ -20,7 +20,7 @@ public class ReportTests extends AbstractSchrodingerTest {
     @Test
     public void test00100createReport() {
         Assert.assertTrue(basicPage.listReports()
-        .newReport()
+        .newObjectCollection("New collection report")
             .selectTabBasic()
                 .form()
                     .addAttributeValue("Name", "TestReport")
@@ -30,7 +30,7 @@ public class ReportTests extends AbstractSchrodingerTest {
             .feedback()
             .isSuccess(),
                 "Couldn't create new report");
-        Assert.assertEquals("1", basicPage.listReports()
+        Assert.assertEquals(1, basicPage.listReports()
             .table()
                 .search()
                     .byName()
@@ -45,8 +45,7 @@ public class ReportTests extends AbstractSchrodingerTest {
     public void test00200runUsersReport() {
         ReportTable reportTable = basicPage.listReports().table();
         reportTable.runReport("All audit records report");
-//                .runReport();
-        Assert.assertEquals(1, basicPage.createdReports()
+        Assert.assertEquals(1, basicPage.listReports("Collection reports")
             .table()
                 .search()
                     .byName()

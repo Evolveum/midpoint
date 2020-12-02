@@ -56,7 +56,14 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
         });
         oidField.setOutputMarkupId(true);
         oidField.add(new VisibleBehaviour(() -> true));
-        oidField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        oidField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onUpdate(AjaxRequestTarget target) {
+                ReferenceValueSearchPopupPanel.this.getModelObject().asReferenceValue().setObject(null);
+            }
+        });
         midpointForm.add(oidField);
 
         ReferenceAutocomplete nameField = new ReferenceAutocomplete(ID_NAME, Model.of(getModelObject()),

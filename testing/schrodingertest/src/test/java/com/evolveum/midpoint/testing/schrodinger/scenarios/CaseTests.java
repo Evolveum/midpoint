@@ -14,12 +14,12 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 
-import com.evolveum.midpoint.schrodinger.component.common.Search;
-import com.evolveum.midpoint.schrodinger.component.common.SearchItemField;
-import com.evolveum.midpoint.schrodinger.component.modal.ObjectBrowserModal;
+import com.evolveum.midpoint.schrodinger.component.cases.ChildrenCaseTable;
+import com.evolveum.midpoint.schrodinger.component.cases.WorkitemDetailsPanel;
+import com.evolveum.midpoint.schrodinger.component.common.search.Search;
+import com.evolveum.midpoint.schrodinger.component.common.search.TextInputSearchItemPanel;
 
 import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
@@ -241,7 +241,7 @@ public class CaseTests extends AbstractSchrodingerTest {
                 .clickByName(ASSIGNING_ROLE_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME);
 
         ForwardWorkitemModal forwardWorkitemModal = workitemDetailsPanel.forwardButtonClick();
-        SearchItemField<Search<ForwardWorkitemModal>> nameSearchField = forwardWorkitemModal
+        TextInputSearchItemPanel<Search<ForwardWorkitemModal>> nameSearchField = forwardWorkitemModal
                 .table()
                 .search()
                 .byName();

@@ -558,6 +558,18 @@ public class IntegrationTestTools {
         }
     }
 
+    public static <K> void displayMap(String message, Map<K, ? extends DebugDumpable> map) {
+        println(OBJECT_TITLE_OUT_PREFIX + message);
+        LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
+        for (Map.Entry<K, ? extends DebugDumpable> entry : map.entrySet()) {
+            String s = entry.getKey() + " -> " + DebugUtil.debugDump(entry.getValue());
+            println(s);
+            LOGGER.debug("{}", s);
+            println(OBJECT_LIST_SEPARATOR);
+            LOGGER.debug(OBJECT_LIST_SEPARATOR);
+        }
+    }
+
     public static void displayObjectTypeCollection(String message, Collection<? extends ObjectType> collection) {
         println(OBJECT_TITLE_OUT_PREFIX + message);
         LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);

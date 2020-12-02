@@ -20,6 +20,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -1280,6 +1281,22 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return shadow;
     }
 
+    @SafeVarargs
+    protected final <T> void addAttributeValue(PrismObject<ResourceType> resource, PrismObject<ShadowType> shadow,
+            QName attributeName, T... values) throws SchemaException {
+        ShadowType shadowBean = shadow.asObjectable();
+        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
+        RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getDefaultRefinedDefinition(shadowBean.getKind());
+        shadowBean.setObjectClass(objectClassDefinition.getTypeName());
+        ResourceAttributeContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
+        RefinedAttributeDefinition<T> attrDef = Objects.requireNonNull(
+                objectClassDefinition.findAttributeDefinition(attributeName),
+                () -> "No attribute " + attributeName + " in " + objectClassDefinition);
+        ResourceAttribute<T> attr = attrDef.instantiate();
+        attr.addRealValues(values);
+        attrContainer.add(attr);
+    }
+
     protected PrismObject<ShadowType> findAccountShadowByUsername(
             String username, PrismObject<ResourceType> resource, OperationResult result)
             throws SchemaException {
@@ -1912,6 +1929,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     public static void displayCollection(String message, Collection<? extends DebugDumpable> collection) {
         IntegrationTestTools.displayCollection(message, collection);
+    }
+
+    public static void displayMap(String message, Map<?, ? extends DebugDumpable> map) {
+        IntegrationTestTools.displayMap(message, map);
     }
 
     public static void displayObjectTypeCollection(String message, Collection<? extends ObjectType> collection) {

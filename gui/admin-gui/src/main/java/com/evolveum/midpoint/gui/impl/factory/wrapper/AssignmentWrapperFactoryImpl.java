@@ -29,9 +29,7 @@ import org.springframework.stereotype.Component;
  * @author skublik
  */
 @Component
-public class AssignmentWrapperFactoryImpl extends PrismContainerWrapperFactoryImpl<AssignmentType> {
-
-    private static final Trace LOGGER = TraceManager.getTrace(AssignmentWrapperFactoryImpl.class);
+public class AssignmentWrapperFactoryImpl extends NoEmptyValueContainerWrapperFactoryImpl<AssignmentType> {
 
     @Override
     public PrismContainerValueWrapper<AssignmentType> createContainerValueWrapper(PrismContainerWrapper<AssignmentType> objectWrapper, PrismContainerValue<AssignmentType> objectValue, ValueStatus status, WrapperContext context) {

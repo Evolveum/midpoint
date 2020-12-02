@@ -40,13 +40,11 @@ public class Utils {
     public static void setOptionCheckedByName(String optionName, boolean checked) {
         SelenideElement checkBox = $(By.name(optionName)).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
         checkBox.setSelected(checked);
-        checkBox.waitUntil(Condition.attribute("checked", "checked"), MidPoint.TIMEOUT_DEFAULT_2_S);
     }
 
     public static void setOptionCheckedById(String id, boolean checked) {
         SelenideElement checkBox = $(Schrodinger.byDataId(id)).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
         checkBox.setSelected(checked);
-        checkBox.waitUntil(Condition.attribute("checked", "checked"), MidPoint.TIMEOUT_DEFAULT_2_S);
     }
 
     public static void setCheckFormGroupOptionCheckedById(String id, boolean checked) {

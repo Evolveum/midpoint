@@ -14,6 +14,8 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
+import org.jetbrains.annotations.NotNull;
+
 import javax.xml.namespace.QName;
 import java.util.List;
 
@@ -26,7 +28,7 @@ public interface UcfExpressionEvaluator {
     /**
      * Evaluates given expression.
      */
-    <O> List<O> evaluate(ExpressionType expressionBean, VariablesMap variables, QName outputPropertyName,
+    @NotNull <O> List<O> evaluate(ExpressionType expressionBean, VariablesMap variables, QName outputPropertyName,
             String contextDescription, Task task, OperationResult opResult)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException;

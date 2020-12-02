@@ -26,7 +26,7 @@ public class ChooseFocusTypeAndRelationModal<T> extends Component<T> {
     }
 
     public ChooseFocusTypeAndRelationModal<T> setType(String type) {
-        getParentElement().$(Schrodinger.byDataId("type"))
+        getParentElement().$x(".//div[@data-s-id='type']")
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
                 .$x(".//select[@" + Schrodinger.DATA_S_ID + "='select']")
                 .selectOption(type);
@@ -34,7 +34,7 @@ public class ChooseFocusTypeAndRelationModal<T> extends Component<T> {
     }
 
     public String getType() {
-        return getParentElement().$(Schrodinger.byDataId("type"))
+        return getParentElement().$x(".//div[@data-s-id='type']")
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
                 .$x(".//select[@" + Schrodinger.DATA_S_ID + "='select']")
                 .getSelectedOption().getText();
