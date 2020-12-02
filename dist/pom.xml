@@ -12,7 +12,7 @@
     <parent>
         <artifactId>midpoint</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>4.3-SNAPSHOT</version>
+        <version>4.3-M1</version>
     </parent>
 
     <artifactId>dist</artifactId>
@@ -29,14 +29,14 @@
         <dependency>
             <groupId>com.evolveum.midpoint.gui</groupId>
             <artifactId>admin-gui</artifactId>
-            <version>4.3-SNAPSHOT</version>
+            <version>4.3-M1</version>
             <type>war</type>
             <classifier>executable</classifier>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>ninja</artifactId>
-            <version>4.3-SNAPSHOT</version>
+            <version>4.3-M1</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint</groupId>
@@ -61,7 +61,7 @@
                 <!-- Used to pull XSD files from the JAR -->
                 <groupId>com.evolveum.midpoint.tools</groupId>
                 <artifactId>schema-dist-maven-plugin</artifactId>
-                <version>4.3-SNAPSHOT</version>
+                <version>4.3-M1</version>
                 <executions>
                     <execution>
                         <id>schemadist-prism</id>
