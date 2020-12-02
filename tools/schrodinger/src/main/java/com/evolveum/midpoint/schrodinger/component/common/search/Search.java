@@ -64,6 +64,22 @@ public class Search<T> extends Component<T> {
         return new ReferenceSearchItemPanel(this, getItemSearchElement(itemName, addIfAbsent));
     }
 
+    public DateIntervalSearchItemPanel<Search<T>> dateIntervalPanelByItemName(String itemName) {
+        return dateIntervalPanelByItemName(itemName, true);
+    }
+
+    public DateIntervalSearchItemPanel<Search<T>> dateIntervalPanelByItemName(String itemName, boolean addIfAbsent) {
+        return new DateIntervalSearchItemPanel<>(this, getItemSearchElement(itemName, addIfAbsent));
+    }
+
+    public ItemPathSearchItemPanel<Search<T>> itemPathPanelByItemName(String itemName) {
+        return itemPathPanelByItemName(itemName, true);
+    }
+
+    public ItemPathSearchItemPanel<Search<T>> itemPathPanelByItemName(String itemName, boolean addIfAbsent) {
+        return new ItemPathSearchItemPanel<>(this, getItemSearchElement(itemName, addIfAbsent));
+    }
+
     private SelenideElement getItemSearchElement(String itemName, boolean addIfAbsent) {
         choiceBasicSearch();
         SelenideElement itemElement = getItemByName(itemName);

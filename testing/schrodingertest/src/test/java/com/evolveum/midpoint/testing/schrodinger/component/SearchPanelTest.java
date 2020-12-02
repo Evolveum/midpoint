@@ -7,8 +7,12 @@
 package com.evolveum.midpoint.testing.schrodinger.component;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+
+import com.evolveum.midpoint.schrodinger.component.DateTimePanel;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -208,6 +212,17 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
                 .updateSearch();
         Assert.assertEquals(table.countTableObjects(), 1);
         Assert.assertTrue(table.containsLinksTextPartially("searchByEmailAddressUser"));
+    }
+
+    @Test
+    public void test0100dateIntervalSearch() {
+        SimpleDateFormat formater = new SimpleDateFormat("dd/MM/yyyy");
+        basicPage.auditLogViewer()
+                .table()
+                    .search()
+                        .dateIntervalPanelByItemName("Time")
+                            .getFromDateTimeFieldPanel()
+                                .setDateTimeValue(formater.format(new Date()), "", "", DateTimePanel.AmOrPmChoice.AM);
     }
 
 }
