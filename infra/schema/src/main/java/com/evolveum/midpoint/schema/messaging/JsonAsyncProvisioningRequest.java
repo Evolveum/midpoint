@@ -134,6 +134,7 @@ public class JsonAsyncProvisioningRequest {
      * Each attribute with no values or one value is replaced by scalar, i.e. null or the single item.
      * Attributes with multiple values are represented as lists.
      */
+    @JsonIgnore
     public Map<String, Object> getAttributesSimplified() {
         Map<String, Object> rv = new HashMap<>();
         for (Map.Entry<String, Collection<?>> entry : attributes.entrySet()) {
