@@ -39,7 +39,7 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
         hrTargetFile = new File(getTestTargetDir(), HR_FILE_SOURCE_NAME);
         FileUtils.copyFile(HR_SOURCE_FILE, hrTargetFile);
 
-        addObjectFromFile(HR_NO_EXTENSION_RESOURCE_FILE);
+        importObject(HR_NO_EXTENSION_RESOURCE_FILE, true);
         changeResourceAttribute(HR_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, hrTargetFile.getAbsolutePath(), true);
 
         ResourceAccountsTab<ViewResourcePage> accountTab = basicPage.listResources()
