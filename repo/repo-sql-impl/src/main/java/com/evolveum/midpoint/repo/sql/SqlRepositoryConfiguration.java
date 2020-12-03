@@ -489,7 +489,7 @@ public class SqlRepositoryConfiguration {
         idleTimeout = configuration.getLong(PROPERTY_IDLE_TIMEOUT, null);
 
         useZip = configuration.getBoolean(PROPERTY_USE_ZIP, false);
-        useZipAudit = configuration.getBoolean(PROPERTY_USE_ZIP_AUDIT, false);
+        useZipAudit = configuration.getBoolean(PROPERTY_USE_ZIP_AUDIT, true);
         createMissingCustomColumns = configuration.getBoolean(PROPERTY_CREATE_MISSING_CUSTOM_COLUMNS, false);
         fullObjectFormat = configuration.getString(
                 PROPERTY_FULL_OBJECT_FORMAT,
