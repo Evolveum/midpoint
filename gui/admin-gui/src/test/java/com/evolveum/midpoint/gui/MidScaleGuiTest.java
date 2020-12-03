@@ -6,28 +6,15 @@
  */
 package com.evolveum.midpoint.gui;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
-import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.page.self.*;
-
-import org.apache.wicket.util.tester.WicketTester;
 import org.javasimon.Split;
 import org.javasimon.Stopwatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.gui.impl.component.list.UserListPanel;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuPanel;
 import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -39,7 +26,14 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.tools.testng.PerformanceTestMixin;
 import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
 import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
+import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingCart;
+import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
+import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
+import com.evolveum.midpoint.web.page.self.PageUserSelfProfile;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -48,8 +42,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest implements PerformanceTestMixin {
 
     @Autowired TestQueryListener queryListener;
-
-    private final List<String> memInfo = new ArrayList<>();
 
     @BeforeMethod
     public void reportBeforeTest() {
