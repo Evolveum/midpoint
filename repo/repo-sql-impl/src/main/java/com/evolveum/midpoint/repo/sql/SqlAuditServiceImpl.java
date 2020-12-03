@@ -230,7 +230,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
                 // serializedDelta is transient, needed for changed items later
                 mAuditDelta.serializedDelta = serializedDelta;
-                mAuditDelta.delta = RUtil.getBytesFromSerializedForm(serializedDelta, true);
+                mAuditDelta.delta = RUtil.getBytesFromSerializedForm(
+                        serializedDelta, sqlConfiguration().isUseZipAudit());
                 mAuditDelta.deltaOid = delta.getOid();
                 mAuditDelta.deltaType = MiscUtil.enumOrdinal(
                         RUtil.getRepoEnumValue(delta.getChangeType(), RChangeType.class));
@@ -245,7 +246,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                     String full = prismContext.xmlSerializer()
                             .options(SerializationOptions.createEscapeInvalidCharacters())
                             .serializeRealValue(jaxb, SchemaConstantsGenerated.C_OPERATION_RESULT);
-                    mAuditDelta.fullResult = RUtil.getBytesFromSerializedForm(full, true);
+                    mAuditDelta.fullResult = RUtil.getBytesFromSerializedForm(
+                            full, sqlConfiguration().isUseZipAudit());
                 }
             }
             mAuditDelta.resourceOid = deltaOperation.getResourceOid();
