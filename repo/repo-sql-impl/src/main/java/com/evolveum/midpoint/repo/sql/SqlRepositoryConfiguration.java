@@ -272,6 +272,7 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_JDBC_URL = "jdbcUrl";
     public static final String PROPERTY_DATASOURCE = "dataSource";
     public static final String PROPERTY_USE_ZIP = "useZip";
+    public static final String PROPERTY_USE_ZIP_AUDIT = "useZipAudit";
     public static final String PROPERTY_MIN_POOL_SIZE = "minPoolSize";
     public static final String PROPERTY_MAX_POOL_SIZE = "maxPoolSize";
     public static final String PROPERTY_MAX_LIFETIME = "maxLifetime";
@@ -353,6 +354,7 @@ public class SqlRepositoryConfiguration {
     private final Long maxLifetime;
     private final Long idleTimeout;
     private final boolean useZip;
+    private final boolean useZipAudit;
 
     private TransactionIsolation defaultTransactionIsolation;
     private boolean defaultLockForUpdateViaHibernate;
@@ -468,6 +470,7 @@ public class SqlRepositoryConfiguration {
         idleTimeout = configuration.getLong(PROPERTY_IDLE_TIMEOUT, null);
 
         useZip = configuration.getBoolean(PROPERTY_USE_ZIP, false);
+        useZipAudit = configuration.getBoolean(PROPERTY_USE_ZIP_AUDIT, true);
 
         // requires asServer, baseDir, fileName, port
         jdbcUrl = configuration.getString(PROPERTY_JDBC_URL, embedded ? getDefaultEmbeddedJdbcUrl() : null);
@@ -894,6 +897,10 @@ public class SqlRepositoryConfiguration {
 
     public boolean isUseZip() {
         return useZip;
+    }
+
+    public boolean isUseZipAudit() {
+        return useZipAudit;
     }
 
     public boolean isIgnoreOrgClosure() {

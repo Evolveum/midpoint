@@ -294,7 +294,7 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
     }
 
     public static SingleSqlQuery toRepo(Long recordId, ObjectDeltaOperation operation,
-            PrismContext prismContext) throws DtoTranslationException {
+            PrismContext prismContext, boolean useZipAudit) throws DtoTranslationException {
 
         InsertQueryBuilder queryBuilder = new InsertQueryBuilder(TABLE_NAME);
         queryBuilder.addParameter(COLUMN_RECORD_ID, recordId, true);
@@ -305,7 +305,7 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
                 ObjectDelta delta = operation.getObjectDelta();
 
                 String xmlDelta = DeltaConvertor.toObjectDeltaTypeXml(delta, DeltaConversionOptions.createSerializeReferenceNames());
-                deltaData = RUtil.getByteArrayFromXml(xmlDelta, true);
+                deltaData = RUtil.getByteArrayFromXml(xmlDelta, useZipAudit);
                 queryBuilder.addParameter(DELTA_COLUMN_NAME, deltaData);
                 queryBuilder.addParameter(DELTA_OID_COLUMN_NAME, delta.getOid());
                 queryBuilder.addParameter(DELTA_TYPE_COLUMN_NAME, RUtil.getRepoEnumValue(delta.getChangeType(), RChangeType.class));
@@ -324,7 +324,7 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
                     queryBuilder.addParameter(STATUS_COLUMN_NAME, RUtil.getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
                     try {
                         String full = prismContext.xmlSerializer().serializeRealValue(jaxb, SchemaConstantsGenerated.C_OPERATION_RESULT);
-                        fullResultData = RUtil.getByteArrayFromXml(full, true);
+                        fullResultData = RUtil.getByteArrayFromXml(full, useZipAudit);
                         queryBuilder.addParameter(FULL_RESULT_COLUMN_NAME, fullResultData);
                     } catch (Exception ex) {
                         throw new DtoTranslationException(ex.getMessage(), ex);
