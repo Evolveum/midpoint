@@ -564,7 +564,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
                         SingleSqlQuery deltaQuery;
                         try {
-                            deltaQuery = RObjectDeltaOperation.toRepo(id, delta, getPrismContext());
+                            deltaQuery = RObjectDeltaOperation.toRepo(id, delta, getPrismContext(),
+                                    getConfiguration().isUseZipAudit());
                             deltaBatchQuery.addQueryForBatch(deltaQuery);
                         } catch (DtoTranslationException e) {
                             baseHelper.handleGeneralCheckedException(e, localSession, null);
