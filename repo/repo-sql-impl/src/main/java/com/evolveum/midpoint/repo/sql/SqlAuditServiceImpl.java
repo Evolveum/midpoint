@@ -39,7 +39,11 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database;
+import com.evolveum.midpoint.repo.sql.audit.SqlQueryExecutor;
+import com.evolveum.midpoint.repo.sql.audit.beans.MAuditDelta;
+import com.evolveum.midpoint.repo.sql.audit.beans.MAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.audit.mapping.*;
+import com.evolveum.midpoint.repo.sql.audit.querymodel.*;
 import com.evolveum.midpoint.repo.sql.data.SelectQueryBuilder;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
@@ -49,14 +53,10 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sql.helpers.JdbcSession;
 import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
-import com.evolveum.midpoint.repo.sql.audit.SqlQueryExecutor;
-import com.evolveum.midpoint.repo.sql.audit.querymodel.*;
-import com.evolveum.midpoint.repo.sql.audit.beans.MAuditDelta;
-import com.evolveum.midpoint.repo.sql.audit.beans.MAuditEventRecord;
-import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sql.util.TemporaryTableDialect;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -230,7 +230,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
                 // serializedDelta is transient, needed for changed items later
                 mAuditDelta.serializedDelta = serializedDelta;
-                mAuditDelta.delta = RUtil.getBytesFromSerializedForm(serializedDelta, true);
+                mAuditDelta.delta = RUtil.getBytesFromSerializedForm(
+                        serializedDelta, sqlConfiguration().isUseZipAudit());
                 mAuditDelta.deltaOid = delta.getOid();
                 mAuditDelta.deltaType = MiscUtil.enumOrdinal(
                         RUtil.getRepoEnumValue(delta.getChangeType(), RChangeType.class));
@@ -245,7 +246,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                     String full = prismContext.xmlSerializer()
                             .options(SerializationOptions.createEscapeInvalidCharacters())
                             .serializeRealValue(jaxb, SchemaConstantsGenerated.C_OPERATION_RESULT);
-                    mAuditDelta.fullResult = RUtil.getBytesFromSerializedForm(full, true);
+                    mAuditDelta.fullResult = RUtil.getBytesFromSerializedForm(
+                            full, sqlConfiguration().isUseZipAudit());
                 }
             }
             mAuditDelta.resourceOid = deltaOperation.getResourceOid();
