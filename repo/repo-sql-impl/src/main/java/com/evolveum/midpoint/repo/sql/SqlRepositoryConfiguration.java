@@ -281,6 +281,7 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_JDBC_URL = "jdbcUrl";
     public static final String PROPERTY_DATASOURCE = "dataSource";
     public static final String PROPERTY_USE_ZIP = "useZip";
+    public static final String PROPERTY_USE_ZIP_AUDIT = "useZipAudit";
     public static final String PROPERTY_CREATE_MISSING_CUSTOM_COLUMNS = "createMissingCustomColumns";
 
     /**
@@ -369,6 +370,7 @@ public class SqlRepositoryConfiguration {
     private final Long maxLifetime;
     private final Long idleTimeout;
     private final boolean useZip;
+    private final boolean useZipAudit;
     private String fullObjectFormat; // non-final for testing
 
     private TransactionIsolation defaultTransactionIsolation;
@@ -487,6 +489,7 @@ public class SqlRepositoryConfiguration {
         idleTimeout = configuration.getLong(PROPERTY_IDLE_TIMEOUT, null);
 
         useZip = configuration.getBoolean(PROPERTY_USE_ZIP, false);
+        useZipAudit = configuration.getBoolean(PROPERTY_USE_ZIP_AUDIT, true);
         createMissingCustomColumns = configuration.getBoolean(PROPERTY_CREATE_MISSING_CUSTOM_COLUMNS, false);
         fullObjectFormat = configuration.getString(
                 PROPERTY_FULL_OBJECT_FORMAT,
@@ -923,6 +926,10 @@ public class SqlRepositoryConfiguration {
 
     public boolean isUseZip() {
         return useZip;
+    }
+
+    public boolean isUseZipAudit() {
+        return useZipAudit;
     }
 
     /**
