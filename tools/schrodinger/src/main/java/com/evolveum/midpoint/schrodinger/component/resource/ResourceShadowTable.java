@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.schrodinger.component.resource;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.search.Search;
@@ -31,7 +32,7 @@ public class ResourceShadowTable<T> extends TableWithPageRedirect<T> {
     public AccountPage clickByName(String name) {
         SelenideElement link = getParentElement().$(Schrodinger.byElementValue("span", "data-s-id", "label", name));
         link.waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-        link.waitWhile(Condition.exist, MidPoint.TIMEOUT_LONG_1_M);
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         return new AccountPage();
     }

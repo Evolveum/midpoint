@@ -70,10 +70,12 @@ public class M4ProvisioningToResources extends AbstractLabTest {
     @Test(groups={"M4"})
     public void mod04test01BasicProvisioningToMultipleResources() {
         importObject(CSV_1_RESOURCE_FILE, true);
-        importObject(CSV_2_RESOURCE_FILE, true);
-        importObject(CSV_3_RESOURCE_FILE, true);
-
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
+        importObject(CSV_2_RESOURCE_FILE, true);
+        changeResourceAttribute(CSV_2_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv2TargetFile.getAbsolutePath(), true);
+        importObject(CSV_3_RESOURCE_FILE, true);
+        changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
+
 
         showUser("kirk")
                 .selectTabProjections()
