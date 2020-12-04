@@ -23,13 +23,18 @@ import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
 import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author skublik
@@ -43,10 +48,30 @@ public class M4ProvisioningToResources extends AbstractLabTest {
     private static final File CSV_3_RESOURCE_FILE_4_2 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-4-2.xml");
     private static final File CSV_1_RESOURCE_FILE_4_3 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-4-3.xml");
     private static final File CSV_3_RESOURCE_FILE_4_4 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-4-4.xml");
+    private static final File KIRK_USER_FILE = new File("./src/test/resources/labs/objects/users/kirk-user.xml");
 
-    @Test(groups={"M4"}, dependsOnGroups={"M3"})
+    @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
+    @Override
+    public void beforeClass() throws IOException {
+        super.beforeClass();
+        csv1TargetFile = new File(getTestTargetDir(), CSV_1_FILE_SOURCE_NAME);
+        FileUtils.copyFile(CSV_1_SOURCE_FILE, csv1TargetFile);
+        csv2TargetFile = new File(getTestTargetDir(), CSV_2_FILE_SOURCE_NAME);
+        FileUtils.copyFile(CSV_2_SOURCE_FILE, csv2TargetFile);
+        csv3TargetFile = new File(getTestTargetDir(), CSV_3_FILE_SOURCE_NAME);
+        FileUtils.copyFile(CSV_3_SOURCE_FILE, csv3TargetFile);
+    }
+
+    @Override
+    protected List<File> getObjectListToImport(){
+        return Arrays.asList(KIRK_USER_FILE);
+    }
+
+    @Test(groups={"M4"})
     public void mod04test01BasicProvisioningToMultipleResources() {
         importObject(CSV_1_RESOURCE_FILE, true);
+        importObject(CSV_2_RESOURCE_FILE, true);
+        importObject(CSV_3_RESOURCE_FILE, true);
 
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
 
@@ -179,8 +204,9 @@ public class M4ProvisioningToResources extends AbstractLabTest {
         Assert.assertFalse(existShadow(CSV_2_RESOURCE_NAME, "Login", "kirk"));
     }
 
-    @Test(dependsOnMethods = {"mod04test01BasicProvisioningToMultipleResources"}, groups={"M4"}, dependsOnGroups={"M3"})
-    public void mod04test02AddingMappings() {
+    @Test(dependsOnMethods = {"mod04test01BasicProvisioningToMultipleResources"}, groups={"M4"})
+    public void mod04test02AddingMappings() throws IOException {
+        csv3TargetFile = new File(getTestTargetDir(), CSV_3_FILE_SOURCE_NAME);
         importObject(CSV_1_RESOURCE_FILE_4_2, true);
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
 
@@ -213,7 +239,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
 
     }
 
-    @Test(dependsOnMethods = {"mod04test02AddingMappings"}, groups={"M4"}, dependsOnGroups={"M3"})
+    @Test(dependsOnMethods = {"mod04test02AddingMappings"}, groups={"M4"})
     public void mod04test03ModifyingExistingMappings() {
         importObject(CSV_1_RESOURCE_FILE_4_3, true);
 
@@ -268,7 +294,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
 
     }
 
-    @Test(dependsOnMethods = {"mod04test03ModifyingExistingMappings"}, groups={"M4"}, dependsOnGroups={"M3"})
+    @Test(dependsOnMethods = {"mod04test03ModifyingExistingMappings"}, groups={"M4"})
     public void mod04test04AddingANewAttribute() {
         ((PrismFormWithActionButtons<AbstractTableWithPrismView<ProjectionsTab<UserPage>>>)
                 ((AbstractTableWithPrismView)showUser("kirk")

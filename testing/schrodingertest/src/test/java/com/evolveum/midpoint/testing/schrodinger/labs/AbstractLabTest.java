@@ -94,16 +94,6 @@ public class AbstractLabTest extends AbstractSchrodingerTest {
     protected static File hrTargetFile;
     protected static File notificationFile;
 
-    @AfterClass
-    @Override
-    public void afterClass() {
-        LOG.info("Finished tests from class {}", getClass().getName());
-
-        Selenide.clearBrowserCookies();
-        Selenide.clearBrowserLocalStorage();
-        Selenide.close();
-    }
-
     protected File getTestTargetDir() throws IOException {
         if (testTargetDir == null) {
             initTestDirectory(DIRECTORY_CURRENT_TEST, false);

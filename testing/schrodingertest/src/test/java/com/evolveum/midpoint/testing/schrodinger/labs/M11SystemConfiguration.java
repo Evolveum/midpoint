@@ -42,22 +42,7 @@ public class M11SystemConfiguration extends AbstractLabTest {
     private static final File OBJECT_COLLECTION_INACTIVE_EMP_FILE = new File(LAB_OBJECTS_DIRECTORY + "objectCollections/objectCollection-inactive-employees.xml");
     private static final File OBJECT_COLLECTION_FORMER_EMP_FILE = new File(LAB_OBJECTS_DIRECTORY + "objectCollections/objectCollection-former-employees.xml");
 
-    @AfterClass
-    @Override
-    public void afterClass() {
-        super.afterClass();
-
-        midPoint.formLogin().loginWithReloadLoginPage(username, password);
-
-        LOG.info("After: Login name " + username + " pass " + password);
-
-        AboutPage aboutPage = basicPage.aboutPage();
-        aboutPage
-                .clickSwitchToFactoryDefaults()
-                .clickYes();
-    }
-
-    @Test(groups={"M11"}, dependsOnGroups={"M10"})
+   @Test(groups={"M11"}, dependsOnGroups={"M10"})
     public void mod11test01ConfiguringNotifications() throws IOException {
         showTask("HR Synchronization").clickResume();
 
