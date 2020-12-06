@@ -102,7 +102,7 @@ public class ResourceShadowTable<T> extends TableWithPageRedirect<T> {
     }
 
     public ResourceShadowTable<T> clickImport(String columnTitleKey, String rowValue) {
-        clickMenuItemWithConfirmation(columnTitleKey, rowValue, "pageContentAccounts.menu.importAccount");
+        clickMenu(columnTitleKey, rowValue, "pageContentAccounts.menu.importAccount");
         return this;
     }
 

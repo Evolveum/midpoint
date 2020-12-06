@@ -18,6 +18,8 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author skublik
@@ -38,18 +40,19 @@ public class M9OrganizationalStructure extends AbstractLabTest{
         super.beforeClass();
     }
 
+    @Override
+    protected List<File> getObjectListToImport(){
+        return Arrays.asList(ARCHETYPE_ORG_FUNCTIONAL_FILE, ARCHETYPE_ORG_COMPANY_FILE, ARCHETYPE_ORG_GROUP_FILE,
+                ARCHETYPE_ORG_GROUP_LIST_FILE);
+    }
+
     @Test(groups={"M9"})
     public void mod09test01ImportStaticOrgStructure() {
-        addObjectFromFile(ARCHETYPE_ORG_FUNCTIONAL_FILE);
-        addObjectFromFile(ARCHETYPE_ORG_COMPANY_FILE);
-        addObjectFromFile(ARCHETYPE_ORG_GROUP_FILE);
-        addObjectFromFile(ARCHETYPE_ORG_GROUP_LIST_FILE);
-
         basicPage.loggedUser().logoutIfUserIsLogin();
         FormLoginPage login = midPoint.formLogin();
         login.login(getUsername(), getPassword());
 
-        addObjectFromFile(ORG_EXAMPLE_FILE);
+        importObject(ORG_EXAMPLE_FILE, true);
 
         OrgTreePage orgTree = basicPage.orgStructure();
         Assert.assertTrue(orgTree.selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")

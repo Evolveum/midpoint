@@ -26,6 +26,8 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author skublik
@@ -39,6 +41,11 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
     @Override
     public void beforeClass() throws IOException {
         super.beforeClass();
+    }
+
+    @Override
+    protected List<File> getObjectListToImport(){
+        return Arrays.asList(ARCHETYPE_EMPLOYEE_FILE);
     }
 
     @Test(groups={"M7"})
