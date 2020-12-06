@@ -61,6 +61,7 @@ public class AbstractLabTest extends AbstractSchrodingerTest {
     protected static final File HR_SOURCE_FILE_10_2_PART2 = new File(LAB_SOURCES_DIRECTORY + "source-10-2-part2.csv");
     protected static final File HR_SOURCE_FILE_10_2_PART3 = new File(LAB_SOURCES_DIRECTORY + "source-10-2-part3.csv");
     protected static final File HR_SOURCE_FILE_11_1 = new File(LAB_SOURCES_DIRECTORY + "source-11-1.csv");
+    protected static final File KIRK_USER_FILE = new File("./src/test/resources/labs/objects/users/kirk-user.xml");
 
 
     protected static final String DIRECTORY_CURRENT_TEST = "labTests";
