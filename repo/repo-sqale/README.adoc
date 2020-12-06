@@ -75,7 +75,6 @@ above that single general JSONB does not have.
 
 * Master-detail (https://en.wikipedia.org/wiki/Entity%E2%80%93attribute%E2%80%93value_model[EAV])
 model is still in play as well if nothing above works well enough.
-We would like to avoid very big tables though, so current implementation is not suitable.
 Following modifications are possible:
 
 ** Splitting tables for single-value and multi-value attributes.
@@ -201,8 +200,9 @@ Of course, if some of these can have many rows it's not desirable, perhaps it's 
 * How is `m_object_subtype` (`ObjectType.subtype`) used and searched?
 *Obsolete,* even if necessary, single JSON array should cover it, no entity needed.
 * Untackled yet: Tree tables, organization, see: https://www.postgresql.org/docs/13/ltree.html
-* Mention how LIMIT makes queries faster, mentioned in comments to
-Also that Q/A shows how to look into JSON array with `jsonb_array_elements` without expanding the result with the help of `EXISTS`.
+* Mention how LIMIT makes queries faster, mentioned in comments to https://stackoverflow.com/a/49542329/658826[this answer].
+This "top-N queries" are also favored in "SQL Performance Explained" book.
+Also, that Q/A shows how to look into JSON array with `jsonb_array_elements` without expanding the result with the help of `EXISTS`.
 * For comparison of values stored in an array (multi-value extensions) see https://dba.stackexchange.com/a/202761/157622[this answer].
 It demonstrates interesting functional index for max value that can be used for `>` operation
 (if the array has higher max than the searched value, it has at least some higher value and the whole row matches).
@@ -289,6 +289,9 @@ Also, any inconsistency (suddenly added entry) is easy to explain and user proba
 For long term processes that need to process many items we use *keyset pagination*, e.g. using last
 ID from current page to define the next page without any `OFFSET`, only using `LIMIT`.
 This is very efficient *even when no additional index besides PK is used* - and it's natural, too.
+It is called "top-N query" and typically the best thing is to order and filter it by the same index.
+Even when ordered by ID with filters not using the index, it tends to be very fast unless
+the required number of rows satisfying the condition is far from the beginning of the search.
 While this may skip some items that are added after we processed the page (and at the same time
 process other items added later that appear on later pages) it is more or less deterministic.
 We can also avoid processing "future" items with `WHERE` clause using creation timestamp
@@ -425,3 +428,46 @@ JIT:
   Functions: 18
 "  Options: Inlining true, Optimization true, Expressions true, Deforming true"
 ----
+
+== JSONB vs EAV performance
+
+[NOTE]
+Performance was measured on default PG installation on 2GB RAM VirtualBox.
+The results can be better (or worse depending on the host) but not order-of-magnitude different.
+
+See link:sql/pgnew-eav-vs-json.sql[] for the whole source.
+
+Structure for JSON is simple, single table `tjson` with `(oid UUID PK, name VARCHAR, ext JSONB)`.
+Column `name` has a unique index and `ext` has a `GIN` index only by default.
+Other indexes are added as needed and mentioned during tests.
+
+Structure for EAV model has a master table `teav` with `(oid UUID PK, name VARCHAR)`
+and detail table `teav_ext_string` with `(owner_oid FK, key VARCHAR, value VARCHAR)`.
+Extension table has `PK(owner_oid, key, value)`, value could be omitted if uniqueness is not necessary.
+Because the PK covers all columns, it should be index-organized table in Oracle (PG doesn't have this feature).
+In PG it can be https://www.postgresql.org/docs/13/sql-cluster.html[clustered] by an index,
+but this is potentially costly (12min for 15M rows) during which the table is unusable
+because of the used `ACCESS EXCLUSIVE` lock.
+
+=== 15 million rows
+
+|===
+| Object | Size | Note
+
+| teav_ext_string | 2763 MB | attribute value table (detail for EAV)
+| teav_ext_string_pk | 2312 MB | PK of AV table, nearly the same size
+| tjson | 1909 MB | JSON table (smaller than just AV table alone)
+| tjson_ext_idx | 1620 MB | GIN index for `ext` column
+| teav_ext_string_key_value_idx | 867 MB | index for searching by key+value
+| teav | 862 MB | master table for EAV model
+| teav_oid_pk | 583 MB | primary key index of that table
+| tjson_oid_pk | 582 MB | PK of JSON table, virtually the same as for EAV
+| teav_name_key, tjson_name_key | 451 MB | name indexes are the same
+|===
+
+
+|===
+| Operation | Time | Note
+
+// TODO
+|===
