@@ -13,9 +13,11 @@ import com.evolveum.midpoint.schrodinger.page.org.OrgTreePage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * @author skublik
@@ -30,7 +32,13 @@ public class M9OrganizationalStructure extends AbstractLabTest{
     private static final File ORG_EXAMPLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "org/org-example.xml");
     private static final File ORG_SECRET_OPS_FILE = new File(LAB_OBJECTS_DIRECTORY + "org/org-secret-ops.xml");
 
-    @Test(groups={"M9"}, dependsOnGroups={"M8"})
+    @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
+    @Override
+    public void beforeClass() throws IOException {
+        super.beforeClass();
+    }
+
+    @Test(groups={"M9"})
     public void mod09test01ImportStaticOrgStructure() {
         addObjectFromFile(ARCHETYPE_ORG_FUNCTIONAL_FILE);
         addObjectFromFile(ARCHETYPE_ORG_COMPANY_FILE);
@@ -63,7 +71,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                         .containsChildOrg("Secret Operations", "Transportation and Logistics Department"));
     }
 
-    @Test(dependsOnMethods = {"mod09test01ImportStaticOrgStructure"}, groups={"M9"}, dependsOnGroups={"M8"})
+    @Test(dependsOnMethods = {"mod09test01ImportStaticOrgStructure"}, groups={"M9"})
     public void mod09test02CreateStaticOrgStructure() {
         basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
@@ -135,7 +143,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                     .isSuccess();
     }
 
-    @Test(dependsOnMethods = {"mod09test02CreateStaticOrgStructure"}, groups={"M9"}, dependsOnGroups={"M8"})
+    @Test(dependsOnMethods = {"mod09test02CreateStaticOrgStructure"}, groups={"M9"})
     public void mod09test03OrganizationActingAsARole() {
         Assert.assertFalse(basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")

@@ -21,6 +21,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -34,7 +35,13 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
 
     private static final Logger LOG = LoggerFactory.getLogger(M7SynchronizationFlavours.class);
 
-    @Test(groups={"M7"}, dependsOnGroups={"M6"})
+    @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
+    @Override
+    public void beforeClass() throws IOException {
+        super.beforeClass();
+    }
+
+    @Test(groups={"M7"})
     public void mod07test01RunningImportFromResource() throws IOException {
         hrTargetFile = new File(getTestTargetDir(), HR_FILE_SOURCE_NAME);
         FileUtils.copyFile(HR_SOURCE_FILE, hrTargetFile);
@@ -84,7 +91,7 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
         Assert.assertEquals(basicPage.listUsers(ARCHETYPE_EMPLOYEE_PLURAL_LABEL).getCountOfObjects(), 15);
     }
 
-    @Test(dependsOnMethods = {"mod07test01RunningImportFromResource"}, groups={"M7"}, dependsOnGroups={"M6"})
+    @Test(dependsOnMethods = {"mod07test01RunningImportFromResource"}, groups={"M7"})
     public void mod07test02RunningAccountReconciliation() {
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
         createReconTask("CSV-1 Reconciliation", CSV_1_RESOURCE_NAME);
@@ -106,7 +113,7 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
         Assert.assertTrue(containsProjection("X001212", CSV_3_RESOURCE_OID, "cn=John Smith,ou=ExAmPLE,dc=example,dc=com"));
     }
 
-    @Test(dependsOnMethods = {"mod07test02RunningAccountReconciliation"}, groups={"M7"}, dependsOnGroups={"M6"})
+    @Test(dependsOnMethods = {"mod07test02RunningAccountReconciliation"}, groups={"M7"})
     public void mod07test03RunningAttributeReconciliation() throws IOException {
         FileUtils.copyFile(CSV_1_SOURCE_FILE_7_3, csv1TargetFile);
 
@@ -120,7 +127,7 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
 
     }
 
-    @Test(dependsOnMethods = {"mod07test03RunningAttributeReconciliation"}, groups={"M7"}, dependsOnGroups={"M6"})
+    @Test(dependsOnMethods = {"mod07test03RunningAttributeReconciliation"}, groups={"M7"})
     public void mod07test04RunningLiveSync() throws IOException {
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
         TaskPage task = basicPage.newTask();

@@ -60,7 +60,7 @@ public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
         super.springTestContextPrepareTestInstance();
     }
 
-    @Test(groups={"M8"}, dependsOnGroups={"M7"})
+    @Test(groups={"M8"})
     public void mod08test01ExtendingMidPointXMLSchema() {
         PrismForm<AssignmentHolderBasicTab<UserPage>> form = basicPage.newUser()
                 .selectTabBasic()

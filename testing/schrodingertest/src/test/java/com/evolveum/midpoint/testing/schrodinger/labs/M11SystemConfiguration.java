@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -42,7 +43,13 @@ public class M11SystemConfiguration extends AbstractLabTest {
     private static final File OBJECT_COLLECTION_INACTIVE_EMP_FILE = new File(LAB_OBJECTS_DIRECTORY + "objectCollections/objectCollection-inactive-employees.xml");
     private static final File OBJECT_COLLECTION_FORMER_EMP_FILE = new File(LAB_OBJECTS_DIRECTORY + "objectCollections/objectCollection-former-employees.xml");
 
-   @Test(groups={"M11"}, dependsOnGroups={"M10"})
+    @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
+    @Override
+    public void beforeClass() throws IOException {
+        super.beforeClass();
+    }
+
+   @Test
     public void mod11test01ConfiguringNotifications() throws IOException {
         showTask("HR Synchronization").clickResume();
 
@@ -105,7 +112,7 @@ public class M11SystemConfiguration extends AbstractLabTest {
         Assertions.assertThat(notification).endsWith(endOfNotification);
     }
 
-    @Test(dependsOnMethods = {"mod11test01ConfiguringNotifications"},groups={"M11"}, dependsOnGroups={"M10"})
+    @Test(dependsOnMethods = {"mod11test01ConfiguringNotifications"})
     public void mod11test02ConfiguringDeploymentInformation() {
         addObjectFromFile(SYSTEM_CONFIGURATION_FILE_11_2);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
@@ -135,7 +142,7 @@ public class M11SystemConfiguration extends AbstractLabTest {
         Assert.assertTrue(basicPage.mainHeaderPanelStyleMatch("rgba(48, 174, 48, 1)"));
     }
 
-    @Test(dependsOnMethods = {"mod11test02ConfiguringDeploymentInformation"},groups={"M11"}, dependsOnGroups={"M10"})
+    @Test(dependsOnMethods = {"mod11test02ConfiguringDeploymentInformation"})
     public void mod11test03ConfiguringObjectCollectionsAndViews() {
         addObjectFromFile(OBJECT_COLLECTION_ACTIVE_EMP_FILE);
         addObjectFromFile(OBJECT_COLLECTION_INACTIVE_EMP_FILE);

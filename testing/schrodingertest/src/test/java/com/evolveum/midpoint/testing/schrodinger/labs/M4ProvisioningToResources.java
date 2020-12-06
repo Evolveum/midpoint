@@ -53,12 +53,6 @@ public class M4ProvisioningToResources extends AbstractLabTest {
     @Override
     public void beforeClass() throws IOException {
         super.beforeClass();
-        csv1TargetFile = new File(getTestTargetDir(), CSV_1_FILE_SOURCE_NAME);
-        FileUtils.copyFile(CSV_1_SOURCE_FILE, csv1TargetFile);
-        csv2TargetFile = new File(getTestTargetDir(), CSV_2_FILE_SOURCE_NAME);
-        FileUtils.copyFile(CSV_2_SOURCE_FILE, csv2TargetFile);
-        csv3TargetFile = new File(getTestTargetDir(), CSV_3_FILE_SOURCE_NAME);
-        FileUtils.copyFile(CSV_3_SOURCE_FILE, csv3TargetFile);
     }
 
     @Override
@@ -67,7 +61,14 @@ public class M4ProvisioningToResources extends AbstractLabTest {
     }
 
     @Test(groups={"M4"})
-    public void mod04test01BasicProvisioningToMultipleResources() {
+    public void mod04test01BasicProvisioningToMultipleResources() throws IOException {
+        csv1TargetFile = new File(getTestTargetDir(), CSV_1_FILE_SOURCE_NAME);
+        FileUtils.copyFile(CSV_1_SOURCE_FILE, csv1TargetFile);
+        csv2TargetFile = new File(getTestTargetDir(), CSV_2_FILE_SOURCE_NAME);
+        FileUtils.copyFile(CSV_2_SOURCE_FILE, csv2TargetFile);
+        csv3TargetFile = new File(getTestTargetDir(), CSV_3_FILE_SOURCE_NAME);
+        FileUtils.copyFile(CSV_3_SOURCE_FILE, csv3TargetFile);
+
         importObject(CSV_1_RESOURCE_FILE, true);
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
         importObject(CSV_2_RESOURCE_FILE, true);
