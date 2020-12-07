@@ -25,6 +25,8 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author skublik
@@ -39,6 +41,18 @@ public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
     @Override
     public void beforeClass() throws IOException {
         super.beforeClass();
+
+        hrTargetFile = new File(getTestTargetDir(), HR_FILE_SOURCE_NAME);
+        FileUtils.copyFile(HR_SOURCE_FILE, hrTargetFile);
+
+        csv3TargetFile = new File(getTestTargetDir(), CSV_3_FILE_SOURCE_NAME);
+        FileUtils.copyFile(CSV_3_SOURCE_FILE, csv3TargetFile);
+
+        csv1TargetFile = new File(getTestTargetDir(), CSV_1_FILE_SOURCE_NAME);
+        FileUtils.copyFile(CSV_1_SOURCE_FILE, csv1TargetFile);
+
+        csv2TargetFile = new File(getTestTargetDir(), CSV_2_FILE_SOURCE_NAME);
+        FileUtils.copyFile(CSV_2_SOURCE_FILE, csv2TargetFile);
     }
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextBeforeTestClass" })
@@ -60,8 +74,15 @@ public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
         super.springTestContextPrepareTestInstance();
     }
 
-    @Test(groups={"M8"}, dependsOnGroups={"M7"})
-    public void mod08test01ExtendingMidPointXMLSchema() {
+    @Override
+    protected List<File> getObjectListToImport(){
+        return Arrays.asList(INTERNAL_EMPLOYEE_ROLE_FILE);
+    }
+
+    @Test
+    public void mod08test01ExtendingMidPointXMLSchema() throws IOException {
+        importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE, true);
+
         PrismForm<AssignmentHolderBasicTab<UserPage>> form = basicPage.newUser()
                 .selectTabBasic()
                     .form();
@@ -73,10 +94,16 @@ public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
 
 //        showTask("HR Synchronization").clickSuspend();
 
-        addObjectFromFile(HR_RESOURCE_FILE_8_1);
+        importObject(HR_RESOURCE_FILE_8_1, true);
         changeResourceAttribute(HR_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, hrTargetFile.getAbsolutePath(), true);
 
-        addObjectFromFile(CSV_3_RESOURCE_FILE_8_1);
+        importObject(CSV_1_RESOURCE_FILE, true);
+        changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
+
+        importObject(CSV_2_RESOURCE_FILE, true);
+        changeResourceAttribute(CSV_2_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv2TargetFile.getAbsolutePath(), true);
+
+        importObject(CSV_3_RESOURCE_FILE_8_1, true);
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         ResourceAccountsTab<ViewResourcePage> accountTab = basicPage.listResources()

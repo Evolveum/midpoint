@@ -12,12 +12,17 @@ import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Utils;
 import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author skublik
@@ -34,8 +39,31 @@ public class M6ConfiguringMultipleAccountTypes extends AbstractLabTest {
     private static final String CSV1_TESTER_ROLE_NAME = "CSV-1 Tester";
     private static final String CSV3_ADMIN_ROLE_NAME = "CSV-3 Admin";
 
-    @Test(groups={"M6"}, dependsOnGroups={"M5"})
+    @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
+    @Override
+    public void beforeClass() throws IOException {
+        super.beforeClass();
+        csv1TargetFile = new File(getTestTargetDir(), CSV_1_FILE_SOURCE_NAME);
+        FileUtils.copyFile(CSV_1_SOURCE_FILE, csv1TargetFile);
+        csv2TargetFile = new File(getTestTargetDir(), CSV_2_FILE_SOURCE_NAME);
+        FileUtils.copyFile(CSV_2_SOURCE_FILE, csv2TargetFile);
+        csv3TargetFile = new File(getTestTargetDir(), CSV_3_FILE_SOURCE_NAME);
+        FileUtils.copyFile(CSV_3_SOURCE_FILE, csv3TargetFile);
+    }
+
+    @Override
+    protected List<File> getObjectListToImport(){
+        return Arrays.asList(KIRK_USER_FILE);
+    }
+
+    @Test(groups={"M6"})
     public void mod06test01UsingAccountIntentsForProvisioning() {
+        importObject(CSV_1_RESOURCE_FILE, true);
+        changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
+        importObject(CSV_2_RESOURCE_FILE, true);
+        changeResourceAttribute(CSV_2_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv2TargetFile.getAbsolutePath(), true);
+        importObject(CSV_3_RESOURCE_FILE, true);
+        changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
 
         importObject(CSV_1_RESOURCE_FILE_6_1, true);
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);

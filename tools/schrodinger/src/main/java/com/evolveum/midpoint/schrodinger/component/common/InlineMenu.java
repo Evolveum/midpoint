@@ -22,6 +22,7 @@ import java.util.Objects;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
@@ -110,7 +111,7 @@ public class InlineMenu<T> extends Component<T> {
     public InlineMenu<T> clickItemByKey(String itemKey) {
         SelenideElement element = getParentElement().find("div.btn-group ul.dropdown-menu li a schrodinger[data-s-resource-key=" + itemKey + "]");
         element.parent().click();
-
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return this;
     }
 

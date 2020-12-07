@@ -39,22 +39,13 @@ public class M12Authorizations extends AbstractLabTest{
     private static final File ROLE_BASIC_USER_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-basic-user.xml");
     private static final File ROLE_BASIC_USER_FILE_12_1 = new File(LAB_OBJECTS_DIRECTORY + "roles/role-basic-user-12-1.xml");
 
-//    @AfterClass
-//    @Override
-//    public void afterClass() {
-//        super.afterClass();
-//
-//        midPoint.formLogin().loginWithReloadLoginPage(username, password);
-//
-//        LOG.info("After: Login name " + username + " pass " + password);
-//
-//        AboutPage aboutPage = basicPage.aboutPage();
-//        aboutPage
-//                .clickSwitchToFactoryDefaults()
-//                .clickYes();
-//    }
+    @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
+    @Override
+    public void beforeClass() throws IOException {
+        super.beforeClass();
+    }
 
-    @Test(groups={"M12"}, dependsOnGroups={"M11"})
+    @Test
     public void mod12test01BasicUserAuthorization() {
         addObjectFromFile(ROLE_BASIC_USER_FILE);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);

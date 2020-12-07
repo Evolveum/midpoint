@@ -61,7 +61,9 @@ public class AbstractLabTest extends AbstractSchrodingerTest {
     protected static final File HR_SOURCE_FILE_10_2_PART2 = new File(LAB_SOURCES_DIRECTORY + "source-10-2-part2.csv");
     protected static final File HR_SOURCE_FILE_10_2_PART3 = new File(LAB_SOURCES_DIRECTORY + "source-10-2-part3.csv");
     protected static final File HR_SOURCE_FILE_11_1 = new File(LAB_SOURCES_DIRECTORY + "source-11-1.csv");
-
+    protected static final File KIRK_USER_FILE = new File("./src/test/resources/labs/objects/users/kirk-user.xml");
+    protected static final File ARCHETYPE_EMPLOYEE_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-employee.xml");
+    protected static final File INTERNAL_EMPLOYEE_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-internal-employee.xml");
 
     protected static final String DIRECTORY_CURRENT_TEST = "labTests";
     protected static final String EXTENSION_SCHEMA_NAME = "extension-example.xsd";
@@ -93,16 +95,6 @@ public class AbstractLabTest extends AbstractSchrodingerTest {
     protected static File csv3TargetFile;
     protected static File hrTargetFile;
     protected static File notificationFile;
-
-    @AfterClass
-    @Override
-    public void afterClass() {
-        LOG.info("Finished tests from class {}", getClass().getName());
-
-        Selenide.clearBrowserCookies();
-        Selenide.clearBrowserLocalStorage();
-        Selenide.close();
-    }
 
     protected File getTestTargetDir() throws IOException {
         if (testTargetDir == null) {

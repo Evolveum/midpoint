@@ -25,6 +25,7 @@ import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
 
 import org.apache.commons.io.FileUtils;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -42,7 +43,13 @@ public class M10ObjectTemplate extends AbstractLabTest{
     private static final File LOOKUP_EMP_STATUS_FILE = new File(LAB_OBJECTS_DIRECTORY + "lookupTables/lookup-emp-status.xml");
     private static final File CSV_3_RESOURCE_FILE_10_4 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-10-4.xml");
 
-    @Test(groups={"M10"}, dependsOnGroups={"M9"})
+    @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
+    @Override
+    public void beforeClass() throws IOException {
+        super.beforeClass();
+    }
+
+    @Test(groups={"M10"})
     public void mod10test01SimpleObjectTemplate() throws IOException {
         addObjectFromFile(OBJECT_TEMPLATE_USER_SIMPLE_FILE);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
@@ -99,7 +106,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
                 .compareInputAttributeValue("fullName", "Jim Tiberius Kirk"));
     }
 
-    @Test(dependsOnMethods = {"mod10test01SimpleObjectTemplate"}, groups={"M10"}, dependsOnGroups={"M9"})
+    @Test(dependsOnMethods = {"mod10test01SimpleObjectTemplate"}, groups={"M10"})
     public void mod10test02AutomaticAssignments() throws IOException {
         addObjectFromFile(OBJECT_TEMPLATE_USER_FILE);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
@@ -175,7 +182,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
                         "Active Employees", "Internal Employee"));
     }
 
-    @Test(dependsOnMethods = {"mod10test02AutomaticAssignments"}, groups={"M10"}, dependsOnGroups={"M9"})
+    @Test(dependsOnMethods = {"mod10test02AutomaticAssignments"}, groups={"M10"})
     public void mod10test03LookupTablesAndAttributeOverrides() {
 
         PrismForm<AssignmentHolderBasicTab<UserPage>> form = showUser("kirk")
@@ -213,7 +220,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
         Assert.assertFalse(form.isPropertyEnabled("honorificSuffix"));
     }
 
-    @Test(dependsOnMethods = {"mod10test03LookupTablesAndAttributeOverrides"}, groups={"M10"}, dependsOnGroups={"M9"})
+    @Test(dependsOnMethods = {"mod10test03LookupTablesAndAttributeOverrides"}, groups={"M10"})
     public void mod10test04FinishingManagerMapping() {
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
         showTask("User Recomputation Task").clickRunNow();

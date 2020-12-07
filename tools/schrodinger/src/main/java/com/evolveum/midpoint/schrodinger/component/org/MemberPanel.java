@@ -37,21 +37,23 @@ public class MemberPanel<T> extends Component<T> {
 
     public ChooseFocusTypeAndRelationModal<MemberPanel<T>> newMember() {
         SelenideElement mainButton = $(By.xpath("//button[@type='button'][@title='Create  member ']"))
-                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).parent();
         mainButton.click();
-        Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
-        if (Boolean.getBoolean(mainButton.getAttribute("aria-expanded"))) {
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        if (mainButton.$x(".//div[@data-s-id='additionalButton']").exists()) {
             return newMember("Create  member ");
         }
         return new ChooseFocusTypeAndRelationModal<>(this, Utils.getModalWindowSelenideElement());
     }
 
     public ChooseFocusTypeAndRelationModal newMember(String title) {
-        SelenideElement mainButton = $(By.xpath("//button[@type='button'][@title='Create  member ']"));
-        if (!Boolean.getBoolean(mainButton.getAttribute("aria-expanded"))) {
+        SelenideElement mainButton = $(By.xpath("//button[@type='button'][@title='Create  member ']"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).parent();
+        if (!mainButton.$x(".//div[@data-s-id='additionalButton']").exists()) {
             mainButton.click();
+            Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         }
-        $(Schrodinger.byElementAttributeValue("div", "title", title))
+        mainButton.$x(".//div[@title=" + title + "]")
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return new ChooseFocusTypeAndRelationModal<>(this, Utils.getModalWindowSelenideElement());
@@ -59,6 +61,7 @@ public class MemberPanel<T> extends Component<T> {
 
     public FocusSetAssignmentsModal<T> assignMember() {
         $(By.xpath("//button[@type='button'][@title='Assign  member ']")).waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return new FocusSetAssignmentsModal<T>((T) this.getParent(),  Utils.getModalWindowSelenideElement());
     }
 
