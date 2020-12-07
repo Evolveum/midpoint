@@ -41,4 +41,7 @@ public @interface PageDescriptor {
      * Indicate login page, Permit access to all users (even non-authenticated users)
      */
     boolean loginPage() default false;
+
+    boolean experimental() default false;
+
 }

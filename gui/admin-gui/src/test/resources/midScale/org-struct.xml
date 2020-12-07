@@ -1,0 +1,809 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+         oid="a3426316-d762-43a1-8ea3-2ede005f0509">
+        <name>0000org-root</name>  <!-- starts with 0000 to be sure, it will be the default (first tab) -->
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org1</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org2</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org3</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org4</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org5</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org6</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org7</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org8</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org9</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org10</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org11</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org12</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org13</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org14</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org15</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org16</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org17</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org18</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org19</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org20</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org21</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org22</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org23</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org24</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org25</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org26</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org27</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org28</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org29</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org30</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org31</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org32</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org33</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org34</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org35</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org36</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org37</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org38</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org39</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org40</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org41</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org42</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org43</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org44</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org45</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org46</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org47</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org48</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org49</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>org50</name>
+        <parentOrgRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </parentOrgRef>
+        <assignment>
+            <targetRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+                <!-- root -->
+            </targetRef>
+        </assignment>
+        <roleMembershipRef oid="a3426316-d762-43a1-8ea3-2ede005f0509" relation="org:default" type="c:OrgType">
+            <!-- root -->
+        </roleMembershipRef>
+    </org>
+</objects>

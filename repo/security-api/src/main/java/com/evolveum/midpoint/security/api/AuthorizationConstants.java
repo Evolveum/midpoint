@@ -74,10 +74,10 @@ public class AuthorizationConstants {
     public static final String AUTZ_GUI_ALL_LABEL = "Authorization.constants.guiAll.label";
     public static final String AUTZ_GUI_ALL_DESCRIPTION = "Authorization.constants.guiAll.description";
 
-    @Deprecated
-    public static final QName AUTZ_GUI_ALL_DEPRECATED_QNAME = new QName(NS_AUTHORIZATION, "guiAll");
-    @Deprecated
-    public static final String AUTZ_GUI_ALL_DEPRECATED_URL = QNameUtil.qNameToUri(AUTZ_GUI_ALL_DEPRECATED_QNAME);
+//    @Deprecated
+//    public static final QName AUTZ_GUI_ALL_DEPRECATED_QNAME = new QName(NS_AUTHORIZATION, "guiAll");
+//    @Deprecated
+//    public static final String AUTZ_GUI_ALL_DEPRECATED_URL = QNameUtil.qNameToUri(AUTZ_GUI_ALL_DEPRECATED_QNAME);
 
 
     // Following constants are ugly ... but they have to be.

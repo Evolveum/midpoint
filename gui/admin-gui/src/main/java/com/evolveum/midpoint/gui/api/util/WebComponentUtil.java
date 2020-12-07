@@ -776,7 +776,6 @@ public final class WebComponentUtil {
         }
         Roles roles = new Roles(AuthorizationConstants.AUTZ_ALL_URL);
         roles.add(AuthorizationConstants.AUTZ_GUI_ALL_URL);
-        roles.add(AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL);
         roles.addAll(actions);
         return ((AuthenticatedWebApplication) AuthenticatedWebApplication.get()).hasAnyRole(roles);
     }
@@ -4419,7 +4418,7 @@ public final class WebComponentUtil {
 
         pageBase.showResult(mainResult);
 
-        pageBase.resetWorkItemCountModel();
+//        pageBase.resetWorkItemCountModel();
         target.add(pageBase);
 
     }

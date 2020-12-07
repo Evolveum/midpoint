@@ -6,13 +6,10 @@
  */
 package com.evolveum.midpoint.web.component.menu;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
 
-import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -21,6 +18,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
 
 import java.util.List;
 import java.util.Map;
@@ -36,18 +34,16 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
     private static final String ID_NAME = "name";
     private static final String ID_ITEMS = "items";
     private static final String ID_ITEM = "item";
-    private static final String ID_MINIMIZED_ICON = "minimizedIcon";
 
     public SideBarMenuPanel(String id, IModel<List<SideBarMenuItem>> model) {
         super(id, model);
-
-        setOutputMarkupId(true);
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
+        setOutputMarkupId(true);
     }
 
     protected void initLayout() {
@@ -60,144 +56,67 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
 
             @Override
             protected void populateItem(final ListItem<SideBarMenuItem> item) {
-                Label name = new Label(ID_NAME, item.getModelObject().getName());
-                name.add(new AjaxEventBehavior("click") {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected void onEvent(AjaxRequestTarget target) {
-                        onMenuClick(sidebar, item, target);
-                    }
-                });
-                item.add(name);
-
-                WebMarkupContainer icon = new WebMarkupContainer(ID_MINIMIZED_ICON);
-                icon.add(new AjaxEventBehavior("click") {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected void onEvent(AjaxRequestTarget target) {
-                        onMenuClick(sidebar, item, target);
-                    }
-                });
-                icon.add(AttributeModifier.append("class", new IModel<String>() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public String getObject() {
-                        SideBarMenuItem mainMenu = item.getModelObject();
-                        if (isMenuExpanded(mainMenu)) {
-                            return GuiStyleConstants.CLASS_ICON_COLLAPSE;
-                        }
-
-                        return GuiStyleConstants.CLASS_ICON_EXPAND;
-                    }
-                }));
-//                icon.add(new VisibleEnableBehaviour() {
-//
-//                    @Override
-//                    public boolean isVisible() {
-//                        SideBarMenuItem mainMenu = item.getModelObject();
-//
-//                        return !isMenuExpanded(mainMenu);
-//                    }
-//                });
-                item.add(icon);
-
-                ListView<MainMenuItem> items = new ListView<MainMenuItem>(ID_ITEMS,
-                    new PropertyModel<>(item.getModel(), SideBarMenuItem.F_ITEMS)) {
-
-                    @Override
-                    protected void populateItem(final ListItem<MainMenuItem> listItem) {
-                        MainMenuPanel item = new MainMenuPanel(ID_ITEM, listItem.getModel());
-                        listItem.add(item);
-
-                        listItem.add(new VisibleEnableBehaviour() {
-
-                            @Override
-                            public boolean isVisible() {
-                                MainMenuItem mmi = listItem.getModelObject();
-                                if (!SecurityUtils.isMenuAuthorized(mmi)) {
-                                    return false;
-                                }
-
-                                if (mmi.getItems().isEmpty()) {
-                                    return true;
-                                }
-
-                                for (MenuItem i : mmi.getItems()) {
-                                    if (SecurityUtils.isMenuAuthorized(i)) {
-                                        return true;
-                                    }
-                                }
-                                return false;
-                            }
-                        });
-                    }
-                };
-                item.add(items);
-
-                item.add(new VisibleEnableBehaviour() {
-
-                    @Override
-                    public boolean isVisible() {
-                        SideBarMenuItem mainMenu = item.getModelObject();
-
-                        for (MainMenuItem i : mainMenu.getItems()) {
-                            boolean visible = true;
-                            if (i.getVisibleEnable() != null) {
-                                visible = i.getVisibleEnable().isVisible();
-                            }
-
-                            if (visible && SecurityUtils.isMenuAuthorized(i)) {
-                                return true;
-                            }
-                        }
-
-                        return false;
-                    }
-                });
-
-                items.add(new VisibleEnableBehaviour() {
-
-                    @Override
-                    public boolean isVisible() {
-                        SideBarMenuItem mainMenu = item.getModelObject();
-                        return isMenuExpanded(mainMenu);
-                    }
-                });
+                item.add(createHeader(item.getModel()));
+                item.add(createMenuItems(item.getModel()));
             }
         };
+        menuItems.setReuseItems(true);
         sidebar.add(menuItems);
     }
 
-    private void onMenuClick(final WebMarkupContainer sidebar, final ListItem<SideBarMenuItem> item, AjaxRequestTarget target) {
-        SideBarMenuItem mainMenu = item.getModelObject();
-
-        SessionStorage storage = getPageBase().getSessionStorage();
-        Map<String, Boolean> menuState = storage.getMainMenuState();
-
-        String menuLabel = mainMenu.getName().getObject();
-        // we'll use menu label as key
-        Boolean expanded = menuState.get(menuLabel);
-
-        if (expanded == null) {
-            expanded = true;
-        }
-
-        menuState.put(menuLabel, !expanded);
-
-        target.add(sidebar);
+    private Component createHeader(IModel<SideBarMenuItem> model) {
+        Label name = new Label(ID_NAME, new StringResourceModel("${name}",  model));
+        name.add(new AjaxEventBehavior("click") {
+            @Override
+            protected void onEvent(AjaxRequestTarget target) {
+                onMenuClick(model, target);
+            }
+        });
+        return name;
     }
 
-    private boolean isMenuExpanded(SideBarMenuItem mainMenu) {
-        SessionStorage storage = getPageBase().getSessionStorage();
-        Map<String, Boolean> menuState = storage.getMainMenuState();
+    private Component createMenuItems(IModel<SideBarMenuItem> model) {
+        ListView<MainMenuItem> items = new ListView<MainMenuItem>(ID_ITEMS, new PropertyModel<>(model, SideBarMenuItem.F_ITEMS)) {
 
-        String menuLabel = mainMenu.getName().getObject();
-        // we'll use menu label as key
-        Boolean expanded = menuState.get(menuLabel);
+            @Override
+            protected void populateItem(final ListItem<MainMenuItem> listItem) {
+                MainMenuPanel item = new MainMenuPanel(ID_ITEM, listItem.getModel());
+                item.setOutputMarkupId(true);
+                listItem.add(item);
 
-        return expanded != null ? expanded : true;
+            }
+        };
+        items.setReuseItems(true);
+        return items;
     }
+
+    private void onMenuClick(IModel<SideBarMenuItem> model, AjaxRequestTarget target) {
+        SideBarMenuItem mainMenu = model.getObject();
+
+//        SessionStorage storage = getPageBase().getSessionStorage();
+//        Map<String, Boolean> menuState = storage.getMainMenuState();
+//
+//        String menuLabel = mainMenu.getName();
+//        // we'll use menu label as key
+//        Boolean expanded = menuState.get(menuLabel);
+//
+//        if (expanded == null) {
+//            expanded = true;
+//        }
+//
+//        menuState.put(menuLabel, !expanded);
+        target.add(SideBarMenuPanel.this);
+    }
+
+//    private boolean isMenuExpanded(SideBarMenuItem mainMenu) {
+//        SessionStorage storage = getPageBase().getSessionStorage();
+//        Map<String, Boolean> menuState = storage.getMainMenuState();
+//
+//        String menuLabel = mainMenu.getName();
+//        // we'll use menu label as key
+//        Boolean expanded = menuState.get(menuLabel);
+//
+//        return expanded != null ? expanded : true;
+//    }
+
 }
