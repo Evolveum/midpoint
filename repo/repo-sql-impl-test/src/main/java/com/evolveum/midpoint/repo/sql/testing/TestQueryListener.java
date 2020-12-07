@@ -12,6 +12,7 @@ import net.ttddyy.dsproxy.QueryInfo;
 import net.ttddyy.dsproxy.listener.QueryExecutionListener;
 import org.springframework.stereotype.Component;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -61,6 +62,11 @@ public class TestQueryListener implements QueryExecutionListener {
         return entries.get();
     }
 
+    public boolean hasNoEntries() {
+        List<Entry> entries = getEntries();
+        return entries == null || entries.isEmpty();
+    }
+
     public void clear() {
         entries.remove();
     }
@@ -74,13 +80,22 @@ public class TestQueryListener implements QueryExecutionListener {
         running.set(false);
     }
 
+    public boolean isStarted() {
+        Boolean runningValue = running.get();
+        return runningValue != null && runningValue;
+    }
+
     public void dump() {
+        dump(System.out);
+    }
+
+    public void dump(PrintStream out) {
         List<Entry> entries = getEntries();
         if (entries != null) {
-            System.out.println("Queries collected (" + entries.size() + "/" + getExecutionCount() + "):");
-            entries.forEach(e -> System.out.println(" [" + e.batchSize + "] " + e.query));
+            out.println("Queries collected (" + entries.size() + "/" + getExecutionCount() + "):");
+            entries.forEach(e -> out.println(" [" + e.batchSize + "] " + e.query));
         } else {
-            System.out.println("Query collection was not started for this thread.");
+            out.println("Query collection was not started for this thread.");
         }
     }
 
