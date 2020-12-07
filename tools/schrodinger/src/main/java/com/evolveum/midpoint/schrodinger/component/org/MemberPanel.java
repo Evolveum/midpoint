@@ -47,13 +47,13 @@ public class MemberPanel<T> extends Component<T> {
     }
 
     public ChooseFocusTypeAndRelationModal newMember(String title) {
-        SelenideElement mainButton = $(By.xpath("//button[@type='button'][@title='Create  member ']"))
+        SelenideElement mainButton = $(By.xpath(".//button[@type='button'][@title='Create  member ']"))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).parent();
         if (!mainButton.$x(".//div[@data-s-id='additionalButton']").exists()) {
             mainButton.click();
             Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         }
-        mainButton.$x(".//div[@title=" + title + "]")
+        mainButton.$x(".//div[@title='" + title + "']")
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return new ChooseFocusTypeAndRelationModal<>(this, Utils.getModalWindowSelenideElement());
