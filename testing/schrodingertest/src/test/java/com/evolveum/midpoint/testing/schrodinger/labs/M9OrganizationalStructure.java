@@ -67,7 +67,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                     .containsChildOrg("Groups", "Active Employees", "Administrators", "Contractors", "Former Employees",
                         "Inactive Employees", "Security"));
 
-        addObjectFromFile(ORG_SECRET_OPS_FILE);
+        importObject(ORG_SECRET_OPS_FILE, true);
         Assert.assertTrue(basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                     .getOrgHierarchyPanel()
