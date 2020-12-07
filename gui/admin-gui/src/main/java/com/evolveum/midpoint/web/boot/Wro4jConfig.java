@@ -54,7 +54,6 @@ public class Wro4jConfig {
         SimpleProcessorsFactory processors = new SimpleProcessorsFactory();
         Collection<ResourcePreProcessor> preProcessors = new ArrayList<>();
         preProcessors.add(new CssUrlRewritingProcessor());
-        preProcessors.add(new MidPointCssImportPreProcessor()); //CssImportPreProcessor()
         preProcessors.add(new SemicolonAppenderPreProcessor());
 
         Collection<ResourcePostProcessor> postProcessors = new ArrayList<>();
