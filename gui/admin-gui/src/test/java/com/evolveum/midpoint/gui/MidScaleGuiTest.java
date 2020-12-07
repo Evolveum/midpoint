@@ -36,10 +36,17 @@ import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import com.evolveum.midpoint.web.page.self.PageUserSelfProfile;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import java.io.File;
+
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ActiveProfiles("test")
 @SpringBootTest(classes = TestMidPointSpringApplication.class)
 public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest implements PerformanceTestMixin {
+
+    private static final String TEST_DIR = "./src/test/resources/midScale";
+
+    private static final File FILE_ORG_STRUCT = new File(TEST_DIR, "org-struct.xml");
+    private static final File FILE_USERS = new File(TEST_DIR, "users.xml");
 
     @Autowired TestQueryListener queryListener;
 
@@ -51,10 +58,14 @@ public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest imple
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-        for (int i= 0; i < 20; i++) {
-            UserType user = new UserType(prismContext).name("user" + i).fullName("user" + i).givenName("user" + i);
-            addObject(user.asPrismObject());
+
+        importObjectsFromFileNotRaw(FILE_ORG_STRUCT, initTask, initResult);
+        initResult.computeStatusIfUnknown();
+        if (!initResult.isSuccess()) {
+            System.out.println("init result:\n" + initResult);
         }
+        importObjectsFromFileNotRaw(FILE_USERS, initTask, initResult);
+
         modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
                 ItemPath.create(SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_ENABLE_EXPERIMENTAL_FEATURES),
                 initTask, initResult, true);
@@ -134,7 +145,7 @@ public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest imple
     }
 
     @Test
-    public void test310orgTree() {
+    public void test310orgTree() throws Exception {
         logger.info(getTestName());
         runTestFor(PageOrgTree.class, "orgTree", "Organization tree");
     }
