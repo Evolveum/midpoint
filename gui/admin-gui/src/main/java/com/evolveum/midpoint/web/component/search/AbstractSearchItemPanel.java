@@ -7,17 +7,23 @@
 package com.evolveum.midpoint.web.component.search;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
@@ -27,6 +33,7 @@ import org.apache.wicket.model.PropertyModel;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -142,18 +149,18 @@ public abstract class AbstractSearchItemPanel<S extends SearchItem, T extends Se
 
     protected IModel<List<DisplayableValue<Boolean>>> createBooleanChoices() {
         List<DisplayableValue<Boolean>> list = new ArrayList<>();
-        list.add(new SearchValue<>(Boolean.TRUE, getString("Boolean.TRUE")));
-        list.add(new SearchValue<>(Boolean.FALSE, getString("Boolean.FALSE")));
+        list.add(new SearchValue<>(Boolean.TRUE, "Boolean.TRUE"));
+        list.add(new SearchValue<>(Boolean.FALSE, "Boolean.FALSE"));
         return Model.ofList(list);
     }
 
-    protected Component createDropDownChoices(String id, IModel<Object> model, IModel<List<DisplayableValue>> choices) {
+    protected Component createDropDownChoices(String id, IModel<Object> model, IModel<List<DisplayableValue<?>>> choices, boolean allowNull) {
         return new DropDownChoicePanel(id, model, choices, new IChoiceRenderer<DisplayableValue>() {
             private static final long serialVersionUID = 1L;
 
             @Override
             public Object getDisplayValue(DisplayableValue val) {
-                return val.getLabel();
+                return getPageBase().createStringResource(val.getLabel()).getString();
             }
 
             @Override
@@ -165,7 +172,40 @@ public abstract class AbstractSearchItemPanel<S extends SearchItem, T extends Se
             public DisplayableValue getObject(String id, IModel<? extends List<? extends DisplayableValue>> choices) {
                 return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
             }
-        }, true);
+        }, allowNull);
+    }
+
+    protected AutoCompleteTextPanel createAutoCompetePanel(String id, IModel<String> model, LookupTableType lookupTable) {
+        AutoCompleteTextPanel<String> autoCompletePanel = new AutoCompleteTextPanel<String>(id, model, String.class,
+                true, lookupTable) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public Iterator<String> getIterator(String input) {
+                return WebComponentUtil.prepareAutoCompleteList(lookupTable, input,
+                        ((PageBase) getPage()).getLocalizationService()).iterator();
+            }
+        };
+
+        (autoCompletePanel).getBaseFormComponent().add(new Behavior() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void bind(Component component) {
+                super.bind(component);
+
+                component.add(AttributeModifier.replace("onkeydown",
+                        Model.of(
+                                "if (event.keyCode == 13){"
+                                        + "var autocompletePopup = document.getElementsByClassName(\"wicket-aa-container\");"
+                                        + "if(autocompletePopup != null && autocompletePopup[0].style.display == \"none\"){"
+                                        + "$('[about=\"searchSimple\"]').click();}}"
+                        )));
+            }
+        });
+        return autoCompletePanel;
     }
 
 }

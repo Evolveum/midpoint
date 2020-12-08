@@ -46,6 +46,11 @@ public class SearchFormPanel extends BasePanel<Search> {
             protected void saveSearch(Search search, AjaxRequestTarget target) {
                 SearchFormPanel.this.saveSearch(search, target);
             }
+
+            @Override
+            protected ObjectQuery getQueryFromSearch(Search search) {
+                return SearchFormPanel.this.getQueryFromSearch(search);
+            }
         };
         searchForm.add(search);
     }
@@ -55,5 +60,9 @@ public class SearchFormPanel extends BasePanel<Search> {
     }
 
     protected void saveSearch(Search search, AjaxRequestTarget target) {
+    }
+
+    protected ObjectQuery getQueryFromSearch(Search search) {
+        return search.createObjectQuery(getPageBase());
     }
 }

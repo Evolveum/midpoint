@@ -180,7 +180,8 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
                 ItemPath.create(ShadowType.F_EXISTS),
                 ItemPath.create(ShadowType.F_SYNCHRONIZATION_SITUATION));
 
-        return SearchFactory.createSearch(ShadowType.class, null, null, null, getPageBase(), availableItemPath, true, false);
+        return SearchFactory.createSearch(ShadowType.class, null, null, null,
+                getPageBase(), availableItemPath, true, false, Search.PanelType.DEFAULT);
     }
 
     @Override

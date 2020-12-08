@@ -240,6 +240,47 @@
                 <searchBoxConfiguration>
                     <searchItems>
                         <searchItem>
+                            <filterExpression>
+                                <script>
+                                    <code>
+                                        import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+                                        filter = prismContext.queryFor(ObjectType.class).type(type).buildFilter();
+                                        return prismContext.getQueryConverter().createSearchFilterType(filter);
+                                    </code>
+                                </script>
+                            </filterExpression>
+                            <displayName>
+                                <t:orig>Type</t:orig>
+                                <t:norm>Type</t:norm>
+                                <t:translation>
+                                    <t:key>abstractRoleMemberPanel.type</t:key>
+                                </t:translation>
+                            </displayName>
+                            <description>abstractRoleMemberPanel.type.tooltip</description>
+                            <parameter>
+                                <name>type</name>
+                                <type>QName</type>
+                                <allowedValuesExpression>
+                                    <script>
+                                        <code>
+                                            import com.evolveum.midpoint.gui.api.util.WebComponentUtil
+                                            import com.evolveum.midpoint.web.component.search.SearchValue;
+
+                                            List choices = new ArrayList()
+                                            List objectTypes = WebComponentUtil.createObjectTypeList();
+
+                                            for (objectType in objectTypes) {
+                                                String key = "ObjectType." + objectType.getLocalPart();
+                                                choices.add(new SearchValue(objectType, key))
+                                            }
+                                            return choices
+                                        </code>
+                                    </script>
+                                </allowedValuesExpression>
+                            </parameter>
+                        </searchItem>
+                        <searchItem>
                             <filter>
                                 <inOid>
                                     <expression>
@@ -260,6 +301,228 @@
                     </searchItems>
                 </searchBoxConfiguration>
                 <type>ObjectType</type>
+            </objectCollectionView>
+            <objectCollectionView>
+                <type>OrgType</type>
+                <additionalPanels>
+                    <memberPanel>
+                        <searchBoxConfiguration>
+                            <searchItems>
+                                <searchItem>
+                                    <filterExpression>
+                                        <script>
+                                            <code>
+                                                import com.evolveum.midpoint.prism.query.ObjectFilter;
+                                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+
+                                                ObjectFilter filter
+                                                if (type == null){
+                                                    filter = prismContext.queryFor(AssignmentHolderType.class).type(AssignmentHolderType.COMPLEX_TYPE).buildFilter();
+                                                } else {
+                                                    filter = prismContext.queryFor(AssignmentHolderType.class).type(type).buildFilter();
+                                                }
+                                                return prismContext.getQueryConverter().createSearchFilterType(filter);
+                                            </code>
+                                        </script>
+                                    </filterExpression>
+                                    <displayName>
+                                        <t:orig>Type</t:orig>
+                                        <t:norm>Type</t:norm>
+                                        <t:translation>
+                                            <t:key>abstractRoleMemberPanel.type</t:key>
+                                        </t:translation>
+                                    </displayName>
+                                    <description>abstractRoleMemberPanel.type.tooltip</description>
+                                    <parameter>
+                                        <name>type</name>
+                                        <type>QName</type>
+                                        <allowedValuesExpression>
+                                            <script>
+                                                <code>
+                                                    import com.evolveum.midpoint.gui.api.util.WebComponentUtil
+                                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+                                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+                                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+                                                    import com.evolveum.midpoint.web.component.search.SearchValue;
+
+                                                    List choices = new ArrayList()
+                                                    List objectTypes = WebComponentUtil.createAssignmentHolderTypeQnamesList();
+                                                    objectTypes.remove(ShadowType.COMPLEX_TYPE);
+                                                    objectTypes.remove(ObjectType.COMPLEX_TYPE);
+                                                    objectTypes.remove(AssignmentHolderType.COMPLEX_TYPE);
+
+                                                    choices.add(new SearchValue(null, "ObjectTypes.all"))
+                                                    for (objectType in objectTypes) {
+                                                        String key = "ObjectType." + objectType.getLocalPart();
+                                                        choices.add(new SearchValue(objectType, key))
+                                                    }
+                                                    return choices
+                                                </code>
+                                            </script>
+                                        </allowedValuesExpression>
+                                    </parameter>
+                                </searchItem>
+                                <searchItem>
+                                    <filterExpression>
+                                        <script>
+                                            <code>
+                                                import com.evolveum.midpoint.prism.query.ObjectFilter;
+                                                import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+                                                import com.evolveum.midpoint.web.page.admin.roles.MemberOperationsHelper;
+                                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
+                                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+                                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+                                                import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
+                                                List relationDefs = WebComponentUtil.getRelationRegistry().getRelationDefinitions();
+                                                List relations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, relationDefs);
+
+                                                ObjectFilter filter;
+                                                if(!Boolean.TRUE.equals(indirect)) {
+                                                    filter = prismContext.queryFor(object.getClass()).exists(AssignmentHolderType.F_ASSIGNMENT)
+                                                        .block()
+                                                            .item(AssignmentType.F_TARGET_REF)
+                                                            .ref(MemberOperationsHelper.createReferenceValuesList(object, relations))
+                                                        .endBlock().buildFilter();
+                                                } else {
+                                                    filter = prismContext.queryFor(object.getClass())
+                                                        .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(MemberOperationsHelper.createReferenceValuesList(object, relations))
+                                                        .buildFilter();
+                                                }
+                                                return prismContext.getQueryConverter().createSearchFilterType(filter);
+                                            </code>
+                                        </script>
+                                    </filterExpression>
+                                    <displayName>
+                                        <t:orig>Indirect</t:orig>
+                                        <t:norm>Indirect</t:norm>
+                                        <t:translation>
+                                            <t:key>abstractRoleMemberPanel.indirectMembers</t:key>
+                                        </t:translation>
+                                    </displayName>
+                                    <description>abstractRoleMemberPanel.indirectMembers.tooltip</description>
+                                    <parameter>
+                                        <name>indirect</name>
+                                        <type>boolean</type>
+                                    </parameter>
+                                </searchItem>
+                                <searchItem>
+                                    <filterExpression>
+                                        <script>
+                                            <code>
+                                                import com.evolveum.midpoint.prism.PrismConstants;
+                                                import com.evolveum.midpoint.prism.query.ObjectFilter;
+                                                import com.evolveum.midpoint.util.QNameUtil;
+                                                import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+                                                import com.evolveum.midpoint.web.page.admin.roles.MemberOperationsHelper;
+                                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
+                                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+                                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+                                                import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
+                                                List relations = null;
+                                                if (QNameUtil.match(relation, PrismConstants.Q_ANY)){
+                                                    List relationDefs = WebComponentUtil.getRelationRegistry().getRelationDefinitions();
+                                                    relations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, relationDefs);
+                                                } else {
+                                                    relations = Collections.singletonList(relation);
+                                                }
+
+                                                ObjectFilter filter;
+                                                if(!getBinding().hasVariable('indirect') || !Boolean.TRUE.equals(indirect)) {
+                                                    filter = prismContext.queryFor(object.getClass()).exists(AssignmentHolderType.F_ASSIGNMENT)
+                                                        .block()
+                                                            .item(AssignmentType.F_TARGET_REF)
+                                                            .ref(MemberOperationsHelper.createReferenceValuesList(object, relations))
+                                                        .endBlock().buildFilter();
+                                                } else {
+                                                    filter = prismContext.queryFor(object.getClass())
+                                                        .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(MemberOperationsHelper.createReferenceValuesList(object, relations))
+                                                        .buildFilter();
+                                                }
+                                                return prismContext.getQueryConverter().createSearchFilterType(filter);
+                                            </code>
+                                        </script>
+                                    </filterExpression>
+                                    <displayName>
+                                        <t:orig>Relation</t:orig>
+                                        <t:norm>Relation</t:norm>
+                                        <t:translation>
+                                            <t:key>relationDropDownChoicePanel.relation</t:key>
+                                        </t:translation>
+                                    </displayName>
+                                    <description>relationDropDownChoicePanel.tooltip.relation</description>
+                                    <parameter>
+                                        <name>relation</name>
+                                        <type>QName</type>
+                                        <allowedValuesExpression>
+                                            <script>
+                                                <code>
+                                                    import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+                                                    import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
+                                                    import com.evolveum.midpoint.prism.util.PolyStringUtils;
+                                                    import com.evolveum.midpoint.prism.PrismConstants;
+                                                    import com.evolveum.midpoint.web.component.search.SearchValue;
+                                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
+
+                                                    List choices = new ArrayList();
+                                                    List relationDefs = WebComponentUtil.getRelationRegistry().getRelationDefinitions();
+                                                    List relations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, relationDefs);
+                                                    choices.add(new SearchValue(PrismConstants.Q_ANY, "RelationTypes.ANY"))
+                                                    for (relation in relations) {
+                                                        key = relation.getLocalPart();
+                                                        relationDef = WebComponentUtil.getRelationDefinition(relation);
+                                                        if (relationDef != null) {
+                                                            display = relationDef.getDisplay();
+                                                            if (display != null) {
+                                                                label = display.getLabel();
+                                                                if (PolyStringUtils.isNotEmpty(label)) {
+                                                                    key = WebComponentUtil.getTranslatedPolyString(label);
+                                                                }
+                                                            }
+                                                        }
+                                                        choices.add(new SearchValue(relation, key))
+                                                    }
+                                                    return choices;
+                                                </code>
+                                            </script>
+                                        </allowedValuesExpression>
+                                    </parameter>
+                                </searchItem>
+                                <searchItem>
+                                    <filterExpression>
+                                        <script>
+                                            <code>
+                                                import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
+                                                import com.evolveum.midpoint.prism.query.ObjectFilter;
+
+                                                ObjectFilter filter = null;
+                                                if (SearchBoxScopeType.SUBTREE.equals(scope)) {
+                                                filter = prismContext.queryFor(object.getClass()).isChildOf(object.getOid()).buildFilter();
+                                                } else {
+                                                filter = prismContext.queryFor(object.getClass()).isDirectChildOf(object.getOid()).buildFilter();
+                                                }
+                                                return prismContext.getQueryConverter().createSearchFilterType(filter);
+                                            </code>
+                                        </script>
+                                    </filterExpression>
+                                    <displayName>
+                                        <t:orig>Scope</t:orig>
+                                        <t:norm>Scope</t:norm>
+                                        <t:translation>
+                                            <t:key>abstractRoleMemberPanel.searchScope</t:key>
+                                        </t:translation>
+                                    </displayName>
+                                    <description>abstractRoleMemberPanel.searchScope.tooltip</description>
+                                    <parameter>
+                                        <name>scope</name>
+                                        <type>SearchBoxScopeType</type>
+                                    </parameter>
+                                </searchItem>
+                            </searchItems>
+                        </searchBoxConfiguration>
+                    </memberPanel>
+                </additionalPanels>
             </objectCollectionView>
             <objectCollectionView>
                 <identifier>my-cases</identifier>

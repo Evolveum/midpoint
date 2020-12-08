@@ -1997,7 +1997,7 @@ public final class WebComponentUtil {
         return getRelationRegistry().isOfKind(relation, kind);
     }
 
-    protected static RelationRegistry getRelationRegistry() {
+    public static RelationRegistry getRelationRegistry() {
         if (staticallyProvidedRelationRegistry != null) {
             return staticallyProvidedRelationRegistry;
         } else {
@@ -2989,9 +2989,8 @@ public final class WebComponentUtil {
         target.add(pageBase.getFeedbackPanel());
     }
 
-    public static List<QName> getCategoryRelationChoices(AreaCategoryType category, ModelServiceLocator pageBase) {
+    public static List<QName> getCategoryRelationChoices(AreaCategoryType category, List<RelationDefinitionType> defList) {
         List<QName> relationsList = new ArrayList<>();
-        List<RelationDefinitionType> defList = getRelationDefinitions(pageBase);
         defList.sort(new Comparator<RelationDefinitionType>() {
             @Override
             public int compare(RelationDefinitionType rD1, RelationDefinitionType rD2) {
@@ -3021,6 +3020,10 @@ public final class WebComponentUtil {
             }
         });
         return relationsList;
+    }
+
+    public static List<QName> getCategoryRelationChoices(AreaCategoryType category, ModelServiceLocator pageBase) {
+        return getCategoryRelationChoices(category, getRelationDefinitions(pageBase));
     }
 
     private static RelationKindType getHighestRelationKind(List<RelationKindType> kinds) {

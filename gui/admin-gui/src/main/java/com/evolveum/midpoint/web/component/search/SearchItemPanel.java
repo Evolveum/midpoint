@@ -7,44 +7,31 @@
 package com.evolveum.midpoint.web.component.search;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.input.CheckPanel;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
@@ -76,7 +63,7 @@ public class SearchItemPanel<T extends Serializable> extends AbstractSearchItemP
     protected void initSearchItemField(WebMarkupContainer searchItemContainer) {
         Component searchItemField;
         PropertySearchItem<T> item = getModelObject();
-        IModel<List<DisplayableValue<T>>> choices = null;
+        IModel<List<DisplayableValue<?>>> choices = null;
         switch (item.getType()) {
             case REFERENCE:
                 searchItemField = new ReferenceValueSearchPanel(ID_SEARCH_ITEM_FIELD,
@@ -92,27 +79,9 @@ public class SearchItemPanel<T extends Serializable> extends AbstractSearchItemP
                 choices = (IModel) createBooleanChoices();
             case ENUM:
                 if (choices == null) {
-                    choices = new ListModel<>(item.getAllowedValues(getPageBase()));
+                    choices = new ListModel(item.getAllowedValues(getPageBase()));
                 }
-                searchItemField = new DropDownChoicePanel<>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value"),
-                        choices, new IChoiceRenderer<DisplayableValue>() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public Object getDisplayValue(DisplayableValue val) {
-                        return val.getLabel();
-                    }
-
-                    @Override
-                    public String getIdValue(DisplayableValue val, int index) {
-                        return Integer.toString(index);
-                    }
-
-                    @Override
-                    public DisplayableValue getObject(String id, IModel<? extends List<? extends DisplayableValue>> choices) {
-                        return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
-                    }
-                }, true);
+                searchItemField = createDropDownChoices(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value"), choices, true);
                 break;
             case DATE:
                 searchItemField = new DateIntervalSearchPanel(ID_SEARCH_ITEM_FIELD,
@@ -126,35 +95,8 @@ public class SearchItemPanel<T extends Serializable> extends AbstractSearchItemP
             case TEXT:
                 PrismObject<LookupTableType> lookupTable = WebComponentUtil.findLookupTable(item.getDefinition().getDef(), getPageBase());
                 if (lookupTable != null) {
-                    searchItemField = new AutoCompleteTextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value.value"), String.class,
-                            true, lookupTable.asObjectable()) {
-
-                        private static final long serialVersionUID = 1L;
-
-                        @Override
-                        public Iterator<String> getIterator(String input) {
-                            return WebComponentUtil.prepareAutoCompleteList(lookupTable.asObjectable(), input,
-                                    ((PageBase) getPage()).getLocalizationService()).iterator();
-                        }
-                    };
-
-                    ((AutoCompleteTextPanel) searchItemField).getBaseFormComponent().add(new Behavior() {
-
-                        private static final long serialVersionUID = 1L;
-
-                        @Override
-                        public void bind(Component component) {
-                            super.bind(component);
-
-                            component.add(AttributeModifier.replace("onkeydown",
-                                    Model.of(
-                                            "if (event.keyCode == 13){"
-                                                    + "var autocompletePopup = document.getElementsByClassName(\"wicket-aa-container\");"
-                                                    + "if(autocompletePopup != null && autocompletePopup[0].style.display == \"none\"){"
-                                                    + "$('[about=\"searchSimple\"]').click();}}"
-                                    )));
-                        }
-                    });
+                    searchItemField = createAutoCompetePanel(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value.value"),
+                            lookupTable.asObjectable());
                 } else {
                     searchItemField = new TextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value.value"));
                 }

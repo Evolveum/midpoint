@@ -72,10 +72,6 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem {
         return list;
     }
 
-    public List<QName> getAllowedRelations() {
-        return getDefinition().getAllowedValues();
-    }
-
     public ItemPath getPath() {
         return getDefinition().getPath();
     }

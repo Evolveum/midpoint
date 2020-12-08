@@ -9,7 +9,9 @@ package com.evolveum.midpoint.web.component.search;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.input.CheckPanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
@@ -17,8 +19,11 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionParameterType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ParameterType;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -66,25 +71,47 @@ public class SearchFilterPanel extends AbstractSearchItemPanel<FilterSearchItem,
         searchItemContainer.add(checkPanel);
 
         ParameterType functionParameter = getModelObject().getPredefinedFilter().getParameter();
-        QName returnType = functionParameter !=null ? functionParameter.getType() : null;
+        QName returnType = functionParameter != null ? functionParameter.getType() : null;
         Component inputPanel;
         if (returnType == null) {
             inputPanel = new WebMarkupContainer(ID_SEARCH_ITEM_FIELD);
         } else {
             Class<?> inputClass = getPrismContext().getSchemaRegistry().determineClassForType(returnType);
             Validate.notNull(inputClass, "Couldn't find class for type " + returnType);
-            SearchItem.Type inputType = getModelObject().getInputType(inputClass);
-            IModel<List<DisplayableValue>> choices = null;
+            SearchItem.Type inputType = getModelObject().getInputType(inputClass, getPageBase());
+            IModel<List<DisplayableValue<?>>> choices = null;
             switch (inputType) {
+                case REFERENCE:
+                    inputPanel = new ReferenceValueSearchPanel(ID_SEARCH_ITEM_FIELD,
+                            new PropertyModel<>(getModel(), FilterSearchItem.F_INPUT_VALUE),
+                            null){
+                        @Override
+                        protected void referenceValueUpdated(ObjectReferenceType ort, AjaxRequestTarget target) {
+                            searchPerformed(target);
+                        }
+                    };
+                    break;
                 case BOOLEAN:
                     choices = (IModel) createBooleanChoices();
                 case ENUM:
 
                     if (choices == null) {
-                        choices = createEnumChoises((Class<? extends Enum>) inputClass);
+                        choices = CollectionUtils.isEmpty(getModelObject().getAllowedValues(getPageBase())) ?
+                                createEnumChoises((Class<? extends Enum>) inputClass) : Model.ofList(getModelObject().getAllowedValues(getPageBase()));
                     }
                     if (choices != null) {
-                        inputPanel = createDropDownChoices(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), FilterSearchItem.F_INPUT), choices);
+                        inputPanel = createDropDownChoices(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), FilterSearchItem.F_INPUT), choices, false);
+                        break;
+                    }
+                case ITEM_PATH:
+                    inputPanel = new ItemPathSearchPanel(ID_SEARCH_ITEM_FIELD,
+                            new PropertyModel(getModel(), FilterSearchItem.F_INPUT_VALUE));
+                    break;
+                case TEXT:
+                    LookupTableType lookupTable = getModelObject().getLookupTable();
+                    if (lookupTable != null) {
+                        inputPanel = createAutoCompetePanel(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), FilterSearchItem.F_INPUT_VALUE),
+                                lookupTable);
                         break;
                     }
                 default:
@@ -101,9 +128,9 @@ public class SearchFilterPanel extends AbstractSearchItemPanel<FilterSearchItem,
         searchItemContainer.add(inputPanel);
     }
 
-    private IModel<List<DisplayableValue>> createEnumChoises(Class<? extends Enum> inputClass) {
+    private IModel<List<DisplayableValue<?>>> createEnumChoises(Class<? extends Enum> inputClass) {
         Enum[] enumConstants = inputClass.getEnumConstants();
-        List<DisplayableValue> list = new ArrayList<>();
+        List<DisplayableValue<?>> list = new ArrayList<>();
         for(int i = 0; i < enumConstants.length; i++){
             list.add(new SearchValue<>(enumConstants[i], getString(enumConstants[i])));
         }

@@ -51,8 +51,8 @@ public class DebugSearchFragment extends Fragment {
     private static final String ID_ZIP_CHECK = "zipCheck";
     private static final String ID_SHOW_ALL_ITEMS_CHECK = "showAllItemsCheck";
     private static final String ID_SEARCH_FORM = "searchForm";
-    private static final String ID_CHOICE_CONTAINER = "choiceContainer";
-    private static final String ID_CHOICE = "choice";
+//    private static final String ID_CHOICE_CONTAINER = "choiceContainer";
+//    private static final String ID_CHOICE = "choice";
 
     public DebugSearchFragment(String id, String markupId, MarkupContainer markupProvider,
             IModel<DebugSearchDto> model, IModel<List<ObjectViewDto<ResourceType>>> resourcesModel,
@@ -96,45 +96,45 @@ public class DebugSearchFragment extends Fragment {
         final Form<?> searchForm = new MidpointForm<>(ID_SEARCH_FORM);
         add(searchForm);
         searchForm.setOutputMarkupId(true);
-        searchForm.add(createTypePanel());
+//        searchForm.add(createTypePanel());
         searchForm.add(createSearchPanel());
     }
 
-    private WebMarkupContainer createTypePanel() {
-        EnumChoiceRenderer<ObjectTypes> renderer = new EnumChoiceRenderer<ObjectTypes>() {
-
-            protected String resourceKey(ObjectTypes object) {
-                ObjectTypeGuiDescriptor descriptor = ObjectTypeGuiDescriptor.getDescriptor(object);
-                if (descriptor == null) {
-                    return ObjectTypeGuiDescriptor.ERROR_LOCALIZATION_KEY;
-                }
-
-                return descriptor.getLocalizationKey();
-            }
-        };
-
-        WebMarkupContainer choiceContainer = new WebMarkupContainer(ID_CHOICE_CONTAINER);
-        choiceContainer.setOutputMarkupId(true);
-
-        DropDownChoicePanel<ObjectTypes> choice = new DropDownChoicePanel<>(ID_CHOICE,
-                new PropertyModel<>(getModel(), DebugSearchDto.F_TYPE), createChoiceModel(), renderer);
-        choiceContainer.add(choice);
-        choice.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                DebugSearchDto searchDto = DebugSearchFragment.this.getModel().getObject();
-                searchDto.setType(choice.getModel().getObject());
-                searchDto.setSearch(null);
-                getSearchPanel().resetMoreDialogModel();
-                target.add(getSearchPanel());
-                searchPerformed(target);
-            }
-        });
-
-        return choiceContainer;
-    }
+//    private WebMarkupContainer createTypePanel() {
+//        EnumChoiceRenderer<ObjectTypes> renderer = new EnumChoiceRenderer<ObjectTypes>() {
+//
+//            protected String resourceKey(ObjectTypes object) {
+//                ObjectTypeGuiDescriptor descriptor = ObjectTypeGuiDescriptor.getDescriptor(object);
+//                if (descriptor == null) {
+//                    return ObjectTypeGuiDescriptor.ERROR_LOCALIZATION_KEY;
+//                }
+//
+//                return descriptor.getLocalizationKey();
+//            }
+//        };
+//
+//        WebMarkupContainer choiceContainer = new WebMarkupContainer(ID_CHOICE_CONTAINER);
+//        choiceContainer.setOutputMarkupId(true);
+//
+//        DropDownChoicePanel<ObjectTypes> choice = new DropDownChoicePanel<>(ID_CHOICE,
+//                new PropertyModel<>(getModel(), DebugSearchDto.F_TYPE), createChoiceModel(), renderer);
+//        choiceContainer.add(choice);
+//        choice.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            protected void onUpdate(AjaxRequestTarget target) {
+//                DebugSearchDto searchDto = DebugSearchFragment.this.getModel().getObject();
+//                searchDto.setType(choice.getModel().getObject());
+//                searchDto.setSearch(null);
+//                getSearchPanel().resetMoreDialogModel();
+//                target.add(getSearchPanel());
+//                searchPerformed(target);
+//            }
+//        });
+//
+//        return choiceContainer;
+//    }
 
     private WebMarkupContainer createSearchPanel() {
         SearchPanel searchPanel = new SearchPanel(ID_SEARCH,

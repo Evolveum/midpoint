@@ -769,9 +769,13 @@ public class SearchPanel extends BasePanel<Search> {
 
     void searchPerformed(AjaxRequestTarget target) {
         Search search = getModelObject();
-        ObjectQuery query = search.createObjectQuery(getPageBase());
+        ObjectQuery query = getQueryFromSearch(search);
         LOG.debug("Created query: {}", query);
         searchPerformed(query, target);
+    }
+
+    protected ObjectQuery getQueryFromSearch(Search search) {
+        return search.createObjectQuery(getPageBase());
     }
 
     void refreshSearchForm(AjaxRequestTarget target) {

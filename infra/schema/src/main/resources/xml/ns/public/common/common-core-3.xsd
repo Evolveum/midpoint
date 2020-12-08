@@ -25572,6 +25572,16 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="filterExpression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Filter defines a custom filter which can be included during search execution.
+                            Expression return SearchFilterType.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -25593,7 +25603,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="parameter" type="c:ParameterType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="parameter" type="c:SearchFilterParameterType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Parameter used in filter expression.
@@ -25606,7 +25616,7 @@
             <xsd:element name="showAsDefault" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Define if item search panel will be showing as default or it will be available in 'more' panel.
+                        Define if item search panel will be showing as default or it will be available in 'more' panel. Default is 'true'.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>SearchItemType.showAsDefault</a:displayName>
@@ -25614,6 +25624,39 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SearchFilterParameterType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes input parameters for the search filter.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ParameterType">
+                <xsd:sequence>
+                    <xsd:element name="allowedValuesLookupTable" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:LookupTableType</a:objectReferenceTargetType>
+                                <a:since>4.3</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="allowedValuesExpression" type="tns:ExpressionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Expression that determines allowed value. Expected List&#60;DisplayableValue&#62;.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:simpleType name="SearchBoxModeType">

@@ -722,6 +722,11 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                     storage.setSearch(search);
                 }
             }
+
+            @Override
+            protected ObjectQuery getQueryFromSearch(Search search) {
+                return ContainerableListPanel.this.getQueryFromSearch(search);
+            }
         };
         return searchPanel;
     }
@@ -942,7 +947,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         ObjectQuery query = getPrismContext().queryFor(getType()).build();
         Search search = searchModel.getObject();
         if (search != null){
-            query = search.createObjectQuery(getPageBase());
+            query = getQueryFromSearch(search);
         }
 
         ObjectQuery archetypeQuery = getArchetypeQuery();
@@ -952,6 +957,10 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         query = mergeQueries(query, customQuery);
 
         return query;
+    }
+
+    protected ObjectQuery getQueryFromSearch(Search search) {
+        return search.createObjectQuery(getPageBase());
     }
 
     private ObjectQuery mergeQueries(ObjectQuery origQuery, ObjectQuery query) {

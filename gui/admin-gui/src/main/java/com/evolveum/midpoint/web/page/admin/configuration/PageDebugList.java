@@ -225,7 +225,8 @@ public class PageDebugList extends PageAdminConfiguration {
         add(main);
 
         DebugSearchDto dto = searchModel.getObject();
-        Class type = dto.getType().getClassDefinition();
+//        Class type = dto.getType().getClassDefinition();
+        Class type = ObjectType.class;
         RepositoryObjectDataProvider provider = new RepositoryObjectDataProvider(this, type) {
             private static final long serialVersionUID = 1L;
 
@@ -588,7 +589,9 @@ public class PageDebugList extends PageAdminConfiguration {
             search.setCanConfigure(true);
             SchemaRegistry registry = getPrismContext().getSchemaRegistry();
             PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(ObjectType.class);
-            List<SearchItemDefinition> configuredSearchItemDefs = SearchFactory.getConfiguredSearchItemDefinitions(search.getAvailableDefinitions(), this, ObjectType.class, null);
+            List<SearchItemDefinition> configuredSearchItemDefs =
+                    SearchFactory.getConfiguredSearchItemDefinitions(search.getAvailableDefinitions(), this,
+                            ObjectType.class, null, Search.PanelType.DEBUG_PAGE);
             if (!configuredSearchItemDefs.isEmpty()) {
                 SearchFactory.processSearchItemDefFromCompiledView(configuredSearchItemDefs, search, objDef);
             }
@@ -606,10 +609,10 @@ public class PageDebugList extends PageAdminConfiguration {
         RepositoryObjectDataProvider provider = getTableDataProvider();
         provider.setQuery(createQuery(query));
 
-        ObjectTypes selected = dto.getType();
-        if (selected != null) {
-            provider.setType(selected.getClassDefinition());
-        }
+//        ObjectTypes selected = dto.getType();
+//        if (selected != null) {
+//            provider.setType(selected.getClassDefinition());
+//        }
 
         // save object type category to session storage, used by back button
         ConfigurationStorage storage = getSessionStorage().getConfiguration();
@@ -626,39 +629,39 @@ public class PageDebugList extends PageAdminConfiguration {
         DebugSearchDto dto = searchModel.getObject();
 
         List<ObjectFilter> filters = new ArrayList<>();
-        String oidFilterValue = dto.getOidFilter();
-        if (StringUtils.isNotEmpty(oidFilterValue)) {
-            ObjectFilter inOidFilter = getPrismContext().queryFor(ObjectType.class).id(oidFilterValue).buildFilter();
-            filters.add(inOidFilter);
-
-            if (searchQuery == null) {
-                ObjectQuery query = getPrismContext().queryFor(ObjectType.class)
-                        .build();
-                query.addFilter(inOidFilter);
-                return query;
-            } else {
-                searchQuery.addFilter(inOidFilter);
-                return searchQuery;
-            }
-        }
-        if (ObjectTypes.SHADOW.equals(dto.getType()) && dto.getResource() != null) {
-            String oid = dto.getResource().getOid();
-            QName objectClass = dto.getObjectClass();
-            ObjectFilter objectFilter;
-            if (objectClass != null) {
-                objectFilter = getPrismContext().queryFor(ShadowType.class)
-                        .item(ShadowType.F_RESOURCE_REF).ref(oid)
-                        .and()
-                        .item(ShadowType.F_OBJECT_CLASS)
-                        .eq(objectClass)
-                        .buildFilter();
-            } else {
-                objectFilter = getPrismContext().queryFor(ShadowType.class)
-                        .item(ShadowType.F_RESOURCE_REF).ref(oid)
-                        .buildFilter();
-            }
-            filters.add(objectFilter);
-        }
+//        String oidFilterValue = dto.getOidFilter();
+//        if (StringUtils.isNotEmpty(oidFilterValue)) {
+//            ObjectFilter inOidFilter = getPrismContext().queryFor(ObjectType.class).id(oidFilterValue).buildFilter();
+//            filters.add(inOidFilter);
+//
+//            if (searchQuery == null) {
+//                ObjectQuery query = getPrismContext().queryFor(ObjectType.class)
+//                        .build();
+//                query.addFilter(inOidFilter);
+//                return query;
+//            } else {
+//                searchQuery.addFilter(inOidFilter);
+//                return searchQuery;
+//            }
+//        }
+//        if (ObjectTypes.SHADOW.equals(dto.getType()) && dto.getResource() != null) {
+//            String oid = dto.getResource().getOid();
+//            QName objectClass = dto.getObjectClass();
+//            ObjectFilter objectFilter;
+//            if (objectClass != null) {
+//                objectFilter = getPrismContext().queryFor(ShadowType.class)
+//                        .item(ShadowType.F_RESOURCE_REF).ref(oid)
+//                        .and()
+//                        .item(ShadowType.F_OBJECT_CLASS)
+//                        .eq(objectClass)
+//                        .buildFilter();
+//            } else {
+//                objectFilter = getPrismContext().queryFor(ShadowType.class)
+//                        .item(ShadowType.F_RESOURCE_REF).ref(oid)
+//                        .buildFilter();
+//            }
+//            filters.add(objectFilter);
+//        }
 
         if (searchQuery != null && searchQuery.getFilter() != null) {
             filters.add(searchQuery.getFilter());
