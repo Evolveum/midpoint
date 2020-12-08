@@ -2754,6 +2754,27 @@ public final class WebComponentUtil {
      * Returns name of the collection suitable to be displayed in the menu or other labels.
      * E.g. "All tasks", "Active employees".
      */
+    public static PolyStringType getCollectionLabel(DisplayType viewDisplayType) {
+        if (viewDisplayType != null) {
+            PolyStringType viewPluralLabel = viewDisplayType.getPluralLabel();
+            if (viewPluralLabel != null) {
+                return viewPluralLabel;
+            }
+            PolyStringType viewLabel = viewDisplayType.getLabel();
+            if (viewLabel != null) {
+                return viewLabel;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns name of the collection suitable to be displayed in the menu or other labels.
+     * E.g. "All tasks", "Active employees".
+     *
+     * DEPRECATED. Use getCollectionLabel(DisplayType displayType) instead
+     */
+    @Deprecated
     public static PolyStringType getCollectionLabel(DisplayType viewDisplayType, CollectionRefSpecificationType collectionRefSpec, ObjectType collectionRefTarget) {
         if (viewDisplayType != null) {
             PolyStringType viewPluralLabel = viewDisplayType.getPluralLabel();

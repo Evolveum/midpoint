@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.authentication.CompiledDashboardType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -207,10 +209,9 @@ public class LeftMenuPanel extends BasePanel<Void> {
         MainMenuItem homeMenu = createMainMenuItem("PageAdmin.menu.dashboard", GuiStyleConstants.CLASS_DASHBOARD_ICON);
         homeMenu.addMenuItem(new MenuItem("PageAdmin.menu.dashboard.info", PageDashboardInfo.class));
 
+        List<CompiledDashboardType> dashboards = getPageBase().getCompiledGuiProfile().getConfigurableDashboards();
 
-        OperationResult result = new OperationResult("Search Dashboard");
-        List<PrismObject<DashboardType>> dashboards = WebModelServiceUtils.searchObjects(DashboardType.class, null, result, getPageBase());
-        for (PrismObject<DashboardType> prismObject : dashboards) {
+        for (CompiledDashboardType prismObject : dashboards) {
             MenuItem dashboardMenu = createDashboardMenuItem(prismObject);
             homeMenu.addMenuItem(dashboardMenu);
         }
@@ -218,9 +219,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         return homeMenu;
     }
 
-    private MenuItem createDashboardMenuItem(PrismObject<DashboardType> prismObject) {
-        Validate.notNull(prismObject, "PrismObject<Dashboard> is null");
-        DashboardType dashboard = prismObject.asObjectable();
+    private MenuItem createDashboardMenuItem(CompiledDashboardType dashboard) {
         Validate.notNull(dashboard, "Dashboard object is null");
 
         if (!WebComponentUtil.getElementVisibility(dashboard.getVisibility())) {
@@ -238,9 +237,9 @@ public class LeftMenuPanel extends BasePanel<Void> {
         return new MenuItem(label, PageDashboardConfigurable.class, createDashboardPageParameters(dashboard), active);
 
     }
-    private String getDashboardLabel(DashboardType dashboard) {
+    private String getDashboardLabel(CompiledDashboardType dashboard) {
         String label = null;
-        PolyStringType displayType = WebComponentUtil.getCollectionLabel(dashboard.getDisplay(), null, dashboard);
+        PolyStringType displayType = WebComponentUtil.getCollectionLabel(dashboard.getDisplay());
         if (displayType != null) {
             label = WebComponentUtil.getTranslatedPolyString(displayType);
         }
@@ -250,7 +249,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         return label;
     }
 
-    private PageParameters createDashboardPageParameters(DashboardType dashboard) {
+    private PageParameters createDashboardPageParameters(CompiledDashboardType dashboard) {
         PageParameters pageParameters = new PageParameters();
         pageParameters.add(OnePageParameterEncoder.PARAMETER, dashboard.getOid());
         return pageParameters;
@@ -536,39 +535,16 @@ public class LeftMenuPanel extends BasePanel<Void> {
         List<CompiledObjectCollectionView> objectViews = getPageBase().getCompiledGuiProfile().findAllApplicableObjectCollectionViews(type);
 
         objectViews.forEach(objectView -> {
-            CollectionRefSpecificationType collectionRefSpec = objectView.getCollection();
-            if (collectionRefSpec == null) {
-                return;
-            }
-
-            ObjectReferenceType collectionRef = collectionRefSpec.getCollectionRef();
-            if (collectionRef == null) {
-                return;
-            }
-
-            OperationResult result = new OperationResult(OPERATION_LOAD_VIEW_COLLECTION_REF);
-            Task task = getPageBase().createSimpleTask(OPERATION_LOAD_VIEW_COLLECTION_REF);
-            PrismObject<? extends ObjectType> collectionObject = WebModelServiceUtils.resolveReferenceNoFetch(collectionRef, getPageBase(),
-                    task, result);
-            if (collectionObject == null) {
-                return;
-            }
-            ObjectType objectType = collectionObject.asObjectable();
-            if (!(objectType instanceof ArchetypeType) && !(objectType instanceof ObjectCollectionType)) {
-                return;
-            }
             DisplayType viewDisplayType = objectView.getDisplay();
 
             PageParameters pageParameters = new PageParameters();
             pageParameters.add(PageBase.PARAMETER_OBJECT_COLLECTION_NAME, objectView.getViewIdentifier());
 
             String label = "MenuItem.noName";
-            PolyStringType display = WebComponentUtil.getCollectionLabel(viewDisplayType, collectionRefSpec, objectType);
+            PolyStringType display = WebComponentUtil.getCollectionLabel(viewDisplayType);
             if (display != null) {
                 label = WebComponentUtil.getTranslatedPolyString(display);
             }
-
-
 
             MenuItem userViewMenu = new MenuItem(label,
                     WebComponentUtil.getIconCssClass(viewDisplayType), redirectToPage, pageParameters, isObjectCollectionMenuActive(objectView));

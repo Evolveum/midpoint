@@ -1756,12 +1756,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     protected void setTimeZone(PageBase page) {
-        PrismObject<? extends FocusType> focus = loadFocusSelf();
+//        PrismObject<? extends FocusType> focus = loadFocusSelf();
         String timeZone = null;
         GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();
-        if (focus != null && focus.asObjectable().getTimezone() != null) {
-            timeZone = focus.asObjectable().getTimezone();
-        } else if (principal != null && principal.getCompiledGuiProfile() != null) {
+//        if (focus != null && focus.asObjectable().getTimezone() != null) {
+//            timeZone = focus.asObjectable().getTimezone();
+//        } else
+        if (principal != null && principal.getCompiledGuiProfile() != null) {
             timeZone = principal.getCompiledGuiProfile().getDefaultTimezone();
         }
         if (timeZone != null) {
