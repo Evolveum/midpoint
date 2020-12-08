@@ -73,7 +73,6 @@ SHOW session_replication_role;
 select count(*) from m_object_oid;
 explain
 select count(*) from m_user;
-select * from m_user order by name_norm offset 990 limit 50;
 -- vacuum full analyze; -- this requires exclusive lock on processed table and can be very slow, with 1M rows it takes 10s
 vacuum analyze; -- this is normal operation version (can run in parallel, ~25s/25m rows)
 
@@ -101,12 +100,13 @@ SELECT 'user-' || LPAD(r::text, 10, '0'),
             (select '{' || string_agg('"key-' || i || '": "value"', ',') || '}' from generate_series(1, 1000) i)::jsonb
         WHEN r % 10 = 7 THEN
             -- let's add some numbers and wannabe "dates"
-            ('{' || '"hired": "' || current_date - width_bucket(random(), 0, 1, 1000) || '",' || '"rating": ' || width_bucket(random(), 0, 1, 10) || '}')::jsonb
+            ('{"hired": "' || current_date - width_bucket(random(), 0, 1, 1000) || '", "rating": ' || width_bucket(random(), 0, 1, 10) || '}')::jsonb
         ELSE
-            ('{"hobbies": ' || array_to_json(random_pick(ARRAY['eating', 'books', 'music', 'dancing', 'walking', 'jokes', 'video', 'photo'], 0.5))::text || '}')::jsonb
+            ('{"hired": "' || current_date - width_bucket(random(), 0, 1, 1000) || '",' ||
+                '"hobbies": ' || array_to_json(random_pick(ARRAY['eating', 'books', 'music', 'dancing', 'walking', 'jokes', 'video', 'photo'], 0.5))::text || '}')::jsonb
         END,
     1
-from generate_series(50001, 100000) as r;
+from generate_series(2000001, 3000000) as r;
 
 select * from m_user;
 
@@ -140,9 +140,13 @@ CREATE INDEX m_user_ext_hired2_idx ON m_user ((ext ->> 'hired')) WHERE ext ? 'hi
 -- set jit=on; -- JIT can sometimes be slower when planner guesses wrong
 
 -- see also https://www.postgresql.org/docs/13/functions-json.html some stuff is only for JSONB
-EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
-select count(*) from m_user
-    where ext?'hobbies' -- faster, uses GIN index
+EXPLAIN --(ANALYZE, BUFFERS, FORMAT TEXT)
+-- select count(*)
+select oid, name_norm, ext
+from m_user
+    where
+--           ext?'hobbies' and -- faster, uses GIN index
+          ext @> '{"hobbies":["video"]}'
 --     where ext->>'hobbies' is not null -- seq-scan
 ;
 
@@ -181,7 +185,8 @@ analyse;
 
 EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
 -- select count(*)
-select oid -- "select *" with big bytea stuff can dominate the total cost
+-- select * -- "select *" with big bytea stuff can dominate the total cost
+select oid, length(fullobject) -- much faster than *
 from m_user
 where
     ext?'hobbies' and
@@ -189,9 +194,9 @@ where
     exists (select from jsonb_array_elements_text(ext->'hobbies') v
 --         where jsonb_typeof(ext->'hobbies') = 'array'
 --             and upper(v::text) LIKE '%ING')
-        where upper(v::text) LIKE 'VID%')
+        where upper(v::text) LIKE '%ING')
 --     and oid > 14000000
--- order by oid
+order by oid
 ;
 
 -- MANAGEMENT queries
@@ -214,7 +219,7 @@ FROM pg_class t
     LEFT JOIN pg_namespace tftns ON tftns.oid = tft.relnamespace
 WHERE 'public' IN (ns.nspname, tftns.nspname)
 ORDER BY pg_relation_size(t.oid) DESC
-LIMIT 20;
+LIMIT 50;
 
 vacuum full analyze;
 -- database size
@@ -229,6 +234,9 @@ from pg_class ut
 where ut.relkind = 'r' and tt.relkind = 't'
     and ns.nspname = 'public'
 order by relpages desc;
+
+-- find sequence name for serial column (e.g. to alter its value later)
+select pg_get_serial_sequence('m_qname', 'id');
 
 -- PRACTICAL UTILITY FUNCTIONS
 

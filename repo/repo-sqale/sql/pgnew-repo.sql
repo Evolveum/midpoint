@@ -416,6 +416,61 @@ CREATE TABLE m_acc_cert_wi_reference (
 
     PRIMARY KEY (owner_owner_owner_oid, owner_owner_id, owner_id, relation, targetOid)
 );
+
+-- TODO: catalog unused at the moment
+CREATE TABLE m_ext_item (
+    id SERIAL NOT NULL,
+    kind INTEGER, -- see RItemKind, is this necessary? does it contain cardinality?
+    name VARCHAR(157), -- no path for nested props needed?
+    type VARCHAR(32), -- data type
+    storageType VARCHAR(32) NOT NULL default 'EXT_JSON', -- type of storage (JSON, column, table separate/common, etc.)
+    storageInfo VARCHAR(32), -- optional storage detail, name of column or table if necessary
+
+    PRIMARY KEY (id)
+);
+
+-- EXPERIMENTAL EAV (first without catalog, so string keys are used)
+CREATE TABLE m_object_ext_boolean (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    ext_item_id VARCHAR(32) NOT NULL,
+    value BOOLEAN NOT NULL,
+    PRIMARY KEY (owner_oid, ext_item_id, value)
+);
+CREATE TABLE m_object_ext_date (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    ext_item_id VARCHAR(32) NOT NULL,
+    value TIMESTAMP NOT NULL,
+    PRIMARY KEY (owner_oid, ext_item_id, value)
+);
+CREATE TABLE m_object_ext_long (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    ext_item_id VARCHAR(32) NOT NULL,
+    value INTEGER NOT NULL,
+    PRIMARY KEY (owner_oid, ext_item_id, value)
+);
+CREATE TABLE m_object_ext_poly (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    ext_item_id VARCHAR(32) NOT NULL,
+    orig VARCHAR(255) NOT NULL,
+    norm VARCHAR(255),
+    PRIMARY KEY (owner_oid, ext_item_id, orig)
+);
+CREATE TABLE m_object_ext_reference (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    ext_item_id VARCHAR(32) NOT NULL,
+    targetoid UUID NOT NULL,
+    relation VARCHAR(157),
+    targetType INTEGER,
+    PRIMARY KEY (owner_oid, ext_item_id, targetoid)
+);
+CREATE TABLE m_object_ext_string (
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    ext_item_id VARCHAR(32) NOT NULL,
+    value VARCHAR(255) NOT NULL,
+    PRIMARY KEY (owner_oid, ext_item_id, value)
+);
+
+
 -- TODO what of assignment extensions? Can they change for various types of assignments?
 --  Then what? Inheritance is impractical, legacy extension tables are unwieldy.
 
