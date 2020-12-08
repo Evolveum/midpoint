@@ -447,11 +447,12 @@ public class BasicPage {
         SelenideElement topLevelMenu = $(Schrodinger.byDataResourceKey(topLevelMenuKey));
         topLevelMenu.shouldBe(Condition.visible);
 
-        SelenideElement topLevelMenuChevron = topLevelMenu.parent().$(By.tagName("i"));
-        if (!topLevelMenuChevron.has(Condition.cssClass("fa-chevron-down"))) {
-            topLevelMenu.click();
-            topLevelMenuChevron.shouldHave(Condition.cssClass("fa-chevron-down")).waitUntil(Condition.cssClass("fa-chevron-down"), MidPoint.TIMEOUT_DEFAULT_2_S);
-        }
+        //todo temporary commented
+//        SelenideElement topLevelMenuChevron = topLevelMenu.parent().$(By.tagName("i"));
+//        if (!topLevelMenuChevron.has(Condition.cssClass("fa-chevron-down"))) {
+//            topLevelMenu.click();
+//            topLevelMenuChevron.shouldHave(Condition.cssClass("fa-chevron-down")).waitUntil(Condition.cssClass("fa-chevron-down"), MidPoint.TIMEOUT_DEFAULT_2_S);
+//        }
 
         SelenideElement mainMenu = topLevelMenu.$(Schrodinger.byDataResourceKey("span", mainMenuKey), index);
         mainMenu.shouldBe(Condition.visible);
