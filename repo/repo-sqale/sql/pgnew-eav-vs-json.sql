@@ -108,7 +108,6 @@ BEGIN
             END LOOP;
         END IF;
 
-
         IF r % 1000 = 0 THEN
             COMMIT;
         END IF;
@@ -128,71 +127,54 @@ select * from teav_ext_string;
 analyze teav;
 analyze teav_ext_string;
 analyze tjson;
-cluster teav_ext_string using teav_ext_string_pk; -- 10-13min
+-- cluster teav_ext_string using teav_ext_string_pk; -- 10-13min, not sure how useful this is
+
+-- SHOW enable_seqscan;
+-- SET enable_seqscan = on;
 
 
--- matching big portion of the table (>20%), doesn't use the index
--- 2399882
-EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
-select count(*)
--- select *
-from tjson where ext @> '{"hobbies":["video"]}';
-
-EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
-select count(*)
--- select *
-from teav t
-where exists (
-    select from teav_ext_string es
-    where es.owner_oid = t.oid and es.key = 'hobbies' and es.value = 'video');
-
-EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
-select count(*)
--- select *
-from teav t
-where exists (
-    select from teav_ext_string es
-    where es.owner_oid = t.oid and es.key = 'hobbies' and es.value = 'video')
-and name > 'user0009000000';
-
-
-EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
--- select count(*)
-select *
-FROM teav t
-JOIN teav_ext_string es ON es.owner_oid = t.oid
-WHERE es.key = 'hobbies' and es.value = 'video';
-
--- selecting rare values, uses index and is very fast (under 50ms)
 EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
 select count(*)
 -- select *
 from tjson
-where ext @> '{"hobbies":["sleeping"]}';
+where ext->>'email' LIKE 'user2%'
+and ext ? 'email';
 
-EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
-select count(*)
--- select *
-from teav t
-where exists (
-        select from teav_ext_string es
-        where es.owner_oid = t.oid and es.key = 'hobbies' and es.value = 'sleeping');
-
--- selecting emails between two values (comparison)
-EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
-select count(*)
--- select *
-from tjson
--- not numerical, matches unexpected values too, but that's not the point here
-where ext->>'email' BETWEEN 'user200000@mycompany.com' AND 'user250000@mycompany.com';
-
+-- index experiments
+analyze;
 CREATE INDEX tjson_exttmp_idx ON tjson ((ext->>'email'));
 DROP INDEX tjson_exttmp_idx;
 
-EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
-select count(*)
--- select *
-from teav t
-where exists (
-    select from teav_ext_string es
-    where es.owner_oid = t.oid and es.key = 'email' and es.value BETWEEN 'user200000@mycompany.com' AND 'user250000@mycompany.com');
+-- BENCHMARK
+-- counts
+select count(*) from tjson;
+-- low selectivity count
+select count(*) from tjson where ext @> '{"hobbies":["video"]}';
+-- high selectivity count (result is low)
+select count(*) from tjson where ext @> '{"hobbies":["sleeping"]}';
+select count(*) from tjson where ext->>'email' LIKE 'user2%';
+select count(*) from teav t where exists (select from teav_ext_string es where es.owner_oid = t.oid and es.key = 'email' and es.value LIKE 'user2%');
+
+select count(*) from teav;
+select count(*) from teav_ext_string;
+select count(*) from teav t where exists (select from teav_ext_string es where es.owner_oid = t.oid and es.key = 'hobbies' and es.value = 'video');
+select count(*) from teav t where exists (select from teav_ext_string es where es.owner_oid = t.oid and es.key = 'hobbies' and es.value = 'sleeping');
+
+-- selects
+select * from tjson limit 500;
+select * from tjson where ext @> '{"hobbies":["video"]}' limit 500;
+select * from tjson where ext @> '{"hobbies":["video"]}' order by oid limit 500;
+select * from tjson where ext @> '{"hobbies":["video"]}' and oid>'fffe0000-0000-0000-0000-000000000000' order by oid limit 500;
+select * from tjson where ext @> '{"hobbies":["sleeping"]}' limit 500;
+select * from tjson where ext @> '{"hobbies":["sleeping"]}' order by oid limit 500;
+select * from teav t where exists (select from teav_ext_string es where es.owner_oid = t.oid and es.key = 'hobbies' and es.value = 'video') limit 500;
+select * from teav t where exists (select from teav_ext_string es where es.owner_oid = t.oid and es.key = 'hobbies' and es.value = 'video') order by t.oid limit 500;
+select * from teav t where exists (select from teav_ext_string es where es.owner_oid = t.oid and es.key = 'hobbies' and es.value = 'video') and t.oid>'fffe0000-0000-0000-0000-000000000000' order by t.oid limit 500;
+select * from teav t where exists (select from teav_ext_string es where es.owner_oid = t.oid and es.key = 'hobbies' and es.value = 'sleeping') limit 500;
+-- EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
+select * from teav t where exists (select from teav_ext_string es where es.owner_oid = t.oid and es.key = 'hobbies' and es.value = 'sleeping') order by t.oid limit 500;
+
+-- TODO
+select * from tjson where ext->>'email' LIKE 'user2%' limit 500;
+select * from teav t where exists (select from teav_ext_string es where es.owner_oid = t.oid and es.key = 'email' and es.value LIKE 'user2%')  limit 500;
+
