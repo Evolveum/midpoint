@@ -61,7 +61,6 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
     private static final String ARCHETYPE_EMPLOYEE_NAME = "Employee";
     private static final String ARCHETYPE_EMPLOYEE_LABEL = "Employee";
     private static final File ARCHETYPE_EXTERNAL_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-external.xml");
-    private static final File SYSTEM_CONFIGURATION_FILE_5_7 = new File(LAB_OBJECTS_DIRECTORY + "systemConfiguration/system-configuration-5-7.xml");
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override

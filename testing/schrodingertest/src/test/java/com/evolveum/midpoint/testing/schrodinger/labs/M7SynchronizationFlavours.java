@@ -45,7 +45,7 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
 
     @Override
     protected List<File> getObjectListToImport(){
-        return Arrays.asList(ARCHETYPE_EMPLOYEE_FILE);
+        return Arrays.asList(ARCHETYPE_EMPLOYEE_FILE, SYSTEM_CONFIGURATION_FILE_5_7);
     }
 
     @Test(groups={"M7"})
@@ -95,11 +95,25 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
         Assert.assertEquals(showTask("Initial import from HR")
                 .selectTabOperationStatistics()
                     .getSuccessfullyProcessed(), Integer.valueOf(14));
-        Assert.assertEquals(basicPage.listUsers(ARCHETYPE_EMPLOYEE_PLURAL_LABEL).getCountOfObjects(), 15);
+        Assert.assertEquals(basicPage.listUsers(ARCHETYPE_EMPLOYEE_PLURAL_LABEL).getCountOfObjects(), 14);
     }
 
     @Test(dependsOnMethods = {"mod07test01RunningImportFromResource"}, groups={"M7"})
-    public void mod07test02RunningAccountReconciliation() {
+    public void mod07test02RunningAccountReconciliation() throws IOException {
+        csv1TargetFile = new File(getTestTargetDir(), CSV_1_FILE_SOURCE_NAME);
+        FileUtils.copyFile(CSV_1_SOURCE_FILE, csv1TargetFile);
+        csv2TargetFile = new File(getTestTargetDir(), CSV_2_FILE_SOURCE_NAME);
+        FileUtils.copyFile(CSV_2_SOURCE_FILE, csv2TargetFile);
+        csv3TargetFile = new File(getTestTargetDir(), CSV_3_FILE_SOURCE_NAME);
+        FileUtils.copyFile(CSV_3_SOURCE_FILE, csv3TargetFile);
+
+        importObject(CSV_1_RESOURCE_FILE, true);
+        changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
+        importObject(CSV_2_RESOURCE_FILE, true);
+        changeResourceAttribute(CSV_2_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv2TargetFile.getAbsolutePath(), true);
+        importObject(CSV_3_RESOURCE_FILE, true);
+        changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
+
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
         createReconTask("CSV-1 Reconciliation", CSV_1_RESOURCE_NAME);
         Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);

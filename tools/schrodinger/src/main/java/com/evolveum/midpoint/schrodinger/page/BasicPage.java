@@ -247,7 +247,7 @@ public class BasicPage {
     }
 
     public TaskPage newTask() {
-        clickAdministrationMenu("PageAdmin.menu.top.serverTasks", "PageAdmin.menu.top.serverTasks.new");
+        clickAdministrationMenu("PageAdmin.menu.top.serverTasks", "PageAdmin.menu.top.tasks.new");
         return new TaskPage();
     }
 
