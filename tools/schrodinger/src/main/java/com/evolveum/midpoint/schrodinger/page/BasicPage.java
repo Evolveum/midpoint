@@ -239,7 +239,7 @@ public class BasicPage {
 
     public ListTasksPage listTasks(String objectListMenuItemKey) {
         if (StringUtils.isEmpty(objectListMenuItemKey)) {
-            clickAdministrationMenu("PageAdmin.menu.top.serverTasks", "PageAdmin.menu.top.serverTasks.list");
+            clickAdministrationMenu("PageAdmin.menu.top.serverTasks", "PageAdmin.menu.top.tasks.list");
         } else {
             clickAdministrationMenu("PageAdmin.menu.top.serverTasks", objectListMenuItemKey);
         }
