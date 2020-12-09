@@ -26,6 +26,12 @@
             <artifactId>axiom</artifactId>
             <version>4.3-SNAPSHOT</version>
         </dependency>
+        
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4-runtime</artifactId>
+        </dependency>
+        
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
