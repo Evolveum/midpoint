@@ -57,7 +57,6 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
     private static final File CSV_3_RESOURCE_FILE_5_5 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-5-5.xml");
     private static final String ARCHETYPE_EMPLOYEE_NAME = "Employee";
     private static final String ARCHETYPE_EMPLOYEE_LABEL = "Employee";
-    private static final File ARCHETYPE_EXTERNAL_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-external.xml");
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override
