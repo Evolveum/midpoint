@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.web.component.menu;
 
-import java.util.List;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.IPageFactory;
 import org.apache.wicket.Session;
@@ -122,7 +120,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
 
             @Override
             public boolean isVisible() {
-                return !getModelObject().getItems().isEmpty() && bubbleModel.getObject() == null;
+                return getModelObject().isNotEmpty() && bubbleModel.getObject() == null;
             }
         });
         link.add(arrow);
@@ -195,9 +193,9 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         bc.setIcon(new Model<>(mainMenuItem.getIconClass()));
         pageBase.addBreadcrumb(bc);
 
-        List<MenuItem> items = mainMenuItem.getItems();
-        if (!items.isEmpty() && mainMenuItem.isInsertDefaultBackBreadcrumb()) {
-            MenuItem first = items.get(0);
+//        List<MenuItem> items = mainMenuItem.getItems();
+        if (mainMenuItem.isNotEmpty() && mainMenuItem.isInsertDefaultBackBreadcrumb()) {
+            MenuItem first = mainMenuItem.getFirstMenuItem();
 
             BreadcrumbPageClass invisibleBc = new BreadcrumbPageClass(createStringResource(first.getNameModel()), first.getPageClass(),
                     first.getParams());

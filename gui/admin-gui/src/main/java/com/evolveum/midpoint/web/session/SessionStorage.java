@@ -84,32 +84,16 @@ public class SessionStorage implements Serializable, DebugDumpable {
      */
     private Map<String, PageStorage> pageStorageMap = new HashMap<>();
 
-//    private String activeMenu;
-//    private String activeMainMenu;
+    private Map<String, Boolean> mainMenuState = new HashMap<>();
+
 
     public Map<String, PageStorage> getPageStorageMap() {
         return pageStorageMap;
     }
 
-//    public Map<String, Boolean> getMainMenuState() {
-//        return mainMenuState;
-//    }
-
-//    public String getActiveMenu() {
-//        return activeMenu;
-//    }
-
-//    public void setActiveMenu(String activeMenu) {
-//        this.activeMenu = activeMenu;
-//    }
-
-//    public String getActiveMainMenu() {
-//        return activeMainMenu;
-//    }
-//
-//    public void setActiveMainMenu(String activeMainMenu) {
-//        this.activeMainMenu = activeMainMenu;
-//    }
+    public Map<String, Boolean> getMainMenuState() {
+        return mainMenuState;
+    }
 
     public ConfigurationStorage getConfiguration() {
         if (pageStorageMap.get(KEY_CONFIGURATION) == null) {

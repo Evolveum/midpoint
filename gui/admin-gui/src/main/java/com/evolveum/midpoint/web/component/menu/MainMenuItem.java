@@ -39,7 +39,7 @@ public class MainMenuItem extends BaseMenuItem {
 
     }
 
-    public List<MenuItem> getItems() {
+    private List<MenuItem> getItems() {
         if (items == null) {
             items = new ArrayList<>();
         }
@@ -60,7 +60,7 @@ public class MainMenuItem extends BaseMenuItem {
         }
     }
 
-    private boolean isNotEmpty() {
+    public boolean isNotEmpty() {
         // If pageClass is not null, we can check page authorization
         // otherwise, empty items means that no sub-items were authorized
         if (getPageClass() != null) {
@@ -104,6 +104,13 @@ public class MainMenuItem extends BaseMenuItem {
             if (item.isMenuActive(page)) {
                 return item;
             }
+        }
+        return null;
+    }
+
+    public MenuItem getFirstMenuItem() {
+        if (isNotEmpty()) {
+            return items.get(0);
         }
         return null;
     }

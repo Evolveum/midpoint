@@ -29,7 +29,7 @@ public class SideBarMenuItem implements Serializable {
         this.experimentalFeaturesEnabled = experimentalFeaturesEnabled;
     }
 
-    public List<MainMenuItem> getItems() {
+    private List<MainMenuItem> getItems() {
         if (items == null) {
             items = new ArrayList<>();
         }

@@ -6,8 +6,8 @@
  */
 package com.evolveum.midpoint.web.component.menu;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.session.SessionStorage;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -20,8 +20,9 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
-import java.util.List;
-import java.util.Map;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.session.SessionStorage;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -87,36 +88,37 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
             }
         };
         items.setReuseItems(true);
+        items.add(new VisibleBehaviour(() -> isMenuExpanded(model.getObject())));
         return items;
     }
 
     private void onMenuClick(IModel<SideBarMenuItem> model, AjaxRequestTarget target) {
         SideBarMenuItem mainMenu = model.getObject();
 
-//        SessionStorage storage = getPageBase().getSessionStorage();
-//        Map<String, Boolean> menuState = storage.getMainMenuState();
-//
-//        String menuLabel = mainMenu.getName();
-//        // we'll use menu label as key
-//        Boolean expanded = menuState.get(menuLabel);
-//
-//        if (expanded == null) {
-//            expanded = true;
-//        }
-//
-//        menuState.put(menuLabel, !expanded);
-        target.add(SideBarMenuPanel.this);
+        SessionStorage storage = getPageBase().getSessionStorage();
+        Map<String, Boolean> menuState = storage.getMainMenuState();
+
+        String menuLabel = mainMenu.getName();
+        // we'll use menu label as key
+        Boolean expanded = menuState.get(menuLabel);
+
+        if (expanded == null) {
+            expanded = true;
+        }
+
+        menuState.put(menuLabel, !expanded);
+        target.add(get(ID_SIDEBAR));
     }
 
-//    private boolean isMenuExpanded(SideBarMenuItem mainMenu) {
-//        SessionStorage storage = getPageBase().getSessionStorage();
-//        Map<String, Boolean> menuState = storage.getMainMenuState();
-//
-//        String menuLabel = mainMenu.getName();
-//        // we'll use menu label as key
-//        Boolean expanded = menuState.get(menuLabel);
-//
-//        return expanded != null ? expanded : true;
-//    }
+    private boolean isMenuExpanded(SideBarMenuItem mainMenu) {
+        SessionStorage storage = getPageBase().getSessionStorage();
+        Map<String, Boolean> menuState = storage.getMainMenuState();
+
+        String menuLabel = mainMenu.getName();
+        // we'll use menu label as key
+        Boolean expanded = menuState.get(menuLabel);
+
+        return expanded != null ? expanded : true;
+    }
 
 }
