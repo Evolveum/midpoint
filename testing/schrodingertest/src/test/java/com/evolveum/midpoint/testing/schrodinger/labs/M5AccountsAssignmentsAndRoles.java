@@ -81,6 +81,8 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
 
     @Test(groups={"M5"})
     public void mod05test01UsingRBAC() {
+        importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE, true);
+
         importObject(CSV_1_RESOURCE_FILE, true);
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
         importObject(CSV_2_RESOURCE_FILE, true);
