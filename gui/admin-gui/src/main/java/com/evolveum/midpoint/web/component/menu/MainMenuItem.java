@@ -74,11 +74,6 @@ public class MainMenuItem extends BaseMenuItem {
         if (!checkExperimental(experimentalFeaturesEnabled)) {
             return false;
         }
-        if (!experimentalFeaturesEnabled) {
-            if (getPageClass() != null && getPageClass().getAnnotation(Experimental.class) != null) {
-                return false;
-            }
-        }
         return SecurityUtils.isMenuAuthorized(this) && isNotEmpty();
     }
 
@@ -98,11 +93,18 @@ public class MainMenuItem extends BaseMenuItem {
     }
 
     public boolean hasActiveSubmenu(WebPage page) {
+        return getActiveMenu(page) != null;
+    }
+
+    public MenuItem getActiveMenu(WebPage page) {
+        if (items == null) {
+            return null;
+        }
         for (MenuItem item : items) {
             if (item.isMenuActive(page)) {
-                return true;
+                return item;
             }
         }
-        return false;
+        return null;
     }
 }

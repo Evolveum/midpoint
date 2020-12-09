@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.authentication.CompiledDashboardType;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -22,9 +20,9 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
+import com.evolveum.midpoint.model.api.authentication.CompiledDashboardType;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -74,7 +72,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
     private static final Trace LOGGER = TraceManager.getTrace(LeftMenuPanel.class);
 
     private static final String DOT_CLASS = LeftMenuPanel.class.getName() + ".";
-    protected static final String OPERATION_LOAD_VIEW_COLLECTION_REF = DOT_CLASS + "loadViewCollectionRef";
+
     private static final String OPERATION_LOAD_WORK_ITEM_COUNT = DOT_CLASS + "loadWorkItemCount";
     private static final String OPERATION_LOAD_CERT_WORK_ITEM_COUNT = DOT_CLASS + "loadCertificationWorkItemCount";
 
@@ -158,39 +156,31 @@ public class LeftMenuPanel extends BasePanel<Void> {
 
         boolean experimentalFeaturesEnabled = WebModelServiceUtils.isEnableExperimentalFeature(getPageBase());
 
-        SideBarMenuItem menu = new SideBarMenuItem("PageAdmin.menu.selfService", experimentalFeaturesEnabled);
-        createSelfServiceMenu(menu);
-        menus.add(menu);
+        SideBarMenuItem menu = createSelfServiceMenu(experimentalFeaturesEnabled);
+        addSidebarMenuItem(menus, menu);
 
-        menu = new SideBarMenuItem("PageAdmin.menu.mainNavigation", experimentalFeaturesEnabled);
-        menus.add(menu);
-        menu.addMainMenuItem(createHomeItems());
-        menu.addMainMenuItem(createUsersItems());
-        menu.addMainMenuItem(createOrganizationsMenu());
-        menu.addMainMenuItem(createRolesMenu());
-        menu.addMainMenuItem(createServicesItems());
-        menu.addMainMenuItem(createResourcesItems());
-        if (getPageBase().getWorkflowManager().isEnabled()) {
-            menu.addMainMenuItem(createWorkItemsItems());
-        }
-        menu.addMainMenuItem(createCertificationItems());
-        menu.addMainMenuItem(createServerTasksItems());
-        menu.addMainMenuItem(createReportsItems());
+        menu = createMainNavigationMenu(experimentalFeaturesEnabled);
+        addSidebarMenuItem(menus, menu);
 
-        menu = new SideBarMenuItem("PageAdmin.menu.top.configuration", experimentalFeaturesEnabled);
-        menus.add(menu);
-        createConfigurationMenu(menu);
+        menu = createConfigurationMenu(experimentalFeaturesEnabled);
+        addSidebarMenuItem(menus, menu);
 
-        menu = new SideBarMenuItem("PageAdmin.menu.additional", experimentalFeaturesEnabled);
-        menus.add(menu);
-        createAdditionalMenu(menu);
-
-
+        menu = createAdditionalMenu(experimentalFeaturesEnabled);
+        addSidebarMenuItem(menus, menu);
 
         return menus;
     }
 
-    private void createSelfServiceMenu(SideBarMenuItem menu) {
+    private void addSidebarMenuItem(List<SideBarMenuItem> menus, SideBarMenuItem menu) {
+        if (menu.isEmpty()) {
+            return;
+        }
+
+        menus.add(menu);
+    }
+
+    private SideBarMenuItem createSelfServiceMenu(boolean experimentalFeaturesEnabled) {
+        SideBarMenuItem menu = new SideBarMenuItem("PageAdmin.menu.selfService", experimentalFeaturesEnabled);
         menu.addMainMenuItem(createMainMenuItem("PageAdmin.menu.selfDashboard", GuiStyleConstants.CLASS_ICON_DASHBOARD,
                 PageSelfDashboard.class));
         menu.addMainMenuItem(createMainMenuItem("PageAdmin.menu.profile", GuiStyleConstants.CLASS_ICON_PROFILE,
@@ -203,6 +193,24 @@ public class LeftMenuPanel extends BasePanel<Void> {
         }
         menu.addMainMenuItem(createMainMenuItem("PageAdmin.menu.consent", GuiStyleConstants.CLASS_ICON_CONSENT,
                 PageSelfConsents.class));
+        return menu;
+    }
+
+    private SideBarMenuItem createMainNavigationMenu(boolean experimentalFeaturesEnabled) {
+        SideBarMenuItem menu = new SideBarMenuItem("PageAdmin.menu.mainNavigation", experimentalFeaturesEnabled);
+        menu.addMainMenuItem(createHomeItems());
+        menu.addMainMenuItem(createUsersItems());
+        menu.addMainMenuItem(createOrganizationsMenu());
+        menu.addMainMenuItem(createRolesMenu());
+        menu.addMainMenuItem(createServicesItems());
+        menu.addMainMenuItem(createResourcesItems());
+        if (getPageBase().getWorkflowManager().isEnabled()) {
+            menu.addMainMenuItem(createWorkItemsItems());
+        }
+        menu.addMainMenuItem(createCertificationItems());
+        menu.addMainMenuItem(createServerTasksItems());
+        menu.addMainMenuItem(createReportsItems());
+        return menu;
     }
 
     private MainMenuItem createHomeItems() {
@@ -394,7 +402,8 @@ public class LeftMenuPanel extends BasePanel<Void> {
         return reportsMenu;
     }
 
-    private void createConfigurationMenu(SideBarMenuItem item) {
+    private SideBarMenuItem createConfigurationMenu(boolean experimentalFeaturesEnabled) {
+        SideBarMenuItem item = new SideBarMenuItem("PageAdmin.menu.top.configuration", experimentalFeaturesEnabled);
         item.addMainMenuItem(createArchetypesItems());
         item.addMainMenuItem(createObjectsCollectionItems());
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.bulkActions", "fa fa-bullseye", PageBulkAction.class));
@@ -412,18 +421,21 @@ public class LeftMenuPanel extends BasePanel<Void> {
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.repoQuery", "fa fa-search", PageRepositoryQuery.class));
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.evaluateMapping", "fa fa-cog", PageEvaluateMapping.class));
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.about", "fa fa-info-circle", PageAbout.class));
+        return item;
     }
 
-    private void createAdditionalMenu(SideBarMenuItem menu) {
+    private SideBarMenuItem createAdditionalMenu(boolean experimentalFeaturesEnabled) {
+        SideBarMenuItem menu = new SideBarMenuItem("PageAdmin.menu.additional", experimentalFeaturesEnabled);
+
         CompiledGuiProfile userProfile = getPageBase().getCompiledGuiProfile();
         List<RichHyperlinkType> menuList = userProfile.getAdditionalMenuLink();
         if (CollectionUtils.isEmpty(menuList)) {
-            return;
+            return menu;
         }
 
         Map<String, Class> urlClassMap = DescriptorLoader.getUrlClassMap();
         if (MapUtils.isEmpty(urlClassMap)) {
-            return;
+            return menu;
         }
 
         for (RichHyperlinkType link : menuList) {
@@ -434,6 +446,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
             AdditionalMenuItem item = new AdditionalMenuItem(link, urlClassMap.get(link.getTargetUrl()));
             menu.addMainMenuItem(item);
         }
+        return menu;
     }
 
     private void createBasicAssignmentHolderMenuItems(MainMenuItem mainMenuItem, QName type, PageTypes pageDesc, boolean canAddAndEdit) {

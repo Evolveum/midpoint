@@ -1270,39 +1270,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             return null;
         }
 
-        MI activeMenu = null;
         for (SideBarMenuItem sideBarMenuItem : sideMenuItems) {
-            List<MainMenuItem> mainMenuItems = sideBarMenuItem.getItems();
-            activeMenu = (MI) getActiveMenu(mainMenuItems);
+            MI activeMenu = sideBarMenuItem.getActiveMenu(PageBase.this);
             if (activeMenu != null) {
                 return activeMenu;
             }
         }
 
-        return activeMenu;
-    }
-
-    private <MI extends BaseMenuItem> MI getActiveMenu(List<MI> mainMenuItems) {
-        if (CollectionUtils.isEmpty(mainMenuItems)) {
-            return null;
-        }
-        for (MI menuItem : mainMenuItems) {
-            if (menuItem.isMenuActive(PageBase.this)) {
-                return menuItem;
-            }
-
-            if (!(menuItem instanceof MainMenuItem)) {
-                continue;
-            }
-
-//            if (((MainMenuItem) menuItem).isMenuOpened()) {
-                List<MenuItem> menuItems = ((MainMenuItem) menuItem).getItems();
-                MI activeMenuItem = (MI) getActiveMenu(menuItems);
-                if (activeMenuItem != null) {
-                    return activeMenuItem;
-                }
-//            }
-        }
         return null;
     }
 

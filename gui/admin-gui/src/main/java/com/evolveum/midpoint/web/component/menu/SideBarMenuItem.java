@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.component.menu;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,10 +48,34 @@ public class SideBarMenuItem implements Serializable {
                 '}';
     }
 
+    public boolean isEmpty() {
+        return items == null || items.isEmpty();
+    }
+
     public void addMainMenuItem(MainMenuItem mainMenuItem) {
         if (mainMenuItem.shouldBeMenuAdded(experimentalFeaturesEnabled)) {
             getItems().add(mainMenuItem);
         }
+    }
+
+    public <MI extends BaseMenuItem> MI getActiveMenu(PageBase pageBase) {
+        if (items.isEmpty()) {
+            return null;
+        }
+
+        for (MainMenuItem mainMenuItem : items) {
+            if (mainMenuItem.isMenuActive(pageBase)) {
+                //noinspection unchecked
+                return (MI) mainMenuItem;
+            }
+
+            MenuItem menuItem = mainMenuItem.getActiveMenu(pageBase);
+            if (menuItem != null) {
+                //noinspection unchecked
+                return  (MI) menuItem;
+            }
+        }
+        return null;
     }
 
 }
