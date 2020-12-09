@@ -61,7 +61,6 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
                     .clickByName(HR_RESOURCE_NAME)
                         .clickAccountsTab()
                             .clickSearchInResource();
-        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         accountTab.table()
                 .selectCheckboxByName("001212")
                     .clickImport()

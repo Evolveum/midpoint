@@ -30,6 +30,8 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author skublik
@@ -49,11 +51,38 @@ public class M10ObjectTemplate extends AbstractLabTest{
         super.beforeClass();
     }
 
+    @Override
+    protected List<File> getObjectListToImport(){
+        return Arrays.asList(KIRK_USER_10_FILE);
+    }
+
     @Test(groups={"M10"})
     public void mod10test01SimpleObjectTemplate() throws IOException {
+        importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE, true);
+        csv1TargetFile = new File(getTestTargetDir(), CSV_1_FILE_SOURCE_NAME);
+
+        importObject(CSV_1_RESOURCE_FILE, true);
+        changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
+
+        hrTargetFile = new File(getTestTargetDir(), HR_FILE_SOURCE_NAME);
+        FileUtils.copyFile(HR_SOURCE_FILE, hrTargetFile);
+        importObject(HR_NO_EXTENSION_RESOURCE_FILE, true);
+        changeResourceAttribute(HR_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, hrTargetFile.getAbsolutePath(), true);
+
+        addObjectFromFile(HR_SYNCHRONIZATION_TASK_FILE);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+
         addObjectFromFile(OBJECT_TEMPLATE_USER_SIMPLE_FILE);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
 
+        basicPage.listResources()
+                .table()
+                    .clickByName(HR_RESOURCE_NAME)
+                        .clickAccountsTab()
+                            .clickSearchInResource()
+                                .table()
+                                .selectCheckboxByName("001212")
+                                .clickImport();
         ((PrismFormWithActionButtons<ObjectPolicyTab>)basicPage.objectPolicy()
                 .clickAddObjectPolicy()
                     .selectOption("type", "User")
@@ -77,7 +106,6 @@ public class M10ObjectTemplate extends AbstractLabTest{
                     .form()
                         .compareInputAttributeValue("fullName", "John Smith"));
 
-        showTask("HR Synchronization").clickResume();
 
         FileUtils.copyFile(HR_SOURCE_FILE_10_1, hrTargetFile);
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
