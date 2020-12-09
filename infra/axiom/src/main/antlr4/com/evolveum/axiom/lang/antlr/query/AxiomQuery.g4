@@ -7,6 +7,10 @@ COLON : ':';
 PLUS : '+';
 LINE_COMMENT :  [ \n\r\t]* ('//' (~[\r\n]*)) [ \n\r\t]* -> skip;
 SEP: [ \n\r\t]+;
+
+AND_KEYWORD: 'and';
+OR_KEYWORD: 'or';
+NOT_KEYWORD: 'not';
 IDENTIFIER : [a-zA-Z_][a-zA-Z0-9_\-]*;
 
 fragment SQOUTE : '\'';
@@ -19,23 +23,19 @@ STRING_DOUBLEQUOTE: DQOUTE ((ESC DQOUTE) | ~[\n"])* DQOUTE;
 STRING_MULTILINE_START: '"""' ('\r')? '\n';
 
 
-
 //statement : SEP* identifier SEP* (argument)? SEP* (SEMICOLON | LEFT_BRACE SEP* (statement)* SEP* RIGHT_BRACE SEP*) SEP*;
-itemName: infraName | dataName;
-dataName: prefixedName;
-infraName: '@' prefixedName;
+itemName: prefixedName #dataName
+    | '@' prefixedName #infraName;
 
-prefixedName : (prefix? COLON)? localName;
 
-prefix : IDENTIFIER;
-localName : IDENTIFIER;
+prefixedName: (prefix=IDENTIFIER COLON)? localName=IDENTIFIER
+    | (prefix=IDENTIFIER)? COLON localName=(AND_KEYWORD | NOT_KEYWORD | OR_KEYWORD);
+
 
 argument : prefixedName | string;
-string : singleQuoteString | doubleQuoteString | multilineString;
-
-singleQuoteString : STRING_SINGLEQUOTE;
-doubleQuoteString : STRING_DOUBLEQUOTE;
-multilineString: STRING_MULTILINE_START (~('"""'))*'"""';
+string : STRING_SINGLEQUOTE #singleQuoteString 
+    | STRING_DOUBLEQUOTE #doubleQuoteString
+    | STRING_MULTILINE_START (~('"""'))*'"""' # multilineString;
 
 variable: '$' itemName;
 parent: '..';
@@ -52,24 +52,24 @@ pathValue: '[' argument ']';
 filterNameAlias: '=' | '<' | '>' | '<=' | '>=';
 
 
-// TODO: Grammar seems pretty general, filter could be renamed to condition?
+filterName: prefixedName | filterNameAlias;
 
-filterName: itemName | filterNameAlias;
+matchingRule: '[' prefixedName ']';
+
 
 // Currently value could be string or path
 valueSpecification: string | path;
-negation: 'not' | 'NOT';
+negation: NOT_KEYWORD;
 // Filter could be Value filter or Logic Filter
-filter: SEP* simpleFilter | logicFilter;
-// AndFilter and OrFilter have special syntax since they allow chaining
-logicFilter: andFilter | orFilter;
-// Nested Filter could be value filter or subfilter
-nestedFilter: simpleFilter | subfilter;
-andFilter: nestedFilter (SEP+ 'and' SEP+ nestedFilter)+;
-orFilter: nestedFilter (SEP+ 'or' SEP+ nestedFilter)+;
+
+filter: left=filter (SEP+ AND_KEYWORD SEP+ right=filter) #andFilter
+           | left=filter (SEP+ OR_KEYWORD SEP+ right=filter) #orFilter
+           | itemFilter #genFilter
+           | subfilter #subFilter;
+
 
 subfilter: '(' SEP* filter SEP* ')';
-simpleFilter: path (SEP+ negation)? SEP+ filterName SEP+ (nestedFilter | valueSpecification);
-
+itemFilter: path (SEP+ negation)? SEP+ filterName (matchingRule)? (SEP+ (subfilterOrValue))?;
+subfilterOrValue : subfilter | valueSpecification;
 
 
