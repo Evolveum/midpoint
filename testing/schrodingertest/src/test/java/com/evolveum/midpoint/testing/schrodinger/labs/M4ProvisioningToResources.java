@@ -62,6 +62,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
 
     @Test(groups={"M4"})
     public void mod04test01BasicProvisioningToMultipleResources() throws IOException {
+        importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE, true);
         csv1TargetFile = new File(getTestTargetDir(), CSV_1_FILE_SOURCE_NAME);
         FileUtils.copyFile(CSV_1_SOURCE_FILE, csv1TargetFile);
         csv2TargetFile = new File(getTestTargetDir(), CSV_2_FILE_SOURCE_NAME);
