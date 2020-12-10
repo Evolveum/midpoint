@@ -49,7 +49,7 @@ public class MemberPanel<T> extends Component<T> {
     public ChooseFocusTypeAndRelationModal newMember(String title) {
         SelenideElement mainButton = $(By.xpath(".//button[@type='button'][@title='Create  member ']"))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).parent();
-        if (!mainButton.$x(".//div[@data-s-id='additionalButton']").exists()) {
+        if (!mainButton.$x(".//div[@data-s-id='additionalButton']").is(Condition.visible)) {
             mainButton.click();
             Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         }

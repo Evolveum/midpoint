@@ -72,7 +72,7 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
 
     @Override
     protected List<File> getObjectListToImport(){
-        return Arrays.asList(KIRK_USER_FILE);
+        return Arrays.asList(KIRK_USER_10_FILE);
     }
 
     @Test(groups={"M5"})
