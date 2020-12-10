@@ -25,11 +25,17 @@ public abstract class AbstractUnitTest implements MidpointTestMixin {
 
     private TestMonitor testMonitor;
 
-    // called only by tests that need it
-    public void initializeTestMonitor() {
+    /** Called only by tests that need it, implements performance mixin interface. */
+    public void createTestMonitor() {
         testMonitor = new TestMonitor();
     }
 
+    /** Called only by tests that need it, implements performance mixin interface. */
+    public void destroyTestMonitor() {
+        testMonitor = new TestMonitor();
+    }
+
+    /** Called only by tests that need it, implements performance mixin interface. */
     public TestMonitor testMonitor() {
         return testMonitor;
     }

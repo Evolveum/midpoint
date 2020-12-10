@@ -50,7 +50,6 @@ import org.springframework.test.context.web.ServletTestExecutionListener;
 import org.testng.Assert;
 import org.testng.AssertJUnit;
 import org.testng.ITestResult;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Listeners;
@@ -112,8 +111,11 @@ import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.*;
 import com.evolveum.midpoint.tools.testng.CurrentTestResultHolder;
 import com.evolveum.midpoint.tools.testng.MidpointTestContext;
+import com.evolveum.midpoint.tools.testng.PerformanceTestCommonMixin;
+import com.evolveum.midpoint.tools.testng.TestMonitor;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -304,11 +306,20 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
     }
 
-    @AfterClass
-    public void reportPerfData() {
-        if (testMonitor() != null) {
-            TestReportUtil.reportPerfData(testMonitor());
-        }
+    /** Called only by performance tests. */
+    @Override
+    public void createTestMonitor() {
+        super.createTestMonitor();
+        OperationsPerformanceMonitor.INSTANCE.clearGlobalPerformanceInformation();
+    }
+
+    /**
+     * Called only by performance tests, overrides {@link PerformanceTestCommonMixin#beforeDumpReport}.
+     * Data reported here should be reset in {@link #createTestMonitor()} so they don't accumulate
+     * in case of method-scoped monitor reports.
+     */
+    public void beforeDumpReport(TestMonitor testMonitor) {
+        TestReportUtil.reportGlobalPerfData(testMonitor);
     }
 
     protected TracingProfileType getTestMethodTracingProfile() {

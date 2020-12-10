@@ -17,7 +17,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleOperationPerfo
 
 public class TestReportUtil {
 
-    public static void reportPerfData(TestMonitor testMonitor) {
+    /**
+     * Adds global performance information as a report section to the {@link TestMonitor}.
+     * Does not clear the data, do not forget to call clearing in the right life-cycle method.
+     */
+    public static void reportGlobalPerfData(TestMonitor testMonitor) {
         OperationsPerformanceInformationType performanceInformation =
                 OperationsPerformanceInformationUtil.toOperationsPerformanceInformationType(
                         OperationsPerformanceMonitor.INSTANCE.getGlobalPerformanceInformation());
