@@ -84,6 +84,8 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         }));
         add(item);
 
+        item.add(AttributeModifier.append("style", new ReadOnlyModel<>(() -> isMenuExpanded() ? "" : "display: none;")));
+
         WebMarkupContainer link = new AjaxLink<Void>(ID_LINK) {
                 private static final long serialVersionUID = 1L;
 
@@ -120,7 +122,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
 
             @Override
             public boolean isVisible() {
-                return getModelObject().isNotEmpty() && bubbleModel.getObject() == null;
+                return getModelObject().containsSubMenu() && bubbleModel.getObject() == null;
             }
         });
         link.add(arrow);
@@ -193,8 +195,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         bc.setIcon(new Model<>(mainMenuItem.getIconClass()));
         pageBase.addBreadcrumb(bc);
 
-//        List<MenuItem> items = mainMenuItem.getItems();
-        if (mainMenuItem.isNotEmpty() && mainMenuItem.isInsertDefaultBackBreadcrumb()) {
+        if (mainMenuItem.containsSubMenu() && mainMenuItem.isInsertDefaultBackBreadcrumb()) {
             MenuItem first = mainMenuItem.getFirstMenuItem();
 
             BreadcrumbPageClass invisibleBc = new BreadcrumbPageClass(createStringResource(first.getNameModel()), first.getPageClass(),
@@ -219,4 +220,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         }
     }
 
+    protected boolean isMenuExpanded() {
+        return true;
+    }
 }

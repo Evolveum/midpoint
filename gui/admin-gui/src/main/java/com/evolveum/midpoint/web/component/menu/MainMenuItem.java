@@ -60,13 +60,16 @@ public class MainMenuItem extends BaseMenuItem {
         }
     }
 
-    public boolean isNotEmpty() {
+    private boolean isNotEmpty() {
         // If pageClass is not null, we can check page authorization
         // otherwise, empty items means that no sub-items were authorized
         if (getPageClass() != null) {
             return true;
         }
+        return items != null;
+    }
 
+    public boolean containsSubMenu() {
         return items != null;
     }
 

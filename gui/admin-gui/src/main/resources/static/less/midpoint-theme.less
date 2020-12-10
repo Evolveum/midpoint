@@ -104,12 +104,34 @@ th.cog, td.cog {
 }
 //end table context menu border fix
 
+
+// sidebar styles extension
 .sidebar-menu .treeview-menu > li > span > .fe {
   width: 20px;
 }
 .sidebar-menu > li > a > .fe {
 	width: 20px;
 }
+
+.sidebar-menu {
+
+  li.header {
+    > i.fa-chevron-down {
+      width: auto;
+      height: auto;
+      padding: 0;
+      .transition(transform .5s ease);
+    }
+
+    &.closed {
+      > i.fa-chevron-down {
+        .rotate(90deg);
+      }
+    }
+
+  }
+}
+// end sidebar styles extension
 
 .user-thumbnail-helper {
   display: inline-block;
