@@ -54,6 +54,7 @@ import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sql.helpers.JdbcSession;
+import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.repo.sql.testing.TestQueryListener;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -67,7 +68,6 @@ import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.test.util.TestReportUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.tools.testng.PerformanceTestCommonMixin;
 import com.evolveum.midpoint.tools.testng.TestMonitor;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -166,18 +166,12 @@ public class BaseSQLRepoTest extends AbstractSpringTest
 
     /** Called only by performance tests. */
     @Override
-    public void createTestMonitor() {
-        super.createTestMonitor();
+    public TestMonitor createTestMonitor() {
         OperationsPerformanceMonitor.INSTANCE.clearGlobalPerformanceInformation();
-    }
-
-    /**
-     * Called only by performance tests, overrides {@link PerformanceTestCommonMixin#beforeDumpReport}.
-     * Data reported here should be reset in {@link #createTestMonitor()} so they don't accumulate
-     * in case of method-scoped monitor reports.
-     */
-    public void beforeDumpReport(TestMonitor testMonitor) {
-        TestReportUtil.reportGlobalPerfData(testMonitor);
+        queryListener.clear();
+        return super.createTestMonitor()
+                .addReportCallback(TestReportUtil::reportGlobalPerfData)
+                .addReportCallback(SqlRepoTestUtil.createReportCallback(queryListener));
     }
 
     protected boolean isUsingH2() {

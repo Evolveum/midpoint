@@ -40,13 +40,14 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
     private TestMonitor testMonitor;
 
     /** Called only by tests that need it, implements performance mixin interface. */
-    public void createTestMonitor() {
+    public TestMonitor createTestMonitor() {
         testMonitor = new TestMonitor();
+        return testMonitor;
     }
 
     /** Called only by tests that need it, implements performance mixin interface. */
     public void destroyTestMonitor() {
-        testMonitor = new TestMonitor();
+        testMonitor = null;
     }
 
     /** Called only by tests that need it, implements performance mixin interface. */

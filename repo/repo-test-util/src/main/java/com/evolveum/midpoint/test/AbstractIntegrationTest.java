@@ -83,6 +83,8 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
+import com.evolveum.midpoint.repo.sql.testing.TestQueryListener;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -174,6 +176,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     @Autowired protected SchemaHelper schemaHelper;
     @Autowired protected MatchingRuleRegistry matchingRuleRegistry;
     @Autowired protected LocalizationService localizationService;
+    @Autowired protected TestQueryListener queryListener;
 
     @Autowired(required = false)
     @Qualifier("repoSimpleObjectResolver")
@@ -308,18 +311,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     /** Called only by performance tests. */
     @Override
-    public void createTestMonitor() {
-        super.createTestMonitor();
+    public TestMonitor createTestMonitor() {
         OperationsPerformanceMonitor.INSTANCE.clearGlobalPerformanceInformation();
-    }
+        queryListener.clear();
 
-    /**
-     * Called only by performance tests, overrides {@link PerformanceTestCommonMixin#beforeDumpReport}.
-     * Data reported here should be reset in {@link #createTestMonitor()} so they don't accumulate
-     * in case of method-scoped monitor reports.
-     */
-    public void beforeDumpReport(TestMonitor testMonitor) {
-        TestReportUtil.reportGlobalPerfData(testMonitor);
+        return super.createTestMonitor()
+                .addReportCallback(TestReportUtil::reportGlobalPerfData)
+                .addReportCallback(SqlRepoTestUtil.createReportCallback(queryListener));
     }
 
     protected TracingProfileType getTestMethodTracingProfile() {

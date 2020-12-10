@@ -23,14 +23,10 @@ public interface PerformanceTestCommonMixin extends MidpointTestMixin {
     TestMonitor testMonitor();
 
     /** Called after method or class, see sub-interfaces. */
-    void createTestMonitor();
+    TestMonitor createTestMonitor();
 
     /** Implement, don't call, used by {@link #dumpReport}. */
     void destroyTestMonitor();
-
-    /** Override to enrich test monitor with more data. */
-    default void beforeDumpReport(TestMonitor testMonitor) {
-    }
 
     /**
      * Dumps the report and <b>"destroys" the test monitor</b> to allow its garbage collection.
@@ -42,7 +38,6 @@ public interface PerformanceTestCommonMixin extends MidpointTestMixin {
      */
     default void dumpReport(String reportedTestName) {
         TestMonitor testMonitor = testMonitor();
-        beforeDumpReport(testMonitor);
         testMonitor.dumpReport(reportedTestName);
         destroyTestMonitor();
     }

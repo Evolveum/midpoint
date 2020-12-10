@@ -10,7 +10,6 @@ import java.io.File;
 
 import org.javasimon.Split;
 import org.javasimon.Stopwatch;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -20,7 +19,6 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuPanel;
 import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sql.testing.TestQueryListener;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter;
 import com.evolveum.midpoint.schema.statistics.OperationsPerformanceInformationUtil;
@@ -50,13 +48,6 @@ public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest imple
 
     private static final File FILE_ORG_STRUCT = new File(TEST_DIR, "org-struct.xml");
     private static final File FILE_USERS = new File(TEST_DIR, "users.xml");
-
-    @Autowired TestQueryListener queryListener;
-
-    @BeforeMethod
-    public void reportBeforeTest() {
-        queryListener.clear();
-    }
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
