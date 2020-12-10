@@ -280,6 +280,9 @@ public class GuiProfileCompiler {
             CompiledDashboardType compiledDashboard = new CompiledDashboardType(dashboardType);
 
             // DisplayType
+            if (configurableUserDashboard.getDisplay() == null) {
+                configurableUserDashboard.setDisplay(new DisplayType());
+            }
             MiscSchemaUtil.mergeDisplay(configurableUserDashboard.getDisplay(), dashboardType.getDisplay());
             compiledDashboard.setDisplayType(configurableUserDashboard.getDisplay());
 
