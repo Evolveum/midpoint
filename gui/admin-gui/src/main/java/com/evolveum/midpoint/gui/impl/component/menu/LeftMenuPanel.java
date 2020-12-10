@@ -408,12 +408,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         item.addMainMenuItem(createObjectsCollectionItems());
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.bulkActions", "fa fa-bullseye", PageBulkAction.class));
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.importObject", "fa fa-upload", PageImportObject.class));
-
-        MainMenuItem repositoryObjectsMenu = createMainMenuItem("PageAdmin.menu.top.configuration.repositoryObjects", "fa fa-file-text");
-
-        MenuItem menu = new MenuItem("PageAdmin.menu.top.configuration.repositoryObjectView",
-                PageDebugView.class);
-        repositoryObjectsMenu.addMenuItem(menu);
+        item.addMainMenuItem(createRepositoryObjectsMenu());
 
         createSystemConfigurationMenu(item);
 
@@ -525,6 +520,13 @@ public class LeftMenuPanel extends BasePanel<Void> {
                 "PageAdmin.menu.top.objectCollections.edit", PageObjectCollection.class);
 
         return item;
+    }
+
+    private MainMenuItem createRepositoryObjectsMenu() {
+        MainMenuItem repositoryObjectsMenu = createMainMenuItem("PageAdmin.menu.top.configuration.repositoryObjects", "fa fa-file-text");
+        repositoryObjectsMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.configuration.repositoryObjectsList", PageDebugList.class));
+        repositoryObjectsMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.configuration.repositoryObjectView", PageDebugView.class));
+        return repositoryObjectsMenu;
     }
 
     private MenuItem addObjectListPageMenuItem(String key, String iconClass, Class<? extends PageBase> menuItemPage) {
