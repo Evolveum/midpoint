@@ -50,7 +50,6 @@ import org.springframework.test.context.web.ServletTestExecutionListener;
 import org.testng.Assert;
 import org.testng.AssertJUnit;
 import org.testng.ITestResult;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Listeners;
@@ -84,6 +83,8 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
+import com.evolveum.midpoint.repo.sql.testing.TestQueryListener;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -112,8 +113,11 @@ import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.*;
 import com.evolveum.midpoint.tools.testng.CurrentTestResultHolder;
 import com.evolveum.midpoint.tools.testng.MidpointTestContext;
+import com.evolveum.midpoint.tools.testng.PerformanceTestCommonMixin;
+import com.evolveum.midpoint.tools.testng.TestMonitor;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -172,6 +176,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     @Autowired protected SchemaHelper schemaHelper;
     @Autowired protected MatchingRuleRegistry matchingRuleRegistry;
     @Autowired protected LocalizationService localizationService;
+    @Autowired protected TestQueryListener queryListener;
 
     @Autowired(required = false)
     @Qualifier("repoSimpleObjectResolver")
@@ -304,11 +309,15 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
     }
 
-    @AfterClass
-    public void reportPerfData() {
-        if (testMonitor() != null) {
-            TestReportUtil.reportPerfData(testMonitor());
-        }
+    /** Called only by performance tests. */
+    @Override
+    public TestMonitor createTestMonitor() {
+        OperationsPerformanceMonitor.INSTANCE.clearGlobalPerformanceInformation();
+        queryListener.clear();
+
+        return super.createTestMonitor()
+                .addReportCallback(TestReportUtil::reportGlobalPerfData)
+                .addReportCallback(SqlRepoTestUtil.createReportCallback(queryListener));
     }
 
     protected TracingProfileType getTestMethodTracingProfile() {

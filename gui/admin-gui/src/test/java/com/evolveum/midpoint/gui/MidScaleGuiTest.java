@@ -6,9 +6,10 @@
  */
 package com.evolveum.midpoint.gui;
 
+import java.io.File;
+
 import org.javasimon.Split;
 import org.javasimon.Stopwatch;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -18,12 +19,11 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuPanel;
 import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sql.testing.TestQueryListener;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter;
 import com.evolveum.midpoint.schema.statistics.OperationsPerformanceInformationUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.tools.testng.PerformanceTestMixin;
+import com.evolveum.midpoint.tools.testng.PerformanceTestMethodMixin;
 import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
 import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
@@ -34,26 +34,20 @@ import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingCart;
 import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import com.evolveum.midpoint.web.page.self.PageUserSelfProfile;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import java.io.File;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationsPerformanceInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ActiveProfiles("test")
 @SpringBootTest(classes = TestMidPointSpringApplication.class)
-public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest implements PerformanceTestMixin {
+public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest implements PerformanceTestMethodMixin {
 
     private static final String TEST_DIR = "./src/test/resources/midScale";
 
     private static final File FILE_ORG_STRUCT = new File(TEST_DIR, "org-struct.xml");
     private static final File FILE_USERS = new File(TEST_DIR, "users.xml");
-
-    @Autowired TestQueryListener queryListener;
-
-    @BeforeMethod
-    public void reportBeforeTest() {
-        queryListener.clear();
-    }
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -69,7 +63,6 @@ public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest imple
         modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
                 ItemPath.create(SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_ENABLE_EXPERIMENTAL_FEATURES),
                 initTask, initResult, true);
-
 
     }
 
@@ -102,16 +95,14 @@ public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest imple
         runTestFor(PageAssignmentShoppingCart.class, "requestRole", "Request a role");
     }
 
-
     @Test
     public void test110PageDashboard() {
         displayTestTitle(getTestName());
         runTestFor(PageDashboardInfo.class, "dashboard", "Info Dashboard");
     }
 
-    private void runTestFor(Class pageToRender, String stopwathName, String stopwatchDescription) {
-        OperationsPerformanceMonitor.INSTANCE.clearGlobalPerformanceInformation();
-        Stopwatch stopwatch = stopwatch(stopwathName, stopwatchDescription);
+    private void runTestFor(Class pageToRender, String stopwatchName, String stopwatchDescription) {
+        Stopwatch stopwatch = stopwatch(stopwatchName, stopwatchDescription);
         for (int i = 0; i < 1; i++) {
             try (Split ignored = stopwatch.start()) {
                 queryListener.start();
@@ -129,7 +120,6 @@ public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest imple
                 OperationsPerformanceInformationUtil.format(performanceInformation,
                         new AbstractStatisticsPrinter.Options(AbstractStatisticsPrinter.Format.TEXT, AbstractStatisticsPrinter.SortBy.TIME), null, null));
     }
-
 
     @Test
     public void test210listUsers() {
@@ -153,7 +143,6 @@ public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest imple
     @Test(enabled = false) // doesn't work because of getPageBase usages
     public void test200sidebarMenu() {
         logger.info(getTestName());
-        OperationsPerformanceMonitor.INSTANCE.clearGlobalPerformanceInformation();
         Stopwatch stopwatch = stopwatch("sidebar", "sidebar perf");
         try (Split ignored = stopwatch.start()) {
             queryListener.start();
