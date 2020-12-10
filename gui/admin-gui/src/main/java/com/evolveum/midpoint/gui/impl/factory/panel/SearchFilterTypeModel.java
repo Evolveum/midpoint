@@ -13,9 +13,13 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.Session;
+import org.apache.wicket.model.IComponentAssignedModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.IWrapModel;
 
-public class SearchFilterTypeModel implements IModel<String> {
+public class SearchFilterTypeModel implements IComponentAssignedModel<String> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SearchFilterTypeModel.class);
 
@@ -45,11 +49,9 @@ public class SearchFilterTypeModel implements IModel<String> {
 
                 return pageBase.getPrismContext().xmlSerializer().serializeRealValue(value);
             } catch (SchemaException e) {
-                // TODO handle!!!!
                 LoggingUtils.logUnexpectedException(LOGGER, "Cannot serialize filter", e);
-//                getSession().error("Cannot serialize filter");
+                throw new IllegalStateException("Cannot serialize filter: " + e.getMessage() + ". For more details, please, see midpoint log");
             }
-            return null;
         }
 
         @Override
@@ -62,10 +64,47 @@ public class SearchFilterTypeModel implements IModel<String> {
                 SearchFilterType filter = pageBase.getPrismContext().parserFor(object).parseRealValue(SearchFilterType.class);
                 baseModel.setObject(filter);
             } catch (SchemaException e) {
-                // TODO handle!!!!
                 LoggingUtils.logUnexpectedException(LOGGER, "Cannot parse filter", e);
-//                getSession().error("Cannot parse filter");
+                throw new IllegalStateException("Cannot parse filter: " + e.getMessage() + ". For more details, please, see midpoint log");
             }
 
         }
+
+    @Override
+    public IWrapModel<String> wrapOnAssignment(Component component) {
+        return new SearchFilterWrapperModel(component);
+    }
+
+    class SearchFilterWrapperModel implements IWrapModel<String> {
+
+            private Component component;
+
+            public SearchFilterWrapperModel(Component component) {
+                this.component = component;
+            }
+
+        @Override
+        public IModel<?> getWrappedModel() {
+            return SearchFilterTypeModel.this;
+        }
+
+        @Override
+        public String getObject() {
+            try {
+                return SearchFilterTypeModel.this.getObject();
+            } catch (Throwable e) {
+                component.error(e.getMessage());
+            }
+            return null;
+        }
+
+        @Override
+        public void setObject(String object) {
+            try {
+                SearchFilterTypeModel.this.setObject(object);
+            } catch (Throwable e) {
+                component.error(e.getMessage());
+            }
+        }
+    }
 }
