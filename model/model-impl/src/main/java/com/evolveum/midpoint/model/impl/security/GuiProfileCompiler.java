@@ -84,8 +84,9 @@ public class GuiProfileCompiler {
         collect(adminGuiConfigurations, principal, authorizationTransformer, task, result);
 
         CompiledGuiProfile compiledGuiProfile = compileUserProfile(adminGuiConfigurations, systemConfiguration, task, result);
-
-        setupUserPhoto(principal, compiledGuiProfile, result);
+        if (compiledGuiProfile != null) {
+            setupUserPhoto(principal, compiledGuiProfile, result);
+        }
 
         principal.setCompiledGuiProfile(compiledGuiProfile);
     }
@@ -157,12 +158,8 @@ public class GuiProfileCompiler {
         return composite;
     }
 
-    private void setupUserPhoto(GuiProfiledPrincipal principal, CompiledGuiProfile compiledGuiProfile, OperationResult result) {
+    private void setupUserPhoto(GuiProfiledPrincipal principal, @NotNull CompiledGuiProfile compiledGuiProfile, OperationResult result) {
         FocusType focus = principal.getFocus();
-        if (focus == null) {
-            return; // should not be null, but just to be sure
-        }
-
         byte[] jpegPhoto = focus.getJpegPhoto();
         if (jpegPhoto == null) {
             Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder().item(FocusType.F_JPEG_PHOTO).retrieve().build();
@@ -170,7 +167,7 @@ public class GuiProfileCompiler {
                 PrismObject<? extends FocusType> resolvedFocus = repositoryService.getObject(focus.getClass(), focus.getOid(), options, result);
                 jpegPhoto = resolvedFocus.asObjectable().getJpegPhoto();
             } catch (ObjectNotFoundException | SchemaException e) {
-                LOGGER.trace("Failed to load photo, continue without it");
+                LOGGER.trace("Failed to load photo for {}, continue without it", focus, e);
             }
         }
         compiledGuiProfile.setJpegPhoto(jpegPhoto);
