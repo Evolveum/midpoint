@@ -51,7 +51,6 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(M5AccountsAssignmentsAndRoles.class);
 
-    private static final File INCOGNITO_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-incognito.xml");
     private static final File TOP_SECRET_I_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-top-secret-i.xml");
     private static final File CSV_1_RESOURCE_FILE_5_5 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-5-5.xml");
     private static final File CSV_3_RESOURCE_FILE_5_5 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-5-5.xml");
@@ -72,7 +71,7 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
 
     @Override
     protected List<File> getObjectListToImport(){
-        return Arrays.asList(KIRK_USER_10_FILE);
+        return Arrays.asList(KIRK_USER_TIBERIUS_FILE);
     }
 
     @Test(groups={"M5"})

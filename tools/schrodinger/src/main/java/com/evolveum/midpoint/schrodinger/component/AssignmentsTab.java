@@ -39,7 +39,7 @@ public class AssignmentsTab<P extends AssignmentHolderDetailsPage> extends TabWi
     public <A extends AssignmentsTab<P>> FocusSetAssignmentsModal<A> clickAddAssignemnt() {
         $(Schrodinger.byElementAttributeValue("i", "class", "fe fe-assignment "))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         SelenideElement modalElement = getNewAssignmentModal();
 
         return new FocusSetAssignmentsModal<A>((A) this, modalElement);
@@ -48,7 +48,7 @@ public class AssignmentsTab<P extends AssignmentHolderDetailsPage> extends TabWi
     public <A extends AssignmentsTab<P>> FocusSetAssignmentsModal<A> clickAddAssignemnt(String title) {
         $(Schrodinger.byElementAttributeValue("div", "title", title))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         SelenideElement modalElement = getNewAssignmentModal();
 
         return new FocusSetAssignmentsModal<A>((A) this, modalElement);
@@ -56,8 +56,6 @@ public class AssignmentsTab<P extends AssignmentHolderDetailsPage> extends TabWi
 
     private SelenideElement getNewAssignmentModal() {
         return Utils.getModalWindowSelenideElement();
-//        return $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Select object(s)"))
-//                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
     }
 
 

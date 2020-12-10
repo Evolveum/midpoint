@@ -58,10 +58,10 @@ public class M10ObjectTemplate extends AbstractLabTest{
 
     @Override
     protected List<File> getObjectListToImport(){
-        return Arrays.asList(KIRK_USER_10_FILE);
+        return Arrays.asList(KIRK_USER_TIBERIUS_FILE);
     }
 
-    @Test(groups={"M10"})
+    @Test
     public void mod10test01SimpleObjectTemplate() throws IOException {
         importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE, true);
         csv1TargetFile = new File(getTestTargetDir(), CSV_1_FILE_SOURCE_NAME);
@@ -139,7 +139,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
                 .compareInputAttributeValue("fullName", "Jim Tiberius Kirk"));
     }
 
-    @Test(dependsOnMethods = {"mod10test01SimpleObjectTemplate"}, groups={"M10"})
+    @Test(dependsOnMethods = {"mod10test01SimpleObjectTemplate"})
     public void mod10test02AutomaticAssignments() throws IOException {
         addObjectFromFile(OBJECT_TEMPLATE_USER_FILE);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
@@ -215,7 +215,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
                         "Active Employees", "Internal Employee"));
     }
 
-    @Test(dependsOnMethods = {"mod10test02AutomaticAssignments"}, groups={"M10"})
+    @Test(dependsOnMethods = {"mod10test02AutomaticAssignments"})
     public void mod10test03LookupTablesAndAttributeOverrides() {
 
         PrismForm<AssignmentHolderBasicTab<UserPage>> form = showUser("kirk")
@@ -253,7 +253,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
         Assert.assertFalse(form.isPropertyEnabled("honorificSuffix"));
     }
 
-    @Test(dependsOnMethods = {"mod10test03LookupTablesAndAttributeOverrides"}, groups={"M10"})
+    @Test(dependsOnMethods = {"mod10test03LookupTablesAndAttributeOverrides"})
     public void mod10test04FinishingManagerMapping() {
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
         showTask("User Recomputation Task").clickRunNow();
@@ -358,9 +358,9 @@ public class M10ObjectTemplate extends AbstractLabTest{
                         .compareInputAttributeValue("manager", ""));
     }
 
-    @Test
+    @Test(dependsOnMethods = {"mod10test03LookupTablesAndAttributeOverrides"})
     public void mod11test01ConfiguringNotifications() throws IOException {
-        showTask("HR Synchronization").clickResume();
+//        showTask("HR Synchronization").clickResume();
 
         notificationFile = new File(getTestTargetDir(), NOTIFICATION_FILE_NAME);
         notificationFile.createNewFile();

@@ -6,11 +6,16 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.labs;
 
+import com.codeborne.selenide.Selenide;
+
+import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.ProjectionsTab;
 import com.evolveum.midpoint.schrodinger.component.common.table.AbstractTableWithPrismView;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Utils;
 import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
+
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -53,7 +58,7 @@ public class M6ConfiguringMultipleAccountTypes extends AbstractLabTest {
 
     @Override
     protected List<File> getObjectListToImport(){
-        return Arrays.asList(KIRK_USER_FILE);
+        return Arrays.asList(KIRK_USER_TIBERIUS_FILE);
     }
 
     @Test(groups={"M6"})
@@ -73,12 +78,18 @@ public class M6ConfiguringMultipleAccountTypes extends AbstractLabTest {
         addObjectFromFile(SECRET_II_ROLE_FILE);
         addObjectFromFile(CSV1_TESTER_ROLE_FILE);
         addObjectFromFile(CSV3_ADMIN_ROLE_FILE);
+        addObjectFromFile(INCOGNITO_ROLE_FILE);
+        addObjectFromFile(INTERNAL_EMPLOYEE_ROLE_FILE);
 
-        Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Secret Projects I", "Secret Projects II");
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+
+        Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Secret Projects I", "Secret Projects II", "Incognito");
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), CSV1_TESTER_ROLE_NAME, CSV3_ADMIN_ROLE_NAME);
+//        Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Internal Employee");
 
         AbstractTableWithPrismView<ProjectionsTab<UserPage>> table = showUser("kirk").selectTabProjections()
                 .table();
+        Selenide.screenshot("kirk_user_projections");
         Assert.assertTrue(table.search()
                 .referencePanelByItemName("Resource")
                     .inputRefOid("10000000-9999-9999-0000-a000ff000002")
