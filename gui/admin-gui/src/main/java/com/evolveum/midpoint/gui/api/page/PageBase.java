@@ -299,9 +299,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     private boolean initialized = false;
 
-//    private LoadableModel<Integer> workItemCountModel;
-//    private LoadableModel<Integer> certWorkItemCountModel;
-
     // No need to store this in the session. Retrieval is cheap.
     private transient CompiledGuiProfile compiledGuiProfile;
 
@@ -321,9 +318,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MidPointAuthWebSession.getSession().setClientCustomization();
 
         add(new NewWindowNotifyingBehavior());
-
-        initializeModel();
-
     }
 
     @Override
@@ -343,58 +337,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         createBreadcrumb();
     }
-
-    private void initializeModel() {
-//        workItemCountModel = new LoadableModel<Integer>() {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected Integer load() {
-//                try {
-//                    Task task = createSimpleTask(OPERATION_LOAD_WORK_ITEM_COUNT);
-//                    S_FilterEntryOrEmpty q = getPrismContext().queryFor(CaseWorkItemType.class);
-//                    ObjectQuery query = QueryUtils.filterForAssignees(q, getPrincipal(),
-//                            OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry())
-//                            .and()
-//                            .item(CaseWorkItemType.F_CLOSE_TIMESTAMP)
-//                            .isNull()
-//                            .build();
-//                    return getModelService().countContainers(CaseWorkItemType.class, query, null, task, task.getResult());
-//                } catch (Exception e) {
-//                    LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load work item count", e);
-//                    return null;
-//                }
-//            }
-//        };
-//        certWorkItemCountModel = new LoadableModel<Integer>() {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected Integer load() {
-//                try {
-//                    AccessCertificationService acs = getCertificationService();
-//                    Task task = createSimpleTask(OPERATION_LOAD_CERT_WORK_ITEM_COUNT);
-//                    OperationResult result = task.getResult();
-//                    return acs.countOpenWorkItems(getPrismContext().queryFactory().createQuery(), true, null, task, result);
-//                } catch (Exception e) {
-//                    LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load certification work item count", e);
-//                    return null;
-//                }
-//            }
-//        };
-    }
-
-//    public void resetWorkItemCountModel() {
-//        if (workItemCountModel != null) {
-//            workItemCountModel.reset();
-//        }
-//    }
-//
-//    public void resetCertWorkItemCountModel() {
-//        if (certWorkItemCountModel != null) {
-//            certWorkItemCountModel.reset();
-//        }
-//    }
 
     protected void createBreadcrumb() {
         BreadcrumbPageClass bc = new BreadcrumbPageClass(new IModel<String>() {
@@ -609,17 +551,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
     }
 
-//    // TODO reconsider this method
-//    public boolean isFullyAuthorized() {
-//        try {
-//            return isAuthorized(AuthorizationConstants.AUTZ_ALL_URL);
-//        } catch (Throwable t) {
-//            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check the authorization", t);
-//            return false;
-//        }
-//    }
-
-    public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public boolean isAuthorized(String operationUrl) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         return isAuthorized(operationUrl, null, null, null, null, null);
     }
 
@@ -718,27 +650,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return midpointConfiguration;
     }
 
-//    @Override
-//    public void renderHead(IHeaderResponse response) {
-//        super.renderHead(response);
-//
-//        String skinCssString = CLASS_DEFAULT_SKIN;
-//        DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
-//        if (info != null && StringUtils.isNotEmpty(info.getSkin())) {
-//            skinCssString = info.getSkin();
-//        }
-//
-//        String skinCssPath = String.format("../../../../../../webjars/AdminLTE/2.4.18/dist/css/skins/%s.min.css", skinCssString);
-//        response.render(CssHeaderItem.forReference(
-//                new CssResourceReference(
-//                        PageBase.class, skinCssPath)
-//                )
-//        );
-//
-//        // this attaches jquery.js as first header item, which is used in our scripts.
-//        CoreLibrariesContributor.contribute(getApplication(), response);
-//    }
-
     @Override
     protected void onBeforeRender() {
         super.onBeforeRender();
@@ -760,7 +671,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         container.add(rightMenu);
 
         LocalePanel locale = new LocalePanel(ID_LOCALE);
-//        locale.add(createUserStatusBehaviour(false));
         container.add(locale);
     }
 
@@ -1036,15 +946,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         initDebugBarLayout();
 
-//        SideBarMenuPanel sidebarMenu = new SideBarMenuPanel(ID_SIDEBAR_MENU, new LoadableModel<List<SideBarMenuItem>>(false) {
-//
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected List<SideBarMenuItem> load() {
-//                return createMenuItems();
-//            }
-//        });
         LeftMenuPanel sidebarMenu = new LeftMenuPanel(ID_SIDEBAR_MENU);
         sidebarMenu.add(createUserStatusBehaviour());
         add(sidebarMenu);
@@ -1730,12 +1631,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     protected void setTimeZone(PageBase page) {
-//        PrismObject<? extends FocusType> focus = loadFocusSelf();
         String timeZone = null;
         GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();
-//        if (focus != null && focus.asObjectable().getTimezone() != null) {
-//            timeZone = focus.asObjectable().getTimezone();
-//        } else
         if (principal != null && principal.getCompiledGuiProfile() != null) {
             timeZone = principal.getCompiledGuiProfile().getDefaultTimezone();
         }
