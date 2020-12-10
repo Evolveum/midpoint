@@ -58,22 +58,23 @@ public class M6ConfiguringMultipleAccountTypes extends AbstractLabTest {
 
     @Test(groups={"M6"})
     public void mod06test01UsingAccountIntentsForProvisioning() {
-        importObject(CSV_1_RESOURCE_FILE, true);
-        changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
-        importObject(CSV_2_RESOURCE_FILE, true);
-        changeResourceAttribute(CSV_2_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv2TargetFile.getAbsolutePath(), true);
-        importObject(CSV_3_RESOURCE_FILE, true);
-        changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
+        importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE, true);
 
         importObject(CSV_1_RESOURCE_FILE_6_1, true);
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
 
+        importObject(CSV_2_RESOURCE_FILE_5_5, true);
+        changeResourceAttribute(CSV_2_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv2TargetFile.getAbsolutePath(), true);
+
         importObject(CSV_3_RESOURCE_FILE_6_1, true);
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
 
+        addObjectFromFile(SECRET_I_ROLE_FILE);
+        addObjectFromFile(SECRET_II_ROLE_FILE);
         addObjectFromFile(CSV1_TESTER_ROLE_FILE);
         addObjectFromFile(CSV3_ADMIN_ROLE_FILE);
 
+        Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Secret Projects I", "Secret Projects II");
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), CSV1_TESTER_ROLE_NAME, CSV3_ADMIN_ROLE_NAME);
 
         AbstractTableWithPrismView<ProjectionsTab<UserPage>> table = showUser("kirk").selectTabProjections()

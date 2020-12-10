@@ -84,7 +84,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                         .selectOrgInTree("Transportation and Logistics Department")
                         .and()
                     .getMemberPanel()
-                        .newMember("Create Organization type member with default relation");
+                        .newMember("Create Organization type member with Member relation");
         new OrgPage()
                 .selectTabBasic()
                     .form()
@@ -108,7 +108,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                                         .compareInputAttributeValue("name", "0919"));
 
         showUser("kirk").selectTabAssignments()
-                .clickAddAssignemnt("New Organization type assignment with default relation")
+                .clickAddAssignemnt("New Organization type assignment with Member relation")
                     .table()
                         .paging()
                             .next()

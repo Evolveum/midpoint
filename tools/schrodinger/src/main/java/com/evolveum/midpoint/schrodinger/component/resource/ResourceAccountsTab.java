@@ -8,6 +8,7 @@ package com.evolveum.midpoint.schrodinger.component.resource;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
@@ -80,6 +81,7 @@ public class ResourceAccountsTab<T> extends Component<T> {
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         $(Schrodinger.byDataId("a", "resourceSearch"))
                 .waitUntil(Condition.cssClass("active"), MidPoint.TIMEOUT_MEDIUM_6_S);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return this;
     }
 

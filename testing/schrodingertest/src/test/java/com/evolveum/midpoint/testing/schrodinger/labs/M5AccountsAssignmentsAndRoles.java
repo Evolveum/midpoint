@@ -52,15 +52,11 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
     private static final Logger LOG = LoggerFactory.getLogger(M5AccountsAssignmentsAndRoles.class);
 
     private static final File INCOGNITO_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-incognito.xml");
-    private static final File SECRET_I_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-secret-i.xml");
-    private static final File SECRET_II_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-secret-ii.xml");
     private static final File TOP_SECRET_I_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-top-secret-i.xml");
     private static final File CSV_1_RESOURCE_FILE_5_5 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-5-5.xml");
-    private static final File CSV_2_RESOURCE_FILE_5_5 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-2-canteen-5-5.xml");
     private static final File CSV_3_RESOURCE_FILE_5_5 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-5-5.xml");
     private static final String ARCHETYPE_EMPLOYEE_NAME = "Employee";
     private static final String ARCHETYPE_EMPLOYEE_LABEL = "Employee";
-    private static final File ARCHETYPE_EXTERNAL_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-external.xml");
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override
@@ -76,11 +72,13 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
 
     @Override
     protected List<File> getObjectListToImport(){
-        return Arrays.asList(KIRK_USER_FILE);
+        return Arrays.asList(KIRK_USER_10_FILE);
     }
 
     @Test(groups={"M5"})
     public void mod05test01UsingRBAC() {
+        importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE, true);
+
         importObject(CSV_1_RESOURCE_FILE, true);
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
         importObject(CSV_2_RESOURCE_FILE, true);
