@@ -14,9 +14,19 @@ import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
+
+@Service
 public class SqaleRepositoryFactory implements RepositoryServiceFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqaleRepositoryFactory.class);
+
+    @PostConstruct
+    public void init() {
+//        System.out.println("found!"); // TODO REMOVE METHOD when not needed for debug
+    }
 
     @Override
     public void init(Configuration configuration) throws RepositoryServiceFactoryException {
