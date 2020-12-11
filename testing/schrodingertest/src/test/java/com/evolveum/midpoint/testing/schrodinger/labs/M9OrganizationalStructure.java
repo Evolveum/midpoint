@@ -38,7 +38,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
     @Override
     protected List<File> getObjectListToImport(){
         return Arrays.asList(ARCHETYPE_ORG_FUNCTIONAL_FILE, ARCHETYPE_ORG_COMPANY_FILE, ARCHETYPE_ORG_GROUP_FILE,
-                ARCHETYPE_ORG_GROUP_LIST_FILE);
+                ARCHETYPE_ORG_GROUP_LIST_FILE, KIRK_USER_TIBERIUS_FILE, OBJECT_TEMPLATE_USER_FILE);
     }
 
     @Test(groups={"M9"})
@@ -79,8 +79,8 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                         .selectOrgInTree("Transportation and Logistics Department")
                         .and()
                     .getMemberPanel()
-                        .newMember("Create Organization type member with Member relation");
-        new OrgPage()
+                        .newMember("Create Organization type member with Member relation", "Organization");
+        basicPage.newOrgUnit()
                 .selectTabBasic()
                     .form()
                         .addAttributeValue(OrgType.F_NAME, "0919")

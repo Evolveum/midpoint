@@ -44,8 +44,13 @@ public class OrgHierarchyPanel<T> extends Component<T> {
 
     private void expandAllIfNeeded(String orgName) {
         boolean existExpandButton = getParentElement().$(By.cssSelector(".tree-junction-collapsed")).exists();
-        showTreeNodeDropDownMenu(orgName).expandAll();
-        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        if (!existExpandButton) {
+            showTreeNodeDropDownMenu(orgName).expandAll();
+        } else {
+            getParentElement().$(By.cssSelector(".tree-junction-collapsed")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                    .click();
+            Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        }
     }
 
     private void clickOnTreeMenu() {
