@@ -58,11 +58,13 @@ public class M10ObjectTemplate extends AbstractLabTest{
 
     @Override
     protected List<File> getObjectListToImport(){
-        return Arrays.asList(KIRK_USER_TIBERIUS_FILE);
+        return Arrays.asList(ARCHETYPE_ORG_FUNCTIONAL_FILE, ARCHETYPE_ORG_COMPANY_FILE, ARCHETYPE_ORG_GROUP_FILE,
+                ARCHETYPE_ORG_GROUP_LIST_FILE, KIRK_USER_TIBERIUS_FILE);
     }
 
     @Test
     public void mod10test01SimpleObjectTemplate() throws IOException {
+        importObject(ORG_EXAMPLE_FILE, true);
         importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE, true);
         csv1TargetFile = new File(getTestTargetDir(), CSV_1_FILE_SOURCE_NAME);
 
