@@ -8,32 +8,25 @@ package com.evolveum.midpoint.repo.sql;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
-import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database.*;
+import static com.evolveum.midpoint.repo.sql.Database.*;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.h2.Driver;
-import org.hibernate.dialect.H2Dialect;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager;
 import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
-import com.evolveum.midpoint.repo.sql.util.MidPointMySQLDialect;
-import com.evolveum.midpoint.repo.sql.util.MidPointOracleDialect;
-import com.evolveum.midpoint.repo.sql.util.MidPointPostgreSQLDialect;
-import com.evolveum.midpoint.repo.sql.util.UnicodeSQLServer2008Dialect;
+import com.evolveum.midpoint.repo.sqlbase.SqlRepositoryBaseConfiguration;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -54,91 +47,6 @@ public class SqlRepositoryConfiguration {
     private static final String HBM2DDL_UPDATE = "update";
     private static final String HBM2DDL_VALIDATE = "validate";
     private static final String HBM2DDL_NONE = "none";
-
-    @SuppressWarnings("deprecation")
-    public enum Database {
-
-        // Order of dialects is important, the first value is the default.
-        H2(DRIVER_H2,
-                H2Dialect.class.getName()),
-        MYSQL(DRIVER_MYSQL,
-                MidPointMySQLDialect.class.getName(),
-                org.hibernate.dialect.MySQLDialect.class.getName(),
-                org.hibernate.dialect.MySQLInnoDBDialect.class.getName()),
-        POSTGRESQL(DRIVER_POSTGRESQL,
-                MidPointPostgreSQLDialect.class.getName(),
-                org.hibernate.dialect.PostgreSQLDialect.class.getName(),
-                org.hibernate.dialect.PostgresPlusDialect.class.getName()),
-        SQLSERVER(DRIVER_SQLSERVER,
-                UnicodeSQLServer2008Dialect.class.getName(),
-                org.hibernate.dialect.SQLServerDialect.class.getName()),
-        ORACLE(DRIVER_ORACLE,
-                MidPointOracleDialect.class.getName(),
-                org.hibernate.dialect.OracleDialect.class.getName(),
-                org.hibernate.dialect.Oracle9Dialect.class.getName(),
-                org.hibernate.dialect.Oracle8iDialect.class.getName(),
-                org.hibernate.dialect.Oracle9iDialect.class.getName(),
-                org.hibernate.dialect.Oracle10gDialect.class.getName()),
-        MARIADB(DRIVER_MARIADB,
-                MidPointMySQLDialect.class.getName());
-
-        @NotNull List<String> drivers;
-        @NotNull List<String> dialects;
-
-        Database(String driver, String... dialects) {
-            this.drivers = Collections.singletonList(driver);
-            this.dialects = Arrays.asList(dialects);
-        }
-
-        public static Database findDatabase(String databaseName) {
-            if (StringUtils.isBlank(databaseName)) {
-                return null;
-            }
-            for (Database database : values()) {
-                if (database.name().equalsIgnoreCase(databaseName)) {
-                    return database;
-                }
-            }
-            throw new IllegalArgumentException("Unsupported database type: " + databaseName);
-        }
-
-        public String getDefaultHibernateDialect() {
-            return dialects.get(0);
-        }
-
-        public String getDefaultDriverClassName() {
-            return drivers.get(0);
-        }
-
-        public boolean containsDriver(String driverClassName) {
-            return drivers.contains(driverClassName);
-        }
-
-        public boolean containsDialect(String hibernateDialect) {
-            return dialects.contains(hibernateDialect);
-        }
-
-        @Nullable
-        public static Database findByDriverClassName(String driverClassName) {
-            if (driverClassName != null) {
-                return Arrays.stream(values())
-                        .filter(db -> db.containsDriver(driverClassName))
-                        .findFirst().orElse(null);
-            } else {
-                return null;
-            }
-        }
-
-        public static Database findByHibernateDialect(String hibernateDialect) {
-            if (hibernateDialect != null) {
-                return Arrays.stream(values())
-                        .filter(db -> db.containsDialect(hibernateDialect))
-                        .findFirst().orElse(null);
-            } else {
-                return null;
-            }
-        }
-    }
 
     /**
      * What to do if the DB schema is missing.
@@ -329,13 +237,6 @@ public class SqlRepositoryConfiguration {
 
     public static final String PROPERTY_TEXT_INFO_COLUMN_SIZE = "textInfoColumnSize";
 
-    private static final String DRIVER_H2 = Driver.class.getName();
-    private static final String DRIVER_MYSQL = "com.mysql.cj.jdbc.Driver";
-    private static final String DRIVER_MARIADB = "org.mariadb.jdbc.Driver";
-    private static final String DRIVER_SQLSERVER = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-    private static final String DRIVER_POSTGRESQL = "org.postgresql.Driver";
-    private static final String DRIVER_ORACLE = "oracle.jdbc.OracleDriver";
-
     private static final String UTF8MB4 = "utf8mb4";
 
     /*
@@ -455,10 +356,9 @@ public class SqlRepositoryConfiguration {
             }
             database = guessedDatabase;
         }
-        // TODO: when JDK-8 is gone use Objects.requireNonNullElse
-        driverClassName = defaultIfNull(configuredDriverClassName, getDefaultDriverClassName(dataSource, database));
-        hibernateDialect = defaultIfNull(configuredHibernateDialect, getDefaultHibernateDialect(database));
-        embedded = defaultIfNull(configuredEmbedded, getDefaultEmbedded(dataSource, database));
+        driverClassName = Objects.requireNonNullElse(configuredDriverClassName, getDefaultDriverClassName(dataSource, database));
+        hibernateDialect = Objects.requireNonNullElse(configuredHibernateDialect, getDefaultHibernateDialect(database));
+        embedded = Objects.requireNonNullElse(configuredEmbedded, getDefaultEmbedded(dataSource, database));
 
         // other properties
         asServer = configuration.getBoolean(PROPERTY_AS_SERVER, embedded);

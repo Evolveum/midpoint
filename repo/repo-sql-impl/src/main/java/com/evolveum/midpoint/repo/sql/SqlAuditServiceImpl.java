@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sql;
 
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-
 import static com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditEventRecord.*;
 import static com.evolveum.midpoint.schema.util.SystemConfigurationAuditUtil.isEscapingInvalidCharacters;
 
@@ -38,7 +36,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database;
 import com.evolveum.midpoint.repo.sql.audit.SqlQueryExecutor;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditDelta;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditEventRecord;
@@ -379,9 +376,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         insertBatch.execute();
     }
 
-    /**
-     * @deprecated use {@link #searchObjects(ObjectQuery, Collection, OperationResult)} instead
-     */
+    /** @deprecated use {@link #searchObjects(ObjectQuery, Collection, OperationResult)} instead */
     @Override
     @Deprecated
     public List<AuditEventRecord> listRecords(
@@ -434,6 +429,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
     }
 
+    @Deprecated
     private void listRecordsIterativeAttempt(String query,
             Map<String, Object> params, AuditResultHandler handler, OperationResult result) {
 
@@ -562,8 +558,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         audit.setInitiatorRef(prismRefValue(
                 resultList.getString(QAuditEventRecord.INITIATOR_OID.getName()),
                 resultList.getString(QAuditEventRecord.INITIATOR_NAME.getName()),
-                // TODO: when JDK-8 is gone use Objects.requireNonNullElse
-                defaultIfNull(
+                Objects.requireNonNullElse(
                         repoObjectType(resultList, QAuditEventRecord.INITIATOR_TYPE.getName()),
                         RObjectType.FOCUS)));
         audit.setAttorneyRef(prismRefValue(

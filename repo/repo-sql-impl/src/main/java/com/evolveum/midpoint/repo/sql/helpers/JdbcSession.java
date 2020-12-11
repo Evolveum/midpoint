@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sql.helpers;
 
-import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database.ORACLE;
+import static com.evolveum.midpoint.repo.sql.Database.ORACLE;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -22,6 +22,7 @@ import com.querydsl.sql.dml.SQLInsertClause;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.repo.sql.Database;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.TransactionIsolation;
 import com.evolveum.midpoint.repo.sqlbase.SqlConfiguration;
@@ -236,7 +237,7 @@ public class JdbcSession implements AutoCloseable {
         return connection;
     }
 
-    public SqlRepositoryConfiguration.Database databaseType() {
+    public Database databaseType() {
         return repoConfiguration.getDatabaseType();
     }
 

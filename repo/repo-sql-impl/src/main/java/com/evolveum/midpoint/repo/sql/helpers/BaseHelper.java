@@ -291,7 +291,7 @@ public class BaseHelper {
             return sqlConfiguration;
         }
 
-        SqlRepositoryConfiguration.Database database =
+        Database database =
                 sqlRepositoryConfiguration.getDatabaseType();
         Configuration querydslConfiguration;
         switch (database) {
