@@ -36,9 +36,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * This class is used for SQL repository configuration.
  * It reads values from Apache configuration object (xml).
  *
- * @author lazyman
+ * TODO: move non-Hibernate stuff to SqlRepositoryBaseConfiguration.
  */
-public class SqlRepositoryConfiguration {
+public class SqlRepositoryConfiguration extends SqlRepositoryBaseConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryConfiguration.class);
 
