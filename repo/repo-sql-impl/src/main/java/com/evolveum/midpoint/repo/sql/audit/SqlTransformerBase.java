@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.repo.sqlbase.SqlConfiguration;
+import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -30,13 +30,13 @@ public abstract class SqlTransformerBase<S, Q extends FlexibleRelationalPathBase
 
     protected final PrismContext prismContext;
     protected final QueryModelMapping<S, Q, R> mapping;
-    protected final SqlConfiguration sqlConfiguration;
+    protected final SqlRepoContext sqlRepoContext;
 
     protected SqlTransformerBase(PrismContext prismContext,
-            QueryModelMapping<S, Q, R> mapping, SqlConfiguration sqlConfiguration) {
+            QueryModelMapping<S, Q, R> mapping, SqlRepoContext sqlRepoContext) {
         this.prismContext = prismContext;
         this.mapping = mapping;
-        this.sqlConfiguration = sqlConfiguration;
+        this.sqlRepoContext = sqlRepoContext;
     }
 
     /**

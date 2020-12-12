@@ -14,19 +14,17 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
- * Encompasses Querydsl {@link Configuration}, our {@link QueryModelMappingRegistry}
- * and other parts of SQL repository config (extracted from repo-impl if possible).
- * <p>
- * TODO: This is WIP, some functionality emerges from encapsulation, although it does not
- * fit the name "config" (like newQuery()), I hope this will settle later.
+ * Encapsulates Querydsl {@link Configuration}, our {@link QueryModelMappingRegistry}
+ * and other parts of SQL repository config and implements methods that need these.
+ * Preferably, it should hide (hence "encapsulate") the fields and offer behavior instead.
  */
-public class SqlConfiguration {
+public class SqlRepoContext {
 
     private final Configuration querydslConfig;
     private final QueryModelMappingRegistry mappingRegistry;
     // TODO: add datasource? can this be replacement for BaseHelper?
 
-    public SqlConfiguration(Configuration querydslConfig, QueryModelMappingRegistry mappingRegistry) {
+    public SqlRepoContext(Configuration querydslConfig, QueryModelMappingRegistry mappingRegistry) {
         this.querydslConfig = querydslConfig;
         this.mappingRegistry = mappingRegistry;
     }

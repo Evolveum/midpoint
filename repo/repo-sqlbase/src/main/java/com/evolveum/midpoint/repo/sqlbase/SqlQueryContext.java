@@ -74,16 +74,16 @@ public class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
     private final SQLQuery<?> sqlQuery;
 
     public static <S, Q extends FlexibleRelationalPathBase<R>, R> SqlQueryContext<S, Q, R> from(
-            Class<S> schemaType, PrismContext prismContext, SqlConfiguration sqlConfiguration) {
+            Class<S> schemaType, PrismContext prismContext, SqlRepoContext sqlRepoContext) {
 
-        QueryModelMapping<S, Q, R> rootMapping = sqlConfiguration.getMappingBySchemaType(schemaType);
-        return new SqlQueryContext<>(rootMapping, prismContext, sqlConfiguration);
+        QueryModelMapping<S, Q, R> rootMapping = sqlRepoContext.getMappingBySchemaType(schemaType);
+        return new SqlQueryContext<>(rootMapping, prismContext, sqlRepoContext);
     }
 
     private SqlQueryContext(
             QueryModelMapping<S, Q, R> rootMapping,
             PrismContext prismContext,
-            SqlConfiguration config) {
+            SqlRepoContext config) {
         super(rootMapping.defaultAlias(), rootMapping, prismContext, config);
         sqlQuery = config.newQuery().from(root());
 
@@ -97,9 +97,9 @@ public class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
             Q defaultAlias,
             QueryModelMapping<S, Q, R> mapping,
             PrismContext prismContext,
-            SqlConfiguration sqlConfiguration,
+            SqlRepoContext sqlRepoContext,
             SQLQuery<?> query) {
-        super(defaultAlias, mapping, prismContext, sqlConfiguration);
+        super(defaultAlias, mapping, prismContext, sqlRepoContext);
         this.sqlQuery = query;
     }
 

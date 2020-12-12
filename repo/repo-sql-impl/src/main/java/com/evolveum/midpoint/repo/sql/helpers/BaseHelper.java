@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.repo.sql.*;
 import com.evolveum.midpoint.repo.sql.audit.mapping.QueryModelMappingConfig;
-import com.evolveum.midpoint.repo.sqlbase.SqlConfiguration;
+import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.MidpointOracleTemplates;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.MidpointSQLServerTemplates;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.InstantType;
@@ -74,7 +74,7 @@ public class BaseHelper {
     private final DataSource dataSource;
 
     // don't access outside of sqlNewConfiguration() method, always use the method to lazy-init
-    private SqlConfiguration sqlConfiguration;
+    private SqlRepoContext sqlRepoContext;
 
     // used for non-bean creation
     public BaseHelper(
@@ -285,10 +285,9 @@ public class BaseHelper {
         return dataSource;
     }
 
-    // TODO: rather explicit "new" here for some time to clearly distinguish from getConfiguration()
-    public synchronized SqlConfiguration sqlNewConfiguration() {
-        if (sqlConfiguration != null) {
-            return sqlConfiguration;
+    public synchronized SqlRepoContext sqlRepoContext() {
+        if (sqlRepoContext != null) {
+            return sqlRepoContext;
         }
 
         Database database =
@@ -327,8 +326,8 @@ public class BaseHelper {
 
         // TODO: This kinda hard-codes the audit configuration mapping, currently only audit uses it.
         //  Later this will be parametrized, but it will also probably look differently in midScale repo.
-        sqlConfiguration = new SqlConfiguration(querydslConfiguration, QueryModelMappingConfig.AUDIT_MAPPING);
-        return sqlConfiguration;
+        sqlRepoContext = new SqlRepoContext(querydslConfiguration, QueryModelMappingConfig.AUDIT_MAPPING);
+        return sqlRepoContext;
     }
 
     /**
@@ -341,7 +340,7 @@ public class BaseHelper {
             return new JdbcSession(
                     dataSource().getConnection(),
                     sqlRepositoryConfiguration,
-                    sqlNewConfiguration());
+                    sqlRepoContext());
         } catch (SQLException e) {
             throw new SystemException("Cannot create JDBC connection", e);
         }
