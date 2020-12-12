@@ -39,16 +39,16 @@ public abstract class SqlPathContext<S, Q extends FlexibleRelationalPathBase<R>,
     private final Q path;
     private final QueryModelMapping<S, Q, R> mapping;
     private final PrismContext prismContext;
-    private final SqlConfiguration sqlConfiguration;
+    private final SqlRepoContext sqlRepoContext;
 
     private boolean notFilterUsed = false;
 
     public SqlPathContext(Q path, QueryModelMapping<S, Q, R> mapping,
-            PrismContext prismContext, SqlConfiguration sqlConfiguration) {
+            PrismContext prismContext, SqlRepoContext sqlRepoContext) {
         this.path = path;
         this.mapping = mapping;
         this.prismContext = prismContext;
-        this.sqlConfiguration = sqlConfiguration;
+        this.sqlRepoContext = sqlRepoContext;
     }
 
     /**
@@ -83,8 +83,8 @@ public abstract class SqlPathContext<S, Q extends FlexibleRelationalPathBase<R>,
         return notFilterUsed;
     }
 
-    public SqlConfiguration sqlConfiguration() {
-        return sqlConfiguration;
+    public SqlRepoContext sqlConfiguration() {
+        return sqlRepoContext;
     }
 
     public abstract <DQ extends FlexibleRelationalPathBase<DR>, DR>

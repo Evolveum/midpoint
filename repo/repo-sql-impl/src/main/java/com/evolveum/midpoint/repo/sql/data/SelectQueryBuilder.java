@@ -11,7 +11,7 @@ import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database;
+import com.evolveum.midpoint.repo.sql.Database;
 
 /**
  * @author skublik

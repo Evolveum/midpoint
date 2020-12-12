@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.sql.util;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
+import com.evolveum.midpoint.repo.sql.Database;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 /**
@@ -70,7 +70,7 @@ public abstract class TemporaryTableDialect {
      * @throws SystemException if temporary tables are not supported
      */
     public static @NotNull TemporaryTableDialect getTempTableDialect(
-            @NotNull SqlRepositoryConfiguration.Database database) {
+            @NotNull Database database) {
         switch (database) {
             case H2:
                 return new H2TempTableDialect();

@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
-import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database;
+import com.evolveum.midpoint.repo.sql.Database;
 
 import java.util.*;
 
