@@ -10,8 +10,10 @@ import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.page.org.OrgPage;
 import com.evolveum.midpoint.schrodinger.page.org.OrgTreePage;
 
+import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
+import org.apache.commons.io.FileUtils;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -33,6 +35,8 @@ public class M9OrganizationalStructure extends AbstractLabTest{
     @Override
     public void beforeClass() throws IOException {
         super.beforeClass();
+        csv1TargetFile = new File(getTestTargetDir(), CSV_1_FILE_SOURCE_NAME);
+        FileUtils.copyFile(CSV_1_SOURCE_FILE, csv1TargetFile);
     }
 
     @Override
@@ -71,7 +75,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
 
     @Test(dependsOnMethods = {"mod09test01ImportStaticOrgStructure"})
     public void mod09test02CreateStaticOrgStructure() {
-        basicPage.orgStructure()
+        OrgPage orgPage = (OrgPage) basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                     .getOrgHierarchyPanel()
                         .showTreeNodeDropDownMenu("Secret Operations")
@@ -80,11 +84,11 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                         .and()
                     .getMemberPanel()
                         .newMember("Create Organization type member with Member relation", "Organization");
-        basicPage.newOrgUnit()
+        orgPage
                 .selectTabBasic()
                     .form()
-                        .addAttributeValue(OrgType.F_NAME, "0919")
-                        .addAttributeValue(OrgType.F_DISPLAY_NAME, "Warp Speed Research")
+                        .addAttributeValue("Name", "0919")
+                        .addAttributeValue("Display Name", "Warp Speed Research")
                         .and()
                     .and()
                 .clickSave()
@@ -100,7 +104,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                             .edit()
                                 .selectTabBasic()
                                     .form()
-                                        .compareInputAttributeValue("name", "0919"));
+                                        .compareInputAttributeValue("Name", "0919"));
 
         showUser("kirk").selectTabAssignments()
                 .clickAddAssignemnt("New Organization type assignment with Member relation")
@@ -110,8 +114,15 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                             .and()
                         .and()
                     .table()
-                        .selectCheckboxByName("0919")
+                        .search()
+                            .byName()
+                            .inputValue("0919")
+                            .updateSearch()
                         .and()
+                        .rowByColumnLabel("Name", "0919")
+                        .clickCheckBox()
+                        .and()
+                    .and()
                     .clickAdd()
                 .and()
             .clickSave()
@@ -143,6 +154,12 @@ public class M9OrganizationalStructure extends AbstractLabTest{
 
     @Test(dependsOnMethods = {"mod09test02CreateStaticOrgStructure"})
     public void mod09test03OrganizationActingAsARole() {
+        addObjectFromFile(SECRET_I_ROLE_FILE);
+        addObjectFromFile(SECRET_II_ROLE_FILE);
+
+        importObject(CSV_1_RESOURCE_FILE, true);
+        changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
+
         Assert.assertFalse(basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                     .getOrgHierarchyPanel()

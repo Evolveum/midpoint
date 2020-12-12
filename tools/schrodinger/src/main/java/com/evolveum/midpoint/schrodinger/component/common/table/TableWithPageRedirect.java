@@ -42,8 +42,7 @@ public abstract class TableWithPageRedirect<T> extends Table<T> {
 
     protected SelenideElement clickAndGetHeaderDropDownMenu() {
 
-        $(By.tagName("thead"))
-                .$(Schrodinger.byDataId("inlineMenuPanel"))
+        getParentElement().$x(".//div[@data-s-id='inlineMenuPanel']")
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S)
                 .click();
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
