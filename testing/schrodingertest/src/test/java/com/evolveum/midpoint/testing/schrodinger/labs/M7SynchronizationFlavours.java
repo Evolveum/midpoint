@@ -9,6 +9,8 @@ package com.evolveum.midpoint.testing.schrodinger.labs;
 import com.codeborne.selenide.Selenide;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.component.ProjectionsTab;
+import com.evolveum.midpoint.schrodinger.component.common.table.AbstractTableWithPrismView;
 import com.evolveum.midpoint.schrodinger.component.resource.ResourceAccountsTab;
 import com.evolveum.midpoint.schrodinger.page.resource.ViewResourcePage;
 import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
@@ -108,7 +110,7 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
 
         importObject(CSV_1_RESOURCE_FILE, true);
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
-        importObject(CSV_2_RESOURCE_FILE, true);
+        importObject(CSV_2_RESOURCE_FILE_5_5, true);
         changeResourceAttribute(CSV_2_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv2TargetFile.getAbsolutePath(), true);
         importObject(CSV_3_RESOURCE_FILE, true);
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
@@ -218,8 +220,9 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
     }
 
     private boolean containsProjection(String user, String resourceOid, String accountName) {
-       return showUser(user).selectTabProjections()
-                .table()
+       AbstractTableWithPrismView<ProjectionsTab<UserPage>> table = showUser(user).selectTabProjections().table();
+       Selenide.screenshot(user + "_" + resourceOid + "_" + accountName);
+       return table
                     .search()
                         .referencePanelByItemName("Resource")
                             .inputRefOid(resourceOid)

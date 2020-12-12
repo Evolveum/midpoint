@@ -143,6 +143,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
     @Test(dependsOnMethods = {"mod10test01SimpleObjectTemplate"})
     public void mod10test02AutomaticAssignments() throws IOException {
         addObjectFromFile(OBJECT_TEMPLATE_USER_FILE);
+        importObject(ORG_EXAMPLE_FILE, true);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
 
         ResourceAccountsTab<ViewResourcePage> accountTab = basicPage.listResources()
