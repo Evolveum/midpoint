@@ -1993,12 +1993,13 @@
                         <argLine>${surefire.args}</argLine>
 
                         <!-- it's used for CI build to load JDBC libraries which can not
-                            be installed to public maven repository (MS SQL, ORACLE) -->
+                            be installed to public maven repository (MS SQL, ORACLE)
+                            TODO: should not be needed and classpath settings in POMs should cover it
                         <additionalClasspathElements>
                             <additionalClasspathElement>/opt/jenkins_db_configs/ojdbc7.jar</additionalClasspathElement>
-                            <!-- used running tests on windows machines -->
                             <additionalClasspathElement>c:\midpoint\jdbc-drivers\ojdbc7.jar</additionalClasspathElement>
                         </additionalClasspathElements>
+                        -->
                         <suiteXmlFiles>
                             <suiteXmlFile>testng-unit.xml</suiteXmlFile>
                         </suiteXmlFiles>
@@ -2058,15 +2059,14 @@
                                 <value>com.evolveum.midpoint.tools.testng.TestListener,com.evolveum.midpoint.tools.testng.RetryListener</value>
                             </property>
                         </properties>
-                        <!--
-                        It's used for CI build to load JDBC libraries which can not
-                        be installed to public maven repository (MS SQL, ORACLE).
-                        -->
+                        <!-- it's used for CI build to load JDBC libraries which can not
+                            be installed to public maven repository (MS SQL, ORACLE)
+                            TODO: should not be needed and classpath settings in POMs should cover it
                         <additionalClasspathElements>
                             <additionalClasspathElement>/opt/jenkins_db_configs/ojdbc7.jar</additionalClasspathElement>
-                            <!-- used running tests on windows machines -->
                             <additionalClasspathElement>c:\midpoint\jdbc-drivers\ojdbc7.jar</additionalClasspathElement>
                         </additionalClasspathElements>
+                        -->
                     </configuration>
                 </plugin>
 
