@@ -561,8 +561,9 @@ public class LeftMenuPanel extends BasePanel<Void> {
                 label = WebComponentUtil.getTranslatedPolyString(display);
             }
 
+            String iconClass = WebComponentUtil.getIconCssClass(viewDisplayType);
             MenuItem userViewMenu = new MenuItem(label,
-                    WebComponentUtil.getIconCssClass(viewDisplayType), redirectToPage, pageParameters, isObjectCollectionMenuActive(objectView));
+                    StringUtils.isEmpty(iconClass) ? BaseMenuItem.DEFAULT_ICON : iconClass, redirectToPage, pageParameters, isObjectCollectionMenuActive(objectView));
             userViewMenu.setDisplayOrder(objectView.getDisplayOrder());
             mainMenuItem.addMenuItem(userViewMenu);
         });
