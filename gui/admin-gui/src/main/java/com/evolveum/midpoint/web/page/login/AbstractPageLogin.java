@@ -140,7 +140,7 @@ public abstract class AbstractPageLogin extends PageBase {
     }
 
     @Override
-    protected boolean isSideMenuVisible(boolean visibleIfLoggedIn) {
+    protected boolean isSideMenuVisible() {
         return false;
     }
 }

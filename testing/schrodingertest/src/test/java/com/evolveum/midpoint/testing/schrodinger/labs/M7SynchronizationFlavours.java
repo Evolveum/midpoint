@@ -9,6 +9,8 @@ package com.evolveum.midpoint.testing.schrodinger.labs;
 import com.codeborne.selenide.Selenide;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.component.ProjectionsTab;
+import com.evolveum.midpoint.schrodinger.component.common.table.AbstractTableWithPrismView;
 import com.evolveum.midpoint.schrodinger.component.resource.ResourceAccountsTab;
 import com.evolveum.midpoint.schrodinger.page.resource.ViewResourcePage;
 import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
@@ -21,10 +23,13 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author skublik
@@ -34,7 +39,18 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
 
     private static final Logger LOG = LoggerFactory.getLogger(M7SynchronizationFlavours.class);
 
-    @Test(groups={"M7"}, dependsOnGroups={"M6"})
+    @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
+    @Override
+    public void beforeClass() throws IOException {
+        super.beforeClass();
+    }
+
+    @Override
+    protected List<File> getObjectListToImport(){
+        return Arrays.asList(ARCHETYPE_EMPLOYEE_FILE, SYSTEM_CONFIGURATION_FILE_5_7);
+    }
+
+    @Test(groups={"M7"})
     public void mod07test01RunningImportFromResource() throws IOException {
         hrTargetFile = new File(getTestTargetDir(), HR_FILE_SOURCE_NAME);
         FileUtils.copyFile(HR_SOURCE_FILE, hrTargetFile);
@@ -47,7 +63,6 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
                     .clickByName(HR_RESOURCE_NAME)
                         .clickAccountsTab()
                             .clickSearchInResource();
-        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         accountTab.table()
                 .selectCheckboxByName("001212")
                     .clickImport()
@@ -81,11 +96,25 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
         Assert.assertEquals(showTask("Initial import from HR")
                 .selectTabOperationStatistics()
                     .getSuccessfullyProcessed(), Integer.valueOf(14));
-        Assert.assertEquals(basicPage.listUsers(ARCHETYPE_EMPLOYEE_PLURAL_LABEL).getCountOfObjects(), 15);
+        Assert.assertEquals(basicPage.listUsers(ARCHETYPE_EMPLOYEE_PLURAL_LABEL).getCountOfObjects(), 14);
     }
 
-    @Test(dependsOnMethods = {"mod07test01RunningImportFromResource"}, groups={"M7"}, dependsOnGroups={"M6"})
-    public void mod07test02RunningAccountReconciliation() {
+    @Test(dependsOnMethods = {"mod07test01RunningImportFromResource"}, groups={"M7"})
+    public void mod07test02RunningAccountReconciliation() throws IOException {
+        csv1TargetFile = new File(getTestTargetDir(), CSV_1_FILE_SOURCE_NAME);
+        FileUtils.copyFile(CSV_1_SOURCE_FILE, csv1TargetFile);
+        csv2TargetFile = new File(getTestTargetDir(), CSV_2_FILE_SOURCE_NAME);
+        FileUtils.copyFile(CSV_2_SOURCE_FILE, csv2TargetFile);
+        csv3TargetFile = new File(getTestTargetDir(), CSV_3_FILE_SOURCE_NAME);
+        FileUtils.copyFile(CSV_3_SOURCE_FILE, csv3TargetFile);
+
+        importObject(CSV_1_RESOURCE_FILE, true);
+        changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
+        importObject(CSV_2_RESOURCE_FILE_5_5, true);
+        changeResourceAttribute(CSV_2_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv2TargetFile.getAbsolutePath(), true);
+        importObject(CSV_3_RESOURCE_FILE, true);
+        changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
+
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
         createReconTask("CSV-1 Reconciliation", CSV_1_RESOURCE_NAME);
         Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
@@ -106,7 +135,7 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
         Assert.assertTrue(containsProjection("X001212", CSV_3_RESOURCE_OID, "cn=John Smith,ou=ExAmPLE,dc=example,dc=com"));
     }
 
-    @Test(dependsOnMethods = {"mod07test02RunningAccountReconciliation"}, groups={"M7"}, dependsOnGroups={"M6"})
+    @Test(dependsOnMethods = {"mod07test02RunningAccountReconciliation"}, groups={"M7"})
     public void mod07test03RunningAttributeReconciliation() throws IOException {
         FileUtils.copyFile(CSV_1_SOURCE_FILE_7_3, csv1TargetFile);
 
@@ -120,7 +149,7 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
 
     }
 
-    @Test(dependsOnMethods = {"mod07test03RunningAttributeReconciliation"}, groups={"M7"}, dependsOnGroups={"M6"})
+    @Test(dependsOnMethods = {"mod07test03RunningAttributeReconciliation"}, groups={"M7"})
     public void mod07test04RunningLiveSync() throws IOException {
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
         TaskPage task = basicPage.newTask();
@@ -191,8 +220,9 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
     }
 
     private boolean containsProjection(String user, String resourceOid, String accountName) {
-       return showUser(user).selectTabProjections()
-                .table()
+       AbstractTableWithPrismView<ProjectionsTab<UserPage>> table = showUser(user).selectTabProjections().table();
+       Selenide.screenshot(user + "_" + resourceOid + "_" + accountName);
+       return table
                     .search()
                         .referencePanelByItemName("Resource")
                             .inputRefOid(resourceOid)

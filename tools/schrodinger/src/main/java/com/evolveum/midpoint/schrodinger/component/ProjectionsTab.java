@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.schrodinger.component;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.PrismFormWithActionButtons;
@@ -113,7 +114,7 @@ public class ProjectionsTab<P extends AssignmentHolderDetailsPage> extends TabWi
     public FocusSetProjectionModal<ProjectionsTab<P>> clickAddProjection() {
         $(Schrodinger.byElementAttributeValue("i", "class", "fa fa-plus "))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return new FocusSetProjectionModal<ProjectionsTab<P>>(this, Utils.getModalWindowSelenideElement());
     }
 

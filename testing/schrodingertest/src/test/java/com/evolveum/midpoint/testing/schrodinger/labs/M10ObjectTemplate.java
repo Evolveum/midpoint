@@ -24,11 +24,18 @@ import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
 
 import org.apache.commons.io.FileUtils;
+import org.assertj.core.api.Assertions;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author skublik
@@ -37,16 +44,51 @@ import java.io.IOException;
 public class M10ObjectTemplate extends AbstractLabTest{
 
     private static final File OBJECT_TEMPLATE_USER_SIMPLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "objectTemplate/object-template-example-user-simple.xml");
-    private static final File OBJECT_TEMPLATE_USER_FILE = new File(LAB_OBJECTS_DIRECTORY + "objectTemplate/object-template-example-user.xml");
     private static final File OBJECT_TEMPLATE_USER_FILE_10_3 = new File(LAB_OBJECTS_DIRECTORY + "objectTemplate/object-template-example-user-10-3.xml");
     private static final File LOOKUP_EMP_STATUS_FILE = new File(LAB_OBJECTS_DIRECTORY + "lookupTables/lookup-emp-status.xml");
     private static final File CSV_3_RESOURCE_FILE_10_4 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-10-4.xml");
+    private static final File SYSTEM_CONFIGURATION_FILE_11_1 = new File(LAB_OBJECTS_DIRECTORY + "systemConfiguration/system-configuration-11-1.xml");
 
-    @Test(groups={"M10"}, dependsOnGroups={"M9"})
+    @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
+    @Override
+    public void beforeClass() throws IOException {
+        super.beforeClass();
+    }
+
+    @Override
+    protected List<File> getObjectListToImport(){
+        return Arrays.asList(ARCHETYPE_ORG_FUNCTIONAL_FILE, ARCHETYPE_ORG_COMPANY_FILE, ARCHETYPE_ORG_GROUP_FILE,
+                ARCHETYPE_ORG_GROUP_LIST_FILE, KIRK_USER_TIBERIUS_FILE);
+    }
+
+    @Test
     public void mod10test01SimpleObjectTemplate() throws IOException {
+        importObject(ORG_EXAMPLE_FILE, true);
+        importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE, true);
+        csv1TargetFile = new File(getTestTargetDir(), CSV_1_FILE_SOURCE_NAME);
+
+        importObject(CSV_1_RESOURCE_FILE, true);
+        changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
+
+        hrTargetFile = new File(getTestTargetDir(), HR_FILE_SOURCE_NAME);
+        FileUtils.copyFile(HR_SOURCE_FILE, hrTargetFile);
+        importObject(HR_NO_EXTENSION_RESOURCE_FILE, true);
+        changeResourceAttribute(HR_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, hrTargetFile.getAbsolutePath(), true);
+
+        addObjectFromFile(HR_SYNCHRONIZATION_TASK_FILE);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+
         addObjectFromFile(OBJECT_TEMPLATE_USER_SIMPLE_FILE);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
 
+        basicPage.listResources()
+                .table()
+                    .clickByName(HR_RESOURCE_NAME)
+                        .clickAccountsTab()
+                            .clickSearchInResource()
+                                .table()
+                                .selectCheckboxByName("001212")
+                                .clickImport();
         ((PrismFormWithActionButtons<ObjectPolicyTab>)basicPage.objectPolicy()
                 .clickAddObjectPolicy()
                     .selectOption("type", "User")
@@ -70,7 +112,6 @@ public class M10ObjectTemplate extends AbstractLabTest{
                     .form()
                         .compareInputAttributeValue("fullName", "John Smith"));
 
-        showTask("HR Synchronization").clickResume();
 
         FileUtils.copyFile(HR_SOURCE_FILE_10_1, hrTargetFile);
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
@@ -99,9 +140,10 @@ public class M10ObjectTemplate extends AbstractLabTest{
                 .compareInputAttributeValue("fullName", "Jim Tiberius Kirk"));
     }
 
-    @Test(dependsOnMethods = {"mod10test01SimpleObjectTemplate"}, groups={"M10"}, dependsOnGroups={"M9"})
+    @Test(dependsOnMethods = {"mod10test01SimpleObjectTemplate"})
     public void mod10test02AutomaticAssignments() throws IOException {
         addObjectFromFile(OBJECT_TEMPLATE_USER_FILE);
+        importObject(ORG_EXAMPLE_FILE, true);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
 
         ResourceAccountsTab<ViewResourcePage> accountTab = basicPage.listResources()
@@ -121,8 +163,8 @@ public class M10ObjectTemplate extends AbstractLabTest{
         AssignmentsTab<UserPage> tab = accountTab.table()
                 .clickOnOwnerByName("X001212")
                 .selectTabAssignments();
-
-        Assert.assertTrue(tab.containsAssignmentsWithRelation("Default", "Human Resources",
+        Selenide.screenshot("M10_assignmentsTab");
+        Assert.assertTrue(tab.containsAssignmentsWithRelation("Member", "Human Resources",
                 "Active Employees", "Internal Employee"));
         Assert.assertTrue(tab.containsAssignmentsWithRelation("Manager", "Human Resources"));
 
@@ -131,7 +173,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
 
         Assert.assertTrue(showUser("X000999")
             .selectTabAssignments()
-                .containsAssignmentsWithRelation("Default", "Java Development",
+                .containsAssignmentsWithRelation("Member", "Java Development",
                 "Active Employees", "Internal Employee"));
 
         showTask("User Recomputation Task").clickRunNow();
@@ -139,7 +181,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
 
         Assert.assertTrue(showUser("X000998")
                 .selectTabAssignments()
-                .containsAssignmentsWithRelation("Default", "Java Development",
+                .containsAssignmentsWithRelation("Member", "Java Development",
                         "Active Employees", "Internal Employee"));
 
         FileUtils.copyFile(HR_SOURCE_FILE_10_2_PART2, hrTargetFile);
@@ -150,7 +192,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
                 .form()
                     .compareSelectAttributeValue("administrativeStatus", "Disabled"));
         Assert.assertTrue(user.selectTabAssignments()
-                .containsAssignmentsWithRelation("Default", "Inactive Employees", "Internal Employee"));
+                .containsAssignmentsWithRelation("Member", "Inactive Employees", "Internal Employee"));
 
         FileUtils.copyFile(HR_SOURCE_FILE_10_2_PART3, hrTargetFile);
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
@@ -160,7 +202,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
                 .form()
                 .compareSelectAttributeValue("administrativeStatus", "Disabled"));
         Assert.assertTrue(user.selectTabAssignments()
-                .containsAssignmentsWithRelation("Default", "Former Employees"));
+                .containsAssignmentsWithRelation("Member", "Former Employees"));
 
         FileUtils.copyFile(HR_SOURCE_FILE_10_2_PART1, hrTargetFile);
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
@@ -171,11 +213,11 @@ public class M10ObjectTemplate extends AbstractLabTest{
                 .compareSelectAttributeValue("administrativeStatus", "Enabled"));
         Assert.assertTrue(showUser("X000998")
                 .selectTabAssignments()
-                .containsAssignmentsWithRelation("Default", "Java Development",
+                .containsAssignmentsWithRelation("Member", "Java Development",
                         "Active Employees", "Internal Employee"));
     }
 
-    @Test(dependsOnMethods = {"mod10test02AutomaticAssignments"}, groups={"M10"}, dependsOnGroups={"M9"})
+    @Test(dependsOnMethods = {"mod10test02AutomaticAssignments"})
     public void mod10test03LookupTablesAndAttributeOverrides() {
 
         PrismForm<AssignmentHolderBasicTab<UserPage>> form = showUser("kirk")
@@ -213,7 +255,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
         Assert.assertFalse(form.isPropertyEnabled("honorificSuffix"));
     }
 
-    @Test(dependsOnMethods = {"mod10test03LookupTablesAndAttributeOverrides"}, groups={"M10"}, dependsOnGroups={"M9"})
+    @Test(dependsOnMethods = {"mod10test03LookupTablesAndAttributeOverrides"})
     public void mod10test04FinishingManagerMapping() {
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
         showTask("User Recomputation Task").clickRunNow();
@@ -252,7 +294,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
 
         Assert.assertTrue(showUser("kirk")
                 .selectTabAssignments()
-                    .containsAssignmentsWithRelation("Default", "Warp Speed Research"));
+                    .containsAssignmentsWithRelation("Member", "Warp Speed Research"));
         Assert.assertTrue(new UserPage().selectTabProjections()
                 .table()
                     .clickByName("cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com")
@@ -316,6 +358,85 @@ public class M10ObjectTemplate extends AbstractLabTest{
                     .clickByName("cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com")
                         .showEmptyAttributes("Attributes")
                         .compareInputAttributeValue("manager", ""));
+    }
+
+    @Test(dependsOnMethods = {"mod10test03LookupTablesAndAttributeOverrides"})
+    public void mod11test01ConfiguringNotifications() throws IOException {
+//        showTask("HR Synchronization").clickResume();
+
+        notificationFile = new File(getTestTargetDir(), NOTIFICATION_FILE_NAME);
+        notificationFile.createNewFile();
+
+        addObjectFromFile(SYSTEM_CONFIGURATION_FILE_11_1);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+
+        basicPage.notifications()
+                .setRedirectToFile(notificationFile.getAbsolutePath())
+                .and()
+                .clickSave()
+                .feedback()
+                .isSuccess();
+
+        FileUtils.copyFile(HR_SOURCE_FILE_11_1, hrTargetFile);
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
+
+        String notification = readBodyOfLastNotification();
+
+        String startOfNotification = "Notification about user-related operation (status: SUCCESS)\n"
+                + "\n"
+                + "User: Chuck Norris (X000997, oid ";
+
+        String endOfNotification = "The user record was created with the following data:\n"
+                + " - Name: X000997\n"
+                + " - Full name: Chuck Norris\n"
+                + " - Given name: Chuck\n"
+                + " - Family name: Norris\n"
+                + " - Title: Application Developer\n"
+                + " - Email: chuck.norris@example.com\n"
+                + " - Employee Number: 000997\n"
+                + " - Cost Center: 0211\n"
+                + " - Organizational Unit: Java Development\n"
+                + " - Extension:\n"
+                + "    - Organizational Path: 0200:0210:0211\n"
+                + "    - Is Manager: false\n"
+                + "    - Employee Status: A\n"
+                + " - Credentials:\n"
+                + "    - Password:\n"
+                + "       - Value: (protected string)\n"
+                + " - Activation:\n"
+                + "    - Administrative status: ENABLED\n"
+                + "    - Valid from: Jul 15, 2010, 8:20:00 AM\n"
+                + " - Assignment #1:\n"
+                + "    - Target: Employee (archetype) [default]\n"
+                + " - Assignment #2:\n"
+                + "    - Target: ACTIVE (org) [default]\n"
+                + " - Assignment #3:\n"
+                + "    - Target: 0211 (org) [default]\n"
+                + " - Assignment #4:\n"
+                + "    - Target: Internal Employee (role) [default]\n"
+                + "\n"
+                + "Requester: midPoint Administrator (administrator)\n"
+                + "Channel: http://midpoint.evolveum.com/xml/ns/public/common/channels-3#liveSync\n"
+                + "\n";
+
+        Assertions.assertThat(notification).startsWith(startOfNotification);
+        Assertions.assertThat(notification).endsWith(endOfNotification);
+    }
+
+    protected String readBodyOfLastNotification() throws IOException {
+        String separator = "============================================";
+        byte[] encoded = Files.readAllBytes(Paths.get(notificationFile.getAbsolutePath()));
+        String notifications = new String(encoded, Charset.defaultCharset());
+        if (!notifications.contains(separator)) {
+            return "";
+        }
+        String notification = notifications.substring(notifications.lastIndexOf(separator) + separator.length(), notifications.length()-1);
+        String bodyTag = "body='";
+        if (!notifications.contains(bodyTag)) {
+            return "";
+        }
+        String body = notification.substring(notification.indexOf(bodyTag) + bodyTag.length(), notification.lastIndexOf("'"));
+        return body;
     }
 
 }

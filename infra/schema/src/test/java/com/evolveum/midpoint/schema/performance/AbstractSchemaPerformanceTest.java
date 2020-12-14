@@ -27,14 +27,14 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
-import com.evolveum.midpoint.tools.testng.PerformanceTestMixin;
+import com.evolveum.midpoint.tools.testng.PerformanceTestClassMixin;
 import com.evolveum.midpoint.util.CheckedProducer;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public class AbstractSchemaPerformanceTest extends AbstractUnitTest implements PerformanceTestMixin {
+public class AbstractSchemaPerformanceTest extends AbstractUnitTest implements PerformanceTestClassMixin {
 
     protected static final String LABEL = "new-mapxnode";
 
@@ -62,7 +62,7 @@ public class AbstractSchemaPerformanceTest extends AbstractUnitTest implements P
     @BeforeClass
     @Override
     public void initTestMonitor() {
-        PerformanceTestMixin.super.initTestMonitor();
+        PerformanceTestClassMixin.super.initTestMonitor();
     }
 
     protected void measure(String label, String note, CheckedProducer<?> producer) throws CommonException, IOException {
@@ -106,6 +106,6 @@ public class AbstractSchemaPerformanceTest extends AbstractUnitTest implements P
     @AfterClass
     @Override
     public void dumpReport() {
-        PerformanceTestMixin.super.dumpReport();
+        PerformanceTestClassMixin.super.dumpReport();
     }
 }

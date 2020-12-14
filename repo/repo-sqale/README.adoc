@@ -25,6 +25,21 @@ Also, we need various extension tables for various data types.
 Can https://www.postgresql.org/docs/13/datatype-json.html[JSON types] (namely JSONB) be our salvation?
 We need to strike the balance between *query performance* and *extension attributes maintainability/flexibility*.
 
+Regarding *query performance* we have to realize that even current implementation under favorable
+conditions (middle-sized databases) has various levels of performance for various operations:
+
+* Equality, comparison and "starts with" filters can rely on indexes like `iAExtensionDate` for `m_assignment_ext_date (dateValue)`.
+// TODO: why is this on dateValue only and not combined with item_id?
+
+* "Ends with" or "contains" substrings are not optimized unless we add a trigram or similar index,
+see https://stackoverflow.com/a/17646278/658826[this answer]
+and https://www.postgresql.org/docs/13/indexes-types.html[index types documentation].
+Trigram indexes support only alphanumerical characters and can, reportedly, be huge and inefficient.
+"Ends with" can benefit from `reverse()` index.
+
+* Case-insensitive search is not optimized without appropriate function-based index.
+
+
 === Modeling options
 
 Following options are available, but they still must be proved:
@@ -48,20 +63,34 @@ on different sets of the same type (e.g. shadows for different resources).
 One possible problem is that the whole JSONB value must be updated so the column value can be
 a source of contention if small changes (e.g. value of a single attribute) are performed
 on large extensions containing a lot of data.
+
+Also, related to the "blobby" nature of all-in-one JSON, it can be more costly for more difficult
+queries like substrings where index helps only partially and the value must be consulted.
+As the JSON grows it can be more and more expensive to filter over it (probably more if TOAST-ed).
 --
 
 * Each attribute in separate columns of various non-JSON types with multi-values stored as JSON array.
 This makes each column simpler but requires dynamic DDL management and other complications mentioned
 above that single general JSONB does not have.
 
-* Obviously, existing master-detail model is still in play as well if nothing above works well enough.
+* Master-detail (https://en.wikipedia.org/wiki/Entity%E2%80%93attribute%E2%80%93value_model[EAV])
+model is still in play as well if nothing above works well enough.
+Following modifications are possible:
+
+** Splitting tables for single-value and multi-value attributes.
+** Separate tables for attributes used most (e.g. some external identifier used for all users),
+especially if multi-valued.
+
+* Single JSON column for single-value attributes but keeping multi-value attributes in separate
+table(s) (per type or per attribute).
+This is a mix of the first approach ("JSONB handles it all") and some version EAV model just mentioned.
 
 The typical problems are:
 
 * How to identify attributes?
-This is beyond the scope of this section, but currently `m_ext_item.id` is used.
-Some kind of string identifiers must be used in JSON.
-These don't have to be globally unique for distinct object types, but must be unique enough for queries and stored JSON.
+Attributes are identified with synthetic identifier from extension attributes catalog.
+Legacy implementation uses `m_ext_item` table and its `id` column - this works just fine.
+Repository can easily cache this catalog, there is no need to JOIN the table.
 
 * Check if some multi-value attribute contains a value.
 With `ext->'hobby' @> '"video"'` (`ext` being of type JSONB) it's possible to check value exactly.
@@ -165,10 +194,15 @@ benefit from the generic GIN index a lot.
 
 == TODO
 
+* Can we merge boring entities to a single `m_object_generic` table?
+Things like `m_sequence`, `m_security_policy`, `m_system_configuration`, etc.
+Of course, if some of these can have many rows it's not desirable, perhaps it's more confusing in general anyway.
 * How is `m_object_subtype` (`ObjectType.subtype`) used and searched?
+*Obsolete,* even if necessary, single JSON array should cover it, no entity needed.
 * Untackled yet: Tree tables, organization, see: https://www.postgresql.org/docs/13/ltree.html
-* Mention how LIMIT makes queries faster, mentioned in comments to
-Also that Q/A shows how to look into JSON array with `jsonb_array_elements` without expanding the result with the help of `EXISTS`.
+* Mention how LIMIT makes queries faster, mentioned in comments to https://stackoverflow.com/a/49542329/658826[this answer].
+This "top-N queries" are also favored in "SQL Performance Explained" book.
+Also, that Q/A shows how to look into JSON array with `jsonb_array_elements` without expanding the result with the help of `EXISTS`.
 * For comparison of values stored in an array (multi-value extensions) see https://dba.stackexchange.com/a/202761/157622[this answer].
 It demonstrates interesting functional index for max value that can be used for `>` operation
 (if the array has higher max than the searched value, it has at least some higher value and the whole row matches).
@@ -238,30 +272,22 @@ https://stackoverflow.com/questions/722221/how-to-log-postgresql-queries
 
 * The default `public` schema is used for all midpoint objects, that's OK.
 
-== Pagination
+== Maintenance
 
-Various types of pagination are summed up in https://www.citusdata.com/blog/2016/03/30/five-ways-to-paginate/[this article].
+We may need regular `ANALYZE` and/or `VACUUM`.
+This should be run regularly - can it be done in DB or should MP call this or something else will trigger it?
 
-For *pagination in the GUI* `OFFSET`/`LIMIT` seems to be the acceptable despite the performance
-degradation with big values of `OFFSET`.
-The reason is that GUI requires random access and first pages are accessed more than later/last pages.
-Also, any inconsistency (suddenly added entry) is easy to explain and user probably knows what is happening.
+== Performance drop with volume
 
-For long term processes that need to process many items we use *keyset pagination*, e.g. using last
-ID from current page to define the next page without any `OFFSET`, only using `LIMIT`.
-This is very efficient *even when no additional index besides PK is used* - and it's natural, too.
-While this may skip some items that are added after we processed the page (and at the same time
-process other items added later that appear on later pages) it is more or less deterministic.
-We can also avoid processing "future" items with `WHERE` clause using creation timestamp
-(or current maximal ID, if sequential) at the processing start time.
+TL/DR:
 
-Following techniques are generally not usable for us:
-
-* *TID Scan* and *Keyset with Estimated Bookmarks* does not support `WHERE` clauses.
-* *Cursor* pagination causes high client-server coupling and is state-full.
-We don't want to hold the cursor for operations that can take longer and need transactions.
-
-== Performance
+* After first million, insert performance drops.
+* So does query, but if it uses an index, not that significantly.
+* Count queries suffer with volume - avoid count whenever possible.
+* Avoid solutions where number of inherited tables affects the performance, e.g. unique over
+hierarchy - perhaps externalize it to dedicated table.
+* Nothing was optimized, it was just couple of experiments to get a feeling for it.
+* After mass-deletes, performance can still be slow before `VACUUM` and/or `ANALYZE` is not ran.
 
 Tested on VirtualBox, 2 GB RAM, 60+ GB disk.
 
@@ -303,11 +329,11 @@ Table sizes after x inserts (index means PK index):
 | 40M | 3858/1721 MB | 1689/1721 MB | 11 GB
 |===
 
-With user names formatted like `user-0000000001` both name indexes had 1269 MB at 40M rows.
+With user's names formatted like `user-0000000001` both name indexes had 1269 MB at 40M rows.
 
 == Performance of searching for unused OIDs
 
-If delete is not guarded by trigger `m_object_oid` can have unused OIDs.
+If delete is not guarded by a trigger, `m_object_oid` can have unused OIDs.
 It's crucial to use the right select/delete construction to find/delete them.
 With 26M rows naive approach with `NOT IN` to delete 200k unused OIDs took over 1h without finishing.
 Following output shows the plan for `NOT IN`, `LEFT JOIN` and `NOT EXISTS`.

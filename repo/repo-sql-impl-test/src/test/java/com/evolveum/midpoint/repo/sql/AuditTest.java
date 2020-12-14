@@ -145,7 +145,7 @@ public class AuditTest extends BaseSQLRepoTest {
             throws QueryException {
         SqlQueryContext<AuditEventRecordType, QAuditEventRecord, MAuditEventRecord> context =
                 SqlQueryContext.from(AuditEventRecordType.class,
-                        prismContext, baseHelper.sqlNewConfiguration());
+                        prismContext, baseHelper.sqlRepoContext());
         QAuditEventRecord aer = context.root();
         context.sqlQuery().orderBy(aer.id.asc());
 

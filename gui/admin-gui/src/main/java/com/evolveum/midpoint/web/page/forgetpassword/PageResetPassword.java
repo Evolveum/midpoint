@@ -54,7 +54,7 @@ public class PageResetPassword extends PageAbstractSelfCredentials{
     }
 
     @Override
-    protected boolean isSideMenuVisible(boolean visibleIfLoggedIn) {
+    protected boolean isSideMenuVisible() {
         return false;
     }
 

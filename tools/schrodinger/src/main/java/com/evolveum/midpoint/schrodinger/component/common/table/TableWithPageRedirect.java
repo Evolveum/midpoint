@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.schrodinger.component.common.table;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
@@ -41,11 +42,10 @@ public abstract class TableWithPageRedirect<T> extends Table<T> {
 
     protected SelenideElement clickAndGetHeaderDropDownMenu() {
 
-        $(By.tagName("thead"))
-                .$(Schrodinger.byDataId("inlineMenuPanel"))
+        getParentElement().$x(".//div[@data-s-id='inlineMenuPanel']")
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S)
                 .click();
-
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         SelenideElement dropDownMenu = $(Schrodinger.byElementAttributeValue("ul", "class", "dropdown-menu pull-right"));
 
         return dropDownMenu;
@@ -92,6 +92,7 @@ public abstract class TableWithPageRedirect<T> extends Table<T> {
                     .$(Schrodinger.byDescendantElementAttributeValue("a", Schrodinger.DATA_S_RESOURCE_KEY, menuItemKey))
                     .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
                     .click();
+            Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         } else {
             rowByColumnResourceKey(columnTitleKey, rowValue)
                     .getInlineMenu()

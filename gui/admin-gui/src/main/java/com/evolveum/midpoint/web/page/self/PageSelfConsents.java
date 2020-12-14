@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
 
@@ -44,7 +46,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
                 description = PageSelf.AUTH_SELF_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SELF_CONSENTS_URL,
                 label = "PageSelfCredentials.auth.consents.label",
-                description = "PageSelfCredentials.auth.consents.description")})
+                description = "PageSelfCredentials.auth.consents.description")
+        }, experimental = true)
+@Experimental
 public class PageSelfConsents extends PageBase{
 
     private static final long serialVersionUID = 1L;

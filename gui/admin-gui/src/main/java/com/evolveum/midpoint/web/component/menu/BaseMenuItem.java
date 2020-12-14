@@ -7,7 +7,10 @@
 
 package com.evolveum.midpoint.web.component.menu;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -23,13 +26,16 @@ public class BaseMenuItem implements Serializable {
 
     public static final String F_ICON_CLASS = "iconClass";
 
+    public static final String DEFAULT_ICON = "fa fa-circle-o";
+
     //TODO why model? would be string key enought
-    private IModel<String> nameModel;
+    private String nameModel;
     private Class<? extends WebPage> pageClass;
     private PageParameters params;
-    private VisibleEnableBehaviour visibleEnable;
     private Class<? extends WebPage>[] aliases;
     private String iconClass;
+
+    private Boolean active;
     /**
      * Optional field that can be used for sorting. Used for some dynamic submenus, such as collections.
      * It does not affect the display of menu item in any way. It is just a convenient intermediary place to store
@@ -37,19 +43,24 @@ public class BaseMenuItem implements Serializable {
      */
     private transient Integer displayOrder;
 
-    public BaseMenuItem(IModel<String> name, Class<? extends WebPage> page) {
-        this(name, "", page, null, null);
-    }
-
-    public BaseMenuItem(IModel<String> nameModel, String iconClass, Class<? extends WebPage> pageClass,
-                        PageParameters params, VisibleEnableBehaviour visibleEnable,
-                        Class<? extends WebPage>... aliases) {
+    public BaseMenuItem(String nameModel, String iconClass, Class<? extends WebPage> pageClass,
+                        PageParameters params, Class<? extends WebPage>... aliases) {
         this.aliases = aliases;
         this.nameModel = nameModel;
         this.pageClass = pageClass;
         this.params = params;
-        this.visibleEnable = visibleEnable;
         this.iconClass = iconClass;
+    }
+
+    public BaseMenuItem(String nameModel, String iconClass, Class<? extends WebPage> pageClass,
+            PageParameters params, boolean active) {
+
+        this.nameModel = nameModel;
+        this.pageClass = pageClass;
+        this.params = params;
+
+        this.iconClass = iconClass;
+        this.active = active;
     }
 
     /**
@@ -59,7 +70,7 @@ public class BaseMenuItem implements Serializable {
         return aliases;
     }
 
-    public IModel<String> getNameModel() {
+    public String getNameModel() {
         return nameModel;
     }
 
@@ -71,11 +82,10 @@ public class BaseMenuItem implements Serializable {
         return params;
     }
 
-    public VisibleEnableBehaviour getVisibleEnable() {
-        return visibleEnable;
-    }
-
     public String getIconClass() {
+        if (iconClass == null) {
+            return DEFAULT_ICON;
+        }
         return iconClass;
     }
 
@@ -98,10 +108,8 @@ public class BaseMenuItem implements Serializable {
             return false;
         }
 
-        boolean isMenuActive = isMenuActive();
-
         if (pageClass.equals(this.pageClass)) {
-            return isMenuActive;
+            return BooleanUtils.isNotFalse(active);
         }
 
         if (aliases == null) {
@@ -110,21 +118,21 @@ public class BaseMenuItem implements Serializable {
 
         for (Class c : aliases) {
             if (pageClass.equals(c)) {
-                return isMenuActive;
+                return active;
             }
         }
 
         return false;
     }
 
-    protected boolean isMenuActive() {
-        return true;
-    }
+//    protected boolean isMenuActive() {
+//        return active;
+//    }
 
     @Override
     public String toString() {
         return "BaseMenuItem(nameModel=" + nameModel + ", pageClass=" + pageClass + ", params=" + params
-                + ", visibleEnable=" + visibleEnable + ", aliases=" + Arrays.toString(aliases) + ")";
+                + ", active=" + active + ", aliases=" + Arrays.toString(aliases) + ")";
     }
 
 

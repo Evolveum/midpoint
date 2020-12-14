@@ -253,7 +253,7 @@ public class PageRegistrationFinish extends PageRegistrationBase {
     }
 
     @Override
-    protected boolean isSideMenuVisible(boolean visibleIfLoggedIn) {
+    protected boolean isSideMenuVisible() {
         return false;
     }
 }

@@ -154,8 +154,7 @@ public final class DescriptorLoader implements DebugDumpable {
         //add http://.../..#guiAll authorization only for displayable pages, not for pages used for development..
         if (canAccess) {
 
-            actions.add(new AuthorizationActionValue(AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL,
-                    AuthorizationConstants.AUTZ_GUI_ALL_LABEL, AuthorizationConstants.AUTZ_GUI_ALL_DESCRIPTION));
+//            actions.add(new AuthorizationActionValue(AuthorizationConstants.AUTZ_GUI_ALL_LABEL, AuthorizationConstants.AUTZ_GUI_ALL_DESCRIPTION));
             actions.add(new AuthorizationActionValue(AuthorizationConstants.AUTZ_GUI_ALL_URL,
                     AuthorizationConstants.AUTZ_GUI_ALL_LABEL, AuthorizationConstants.AUTZ_GUI_ALL_DESCRIPTION));
         }

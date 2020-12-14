@@ -776,7 +776,6 @@ public final class WebComponentUtil {
         }
         Roles roles = new Roles(AuthorizationConstants.AUTZ_ALL_URL);
         roles.add(AuthorizationConstants.AUTZ_GUI_ALL_URL);
-        roles.add(AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL);
         roles.addAll(actions);
         return ((AuthenticatedWebApplication) AuthenticatedWebApplication.get()).hasAnyRole(roles);
     }
@@ -2759,6 +2758,27 @@ public final class WebComponentUtil {
      * Returns name of the collection suitable to be displayed in the menu or other labels.
      * E.g. "All tasks", "Active employees".
      */
+    public static PolyStringType getCollectionLabel(DisplayType viewDisplayType) {
+        if (viewDisplayType != null) {
+            PolyStringType viewPluralLabel = viewDisplayType.getPluralLabel();
+            if (viewPluralLabel != null) {
+                return viewPluralLabel;
+            }
+            PolyStringType viewLabel = viewDisplayType.getLabel();
+            if (viewLabel != null) {
+                return viewLabel;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns name of the collection suitable to be displayed in the menu or other labels.
+     * E.g. "All tasks", "Active employees".
+     *
+     * DEPRECATED. Use getCollectionLabel(DisplayType displayType) instead
+     */
+    @Deprecated
     public static PolyStringType getCollectionLabel(DisplayType viewDisplayType, CollectionRefSpecificationType collectionRefSpec, ObjectType collectionRefTarget) {
         if (viewDisplayType != null) {
             PolyStringType viewPluralLabel = viewDisplayType.getPluralLabel();
@@ -4426,7 +4446,7 @@ public final class WebComponentUtil {
 
         pageBase.showResult(mainResult);
 
-        pageBase.resetWorkItemCountModel();
+//        pageBase.resetWorkItemCountModel();
         target.add(pageBase);
 
     }

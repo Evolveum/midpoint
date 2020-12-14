@@ -9,19 +9,19 @@ package com.evolveum.midpoint.model.impl.security;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.schema.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.model.api.authentication.CompiledDashboardType;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
@@ -32,22 +32,18 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationTransformer;
 import com.evolveum.midpoint.security.api.DelegatorWithOtherPrivilegesLimitations;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Compiles user interface profile for a particular user. The profile contains essential information needed to efficiently render
@@ -73,8 +69,7 @@ public class GuiProfileCompiler {
 
     @Autowired private AssignmentCollector assignmentCollector;
 
-
-
+    @Autowired private SchemaHelper schemaHelper;
     @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
@@ -89,6 +84,10 @@ public class GuiProfileCompiler {
         collect(adminGuiConfigurations, principal, authorizationTransformer, task, result);
 
         CompiledGuiProfile compiledGuiProfile = compileUserProfile(adminGuiConfigurations, systemConfiguration, task, result);
+        if (compiledGuiProfile != null) {
+            setupUserPhoto(principal, compiledGuiProfile, result);
+        }
+
         principal.setCompiledGuiProfile(compiledGuiProfile);
     }
 
@@ -159,6 +158,21 @@ public class GuiProfileCompiler {
         return composite;
     }
 
+    private void setupUserPhoto(GuiProfiledPrincipal principal, @NotNull CompiledGuiProfile compiledGuiProfile, OperationResult result) {
+        FocusType focus = principal.getFocus();
+        byte[] jpegPhoto = focus.getJpegPhoto();
+        if (jpegPhoto == null) {
+            Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder().item(FocusType.F_JPEG_PHOTO).retrieve().build();
+            try {
+                PrismObject<? extends FocusType> resolvedFocus = repositoryService.getObject(focus.getClass(), focus.getOid(), options, result);
+                jpegPhoto = resolvedFocus.asObjectable().getJpegPhoto();
+            } catch (ObjectNotFoundException | SchemaException e) {
+                LOGGER.trace("Failed to load photo for {}, continue without it", focus, e);
+            }
+        }
+        compiledGuiProfile.setJpegPhoto(jpegPhoto);
+    }
+
     private void applyAdminGuiConfiguration(CompiledGuiProfile composite, AdminGuiConfigurationType adminGuiConfiguration, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
@@ -213,6 +227,13 @@ public class GuiProfileCompiler {
                 }
             }
         }
+
+        if (!adminGuiConfiguration.getConfigurableUserDashboard().isEmpty()) {
+            for (ConfigurableUserDashboardType configurableUserDashboard : adminGuiConfiguration.getConfigurableUserDashboard()) {
+                applyConfigurableDashboard(composite, configurableUserDashboard, task, result);
+            }
+        }
+
         for (UserInterfaceFeatureType feature: adminGuiConfiguration.getFeature()) {
             mergeFeature(composite, feature.clone());
         }
@@ -237,6 +258,39 @@ public class GuiProfileCompiler {
                 composite.getRoleManagement().setAssignmentApprovalRequestLimit(
                         adminGuiConfiguration.getRoleManagement().getAssignmentApprovalRequestLimit());
             }
+        }
+    }
+
+    private void applyConfigurableDashboard(CompiledGuiProfile composit, ConfigurableUserDashboardType configurableUserDashboard, Task task, OperationResult result) {
+        if (configurableUserDashboard == null) {
+            return;
+        }
+
+        ObjectReferenceType configurableUserDashboardRef = configurableUserDashboard.getConfigurableDashboardRef();
+        if (configurableUserDashboardRef == null) {
+            LOGGER.trace("No configuration for flexible dashboards found. Skipping processing");
+            return;
+        }
+
+        try {
+            DashboardType dashboardType = objectResolver.resolve(configurableUserDashboardRef, DashboardType.class, null, " configurable dashboard ", task, result);
+            CompiledDashboardType compiledDashboard = new CompiledDashboardType(dashboardType);
+
+            // DisplayType
+            if (configurableUserDashboard.getDisplay() == null) {
+                configurableUserDashboard.setDisplay(new DisplayType());
+            }
+            MiscSchemaUtil.mergeDisplay(configurableUserDashboard.getDisplay(), dashboardType.getDisplay());
+            compiledDashboard.setDisplayType(configurableUserDashboard.getDisplay());
+
+            // Visibility, temporary while visibility is supported in DashboardType
+            UserInterfaceElementVisibilityType visibility = mergeVisibility(configurableUserDashboard.getVisibility(), dashboardType.getVisibility(), UserInterfaceElementVisibilityType.AUTOMATIC);
+            compiledDashboard.setVisibility(visibility);
+
+            composit.getConfigurableDashboards().add(compiledDashboard);
+        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
+            LOGGER.warn("Failed to resolve dashboard {}", configurableUserDashboard);
+            // probably we should not fail here, just log warn and continue as if there is no dashboard specification
         }
     }
 

@@ -1,35 +1,33 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql.util;
 
+import java.util.*;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.apache.cxf.common.util.StringUtils;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
 
 /**
  * @author lazyman
  */
 public class PrismIdentifierGenerator<O extends ObjectType> implements DebugDumpable {
 
-    private static final Trace LOGGER = TraceManager.getTrace(PrismIdentifierGenerator.class);
-
     public enum Operation {ADD, ADD_WITH_OVERWRITE, MODIFY}
 
     private final Operation operation;
+    private final Set<Long> usedIds = new HashSet<>();
+
     private Long lastId = null;
-    private Set<Long> usedIds = new HashSet<>();
 
     public PrismIdentifierGenerator(@NotNull Operation operation) {
         super();
@@ -70,7 +68,7 @@ public class PrismIdentifierGenerator<O extends ObjectType> implements DebugDump
         return result;
     }
 
-    private List<PrismContainer<?>> listAllPrismContainers(Visitable object) {
+    private List<PrismContainer<?>> listAllPrismContainers(Visitable<?> object) {
         List<PrismContainer<?>> values = new ArrayList<>();
 
         object.accept(visitable -> {
@@ -82,13 +80,13 @@ public class PrismIdentifierGenerator<O extends ObjectType> implements DebugDump
                 return;
             }
 
-            PrismContainer<?> container = (PrismContainer) visitable;
-            PrismContainerDefinition def = container.getDefinition();
+            PrismContainer<?> container = (PrismContainer<?>) visitable;
+            PrismContainerDefinition<?> def = container.getDefinition();
             if (def.isSingleValue()) {
                 return;
             }
 
-            values.add((PrismContainer) visitable);
+            values.add((PrismContainer<?>) visitable);
         });
 
         return values;
@@ -110,18 +108,13 @@ public class PrismIdentifierGenerator<O extends ObjectType> implements DebugDump
 
     private void generateContainerIds(List<PrismContainer<?>> containers, IdGeneratorResult result) {
         collectUsedIds(containers);
-        Long nextId = null;
         for (PrismContainer<?> c : containers) {
             for (PrismContainerValue<?> val : c.getValues()) {
-                if (val.getId() != null) {
-                    if (operation == Operation.ADD) {
-                        result.getValues().add(val);
-                    }
-                } else {
+                if (val.getId() == null) {
                     val.setId(nextId());
-                    if (operation == Operation.ADD) {
-                        result.getValues().add(val);
-                    }
+                }
+                if (operation == Operation.ADD) {
+                    result.getValues().add(val);
                 }
             }
         }
@@ -150,5 +143,4 @@ public class PrismIdentifierGenerator<O extends ObjectType> implements DebugDump
         DebugUtil.debugDumpWithLabel(sb, "usedIds", usedIds, indent + 1);
         return sb.toString();
     }
-
 }

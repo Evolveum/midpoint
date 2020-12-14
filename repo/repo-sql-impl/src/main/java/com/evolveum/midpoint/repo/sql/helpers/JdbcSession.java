@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sql.helpers;
 
-import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database.ORACLE;
+import static com.evolveum.midpoint.repo.sql.Database.ORACLE;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -22,9 +22,10 @@ import com.querydsl.sql.dml.SQLInsertClause;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.repo.sql.Database;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.TransactionIsolation;
-import com.evolveum.midpoint.repo.sqlbase.SqlConfiguration;
+import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -53,17 +54,17 @@ public class JdbcSession implements AutoCloseable {
     private final Connection connection;
     // TODO: this is repo-sql-impl class, should be replaced/abstracted
     private final SqlRepositoryConfiguration repoConfiguration;
-    private final SqlConfiguration sqlConfiguration;
+    private final SqlRepoContext sqlRepoContext;
 
     private boolean rollbackForReadOnly;
 
     public JdbcSession(
             @NotNull Connection connection,
             @NotNull SqlRepositoryConfiguration repoConfiguration,
-            @NotNull SqlConfiguration sqlConfiguration) {
+            @NotNull SqlRepoContext sqlRepoContext) {
         this.connection = Objects.requireNonNull(connection);
         this.repoConfiguration = repoConfiguration;
-        this.sqlConfiguration = sqlConfiguration;
+        this.sqlRepoContext = sqlRepoContext;
 
         try {
             // Connection has its transaction isolation set by Hikari, except for obscure ones.
@@ -212,7 +213,7 @@ public class JdbcSession implements AutoCloseable {
      * Creates Querydsl query based on current Querydsl configuration and session's connection.
      */
     public SQLQuery<?> query() {
-        return sqlConfiguration.newQuery(connection);
+        return sqlRepoContext.newQuery(connection);
     }
 
     /**
@@ -221,22 +222,22 @@ public class JdbcSession implements AutoCloseable {
      * for more about various ways how to use it.
      */
     public SQLInsertClause insert(RelationalPath<?> entity) {
-        return sqlConfiguration.newInsert(connection, entity);
+        return sqlRepoContext.newInsert(connection, entity);
     }
 
     public SQLDeleteClause delete(RelationalPath<?> entity) {
-        return sqlConfiguration.newDelete(connection, entity);
+        return sqlRepoContext.newDelete(connection, entity);
     }
 
     public String getNativeTypeName(int typeCode) {
-        return sqlConfiguration.getQuerydslTemplates().getTypeNameForCode(typeCode);
+        return sqlRepoContext.getQuerydslTemplates().getTypeNameForCode(typeCode);
     }
 
     public Connection connection() {
         return connection;
     }
 
-    public SqlRepositoryConfiguration.Database databaseType() {
+    public Database databaseType() {
         return repoConfiguration.getDatabaseType();
     }
 

@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.schrodinger.page.resource;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.TabPanel;
@@ -17,6 +18,9 @@ import com.evolveum.midpoint.schrodinger.component.resource.ResourceTimeoutsTab;
 import com.evolveum.midpoint.schrodinger.component.resource.TestConnectionModal;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import com.evolveum.midpoint.schrodinger.util.Utils;
+
+import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -59,12 +63,10 @@ public class EditResourceConfigurationPage extends BasicPage {
 
     public TestConnectionModal<EditResourceConfigurationPage> clickSaveAndTestConnection() {
         $(Schrodinger.byDataId("testConnection")).waitUntil(Condition.visible, MidPoint.TIMEOUT_EXTRA_LONG_10_M).click();
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
-        SelenideElement testModalBox = $(Schrodinger
-                .byElementAttributeValue("div", "aria-labelledby", "Test connection result(s)"))
-                .waitUntil(Condition.visible, MidPoint.TIMEOUT_EXTRA_LONG_10_M);
-
-        return new TestConnectionModal<>(this, testModalBox);
+        return new TestConnectionModal<>(this, $(By.className("wicket-modal"))
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_LONG_1_M));
     }
 
 

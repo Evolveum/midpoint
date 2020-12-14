@@ -72,7 +72,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
      * Contains state for first level menu items. Key is menu label text, value if true then
      * menu is expanded, if false menu is minimized.
      */
-    private Map<String, Boolean> mainMenuState = new HashMap<>();
+//    private Map<String, Boolean> mainMenuState = new HashMap<>();
 
     /**
      * Store session information for user preferences about paging size in midPoint GUI
@@ -83,6 +83,9 @@ public class SessionStorage implements Serializable, DebugDumpable {
      * place to store information in session for various pages
      */
     private Map<String, PageStorage> pageStorageMap = new HashMap<>();
+
+    private Map<String, Boolean> mainMenuState = new HashMap<>();
+
 
     public Map<String, PageStorage> getPageStorageMap() {
         return pageStorageMap;

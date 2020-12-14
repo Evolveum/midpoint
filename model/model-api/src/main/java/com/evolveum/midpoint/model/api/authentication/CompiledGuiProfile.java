@@ -49,6 +49,7 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     private List<CompiledObjectCollectionView> objectCollectionViews = new ArrayList<>();
     private CompiledObjectCollectionView defaultObjectCollectionView = null;
     private DashboardLayoutType userDashboard;
+    private List<CompiledDashboardType> configurableDashboards = new ArrayList<>();
     private GuiExportSettingsType defaultExportSettings;
     private ObjectFormsType objectForms;
     private GuiObjectDetailsSetType objectDetails;
@@ -56,6 +57,7 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     private AdminGuiConfigurationRoleManagementType roleManagement;
     private List<UserInterfaceFeatureType> features = new ArrayList<>();
     private AdminGuiConfigurationDisplayFormatsType displayFormats;
+    private byte[] jpegPhoto;
 
     public String getDefaultTimezone() {
         return defaultTimezone;
@@ -106,6 +108,10 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     @Experimental
     public void setUserDashboard(DashboardLayoutType userDashboard) {
         this.userDashboard = userDashboard;
+    }
+
+    public List<CompiledDashboardType> getConfigurableDashboards() {
+        return configurableDashboards;
     }
 
     /**
@@ -301,6 +307,14 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
 
     public void setDisplayFormats(AdminGuiConfigurationDisplayFormatsType displayFormats) {
         this.displayFormats = displayFormats;
+    }
+
+    public byte[] getJpegPhoto() {
+        return jpegPhoto;
+    }
+
+    public void setJpegPhoto(byte[] jpegPhoto) {
+        this.jpegPhoto = jpegPhoto;
     }
 
     public UserInterfaceElementVisibilityType getFeatureVisibility(String identifier) {

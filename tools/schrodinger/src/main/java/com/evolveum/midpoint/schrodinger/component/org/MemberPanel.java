@@ -15,7 +15,12 @@ import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.component.common.ChooseFocusTypeAndRelationModal;
 import com.evolveum.midpoint.schrodinger.component.modal.FocusSetAssignmentsModal;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
+import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.page.FocusPage;
+import com.evolveum.midpoint.schrodinger.page.org.OrgPage;
+import com.evolveum.midpoint.schrodinger.page.resource.ResourceWizardPage;
+import com.evolveum.midpoint.schrodinger.page.role.RolePage;
+import com.evolveum.midpoint.schrodinger.page.service.ServicePage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
@@ -37,24 +42,44 @@ public class MemberPanel<T> extends Component<T> {
 
     public ChooseFocusTypeAndRelationModal<MemberPanel<T>> newMember() {
         SelenideElement mainButton = $(By.xpath("//button[@type='button'][@title='Create  member ']"))
-                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
-        mainButton.click();
-        Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
-        if (Boolean.getBoolean(mainButton.getAttribute("aria-expanded"))) {
-            return newMember("Create  member ");
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).parent();
+        if (!mainButton.$x(".//div[@data-s-id='additionalButton']").is(Condition.exist)) {
+            mainButton.click();
+            Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+            return new ChooseFocusTypeAndRelationModal<>(this, Utils.getModalWindowSelenideElement());
+        } else {
+            mainButton.click();
+            Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+            mainButton.$x(".//div[@title='Create  member ']")
+                    .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+            Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+            return new ChooseFocusTypeAndRelationModal<>(this, Utils.getModalWindowSelenideElement());
         }
-        return new ChooseFocusTypeAndRelationModal<>(this, Utils.getModalWindowSelenideElement());
     }
 
-    public ChooseFocusTypeAndRelationModal newMember(String title) {
-        SelenideElement mainButton = $(By.xpath("//button[@type='button'][@title='Create  member ']"));
-        if (!Boolean.getBoolean(mainButton.getAttribute("aria-expanded"))) {
+    public BasicPage newMember(String title, String newMemberType) {
+        SelenideElement mainButton = $(By.xpath(".//button[@type='button'][@title='Create  member ']"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).parent();
+        if (!mainButton.$x(".//div[@data-s-id='additionalButton']").is(Condition.visible)) {
             mainButton.click();
+            Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         }
-        $(Schrodinger.byElementAttributeValue("div", "title", title))
+        mainButton.$x(".//div[@title='" + title + "']")
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
-        return new ChooseFocusTypeAndRelationModal<>(this, Utils.getModalWindowSelenideElement());
+        $(Schrodinger.byDataId("div", "mainPanel")).waitUntil(Condition.visible, MidPoint.TIMEOUT_SHORT_4_S);
+        if ("User".equals(newMemberType)) {
+            return new UserPage();
+        } else if ("Organization".equals(newMemberType)) {
+            return new OrgPage();
+        } else if ("Role".equals(newMemberType)) {
+            return new RolePage();
+        } else if ("Service".equals(newMemberType)) {
+            return new ServicePage();
+        } else if ("Resource".equals(newMemberType)) {
+            return new ResourceWizardPage();
+        }
+        return null;
     }
 
     public FocusSetAssignmentsModal<T> assignMember() {

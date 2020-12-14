@@ -21,7 +21,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.tools.testng.PerformanceTestMixin;
+import com.evolveum.midpoint.tools.testng.PerformanceTestClassMixin;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -38,7 +38,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class MidScaleRepoTest extends BaseSQLRepoTest
-        implements PerformanceTestMixin {
+        implements PerformanceTestClassMixin {
 
     public static final int RESOURCE_COUNT = 10;
     public static final int BASE_USER_COUNT = 1000;

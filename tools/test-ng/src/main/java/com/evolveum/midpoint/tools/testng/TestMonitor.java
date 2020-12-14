@@ -47,13 +47,18 @@ public class TestMonitor {
     private final Map<String, Stopwatch> stopwatches = new LinkedHashMap<>();
 
     /**
-     * Extension for already preformatted reports can be added under specified section name.
-     * This is really crude (read primitive), but also very easy.
-     * This obviously can't assure report formatting consistency, etc.
+     * Collection of report sections that will be formatted using {@link #dumpReport(String)}.
+     * which can be extended in two ways:
+     * <ul>
+     * <li>calling {@link #addReportSection(String)} and then filling the </li>
+     * </ul>
      */
     private final List<TestReportSection> reportSections = new ArrayList<>();
 
-    // TODO other monitors later
+    /**
+     *
+     */
+    private final List<ReportCallback> reportCallbacks = new ArrayList<>();
 
     /** Simon manager used for monitor creations, otherwise ignored. */
     private final Manager simonManager = new EnabledManager();
@@ -88,6 +93,17 @@ public class TestMonitor {
      */
     public Split stopwatchStart(String name, String description) {
         return stopwatch(name, description).start();
+    }
+
+    public TestMonitor addReportCallback(ReportCallback reportCallback) {
+        reportCallbacks.add(reportCallback);
+        return this;
+    }
+
+    public TestReportSection addReportSection(String sectionName) {
+        TestReportSection reportSection = new TestReportSection(sectionName);
+        reportSections.add(reportSection);
+        return reportSection;
     }
 
     public void dumpReport(String testName) {
@@ -143,15 +159,14 @@ public class TestMonitor {
                     stopwatch.getNote());
         }
 
+        // executing callback to get other report sections for higher level metrics
+        for (ReportCallback reportCallback : reportCallbacks) {
+            reportCallback.execute(this);
+        }
+
         for (TestReportSection reportSection : reportSections) {
             reportSection.dump(reportMetadata.testName, out);
         }
-    }
-
-    public TestReportSection addReportSection(String sectionName) {
-        TestReportSection reportSection = new TestReportSection(sectionName);
-        reportSections.add(reportSection);
-        return reportSection;
     }
 
     private static class ReportMetadata {
@@ -198,5 +213,13 @@ public class TestMonitor {
                     ", timestamp='" + timestamp + '\'' +
                     '}';
         }
+    }
+
+    public interface ReportCallback {
+        /**
+         * Called during report dump - allows interacting with the monitor,
+         * typically to add additional report section.
+         */
+        void execute(TestMonitor testMonitor);
     }
 }

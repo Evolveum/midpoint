@@ -6,18 +6,28 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.labs;
 
+import com.codeborne.selenide.Selenide;
+
+import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.ProjectionsTab;
 import com.evolveum.midpoint.schrodinger.component.common.table.AbstractTableWithPrismView;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Utils;
 import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
 
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author skublik
@@ -34,22 +44,51 @@ public class M6ConfiguringMultipleAccountTypes extends AbstractLabTest {
     private static final String CSV1_TESTER_ROLE_NAME = "CSV-1 Tester";
     private static final String CSV3_ADMIN_ROLE_NAME = "CSV-3 Admin";
 
-    @Test(groups={"M6"}, dependsOnGroups={"M5"})
+    @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
+    @Override
+    public void beforeClass() throws IOException {
+        super.beforeClass();
+        csv1TargetFile = new File(getTestTargetDir(), CSV_1_FILE_SOURCE_NAME);
+        FileUtils.copyFile(CSV_1_SOURCE_FILE, csv1TargetFile);
+        csv2TargetFile = new File(getTestTargetDir(), CSV_2_FILE_SOURCE_NAME);
+        FileUtils.copyFile(CSV_2_SOURCE_FILE, csv2TargetFile);
+        csv3TargetFile = new File(getTestTargetDir(), CSV_3_FILE_SOURCE_NAME);
+        FileUtils.copyFile(CSV_3_SOURCE_FILE, csv3TargetFile);
+    }
+
+    @Override
+    protected List<File> getObjectListToImport(){
+        return Arrays.asList(KIRK_USER_TIBERIUS_FILE);
+    }
+
+    @Test(groups={"M6"})
     public void mod06test01UsingAccountIntentsForProvisioning() {
+        importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE, true);
 
         importObject(CSV_1_RESOURCE_FILE_6_1, true);
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
 
+        importObject(CSV_2_RESOURCE_FILE_5_5, true);
+        changeResourceAttribute(CSV_2_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv2TargetFile.getAbsolutePath(), true);
+
         importObject(CSV_3_RESOURCE_FILE_6_1, true);
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
 
+        addObjectFromFile(SECRET_I_ROLE_FILE);
+        addObjectFromFile(SECRET_II_ROLE_FILE);
         addObjectFromFile(CSV1_TESTER_ROLE_FILE);
         addObjectFromFile(CSV3_ADMIN_ROLE_FILE);
+        addObjectFromFile(INCOGNITO_ROLE_FILE);
+        addObjectFromFile(INTERNAL_EMPLOYEE_ROLE_FILE);
 
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+
+        Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Secret Projects I", "Secret Projects II", "Incognito");
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), CSV1_TESTER_ROLE_NAME, CSV3_ADMIN_ROLE_NAME);
 
         AbstractTableWithPrismView<ProjectionsTab<UserPage>> table = showUser("kirk").selectTabProjections()
                 .table();
+        Selenide.screenshot("kirk_user_projections");
         Assert.assertTrue(table.search()
                 .referencePanelByItemName("Resource")
                     .inputRefOid("10000000-9999-9999-0000-a000ff000002")

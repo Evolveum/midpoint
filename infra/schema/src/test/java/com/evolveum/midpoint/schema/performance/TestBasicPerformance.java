@@ -12,14 +12,14 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.tools.testng.PerformanceTestMixin;
+import com.evolveum.midpoint.tools.testng.PerformanceTestClassMixin;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.testng.annotations.Test;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
-public class TestBasicPerformance extends AbstractSchemaPerformanceTest implements PerformanceTestMixin {
+public class TestBasicPerformance extends AbstractSchemaPerformanceTest implements PerformanceTestClassMixin {
 
     @Test
     public void test010Dummy() throws Exception {

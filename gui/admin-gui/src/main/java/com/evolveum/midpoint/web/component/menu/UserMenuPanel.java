@@ -9,7 +9,6 @@ package com.evolveum.midpoint.web.component.menu;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
@@ -29,22 +28,16 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -63,9 +56,6 @@ public class UserMenuPanel extends BasePanel<UserMenuPanel> {
 
     private static final Trace LOGGER = TraceManager.getTrace(UserMenuPanel.class);
 
-    private static final String DOT_CLASS = UserMenuPanel.class.getName() + ".";
-    private static final String OPERATION_LOAD_USER = DOT_CLASS + "loaduser";
-
     private static final String ID_USERNAME_LINK = "usernameLink";
     private static final String ID_LOGOUT_FORM = "logoutForm";
     private static final String ID_CSRF_FIELD = "csrfField";
@@ -77,18 +67,9 @@ public class UserMenuPanel extends BasePanel<UserMenuPanel> {
     private static final String ID_PANEL_ICON_BOX = "menuPanelIconBox";
     private static final String ID_PANEL_PHOTO = "menuPanelPhoto";
 
-    private final IModel<PrismObject<UserType>> userModel;
-
     public UserMenuPanel(String id) {
         super(id);
 
-        userModel = new LoadableModel<PrismObject<UserType>>(false) {
-
-            @Override
-            protected PrismObject<UserType> load() {
-                return loadUser();
-            }
-        };
     }
 
     @Override
@@ -149,23 +130,17 @@ public class UserMenuPanel extends BasePanel<UserMenuPanel> {
         });
         add(editPasswordQ);
 
-
-//        securityPolicyQuestionsModel = new LoadableModel<List<SecurityQuestionDefinitionType>>(false) {
-//            @Override
-//            protected List<SecurityQuestionDefinitionType> load() {
-//                return loadSecurityPolicyQuestionsModel();
-//            }
-//        };
-//
     }
 
     private IModel<AbstractResource> loadJpegPhotoModel() {
         return new ReadOnlyModel<>(() -> {
-            if (userModel == null || userModel.getObject() == null) {
+
+            GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();
+            if (principal == null) {
                 return null;
             }
-
-            byte[] jpegPhoto = userModel.getObject().asObjectable().getJpegPhoto();
+            CompiledGuiProfile profile = principal.getCompiledGuiProfile();
+            byte[] jpegPhoto = profile.getJpegPhoto();
 
             if (jpegPhoto == null) {
                 URL placeholder = UserMenuPanel.class.getClassLoader().getResource("static/img/placeholder.png");
@@ -178,8 +153,6 @@ public class UserMenuPanel extends BasePanel<UserMenuPanel> {
                     LOGGER.error("Cannot load placeholder for photo.");
                     return null;
                 }
-//                ByteArrayResource("image/png", new InputStream());
-//                return new ContextRelativeResource("img/placeholder.png");
             }
 
             return new ByteArrayResource("image/jpeg", jpegPhoto);
@@ -232,42 +205,6 @@ public class UserMenuPanel extends BasePanel<UserMenuPanel> {
         return dto;
     }
 
-    //TODO this should be probably parametrized to FocusType
-    private PrismObject<UserType> loadUser() {
-        OperationResult result = new OperationResult(OPERATION_LOAD_USER);
-
-        PageBase parentPage = getPageBase();
-
-        try {
-
-            GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();
-            if (principal == null) {
-                result.recordNotApplicableIfUnknown();
-                return null;
-            }
-            String userOid = principal.getOid();
-            Task task = parentPage.createSimpleTask(OPERATION_LOAD_USER);
-            OperationResult subResult = result.createSubresult(OPERATION_LOAD_USER);
-
-            Collection<SelectorOptions<GetOperationOptions>> options =
-                    getSchemaHelper().getOperationOptionsBuilder()
-                            .item(UserType.F_JPEG_PHOTO).retrieve()
-                            .build();
-            PrismObject<UserType> user =
-                    parentPage.getModelService().getObject(
-                            UserType.class, userOid, options, task, subResult);
-            subResult.recordSuccessIfUnknown();
-
-            return user;
-        } catch (Exception ex) {
-            LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get user Questions, Probably not set yet", ex);
-
-        } finally {
-            result.recomputeStatus();
-        }
-        return null;
-    }
-
     public List<SecurityQuestionAnswerDTO> createUsersSecurityQuestionsList() {
         GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();
         if (principal == null) {
@@ -275,9 +212,6 @@ public class UserMenuPanel extends BasePanel<UserMenuPanel> {
         }
 
         FocusType focus = principal.getFocus();
-        if (focus == null) {
-            return null;
-        }
         CredentialsType credentialsType = focus.getCredentials();
         if (credentialsType == null) {
             return null;
@@ -328,8 +262,6 @@ public class UserMenuPanel extends BasePanel<UserMenuPanel> {
 
     private boolean hasQuestions() {
         PasswordQuestionsDto passwordQuestionsDto = getPasswordQuestions();
-        return passwordQuestionsDto != null
-                && passwordQuestionsDto.getPwdQuestion() != null
-                && !passwordQuestionsDto.getPwdQuestion().trim().equals("");
+        return passwordQuestionsDto.getPwdQuestion() != null && !passwordQuestionsDto.getPwdQuestion().trim().equals("");
     }
 }

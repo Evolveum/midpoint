@@ -835,6 +835,10 @@
 
             </objectDetailsPage>
         </objectDetails>
+        <configurableUserDashboard>
+            <identifier>admin-dashboard</identifier>
+            <configurableDashboardRef oid="00000000-0000-0000-0001-000000000001" relation="org:default" type="c:DashboardType"/>
+        </configurableUserDashboard>
     </adminGuiConfiguration>
 
     <expressions>

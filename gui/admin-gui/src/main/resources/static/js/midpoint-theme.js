@@ -267,3 +267,19 @@ function toggleSearchPopover(buttonId, popoverId, paddingRight) {
 function initDropdown(compId, options) {
     $('#' + compId).multiselect(options);
 }
+
+// expand/collapse for sidebarMenuPanel
+jQuery(function ($) {
+    $('.sidebar-menu li.header').on("click", function (e) {
+        if ($(this).hasClass('closed')) {
+            // expand the panel
+            $(this).nextUntil('.header').slideDown();
+            $(this).removeClass('closed');
+        }
+        else {
+            // collapse the panel
+            $(this).nextUntil('.header').slideUp();
+            $(this).addClass('closed');
+        }
+    });
+});

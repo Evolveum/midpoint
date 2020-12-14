@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.web.component.menu;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import org.apache.wicket.model.IModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
 
 /**
  * Created by Kate on 19.09.2016.
@@ -15,10 +15,11 @@ import org.apache.wicket.model.IModel;
 public class AdditionalMenuItem extends MainMenuItem {
     private String targetUrl;
 
-    public AdditionalMenuItem(String iconClass, IModel<String> name, String targetUrl, Class<? extends PageBase> page) {
-        super(iconClass, name, page, null);
-        this.targetUrl = targetUrl;
+    public AdditionalMenuItem(RichHyperlinkType link, Class<? extends PageBase> page) {
+        super(link.getLabel(), link.getIcon() == null ? BaseMenuItem.DEFAULT_ICON : link.getIcon().getCssClass(), page);
+        this.targetUrl = link.getTargetUrl();
     }
+
 
     public String getTargetUrl() {
         return targetUrl;

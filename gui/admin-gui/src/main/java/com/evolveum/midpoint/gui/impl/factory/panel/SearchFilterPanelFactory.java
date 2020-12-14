@@ -8,6 +8,9 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.gui.api.Validatable;
+
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.stereotype.Component;
 
@@ -41,10 +44,20 @@ public class SearchFilterPanelFactory extends AbstractGuiComponentFactory<Search
             return new SearchFilterConfigurationPanel(
                     panelCtx.getComponentId(), panelCtx.getRealValueModel(), containerWrapper);
         }
-        return new AceEditorPanel(
+        AceEditorPanel panel = new AceEditorPanel(
                 panelCtx.getComponentId(),
                 null,
                 new SearchFilterTypeModel(panelCtx.getRealValueModel(), panelCtx.getPageBase()),
                 10);
+        return panel;
+    }
+
+    @Override
+    public void configure(PrismPropertyPanelContext<SearchFilterType> panelCtx, org.apache.wicket.Component component) {
+        if (!(component instanceof AceEditorPanel)) {
+            super.configure(panelCtx, component);
+            return;
+        }
+        panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(((AceEditorPanel) component).getEditor()));
     }
 }

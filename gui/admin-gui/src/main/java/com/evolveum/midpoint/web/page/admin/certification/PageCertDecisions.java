@@ -513,7 +513,7 @@ public class PageCertDecisions extends PageAdminCertification {
         if (!result.isSuccess()) {
             showResult(result);
         }
-        resetCertWorkItemCountModel();
+//        resetCertWorkItemCountModel();
         target.add(this);
     }
 

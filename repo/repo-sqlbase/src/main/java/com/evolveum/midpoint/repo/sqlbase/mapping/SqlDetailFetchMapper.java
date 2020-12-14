@@ -21,16 +21,16 @@ import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.sql.SQLQuery;
 
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
-import com.evolveum.midpoint.repo.sqlbase.SqlConfiguration;
+import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
  * Mapper/fetcher of many detail records for one master record.
  * Detail fetch/mapper know hows to fetch to-many details related to a master entity.
  * <p>
- * To load the details for the provided list of data use {@link #execute(SqlConfiguration, Supplier, List)}.
- * To load the details for one master entity use {@link #execute(SqlConfiguration, Supplier, R)}.
- * {@link SqlConfiguration} is provided to {@code execute} instead of constructor,
+ * To load the details for the provided list of data use {@link #execute(SqlRepoContext, Supplier, List)}.
+ * To load the details for one master entity use {@link #execute(SqlRepoContext, Supplier, R)}.
+ * {@link SqlRepoContext} is provided to {@code execute} instead of constructor,
  * because it is more practical (providing it to constructor is unwieldy).
  * <p>
  * It is easier (and perhaps nicer) to contain all the parametrized types in a single class,
@@ -63,16 +63,16 @@ public class SqlDetailFetchMapper<R, I, DQ extends FlexibleRelationalPathBase<DR
         this.masterDetailConsumer = masterDetailConsumer;
     }
 
-    public void execute(SqlConfiguration sqlConfiguration,
+    public void execute(SqlRepoContext sqlRepoContext,
             Supplier<SQLQuery<?>> querySupplier, List<R> data) throws QueryException {
         // partitioning recursively calls the same method on sub-limit result lists
         if (data.size() > MAX_ID_IN_FOR_TO_MANY_FETCH) {
             for (List<R> partition : Lists.partition(data, MAX_ID_IN_FOR_TO_MANY_FETCH)) {
-                execute(sqlConfiguration, querySupplier, partition);
+                execute(sqlRepoContext, querySupplier, partition);
             }
         }
 
-        DQ dq = sqlConfiguration.getMappingByQueryType(detailQueryType).newAlias("det_");
+        DQ dq = sqlRepoContext.getMappingByQueryType(detailQueryType).newAlias("det_");
         // it is possible we don't have distinct rows, we don't want to fail on it here
         Map<I, List<R>> rowById = data.stream()
                 .collect(groupingBy(rowToId));
@@ -91,9 +91,9 @@ public class SqlDetailFetchMapper<R, I, DQ extends FlexibleRelationalPathBase<DR
         }
     }
 
-    public void execute(SqlConfiguration sqlConfiguration,
+    public void execute(SqlRepoContext sqlRepoContext,
             Supplier<SQLQuery<?>> querySupplier, R masterRow) throws QueryException {
-        DQ dq = sqlConfiguration.getMappingByQueryType(detailQueryType).newAlias("det_");
+        DQ dq = sqlRepoContext.getMappingByQueryType(detailQueryType).newAlias("det_");
         SimpleExpression<I> detailFkPath = detailFkPathFunction.apply(dq);
         SQLQuery<DR> query = querySupplier.get()
                 .select(dq)

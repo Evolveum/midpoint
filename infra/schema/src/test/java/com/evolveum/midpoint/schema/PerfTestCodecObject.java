@@ -27,10 +27,10 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismParser;
 import com.evolveum.midpoint.prism.PrismSerializer;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.tools.testng.PerformanceTestMixin;
+import com.evolveum.midpoint.tools.testng.PerformanceTestClassMixin;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class PerfTestCodecObject extends AbstractSchemaTest implements PerformanceTestMixin {
+public class PerfTestCodecObject extends AbstractSchemaTest implements PerformanceTestClassMixin {
 
     static final List<String> FORMAT = ImmutableList.of("xml", "json", "yaml");
     static final List<String> NS = ImmutableList.of("no-ns", "ns");

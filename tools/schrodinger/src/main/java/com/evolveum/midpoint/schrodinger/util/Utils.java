@@ -59,8 +59,7 @@ public class Utils {
         for (String assignment : assignments) {
             table.removeByName(assignment);
         }
-        tab.table()
-            .and()
+        tab
         .and()
         .clickSave()
             .feedback()

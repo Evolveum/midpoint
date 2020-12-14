@@ -6,10 +6,6 @@
  */
 package com.evolveum.midpoint.web.component.menu;
 
-import java.io.Serializable;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.IPageFactory;
 import org.apache.wicket.Session;
@@ -25,16 +21,17 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -60,76 +57,53 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         super(id, model);
     }
 
-    private boolean initialized = false;
-
     @Override
-    protected void onBeforeRender() {
-        super.onBeforeRender();
-
-        if (initialized) {
-            return;
-        }
-
-        initLayout();   // moved to here just to postpone initialization (if not visible, should not be executed at all)
-        initialized = true;
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
     }
 
     private void initLayout() {
-        final MainMenuItem menu = getModelObject();
-
         WebMarkupContainer item = new WebMarkupContainer(ID_ITEM);
-        item.add(AttributeModifier.replace("class", new IModel<String>() {
+        item.setOutputMarkupId(true);
+        item.add(AttributeModifier.append("class", new IModel<String>() {
             private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
-                if (menu.isMenuActive((WebPage) getPage())) {
+                MainMenuItem mainMenuItem = getModelObject();
+                if (mainMenuItem.isMenuActive(getPageBase())) {
                     return "active";
                 }
 
-                for (MenuItem item : menu.getItems()) {
-                    if (item.isMenuActive((WebPage) getPage())) {
-                        return "active";
-                    }
+                if (mainMenuItem.hasActiveSubmenu(getPageBase())) {
+                    return "active menu-open";
                 }
-
-                return !menu.getItems().isEmpty() ? "treeview" : null;
+                return null;
             }
         }));
         add(item);
 
-        WebMarkupContainer link;
-        if (menu.getPageClass() != null) {
-            link = new AjaxLink<Void>(ID_LINK) {
+        item.add(AttributeModifier.append("style", new ReadOnlyModel<>(() -> isMenuExpanded() ? "" : "display: none;")));
+
+        WebMarkupContainer link = new AjaxLink<Void>(ID_LINK) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
                 public void onClick(AjaxRequestTarget target) {
-                    mainMenuPerformed(menu);
+                    mainMenuPerformed();
                 }
             };
-        } else if (menu instanceof AdditionalMenuItem) {
-            link = new AjaxLink<Void>(ID_LINK) {
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public void onClick(AjaxRequestTarget target) {
-                    additionalMenuPerformed(menu);
-                }
-            };
-        } else {
-            link = new WebMarkupContainer(ID_LINK);
-        }
         item.add(link);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
-        icon.add(AttributeModifier.replace("class", new PropertyModel<>(menu, MainMenuItem.F_ICON_CLASS)));
+        icon.add(AttributeModifier.replace("class", new PropertyModel<>(getModel(), MainMenuItem.F_ICON_CLASS)));
         link.add(icon);
 
-        Label label = new Label(ID_LABEL, menu.getNameModel());
+        Label label = new Label(ID_LABEL, new StringResourceModel("${nameModel}", getModel()).setDefaultValue(new PropertyModel<>(getModel(), "nameModel")));
         link.add(label);
 
-        final PropertyModel<String> bubbleModel = new PropertyModel<>(menu, MainMenuItem.F_BUBBLE_LABEL);
+        final PropertyModel<String> bubbleModel = new PropertyModel<>(getModel(), MainMenuItem.F_BUBBLE_LABEL);
 
         Label bubble = new Label(ID_BUBBLE, bubbleModel);
         bubble.add(new VisibleEnableBehaviour() {
@@ -148,23 +122,15 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
 
             @Override
             public boolean isVisible() {
-                return !menu.getItems().isEmpty() && bubbleModel.getObject() == null;
+                return getModelObject().containsSubMenu() && bubbleModel.getObject() == null;
             }
         });
         link.add(arrow);
 
         WebMarkupContainer submenu = new WebMarkupContainer(ID_SUBMENU);
-        submenu.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return !menu.getItems().isEmpty();
-            }
-        });
         item.add(submenu);
 
-        ListView<MenuItem> subItem = new ListView<MenuItem>(ID_SUB_ITEM, new Model((Serializable) menu.getItems())) {
+        ListView<MenuItem> subItem = new ListView<MenuItem>(ID_SUB_ITEM, new PropertyModel<>(getModel(), MainMenuItem.F_ITEMS)) {
 
             @Override
             protected void populateItem(ListItem<MenuItem> listItem) {
@@ -175,69 +141,38 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
     }
 
     private void createSubmenu(final ListItem<MenuItem> listItem) {
-        final MenuItem menuItem = listItem.getModelObject();
+        IModel<MenuItem> menuItem = listItem.getModel();
 
-        listItem.add(AttributeModifier.replace("class", new IModel<String>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                return menuItem.isMenuActive((WebPage) getPage()) ? "active" : null;
+        listItem.add(AttributeModifier.replace("class", new ReadOnlyModel<>(() -> {
+            if (menuItem.getObject().isMenuActive(getPageBase())) {
+                return "active";
             }
-        }));
+            return null;
+        })));
 
         Link<String> subLink = new Link<String>(ID_SUB_LINK) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick() {
-                menuItemPerformed(menuItem);
+                menuItemPerformed(menuItem.getObject());
             }
         };
         listItem.add(subLink);
 
         WebMarkupContainer subLinkIcon = new WebMarkupContainer(ID_SUB_LINK_ICON);
-        if (StringUtils.isNotEmpty(menuItem.getIconClass())) {
             subLinkIcon.add(AttributeAppender.append("class", new PropertyModel<>(menuItem, MainMenuItem.F_ICON_CLASS)));
-        } else {
-            subLinkIcon.add(AttributeAppender.append("class", "fa fa-circle-o"));
-        }
         subLink.add(subLinkIcon);
 
-        Label subLabel = new Label(ID_SUB_LABEL, menuItem.getNameModel());
+        Label subLabel = new Label(ID_SUB_LABEL, new StringResourceModel("${nameModel}", menuItem).setDefaultValue(new PropertyModel<>(menuItem, "nameModel")));
         subLink.add(subLabel);
-
-        listItem.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                MenuItem mi = listItem.getModelObject();
-
-                boolean visible = true;
-                if (mi.getVisibleEnable() != null) {
-                    visible = mi.getVisibleEnable().isVisible();
-                }
-
-                return visible && SecurityUtils.isMenuAuthorized(mi);
-            }
-
-            @Override
-            public boolean isEnabled() {
-                MenuItem mi = listItem.getModelObject();
-
-                if (mi.getVisibleEnable() == null) {
-                    return true;
-                }
-
-                return mi.getVisibleEnable().isEnabled();
-            }
-        });
     }
 
     private void menuItemPerformed(MenuItem menu) {
         LOGGER.trace("menuItemPerformed: {}", menu);
 
+//        getSession().getSessionStorage().setActiveMenu(menu.getNameModel());
+//        getSession().getSessionStorage().setActiveMainMenu(getModelObject().getNameModel());
         IPageFactory pFactory = Session.get().getPageFactory();
         WebPage page = pFactory.newPage(menu.getPageClass(), menu.getParams());
         if (!(page instanceof PageBase)) {
@@ -255,17 +190,15 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         // is not re-bundled here then the page size grows and never
         // falls.
         MainMenuItem mainMenuItem = getModelObject();
-        String name = mainMenuItem.getNameModel().getObject();
-        Breadcrumb bc = new Breadcrumb(new Model<>(name));
+        String name = mainMenuItem.getNameModel();
+        Breadcrumb bc = new Breadcrumb(createStringResource(name));
         bc.setIcon(new Model<>(mainMenuItem.getIconClass()));
         pageBase.addBreadcrumb(bc);
 
-        List<MenuItem> items = mainMenuItem.getItems();
-        if (!items.isEmpty() && mainMenuItem.isInsertDefaultBackBreadcrumb()) {
-            MenuItem first = items.get(0);
+        if (mainMenuItem.containsSubMenu() && mainMenuItem.isInsertDefaultBackBreadcrumb()) {
+            MenuItem first = mainMenuItem.getFirstMenuItem();
 
-            IModel<String> nameModel = first.getNameModel();
-            BreadcrumbPageClass invisibleBc = new BreadcrumbPageClass(new Model<>(nameModel.getObject()), first.getPageClass(),
+            BreadcrumbPageClass invisibleBc = new BreadcrumbPageClass(createStringResource(first.getNameModel()), first.getPageClass(),
                     first.getParams());
             invisibleBc.setVisible(false);
             pageBase.addBreadcrumb(invisibleBc);
@@ -274,23 +207,20 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         setResponsePage(page);
     }
 
-    private void mainMenuPerformed(MainMenuItem menu) {
-        LOGGER.trace("mainMenuPerformed: {}", menu);
+    private void mainMenuPerformed() {
+        MainMenuItem menuItem = getModelObject();
+        Class<? extends WebPage> page = menuItem.getPageClass();
+        if (page != null) {
+            setResponsePage(page, menuItem.getParams());
+            return;
+        }
 
-        if (menu.getParams() == null) {
-            setResponsePage(menu.getPageClass());
-        } else {
-            setResponsePage(menu.getPageClass(), menu.getParams());
+        if (menuItem instanceof AdditionalMenuItem) {
+            throw new RedirectToUrlException(((AdditionalMenuItem) menuItem).getTargetUrl());
         }
     }
 
-    private void additionalMenuPerformed(MainMenuItem menu) {
-        LOGGER.trace("additionalMenuPerformed: {}", menu);
-
-        if (menu.getPageClass() != null) {
-            setResponsePage(menu.getPageClass());
-        } else {
-            throw new RedirectToUrlException(((AdditionalMenuItem) menu).getTargetUrl());
-        }
+    protected boolean isMenuExpanded() {
+        return true;
     }
 }
