@@ -25,7 +25,7 @@ It fakes JNDI context with simple H2 file DataSource.
             destroy-method="close"
             depends-on="repositoryFactory">
         <property name="driverClassName" value="org.h2.Driver"/>
-        <property name="jdbcUrl" value="jdbc:h2:file:target/midpoint-home/datasource;DB_CLOSE_ON_EXIT=FALSE;LOCK_MODE=1;LOCK_TIMEOUT=10000"/>
+        <property name="jdbcUrl" value="jdbc:h2:file:./target/midpoint-home/datasource;DB_CLOSE_ON_EXIT=FALSE;LOCK_MODE=1;LOCK_TIMEOUT=10000"/>
         <property name="username" value="sa"/>
         <property name="password" value=""/>
 

@@ -164,7 +164,8 @@ public class SqlRepositoryConfiguration extends SqlRepositoryBaseConfiguration {
         }
     }
 
-    private static final String DEFAULT_FILE_NAME = "midpoint";
+    // This needs to be "explicitly relative" (or absolute), unless -Dh2.implicitRelativePath=true
+    private static final String DEFAULT_FILE_NAME = "./midpoint";
     private static final String DEFAULT_EMBEDDED_H2_JDBC_USERNAME = "sa";
     private static final String DEFAULT_EMBEDDED_H2_JDBC_PASSWORD = "";
     private static final int DEFAULT_EMBEDDED_H2_PORT = 5437;
