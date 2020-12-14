@@ -172,7 +172,7 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
                             .clickOk();
         newRolePage.selectTabBasic()
                     .form()
-                        .addAttributeValue("name", "NewRoleAsOrManager")
+                        .addAttributeValue("name", "NewRoleAsOrgManager")
                         .and()
                     .and()
                 .clickSave()
@@ -187,7 +187,7 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
         Assert.assertEquals(memberTable
                             .search()
                             .byName()
-                            .inputValue("NewRoleAsOrManager")
+                            .inputValue("NewRoleAsOrgManager")
                 .updateSearch()
                 .and()
                 .countTableObjects(), 1, "Created member is absent in org members table");
