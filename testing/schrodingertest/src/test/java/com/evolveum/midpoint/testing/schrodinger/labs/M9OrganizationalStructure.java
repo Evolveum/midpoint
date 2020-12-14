@@ -6,10 +6,13 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.labs;
 
+import com.codeborne.selenide.Selenide;
+
 import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.page.org.OrgPage;
 import com.evolveum.midpoint.schrodinger.page.org.OrgTreePage;
 
+import com.evolveum.midpoint.schrodinger.page.resource.AccountPage;
 import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
@@ -47,6 +50,8 @@ public class M9OrganizationalStructure extends AbstractLabTest{
 
     @Test(groups={"M9"})
     public void mod09test01ImportStaticOrgStructure() {
+        importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE, true);
+
         basicPage.loggedUser().logoutIfUserIsLogin();
         FormLoginPage login = midPoint.formLogin();
         login.login(getUsername(), getPassword());
@@ -229,8 +234,9 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                             .table()
                             .containsText("kirk"));
 
-        Assert.assertTrue(
-                showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
+        AccountPage accountPage = showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
+        Selenide.screenshot("M9_accountPage");
+        Assert.assertTrue(accountPage
                         .form()
                         .compareInputAttributeValues("groups", "Internal Employees",
                                 "Essential Documents", "Teleportation", "Time Travel"));

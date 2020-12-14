@@ -85,7 +85,6 @@ public class M6ConfiguringMultipleAccountTypes extends AbstractLabTest {
 
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Secret Projects I", "Secret Projects II", "Incognito");
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), CSV1_TESTER_ROLE_NAME, CSV3_ADMIN_ROLE_NAME);
-//        Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Internal Employee");
 
         AbstractTableWithPrismView<ProjectionsTab<UserPage>> table = showUser("kirk").selectTabProjections()
                 .table();

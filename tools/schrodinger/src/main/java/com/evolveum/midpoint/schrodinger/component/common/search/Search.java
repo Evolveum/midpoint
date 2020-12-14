@@ -98,7 +98,6 @@ public class Search<T> extends Component<T> {
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
         Actions builder = new Actions(WebDriverRunner.getWebDriver());
         builder.moveToElement(simpleSearchButton, 5, 5).click().build().perform();
-        this.getParentElement().screenshot();
         return this;
     }
 

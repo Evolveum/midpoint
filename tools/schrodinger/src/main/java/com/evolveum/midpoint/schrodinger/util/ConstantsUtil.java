@@ -14,7 +14,7 @@ public class ConstantsUtil {
     //left menu items keys
     public static final String ADMINISTRATION_MENU_ITEMS_SECTION_KEY = "PageAdmin.menu.mainNavigation";
     public static final String MENU_TOP_CASES = "PageAdmin.menu.top.cases";
-    public static final String MENU_ALL_CASES = "PageAdmin.menu.top.cases.listAll";
+    public static final String MENU_ALL_CASES = "PageAdmin.menu.top.cases.list";
 
 
     //left menu items label texts
