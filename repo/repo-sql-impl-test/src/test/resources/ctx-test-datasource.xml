@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~ Copyright (C) 2010-2020 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -41,10 +41,10 @@ It fakes JNDI context with simple H2 file DataSource.
             class="com.zaxxer.hikari.HikariDataSource"
             destroy-method="close"
             depends-on="repositoryFactory">
-        <property name="driverClassName" value="#{testSqlRepositoryFactory.sqlConfiguration.driverClassName}"/>
-        <property name="jdbcUrl" value="#{testSqlRepositoryFactory.sqlConfiguration.jdbcUrl}"/>
-        <property name="username" value="#{testSqlRepositoryFactory.sqlConfiguration.jdbcUsername}"/>
-        <property name="password" value="#{testSqlRepositoryFactory.sqlConfiguration.jdbcPassword}"/>
+        <property name="driverClassName" value="#{repositoryServiceFactory.sqlConfiguration.driverClassName}"/>
+        <property name="jdbcUrl" value="#{repositoryServiceFactory.sqlConfiguration.jdbcUrl}"/>
+        <property name="username" value="#{repositoryServiceFactory.sqlConfiguration.jdbcUsername}"/>
+        <property name="password" value="#{repositoryServiceFactory.sqlConfiguration.jdbcPassword}"/>
 
         <property name="minimumIdle" value="3"/>
         <property name="maximumPoolSize" value="8"/>

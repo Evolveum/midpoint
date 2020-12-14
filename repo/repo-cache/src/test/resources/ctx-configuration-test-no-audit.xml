@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~ Copyright (C) 2010-2020 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -34,8 +34,12 @@
 
     <bean id="repositoryFactory" class="com.evolveum.midpoint.init.RepositoryFactory"/>
 
-    <bean id="repositoryService"
+    <bean id="repositoryServiceFactory"
             factory-bean="repositoryFactory"
+            factory-method="createRepositoryServiceFactory"/>
+
+    <bean id="repositoryService"
+            factory-bean="repositoryServiceFactory"
             factory-method="createRepositoryService"/>
 
     <!-- prism context initialization -->

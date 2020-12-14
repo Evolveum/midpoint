@@ -1,12 +1,11 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.init;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.apache.commons.configuration2.Configuration;
@@ -33,11 +32,10 @@ public class RepositoryFactory implements RuntimeConfiguration {
     @Autowired private ApplicationContext applicationContext;
     @Autowired private MidpointConfiguration midpointConfiguration;
 
-    private RepositoryServiceFactory factory;
+    private RepositoryServiceFactory repositoryServiceFactory;
     private RepositoryService repositoryService;
 
-    @PostConstruct
-    public void init() {
+    public RepositoryServiceFactory createRepositoryServiceFactory() {
         Configuration config = midpointConfiguration.getConfiguration(MidpointConfiguration.REPOSITORY_CONFIGURATION);
         try {
             String className = getFactoryClassName(config);
@@ -45,8 +43,9 @@ public class RepositoryFactory implements RuntimeConfiguration {
 
             //noinspection unchecked
             Class<RepositoryServiceFactory> clazz = (Class<RepositoryServiceFactory>) Class.forName(className);
-            factory = getFactoryBean(clazz);
-            factory.init(config);
+            repositoryServiceFactory = applicationContext.getAutowireCapableBeanFactory().createBean(clazz);
+            repositoryServiceFactory.init(config);
+            return repositoryServiceFactory;
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER,
                     "RepositoryServiceFactory implementation class {} failed to initialize.",
@@ -68,17 +67,13 @@ public class RepositoryFactory implements RuntimeConfiguration {
         return className;
     }
 
-    private RepositoryServiceFactory getFactoryBean(Class<RepositoryServiceFactory> clazz) {
-        LOGGER.info("Getting factory bean '{}'", clazz.getName());
-        return applicationContext.getBean(clazz);
-    }
-
+    /**
+     * Calls {@link RepositoryServiceFactory#destroy()} to assure proper repository shutdown.
+     */
     @PreDestroy
     public void destroy() {
         try {
-            if (factory != null) {
-                factory.destroy();
-            }
+            repositoryServiceFactory.destroy();
         } catch (RepositoryServiceFactoryException ex) {
             LoggingUtils.logException(LOGGER, "Failed to destroy RepositoryServiceFactory", ex);
             throw new SystemException("Failed to destroy RepositoryServiceFactory", ex);
@@ -101,13 +96,13 @@ public class RepositoryFactory implements RuntimeConfiguration {
         }
 
         try {
-            LOGGER.debug("Creating repository service using factory {}", factory);
-            repositoryService = factory.createRepositoryService();
+            LOGGER.debug("Creating repository service using factory {}", repositoryServiceFactory);
+            repositoryService = repositoryServiceFactory.createRepositoryService();
         } catch (RepositoryServiceFactoryException | RuntimeException ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Failed to get repository service from factory " + factory, ex);
-            throw new SystemException("Failed to get repository service from factory " + factory, ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Failed to get repository service from factory " + repositoryServiceFactory, ex);
+            throw new SystemException("Failed to get repository service from factory " + repositoryServiceFactory, ex);
         } catch (Error ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Failed to get repository service from factory " + factory, ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Failed to get repository service from factory " + repositoryServiceFactory, ex);
             throw ex;
         }
 

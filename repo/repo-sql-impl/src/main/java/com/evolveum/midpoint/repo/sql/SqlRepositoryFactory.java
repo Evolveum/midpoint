@@ -29,7 +29,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * @author lazyman
+ * Factory for {@link SqlRepositoryServiceImpl} implementing {@link RepositoryService}.
  */
 public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
@@ -37,6 +37,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
     private static final long POOL_CLOSE_WAIT = 500L;
     private static final long H2_CLOSE_WAIT = 2000L;
+
     private static final String H2_IMPLICIT_RELATIVE_PATH = "h2.implicitRelativePath";
 
     private SqlRepositoryConfiguration sqlConfiguration;
