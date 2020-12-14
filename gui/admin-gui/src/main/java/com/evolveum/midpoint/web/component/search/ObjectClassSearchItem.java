@@ -63,7 +63,7 @@ public class ObjectClassSearchItem extends PropertySearchItem {
     }
 
     @Override
-    public Type getType() {
+    public Type getSearchItemType() {
         return Type.ENUM;
     }
 

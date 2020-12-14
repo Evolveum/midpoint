@@ -104,9 +104,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     private static final String DOT_CLASS = ContainerableListPanel.class.getName() + ".";
 
-    private Class<? extends C> type;
+    private Class<? extends C> defaultType;
 
-    private LoadableModel<Search> searchModel;
+    private LoadableModel<Search<C>> searchModel;
 
     private Collection<SelectorOptions<GetOperationOptions>> options;
 
@@ -125,7 +125,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     public ContainerableListPanel(String id, Class<? extends C> defaultType, Collection<SelectorOptions<GetOperationOptions>> options) {
         super(id);
-        this.type = defaultType;
+        this.defaultType = defaultType;
         this.options = options;
     }
 
@@ -142,20 +142,22 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         }
     }
 
-    protected LoadableModel<Search> createSearchModel(){
-        return new LoadableModel<Search>(false) {
+    protected LoadableModel<Search<C>> createSearchModel(){
+        return new LoadableModel<Search<C>>(false) {
 
             private static final long serialVersionUID = 1L;
 
+            private Class <? extends C> type = defaultType;
+
             @Override
             public Search load() {
-                Search search = null;
+                Search<C> search = null;
 
                 PageStorage storage = getPageStorage();
                 if (storage != null) {
                     search = storage.getSearch();
                 }
-                Search newSearch = createSearch();
+                Search<C> newSearch = createSearch(type);
                 if (search == null ||
                         (!SearchBoxModeType.ADVANCED.equals(search.getSearchType()) && !search.getAllDefinitions().containsAll(newSearch.getAllDefinitions()))) {
                     search = newSearch;
@@ -173,8 +175,22 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                         }
                     }
                 }
-                search.setCollectionView(getWidgetCollectionView());
+
+                if (isCollectionViewPanel()) {
+                    search.setCollectionSearchItem(new ObjectCollectionSearchItem(search, getObjectCollectionView()));
+                    search.setCollectionItemVisible(isCollectionViewPanelForWidget());
+                }
                 return search;
+            }
+
+            @Override
+            public void reset() {
+                if (getObject() == null || getObject().getTypeClass() == null) {
+                    type = defaultType;
+                } else {
+                    type = getObject().getTypeClass();
+                }
+                super.reset();
             }
         };
     }
@@ -183,8 +199,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return null;
     }
 
-    protected Search createSearch() {
-        return SearchFactory.createContainerSearch(getType(), getPageBase());
+    protected Search createSearch(Class<? extends C> type) {
+        return SearchFactory.createContainerSearch(new ContainerTypeSearchItem<C>(new SearchValue(type, "")), getPageBase());
     }
 
     private void initLayout() {
@@ -332,25 +348,29 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", createStringResource("MainObjectListPanel.newObject").getString());
     }
 
-    public BoxedTablePanel getTable() {
-        return (BoxedTablePanel) get(createComponentPath(ID_ITEMS, ID_ITEMS_TABLE));
-    }
+//    public BoxedTablePanel getTable() {
+//        return (BoxedTablePanel) get(createComponentPath(ID_ITEMS, ID_ITEMS_TABLE));
+//    }
 
-    public void refreshTable(AjaxRequestTarget ajaxRequestTarget) {
-        ajaxRequestTarget.add(getItemTable());
-    }
+//    public void refreshTable(AjaxRequestTarget ajaxRequestTarget) {
+//        ajaxRequestTarget.add(getTable());
+//    }
 
-    public BoxedTablePanel<PO> getItemTable() {
+    public BoxedTablePanel<PO> getTable() {
         return (BoxedTablePanel<PO>) get(ID_ITEMS).get(ID_ITEMS_TABLE);
     }
 
     public Class<C> getType() {
-        return (Class<C>) type;
+        return getSearchModel().isLoaded() ? getSearchModel().getObject().getTypeClass() : (Class<C>) getDefaultType();
     }
 
-    protected void setType(Class<? extends C> type) {
-        this.type = type;
+    protected Class<? extends C> getDefaultType() {
+        return defaultType;
     }
+
+    //    protected void setType(Class<? extends C> type) {
+//        this.type = type;
+//    }
 
     protected boolean enableSavePageSize() {
         return true;
@@ -624,7 +644,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 //        };
 //        provider.setOptions(createOptions());
         ContainerListDataProvider<C> provider = new ContainerListDataProvider<C>(this,
-                getType(), createOptions()) {
+                getSearchModel(), createOptions()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -632,9 +652,14 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 return ContainerableListPanel.this.getPageStorage();
             }
 
+//            @Override
+//            public ObjectQuery getQuery() {
+//                return ContainerableListPanel.this.createQuery();
+//            }
+
             @Override
-            public ObjectQuery getQuery() {
-                return ContainerableListPanel.this.createQuery();
+            protected ObjectQuery getCustomizeContentQuery() {
+                return ContainerableListPanel.this.getCustomizeContentQuery();
             }
 
             @NotNull
@@ -711,8 +736,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
-                ContainerableListPanel.this.searchPerformed(query, target);
+            protected void searchPerformed(AjaxRequestTarget target) {
+                ContainerableListPanel.this.searchPerformed(target);
             }
 
             @Override
@@ -721,11 +746,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 if (storage != null) {
                     storage.setSearch(search);
                 }
-            }
-
-            @Override
-            protected ObjectQuery getQueryFromSearch(Search search) {
-                return ContainerableListPanel.this.getQueryFromSearch(search);
             }
         };
         return searchPanel;
@@ -752,7 +772,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             return WebComponentUtil.getObjectListPageStorageKey(collectionNameValue);
         }
 
-        return WebComponentUtil.getObjectListPageStorageKey(getType().getSimpleName());
+        return WebComponentUtil.getObjectListPageStorageKey(getDefaultType().getSimpleName());
     }
 
     protected boolean isRefreshEnabled() {
@@ -862,7 +882,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         ISelectableDataProvider provider = (ISelectableDataProvider) table
                 .getDataTable().getDataProvider();
         return provider;
-
     }
 
     protected Collection<SelectorOptions<GetOperationOptions>> getOptions(){
@@ -870,14 +889,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     @SuppressWarnings("deprecation")
-    private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
-
-        ISelectableDataProvider provider = getDataProvider();
-
-        // note: we ignore 'query' parameter, as the 'customQuery' already contains its content (MID-3271)
-        ObjectQuery customQuery = createQuery();
-
-        provider.setQuery(customQuery);
+    private void searchPerformed(AjaxRequestTarget target) {
         saveSearchModel(null);
         Table table = getTable();
         table.setCurrentPage(null);
@@ -886,30 +898,37 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     }
 
-    public void refreshTable(Class<C> newTypeClass, AjaxRequestTarget target) {
-        BoxedTablePanel<SelectableBean<C>> table = getTable();
-        if (isTypeChanged(newTypeClass)) {
-            Class<C> newType = newTypeClass;
-
-            ISelectableDataProvider provider = getDataProvider();
-            provider.setQuery(createQuery());
-            if (newType != null) {
-                if (provider instanceof ContainerListDataProvider) {
-                    ((ContainerListDataProvider) provider).setType(newTypeClass);
-                }
-                if (provider instanceof SelectableBeanContainerDataProvider) {
-                    ((SelectableBeanContainerDataProvider) provider).setType(newTypeClass);
-                }
-            }
-
+    public void refreshTable(AjaxRequestTarget target) {
+        BoxedTablePanel<PO> table = getTable();
+//        if (isTypeChanged(newTypeClass)) {
+//            Class<C> newType = newTypeClass;
+//
+////            ISelectableDataProvider provider = getDataProvider();
+////            provider.setQuery(createQuery());
+//            if (newType != null) {
+//                if (provider instanceof ContainerListDataProvider) {
+//                    ((ContainerListDataProvider) provider).setType(newTypeClass);
+//                }
+//                if (provider instanceof SelectableBeanContainerDataProvider) {
+//                    ((SelectableBeanContainerDataProvider) provider).setType(newTypeClass);
+//                }
+//            }
+//
+//            ((WebMarkupContainer) table.get("box")).addOrReplace(initSearch("header"));
+//            if (newType != null && !getType().equals(newType)) {
+//                setType(newType);
+//                resetSearchModel();
+//                table.setCurrentPage(null);
+//            } else {
+//                saveSearchModel(getCurrentTablePaging());
+//            }
+//        }
+        if (searchModel.getObject().isTypeChanged()){
             ((WebMarkupContainer) table.get("box")).addOrReplace(initSearch("header"));
-            if (newType != null && !getType().equals(newType)) {
-                setType(newType);
-                resetSearchModel();
-                table.setCurrentPage(null);
-            } else {
-                saveSearchModel(getCurrentTablePaging());
-            }
+            resetSearchModel();
+            table.setCurrentPage(null);
+        } else {
+            saveSearchModel(getCurrentTablePaging());
         }
 
         target.add(table);
@@ -941,56 +960,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     public void clearCache() {
         WebComponentUtil.clearProviderCache(getDataProvider());
-    }
-
-    protected ObjectQuery createQuery() {
-        ObjectQuery query = getPrismContext().queryFor(getType()).build();
-        Search search = searchModel.getObject();
-        if (search != null){
-            query = getQueryFromSearch(search);
-        }
-
-        ObjectQuery archetypeQuery = getArchetypeQuery();
-        query = mergeQueries(query, archetypeQuery);
-
-        ObjectQuery customQuery = getCustomizeContentQuery();
-        query = mergeQueries(query, customQuery);
-
-        return query;
-    }
-
-    protected ObjectQuery getQueryFromSearch(Search search) {
-        return search.createObjectQuery(getPageBase());
-    }
-
-    private ObjectQuery mergeQueries(ObjectQuery origQuery, ObjectQuery query) {
-        if (query != null) {
-            if (origQuery == null) {
-                return query;
-            } else {
-                origQuery.addFilter(query.getFilter());
-            }
-        }
-        return origQuery;
-    }
-
-    private ObjectQuery getArchetypeQuery() {
-        if (!isCollectionViewPanel()) {
-            return null;
-        }
-        CompiledObjectCollectionView view = getObjectCollectionView();
-        if (view == null) {
-            getFeedbackMessages().add(ContainerableListPanel.this, "Unable to load collection view list", 0);
-            return null;
-        }
-        if (view.getFilter() == null) {
-            return null;
-        }
-
-        ObjectQuery query = getPrismContext().queryFor(getType()).build();
-        OperationResult result = new OperationResult(DOT_CLASS + "evaluateExpressionsInFilter");
-        query.addFilter(WebComponentUtil.evaluateExpressionsInFilter(view.getFilter(), result, getPageBase()));
-        return query;
     }
 
     protected ObjectQuery getCustomizeContentQuery() {
@@ -1047,7 +1016,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         this.manualRefreshEnabled = manualRefreshEnabled;
     }
 
-    protected LoadableModel<Search> getSearchModel() {
+    protected LoadableModel<Search<C>> getSearchModel() {
         return searchModel;
     }
 

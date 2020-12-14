@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.component.search;
 import java.io.Serializable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.Containerable;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -21,7 +22,7 @@ public abstract class SearchItem implements Serializable {
         TEXT, BOOLEAN, ENUM, BROWSER, REFERENCE, FILTER, DATE, ITEM_PATH, OBJECT_COLLECTION
     }
 
-    private final Search search;
+    private final Search<Containerable> search;
 
     private boolean fixed;
     private boolean editWhenVisible;
@@ -33,7 +34,7 @@ public abstract class SearchItem implements Serializable {
 
     public abstract String getName();
 
-    public abstract Type getType();
+    public abstract Type getSearchItemType();
 
     protected String getTitle(PageBase pageBase) {
         return "";
@@ -43,7 +44,7 @@ public abstract class SearchItem implements Serializable {
         return "";
     }
 
-    public Search getSearch() {
+    public Search<Containerable> getSearch() {
         return search;
     }
 

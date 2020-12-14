@@ -67,7 +67,7 @@ public class FilterSearchItem extends SearchItem {
     }
 
     @Override
-    public Type getType() {
+    public Type getSearchItemType() {
         return Type.FILTER;
     }
 

@@ -72,17 +72,17 @@ public class RepositoryObjectDataProvider
 
             Collection<SelectorOptions<GetOperationOptions>> options = getOptions();
             List<PrismObject<? extends ObjectType>> list = getModel().searchObjects((Class) type, query, options,
-                    getPage().createSimpleTask(OPERATION_SEARCH_OBJECTS), result);
+                    getPageBase().createSimpleTask(OPERATION_SEARCH_OBJECTS), result);
             for (PrismObject<? extends ObjectType> object : list) {
                 getAvailableData().add(createItem(object, result));
             }
         } catch (Exception ex) {
-            result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.listObjects.fatalError").getString(), ex);
+            result.recordFatalError(getPageBase().createStringResource("ObjectDataProvider.message.listObjects.fatalError").getString(), ex);
         } finally {
             result.computeStatusIfUnknown();
         }
 
-        getPage().showResult(result, false);
+        getPageBase().showResult(result, false);
 
         LOGGER.trace("end::iterator()");
         return getAvailableData().iterator();
@@ -135,7 +135,7 @@ public class RepositoryObjectDataProvider
         String type = null;
         try {
             resource = getModel().getObject(ResourceType.class, oid, options,
-                    getPage().createSimpleTask(OPERATION_LOAD_RESOURCE), subResult);
+                    getPageBase().createSimpleTask(OPERATION_LOAD_RESOURCE), subResult);
 
             PrismReference ref = resource.findReference(ResourceType.F_CONNECTOR_REF);
             if (ref != null && ref.getValue() != null) {
@@ -152,10 +152,10 @@ public class RepositoryObjectDataProvider
             subResult.recordSuccess();
         } catch (ObjectNotFoundException e) {
             LoggingUtils.logException(LOGGER, "Resource with oid {} not found", e, oid);
-            result.recordPartialError(getPage().createStringResource("ObjectDataProvider.message.loadResourceForAccount.notFound", oid).getString());
+            result.recordPartialError(getPageBase().createStringResource("ObjectDataProvider.message.loadResourceForAccount.notFound", oid).getString());
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load resource for account", ex);
-            result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.loadResourceForAccount.fatalError").getString(), ex);
+            result.recordFatalError(getPageBase().createStringResource("ObjectDataProvider.message.loadResourceForAccount.fatalError").getString(), ex);
         } finally {
             subResult.recomputeStatus();
         }
@@ -170,13 +170,13 @@ public class RepositoryObjectDataProvider
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
             count = getModel().countObjects(type, getQuery(), getOptions(),
-                    getPage().createSimpleTask(OPERATION_COUNT_OBJECTS), result);
+                    getPageBase().createSimpleTask(OPERATION_COUNT_OBJECTS), result);
         } catch (Exception ex) {
-            result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.countObjects.fatalError").getString(), ex);
+            result.recordFatalError(getPageBase().createStringResource("ObjectDataProvider.message.countObjects.fatalError").getString(), ex);
         } finally {
             result.computeStatusIfUnknown();
         }
-        getPage().showResult(result, false);
+        getPageBase().showResult(result, false);
         LOGGER.trace("end::internalSize()");
         return count;
     }

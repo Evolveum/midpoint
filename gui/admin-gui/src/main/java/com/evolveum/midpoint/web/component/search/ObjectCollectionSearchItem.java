@@ -31,16 +31,13 @@ import org.jetbrains.annotations.NotNull;
 import java.io.Serializable;
 
 /**
- * @author honchar
+ * @author skublik
  */
 public class ObjectCollectionSearchItem extends SearchItem {
 
     private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(ObjectCollectionSearchItem.class);
 
-    public static final String F_APPLY_FILTER = "applyFilter";
-
-    private boolean applyFilter;
     private CompiledObjectCollectionView objectCollectionView;
 
     public ObjectCollectionSearchItem(Search search, @NotNull CompiledObjectCollectionView objectCollectionView) {
@@ -82,7 +79,7 @@ public class ObjectCollectionSearchItem extends SearchItem {
     }
 
     @Override
-    public Type getType() {
+    public Type getSearchItemType() {
         return Type.OBJECT_COLLECTION;
     }
 
@@ -111,14 +108,6 @@ public class ObjectCollectionSearchItem extends SearchItem {
             }
         }
         return null;
-    }
-
-    public boolean isApplyFilter() {
-        return applyFilter;
-    }
-
-    public void setApplyFilter(boolean applyFilter) {
-        this.applyFilter = applyFilter;
     }
 
     public CompiledObjectCollectionView getObjectCollectionView() {

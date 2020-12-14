@@ -22,28 +22,28 @@ import java.io.Serializable;
 public class DebugSearchDto implements Serializable, DebugDumpable {
     private static final long serialVersionUID = 1L;
 
-    public static final String F_TYPE = "type";
+//    public static final String F_TYPE = "type";
     public static final String F_RESOURCE = "resource";
     public static final String F_OID_FILTER = "oidFilter";
     public static final String F_OBJECT_CLASS = "objectClass";
     public static final String F_SEARCH = "search";
 
-    private ObjectTypes type;
+//    private ObjectTypes type;
     private ObjectViewDto resource;
     private Search search;
     private String oidFilter;
     private QName objectClass;
 
-    public ObjectTypes getType() {
-        if (type == null) {
-            type = ObjectTypes.SYSTEM_CONFIGURATION;
-        }
-        return type;
-    }
+//    public ObjectTypes getType() {
+//        if (type == null) {
+//            type = ObjectTypes.SYSTEM_CONFIGURATION;
+//        }
+//        return type;
+//    }
 
-    public void setType(ObjectTypes type) {
-        this.type = type;
-    }
+//    public void setType(ObjectTypes type) {
+//        this.type = type;
+//    }
 
     public ObjectViewDto getResource() {
         return resource;
@@ -87,7 +87,7 @@ public class DebugSearchDto implements Serializable, DebugDumpable {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("DebugSearchDto\n");
-        DebugUtil.debugDumpWithLabelLn(sb, "type", type==null?null:type.toString(), indent+1);
+//        DebugUtil.debugDumpWithLabelLn(sb, "type", type==null?null:type.toString(), indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "resource", resource==null?null:resource.toString(), indent+1);
         DebugUtil.debugDumpWithLabel(sb, "objectClass", objectClass==null? null : objectClass.toString(), indent+1);
         DebugUtil.debugDumpWithLabel(sb, "search", search, indent+1);

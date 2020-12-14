@@ -16,6 +16,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.web.component.search.ContainerTypeSearchItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -171,17 +172,7 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
 
     @Override
     protected Search createSearch() {
-        List<ItemPath> availableItemPath = Arrays.asList(
-                ItemPath.create(ObjectType.F_NAME),
-                ItemPath.create(ObjectType.F_LIFECYCLE_STATE),
-                ItemPath.create(ObjectType.F_SUBTYPE),
-                ItemPath.create(ShadowType.F_DEAD),
-                ItemPath.create(ShadowType.F_INTENT),
-                ItemPath.create(ShadowType.F_EXISTS),
-                ItemPath.create(ShadowType.F_SYNCHRONIZATION_SITUATION));
-
-        return SearchFactory.createSearch(ShadowType.class, null, null, null,
-                getPageBase(), availableItemPath, true, false, Search.PanelType.DEFAULT);
+        return SearchFactory.createSearch(ShadowType.class, getPageBase());
     }
 
     @Override

@@ -7,25 +7,19 @@
 package com.evolveum.midpoint.web.component.search;
 
 import java.io.Serializable;
-import java.util.Iterator;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
@@ -64,7 +58,7 @@ public class SearchItemPanel<T extends Serializable> extends AbstractSearchItemP
         Component searchItemField;
         PropertySearchItem<T> item = getModelObject();
         IModel<List<DisplayableValue<?>>> choices = null;
-        switch (item.getType()) {
+        switch (item.getSearchItemType()) {
             case REFERENCE:
                 searchItemField = new ReferenceValueSearchPanel(ID_SEARCH_ITEM_FIELD,
                         new PropertyModel<>(getModel(), "value.value"),

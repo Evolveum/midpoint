@@ -394,7 +394,7 @@ public class PageUsers extends PageAdmin {
 
         showResult(result);
         target.add(getFeedbackPanel());
-        getTable().refreshTable(UserType.class, target);
+        getTable().refreshTable(target);
         getTable().clearCache();
     }
 
@@ -454,7 +454,7 @@ public class PageUsers extends PageAdmin {
 
         showResult(result);
         target.add(getFeedbackPanel());
-        getTable().refreshTable(UserType.class, target);
+        getTable().refreshTable(target);
         getTable().clearCache();
     }
 
@@ -488,7 +488,7 @@ public class PageUsers extends PageAdmin {
 
         showResult(result);
         target.add(getFeedbackPanel());
-        getTable().refreshTable(UserType.class, target);
+        getTable().refreshTable(target);
         getTable().clearCache();
     }
 
@@ -557,7 +557,7 @@ public class PageUsers extends PageAdmin {
         showResult(result);
         target.add(getFeedbackPanel());
         getTable().clearCache();
-        getTable().refreshTable(UserType.class, target);
+        getTable().refreshTable(target);
     }
 
     private IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){

@@ -12,8 +12,8 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
@@ -47,21 +47,21 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author Viliam Repan (lazyman)
  */
-public class Search implements Serializable, DebugDumpable {
+public class Search<C extends Containerable> implements Serializable, DebugDumpable {
 
     public static final String F_AVAILABLE_DEFINITIONS = "availableDefinitions";
     public static final String F_ITEMS = "items";
     public static final String F_ADVANCED_QUERY = "advancedQuery";
     public static final String F_ADVANCED_ERROR = "advancedError";
     public static final String F_FULL_TEXT = "fullText";
-    public static final String F_COLLECTION = "collectionView";
+    public static final String F_COLLECTION = "collectionSearchItem";
+    public static final String F_TYPE = "type";
 
     private static final Trace LOGGER = TraceManager.getTrace(Search.class);
 
     public enum PanelType {
         DEFAULT,
         MEMBER_PANEL,
-        DEBUG_PAGE;
     }
 
     private SearchBoxModeType searchType;
@@ -73,20 +73,22 @@ public class Search implements Serializable, DebugDumpable {
     private String advancedError;
     private String fullText;
 
-    private final Class<? extends Containerable> type;
+    private final ContainerTypeSearchItem typeSearchItem;
     private final List<SearchItemDefinition> allDefinitions;
 
     private final List<SearchItemDefinition> availableDefinitions = new ArrayList<>();
     private final List<SearchItem> items = new ArrayList<>();
-    private ObjectCollectionSearchItem objectCollectionView;
 
-    public Search(Class<? extends Containerable> type, List<SearchItemDefinition> allDefinitions) {
-        this(type, allDefinitions, false, null);
+    private ObjectCollectionSearchItem objectCollectionSearchItem;
+    private boolean isCollectionItemVisible = false;
+
+    public Search(ContainerTypeSearchItem<C> typeSearchItem, List<SearchItemDefinition> allDefinitions) {
+        this(typeSearchItem, allDefinitions, false, null);
     }
 
-    public Search(Class<? extends Containerable> type, List<SearchItemDefinition> allDefinitions,
+    public Search(ContainerTypeSearchItem<C> typeSearchItem, List<SearchItemDefinition> allDefinitions,
             boolean isFullTextSearchEnabled, SearchBoxModeType searchBoxModeType) {
-        this.type = type;
+        this.typeSearchItem = typeSearchItem;
         this.allDefinitions = allDefinitions;
         this.isFullTextSearchEnabled = isFullTextSearchEnabled;
 
@@ -104,16 +106,20 @@ public class Search implements Serializable, DebugDumpable {
         return Collections.unmodifiableList(items);
     }
 
-    public void setCollectionView(CompiledObjectCollectionView compiledView) {
-        if (compiledView == null) {
-            objectCollectionView = null;
-            return;
-        }
-        objectCollectionView = new ObjectCollectionSearchItem(this, compiledView);
+    public void setCollectionSearchItem(ObjectCollectionSearchItem objectCollectionSearchItem) {
+        this.objectCollectionSearchItem = objectCollectionSearchItem;
     }
 
-    public ObjectCollectionSearchItem getCollectionView() {
-        return objectCollectionView;
+    public ObjectCollectionSearchItem getCollectionSearchItem() {
+        return objectCollectionSearchItem;
+    }
+
+    public boolean isCollectionItemVisible() {
+        return isCollectionItemVisible;
+    }
+
+    public void setCollectionItemVisible(boolean collectionItemVisible) {
+        isCollectionItemVisible = collectionItemVisible;
     }
 
     public List<PropertySearchItem> getPropertyItems() {
@@ -240,23 +246,77 @@ public class Search implements Serializable, DebugDumpable {
         }
     }
 
-    public Class<? extends Containerable> getType() {
-        return type;
+    public Class<C> getTypeClass() {
+        return typeSearchItem.getTypeClass();
+    }
+
+    public void setTypeClass(Class<? extends C> type) {
+        typeSearchItem.setTypeClass(type);
+    }
+
+    public ContainerTypeSearchItem getType() {
+        return typeSearchItem;
     }
 
     public ObjectQuery createObjectQuery(PageBase pageBase) {
         return this.createObjectQuery(null, pageBase);
     }
 
+    public ObjectQuery createObjectQuery(PageBase pageBase, ObjectQuery customizeContentQuery) {
+        return this.createObjectQuery(null, pageBase, customizeContentQuery);
+    }
+
     public ObjectQuery createObjectQuery(ExpressionVariables variables, PageBase pageBase) {
+        return this.createObjectQuery(variables, pageBase, null);
+    }
+
+    public ObjectQuery createObjectQuery(ExpressionVariables variables, PageBase pageBase, ObjectQuery customizeContentQuery) {
         LOGGER.debug("Creating query from {}", this);
+        ObjectQuery query;
         if (SearchBoxModeType.ADVANCED.equals(searchType)) {
-            return createObjectQueryAdvanced(pageBase);
+            query = createObjectQueryAdvanced(pageBase);
         } else if (SearchBoxModeType.FULLTEXT.equals(searchType)) {
-            return createObjectQueryFullText(pageBase);
+            query = createObjectQueryFullText(pageBase);
         } else {
-            return createObjectQuerySimple(variables, pageBase);
+            query = createObjectQuerySimple(variables, pageBase);
         }
+        if (query == null) {
+            query = pageBase.getPrismContext().queryFor(getTypeClass()).build();
+        }
+
+        ObjectQuery archetypeQuery = getArchetypeQuery(pageBase);
+        query = mergeQueries(query, archetypeQuery);
+
+        query = mergeQueries(query, customizeContentQuery);
+
+        LOGGER.debug("Created query: {}", query);
+        return query;
+    }
+
+    private ObjectQuery getArchetypeQuery(PageBase pageBase) {
+        if (getCollectionSearchItem() == null || getCollectionSearchItem().getObjectCollectionView() == null) {
+            return null;
+        }
+        CompiledObjectCollectionView view = getCollectionSearchItem().getObjectCollectionView();
+        if (view.getFilter() == null) {
+            return null;
+        }
+
+        ObjectQuery query = pageBase.getPrismContext().queryFor(getTypeClass()).build();
+        OperationResult result = new OperationResult("evaluate filter");
+        query.addFilter(WebComponentUtil.evaluateExpressionsInFilter(view.getFilter(), result, pageBase));
+        return query;
+    }
+
+    private ObjectQuery mergeQueries(ObjectQuery origQuery, ObjectQuery query) {
+        if (query != null) {
+            if (origQuery == null) {
+                return query;
+            } else {
+                origQuery.addFilter(query.getFilter());
+            }
+        }
+        return origQuery;
     }
 
     private ObjectQuery createObjectQuerySimple(ExpressionVariables defaultVariables, PageBase pageBase) {
@@ -305,7 +365,7 @@ public class Search implements Serializable, DebugDumpable {
                 }
                 if (filter != null) {
                     try {
-                        ObjectFilter convertedFilter = pageBase.getQueryConverter().parseFilter(filter, getType());
+                        ObjectFilter convertedFilter = pageBase.getQueryConverter().parseFilter(filter, getTypeClass());
 
                         convertedFilter = WebComponentUtil.evaluateExpressionsInFilter(convertedFilter, variables, new OperationResult("evaluated filter"), pageBase);
                         if (convertedFilter != null) {
@@ -330,7 +390,6 @@ public class Search implements Serializable, DebugDumpable {
             default:
                 query = queryFactory.createQuery(queryFactory.createAnd(conditions));
         }
-        query = mergeWithCollectionFilter(query, pageBase);
         return query;
     }
 
@@ -488,7 +547,6 @@ public class Search implements Serializable, DebugDumpable {
                 return null;
             }
             @NotNull ObjectQuery query = pageBase.getPrismContext().queryFactory().createQuery(filter);
-            mergeWithCollectionFilter(query, pageBase);
             return query;
         } catch (Exception ex) {
             advancedError = createErrorMessage(ex);
@@ -497,27 +555,26 @@ public class Search implements Serializable, DebugDumpable {
         return null;
     }
 
-    private ObjectQuery mergeWithCollectionFilter(ObjectQuery query, PageBase pageBase) {
-        if (getCollectionView() != null && getCollectionView().getObjectCollectionView().getFilter() != null
-                && getCollectionView().isApplyFilter()) {
-            if (query == null) {
-                query = pageBase.getPrismContext().queryFor(getType()).build();
-            }
-            OperationResult result = new OperationResult("Evaluate_view_filter");
-            query.addFilter(WebComponentUtil.evaluateExpressionsInFilter(
-                    getCollectionView().getObjectCollectionView().getFilter(), result, pageBase));
-        }
-        return query;
-    }
+//    private ObjectQuery mergeWithCollectionFilter(ObjectQuery query, PageBase pageBase) {
+//        if (getCollectionSearchItem() != null && getCollectionSearchItem().getObjectCollectionView().getFilter() != null
+//                && getCollectionSearchItem().isApplyFilter()) {
+//            if (query == null) {
+//                query = pageBase.getPrismContext().queryFor(getTypeClass()).build();
+//            }
+//            OperationResult result = new OperationResult("Evaluate_view_filter");
+//            query.addFilter(WebComponentUtil.evaluateExpressionsInFilter(
+//                    getCollectionSearchItem().getObjectCollectionView().getFilter(), result, pageBase));
+//        }
+//        return query;
+//    }
 
     private ObjectQuery createObjectQueryFullText(PageBase pageBase) {
         if (StringUtils.isEmpty(fullText)) {
             return null;
         }
-        ObjectQuery query = pageBase.getPrismContext().queryFor(type)
+        ObjectQuery query = pageBase.getPrismContext().queryFor(getTypeClass())
                 .fullText(fullText)
                 .build();
-        mergeWithCollectionFilter(query, pageBase);
         return query;
     }
 
@@ -527,7 +584,7 @@ public class Search implements Serializable, DebugDumpable {
         }
 
         SearchFilterType search = ctx.parserFor(advancedQuery).type(SearchFilterType.COMPLEX_TYPE).parseRealValue();
-        return ctx.getQueryConverter().parseFilter(search, type);
+        return ctx.getQueryConverter().parseFilter(search, getTypeClass());
     }
 
     public boolean isAdvancedQueryValid(PrismContext ctx) {
@@ -607,7 +664,7 @@ public class Search implements Serializable, DebugDumpable {
         sb.append("Search\n");
         DebugUtil.debugDumpWithLabelLn(sb, "advancedQuery", advancedQuery, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "advancedError", advancedError, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "type", type, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "type", getTypeClass(), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "allDefinitions", allDefinitions, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "availableDefinitions", availableDefinitions, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "items", items, indent + 1);
@@ -617,7 +674,13 @@ public class Search implements Serializable, DebugDumpable {
     @Override
     public String toString() {
         return "Search{" +
+                "objectCollectionSearchItem=" + objectCollectionSearchItem +
+                "typeSearchItem=" + typeSearchItem +
                 "items=" + items +
                 '}';
+    }
+
+    public boolean isTypeChanged(){
+        return getType() == null ? false : getType().isTypeChanged();
     }
 }

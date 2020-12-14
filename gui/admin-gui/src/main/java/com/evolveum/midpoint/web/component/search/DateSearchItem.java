@@ -44,7 +44,7 @@ public class DateSearchItem extends PropertySearchItem {
     }
 
     @Override
-    public Type getType() {
+    public Type getSearchItemType() {
         return Type.DATE;
     }
 }

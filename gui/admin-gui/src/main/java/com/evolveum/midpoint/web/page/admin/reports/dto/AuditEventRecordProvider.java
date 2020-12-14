@@ -31,7 +31,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -40,7 +39,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
-import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
@@ -153,17 +151,17 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
     @Override
     public Iterator<AuditEventRecordType> internalIterator(long first, long count) {
         saveCurrentPage(first, count);
-        Task task = getPage().createSimpleTask(OPERATION_SEARCH_OBJECTS);
+        Task task = getPageBase().createSimpleTask(OPERATION_SEARCH_OBJECTS);
         OperationResult result = task.getResult();
         List<AuditEventRecordType> recordsList = null;
         try {
             recordsList = listRecords(first, count, task, result);
         } catch (Exception e) {
-            result.recordFatalError(getPage().createStringResource("AuditEventProvider.message.internalIterator.fatalError", e.getMessage()).getString(), e);
+            result.recordFatalError(getPageBase().createStringResource("AuditEventProvider.message.internalIterator.fatalError", e.getMessage()).getString(), e);
             LoggingUtils.logException(LOGGER, "Cannot list audit records: " + e.getMessage(), e);
         }
         result.computeStatusIfUnknown();
-        getPage().showResult(result, false);
+        getPageBase().showResult(result, false);
 
         if (recordsList == null) {
             recordsList = Collections.emptyList();
@@ -176,37 +174,37 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
         CollectionRefSpecificationType collectionRef = getCollectionRefForQuery();
         ObjectCollectionType collection = getCollectionForQuery();
         if (collection != null && (collection.getFilter() != null || collectionRef.getFilter() != null)) {
-            Task task = getPage().createSimpleTask("Count audit records");
+            Task task = getPageBase().createSimpleTask("Count audit records");
             try {
-                count = getPage().getDashboardService().countAuditEvents(collectionRef, null, task, task.getResult());
+                count = getPageBase().getDashboardService().countAuditEvents(collectionRef, null, task, task.getResult());
             } catch (Exception e) {
                 task.getResult().recordFatalError(
-                        getPage().createStringResource("AuditEventRecordProvider.message.internalSize.fatalError", e.getMessage()).getString(), e);
+                        getPageBase().createStringResource("AuditEventRecordProvider.message.internalSize.fatalError", e.getMessage()).getString(), e);
                 LoggingUtils.logException(LOGGER, "Cannot count audit records: " + e.getMessage(), e);
             }
         } else {
             String query;
             String origQuery;
             Map<String, Object> parameters = new HashMap<>();
-            origQuery = DashboardUtils.createQuery(collection, parameters, false, getPage().getClock());
+            origQuery = DashboardUtils.createQuery(collection, parameters, false, getPageBase().getClock());
             if (StringUtils.isNotBlank(origQuery)) {
                 query = generateFullQuery(origQuery, false, true);
             } else {
                 parameters = parametersSupplier.get();
                 query = generateFullQuery(parameters, false, true);
             }
-            Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
+            Task task = getPageBase().createSimpleTask(OPERATION_COUNT_OBJECTS);
             OperationResult result = task.getResult();
             try {
                 count = (int) getAuditService().countObjects(query, parameters, task, result);
             } catch (Exception e) {
                 result.recordFatalError(
-                        getPage().createStringResource("AuditEventRecordProvider.message.internalSize.fatalError", e.getMessage()).getString(), e);
+                        getPageBase().createStringResource("AuditEventRecordProvider.message.internalSize.fatalError", e.getMessage()).getString(), e);
                 LoggingUtils.logException(LOGGER, "Cannot count audit records: " + e.getMessage(), e);
             }
 
             result.computeStatusIfUnknown();
-            getPage().showResult(result, false);
+            getPageBase().showResult(result, false);
         }
         return count;
     }
@@ -230,17 +228,17 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
                         return 0;
                     }
                 };
-                getPage().getDashboardService().searchObjectFromCollection(collectionRef, handler, paging, task, task.getResult(), false);
+                getPageBase().getDashboardService().searchObjectFromCollection(collectionRef, handler, paging, task, task.getResult(), false);
             } catch (Exception e) {
                 result.recordFatalError(
-                        getPage().createStringResource("AuditEventRecordProvider.message.listRecords.fatalError", e.getMessage()).getString(), e);
+                        getPageBase().createStringResource("AuditEventRecordProvider.message.listRecords.fatalError", e.getMessage()).getString(), e);
                 LoggingUtils.logException(LOGGER, "Cannot search audit records: " + e.getMessage(), e);
             }
         } else {
             String query;
             String origQuery;
             Map<String, Object> parameters = new HashMap<>();
-            origQuery = DashboardUtils.createQuery(getCollectionForQuery(), parameters, false, getPage().getClock());
+            origQuery = DashboardUtils.createQuery(getCollectionForQuery(), parameters, false, getPageBase().getClock());
             if (StringUtils.isNotBlank(origQuery)) {
                 query = generateFullQuery(origQuery, true, false);
             } else {
@@ -257,7 +255,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
                 auditRecords = getAuditService().listRecords(query, parameters, task, result);
             } catch (Exception e) {
                 result.recordFatalError(
-                        getPage().createStringResource("AuditEventRecordProvider.message.listRecords.fatalError", e.getMessage()).getString(), e);
+                        getPageBase().createStringResource("AuditEventRecordProvider.message.listRecords.fatalError", e.getMessage()).getString(), e);
                 LoggingUtils.logException(LOGGER, "Cannot search audit records: " + e.getMessage(), e);
             }
             if (auditRecords == null) {
@@ -268,7 +266,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
             }
 
             result.computeStatusIfUnknown();
-            getPage().showResult(result, false);
+            getPageBase().showResult(result, false);
         }
         return auditRecordList;
     }
@@ -286,9 +284,9 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
             return null;
         }
         ObjectReferenceType ref = objectCollectionModel.getObject().getCollectionRef();
-        Task task = getPage().createSimpleTask("Search collection");
+        Task task = getPageBase().createSimpleTask("Search collection");
         ObjectCollectionType collection = (ObjectCollectionType) WebModelServiceUtils.loadObject(ref,
-                getPage(), task, task.getResult()).getRealValue();
+                getPageBase(), task, task.getResult()).getRealValue();
         return collection;
     }
 

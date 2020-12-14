@@ -181,7 +181,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         showResult(result);
 
         // refresh feedback and table
-        refreshTable(TaskType.class, target);
+        refreshTable(target);
         target.add(getTable());
         clearCache();
     }
@@ -709,7 +709,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         showResult(result);
 
         //refresh feedback and table
-        refreshTable(TaskType.class, target);
+        refreshTable(target);
         clearCache();
     }
 
@@ -722,7 +722,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         showResult(result);
 
         //refresh feedback and table
-        refreshTable(TaskType.class, target);
+        refreshTable(target);
         clearCache();
 
     }
@@ -763,7 +763,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         showResult(result);
 
         //refresh feedback and table
-        refreshTable(TaskType.class, target);
+        refreshTable(target);
         clearCache();
 
     }
@@ -791,7 +791,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         showResult(result);
 
         // refresh feedback and table
-        refreshTable(TaskType.class, target);
+        refreshTable(target);
         clearCache();
     }
 
@@ -811,7 +811,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         }
         showResult(result);
 
-        refreshTable(TaskType.class, target);
+        refreshTable(target);
         clearCache();
     }
 
@@ -828,7 +828,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         }
         showResult(result);
 
-        refreshTable(TaskType.class, target);
+        refreshTable(target);
         clearCache();
     }
 
@@ -844,7 +844,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         }
         showResult(result);
 
-        refreshTable(TaskType.class, target);
+        refreshTable(target);
         clearCache();
     }
 
@@ -861,7 +861,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         }
         showResult(result);
 
-        refreshTable(TaskType.class, target);
+        refreshTable(target);
         clearCache();
     }
 
@@ -886,7 +886,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         }
         showResult(result);
 
-        refreshTable(TaskType.class, target);
+        refreshTable(target);
         clearCache();
     }
 

@@ -43,7 +43,6 @@ import org.apache.wicket.util.time.Duration;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -62,7 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 /**
  * @author Viliam Repan (lazyman)
  */
-public class SearchPanel extends BasePanel<Search> {
+public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOG = TraceManager.getTrace(SearchPanel.class);
@@ -99,6 +98,7 @@ public class SearchPanel extends BasePanel<Search> {
     private static final String ID_MENU_ITEM = "menuItem";
     private static final String ID_MENU_ITEM_BODY = "menuItemBody";
     private static final String ID_COLLECTION_REF_PANEL = "collectionRefPanel";
+    private static final String ID_TYPE_PANEL = "typePanel";
 
     private static final String OPERATION_LOAD_COLLECTION_REF_WRAPPER = SearchPanel.class.getSimpleName()
             + ".loadCollectionRefWrapper()";
@@ -107,11 +107,11 @@ public class SearchPanel extends BasePanel<Search> {
     boolean advancedSearch;
     boolean queryPlaygroundAccessible;
 
-    public SearchPanel(String id, IModel<Search> model) {
+    public SearchPanel(String id, IModel<Search<C>> model) {
         this(id, model, true);
     }
 
-    public SearchPanel(String id, IModel<Search> model, boolean advancedSearch) {
+    public SearchPanel(String id, IModel<Search<C>> model, boolean advancedSearch) {
         super(id, model);
         this.advancedSearch = advancedSearch;
         queryPlaygroundAccessible = SecurityUtils.isPageAuthorized(PageRepositoryQuery.class);
@@ -144,6 +144,11 @@ public class SearchPanel extends BasePanel<Search> {
         SearchObjectCollectionPanel collectionPanel = new SearchObjectCollectionPanel(ID_COLLECTION_REF_PANEL, collectionModel);
         form.add(collectionPanel);
         collectionPanel.add(new VisibleBehaviour(() -> collectionModel != null && collectionModel.getObject() != null));
+
+        PropertyModel<ContainerTypeSearchItem> typeModel = new PropertyModel<>(getModel(), Search.F_TYPE);
+        SearchTypePanel typePanel = new SearchTypePanel(ID_TYPE_PANEL, typeModel);
+        form.add(typePanel);
+        typePanel.add(new VisibleBehaviour(() -> typeModel != null && typeModel.getObject() != null && typeModel.getObject().isVisible()));
 
         ListView<S> items = new ListView<S>(ID_ITEMS,
                 new PropertyModel<>(getModel(), Search.F_ITEMS)) {
@@ -529,7 +534,7 @@ public class SearchPanel extends BasePanel<Search> {
         Search search = getModelObject();
         PageRepositoryQuery pageQuery;
         if (search != null) {
-            ObjectTypes type = search.getType() != null ? ObjectTypes.getObjectType(search.getType().getSimpleName()) : null;
+            ObjectTypes type = search.getTypeClass() != null ? ObjectTypes.getObjectType(search.getTypeClass().getSimpleName()) : null;
             QName typeName = type != null ? type.getTypeQName() : null;
             String inner = search.getAdvancedQuery();
             if (StringUtils.isNotBlank(inner)) {
@@ -648,7 +653,7 @@ public class SearchPanel extends BasePanel<Search> {
                     public boolean isVisible() {
                         SearchItemDefinition property = item.getModelObject();
 
-                        Search search = SearchPanel.this.getModelObject();
+                        Search<C> search = SearchPanel.this.getModelObject();
                         if (!search.getAvailableDefinitions().contains(property)) {
                             return false;
                         }
@@ -767,15 +772,7 @@ public class SearchPanel extends BasePanel<Search> {
         target.appendJavaScript("$('#" + popoverId + "').toggle();");
     }
 
-    void searchPerformed(AjaxRequestTarget target) {
-        Search search = getModelObject();
-        ObjectQuery query = getQueryFromSearch(search);
-        LOG.debug("Created query: {}", query);
-        searchPerformed(query, target);
-    }
-
-    protected ObjectQuery getQueryFromSearch(Search search) {
-        return search.createObjectQuery(getPageBase());
+    public void searchPerformed(AjaxRequestTarget target) {
     }
 
     void refreshSearchForm(AjaxRequestTarget target) {
@@ -784,9 +781,6 @@ public class SearchPanel extends BasePanel<Search> {
     }
 
     protected void saveSearch(Search search, AjaxRequestTarget target) {
-    }
-
-    public void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
     }
 
     public void togglePopover(AjaxRequestTarget target, Component button, Component popover, int paddingRight) {

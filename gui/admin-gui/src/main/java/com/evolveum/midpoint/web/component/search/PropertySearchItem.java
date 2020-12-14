@@ -9,7 +9,6 @@ package com.evolveum.midpoint.web.component.search;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -19,7 +18,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -83,7 +81,7 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem {
         }
         String key = getDefinition().getDef().getDisplayName();
         if (StringUtils.isEmpty(key)) {
-            key = getSearch().getType().getSimpleName() + '.' + getDefinition().getDef().getItemName().getLocalPart();
+            key = getSearch().getTypeClass().getSimpleName() + '.' + getDefinition().getDef().getItemName().getLocalPart();
         }
 
         StringResourceModel nameModel = PageBase.createStringResourceStatic(null, key);
@@ -101,7 +99,7 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem {
     }
 
     @Override
-    public Type getType() {
+    public Type getSearchItemType() {
         if (getDefinition().getDef() instanceof PrismReferenceDefinition) {
             return Type.REFERENCE;
         }

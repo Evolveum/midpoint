@@ -16,7 +16,6 @@ import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
@@ -38,7 +37,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -67,7 +65,6 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -267,12 +264,12 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             @Override
-            protected Search createSearch() {
+            protected Search createSearch(Class<? extends ObjectType> type) {
                 Search search;
                 if (getMemberPanelStorage() != null && getMemberPanelStorage().getSearch() != null){
                     search = getMemberPanelStorage().getSearch();
                 } else {
-                    search = SearchFactory.createSearch(getDefaultObjectType(), pageBase);
+                    search = SearchFactory.createSearch(type, pageBase);
                     SchemaRegistry registry = getPrismContext().getSchemaRegistry();
                     PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(AbstractRoleMemberPanel.this.getModelObject().getClass());
                     List<SearchItemDefinition> configuredSearchItemDefs =
@@ -309,41 +306,18 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 //            }
 
             @Override
-            protected ObjectQuery getQueryFromSearch(Search search) {
-                ExpressionVariables variables = new ExpressionVariables();
-                variables.put(ExpressionConstants.VAR_OBJECT, AbstractRoleMemberPanel.this.getModelObject(),
-                        AbstractRoleMemberPanel.this.getModelObject().getClass());
-                return search.createObjectQuery(variables, getPageBase());
-            }
-
-            @Override
-            protected ObjectQuery createQuery() {
-                ObjectQuery q = super.createQuery();
-
-                ObjectQuery members = AbstractRoleMemberPanel.this.createContentQuery();
-
-                List<ObjectFilter> filters = new ArrayList<>();
-
-                if (q != null && q.getFilter() != null) {
-                    filters.add(q.getFilter());
-                }
-
-                if (members != null && members.getFilter() != null) {
-                    filters.add(members.getFilter());
-                }
-
-                QueryFactory queryFactory = pageBase.getPrismContext().queryFactory();
-                if (filters.size() == 1) {
-                    return queryFactory.createQuery(filters.iterator().next());
-                } else {
-                    return queryFactory.createQuery(queryFactory.createAnd(filters));
-                }
+            protected ObjectQuery getCustomizeContentQuery() {
+                return AbstractRoleMemberPanel.this.createContentQuery();
             }
 
             @Override
             protected ISelectableDataProvider createProvider() {
                 SelectableBeanObjectDataProvider provider = (SelectableBeanObjectDataProvider) super.createProvider();
                 provider.setIsMemberPanel(true);
+                ExpressionVariables variables = new ExpressionVariables();
+                variables.put(ExpressionConstants.VAR_OBJECT, AbstractRoleMemberPanel.this.getModelObject(),
+                        AbstractRoleMemberPanel.this.getModelObject().getClass());
+                provider.setQueryVariables(variables);
                 return provider;
             }
 
@@ -1000,7 +974,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         DropDownFormGroup<QName> typeChoice = (DropDownFormGroup) get(createComponentPath(ID_FORM, ID_OBJECT_TYPE));
         QName type = getMemberPanelStorage() != null ? getMemberPanelStorage().getType().getTypeQName() : typeChoice.getModelObject();
         getMemberTable().clearCache();
-        getMemberTable().refreshTable(WebComponentUtil.qnameToClass(getPrismContext(), type, FocusType.class), target);
+        getMemberTable().refreshTable(target);
         target.add(this);
     }
 

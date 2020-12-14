@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.component.search;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
@@ -31,6 +32,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
+import org.jetbrains.annotations.NotNull;
 
 public class SearchFactory {
 
@@ -167,20 +170,21 @@ public class SearchFactory {
 
     public static Search createSearchForShadow(
             ResourceShadowDiscriminator discriminator, ModelServiceLocator modelServiceLocator) {
-        return createSearch(ShadowType.class, discriminator, modelServiceLocator, true);
+        return createSearch(new ContainerTypeSearchItem<ShadowType>(new SearchValue(ShadowType.class, "")), discriminator, modelServiceLocator, true);
     }
 
-    public static <C extends Containerable> Search createContainerSearch(Class<C> type, ModelServiceLocator modelServiceLocator) {
+    public static <C extends Containerable> Search createContainerSearch(ContainerTypeSearchItem<C> type, ModelServiceLocator modelServiceLocator) {
         return createContainerSearch(type, null, modelServiceLocator);
     }
 
-    public static <C extends Containerable> Search createContainerSearch(Class<C> type, ItemPath defaultSearchItem, ModelServiceLocator modelServiceLocator) {
+    public static <C extends Containerable> Search createContainerSearch(ContainerTypeSearchItem<C> type, ItemPath defaultSearchItem, ModelServiceLocator modelServiceLocator) {
         return createContainerSearch(type, defaultSearchItem, null, modelServiceLocator);
     }
-    public static <C extends Containerable> Search createContainerSearch(Class<C> type, ItemPath defaultSearchItem, List<SearchItemDefinition> defaultAvailableDefs,
+    public static <C extends Containerable> Search createContainerSearch(ContainerTypeSearchItem<C> type, ItemPath defaultSearchItem, List<SearchItemDefinition> defaultAvailableDefs,
             ModelServiceLocator modelServiceLocator) {
 
-        PrismContainerDefinition<C> containerDef = modelServiceLocator.getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
+        PrismContainerDefinition<C> containerDef = modelServiceLocator.getPrismContext().getSchemaRegistry()
+                .findContainerDefinitionByCompileTimeClass(type.getTypeClass());
         List<SearchItemDefinition> availableDefs = defaultAvailableDefs;
         if (CollectionUtils.isEmpty(defaultAvailableDefs)) {
             availableDefs = getAvailableDefinitions(containerDef, null, true);
@@ -205,33 +209,38 @@ public class SearchFactory {
 //        return search;
 //    }
 
-    public static <T extends ObjectType> Search createSearch(Class<T> type, ModelServiceLocator modelServiceLocator) {
+    public static <T extends ObjectType> Search createSearch(Class<? extends T> type, ModelServiceLocator modelServiceLocator) {
+        @NotNull ObjectTypes objectTypes = ObjectTypes.getObjectType(type);
+        return createSearch(new ContainerTypeSearchItem<T>(new SearchValue(type,"ObjectType." + objectTypes.getTypeQName().getLocalPart())), null, modelServiceLocator, true);
+    }
+
+    public static <T extends ObjectType> Search createSearch(ContainerTypeSearchItem<T> type, ModelServiceLocator modelServiceLocator) {
         return createSearch(type, null, modelServiceLocator, true);
     }
 
     public static <T extends ObjectType> Search createSearch(
-            Class<T> type, ResourceShadowDiscriminator discriminator,
+            ContainerTypeSearchItem<T> type, ResourceShadowDiscriminator discriminator,
             ModelServiceLocator modelServiceLocator, boolean useDefsFromSuperclass) {
         return createSearch(type, null, null, discriminator, modelServiceLocator, null, useDefsFromSuperclass, true, Search.PanelType.DEFAULT);
     }
 
     public static <T extends ObjectType> Search createSearch(
-            Class<T> type, String collectionViewName, List<ItemPath> fixedSearchItems, ResourceShadowDiscriminator discriminator,
+            ContainerTypeSearchItem<T> type, String collectionViewName, List<ItemPath> fixedSearchItems, ResourceShadowDiscriminator discriminator,
             ModelServiceLocator modelServiceLocator, List<ItemPath> availableItemPath, boolean useDefsFromSuperclass, boolean useObjectCollection, Search.PanelType panelType) {
 
-        PrismObjectDefinition objectDef = findObjectDefinition(type, discriminator, modelServiceLocator);
+        PrismObjectDefinition objectDef = findObjectDefinition(type.getTypeClass(), discriminator, modelServiceLocator);
         List<SearchItemDefinition> availableDefs = getAvailableDefinitions(objectDef, availableItemPath, useDefsFromSuperclass);
-        boolean isFullTextSearchEnabled = isFullTextSearchEnabled(modelServiceLocator, type);
+        boolean isFullTextSearchEnabled = isFullTextSearchEnabled(modelServiceLocator, type.getTypeClass());
 
         Search search = new Search(type, availableDefs, isFullTextSearchEnabled,
-                getDefaultSearchType(modelServiceLocator, type, collectionViewName, panelType));
+                getDefaultSearchType(modelServiceLocator, type.getTypeClass(), collectionViewName, panelType));
 
         SchemaRegistry registry = modelServiceLocator.getPrismContext().getSchemaRegistry();
-        PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(type);
+        PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(type.getTypeClass());
 
         List<SearchItemDefinition> configuredSearchItemDefs = null;
         if (useObjectCollection) {
-            configuredSearchItemDefs = getConfiguredSearchItemDefinitions(availableDefs, modelServiceLocator, type, collectionViewName, panelType);
+            configuredSearchItemDefs = getConfiguredSearchItemDefinitions(availableDefs, modelServiceLocator, type.getTypeClass(), collectionViewName, panelType);
         }
         if (useObjectCollection && !CollectionUtils.isEmpty(configuredSearchItemDefs)) {
             processSearchItemDefFromCompiledView(configuredSearchItemDefs, search, objDef);
@@ -248,7 +257,7 @@ public class SearchFactory {
                 }
             });
         }
-        search.setCanConfigure(isAllowToConfigureSearchItems(modelServiceLocator, type, collectionViewName, panelType));
+        search.setCanConfigure(isAllowToConfigureSearchItems(modelServiceLocator, type.getTypeClass(), collectionViewName, panelType));
         return search;
     }
 

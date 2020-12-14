@@ -15,7 +15,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
+import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.session.PageStorage;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
@@ -78,8 +79,6 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.page.admin.configuration.component.DebugButtonPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.DebugSearchFragment;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
@@ -137,6 +136,11 @@ public class PageDebugList extends PageAdminConfiguration {
         searchModel = new LoadableModel<DebugSearchDto>(false) {
             private static final long serialVersionUID = 1L;
 
+            private ContainerTypeSearchItem<? extends ObjectType> type =
+                    new ContainerTypeSearchItem<ObjectType>(
+                            new SearchValue(SystemConfigurationType.class, "ObjectType." + SystemConfigurationType.COMPLEX_TYPE.getLocalPart()),
+                            getAllowedTypes());;
+
             @Override
             protected DebugSearchDto load() {
                 ConfigurationStorage storage = getSessionStorage().getConfiguration();
@@ -144,11 +148,25 @@ public class PageDebugList extends PageAdminConfiguration {
                 DebugSearchDto dto = storage.getDebugSearchDto();
                 if (dto == null) {
                     dto = new DebugSearchDto();
-                    dto.setType(ObjectTypes.SYSTEM_CONFIGURATION);
-                    setupSearchDto(dto);
+//                    dto.setType(ObjectTypes.SYSTEM_CONFIGURATION);
+                    setupSearchDto(dto, type);
                 }
 
                 return dto;
+            }
+
+            @Override
+            public void reset() {
+                if (getObject() == null || getObject().getSearch() == null
+                        || getObject().getSearch().getTypeClass() == null) {
+                    type = new ContainerTypeSearchItem<ObjectType>(
+                            new SearchValue(SystemConfigurationType.class, "ObjectType." + SystemConfigurationType.COMPLEX_TYPE.getLocalPart()),
+                            getAllowedTypes());
+                    type.setVisible(true);
+                } else {
+                    type = getObject().getSearch().getType();
+                }
+                super.reset();
             }
         };
 
@@ -188,6 +206,17 @@ public class PageDebugList extends PageAdminConfiguration {
         };
 
         initLayout();
+    }
+
+    private List<DisplayableValue<Class<? extends ObjectType>>> getAllowedTypes() {
+        List<DisplayableValue<Class<? extends ObjectType>>> choices = new ArrayList();
+        List<ObjectTypes> objectTypes = WebComponentUtil.createObjectTypesList();
+
+        for (ObjectTypes objectType : objectTypes) {
+            String key = "ObjectType." + objectType.getTypeQName().getLocalPart();
+            choices.add(new SearchValue(objectType.getClassDefinition(), key));
+        }
+        return choices;
     }
 
     private List<ObjectViewDto<ResourceType>> loadResources() {
@@ -236,8 +265,8 @@ public class PageDebugList extends PageAdminConfiguration {
             }
         };
         DebugSearchDto search = searchModel.getObject();
-        ObjectQuery query = search.getSearch().createObjectQuery(this);
-        provider.setQuery(createQuery(query));
+        ObjectQuery query = search.getSearch().createObjectQuery(this, createCustomizeContentQuery());
+        provider.setQuery(query);
 
         create(provider);
 
@@ -349,7 +378,7 @@ public class PageDebugList extends PageAdminConfiguration {
         columns.add(new PropertyColumn<>(createStringResource("pageDebugList.description"),
                 DebugObjectItem.F_DESCRIPTION));
 
-        if (ObjectTypes.SHADOW.equals(searchModel.getObject().getType())) {
+        if (ObjectTypes.SHADOW.equals(searchModel.getObject().getSearch().getTypeClass())) {
             columns.add(new PropertyColumn<>(createStringResource("pageDebugList.resourceName"),
                     DebugObjectItem.F_RESOURCE_NAME));
             columns.add(new PropertyColumn<>(createStringResource("pageDebugList.resourceType"),
@@ -453,7 +482,7 @@ public class PageDebugList extends PageAdminConfiguration {
                     @Override
                     public IModel<Boolean> getVisible() {
                         DebugSearchDto dto = searchModel.getObject();
-                        return Model.of(ObjectTypes.SHADOW.equals(dto.getType()));
+                        return Model.of(ObjectTypes.SHADOW.equals(searchModel.getObject().getSearch().getTypeClass()));
                     }
 
                 });
@@ -527,7 +556,7 @@ public class PageDebugList extends PageAdminConfiguration {
                     @Override
                     public IModel<Boolean> getVisible() {
                         DebugSearchDto dto = searchModel.getObject();
-                        return Model.of(ObjectTypes.SHADOW.equals(dto.getType()));
+                        return Model.of(ObjectTypes.SHADOW.equals(searchModel.getObject().getSearch().getTypeClass()));
                     }
                 });
 
@@ -564,37 +593,38 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private void listObjectsPerformed(AjaxRequestTarget target, boolean isOidSearch) {
         DebugSearchDto dto = searchModel.getObject();
+        Search search = dto.getSearch();
         if (isOidSearch && StringUtils.isNotEmpty(dto.getOidFilter())) {
             OperationResult result = new OperationResult(OPERATION_LOAD_OBJECT_BY_OID);
             Task task = createSimpleTask(OPERATION_LOAD_OBJECT_BY_OID);
             PrismObject<ObjectType> objectToDisplay = WebModelServiceUtils.loadObject(ObjectType.class, dto.getOidFilter(), PageDebugList.this,
                     task, result);
             if (objectToDisplay != null && objectToDisplay.getCompileTimeClass() != null) {
-                dto.setType(ObjectTypes.getObjectType(objectToDisplay.getCompileTimeClass()));
+                search.getType().setType(new SearchValue<>(objectToDisplay.getCompileTimeClass(),
+                        "ObjectType." + ObjectTypes.getObjectType(objectToDisplay.getCompileTimeClass()).getTypeQName().getLocalPart()));
+                setupSearchDto(dto, search.getType());
             }
         }
-        setupSearchDto(dto);
-
-        Search search = dto.getSearch();
-        ObjectQuery query = search.createObjectQuery(this);
+        ObjectQuery query = search.createObjectQuery(this, createCustomizeContentQuery());
 
         listObjectsPerformed(query, isOidSearch, target);
     }
 
-    private void setupSearchDto(DebugSearchDto dto) {
-        ObjectTypes type = dto.getType();
+    private void setupSearchDto(DebugSearchDto dto, ContainerTypeSearchItem<? extends ObjectType> type) {
+//        ObjectTypes type = dto.getType();
         Search search = dto.getSearch();
         if (search == null) {
-            search = SearchFactory.createSearch(type.getClassDefinition(), this);
+
+            search = SearchFactory.createSearch(type, this);
             search.setCanConfigure(true);
-            SchemaRegistry registry = getPrismContext().getSchemaRegistry();
-            PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(ObjectType.class);
-            List<SearchItemDefinition> configuredSearchItemDefs =
-                    SearchFactory.getConfiguredSearchItemDefinitions(search.getAvailableDefinitions(), this,
-                            ObjectType.class, null, Search.PanelType.DEBUG_PAGE);
-            if (!configuredSearchItemDefs.isEmpty()) {
-                SearchFactory.processSearchItemDefFromCompiledView(configuredSearchItemDefs, search, objDef);
-            }
+//            SchemaRegistry registry = getPrismContext().getSchemaRegistry();
+//            PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(ObjectType.class);
+//            List<SearchItemDefinition> configuredSearchItemDefs =
+//                    SearchFactory.getConfiguredSearchItemDefinitions(search.getAvailableDefinitions(), this,
+//                            ObjectType.class, null, Search.PanelType.DEFAULT);
+//            if (!configuredSearchItemDefs.isEmpty()) {
+//                SearchFactory.processSearchItemDefFromCompiledView(configuredSearchItemDefs, search, objDef);
+//            }
         }
         dto.setSearch(search);
     }
@@ -607,7 +637,7 @@ public class PageDebugList extends PageAdminConfiguration {
         }
 
         RepositoryObjectDataProvider provider = getTableDataProvider();
-        provider.setQuery(createQuery(query));
+        provider.setQuery(query);
 
 //        ObjectTypes selected = dto.getType();
 //        if (selected != null) {
@@ -619,60 +649,45 @@ public class PageDebugList extends PageAdminConfiguration {
         storage.setDebugSearchDto(dto);
 
         Table table = getListTable();
-        table.getDataTable().getColumns().clear();
-        table.getDataTable().getColumns().addAll(createColumns());
+        if (searchModel.getObject().getSearch().isTypeChanged()) {
+            table.getDataTable().getColumns().clear();
+            table.getDataTable().getColumns().addAll(createColumns());
+        }
         target.add((Component) table);
         target.add(getFeedbackPanel());
     }
 
-    private ObjectQuery createQuery(ObjectQuery searchQuery) {
+    private ObjectQuery createCustomizeContentQuery() {
         DebugSearchDto dto = searchModel.getObject();
 
-        List<ObjectFilter> filters = new ArrayList<>();
-//        String oidFilterValue = dto.getOidFilter();
-//        if (StringUtils.isNotEmpty(oidFilterValue)) {
-//            ObjectFilter inOidFilter = getPrismContext().queryFor(ObjectType.class).id(oidFilterValue).buildFilter();
-//            filters.add(inOidFilter);
-//
-//            if (searchQuery == null) {
-//                ObjectQuery query = getPrismContext().queryFor(ObjectType.class)
-//                        .build();
-//                query.addFilter(inOidFilter);
-//                return query;
-//            } else {
-//                searchQuery.addFilter(inOidFilter);
-//                return searchQuery;
-//            }
-//        }
-//        if (ObjectTypes.SHADOW.equals(dto.getType()) && dto.getResource() != null) {
-//            String oid = dto.getResource().getOid();
-//            QName objectClass = dto.getObjectClass();
-//            ObjectFilter objectFilter;
-//            if (objectClass != null) {
-//                objectFilter = getPrismContext().queryFor(ShadowType.class)
-//                        .item(ShadowType.F_RESOURCE_REF).ref(oid)
-//                        .and()
-//                        .item(ShadowType.F_OBJECT_CLASS)
-//                        .eq(objectClass)
-//                        .buildFilter();
-//            } else {
-//                objectFilter = getPrismContext().queryFor(ShadowType.class)
-//                        .item(ShadowType.F_RESOURCE_REF).ref(oid)
-//                        .buildFilter();
-//            }
-//            filters.add(objectFilter);
-//        }
+        String oidFilterValue = dto.getOidFilter();
+        if (StringUtils.isNotEmpty(oidFilterValue)) {
+            ObjectFilter inOidFilter = getPrismContext().queryFor(ObjectType.class).id(oidFilterValue).buildFilter();
 
-        if (searchQuery != null && searchQuery.getFilter() != null) {
-            filters.add(searchQuery.getFilter());
+            ObjectQuery query = getPrismContext().queryFor(ObjectType.class)
+                    .build();
+            query.addFilter(inOidFilter);
+            return query;
         }
-
-        if (filters.isEmpty()) {
-            return null;
+        if (ObjectTypes.SHADOW.equals(searchModel.getObject().getSearch().getTypeClass()) && dto.getResource() != null) {
+            String oid = dto.getResource().getOid();
+            QName objectClass = dto.getObjectClass();
+            ObjectQuery objectQuery;
+            if (objectClass != null) {
+                objectQuery = getPrismContext().queryFor(ShadowType.class)
+                        .item(ShadowType.F_RESOURCE_REF).ref(oid)
+                        .and()
+                        .item(ShadowType.F_OBJECT_CLASS)
+                        .eq(objectClass)
+                        .build();
+            } else {
+                objectQuery = getPrismContext().queryFor(ShadowType.class)
+                        .item(ShadowType.F_RESOURCE_REF).ref(oid)
+                        .build();
+            }
+            return objectQuery;
         }
-
-        ObjectFilter filter = filters.size() > 1 ? getPrismContext().queryFactory().createAnd(filters) : filters.get(0);
-        return getPrismContext().queryFactory().createQuery(filter);
+        return null;
     }
 
     private void objectEditPerformed(String oid, Class<? extends ObjectType> type) {
@@ -809,12 +824,12 @@ public class PageDebugList extends PageAdminConfiguration {
 
         DebugSearchDto searchDto = searchModel.getObject();
         ObjectQuery query = getPrismContext().queryFor(ObjectType.class).id(oids.toArray(new String[0])).build();
-        initDownload(target, searchDto.getType().getClassDefinition(), query);
+        initDownload(target, searchDto.getSearch().getTypeClass(), query);
     }
 
     private void exportAllType(AjaxRequestTarget target) {
         DebugSearchDto searchDto = searchModel.getObject();
-        initDownload(target, searchDto.getType().getClassDefinition(), null);
+        initDownload(target, searchDto.getSearch().getTypeClass(), null);
     }
 
     private void exportAll(AjaxRequestTarget target) {
@@ -824,7 +839,7 @@ public class PageDebugList extends PageAdminConfiguration {
     private void deleteAllType(AjaxRequestTarget target) {
         DebugSearchDto searchDto = searchModel.getObject();
         DebugConfDialogDto dto = new DebugConfDialogDto(DebugConfDialogDto.Operation.DELETE_ALL_TYPE, null,
-                searchDto.getType().getClassDefinition());
+                searchDto.getSearch().getTypeClass());
         confDialogModel.setObject(dto);
 
         showMainPopup(getDeleteConfirmationPanel(), target);
@@ -847,7 +862,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
         DebugSearchDto searchDto = searchModel.getObject();
         DebugConfDialogDto dto = new DebugConfDialogDto(DebugConfDialogDto.Operation.DELETE_SELECTED,
-                selected, searchDto.getType().getClassDefinition());
+                selected, searchDto.getSearch().getTypeClass());
         confDialogModel.setObject(dto);
 
         showMainPopup(getDeleteConfirmationPanel(), target);
@@ -869,27 +884,27 @@ public class PageDebugList extends PageAdminConfiguration {
     private void deleteAllTypeConfirmed(AjaxRequestTarget target) {
         DebugSearchDto dto = searchModel.getObject();
 
-        LOGGER.debug("Deleting all of type {}", dto.getType());
+        LOGGER.debug("Deleting all of type {}", dto.getSearch().getTypeClass());
 
         OperationResult result = new OperationResult(OPERATION_DELETE_OBJECTS);
         String taskOid = null;
         try {
             ObjectQuery query = null;
-            if (ObjectTypes.USER.equals(dto.getType())) {
+            if (ObjectTypes.USER.equals(dto.getSearch().getTypeClass())) {
                 query = createDeleteAllUsersQuery();
             }
 
-            QName type = dto.getType().getTypeQName();
+            QName type = ObjectTypes.getObjectType(dto.getSearch().getTypeClass()).getTypeQName();
 
             taskOid = deleteObjectsAsync(type, query, true, "Delete all of type " + type.getLocalPart(),
                     result);
 
-            info(getString("pageDebugList.messsage.deleteAllOfType", dto.getType()));
+            info(getString("pageDebugList.messsage.deleteAllOfType", dto.getSearch().getTypeClass()));
         } catch (Exception ex) {
             result.recomputeStatus();
-            result.recordFatalError(getString("pageDebugList.messsage.notDeleteObjects", dto.getType()), ex);
+            result.recordFatalError(getString("pageDebugList.messsage.notDeleteObjects", dto.getSearch().getTypeClass()), ex);
 
-            LoggingUtils.logUnexpectedException(LOGGER, "" + dto.getType(), ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "" + dto.getSearch().getTypeClass(), ex);
         }
 
         finishOperation(result, taskOid, target);
@@ -942,7 +957,7 @@ public class PageDebugList extends PageAdminConfiguration {
         ObjectQuery objectQuery = getPrismContext().queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref(dto.getResource().getOid())
                 .build();
-        initDownload(target, dto.getType().getClassDefinition(), objectQuery);
+        initDownload(target, dto.getSearch().getTypeClass(), objectQuery);
     }
 
     private Popupable getDeleteConfirmationPanel() {

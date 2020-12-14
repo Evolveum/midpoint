@@ -142,7 +142,7 @@ public class DebugSearchFragment extends Fragment {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
+            public void searchPerformed(AjaxRequestTarget target) {
                 DebugSearchFragment.this.searchPerformed(target);
             }
         };

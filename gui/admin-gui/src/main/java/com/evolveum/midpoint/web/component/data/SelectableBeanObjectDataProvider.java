@@ -9,7 +9,10 @@ package com.evolveum.midpoint.web.component.data;
 import java.util.*;
 
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.util.exception.*;
+
+import com.evolveum.midpoint.web.component.search.Search;
 
 import org.apache.wicket.Component;
 
@@ -26,6 +29,8 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.apache.wicket.model.IModel;
+
 /**
  * @author lazyman
  * @author semancik
@@ -37,8 +42,12 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
 
     private boolean isMemberPanel = false;
 
-    public SelectableBeanObjectDataProvider(Component component, Class<? extends O> type, Set<? extends O> selected) {
-        super(component, type, selected, true);
+    public SelectableBeanObjectDataProvider(Component component, IModel<Search<O>> search, Set<? extends O> selected) {
+        super(component, search, selected, true);
+    }
+
+    public SelectableBeanObjectDataProvider(Component component, Set<? extends O> selected) {
+        super(component, null, selected, true);
     }
 
     public List<SelectableBean<O>> createDataObjectWrappers(Class<? extends O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
