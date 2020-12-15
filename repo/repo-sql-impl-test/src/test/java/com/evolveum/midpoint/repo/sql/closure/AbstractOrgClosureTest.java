@@ -364,7 +364,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             String newOidPrefix = getOidCharFor(i) + oidPrefix;
             int numberOfParents = parentsInLevel == null ? (parentOid != null ? 1 : 0) : parentsInLevel[level];
             PrismObject<OrgType> org = createOrg(generateParentsForLevel(parentOid, level, numberOfParents), newOidPrefix);
-            logger.info("Creating {}, total {}; parents = {}", new Object[] { org, objectCount, getParentsOids(org) });
+            logger.info("Creating {}, total {}; parents = {}", org, objectCount, getParentsOids(org));
             String oid = repositoryService.addObject(org, null, result);
             org.setOid(oid);
             if (parentOid == null) {
@@ -388,7 +388,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             for (int u = 0; u < userChildrenInLevel[level]; u++) {
                 int numberOfParents = parentsInLevel == null ? 1 : parentsInLevel[level];
                 PrismObject<UserType> user = createUser(generateParentsForLevel(parentOid, level, numberOfParents), getOidCharFor(u) + ":" + oidPrefix);
-                logger.info("Creating {}, total {}; parents = {}", new Object[] { user, objectCount, getParentsOids(user) });
+                logger.info("Creating {}, total {}; parents = {}", user, objectCount, getParentsOids(user));
                 String uoid = repositoryService.addObject(user, null, result);
                 user.setOid(uoid);
                 allUsersCreated.add(user.asObjectable());

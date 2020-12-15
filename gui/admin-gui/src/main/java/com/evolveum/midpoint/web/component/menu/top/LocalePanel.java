@@ -132,7 +132,7 @@ public class LocalePanel extends Panel {
     }
 
     private void changeLocale(AjaxRequestTarget target, LocaleDescriptor descriptor) {
-        LOGGER.info("Changing locale to {}.", new Object[]{descriptor.getLocale()});
+        LOGGER.info("Changing locale to {}.", descriptor.getLocale());
         getSession().setLocale(descriptor.getLocale());
 
         target.add(getPage());

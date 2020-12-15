@@ -211,10 +211,10 @@ public class OrgStructTest extends BaseSQLRepoTest {
         logger.debug("=======> {}: {}", upperOrgOid, lowerObjectOidCol);
         boolean actual = repositoryService.isAnySubordinate(upperOrgOid, lowerObjectOidCol);
         if (expected != actual) {
-            logger.error("=======X {}: {}; expected={}, actual={}", new Object[]{upperOrgOid, lowerObjectOidCol, expected, actual});
+            logger.error("=======X {}: {}; expected={}, actual={}", upperOrgOid, lowerObjectOidCol, expected, actual);
             assertEquals("Wrong subordinate match: " + upperOrgOid + " to " + lowerObjectOidCol, expected, actual);
         } else {
-            logger.debug("=======O {}: {}; got={}", new Object[]{upperOrgOid, lowerObjectOidCol, expected});
+            logger.debug("=======O {}: {}; got={}", upperOrgOid, lowerObjectOidCol, expected);
         }
     }
 
@@ -290,7 +290,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
             logger.info("before modify");
             for (ROrgClosure c : orgClosure) {
-                logger.info("{}\t{}", new Object[]{c.getAncestor().getOid(), c.getDescendant().getOid()});
+                logger.info("{}\t{}", c.getAncestor().getOid(), c.getDescendant().getOid());
             }
             AssertJUnit.assertEquals(3, orgClosure.size());
         } finally {
@@ -305,7 +305,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
             logger.info("after modify");
             for (ROrgClosure c : orgClosure) {
-                logger.info("{}\t{}", new Object[]{c.getAncestor().getOid(), c.getDescendant().getOid()});
+                logger.info("{}\t{}", c.getAncestor().getOid(), c.getDescendant().getOid());
             }
             AssertJUnit.assertEquals(4, orgClosure.size());
 
@@ -359,7 +359,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
             logger.info("after modify incorrect - closure");
             for (ROrgClosure c : orgClosure) {
-                logger.info("{}\t{}", new Object[]{c.getAncestor().getOid(), c.getDescendant().getOid()});
+                logger.info("{}\t{}", c.getAncestor().getOid(), c.getDescendant().getOid());
             }
             AssertJUnit.assertEquals(5, orgClosure.size());
 

@@ -82,8 +82,8 @@ public class InternalsConfigPanel extends BasePanel<InternalsConfigDto> {
 
         LOGGER.trace(
                 "Updated internals config, consistencyChecks={},encryptionChecks={},readEncryptionChecks={}, QNameUtil.tolerateUndeclaredPrefixes={}",
-                new Object[] { InternalsConfig.consistencyChecks, InternalsConfig.encryptionChecks,
-                        InternalsConfig.readEncryptionChecks, QNameUtil.isTolerateUndeclaredPrefixes() });
+                InternalsConfig.consistencyChecks, InternalsConfig.encryptionChecks,
+                InternalsConfig.readEncryptionChecks, QNameUtil.isTolerateUndeclaredPrefixes());
         success(getString("PageInternals.message.internalsConfigUpdate", InternalsConfig.consistencyChecks,
                 InternalsConfig.encryptionChecks, InternalsConfig.readEncryptionChecks,
                 QNameUtil.isTolerateUndeclaredPrefixes()));

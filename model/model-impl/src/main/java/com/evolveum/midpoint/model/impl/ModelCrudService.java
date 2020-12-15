@@ -226,7 +226,7 @@ public class ModelCrudService {
             ObjectDelta<T> objectDelta = prismContext.deltaFactory().object().create(clazz, ChangeType.DELETE);
             objectDelta.setOid(oid);
 
-            LOGGER.trace("Deleting object with oid {}.", new Object[] { oid });
+            LOGGER.trace("Deleting object with oid {}.", oid);
 
             Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
             modelService.executeChanges(deltas, options, task, result);

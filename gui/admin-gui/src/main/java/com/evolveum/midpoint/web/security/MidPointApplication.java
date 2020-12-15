@@ -145,7 +145,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
             }
 
             try {
-                LOGGER.debug("Found localization descriptor {}.", new Object[] { resource.getURL() });
+                LOGGER.debug("Found localization descriptor {}.", resource.getURL());
                 locales = loadLocaleDescriptors(resource);
 
                 break;
