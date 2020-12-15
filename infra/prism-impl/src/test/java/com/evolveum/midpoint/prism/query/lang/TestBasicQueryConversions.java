@@ -9,6 +9,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.prism.AbstractPrismTest;
 import com.evolveum.midpoint.prism.PrismInternalTestUtil;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.impl.match.MatchingRuleRegistryFactory;
 import com.evolveum.midpoint.prism.impl.query.lang.PrismQueryLanguageParser;
@@ -50,6 +51,34 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
         boolean match = ObjectQuery.match(user, dslFilter, MATCHING_RULE_REGISTRY);
         AssertJUnit.assertTrue("filter does not match object", match);
 
+    }
+
+    @Test   // MID-4173
+    public void testExistsNegative() throws Exception {
+        PrismObject<UserType> user = parseUserJack();
+        ObjectFilter filter = getPrismContext().queryFor(UserType.class)
+                .exists(UserType.F_ASSIGNMENT)
+                .item(AssignmentType.F_DESCRIPTION).eq("Assignment NONE")
+                .buildFilter();
+
+        PrismQueryLanguageParser parser = new PrismQueryLanguageParser(PrismTestUtil.getPrismContext());
+
+        ObjectFilter dslFilter = parser.parseQuery(UserType.class, "assignment matches ( description = \"Assignment 2\"");
+        boolean match = ObjectQuery.match(user, dslFilter, MATCHING_RULE_REGISTRY);
+        AssertJUnit.assertTrue("filter does not match object, but it should", match);
+
+        //AssertJUnit.assertFalse("filter matches object, but it should not", match);
+    }
+
+    @Test   // MID-4173
+    public void testExistsPositive() throws Exception {
+        PrismObject<UserType> user = parseUserJack();
+        ObjectFilter filter = getPrismContext().queryFor(UserType.class)
+                .exists(UserType.F_ASSIGNMENT)
+                .item(AssignmentType.F_DESCRIPTION).eq("Assignment 2")
+                .buildFilter();
+        boolean match = ObjectQuery.match(user, filter, MATCHING_RULE_REGISTRY);
+        AssertJUnit.assertTrue("filter does not match object, but it should", match);
     }
 
 
