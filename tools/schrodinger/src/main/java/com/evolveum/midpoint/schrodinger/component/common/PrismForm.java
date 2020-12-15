@@ -470,7 +470,7 @@ public class PrismForm<T> extends Component<T> {
         SelenideElement property = findProperty(attributeName);
         property.$x(".//button[@" + Schrodinger.DATA_S_ID + "='edit']")
                 .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         ObjectBrowserModal objectBrowserModal = new ObjectBrowserModal<>(this, Utils.getModalWindowSelenideElement());
 
         return objectBrowserModal;

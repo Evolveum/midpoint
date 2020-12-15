@@ -49,6 +49,25 @@ public class M10ObjectTemplate extends AbstractLabTest{
     private static final File CSV_3_RESOURCE_FILE_10_4 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-10-4.xml");
     private static final File SYSTEM_CONFIGURATION_FILE_11_1 = new File(LAB_OBJECTS_DIRECTORY + "systemConfiguration/system-configuration-11-1.xml");
 
+    @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextBeforeTestClass" })
+    @Override
+    protected void springTestContextPrepareTestInstance() throws Exception {
+        String home = System.getProperty("midpoint.home");
+        File schemaDir = new File(home, "schema");
+
+        if (!schemaDir.mkdir()) {
+            if (schemaDir.exists()) {
+                FileUtils.cleanDirectory(schemaDir);
+            } else {
+                throw new IOException("Creation of directory \"" + schemaDir.getAbsolutePath() + "\" unsuccessful");
+            }
+        }
+        File schemaFile = new File(schemaDir, EXTENSION_SCHEMA_NAME);
+        FileUtils.copyFile(EXTENSION_SCHEMA_FILE, schemaFile);
+
+        super.springTestContextPrepareTestInstance();
+    }
+
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override
     public void beforeClass() throws IOException {
