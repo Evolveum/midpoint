@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.prism;
 
+import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
@@ -83,4 +84,8 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
     void setVirtualContainerItems(List<VirtualContainerItemSpecificationType> virtualItems);
     boolean isVirtual();
 
+
+    void addItem(ItemWrapper<?, ?, ?, ?> iw);
+    void clearItems();
+    void addItems(Collection<ItemWrapper<?, ?, ?, ?>> items);
 }

@@ -7,10 +7,12 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -39,6 +41,7 @@ public class PendingOperationPanel extends BasePanel<List<PendingOperationType>>
         super.onInitialize();
 
         initLayout();
+        add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(getModelObject())));
     }
 
     private void initLayout() {

@@ -226,8 +226,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
                 return;
             }
 
-            shadowWrapperValue.getItems().clear();
-            shadowWrapperValue.getItems().addAll((Collection) shadowWrapperNew.getValue().getItems());
+            shadowWrapperValue.clearItems();
+            shadowWrapperValue.addItems((Collection) shadowWrapperNew.getValue().getItems());
             ((ShadowWrapper)shadowWrapperValue.getParent()).setLoadWithNoFetch(false);
         } catch (SchemaException e) {
             error(getString("pageAdminFocus.message.couldntCreateShadowWrapper"));

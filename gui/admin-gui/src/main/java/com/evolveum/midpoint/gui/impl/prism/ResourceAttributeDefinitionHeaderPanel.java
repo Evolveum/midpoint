@@ -46,9 +46,17 @@ public class ResourceAttributeDefinitionHeaderPanel<T> extends PrismPropertyHead
     }
 
     private boolean hasOutboundMapping() {
-        return getResourceAttributeDefinitionModel() != null &&
-               getResourceAttributeDefinitionModel().getObject() != null &&
-               getResourceAttributeDefinitionModel().getObject().hasOutboundMapping();
+        IModel<ResourceAttributeWrapper<T>> model = getResourceAttributeDefinitionModel();
+        if (model == null) {
+            return false;
+        }
+
+        ResourceAttributeWrapper<T> modelObject = model.getObject();
+        if (modelObject == null) {
+            return false;
+        }
+
+        return modelObject.hasOutboundMapping();
     }
 
 }

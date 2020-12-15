@@ -255,34 +255,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     private <IW extends ItemWrapper<?,?,?,?>> List<IW> getNonContainerWrappers() {
         CVW containerValueWrapper = getModelObject();
         List<? extends ItemWrapper<?, ?, ?, ?>> nonContainers = containerValueWrapper.getNonContainers();
-
-        Locale locale = WebModelServiceUtils.getLocale();
-        if (locale == null) {
-            locale = Locale.getDefault();
-        }
-        Collator collator = Collator.getInstance(locale);
-        collator.setStrength(Collator.SECONDARY);       // e.g. "a" should be different from "á"
-        collator.setDecomposition(Collator.FULL_DECOMPOSITION);
-        ItemWrapperComparator<?> comparator = new ItemWrapperComparator<>(collator, getModelObject().isSorted());
-        if (CollectionUtils.isNotEmpty(nonContainers)) {
-            nonContainers.sort((Comparator) comparator);
-
-            int visibleProperties = 0;
-
-            for (ItemWrapper<?,?,?,?> item : nonContainers) {
-                if (item.isVisible(containerValueWrapper, getVisibilityHandler())) {
-                    visibleProperties++;
-                }
-
-                if (visibleProperties % 2 == 0) {
-                    item.setStripe(false);
-                } else {
-                    item.setStripe(true);
-                }
-
-            }
-        }
-
         return (List<IW>) nonContainers;
     }
 
@@ -333,7 +305,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
                     .showOnTopLevel(isShowOnTopLevel());
             Panel panel = getPageBase().initItemPanel("property", typeName, item.getModel(), builder.build());
             panel.setOutputMarkupId(true);
-            panel.add(new VisibleEnableBehaviour() {
+            item.add(new VisibleEnableBehaviour() {
 
                 private static final long serialVersionUID = 1L;
 
@@ -363,6 +335,11 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         try {
             Panel panel = getPageBase().initItemPanel("container", itemWrapper.getTypeName(), container.getModel(), settings);
             panel.setOutputMarkupId(true);
+            container.add(new VisibleBehaviour(() -> {
+                CVW parent = PrismContainerValuePanel.this.getModelObject();
+                return container.getModelObject().isVisible(parent, getVisibilityHandler());
+            }));
+
             container.add(panel);
         } catch (SchemaException e) {
             throw new SystemException("Cannot instantiate panel for: " + itemWrapper.getDisplayName());
@@ -531,7 +508,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
             try {
                 ItemWrapper iw = getPageBase().createItemWrapper(container, getModelObject(), ctx);
                 if (iw != null) {
-                    ((List) getModelObject().getItems()).add(iw);
+                    getModelObject().addItem(iw);
                 }
             } catch (SchemaException e) {
                 OperationResult result = ctx.getResult();
