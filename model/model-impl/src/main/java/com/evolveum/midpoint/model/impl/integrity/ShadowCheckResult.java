@@ -33,11 +33,12 @@ public class ShadowCheckResult {
     private PrismObject<ResourceType> resource;
     private List<Exception> errors = new ArrayList<>();
     private List<String> warnings = new ArrayList<>();
-    private List<String> problemCodes = new ArrayList<>();
+    private final List<String> problemCodes = new ArrayList<>();
+
+    private final List<ItemDelta<?, ?>> fixDeltas = new ArrayList<>();
+    private final List<String> fixForProblems = new ArrayList<>();
 
     private boolean fixByRemovingShadow = false;
-    private List<ItemDelta> fixDeltas = new ArrayList<>();
-    private List<String> fixForProblems = new ArrayList<>();
     private boolean fixApplied = false;
 
     public ShadowCheckResult(PrismObject<ShadowType> shadow) {
@@ -101,7 +102,7 @@ public class ShadowCheckResult {
         fixForProblems.add(fixIsForProblem);
     }
 
-    public List<ItemDelta> getFixDeltas() {
+    public List<ItemDelta<?, ?>> getFixDeltas() {
         return fixDeltas;
     }
 

@@ -154,14 +154,14 @@ public class RepositoryCache implements RepositoryService, Cache {
     }
 
     @NotNull
-    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta<?, ?>> modifications,
             OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         return modifyObject(type, oid, modifications, null, parentResult);
     }
 
     @NotNull
     @Override
-    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta<?, ?>> modifications,
             RepoModifyOptions options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         try {
             return modifyObject(type, oid, modifications, null, options, parentResult);
@@ -173,7 +173,7 @@ public class RepositoryCache implements RepositoryService, Cache {
     @NotNull
     @Override
     public <T extends ObjectType> ModifyObjectResult<T> modifyObject(@NotNull Class<T> type, @NotNull String oid,
-            @NotNull Collection<? extends ItemDelta> modifications, ModificationPrecondition<T> precondition,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications, ModificationPrecondition<T> precondition,
             RepoModifyOptions options, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException {
         return modificationOpHandler.modifyObject(type, oid, modifications, precondition, options, parentResult);

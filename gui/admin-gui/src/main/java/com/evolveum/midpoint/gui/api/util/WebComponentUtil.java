@@ -23,6 +23,8 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -76,10 +78,6 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.GuiChannel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
@@ -2013,17 +2011,39 @@ public final class WebComponentUtil {
     }
 
     public static String getRelationLabelValue(PrismContainerValueWrapper<AssignmentType> assignmentWrapper, PageBase pageBase) {
-        if (assignmentWrapper == null || assignmentWrapper.getRealValue() == null
-                || assignmentWrapper.getRealValue().getTargetRef() == null
-                || assignmentWrapper.getRealValue().getTargetRef().getRelation() == null) {
-            return "";
+        QName relation = null;
+        try {
+            relation = getRelation(assignmentWrapper);
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Problem while getting relation for {}", e, assignmentWrapper.getRealValue());
         }
 
-        QName relation = assignmentWrapper.getRealValue().getTargetRef().getRelation();
-        String relationDisplayName = WebComponentUtil.getRelationHeaderLabelKeyIfKnown(relation);
+        String relationDisplayName = getRelationHeaderLabelKeyIfKnown(relation);
         return StringUtils.isNotEmpty(relationDisplayName) ?
                 pageBase.createStringResource(relationDisplayName).getString() :
                 pageBase.createStringResource(relation.getLocalPart()).getString();
+    }
+
+    private static QName getRelation(PrismContainerValueWrapper<AssignmentType> assignmentWrapper) throws SchemaException {
+        if (assignmentWrapper == null) {
+            return null;
+        }
+
+        PrismReferenceWrapper<ObjectReferenceType> targetRef = assignmentWrapper.findReference(AssignmentType.F_TARGET_REF);
+        if (targetRef == null) {
+            return null;
+        }
+
+        PrismReferenceValueWrapperImpl<ObjectReferenceType> refValue = targetRef.getValue();
+        if (refValue == null) {
+            return null;
+        }
+
+        ObjectReferenceType ref = refValue.getRealValue();
+        if (ref == null) {
+            return null;
+        }
+        return ref.getRelation();
     }
 
     @SuppressWarnings("WeakerAccess")
@@ -2070,11 +2090,33 @@ public final class WebComponentUtil {
     @Nullable
     public static String getRelationHeaderLabelKeyIfKnown(QName relation) {
         RelationDefinitionType definition = getRelationRegistry().getRelationDefinition(relation);
-        if (definition != null && definition.getDisplay() != null && definition.getDisplay().getLabel() != null) {
-            return definition.getDisplay().getLabel().getOrig();
-        } else {
+
+        PolyStringType label = getRelationLabel(definition);
+        if (label == null) {
             return null;
         }
+
+        PolyStringTranslationType translation = label.getTranslation();
+        if (translation == null) {
+            return label.getOrig();
+        }
+
+        return translation.getKey();
+
+    }
+
+    @Nullable
+    private static PolyStringType getRelationLabel(RelationDefinitionType definition) {
+        if (definition == null) {
+            return null;
+        }
+
+        DisplayType displayType = definition.getDisplay();
+        if (displayType == null) {
+            return null;
+        }
+
+        return displayType.getLabel();
     }
 
     public static String createUserIcon(PrismObject<UserType> object) {

@@ -358,13 +358,11 @@ public class ContainerDeltaImpl<V extends Containerable> extends ItemDeltaImpl<P
 
     // cValues should be parent-less
     @Deprecated // Remove in 4.2
-    public static Collection<? extends ItemDelta> createModificationReplaceContainerCollection(ItemName containerName,
-                                                                                               PrismObjectDefinition<?> objectDefinition, PrismContainerValue... cValues) {
-        Collection<? extends ItemDelta> modifications = new ArrayList<>(1);
-        ContainerDeltaImpl delta = createDelta(ItemName.fromQName(containerName), objectDefinition);
+    public static Collection<? extends ItemDelta<?, ?>> createModificationReplaceContainerCollection(
+            ItemName containerName, PrismObjectDefinition<?> objectDefinition, PrismContainerValue... cValues) {
+        ContainerDeltaImpl<?> delta = createDelta(ItemName.fromQName(containerName), objectDefinition);
         delta.setValuesToReplace(cValues);
-        ((Collection)modifications).add(delta);
-        return modifications;
+        return List.of(delta);
     }
 
     // cValues should be parent-less

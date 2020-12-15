@@ -1496,7 +1496,7 @@ public class ShadowCache {
 
                 if (pendingDelta.isDelete()) {
                     shadowInception = false;
-                    shadowManager.addDeadShadowDeltas(repoShadow, refreshAsyncResult, (List)shadowDelta.getModifications());
+                    shadowManager.addDeadShadowDeltas(repoShadow, (List)shadowDelta.getModifications());
                 }
                 continue;
 
@@ -1568,7 +1568,7 @@ public class ShadowCache {
 
                 if (pendingDelta.isDelete()) {
                     shadowInception = false;
-                    shadowManager.addDeadShadowDeltas(repoShadow, refreshAsyncResult, (List)shadowDelta.getModifications());
+                    shadowManager.addDeadShadowDeltas(repoShadow, (List)shadowDelta.getModifications());
                 }
 
                 notificationDeltas.add(pendingDelta);

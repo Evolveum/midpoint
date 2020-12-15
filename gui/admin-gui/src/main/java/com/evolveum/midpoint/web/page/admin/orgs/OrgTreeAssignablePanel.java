@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -27,8 +27,6 @@ import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
@@ -39,17 +37,14 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
 
     private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(OrgTreeAssignablePanel.class);
-
-    public static final String PARAM_ORG_RETURN = "org";
-
     private static final String DOT_CLASS = OrgTreeAssignablePanel.class.getName() + ".";
     private static final String OPERATION_LOAD_ASSIGNABLE_ITEMS = DOT_CLASS + "loadAssignableOrgs";
 
     private static final String ID_ORG_TABS = "orgTabs";
     private static final String ID_ASSIGN = "assign";
-    private boolean selectable;
-    List<OrgType> allTabsSelectedOrgs = new ArrayList<>();
+
+    private final boolean selectable;
+    private final List<OrgType> allTabsSelectedOrgs = new ArrayList<>();
 
     public OrgTreeAssignablePanel(String id, boolean selectable) {
         super(id);
@@ -75,15 +70,15 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
                 OrgTreePanel panel = new OrgTreePanel(id, model, selectable, pageBase, "", allTabsSelectedOrgs) {
                     private static final long serialVersionUID = 1L;
 
-                    private OrgStructurePanelStorage storage = new OrgStructurePanelStorage();
+                    private final OrgStructurePanelStorage storage = new OrgStructurePanelStorage();
 
                     @Override
                     protected IModel<Boolean> getCheckBoxValueModel(IModel<TreeSelectableBean<OrgType>> rowModel){
-                        return new LoadableModel<Boolean>(true) {
+                        return new LoadableModel<>(true) {
 
                             @Override
                             public Boolean load() {
-                                for (OrgType org : allTabsSelectedOrgs){
+                                for (OrgType org : allTabsSelectedOrgs) {
                                     if (rowModel.getObject().getValue().getOid().equals(org.getOid())) {
                                         return true;
                                     }
@@ -266,5 +261,4 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
     public Component getComponent() {
         return this;
     }
-
 }

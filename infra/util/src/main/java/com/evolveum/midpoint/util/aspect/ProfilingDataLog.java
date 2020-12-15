@@ -117,15 +117,15 @@ public class ProfilingDataLog {
         //If we are printing request filter event, there are no arguments, but sessionID instead
         if(sessionID != null){
             if(afterTest){
-                LOGGER.info("    EST: {} EXECUTED: {} SESSION: {}", new Object[]{formatExecutionTime(estimatedTime), date, sessionID});
+                LOGGER.info("    EST: {} EXECUTED: {} SESSION: {}", formatExecutionTime(estimatedTime), date, sessionID);
             } else {
-                LOGGER.debug("    EST: {} EXECUTED: {} SESSION: {}", new Object[]{formatExecutionTime(estimatedTime), date, sessionID});
+                LOGGER.debug("    EST: {} EXECUTED: {} SESSION: {}", formatExecutionTime(estimatedTime), date, sessionID);
             }
         } else{
             if(afterTest){
-                LOGGER.info("    EST: {} EXECUTED: {} ARGS: {}", new Object[]{formatExecutionTime(estimatedTime), date, args});
+                LOGGER.info("    EST: {} EXECUTED: {} ARGS: {}", formatExecutionTime(estimatedTime), date, args);
             } else {
-                LOGGER.debug("    EST: {} EXECUTED: {} ARGS: {}", new Object[]{formatExecutionTime(estimatedTime), date, args});
+                LOGGER.debug("    EST: {} EXECUTED: {} ARGS: {}", formatExecutionTime(estimatedTime), date, args);
             }
 
         }

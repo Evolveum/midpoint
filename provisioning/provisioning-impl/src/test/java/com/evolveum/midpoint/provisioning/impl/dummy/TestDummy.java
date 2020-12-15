@@ -3732,15 +3732,15 @@ public class TestDummy extends AbstractBasicDummyTest {
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
-        Collection<? extends ItemDelta> modifications = new ArrayList<>(1);
+        Collection<PropertyDelta<String>> modifications = new ArrayList<>(1);
         ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
         ObjectClassComplexTypeDefinition defaultAccountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
-        ResourceAttributeDefinition fullnameAttrDef = defaultAccountDefinition.findAttributeDefinition("fullname");
-        ResourceAttribute fullnameAttr = fullnameAttrDef.instantiate();
-        PropertyDelta fullnameDelta = fullnameAttr.createDelta(ItemPath.create(ShadowType.F_ATTRIBUTES,
+        ResourceAttributeDefinition<String> fullnameAttrDef = defaultAccountDefinition.findAttributeDefinition("fullname");
+        ResourceAttribute<String> fullnameAttr = fullnameAttrDef.instantiate();
+        PropertyDelta<String> fullnameDelta = fullnameAttr.createDelta(ItemPath.create(ShadowType.F_ATTRIBUTES,
                 fullnameAttrDef.getItemName()));
         fullnameDelta.setRealValuesToReplace("Good Daemon");
-        ((Collection) modifications).add(fullnameDelta);
+        modifications.add(fullnameDelta);
 
         // WHEN
         try {

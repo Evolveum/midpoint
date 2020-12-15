@@ -178,9 +178,11 @@ public class ModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> e
                 if (http.getConfigurer(CsrfConfigurer.class) != null) {
                     logoutRequestMatcher = new AntPathRequestMatcher(logoutUrl, "POST");
                 } else {
-                    logoutRequestMatcher = new OrRequestMatcher(new RequestMatcher[] { new AntPathRequestMatcher(logoutUrl, "GET"),
-                            new AntPathRequestMatcher(logoutUrl, "POST"), new AntPathRequestMatcher(logoutUrl, "PUT"),
-                            new AntPathRequestMatcher(logoutUrl, "DELETE") });
+                    logoutRequestMatcher = new OrRequestMatcher(
+                            new AntPathRequestMatcher(logoutUrl, "GET"),
+                            new AntPathRequestMatcher(logoutUrl, "POST"),
+                            new AntPathRequestMatcher(logoutUrl, "PUT"),
+                            new AntPathRequestMatcher(logoutUrl, "DELETE"));
                 }
                 return logoutRequestMatcher.matches(httpServletRequest);
             }

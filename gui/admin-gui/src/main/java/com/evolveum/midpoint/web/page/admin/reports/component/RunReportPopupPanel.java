@@ -173,7 +173,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
         WebMarkupContainer paramPanel = new WebMarkupContainer("paramPanel");
         paramPanel.setOutputMarkupId(true);
         String paramValue = new PropertyModel<String>(parameterModel, "name").getObject();
-        StringResourceModel paramDisplay = PageBase.createStringResourceStatic(RunReportPopupPanel.this, "runReportPopupContent.param.name." + paramValue, new Object[]{});
+        StringResourceModel paramDisplay = PageBase.createStringResourceStatic(RunReportPopupPanel.this, "runReportPopupContent.param.name." + paramValue);
 
         paramPanel.add(new Label("name", paramDisplay)); // use display name rather than property name
 

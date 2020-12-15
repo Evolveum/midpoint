@@ -64,7 +64,7 @@ public abstract class AjaxDownloadBehaviorFromFile extends AbstractAjaxBehavior 
                             super.respond(requestCycle);
                         } finally {
                             if (removeFile) {
-                                LOGGER.debug("Removing file '{}'.", new Object[]{file.getAbsolutePath()});
+                                LOGGER.debug("Removing file '{}'.", file.getAbsolutePath());
                                 Files.remove(file);
                             }
                         }

@@ -866,7 +866,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         PrismObjectDefinition<?> objectDefinition = prismContext.getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(clazz);
 
-        Collection<? extends ItemDelta> modifications = prismContext.deltaFactory().container()
+        Collection<? extends ItemDelta<?, ?>> modifications = prismContext.deltaFactory().container()
                 .createModificationReplaceContainerCollection(itemName, objectDefinition, syncSettings.asPrismContainerValue());
 
         OperationResult result = new OperationResult("Applying sync settings");

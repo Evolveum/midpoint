@@ -193,8 +193,7 @@ public class ObjectImporter {
         if (!(objectable instanceof ObjectType)) {
             String message = "Cannot process type "+objectable.getClass()+" as it is not a subtype of "+ObjectType.class;
             objectResult.recordFatalError(message);
-            LOGGER.error("Import of object {} failed: {}",
-                    new Object[]{prismObjectObjectable, message});
+            LOGGER.error("Import of object {} failed: {}", prismObjectObjectable, message);
             return EventResult.skipObject(message);
         }
         //noinspection unchecked
