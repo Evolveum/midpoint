@@ -20,8 +20,6 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemName;
-
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -33,6 +31,7 @@ import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -131,7 +130,8 @@ public class ModifyTest extends BaseSQLRepoTest {
                 new File(TEST_DIR, "change-name.xml"),
                 ObjectModificationType.COMPLEX_TYPE);
         modification.setOid(oid);
-        Collection<? extends ItemDelta> deltas = DeltaConvertor.toModifications(modification, UserType.class, prismContext);
+        Collection<? extends ItemDelta<?, ?>> deltas =
+                DeltaConvertor.toModifications(modification, UserType.class, prismContext);
 
         repositoryService.modifyObject(UserType.class, oid, deltas, result);
     }
@@ -141,7 +141,8 @@ public class ModifyTest extends BaseSQLRepoTest {
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 MODIFY_USER_ADD_LINK, ObjectModificationType.COMPLEX_TYPE);
 
-        Collection<? extends ItemDelta> deltas = DeltaConvertor.toModifications(modification, UserType.class, prismContext);
+        Collection<? extends ItemDelta<?, ?>> deltas =
+                DeltaConvertor.toModifications(modification, UserType.class, prismContext);
         OperationResult result = new OperationResult("MODIFY");
         repositoryService.modifyObject(UserType.class, "1234", deltas, getModifyOptions(), result);
     }
@@ -164,8 +165,8 @@ public class ModifyTest extends BaseSQLRepoTest {
                 new File(TEST_DIR, "change-add-non-existing.xml"),
                 ObjectModificationType.COMPLEX_TYPE);
 
-        Collection<? extends ItemDelta> deltas = DeltaConvertor.toModifications(modification,
-                UserType.class, prismContext);
+        Collection<? extends ItemDelta<?, ?>> deltas =
+                DeltaConvertor.toModifications(modification, UserType.class, prismContext);
 
         repositoryService.modifyObject(UserType.class, oid, deltas, getModifyOptions(), result);
 
@@ -200,8 +201,8 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 MODIFY_USER_ADD_LINK, ObjectModificationType.COMPLEX_TYPE);
-        Collection<? extends ItemDelta> deltas = DeltaConvertor.toModifications(modification,
-                UserType.class, prismContext);
+        Collection<? extends ItemDelta<?, ?>> deltas =
+                DeltaConvertor.toModifications(modification, UserType.class, prismContext);
 
         // WHEN
         repositoryService.modifyObject(UserType.class, oid, deltas, getModifyOptions(), result);
@@ -530,8 +531,8 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         PrismObjectDefinition<ShadowType> accountDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
 
-        Collection<ItemDelta> modifications = new ArrayList<>();
-        PropertyDelta pdelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
+        Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
+        PropertyDelta<?> pdelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                 (ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFY_CHANNEL)), accountDefinition, "channel");
         modifications.add(pdelta);
 
@@ -541,11 +542,9 @@ public class ModifyTest extends BaseSQLRepoTest {
                 MetadataType.F_MODIFY_TIMESTAMP)), accountDefinition, modifyTimestampBefore);
         modifications.add(pdelta);
 
-        // WHEN
         when();
         repositoryService.modifyObject(ShadowType.class, oid, modifications, getModifyOptions(), parentResult);
 
-        // THEN
         then();
         PrismObject<ShadowType> afterModify = repositoryService.getObject(ShadowType.class,
                 oid, null, parentResult);
@@ -595,7 +594,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         AssertJUnit.assertTrue("User was not saved correctly", user.diff(readUser).isEmpty());
         String lastVersion = readUser.getVersion();
 
-        Collection<ItemDelta> modifications = new ArrayList<>();
+        Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
         ItemPath path = ItemPath.create(UserType.F_EXTENSION, QNAME_LOOT);
         PrismProperty<Integer> loot = user.findProperty(path);
         PropertyDelta lootDelta = prismContext.deltaFactory().property().create(path, loot.getDefinition());
@@ -749,7 +748,7 @@ public class ModifyTest extends BaseSQLRepoTest {
                 new File(TEST_DIR, "role-modify-change.xml"),
                 ObjectModificationType.COMPLEX_TYPE);
         modification.setOid(oid);
-        Collection<? extends ItemDelta> deltas = DeltaConvertor.toModifications(modification,
+        Collection<? extends ItemDelta<?, ?>> deltas = DeltaConvertor.toModifications(modification,
                 RoleType.class, prismContext);
 
         repositoryService.modifyObject(RoleType.class, oid, deltas, getModifyOptions(), result);
@@ -966,7 +965,9 @@ public class ModifyTest extends BaseSQLRepoTest {
     private <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrQName, T... expectedValues) {
         PrismProperty<T> attr = shadow.findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName));
         if (expectedValues.length == 0) {
-            assertTrue("Expected no value for attribute " + attrQName + " in " + shadow + ", but it has " + attr, attr == null);
+            assertThat(attr)
+                    .withFailMessage("Expected no value for attribute " + attrQName + " in " + shadow + ", but it has " + attr)
+                    .isNull();
         } else {
             assertNotNull("No attribute " + attrQName + " in " + shadow, attr);
             PrismAsserts.assertPropertyValue(attr, expectedValues);
@@ -1568,7 +1569,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         assignmentValueNew.setValueMetadata(
                 new ValueMetadataType(prismContext)
                         .beginStorage()
-                            .createChannel(channel)
+                        .createChannel(channel)
                         .<ValueMetadataType>end());
         List<ItemDelta<?, ?>> modifications = deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
@@ -1681,7 +1682,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     private PrismValue createCloneWithMetadata(ItemName itemName, String channel) throws SchemaException {
         ValueMetadataType metadata = new ValueMetadataType(prismContext)
                 .beginStorage()
-                    .createChannel(channel)
+                .createChannel(channel)
                 .end();
 
         PrismValue clonedValue = userAdam.findItem(itemName).getValue().clone();

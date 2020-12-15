@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -124,7 +124,7 @@ public interface RepositoryService {
     String ADD_DIAGNOSTIC_INFORMATION = CLASS_NAME_WITH_DOT + "addDiagnosticInformation";
     String HAS_CONFLICT = CLASS_NAME_WITH_DOT + "hasConflict";
 
-    String KEY_DIAG_DATA = "repositoryDiagData";            // see GetOperationOptions.attachDiagData
+    String KEY_DIAG_DATA = "repositoryDiagData"; // see GetOperationOptions.attachDiagData
     String KEY_ORIGINAL_OBJECT = "repositoryOriginalObject";
 
     String OP_ADD_OBJECT = "addObject";
@@ -154,14 +154,9 @@ public interface RepositoryService {
      * @throws SchemaException error dealing with storage schema
      * @throws IllegalArgumentException wrong OID format, etc.
      */
-    @NotNull <O extends ObjectType> PrismObject<O> getObject(Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options,
-            OperationResult parentResult)
+    @NotNull <O extends ObjectType> PrismObject<O> getObject(Class<O> type, String oid,
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException;
-
-//    <T extends ObjectType> PrismObject<T> getContainerValue(Class<T> type, String oid, long id,
-//                                                            Collection<SelectorOptions<GetOperationOptions>> options,
-//                                                            OperationResult parentResult)
-//            throws ObjectNotFoundException, SchemaException;
 
     /**
      * Returns object version for provided OID.
@@ -181,8 +176,7 @@ public interface RepositoryService {
     <T extends ObjectType> String getVersion(Class<T> type, String oid, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException;
 
-    <T extends Containerable> int countContainers(Class<T> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult);
+    // Add/modify/delete
 
     /**
      * <p>Add new object.</p>
@@ -219,6 +213,72 @@ public interface RepositoryService {
             throws ObjectAlreadyExistsException, SchemaException;
 
     /**
+     * <p>Modifies object using relative change description.</p>
+     * Must fail if user with
+     * provided OID does not exists. Must fail if any of the described changes
+     * cannot be applied. Should be atomic.
+     * </p><p>
+     * If two or more modify operations are executed in parallel, the operations
+     * should be merged. In case that the operations are in conflict (e.g. one
+     * operation adding a value and the other removing the same value), the
+     * result is not deterministic.
+     * </p><p>
+     * The operation may fail if the modified object does not conform to the
+     * underlying schema of the storage system or the schema enforced by the
+     * implementation.
+     * </p>
+     * <p>
+     * TODO: optimistic locking
+     * <p>
+     * Note: the precondition is checked only if actual modification is going to take place
+     * (not e.g. if the list of modifications is empty).
+     *
+     * @param parentResult parent OperationResult (in/out)
+     * @throws ObjectNotFoundException specified object does not exist
+     * @throws SchemaException resulting object would violate the schema
+     * @throws ObjectAlreadyExistsException if resulting object would have name which already exists in another object of the same type
+     * @throws IllegalArgumentException wrong OID format, described change is not applicable
+     */
+    @NotNull <T extends ObjectType> ModifyObjectResult<T> modifyObject(
+            Class<T> type, String oid, Collection<? extends ItemDelta<?, ?>> modifications, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
+
+    @NotNull <T extends ObjectType> ModifyObjectResult<T> modifyObject(
+            Class<T> type, String oid, Collection<? extends ItemDelta<?, ?>> modifications,
+            RepoModifyOptions options, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
+
+    @NotNull <T extends ObjectType> ModifyObjectResult<T> modifyObject(@NotNull Class<T> type,
+            @NotNull String oid, @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            ModificationPrecondition<T> precondition, RepoModifyOptions options, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException;
+
+    /**
+     * <p>Deletes object with specified OID.</p>
+     * <p>
+     * Must fail if object with specified OID does not exists. Should be atomic.
+     * </p>
+     *
+     * @param oid OID of object to delete
+     * @param parentResult parent OperationResult (in/out)
+     * @throws ObjectNotFoundException specified object does not exist
+     * @throws IllegalArgumentException wrong OID format, described change is not applicable
+     */
+    @NotNull <T extends ObjectType> DeleteObjectResult deleteObject(Class<T> type, String oid, OperationResult parentResult) throws ObjectNotFoundException;
+
+    // Counting/searching
+
+    <T extends Containerable> int countContainers(Class<T> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult);
+
+    /**
+     * Search for "sub-object" structures, i.e. containers.
+     * Currently, only one type of search is available: certification case search.
+     */
+    <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException;
+
+    /**
      * <p>Search for objects in the repository.</p>
      * <p>If no search criteria specified, list of all objects of specified type is returned.</p>
      * <p>
@@ -240,17 +300,28 @@ public interface RepositoryService {
      * @throws IllegalArgumentException wrong object type
      * @throws SchemaException unknown property used in search query
      */
-
     @NotNull <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException;
 
     /**
-     * Search for "sub-object" structures, i.e. containers.
-     * Currently, only one type of search is available: certification case search.
+     * <p>Returns the number of objects that match specified criteria.</p>
+     * <p>If no search criteria specified, count of all objects of specified type is returned.</p>
+     * <p>
+     * Should fail if object type is wrong. Should fail if unknown property is
+     * specified in the query.
+     * </p>
+     *
+     * @param query search query
+     * @param parentResult parent OperationResult (in/out)
+     * @return count of objects of specified type that match search criteria (subject
+     * to paging)
+     * @throws IllegalArgumentException wrong object type
+     * @throws SchemaException unknown property used in search query
      */
-    <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException;
+    <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult parentResult) throws SchemaException;
 
     /**
      * <p>Search for objects in the repository in an iterative fashion.</p>
@@ -301,86 +372,16 @@ public interface RepositoryService {
      * - offset is specified
      * (limit is not a problem)
      */
-
     <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
             ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, boolean strictlySequential,
             OperationResult parentResult)
             throws SchemaException;
-
-    /**
-     * <p>Returns the number of objects that match specified criteria.</p>
-     * <p>If no search criteria specified, count of all objects of specified type is returned.</p>
-     * <p>
-     * Should fail if object type is wrong. Should fail if unknown property is
-     * specified in the query.
-     * </p>
-     *
-     * @param query search query
-     * @param parentResult parent OperationResult (in/out)
-     * @return count of objects of specified type that match search criteria (subject
-     * to paging)
-     * @throws IllegalArgumentException wrong object type
-     * @throws SchemaException unknown property used in search query
-     */
-    <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options,
-            OperationResult parentResult) throws SchemaException;
 
     boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) throws SchemaException;
 
     <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid) throws SchemaException;
 
     <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid) throws SchemaException;
-
-    /**
-     * <p>Modifies object using relative change description.</p>
-     * Must fail if user with
-     * provided OID does not exists. Must fail if any of the described changes
-     * cannot be applied. Should be atomic.
-     * </p><p>
-     * If two or more modify operations are executed in parallel, the operations
-     * should be merged. In case that the operations are in conflict (e.g. one
-     * operation adding a value and the other removing the same value), the
-     * result is not deterministic.
-     * </p><p>
-     * The operation may fail if the modified object does not conform to the
-     * underlying schema of the storage system or the schema enforced by the
-     * implementation.
-     * </p>
-     * <p>
-     * TODO: optimistic locking
-     * <p>
-     * Note: the precondition is checked only if actual modification is going to take place
-     * (not e.g. if the list of modifications is empty).
-     *
-     * @param parentResult parent OperationResult (in/out)
-     * @throws ObjectNotFoundException specified object does not exist
-     * @throws SchemaException resulting object would violate the schema
-     * @throws ObjectAlreadyExistsException if resulting object would have name which already exists in another object of the same type
-     * @throws IllegalArgumentException wrong OID format, described change is not applicable
-     */
-    @NotNull <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
-
-    @NotNull <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, RepoModifyOptions options, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
-
-    @NotNull <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
-            ModificationPrecondition<T> precondition, RepoModifyOptions options, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException;
-
-    /**
-     * <p>Deletes object with specified OID.</p>
-     * <p>
-     * Must fail if object with specified OID does not exists. Should be atomic.
-     * </p>
-     *
-     * @param oid OID of object to delete
-     * @param parentResult parent OperationResult (in/out)
-     * @throws ObjectNotFoundException specified object does not exist
-     * @throws IllegalArgumentException wrong OID format, described change is not applicable
-     */
-    @NotNull <T extends ObjectType> DeleteObjectResult deleteObject(Class<T> type, String oid, OperationResult parentResult) throws ObjectNotFoundException;
 
     /**
      * <p>Returns the object representing owner of specified shadow.</p>
@@ -409,6 +410,7 @@ public interface RepositoryService {
      * @param parentResult parentResult parent OperationResult (in/out)
      * @return Object representing owner of specified account (subclass of FocusType)
      * @throws IllegalArgumentException wrong OID format
+     * @deprecated TODO: we want to remove this in midScale
      */
     <F extends FocusType> PrismObject<F> searchShadowOwner(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult);
 

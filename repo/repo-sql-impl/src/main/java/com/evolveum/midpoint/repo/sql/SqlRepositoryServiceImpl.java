@@ -479,7 +479,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @NotNull
     @Override
     public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid,
-            Collection<? extends ItemDelta> modifications, OperationResult result)
+            Collection<? extends ItemDelta<?, ?>> modifications, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         return modifyObject(type, oid, modifications, null, result);
     }
@@ -487,7 +487,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @NotNull
     @Override
     public <T extends ObjectType> ModifyObjectResult<T> modifyObject(
-            Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+            Class<T> type, String oid, Collection<? extends ItemDelta<?, ?>> modifications,
             RepoModifyOptions options, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         try {
@@ -500,7 +500,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @NotNull
     @Override
     public <T extends ObjectType> ModifyObjectResult<T> modifyObject(
-            Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+            @NotNull Class<T> type, @NotNull String oid, @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
             ModificationPrecondition<T> precondition,
             RepoModifyOptions options,
             OperationResult result)
@@ -535,7 +535,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         if (LOGGER.isTraceEnabled()) {
-            for (ItemDelta modification : modifications) {
+            for (ItemDelta<?, ?> modification : modifications) {
                 if (modification instanceof PropertyDelta<?>) {
                     PropertyDelta<?> propDelta = (PropertyDelta<?>) modification;
                     if (propDelta.getPath().equivalent(ObjectType.F_NAME)) {
@@ -872,10 +872,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
          * Here we store OIDs that were already sent to the client during previous attempts.
          */
         Set<String> retrievedOids = new HashSet<>();
-
-        //        turned off until resolved 'unfinished operation' warning
-        //        SqlPerformanceMonitor pm = getPerformanceMonitor();
-        //        long opHandle = pm.registerOperationStart(SEARCH_OBJECTS_ITERATIVE);
 
         final String operation = "searching iterative";
         int attempt = 1;

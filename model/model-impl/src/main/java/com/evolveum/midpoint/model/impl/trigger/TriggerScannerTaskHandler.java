@@ -1,15 +1,30 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.trigger;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_TRIGGER;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType.F_TIMESTAMP;
+
+import java.util.*;
+import javax.annotation.PostConstruct;
+import javax.xml.datatype.DatatypeConstants;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.apache.commons.lang3.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.util.AbstractScannerResultHandler;
 import com.evolveum.midpoint.model.impl.util.AbstractScannerTaskHandler;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -24,29 +39,18 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskRunResult;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
-import org.apache.commons.lang3.Validate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import javax.xml.datatype.DatatypeConstants;
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.*;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_TRIGGER;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType.F_TIMESTAMP;
 
 /**
- *
  * @author Radovan Semancik
- *
  */
 @Component
 public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<ObjectType, AbstractScannerResultHandler<ObjectType>> {
@@ -68,7 +72,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 
     // task OID -> handlerUri -> OID+TriggerID; cleared on task start
     // we use plain map with explicit synchronization
-    private final Map<String,Map<String,Set<String>>> processedTriggersMap = new HashMap<>();
+    private final Map<String, Map<String, Set<String>>> processedTriggersMap = new HashMap<>();
 
     private synchronized void initProcessedTriggers(Task coordinatorTask) {
         Validate.notNull(coordinatorTask.getOid(), "Task OID is null");
@@ -85,7 +89,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
             PrismObject<? extends ObjectType> object, TriggerType trigger) {
         Validate.notNull(coordinatorTask.getOid(), "Coordinator task OID is null");
         String oidPlusTriggerId = object.getOid() + ":" + trigger.getId();
-        Map<String,Set<String>> taskTriggersMap = processedTriggersMap.get(coordinatorTask.getOid());
+        Map<String, Set<String>> taskTriggersMap = processedTriggersMap.get(coordinatorTask.getOid());
         if (taskTriggersMap == null) {
             throw new IllegalStateException("ProcessedTriggers map was not initialized for task = " + coordinatorTask);
         }
@@ -131,7 +135,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
     protected AbstractScannerResultHandler<ObjectType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final RunningTask coordinatorTask,
             OperationResult opResult) {
 
-        AbstractScannerResultHandler<ObjectType> handler = new AbstractScannerResultHandler<ObjectType>(
+        AbstractScannerResultHandler<ObjectType> handler = new AbstractScannerResultHandler<>(
                 coordinatorTask, TriggerScannerTaskHandler.class.getName(), "trigger", "trigger task", taskManager) {
             @Override
             protected boolean handleObject(PrismObject<ObjectType> object, RunningTask workerTask, OperationResult result) {
@@ -264,9 +268,9 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
             //noinspection unchecked
             triggerDelta.addValueToDelete(trigger.asPrismContainerValue().clone());
         }
-        Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(triggerDelta);
+        Collection<? extends ItemDelta<?, ?>> modifications = MiscSchemaUtil.createCollection(triggerDelta);
         // This is detached result. It will not take part of the task result. We do not really care.
-        OperationResult result = new OperationResult(TriggerScannerTaskHandler.class.getName()+".removeTriggers");
+        OperationResult result = new OperationResult(TriggerScannerTaskHandler.class.getName() + ".removeTriggers");
         try {
             repositoryService.modifyObject(object.getCompileTimeClass(), object.getOid(), modifications, result);
             result.computeStatus();

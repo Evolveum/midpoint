@@ -279,10 +279,10 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
             PropertyDelta delta1 = prismContext.deltaFactory().property().create(attribute1, propertyDefinition1);
             //noinspection unchecked
             delta1.setRealValuesToReplace(poly ? new PolyString(dataWritten) : dataWritten);
-            List<ItemDelta> deltas = new ArrayList<>();
+            List<ItemDelta<?, ?>> deltas = new ArrayList<>();
             deltas.add(delta1);
 
-            ItemDefinition propertyDefinition2;
+            ItemDefinition<?> propertyDefinition2;
             if (attribute2 != null) {
                 propertyDefinition2 = userPrismDefinition.findItemDefinition(attribute2);
                 if (propertyDefinition2 == null) {
@@ -673,7 +673,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         List<AddObjectsThread<UserType>> addThreads = new ArrayList<>();
         for (int i = 0; i < ADD_THREADS; i++) {
             int threadIndex = i;
-            AddObjectsThread<UserType> thread = new AddObjectsThread<UserType>(i, "adder #" + i, OBJECTS_PER_THREAD) {
+            AddObjectsThread<UserType> thread = new AddObjectsThread<>(i, "adder #" + i, OBJECTS_PER_THREAD) {
                 @Override
                 protected PrismObject<UserType> getObjectToAdd() {
                     return new UserType(prismContext).name(String.format("user-%d-%06d", threadIndex, counter.intValue())).asPrismObject();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -73,7 +73,7 @@ public class MockFactory {
             }
 
             @Override
-            public <T extends ObjectType> String modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options, Task task, OperationResult parentResult) {
+            public <T extends ObjectType> String modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta<?, ?>> modifications, OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options, Task task, OperationResult parentResult) {
                 return null;
             }
 
@@ -235,19 +235,19 @@ public class MockFactory {
 
             @NotNull
             @Override
-            public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult) {
+            public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta<?, ?>> modifications, OperationResult parentResult) {
                 return null;
             }
 
             @NotNull
             @Override
-            public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, RepoModifyOptions options, OperationResult parentResult) {
+            public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta<?, ?>> modifications, RepoModifyOptions options, OperationResult parentResult) {
                 return null;
             }
 
             @NotNull
             @Override
-            public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, ModificationPrecondition<T> precondition, RepoModifyOptions options, OperationResult parentResult) {
+            public <T extends ObjectType> ModifyObjectResult<T> modifyObject(@NotNull Class<T> type, @NotNull String oid, @NotNull Collection<? extends ItemDelta<?, ?>> modifications, ModificationPrecondition<T> precondition, RepoModifyOptions options, OperationResult parentResult) {
                 return null;
             }
 

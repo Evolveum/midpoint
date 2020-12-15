@@ -581,7 +581,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @SuppressWarnings("rawtypes")
     @Override
     public <T extends ObjectType> String modifyObject(Class<T> type, String oid,
-            Collection<? extends ItemDelta> modifications, OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
+            Collection<? extends ItemDelta<?, ?>> modifications, OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 

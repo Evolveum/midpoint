@@ -22,8 +22,6 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-
 import org.apache.commons.lang3.StringUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.util.EmbeddedUtils;
@@ -36,6 +34,7 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -2905,10 +2904,12 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     }
 
     private void modifyResourceAvailabilityStatus(AvailabilityStatusType status, OperationResult parentResult) throws Exception {
-        PropertyDelta resourceStatusDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ItemPath.create(
-                ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS),
-                resourceTypeOpenDjrepo.asPrismObject().getDefinition(), status);
-        Collection<PropertyDelta> modifications = new ArrayList<>();
+        PropertyDelta<AvailabilityStatusType> resourceStatusDelta = prismContext.deltaFactory().property()
+                .createModificationReplaceProperty(
+                        ItemPath.create(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS),
+                        resourceTypeOpenDjrepo.asPrismObject().getDefinition(),
+                        status);
+        Collection<PropertyDelta<AvailabilityStatusType>> modifications = new ArrayList<>();
         modifications.add(resourceStatusDelta);
         repositoryService.modifyObject(ResourceType.class, resourceTypeOpenDjrepo.getOid(), modifications, parentResult);
     }
@@ -2925,7 +2926,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         ShadowType accountType = account.asObjectable();
         display("Shadow after discovery", account);
         // TODO FIX THIS!!!
-//        assertNull(name + "'s account after discovery must not have failed opertion.", accountType.getFailedOperationType());
+//        assertNull(name + "'s account after discovery must not have failed operation.", accountType.getFailedOperationType());
 //        assertNull(name + "'s account after discovery must not have result.", accountType.getResult());
 //        assertNotNull(name + "'s account must contain reference on the resource", accountType.getResourceRef());
 //        assertEquals(resourceTypeOpenDjrepo.getOid(), accountType.getResourceRef().getOid());
