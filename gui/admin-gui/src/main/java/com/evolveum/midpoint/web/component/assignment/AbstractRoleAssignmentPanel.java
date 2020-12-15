@@ -15,6 +15,10 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
+import com.evolveum.midpoint.gui.impl.prism.PrismReferenceValueWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.PrismReferenceWrapper;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -127,17 +131,40 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     }
 
     private String getRelationLabelValue(PrismContainerValueWrapper<AssignmentType> assignmentWrapper){
-        if (assignmentWrapper == null || assignmentWrapper.getRealValue() == null
-                || assignmentWrapper.getRealValue().getTargetRef() == null
-                || assignmentWrapper.getRealValue().getTargetRef().getRelation() == null){
-            return "";
+        QName relation = null;
+        try {
+            relation = getRelation(assignmentWrapper);
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Problem while getting relation for {}", e, assignmentWrapper.getRealValue());
         }
 
-        QName relation = assignmentWrapper.getRealValue().getTargetRef().getRelation();
+//        QName relation = assignmentWrapper.getRealValue().getTargetRef().getRelation();
         String relationDisplayName = WebComponentUtil.getRelationHeaderLabelKeyIfKnown(relation);
         return StringUtils.isNotEmpty(relationDisplayName) ?
                 getPageBase().createStringResource(relationDisplayName).getString() :
                 getPageBase().createStringResource(relation.getLocalPart()).getString();
+    }
+
+    private QName getRelation(PrismContainerValueWrapper<AssignmentType> assignmentWrapper) throws SchemaException {
+        if (assignmentWrapper == null) {
+            return null;
+        }
+
+        PrismReferenceWrapper<ObjectReferenceType> targetRef = assignmentWrapper.findReference(AssignmentType.F_TARGET_REF);
+        if (targetRef == null) {
+            return null;
+        }
+
+        PrismReferenceValueWrapperImpl<ObjectReferenceType> refValue = targetRef.getValue();
+        if (refValue == null) {
+            return null;
+        }
+
+        ObjectReferenceType ref = refValue.getRealValue();
+        if (ref == null) {
+            return null;
+        }
+        return ref.getRelation();
     }
 
 

@@ -1961,11 +1961,32 @@ public final class WebComponentUtil {
     @Nullable
     public static String getRelationHeaderLabelKeyIfKnown(QName relation) {
         RelationDefinitionType definition = getRelationRegistry().getRelationDefinition(relation);
-        if (definition != null && definition.getDisplay() != null && definition.getDisplay().getLabel() != null) {
-            return definition.getDisplay().getLabel().getOrig();
-        } else {
+
+        PolyStringType label = getRelationLabel(definition);
+        if (label == null) {
             return null;
         }
+
+        PolyStringTranslationType translation = label.getTranslation();
+        if (translation == null) {
+            return label.getOrig();
+        }
+
+        return translation.getKey();
+    }
+
+    @Nullable
+    private static PolyStringType getRelationLabel(RelationDefinitionType definition) {
+        if (definition == null) {
+            return null;
+        }
+
+        DisplayType displayType = definition.getDisplay();
+        if (displayType == null) {
+            return null;
+        }
+
+        return displayType.getLabel();
     }
 
     public static String createUserIcon(PrismObject<UserType> object) {
@@ -3854,6 +3875,10 @@ public final class WebComponentUtil {
                     if (display != null){
                         PolyStringType label = display.getLabel();
                         if (PolyStringUtils.isNotEmpty(label)){
+                            PolyStringTranslationType translation = label.getTranslation();
+                            if (translation != null && translation.getKey() != null) {
+                                return pageBase.createStringResource(translation.getKey()).getString();
+                            }
                             return pageBase.createStringResource(label).getString();
                         }
                     }

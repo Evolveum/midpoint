@@ -74,7 +74,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
     private RoleManagementConfigurationType roleManagementConfig;
     LoadableModel<UserType> targetUserModel;
 
-    public AbstractShoppingCartTabPanel(String id, RoleManagementConfigurationType roleManagementConfig){
+    public  AbstractShoppingCartTabPanel(String id, RoleManagementConfigurationType roleManagementConfig){
         super(id);
         this.roleManagementConfig = roleManagementConfig;
     }
