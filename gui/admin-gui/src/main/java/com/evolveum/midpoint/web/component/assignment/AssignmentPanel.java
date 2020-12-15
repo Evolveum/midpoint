@@ -386,6 +386,20 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
         archetypeFilter.setOidNullAsAny(true);
         archetypeFilter.setRelationNullAsAny(true);
 
+        QName targetType = getAssignmentType();
+        RefFilter targetRefFilter = null;
+        if (targetType != null) {
+            ObjectReferenceType ort = new ObjectReferenceType();
+            ort.setType(targetType);
+            ort.setRelation(new QName(PrismConstants.NS_QUERY, "any"));
+            targetRefFilter = (RefFilter) getParentPage().getPrismContext().queryFor(AssignmentType.class)
+                    .item(AssignmentType.F_TARGET_REF)
+                    .ref(ort.asReferenceValue())
+                    .buildFilter();
+            targetRefFilter.setOidNullAsAny(true);
+            targetRefFilter.setRelationNullAsAny(true);
+        }
+
         ObjectFilter relationFilter = getParentPage().getPrismContext().queryFor(AssignmentType.class)
                 .not()
                 .item(AssignmentType.F_TARGET_REF)
@@ -394,6 +408,9 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 
         ObjectQuery query = getPrismContext().queryFactory().createQuery(relationFilter);
         query.addFilter(getPrismContext().queryFactory().createNot(archetypeFilter));
+        if (targetRefFilter != null) {
+            query.addFilter(targetRefFilter);
+        }
         return query;
     }
 
