@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -27,11 +28,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItemSpecificationType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import org.apache.commons.collections4.CollectionUtils;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.text.Collator;
+import java.util.*;
 
 /**
  * @author katka
@@ -54,6 +55,8 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 
     private List<VirtualContainerItemSpecificationType> virtualItems;
     private List<ItemWrapper<?, ?, ?,?>> items = new ArrayList<>();
+
+    private List<ItemWrapper<?, ?, ?, ?>> nonContainers = new ArrayList<>();
 
     public PrismContainerValueWrapperImpl(PrismContainerWrapper<C> parent, PrismContainerValue<C> pcv, ValueStatus status) {
         super(parent, pcv, status);
@@ -236,7 +239,10 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 
     @Override
     public List<? extends ItemWrapper<?,?,?,?>> getNonContainers() {
-        List<? extends ItemWrapper<?,?,?,?>> nonContainers = new ArrayList<>();
+//        List<? extends ItemWrapper<?,?,?,?>> nonContainers = new ArrayList<>();
+        if (!nonContainers.isEmpty()) {
+            return nonContainers;
+        }
         for (ItemWrapper<?,?,?,?> item : items) {
 
             collectExtensionItems(item, false, nonContainers);
@@ -246,47 +252,66 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
             }
         }
 
+        PrismObjectWrapper<?> objectWrapper = getObjectWrapperForVirtualContainers();
+        if (objectWrapper != null) {
+
+            for (VirtualContainerItemSpecificationType virtualItem : getVirtualItems()) {
+                if (objectWrapper == null) {
+                    //should not happen, if happens it means something veeery strange happened
+                    continue;
+                }
+                try {
+                    ItemPath virtualItemPath = getVirtualItemPath(virtualItem);
+                    ItemWrapper itemWrapper = objectWrapper.findItem(virtualItemPath, ItemWrapper.class);
+                    if (itemWrapper == null) {
+                        LOGGER.warn("No wrapper found for {}", virtualItemPath);
+                        continue;
+                    }
+
+                    if (itemWrapper instanceof PrismContainerWrapper) {
+                        continue;
+                    }
+
+                    ((List) nonContainers).add(itemWrapper);
+                } catch (SchemaException e) {
+                    LOGGER.error("Cannot find wrapper with path {}, error occured {}", virtualItem, e.getMessage(), e);
+                }
+
+            }
+        }
+
+        Locale locale = WebModelServiceUtils.getLocale();
+        if (locale == null) {
+            locale = Locale.getDefault();
+        }
+        Collator collator = Collator.getInstance(locale);
+        collator.setStrength(Collator.SECONDARY);       // e.g. "a" should be different from "á"
+        collator.setDecomposition(Collator.FULL_DECOMPOSITION);
+        ItemWrapperComparator<?> comparator = new ItemWrapperComparator<>(collator, sorted);
+        if (CollectionUtils.isNotEmpty(nonContainers)) {
+            nonContainers.sort((Comparator) comparator);
+        }
+
+        return nonContainers;
+    }
+
+    private PrismObjectWrapper<?> getObjectWrapperForVirtualContainers() {
         if (getVirtualItems() == null) {
-            return nonContainers;
+            LOGGER.trace("Skipping processing of virtual containers, no virtual container definition found");
+            return null;
         }
 
         if (getParent() == null) {
             LOGGER.trace("Parent null, skipping virtual items");
-            return nonContainers;
+            return null;
         }
 
         PrismObjectWrapper objectWrapper = getParent().findObjectWrapper();
         if (objectWrapper == null) {
             LOGGER.trace("No object wrapper found. Skipping virtual items.");
-            return nonContainers;
+            return null;
         }
-
-        for (VirtualContainerItemSpecificationType virtualItem : getVirtualItems()) {
-            if (objectWrapper == null) {
-                //should not happen, if happens it means something veeery strange happened
-                continue;
-            }
-            try {
-                ItemPath virtualItemPath = getVirtualItemPath(virtualItem);
-                ItemWrapper itemWrapper = objectWrapper.findItem(virtualItemPath, ItemWrapper.class);
-                if (itemWrapper == null) {
-                    LOGGER.warn("No wrapper found for {}", virtualItemPath);
-                    continue;
-                }
-
-                if (itemWrapper instanceof PrismContainerWrapper) {
-                    continue;
-                }
-
-                ((List)nonContainers).add(itemWrapper);
-            } catch (SchemaException e) {
-                LOGGER.error("Cannot find wrapper with path {}, error occured {}", virtualItem, e.getMessage(), e);
-            }
-
-
-        }
-
-        return nonContainers;
+        return objectWrapper;
     }
 
     private ItemPath getVirtualItemPath(VirtualContainerItemSpecificationType virtualItem) throws SchemaException {
@@ -473,5 +498,22 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
     @Override
     public boolean isVirtual() {
         return virtualItems != null;
+    }
+
+    public void addItem(ItemWrapper<?, ?, ?, ?> iw) {
+        items.add(iw);
+        nonContainers.clear();
+    }
+
+    @Override
+    public void clearItems() {
+        items.clear();
+        nonContainers.clear();
+    }
+
+    @Override
+    public void addItems(Collection<ItemWrapper<?,?,?,?>> items) {
+        items.addAll(items);
+        nonContainers.clear();
     }
 }

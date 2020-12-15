@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import org.apache.wicket.model.PropertyModel;
 
 /**
  * @author skublik
@@ -43,27 +44,8 @@ public class ProjectionDisplayNamePanel extends DisplayNamePanel<ShadowType>{
 
     private void initLayout() {
         WebMarkupContainer pendingOperationContainer = new WebMarkupContainer(ID_PENDING_OPERATION_CONTAINER);
-        List<PendingOperationType> pendingOperations = getModelObject().getPendingOperation();
-        if(pendingOperations != null
-                && !pendingOperations.isEmpty()) {
 
-            pendingOperationContainer.add(new PendingOperationPanel(ID_PENDING_OPERATION, new IModel<List<PendingOperationType>>() {
-
-                @Override
-                public List<PendingOperationType> getObject() {
-                    return pendingOperations;
-                }
-
-            }));
-        } else {
-            pendingOperationContainer.add(new WebMarkupContainer(ID_PENDING_OPERATION));
-            pendingOperationContainer.add(new VisibleEnableBehaviour() {
-                @Override
-                public boolean isVisible() {
-                    return false;
-                }
-            });
-        }
+        pendingOperationContainer.add(new PendingOperationPanel(ID_PENDING_OPERATION, new PropertyModel<>(getModel(), ShadowType.F_PENDING_OPERATION.getLocalPart())));
         add(pendingOperationContainer);
     }
 
