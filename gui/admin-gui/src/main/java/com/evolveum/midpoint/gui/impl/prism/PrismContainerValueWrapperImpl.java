@@ -524,8 +524,8 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
     }
 
     @Override
-    public void addItems(Collection<ItemWrapper<?,?,?,?>> items) {
-        items.addAll(items);
+    public void addItems(Collection<ItemWrapper<?,?,?,?>> allItems) {
+        items.addAll(allItems);
         nonContainers.clear();
     }
 }
