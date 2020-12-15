@@ -18,19 +18,24 @@ public class SqaleRepositoryServiceFactory implements RepositoryServiceFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqaleRepositoryServiceFactory.class);
 
+    private SqaleRepositoryService repositoryService;
+
     @Override
     public void init(Configuration configuration) throws RepositoryServiceFactoryException {
         LOGGER.info("SqaleRepositoryServiceFactory is going to be initialized");
+        // TODO
     }
 
     @Override
-    public RepositoryService createRepositoryService() throws RepositoryServiceFactoryException {
-        LOGGER.info("SqaleRepositoryServiceFactory: creating repository service");
-        return null;
+    public RepositoryService createRepositoryService() {
+        if (repositoryService == null) {
+            repositoryService = new SqaleRepositoryService();
+        }
+        return repositoryService;
     }
 
     @Override
     public void destroy() throws RepositoryServiceFactoryException {
-        LOGGER.info("SqaleRepositoryServiceFactory: destroy");
+        // TODO destroy perf monitor? SqlBaseService.destroy for inspiration
     }
 }
