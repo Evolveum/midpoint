@@ -86,6 +86,7 @@ public class ContainerTypeSearchItem<C extends Containerable> extends SearchItem
     }
 
     public void setType(@NotNull DisplayableValue<Class<C>> type) {
+        oldType = this.getTypeClass();
         this.type = type;
     }
 
@@ -111,6 +112,7 @@ public class ContainerTypeSearchItem<C extends Containerable> extends SearchItem
     }
 
     public void setTypeClass(Class<C> type) {
+        oldType = this.getTypeClass();
         this.type = new SearchValue<Class<C>>(type,"");
     }
 

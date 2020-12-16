@@ -3342,7 +3342,10 @@ public final class WebComponentUtil {
                 super.bind(component);
 
                 component.add(AttributeModifier.replace("onkeydown",
-                        Model.of("if(event.keyCode == 13) {$('[about=\"" + submitButtonAboutAttribute + "\"]').click();}")));
+                        Model.of("if(event.keyCode == 13) {"
+                                + "event.die();"
+                                + "$('[about=\"" + submitButtonAboutAttribute + "\"]').click();"
+                                + "}")));
             }
         };
     }

@@ -26,7 +26,7 @@ import org.apache.wicket.model.PropertyModel;
 /**
  * @author lskublik
  */
-public class SearchObjectCollectionPanel extends AbstractSearchItemPanel<ObjectCollectionSearchItem, String> {
+public class SearchObjectCollectionPanel extends AbstractSearchItemPanel<ObjectCollectionSearchItem> {
 
     private static final long serialVersionUID = 1L;
 

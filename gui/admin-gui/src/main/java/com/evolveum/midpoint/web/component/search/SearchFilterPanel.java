@@ -44,7 +44,7 @@ import java.util.List;
  * @author Viliam Repan (lazyman)
  * @author lskublik
  */
-public class SearchFilterPanel extends AbstractSearchItemPanel<FilterSearchItem, String> {
+public class SearchFilterPanel extends AbstractSearchItemPanel<FilterSearchItem> {
 
     private static final long serialVersionUID = 1L;
 
@@ -82,6 +82,7 @@ public class SearchFilterPanel extends AbstractSearchItemPanel<FilterSearchItem,
             IModel<List<DisplayableValue<?>>> choices = null;
             switch (inputType) {
                 case REFERENCE:
+                    getModelObject().setInput(new SearchValue<>(new ObjectReferenceType()));
                     inputPanel = new ReferenceValueSearchPanel(ID_SEARCH_ITEM_FIELD,
                             new PropertyModel<>(getModel(), FilterSearchItem.F_INPUT_VALUE),
                             null){

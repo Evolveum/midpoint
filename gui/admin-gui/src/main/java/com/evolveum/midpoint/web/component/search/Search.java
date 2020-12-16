@@ -13,7 +13,6 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
@@ -35,7 +34,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -51,6 +49,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     public static final String F_AVAILABLE_DEFINITIONS = "availableDefinitions";
     public static final String F_ITEMS = "items";
+    public static final String F_SPECIAL_ITEMS = "specialItems";
     public static final String F_ADVANCED_QUERY = "advancedQuery";
     public static final String F_ADVANCED_ERROR = "advancedError";
     public static final String F_FULL_TEXT = "fullText";
@@ -78,6 +77,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     private final List<SearchItemDefinition> availableDefinitions = new ArrayList<>();
     private final List<SearchItem> items = new ArrayList<>();
+    private List<SearchItem> specialItems = new ArrayList<>();
 
     private ObjectCollectionSearchItem objectCollectionSearchItem;
     private boolean isCollectionItemVisible = false;
@@ -90,6 +90,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             boolean isFullTextSearchEnabled, SearchBoxModeType searchBoxModeType) {
         this.typeSearchItem = typeSearchItem;
         this.allDefinitions = allDefinitions;
+
         this.isFullTextSearchEnabled = isFullTextSearchEnabled;
 
         if (searchBoxModeType != null) {
@@ -104,6 +105,18 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     public List<SearchItem> getItems() {
         return Collections.unmodifiableList(items);
+    }
+
+    public List<SearchItem> getSpecialItems() {
+        return specialItems;
+    }
+
+    public void setSpecialItems( List<SearchItem> specialItems) {
+        this.specialItems = specialItems;
+    }
+
+    public void addSpecialItem (SearchItem item) {
+        specialItems.add(item);
     }
 
     public void setCollectionSearchItem(ObjectCollectionSearchItem objectCollectionSearchItem) {
@@ -321,7 +334,8 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     private ObjectQuery createObjectQuerySimple(ExpressionVariables defaultVariables, PageBase pageBase) {
         List<SearchItem> searchItems = getItems();
-        if (searchItems.isEmpty()) {
+        List<SearchItem> specialItems = getSpecialItems();
+        if (searchItems.isEmpty() && specialItems.isEmpty()) {
             return null;
         }
 
@@ -378,17 +392,36 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             }
         }
 
-        QueryFactory queryFactory = pageBase.getPrismContext().queryFactory();
+        for (SearchItem item : specialItems){
+            if (item instanceof SpecialSearchItem) {
+                ObjectFilter filter = ((SpecialSearchItem)item).createFilter();
+                if (filter != null) {
+                    conditions.add(filter);
+                }
+            }
+            if (item instanceof PropertySearchItem) {
+                ObjectFilter filter = createFilterForSearchItem((PropertySearchItem) item, pageBase.getPrismContext());
+                if (filter != null) {
+                    conditions.add(filter);
+                }
+            }
+        }
+
+
         ObjectQuery query;
+        if (getTypeClass() != null) {
+            query = pageBase.getPrismContext().queryFor(getTypeClass()).build();
+        } else {
+            query = pageBase.getPrismContext().queryFactory().createQuery();
+        }
         switch (conditions.size()) {
             case 0:
                 query = null;
                 break;
-            case 1:
-                query = queryFactory.createQuery(conditions.get(0));
-                break;
             default:
-                query = queryFactory.createQuery(queryFactory.createAnd(conditions));
+                for (ObjectFilter filter : conditions) {
+                    query.addFilter(filter);
+                }
         }
         return query;
     }

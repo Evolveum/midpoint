@@ -62,6 +62,8 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
             @Override
             public void onUpdate(AjaxRequestTarget target) {
                 ReferenceValueSearchPopupPanel.this.getModelObject().asReferenceValue().setObject(null);
+                ReferenceValueSearchPopupPanel.this.getModelObject().setTargetName(null);
+                ReferenceValueSearchPopupPanel.this.getModelObject().setRelation(null);
             }
         });
         midpointForm.add(oidField);
@@ -96,7 +98,6 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
             }
         });
         nameField.setOutputMarkupId(true);
-        nameField.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         midpointForm.add(nameField);
 
         DropDownChoicePanel<QName> type = new DropDownChoicePanel<QName>(ID_TYPE, new PropertyModel<>(getModel(), "type"),

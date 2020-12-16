@@ -14,12 +14,16 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.page.admin.configuration.component.DebugSearchFragment;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugSearchDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
@@ -32,7 +36,7 @@ import java.util.List;
 /**
  * @author lskublik
  */
-public class SearchTypePanel<C extends Containerable> extends AbstractSearchItemPanel<ContainerTypeSearchItem<C>, C> {
+public class SearchTypePanel<C extends Containerable> extends AbstractSearchItemPanel<ContainerTypeSearchItem<C>> {
 
     private static final long serialVersionUID = 1L;
 
@@ -49,16 +53,27 @@ public class SearchTypePanel<C extends Containerable> extends AbstractSearchItem
             List<DisplayableValue<Class<? extends C>>> allowedValues = item.getAllowedValues(getPageBase());
             if (allowedValues != null && !allowedValues.isEmpty()) {
                 IModel<List<DisplayableValue<?>>> choices = new ListModel(item.getAllowedValues(getPageBase()));
-                searchItemField = createDropDownChoices(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), ContainerTypeSearchItem.F_TYPE), choices, true);
+                searchItemField = createDropDownChoices(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), ContainerTypeSearchItem.F_TYPE), choices, false);
             }
         }
 
         if (searchItemField instanceof InputPanel && !(searchItemField instanceof AutoCompleteTextPanel)) {
-            ((InputPanel) searchItemField).getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
-            ((InputPanel) searchItemField).getBaseFormComponent().add(AttributeAppender.append("style", "width: 140px; max-width: 400px !important;"));
-            ((InputPanel) searchItemField).getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+            ((InputPanel) searchItemField).getBaseFormComponent().add(AttributeAppender.append("style", "width: 175px; max-width: 400px !important;"));
+            ((InputPanel) searchItemField).getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                protected void onUpdate(AjaxRequestTarget target) {
+                    searchPerformed(target);
+                }
+            });
         }
         searchItemField.setOutputMarkupId(true);
         searchItemContainer.add(searchItemField);
+    }
+
+    @Override
+    protected boolean canRemoveSearchItem() {
+        return false;
     }
 }

@@ -12,6 +12,12 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import org.apache.commons.lang3.StringUtils;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
@@ -29,10 +35,14 @@ public class DebugSearchDto implements Serializable, DebugDumpable {
     public static final String F_SEARCH = "search";
 
 //    private ObjectTypes type;
-    private ObjectViewDto resource;
+    private ObjectReferenceType resource;
     private Search search;
     private String oidFilter;
     private QName objectClass;
+
+    public DebugSearchDto(){
+        resetResourceRef();
+    }
 
 //    public ObjectTypes getType() {
 //        if (type == null) {
@@ -45,11 +55,11 @@ public class DebugSearchDto implements Serializable, DebugDumpable {
 //        this.type = type;
 //    }
 
-    public ObjectViewDto getResource() {
+    public ObjectReferenceType getResource() {
         return resource;
     }
 
-    public void setResource(ObjectViewDto resource) {
+    public void setResource(ObjectReferenceType resource) {
         this.resource = resource;
     }
 
@@ -75,6 +85,16 @@ public class DebugSearchDto implements Serializable, DebugDumpable {
 
     public void setOidFilter(String oidFilter) {
         this.oidFilter = oidFilter;
+    }
+
+    public boolean isResourceEmpty() {
+        return getResource() == null || getResource().asReferenceValue().isEmpty();
+    }
+
+    public void resetResourceRef(){
+        ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setType(ResourceType.COMPLEX_TYPE);
+        this.resource = ref;
     }
 
     @Override

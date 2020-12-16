@@ -33,13 +33,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
  * @author Viliam Repan (lazyman)
  * @author lskublik
  */
-public class SearchItemPanel<T extends Serializable> extends AbstractSearchItemPanel<PropertySearchItem<T>, T> {
+public class SearchPropertyPanel<T extends Serializable> extends AbstractSearchItemPanel<PropertySearchItem<T>> {
 
     private static final long serialVersionUID = 1L;
 
     private static final String ID_SEARCH_ITEM_FIELD = "searchItemField";
 
-    public SearchItemPanel(String id, IModel<PropertySearchItem<T>> model) {
+    public SearchPropertyPanel(String id, IModel<PropertySearchItem<T>> model) {
         super(id, model);
     }
 

@@ -69,6 +69,8 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
     private static final String ID_FORM = "form";
     private static final String ID_ITEMS = "items";
     private static final String ID_ITEM = "item";
+    private static final String ID_SPECIAL_ITEMS = "specialItems";
+    private static final String ID_SPECIAL_ITEM = "specialItem";
     private static final String ID_SEARCH_CONTAINER = "searchContainer";
     private static final String ID_SEARCH_SIMPLE = "searchSimple";
     private static final String ID_SEARCH_BUTTON_BEFORE_DROPDOWN = "searchButtonBeforeDropdown";
@@ -135,6 +137,14 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
 
                 return dto;
             }
+
+            @Override
+            public MoreDialogDto getObject() {
+                if (SearchPanel.this.getModelObject() != null && SearchPanel.this.getModelObject().isTypeChanged()){
+                    reset();
+                }
+                return super.getObject();
+            }
         };
 
         MidpointForm<?> form = new MidpointForm<>(ID_FORM);
@@ -146,9 +156,46 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         collectionPanel.add(new VisibleBehaviour(() -> collectionModel != null && collectionModel.getObject() != null));
 
         PropertyModel<ContainerTypeSearchItem> typeModel = new PropertyModel<>(getModel(), Search.F_TYPE);
-        SearchTypePanel typePanel = new SearchTypePanel(ID_TYPE_PANEL, typeModel);
+        SearchTypePanel typePanel = new SearchTypePanel(ID_TYPE_PANEL, typeModel){
+            @Override
+            protected void searchPerformed(AjaxRequestTarget target) {
+                SearchPanel.this.searchPerformed(target);
+            }
+        };
         form.add(typePanel);
         typePanel.add(new VisibleBehaviour(() -> typeModel != null && typeModel.getObject() != null && typeModel.getObject().isVisible()));
+
+        ListView<SearchItem> specialItems = new ListView<SearchItem>(ID_SPECIAL_ITEMS,
+                new PropertyModel<>(getModel(), Search.F_SPECIAL_ITEMS)) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void populateItem(ListItem<SearchItem> item) {
+                WebMarkupContainer searchItem;
+                if (item.getModelObject() instanceof SpecialSearchItem) {
+                    searchItem = ((SpecialSearchItem)item.getModelObject()).createSpecialSearchPanel(ID_SPECIAL_ITEM);
+                } else {
+                    IModel itemModel = item.getModel();
+                    searchItem = new SearchPropertyPanel<T>(ID_SPECIAL_ITEM, (IModel<PropertySearchItem<T>>) itemModel) {
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        protected boolean canRemoveSearchItem() {
+                            return super.canRemoveSearchItem() && SearchPanel.this.getModelObject().isCanConfigure();
+                        }
+
+                        @Override
+                        protected void searchPerformed(AjaxRequestTarget target) {
+                            SearchPanel.this.searchPerformed(target);
+                        }
+                    };
+                }
+                item.add(searchItem);
+            }
+        };
+        form.add(specialItems);
+
 
         ListView<S> items = new ListView<S>(ID_ITEMS,
                 new PropertyModel<>(getModel(), Search.F_ITEMS)) {
@@ -173,7 +220,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
                         }
                     };
                 } else {
-                    searchItem = new SearchItemPanel<T>(ID_ITEM, (IModel<PropertySearchItem<T>>) item.getModel()) {
+                    searchItem = new SearchPropertyPanel<T>(ID_ITEM, (IModel<PropertySearchItem<T>>) item.getModel()) {
                         private static final long serialVersionUID = 1L;
 
                         @Override
@@ -203,8 +250,8 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 resetMoreDialogModel();
-                Component button = SearchPanel.this.get(createComponentPath(ID_FORM, ID_MORE_GROUP, ID_MORE));
                 Component popover = SearchPanel.this.get(createComponentPath(ID_POPOVER));
+                Component button = SearchPanel.this.get(createComponentPath(ID_FORM, ID_MORE_GROUP, ID_MORE));
                 togglePopover(target, button, popover, 14);
             }
         };

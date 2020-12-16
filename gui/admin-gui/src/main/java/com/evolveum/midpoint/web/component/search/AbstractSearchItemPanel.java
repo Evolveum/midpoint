@@ -40,7 +40,7 @@ import java.util.List;
  * @author Viliam Repan (lazyman)
  * @author lskublik
  */
-public abstract class AbstractSearchItemPanel<S extends SearchItem, T extends Serializable> extends BasePanel<S> {
+public abstract class AbstractSearchItemPanel<S extends SearchItem> extends BasePanel<S> {
 
     private static final long serialVersionUID = 1L;
 
@@ -115,7 +115,7 @@ public abstract class AbstractSearchItemPanel<S extends SearchItem, T extends Se
     protected abstract void initSearchItemField(WebMarkupContainer searchItemContainer);
 
     protected boolean canRemoveSearchItem() {
-        return true;
+        return getModelObject().canRemoveSearchItem();
     }
 
     protected IModel<String> createLabelModel() {
@@ -154,7 +154,7 @@ public abstract class AbstractSearchItemPanel<S extends SearchItem, T extends Se
         return Model.ofList(list);
     }
 
-    protected Component createDropDownChoices(String id, IModel<Object> model, IModel<List<DisplayableValue<?>>> choices, boolean allowNull) {
+    protected DropDownChoicePanel createDropDownChoices(String id, IModel<Object> model, IModel<List<DisplayableValue<?>>> choices, boolean allowNull) {
         return new DropDownChoicePanel(id, model, choices, new IChoiceRenderer<DisplayableValue>() {
             private static final long serialVersionUID = 1L;
 

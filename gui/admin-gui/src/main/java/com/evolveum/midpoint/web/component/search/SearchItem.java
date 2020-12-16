@@ -71,4 +71,8 @@ public abstract class SearchItem implements Serializable {
     public void setDefinition(SearchItemDefinition definition) {
         this.definition = definition;
     }
+
+    protected boolean canRemoveSearchItem() {
+        return true;
+    }
 }
