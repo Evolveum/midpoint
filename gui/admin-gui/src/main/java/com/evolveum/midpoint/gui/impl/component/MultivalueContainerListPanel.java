@@ -320,8 +320,11 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         }
         toDelete.forEach(value -> {
             if (value.getStatus() == ValueStatus.ADDED) {
-                PrismContainerWrapper<C> wrapper = (PrismContainerWrapper<C>) getModelObject();
-                wrapper.getValues().remove(value);
+                PrismContainerWrapper<C> wrapper = (PrismContainerWrapper<C>) (getContainerModel() != null ?
+                        getContainerModel().getObject() : null);
+                if (wrapper != null) {
+                    wrapper.getValues().remove(value);
+                }
             } else {
                 value.setStatus(ValueStatus.DELETED);
             }
