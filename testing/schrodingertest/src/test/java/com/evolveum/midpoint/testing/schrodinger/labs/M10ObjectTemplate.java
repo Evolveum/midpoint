@@ -91,7 +91,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
 
         hrTargetFile = new File(getTestTargetDir(), HR_FILE_SOURCE_NAME);
         FileUtils.copyFile(HR_SOURCE_FILE, hrTargetFile);
-        importObject(HR_NO_EXTENSION_RESOURCE_FILE, true);
+        importObject(HR_RESOURCE_FILE_8_1, true);
         changeResourceAttribute(HR_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, hrTargetFile.getAbsolutePath(), true);
 
         addObjectFromFile(HR_SYNCHRONIZATION_TASK_FILE);
