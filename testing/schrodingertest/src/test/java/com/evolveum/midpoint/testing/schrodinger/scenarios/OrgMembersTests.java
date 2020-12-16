@@ -162,7 +162,7 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
                 .updateSearch()
                 .and()
                 .countTableObjects(), 1, "Created member is absent in org members table");
-        Assert.assertTrue(memberTable.containsText("default"));
+        Assert.assertTrue(memberTable.containsText("Member"));
     }
 
     @Test
@@ -195,7 +195,7 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
                 .updateSearch()
                 .and()
                 .countTableObjects(), 1, "Created member is absent in org members table");
-        Assert.assertTrue(memberTable.containsText("manager"));
+        Assert.assertTrue(memberTable.containsText("Manager"));
     }
 
     @Test
@@ -228,7 +228,7 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
                 .updateSearch()
                 .and()
                 .countTableObjects(), 1, "Created member is absent in org members table");
-        Assert.assertTrue(memberTable.containsText("owner"));
+        Assert.assertTrue(memberTable.containsText("Owner"));
     }
 
     @Test
@@ -261,6 +261,6 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
                 .updateSearch()
                 .and()
                 .countTableObjects(), 1, "Created member is absent in org members table");
-        Assert.assertTrue(memberTable.containsText("approver"));
+        Assert.assertTrue(memberTable.containsText("Approver"));
     }
 }
