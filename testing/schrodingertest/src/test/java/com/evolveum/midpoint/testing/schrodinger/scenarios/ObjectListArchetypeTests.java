@@ -43,9 +43,8 @@ public class ObjectListArchetypeTests extends AbstractSchrodingerTest {
         AdminGuiTab adminGuiTab = basicPage.adminGui();
         adminGuiTab
                 .addNewObjectCollection(ARCHETYPE_PLURAL_LABEL, "User", "Archetype", ARCHETYPE_PLURAL_LABEL)
-                .clickSave()
-                .feedback()
-                .isSuccess();
+                    .feedback()
+                        .isSuccess();
     }
 
 

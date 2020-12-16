@@ -10,6 +10,8 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
+import com.codeborne.selenide.Selenide;
+
 import com.evolveum.midpoint.schrodinger.component.org.MemberPanel;
 import com.evolveum.midpoint.schrodinger.component.org.MemberTable;
 
@@ -115,11 +117,13 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
                         .and()
                         .clickAdd();
 
-        Assert.assertTrue(basicPage.orgStructure()
-                                        .selectTabWithRootOrg(ORG_WITH_MEMBER_NAME)
-                                            .getMemberPanel()
-                                                .table()
-                                                    .containsLinksTextPartially("UniqueNameUserForMemberTest"));
+        MemberPanel<OrgRootTab> memberPanel = basicPage.orgStructure()
+                    .selectTabWithRootOrg(ORG_WITH_MEMBER_NAME)
+                        .getMemberPanel();
+        Selenide.screenshot("test00300assignExistingUserAsMember_membersPanel");
+        Assert.assertTrue(memberPanel
+                .table()
+                    .containsText("UniqueNameUserForMemberTest"));
         //test that schrodinger looks correctly for the element inside parent element, not on the whole page
         // (both page and popup window contains tables with Name column, we need to look through Name column in the popup)
         Assert.assertNotNull(basicPage.orgStructure()
