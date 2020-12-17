@@ -98,7 +98,7 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>audit-impl</artifactId>
+            <artifactId>audit-log-impl</artifactId>
             <version>4.3-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>

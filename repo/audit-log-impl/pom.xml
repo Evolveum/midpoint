@@ -15,10 +15,11 @@
         <version>4.3-SNAPSHOT</version>
     </parent>
 
-    <artifactId>audit-impl</artifactId>
+    <artifactId>audit-log-impl</artifactId>
     <packaging>jar</packaging>
 
-    <name>midPoint Audit - impl</name>
+    <name>midPoint Audit - logging impl</name>
+    <description>Audit implementation writing to logs, currently using SLF4J API.</description>
 
     <dependencies>
         <dependency>

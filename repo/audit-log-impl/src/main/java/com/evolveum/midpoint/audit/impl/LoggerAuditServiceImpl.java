@@ -168,12 +168,6 @@ public class LoggerAuditServiceImpl implements AuditService {
         return false;
     }
 
-    // This method is never used. It is here only for maven dependency plugin to properly detect common component usage.
-    @SuppressWarnings("unused")
-    private void fakeMethod() {
-        LoggingConfigurationManager.dummy();
-    }
-
     @Override
     public void reindexEntry(AuditEventRecord record) {
         throw new UnsupportedOperationException("Reindex entry not supported");
