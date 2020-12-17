@@ -124,6 +124,7 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
                     .selectTabWithRootOrg(ORG_WITH_MEMBER_NAME)
                         .getMemberPanel()
                             .table()
+                                .clickRefreshButton()
                                 .search()
                                 .byName()
                                 .inputValue("UniqueNameUserForMemberTest")
@@ -134,7 +135,7 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
                     .containsText("UniqueNameUserForMemberTest"));
     }
 
-    @Test
+    @Test (priority = 4)
     public void test00400createNewUserMemberObject() {
         UserPage newUserPage = (UserPage) basicPage.orgStructure()
                 .selectTabWithRootOrg(ORG_WITH_MEMBER_NAME)
@@ -165,7 +166,7 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
         Assert.assertTrue(memberTable.containsText("Member"));
     }
 
-    @Test
+    @Test (priority = 5)
     public void test00500createNewRoleMemberObject() {
         RolePage newRolePage = (RolePage) basicPage.orgStructure()
                 .selectTabWithRootOrg(ORG_WITH_MEMBER_NAME)
@@ -198,7 +199,7 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
         Assert.assertTrue(memberTable.containsText("Manager"));
     }
 
-    @Test
+    @Test (priority = 6)
     public void test00600createNewOrgOwnerObject() {
         OrgPage newOrgPage = (OrgPage) basicPage.orgStructure()
                 .selectTabWithRootOrg(ORG_WITH_MEMBER_NAME)
@@ -231,7 +232,7 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
         Assert.assertTrue(memberTable.containsText("Owner"));
     }
 
-    @Test
+    @Test (priority = 7)
     public void test00700createNewServiceApproverObject() {
         ServicePage newServicePage = (ServicePage) basicPage.orgStructure()
                 .selectTabWithRootOrg(ORG_WITH_MEMBER_NAME)
