@@ -18,7 +18,7 @@ import javax.xml.namespace.QName;
 import java.util.List;
 
 /**
- * @author mederly
+ *
  */
 public interface S_ItemEntry {
 
@@ -30,9 +30,9 @@ public interface S_ItemEntry {
     /**
      * Can be used with dynamic paths.
      */
-    <T> S_ValuesEntry property(QName... names);
-    <T> S_ValuesEntry property(Object... namesOrIds);
-    <T> S_ValuesEntry property(ItemPath path);
+    S_ValuesEntry property(QName... names);
+    S_ValuesEntry property(Object... namesOrIds);
+    S_ValuesEntry property(ItemPath path);
     <T> S_ValuesEntry property(ItemPath path, PrismPropertyDefinition<T> itemDefinition);
 
     List<ObjectDelta<?>> asObjectDeltas(String oid);

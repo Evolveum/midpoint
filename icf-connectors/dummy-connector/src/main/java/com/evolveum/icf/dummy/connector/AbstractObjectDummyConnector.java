@@ -1001,7 +1001,7 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
        } else if (configuration.isUidSeparateFromName()) {
            builder.setUid(dummyObject.getId());
        } else {
-               throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+           throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
        }
 
         builder.addAttribute(Name.NAME, dummyObject.getName());
