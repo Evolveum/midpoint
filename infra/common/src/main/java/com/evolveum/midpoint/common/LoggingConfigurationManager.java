@@ -6,7 +6,11 @@
  */
 package com.evolveum.midpoint.common;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -112,13 +116,7 @@ public class LoggingConfigurationManager {
         StatusPrinter.setPrintStream(new PrintStream(baos));
         StatusPrinter.print(lc);
 
-        String internalLog = null;
-        try {
-            internalLog = baos.toString("UTF8");
-        } catch (UnsupportedEncodingException e) {
-            // should never happen
-            LOGGER.error("Whoops?", e);
-        }
+        String internalLog = baos.toString(StandardCharsets.UTF_8);
 
         if (!StringUtils.isEmpty(internalLog)) {
             //Parse internal log
@@ -466,8 +464,4 @@ public class LoggingConfigurationManager {
     private static String defineProfilingLogbackFilter() {
         return ("\t<filter class=\"" + ProfilingLogbackFilter.class.getName() + "\" />\n");
     }
-
-    public static void dummy() {
-    }
-
 }
