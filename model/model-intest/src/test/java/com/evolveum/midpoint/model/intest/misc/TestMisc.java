@@ -289,8 +289,8 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         // THEN
          displayThen(TEST_NAME);
          display("Relations", relations);
-        assertRelationDef(relations, SchemaConstants.ORG_MANAGER, "RelationTypes.manager");
-        assertRelationDef(relations, SchemaConstants.ORG_OWNER, "RelationTypes.owner");
+        assertRelationDef(relations, SchemaConstants.ORG_MANAGER, "manager");
+        assertRelationDef(relations, SchemaConstants.ORG_OWNER, "owner");
         assertEquals("Unexpected number of relation definitions", 7, relations.size());
     }
 
