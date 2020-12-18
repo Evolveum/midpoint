@@ -616,7 +616,7 @@ public class ConnIdUtil {
             return new GuardedString(protector.decryptString(ps).toCharArray());
         } catch (EncryptionException e) {
             LOGGER.error("Unable to decrypt value of element {}: {}-{}",
-                    new Object[] { propertyName, e.getMessage(), e });
+                    propertyName, e.getMessage(), e);
             throw new SystemException("Unable to decrypt value of element " + propertyName + ": "
                     + e.getMessage(), e);
         } catch (RuntimeException e) {

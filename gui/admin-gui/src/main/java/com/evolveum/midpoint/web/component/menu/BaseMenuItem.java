@@ -26,7 +26,7 @@ public class BaseMenuItem implements Serializable {
 
     public static final String F_ICON_CLASS = "iconClass";
 
-    static final String DEFAULT_ICON = "fa fa-circle-o";
+    public static final String DEFAULT_ICON = "fa fa-circle-o";
 
     //TODO why model? would be string key enought
     private String nameModel;

@@ -43,6 +43,7 @@ public interface AuditService {
 
     /**
      * @throws UnsupportedOperationException if object retrieval is not supported
+     * @deprecated use {@link #searchObjects(ObjectQuery, Collection, OperationResult)} instead
      */
     List<AuditEventRecord> listRecords(String query, Map<String, Object> params, OperationResult result);
 

@@ -102,7 +102,7 @@ public class ModificationOpHandler extends BaseOpHandler {
 
     @NotNull
     public <T extends ObjectType> ModifyObjectResult<T> modifyObject(@NotNull Class<T> type, @NotNull String oid,
-            @NotNull Collection<? extends ItemDelta> modifications,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
             ModificationPrecondition<T> precondition, RepoModifyOptions options, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException {
 
@@ -119,7 +119,7 @@ public class ModificationOpHandler extends BaseOpHandler {
                     .objectType(prismContext.getSchemaRegistry().determineTypeForClass(type))
                     .oid(oid)
                     .options(String.valueOf(options));
-            for (ItemDelta modification : modifications) {
+            for (ItemDelta<?, ?> modification : modifications) {
                 // todo only if configured?
                 trace.getModification().addAll(DeltaConvertor.toItemDeltaTypes(modification));
             }

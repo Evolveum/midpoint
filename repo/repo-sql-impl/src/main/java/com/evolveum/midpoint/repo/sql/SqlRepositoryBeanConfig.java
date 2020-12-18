@@ -10,8 +10,10 @@ import java.util.Properties;
 import javax.sql.DataSource;
 
 import org.hibernate.SessionFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
@@ -30,6 +32,14 @@ import com.evolveum.midpoint.repo.sql.util.MidPointPhysicalNamingStrategy;
  * would happen when combined with alternative configurations (e.g. context XMLs for test).
  */
 @Configuration
+// TODO: WIP - works for SqlRepositoryFactory, but probably we need to add Test version too.
+//  Also, this seems to have to be this ugly, because the following does NOT work:
+//  - @ConditionalOnBean(SqlRepositoryFactory.class) (RepositoryServiceFactory does, but that does not help)
+//  - @ConditionalOnExpression("#{repositoryFactory... something reasonable here,
+//    because RepositoryFactory is not initialized yet and all injected stuff is still null
+@ConditionalOnExpression("#{midpointConfiguration.getConfiguration('midpoint.repository')"
+        + ".getString('repositoryServiceFactoryClass').startsWith('com.evolveum.midpoint.repo.sql.')}")
+@ComponentScan
 public class SqlRepositoryBeanConfig {
 
     @Bean

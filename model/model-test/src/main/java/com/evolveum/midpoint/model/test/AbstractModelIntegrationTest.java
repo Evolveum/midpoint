@@ -27,11 +27,6 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-
-import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.util.annotation.Experimental;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -94,6 +89,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -118,6 +114,7 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -129,6 +126,7 @@ import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -2743,7 +2741,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 oldValue = focusPolicyType.asPrismContainerValue();
             }
         }
-        Collection<? extends ItemDelta> modifications = new ArrayList<>();
+        Collection<ContainerDelta<ObjectPolicyConfigurationType>> modifications = new ArrayList<>();
 
         if (oldValue != null) {
             ObjectPolicyConfigurationType oldPolicy = oldValue.asContainerable();
@@ -2754,9 +2752,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                     return;
                 }
             }
-            ContainerDelta<ObjectPolicyConfigurationType> deleteDelta = prismContext.deltaFactory().container().createModificationDelete(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION,
-                    SystemConfigurationType.class, oldValue.clone());
-            ((Collection) modifications).add(deleteDelta);
+            ContainerDelta<ObjectPolicyConfigurationType> deleteDelta =
+                    prismContext.deltaFactory().container().createModificationDelete(
+                            SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION,
+                            SystemConfigurationType.class, oldValue.clone());
+            modifications.add(deleteDelta);
         }
 
         if (objectTemplateOid != null) {
@@ -2777,7 +2777,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             ObjectReferenceType templateRef = new ObjectReferenceType();
             templateRef.setOid(objectTemplateOid);
             newFocusPolicyType.setObjectTemplateRef(templateRef);
-            ((Collection) modifications).add(addDelta);
+            modifications.add(addDelta);
         }
 
         modifySystemObjectInRepo(SystemConfigurationType.class,
@@ -2797,12 +2797,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 oldValue = focusPolicyType.asPrismContainerValue();
             }
         }
-        Collection<? extends ItemDelta> modifications = new ArrayList<>();
+        Collection<ContainerDelta<ObjectPolicyConfigurationType>> modifications = new ArrayList<>();
 
         if (oldValue != null) {
             ContainerDelta<ObjectPolicyConfigurationType> deleteDelta = prismContext.deltaFactory().container().createModificationDelete(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION,
                     SystemConfigurationType.class, oldValue.clone());
-            ((Collection) modifications).add(deleteDelta);
+            modifications.add(deleteDelta);
         }
 
         ObjectPolicyConfigurationType newFocusPolicyType = new ObjectPolicyConfigurationType();
@@ -2821,7 +2821,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .createModificationAdd(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION,
                         SystemConfigurationType.class, newFocusPolicyType);
 
-        ((Collection) modifications).add(addDelta);
+        modifications.add(addDelta);
 
         modifySystemObjectInRepo(SystemConfigurationType.class,
                 SystemObjectsType.SYSTEM_CONFIGURATION.value(), modifications, parentResult);
@@ -2839,10 +2839,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void setGlobalSecurityPolicy(String securityPolicyOid, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
-        Collection modifications = new ArrayList<>();
+        Collection<ReferenceDelta> modifications = new ArrayList<>();
 
-        ReferenceDelta refDelta = prismContext.deltaFactory().reference().createModificationReplace(SystemConfigurationType.F_GLOBAL_SECURITY_POLICY_REF,
-                SystemConfigurationType.class, securityPolicyOid);
+        ReferenceDelta refDelta = prismContext.deltaFactory().reference()
+                .createModificationReplace(SystemConfigurationType.F_GLOBAL_SECURITY_POLICY_REF,
+                        SystemConfigurationType.class, securityPolicyOid);
         modifications.add(refDelta);
 
         modifySystemObjectInRepo(SystemConfigurationType.class,
@@ -2851,7 +2852,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <O extends ObjectType> void modifySystemObjectInRepo(Class<O> type, String oid,
-            Collection<? extends ItemDelta> modifications, OperationResult parentResult)
+            Collection<? extends ItemDelta<?, ?>> modifications, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         display("Modifications of system object " + oid, modifications);
         repositoryService.modifyObject(type, oid, modifications, parentResult);
@@ -5401,6 +5402,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertEquals("Wrong executionStatus in " + task, TaskExecutionStatus.CLOSED, task.getExecutionStatus());
     }
 
+    @Deprecated
     protected List<AuditEventRecord> getAllAuditRecords(Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         Map<String, Object> params = new HashMap<>();
         return modelAuditService.listRecords("select * from m_audit_event as aer order by aer.timestampValue asc", params, task, result);

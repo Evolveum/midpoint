@@ -65,7 +65,7 @@ public class XmlEntityResolverImpl implements XmlEntityResolver {
             inputSource = resolveResourceUsingBuiltinResolver(null, null, publicId, systemId, null);
         }
         if (inputSource == null) {
-            LOGGER.error("Unable to resolve entity with publicID: {}, systemID: {}",new Object[]{publicId, systemId});
+            LOGGER.error("Unable to resolve entity with publicID: {}, systemID: {}", publicId, systemId);
             return null;
         }
         LOGGER.trace("==> Resolved entity with publicID: {}, systemID: {} : {}", publicId, systemId, inputSource);

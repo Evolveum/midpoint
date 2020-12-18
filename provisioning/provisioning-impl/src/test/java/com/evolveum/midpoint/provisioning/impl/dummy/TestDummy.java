@@ -3606,8 +3606,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
-        Collection<PropertyDelta<?>> modifications = new ArrayList<>(1);
-        ResourceSchema resourceSchema = requireNonNull(RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext));
+        Collection<PropertyDelta<String>> modifications = new ArrayList<>(1);
+        ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
         ObjectClassComplexTypeDefinition defaultAccountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
         ResourceAttributeDefinition<String> fullnameAttrDef = defaultAccountDefinition.findAttributeDefinition("fullname");
         ResourceAttribute<String> fullnameAttr = fullnameAttrDef.instantiate();

@@ -131,7 +131,7 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
 
     @Override
     public Iterator<SelectableBean<C>> internalIterator(long offset, long pageSize) {
-        LOGGER.trace("begin::iterator() offset {} pageSize {}.", new Object[] { offset, pageSize });
+        LOGGER.trace("begin::iterator() offset {} pageSize {}.", offset, pageSize);
 
         preprocessSelectedData();
 

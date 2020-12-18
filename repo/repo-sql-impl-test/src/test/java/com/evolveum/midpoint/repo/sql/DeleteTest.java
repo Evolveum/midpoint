@@ -35,8 +35,7 @@ public class DeleteTest extends BaseSQLRepoTest {
     public void delete001() throws Exception {
         final File file = new File("./../../samples/dsee/odsee-localhost-advanced-sync.xml");
         if (!file.exists()) {
-            logger.warn("skipping addGetDSEESyncDoubleTest, file {} not found.",
-                    new Object[]{file.getPath()});
+            logger.warn("skipping addGetDSEESyncDoubleTest, file {} not found.", file.getPath());
             return;
         }
 
@@ -46,13 +45,13 @@ public class DeleteTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("Delete Test");
         for (int i = 0; i < elements.size(); i++) {
             PrismObject object = elements.get(i);
-            logger.info("Adding object {}, type {}", new Object[]{i, object.getCompileTimeClass().getSimpleName()});
+            logger.info("Adding object {}, type {}", i, object.getCompileTimeClass().getSimpleName());
             oids.add(repositoryService.addObject(object, null, result));
         }
 
         for (int i = 0; i < elements.size(); i++) {
             PrismObject object = elements.get(i);
-            logger.info("Deleting object {}, type {}", new Object[]{i, object.getCompileTimeClass().getSimpleName()});
+            logger.info("Deleting object {}, type {}", i, object.getCompileTimeClass().getSimpleName());
 
             repositoryService.deleteObject(object.getCompileTimeClass(), oids.get(i), result);
         }

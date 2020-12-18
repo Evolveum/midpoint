@@ -115,7 +115,7 @@ public class ContainerDeltaFactoryImpl implements DeltaFactory.Container {
     // cValues should be parent-less
     @Deprecated // Remove in 4.2
     @Override
-    public Collection<? extends ItemDelta> createModificationReplaceContainerCollection(ItemName containerName,
+    public Collection<? extends ItemDelta<?, ?>> createModificationReplaceContainerCollection(ItemName containerName,
             PrismObjectDefinition<?> objectDefinition, PrismContainerValue... cValues) {
         return ContainerDeltaImpl.createModificationReplaceContainerCollection(containerName, objectDefinition, cValues);
     }

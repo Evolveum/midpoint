@@ -323,7 +323,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
         duration.addTo(deleteReportOutputsTo);
 
         LOGGER.info("Starting cleanup for report outputs deleting up to {} (duration '{}').",
-                new Object[]{deleteReportOutputsTo, duration});
+                deleteReportOutputsTo, duration);
 
         XMLGregorianCalendar timeXml = XmlTypeConverter.createXMLGregorianCalendar(deleteReportOutputsTo.getTime());
 

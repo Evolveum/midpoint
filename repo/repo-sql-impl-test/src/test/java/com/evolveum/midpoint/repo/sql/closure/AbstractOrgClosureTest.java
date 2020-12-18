@@ -17,6 +17,7 @@ import cern.colt.matrix.impl.SparseDoubleMatrix2D;
 import cern.colt.matrix.linalg.Algebra;
 import cern.jet.math.Functions;
 import org.apache.commons.lang.StringUtils;
+import org.assertj.core.api.Assertions;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.hibernate.type.LongType;
@@ -101,7 +102,8 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
     private void checkChildrenSets(Set<String> oidsToCheck) {
         try (Session session = openSession()) {
-            SimpleDirectedGraph<String, DefaultEdge> tc = (SimpleDirectedGraph) orgGraph.clone();
+            //noinspection unchecked
+            SimpleDirectedGraph<String, DefaultEdge> tc = (SimpleDirectedGraph<String, DefaultEdge>) orgGraph.clone();
             TransitiveClosure.INSTANCE.closeSimpleDirectedGraph(tc);
             for (String subroot : oidsToCheck) {
                 logger.info("Checking descendants of {}", subroot);
@@ -227,8 +229,9 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("temp");
         int numberOfOrgsInRepo = repositoryService.countObjects(OrgType.class, null, null, result);
         info("Checking graph with repo. Orgs in repo: " + numberOfOrgsInRepo + ", orgs in graph: " + orgGraph.vertexSet().size());
-        assertTrue("# of orgs in repo (" + numberOfOrgsInRepo + ") is different from # of orgs in graph (" + orgGraph.vertexSet().size() + ")",
-                numberOfOrgsInRepo == orgGraph.vertexSet().size());
+        Assertions.assertThat(orgGraph.vertexSet())
+                .withFailMessage("# of orgs in repo (" + numberOfOrgsInRepo + ") is different from # of orgs in graph (" + orgGraph.vertexSet().size() + ")")
+                .hasSize(numberOfOrgsInRepo);
         for (String oid : orgGraph.vertexSet()) {
             //info("Checking " + oid);
             OrgType orgType;
@@ -264,13 +267,13 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     }
 
     private List<ROrgClosure> getOrgClosureByAncestor(String ancestorOid, Session session) {
-        Query query = session.createQuery("from ROrgClosure where ancestorOid=:oid");
+        Query<ROrgClosure> query = session.createQuery("from ROrgClosure where ancestorOid=:oid", ROrgClosure.class);
         query.setParameter("oid", ancestorOid);
         return query.list();
     }
 
     protected void removeObjectParent(ObjectType object, ObjectReferenceType parentOrgRef, boolean useReplace, OperationResult opResult) throws Exception {
-        List<ItemDelta> modifications = new ArrayList<>();
+        List<ItemDelta<?, ?>> modifications = new ArrayList<>();
         if (!useReplace) {          // standard case
             PrismReferenceValue existingValue = parentOrgRef.asReferenceValue();
             ItemDelta removeParent = prismContext.deltaFactory().reference().createModificationDelete(object.getClass(), OrgType.F_PARENT_ORG_REF,
@@ -295,7 +298,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
     // TODO generalzie to addObjectParent
     protected void addOrgParent(OrgType org, ObjectReferenceType parentOrgRef, boolean useReplace, OperationResult opResult) throws Exception {
-        List<ItemDelta> modifications = new ArrayList<>();
+        List<ItemDelta<?, ?>> modifications = new ArrayList<>();
         PrismReferenceValue existingValue = parentOrgRef.asReferenceValue();
         ItemDelta itemDelta;
         if (!useReplace) {
@@ -316,7 +319,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     }
 
     protected void addUserParent(UserType user, ObjectReferenceType parentOrgRef, OperationResult opResult) throws Exception {
-        List<ItemDelta> modifications = new ArrayList<>();
+        List<ItemDelta<?, ?>> modifications = new ArrayList<>();
         PrismReferenceValue existingValue = parentOrgRef.asReferenceValue();
         ItemDelta readdParent = prismContext.deltaFactory().reference().createModificationAdd(UserType.class, UserType.F_PARENT_ORG_REF,
                 existingValue.clone());
@@ -364,7 +367,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             String newOidPrefix = getOidCharFor(i) + oidPrefix;
             int numberOfParents = parentsInLevel == null ? (parentOid != null ? 1 : 0) : parentsInLevel[level];
             PrismObject<OrgType> org = createOrg(generateParentsForLevel(parentOid, level, numberOfParents), newOidPrefix);
-            logger.info("Creating {}, total {}; parents = {}", new Object[] { org, objectCount, getParentsOids(org) });
+            logger.info("Creating {}, total {}; parents = {}", org, objectCount, getParentsOids(org));
             String oid = repositoryService.addObject(org, null, result);
             org.setOid(oid);
             if (parentOid == null) {
@@ -388,7 +391,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             for (int u = 0; u < userChildrenInLevel[level]; u++) {
                 int numberOfParents = parentsInLevel == null ? 1 : parentsInLevel[level];
                 PrismObject<UserType> user = createUser(generateParentsForLevel(parentOid, level, numberOfParents), getOidCharFor(u) + ":" + oidPrefix);
-                logger.info("Creating {}, total {}; parents = {}", new Object[] { user, objectCount, getParentsOids(user) });
+                logger.info("Creating {}, total {}; parents = {}", user, objectCount, getParentsOids(user));
                 String uoid = repositoryService.addObject(user, null, result);
                 user.setOid(uoid);
                 allUsersCreated.add(user.asObjectable());
@@ -951,12 +954,12 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         String parentOid = parentOrgRef.getOid();
 
         System.out.println("Adding cycle-introducing link from " + parentOid + " to " + childOid);
-        List<ItemDelta> modifications = new ArrayList<>();
+        List<ItemDelta<?, ?>> modifications = new ArrayList<>();
         ObjectReferenceType ort = new ObjectReferenceType();
         ort.setOid(childOid);
         ort.setType(OrgType.COMPLEX_TYPE);
-        ItemDelta addParent = prismContext.deltaFactory().reference().createModificationAdd(OrgType.class, OrgType.F_PARENT_ORG_REF,
-                ort.asReferenceValue());
+        ItemDelta<?, ?> addParent = prismContext.deltaFactory().reference().createModificationAdd(
+                OrgType.class, OrgType.F_PARENT_ORG_REF, ort.asReferenceValue());
         modifications.add(addParent);
         try {
             repositoryService.modifyObject(OrgType.class, parentOid, modifications, opResult);

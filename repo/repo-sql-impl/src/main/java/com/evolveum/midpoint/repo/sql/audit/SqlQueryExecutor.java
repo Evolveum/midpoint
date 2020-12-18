@@ -49,7 +49,7 @@ public class SqlQueryExecutor {
             throws QueryException {
 
         SqlQueryContext<S, Q, R> context =
-                SqlQueryContext.from(schemaType, prismContext, baseHelper.sqlNewConfiguration());
+                SqlQueryContext.from(schemaType, prismContext, baseHelper.sqlRepoContext());
         if (query != null) {
             context.process(query.getFilter());
         }
@@ -68,7 +68,7 @@ public class SqlQueryExecutor {
             throws QueryException, SchemaException {
 
         SqlQueryContext<S, Q, R> context =
-                SqlQueryContext.from(schemaType, prismContext, baseHelper.sqlNewConfiguration());
+                SqlQueryContext.from(schemaType, prismContext, baseHelper.sqlRepoContext());
         if (query != null) {
             context.process(query.getFilter());
             context.processObjectPaging(query.getPaging());

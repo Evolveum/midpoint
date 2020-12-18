@@ -904,7 +904,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         SynchronizationType resourceSync = resource.getSynchronization();
         resourceSync.getObjectSynchronization().get(0).setObjectTemplateRef(ObjectTypeUtil.createObjectRef(templateOid, ObjectTypes.OBJECT_TEMPLATE));
 
-        Collection<? extends ItemDelta> refDelta = prismContext.deltaFactory().property()
+        Collection<? extends ItemDelta<?, ?>> refDelta = prismContext.deltaFactory().property()
                 .createModificationReplacePropertyCollection(ResourceType.F_SYNCHRONIZATION, resource.asPrismObject().getDefinition(), resourceSync);
         repositoryService.modifyObject(ResourceType.class, resource.getOid(), refDelta, result);
 

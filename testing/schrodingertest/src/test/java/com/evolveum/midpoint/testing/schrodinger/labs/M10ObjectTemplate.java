@@ -44,11 +44,29 @@ import java.util.List;
 public class M10ObjectTemplate extends AbstractLabTest{
 
     private static final File OBJECT_TEMPLATE_USER_SIMPLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "objectTemplate/object-template-example-user-simple.xml");
-    private static final File OBJECT_TEMPLATE_USER_FILE = new File(LAB_OBJECTS_DIRECTORY + "objectTemplate/object-template-example-user.xml");
     private static final File OBJECT_TEMPLATE_USER_FILE_10_3 = new File(LAB_OBJECTS_DIRECTORY + "objectTemplate/object-template-example-user-10-3.xml");
     private static final File LOOKUP_EMP_STATUS_FILE = new File(LAB_OBJECTS_DIRECTORY + "lookupTables/lookup-emp-status.xml");
     private static final File CSV_3_RESOURCE_FILE_10_4 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-10-4.xml");
     private static final File SYSTEM_CONFIGURATION_FILE_11_1 = new File(LAB_OBJECTS_DIRECTORY + "systemConfiguration/system-configuration-11-1.xml");
+
+    @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextBeforeTestClass" })
+    @Override
+    protected void springTestContextPrepareTestInstance() throws Exception {
+        String home = System.getProperty("midpoint.home");
+        File schemaDir = new File(home, "schema");
+
+        if (!schemaDir.mkdir()) {
+            if (schemaDir.exists()) {
+                FileUtils.cleanDirectory(schemaDir);
+            } else {
+                throw new IOException("Creation of directory \"" + schemaDir.getAbsolutePath() + "\" unsuccessful");
+            }
+        }
+        File schemaFile = new File(schemaDir, EXTENSION_SCHEMA_NAME);
+        FileUtils.copyFile(EXTENSION_SCHEMA_FILE, schemaFile);
+
+        super.springTestContextPrepareTestInstance();
+    }
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override
@@ -58,11 +76,13 @@ public class M10ObjectTemplate extends AbstractLabTest{
 
     @Override
     protected List<File> getObjectListToImport(){
-        return Arrays.asList(KIRK_USER_10_FILE);
+        return Arrays.asList(ARCHETYPE_ORG_FUNCTIONAL_FILE, ARCHETYPE_ORG_COMPANY_FILE, ARCHETYPE_ORG_GROUP_FILE,
+                ARCHETYPE_ORG_GROUP_LIST_FILE, KIRK_USER_TIBERIUS_FILE);
     }
 
-    @Test(groups={"M10"})
+    @Test
     public void mod10test01SimpleObjectTemplate() throws IOException {
+        importObject(ORG_EXAMPLE_FILE, true);
         importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE, true);
         csv1TargetFile = new File(getTestTargetDir(), CSV_1_FILE_SOURCE_NAME);
 
@@ -71,7 +91,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
 
         hrTargetFile = new File(getTestTargetDir(), HR_FILE_SOURCE_NAME);
         FileUtils.copyFile(HR_SOURCE_FILE, hrTargetFile);
-        importObject(HR_NO_EXTENSION_RESOURCE_FILE, true);
+        importObject(HR_RESOURCE_FILE_8_1, true);
         changeResourceAttribute(HR_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, hrTargetFile.getAbsolutePath(), true);
 
         addObjectFromFile(HR_SYNCHRONIZATION_TASK_FILE);
@@ -139,9 +159,10 @@ public class M10ObjectTemplate extends AbstractLabTest{
                 .compareInputAttributeValue("fullName", "Jim Tiberius Kirk"));
     }
 
-    @Test(dependsOnMethods = {"mod10test01SimpleObjectTemplate"}, groups={"M10"})
+    @Test(dependsOnMethods = {"mod10test01SimpleObjectTemplate"})
     public void mod10test02AutomaticAssignments() throws IOException {
         addObjectFromFile(OBJECT_TEMPLATE_USER_FILE);
+        importObject(ORG_EXAMPLE_FILE, true);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
 
         ResourceAccountsTab<ViewResourcePage> accountTab = basicPage.listResources()
@@ -215,7 +236,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
                         "Active Employees", "Internal Employee"));
     }
 
-    @Test(dependsOnMethods = {"mod10test02AutomaticAssignments"}, groups={"M10"})
+    @Test(dependsOnMethods = {"mod10test02AutomaticAssignments"})
     public void mod10test03LookupTablesAndAttributeOverrides() {
 
         PrismForm<AssignmentHolderBasicTab<UserPage>> form = showUser("kirk")
@@ -253,7 +274,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
         Assert.assertFalse(form.isPropertyEnabled("honorificSuffix"));
     }
 
-    @Test(dependsOnMethods = {"mod10test03LookupTablesAndAttributeOverrides"}, groups={"M10"})
+    @Test(dependsOnMethods = {"mod10test03LookupTablesAndAttributeOverrides"})
     public void mod10test04FinishingManagerMapping() {
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
         showTask("User Recomputation Task").clickRunNow();
@@ -358,9 +379,9 @@ public class M10ObjectTemplate extends AbstractLabTest{
                         .compareInputAttributeValue("manager", ""));
     }
 
-    @Test
+    @Test(dependsOnMethods = {"mod10test03LookupTablesAndAttributeOverrides"})
     public void mod11test01ConfiguringNotifications() throws IOException {
-        showTask("HR Synchronization").clickResume();
+//        showTask("HR Synchronization").clickResume();
 
         notificationFile = new File(getTestTargetDir(), NOTIFICATION_FILE_NAME);
         notificationFile.createNewFile();

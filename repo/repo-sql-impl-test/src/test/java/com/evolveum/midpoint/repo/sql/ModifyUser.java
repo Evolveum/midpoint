@@ -6,9 +6,19 @@
  */
 package com.evolveum.midpoint.repo.sql;
 
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -21,19 +31,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.util.Arrays;
-
 /**
  * This is not real test, it's just used to check how hibernate handles insert/modify of different objects.
  *
  * @author lazyman
  */
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ModifyUser extends BaseSQLRepoTest {
 
@@ -144,11 +147,11 @@ public class ModifyUser extends BaseSQLRepoTest {
 
     @Test
     public void test050ModifyBigUser() throws Exception {
-        PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-        PropertyDelta delta = prismContext.deltaFactory().property().createModificationReplaceProperty(ObjectType.F_DESCRIPTION, def,
+        PrismObjectDefinition<?> def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+        PropertyDelta<?> delta = prismContext.deltaFactory().property().createModificationReplaceProperty(ObjectType.F_DESCRIPTION, def,
                 "new description");
 
-        repositoryService.modifyObject(UserType.class, userBigOid, Arrays.asList(delta), new OperationResult("asdf"));
+        repositoryService.modifyObject(UserType.class, userBigOid, List.of(delta), new OperationResult("asdf"));
     }
 
     @Test

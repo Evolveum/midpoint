@@ -595,7 +595,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Fetching connector object ObjectClass={}, UID={}, options={}",
-                    new Object[]{icfObjectClass, uid, ConnIdUtil.dumpOptions(options)});
+                    icfObjectClass, uid, ConnIdUtil.dumpOptions(options));
         }
 
         ConnectorObject co = null;
@@ -1196,7 +1196,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace(
                         "Invoking ConnId addAttributeValues(), objectclass={}, uid={}, attributes: {}",
-                        new Object[] { objClass, uid, dumpAttributes(attributesToAdd) });
+                        objClass, uid, dumpAttributes(attributesToAdd));
             }
 
             InternalMonitor.recordConnectorOperation("addAttributeValues");
@@ -1255,8 +1255,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             connIdResult.addContext("connector", connIdConnectorFacade.getClass());
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Invoking ConnId update(), objectclass={}, uid={}, attributes: {}", new Object[] {
-                        objClass, uid, dumpAttributes(attributesToUpdate) });
+                LOGGER.trace("Invoking ConnId update(), objectclass={}, uid={}, attributes: {}",
+                        objClass, uid, dumpAttributes(attributesToUpdate));
             }
 
             try {
@@ -1317,7 +1317,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace(
                         "Invoking ConnId removeAttributeValues(), objectclass={}, uid={}, attributes: {}",
-                        new Object[] { objClass, uid, dumpAttributes(attributesToRemove) });
+                        objClass, uid, dumpAttributes(attributesToRemove));
             }
 
             InternalMonitor.recordConnectorOperation("removeAttributeValues");

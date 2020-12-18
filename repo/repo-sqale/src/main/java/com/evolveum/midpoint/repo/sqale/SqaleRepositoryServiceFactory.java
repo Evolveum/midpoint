@@ -14,23 +14,28 @@ import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-public class SqaleRepositoryFactory implements RepositoryServiceFactory {
+public class SqaleRepositoryServiceFactory implements RepositoryServiceFactory {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SqaleRepositoryFactory.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SqaleRepositoryServiceFactory.class);
+
+    private SqaleRepositoryService repositoryService;
 
     @Override
     public void init(Configuration configuration) throws RepositoryServiceFactoryException {
-        LOGGER.info("SqaleRepositoryFactory is going to be initialized");
+        LOGGER.info("SqaleRepositoryServiceFactory is going to be initialized");
+        // TODO
     }
 
     @Override
-    public RepositoryService createRepositoryService() throws RepositoryServiceFactoryException {
-        LOGGER.info("SqaleRepositoryFactory: creating repository service");
-        return null;
+    public RepositoryService createRepositoryService() {
+        if (repositoryService == null) {
+            repositoryService = new SqaleRepositoryService();
+        }
+        return repositoryService;
     }
 
     @Override
     public void destroy() throws RepositoryServiceFactoryException {
-        LOGGER.info("SqaleRepositoryFactory: destroy");
+        // TODO destroy perf monitor? SqlBaseService.destroy for inspiration
     }
 }

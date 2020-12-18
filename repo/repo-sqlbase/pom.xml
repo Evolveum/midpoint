@@ -20,7 +20,11 @@
     <packaging>jar</packaging>
 
     <name>midPoint Repository - SQL common support</name>
-    <description>Common parts for new SQL repository and audit (based on Querydsl)</description>
+    <description>
+        Common parts for SQL-based repository and audit implementations.
+        Contains common SQL configuration support, Querydsl support, connection pool.
+        No Hibernate here.
+    </description>
 
     <properties>
         <maven.test.skip>true</maven.test.skip>

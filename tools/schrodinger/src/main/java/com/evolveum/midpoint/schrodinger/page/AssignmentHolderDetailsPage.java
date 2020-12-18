@@ -36,6 +36,7 @@ public abstract class AssignmentHolderDetailsPage<P extends AssignmentHolderDeta
 
     public ProgressPage clickSave() {
         $(Schrodinger.byDataId("save")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return new ProgressPage();
     }
 

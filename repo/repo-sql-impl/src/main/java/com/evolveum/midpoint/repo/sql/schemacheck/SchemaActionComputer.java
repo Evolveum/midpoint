@@ -18,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.repo.sql.Database;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.MissingSchemaAction;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.UpgradeableSchemaAction;
@@ -278,12 +279,12 @@ class SchemaActionComputer {
     }
 
     private String determineUpgradeScriptFileName(@NotNull String from, @NotNull String to) {
-        SqlRepositoryConfiguration.Database database = getDatabase();
+        Database database = getDatabase();
         return database.name().toLowerCase() + "-upgrade-" + from + "-" + to + getVariantSuffix() + ".sql";
     }
 
     private String determineCreateScriptFileName() {
-        SqlRepositoryConfiguration.Database database = getDatabase();
+        Database database = getDatabase();
         return database.name().toLowerCase() + "-" + REQUIRED_DATABASE_SCHEMA_VERSION + "-all" + getVariantSuffix() + ".sql";
     }
 
@@ -293,13 +294,13 @@ class SchemaActionComputer {
     }
 
     @NotNull
-    private SqlRepositoryConfiguration.Database getDatabase() {
-        SqlRepositoryConfiguration.Database database = baseHelper.getConfiguration().getDatabaseType();
+    private Database getDatabase() {
+        Database database = baseHelper.getConfiguration().getDatabaseType();
         if (database == null) {
             throw new SystemException("Couldn't create/upgrade DB schema because database kind is not known");
         }
-        if (database == SqlRepositoryConfiguration.Database.MARIADB) {
-            database = SqlRepositoryConfiguration.Database.MYSQL;
+        if (database == Database.MARIADB) {
+            database = Database.MYSQL;
         }
         return database;
     }

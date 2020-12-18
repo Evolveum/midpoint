@@ -33,7 +33,7 @@ public class Table<T> extends Component<T> {
         super(parent, parentElement);
     }
 
-    public TableRow rowByColumnLabel(String label, String rowValue) {
+    public TableRow<T, Table<T>> rowByColumnLabel(String label, String rowValue) {
         int index = findColumnByLabel(label);
         if (index < 0) {
             return null;
@@ -89,7 +89,7 @@ public class Table<T> extends Component<T> {
         return index;
     }
 
-    public TableRow rowByColumnResourceKey(String key, String rowValue) {
+    public TableRow<T, Table<T>> rowByColumnResourceKey(String key, String rowValue) {
         int index = findColumnByResourceKey(key);
         if (index < 0) {
             return null;
@@ -97,7 +97,7 @@ public class Table<T> extends Component<T> {
         return getTableRowByIndex(index, rowValue);
     }
 
-    private TableRow getTableRowByIndex(int index, String rowValue) {
+    private TableRow<T, Table<T>> getTableRowByIndex(int index, String rowValue) {
         ElementsCollection rows = getParentElement().findAll("tbody tr");
         for (SelenideElement row : rows) {
             String value = row.find("td:nth-child(" + index + ")").text();

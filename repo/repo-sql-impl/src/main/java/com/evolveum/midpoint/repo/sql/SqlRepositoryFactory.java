@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -29,7 +29,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * @author lazyman
+ * Factory for {@link SqlRepositoryServiceImpl} implementing {@link RepositoryService}.
  */
 public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
@@ -37,6 +37,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
     private static final long POOL_CLOSE_WAIT = 500L;
     private static final long H2_CLOSE_WAIT = 2000L;
+
     private static final String H2_IMPLICIT_RELATIVE_PATH = "h2.implicitRelativePath";
 
     private SqlRepositoryConfiguration sqlConfiguration;
@@ -64,7 +65,10 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
         if (config.isUsingH2()) {
             if (System.getProperty(H2_IMPLICIT_RELATIVE_PATH) == null) {
-                System.setProperty(H2_IMPLICIT_RELATIVE_PATH, "true");        // to ensure backwards compatibility (H2 1.3.x)
+                // Allows implicitly relative paths to H2 database file.
+                // Our paths were changed to ./midpoint in Dec 2020, so it's here only for users.
+                // TODO: consider removal, if someone wants it, let them comply with H2 1.4.
+                System.setProperty(H2_IMPLICIT_RELATIVE_PATH, "true");
             }
         }
 
@@ -82,150 +86,6 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         }
 
         LOGGER.info("Repository initialization finished.");
-    }
-
-    @Override
-    public synchronized void destroy() {
-        if (sqlRepositoryService != null) {
-            sqlRepositoryService.destroy();
-        }
-
-        if (!getSqlConfiguration().isEmbedded()) {
-            LOGGER.info("Repository is not running in embedded mode, shutdown complete.");
-            return;
-        }
-
-        LOGGER.info("Waiting " + POOL_CLOSE_WAIT + " ms for the connection pool to be closed.");
-        try {
-            Thread.sleep(POOL_CLOSE_WAIT);
-        } catch (InterruptedException e) {
-            // just ignore
-        }
-
-        if (getSqlConfiguration().isAsServer()) {
-            LOGGER.info("Shutting down embedded H2");
-            if (server != null && server.isRunning(true)) {
-                server.stop();
-            }
-        } else {
-            LOGGER.info("H2 running as local instance (from file); waiting " + H2_CLOSE_WAIT + " ms for the DB to be closed.");
-            try {
-                Thread.sleep(H2_CLOSE_WAIT);
-            } catch (InterruptedException e) {
-                // just ignore
-            }
-        }
-
-        LOGGER.info("Shutdown complete.");
-    }
-
-    @NotNull
-    public SqlRepositoryConfiguration getSqlConfiguration() {
-        Validate.notNull(sqlConfiguration, "SQL repository configuration not available (null).");
-        return sqlConfiguration;
-    }
-
-    @Override
-    public synchronized RepositoryService createRepositoryService() {
-        if (sqlRepositoryService == null) {
-            sqlRepositoryService = new SqlRepositoryServiceImpl();
-        }
-        return sqlRepositoryService;
-    }
-
-    private String getRelativeBaseDirPath(String baseDir) {
-        String path = new File(".").toURI().relativize(new File(baseDir).toURI()).getPath();
-        if (Strings.isNullOrEmpty(path)) {
-            path = ".";
-        }
-        return path;
-    }
-
-    private void checkPort(int port) throws RepositoryServiceFactoryException {
-        if (port >= 65635 || port < 0) {
-            throw new RepositoryServiceFactoryException("Port must be in range 0-65634, not '" + port + "'.");
-        }
-
-        ServerSocket ss = null;
-        try {
-            ss = new ServerSocket(port);
-            ss.setReuseAddress(true);
-        } catch (BindException e) {
-            throw new RepositoryServiceFactoryException("Configured port (" + port + ") for H2 already in use.", e);
-        } catch (IOException e) {
-            LOGGER.error("Reported IO error, while binding ServerSocket to port " + port + " used to test availability " +
-                    "of port for H2 Server", e);
-        } finally {
-            try {
-                if (ss != null) {
-                    ss.close();
-                }
-            } catch (IOException ex) {
-                LOGGER.error("Reported IO error, while closing ServerSocket used to test availability " +
-                        "of port for H2 Server", ex);
-            }
-        }
-    }
-
-    private void startServer() throws RepositoryServiceFactoryException {
-        SqlRepositoryConfiguration config = getSqlConfiguration();
-        checkPort(config.getPort());
-
-        try {
-            String[] serverArguments = createArguments(config);
-            if (LOGGER.isTraceEnabled()) {
-                String stringArgs = StringUtils.join(serverArguments, " ");
-                LOGGER.trace("Starting H2 server with arguments: {}", stringArgs);
-            }
-            server = Server.createTcpServer(serverArguments);
-            server.start();
-        } catch (Exception ex) {
-            throw new RepositoryServiceFactoryException(ex.getMessage(), ex);
-        }
-    }
-
-    private String[] createArguments(SqlRepositoryConfiguration config) {
-//        [-help] or [-?]         Print the list of options
-//        [-web]                  Start the web server with the H2 Console
-//        [-webAllowOthers]       Allow other computers to connect - see below
-//        [-webDaemon]            Use a daemon thread
-//        [-webPort <port>]       The port (default: 8082)
-//        [-webSSL]               Use encrypted (HTTPS) connections
-//        [-browser]              Start a browser connecting to the web server
-//        [-tcp]                  Start the TCP server
-//        [-tcpAllowOthers]       Allow other computers to connect - see below
-//        [-tcpDaemon]            Use a daemon thread
-//        [-tcpPort <port>]       The port (default: 9092)
-//        [-tcpSSL]               Use encrypted (SSL) connections
-//        [-tcpPassword <pwd>]    The password for shutting down a TCP server
-//        [-tcpShutdown "<url>"]  Stop the TCP server; example: tcp://localhost
-//        [-tcpShutdownForce]     Do not wait until all connections are closed
-//        [-pg]                   Start the PG server
-//        [-pgAllowOthers]        Allow other computers to connect - see below
-//        [-pgDaemon]             Use a daemon thread
-//        [-pgPort <port>]        The port (default: 5435)
-//        [-properties "<dir>"]   Server properties (default: ~, disable: null)
-//        [-baseDir <dir>]        The base directory for H2 databases (all servers)
-//        [-ifExists]             Only existing databases may be opened (all servers)
-//        [-trace]                Print additional trace information (all servers)
-
-        List<String> args = new ArrayList<>();
-        if (StringUtils.isNotEmpty(config.getBaseDir())) {
-            args.add("-baseDir");
-            args.add(getRelativeBaseDirPath(config.getBaseDir()));
-        }
-        if (config.isTcpSSL()) {
-            args.add("-tcpSSL");
-        }
-        if (config.getPort() > 0) {
-            args.add("-tcpPort");
-            args.add(Integer.toString(config.getPort()));
-        }
-        // Allows auto-creation of remote database, which is a security hole and was forbidden
-        // from 1.4.198, see https://h2database.com/html/tutorial.html#creating_new_databases
-//        args.add("-ifNotExists"); // we're using <198 version now
-
-        return args.toArray(new String[0]);
     }
 
     private void dropDatabaseIfExists(SqlRepositoryConfiguration config) throws RepositoryServiceFactoryException {
@@ -273,5 +133,149 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         } else {
             LOGGER.info("File '{}' doesn't exist: delete status {}", file.getAbsolutePath(), file.delete());
         }
+    }
+
+    private void startServer() throws RepositoryServiceFactoryException {
+        SqlRepositoryConfiguration config = getSqlConfiguration();
+        checkPort(config.getPort());
+
+        try {
+            String[] serverArguments = createArguments(config);
+            if (LOGGER.isTraceEnabled()) {
+                String stringArgs = StringUtils.join(serverArguments, " ");
+                LOGGER.trace("Starting H2 server with arguments: {}", stringArgs);
+            }
+            server = Server.createTcpServer(serverArguments);
+            server.start();
+        } catch (Exception ex) {
+            throw new RepositoryServiceFactoryException(ex.getMessage(), ex);
+        }
+    }
+
+    private void checkPort(int port) throws RepositoryServiceFactoryException {
+        if (port >= 65635 || port < 0) {
+            throw new RepositoryServiceFactoryException("Port must be in range 0-65634, not '" + port + "'.");
+        }
+
+        ServerSocket ss = null;
+        try {
+            ss = new ServerSocket(port);
+            ss.setReuseAddress(true);
+        } catch (BindException e) {
+            throw new RepositoryServiceFactoryException("Configured port (" + port + ") for H2 already in use.", e);
+        } catch (IOException e) {
+            LOGGER.error("Reported IO error, while binding ServerSocket to port " + port + " used to test availability " +
+                    "of port for H2 Server", e);
+        } finally {
+            try {
+                if (ss != null) {
+                    ss.close();
+                }
+            } catch (IOException ex) {
+                LOGGER.error("Reported IO error, while closing ServerSocket used to test availability " +
+                        "of port for H2 Server", ex);
+            }
+        }
+    }
+
+    private String[] createArguments(SqlRepositoryConfiguration config) {
+//        [-help] or [-?]         Print the list of options
+//        [-web]                  Start the web server with the H2 Console
+//        [-webAllowOthers]       Allow other computers to connect - see below
+//        [-webDaemon]            Use a daemon thread
+//        [-webPort <port>]       The port (default: 8082)
+//        [-webSSL]               Use encrypted (HTTPS) connections
+//        [-browser]              Start a browser connecting to the web server
+//        [-tcp]                  Start the TCP server
+//        [-tcpAllowOthers]       Allow other computers to connect - see below
+//        [-tcpDaemon]            Use a daemon thread
+//        [-tcpPort <port>]       The port (default: 9092)
+//        [-tcpSSL]               Use encrypted (SSL) connections
+//        [-tcpPassword <pwd>]    The password for shutting down a TCP server
+//        [-tcpShutdown "<url>"]  Stop the TCP server; example: tcp://localhost
+//        [-tcpShutdownForce]     Do not wait until all connections are closed
+//        [-pg]                   Start the PG server
+//        [-pgAllowOthers]        Allow other computers to connect - see below
+//        [-pgDaemon]             Use a daemon thread
+//        [-pgPort <port>]        The port (default: 5435)
+//        [-properties "<dir>"]   Server properties (default: ~, disable: null)
+//        [-baseDir <dir>]        The base directory for H2 databases (all servers)
+//        [-ifExists]             Only existing databases may be opened (all servers)
+//        [-trace]                Print additional trace information (all servers)
+
+        List<String> args = new ArrayList<>();
+        if (StringUtils.isNotEmpty(config.getBaseDir())) {
+            args.add("-baseDir");
+            args.add(getRelativeBaseDirPath(config.getBaseDir()));
+        }
+        if (config.isTcpSSL()) {
+            args.add("-tcpSSL");
+        }
+        if (config.getPort() > 0) {
+            args.add("-tcpPort");
+            args.add(Integer.toString(config.getPort()));
+        }
+        // Allows auto-creation of remote database, which is a security hole and was forbidden
+        // from 1.4.198, see https://h2database.com/html/tutorial.html#creating_new_databases
+//        args.add("-ifNotExists"); // we're using <198 version now
+
+        return args.toArray(new String[0]);
+    }
+
+    private String getRelativeBaseDirPath(String baseDir) {
+        String path = new File(".").toURI().relativize(new File(baseDir).toURI()).getPath();
+        if (Strings.isNullOrEmpty(path)) {
+            path = ".";
+        }
+        return path;
+    }
+
+    @Override
+    public synchronized RepositoryService createRepositoryService() {
+        if (sqlRepositoryService == null) {
+            sqlRepositoryService = new SqlRepositoryServiceImpl();
+        }
+        return sqlRepositoryService;
+    }
+
+    @NotNull
+    public SqlRepositoryConfiguration getSqlConfiguration() {
+        Validate.notNull(sqlConfiguration, "SQL repository configuration not available (null).");
+        return sqlConfiguration;
+    }
+
+    @Override
+    public synchronized void destroy() {
+        if (sqlRepositoryService != null) {
+            sqlRepositoryService.destroy();
+        }
+
+        if (!getSqlConfiguration().isEmbedded()) {
+            LOGGER.info("Repository is not running in embedded mode, shutdown complete.");
+            return;
+        }
+
+        LOGGER.info("Waiting " + POOL_CLOSE_WAIT + " ms for the connection pool to be closed.");
+        try {
+            Thread.sleep(POOL_CLOSE_WAIT);
+        } catch (InterruptedException e) {
+            // just ignore
+        }
+
+        if (getSqlConfiguration().isAsServer()) {
+            LOGGER.info("Shutting down embedded H2");
+            if (server != null && server.isRunning(true)) {
+                server.stop();
+            }
+        } else {
+            LOGGER.info("H2 running as local instance (from file); waiting " + H2_CLOSE_WAIT + " ms for the DB to be closed.");
+            try {
+                Thread.sleep(H2_CLOSE_WAIT);
+            } catch (InterruptedException e) {
+                // just ignore
+            }
+        }
+
+        LOGGER.info("Shutdown complete.");
     }
 }

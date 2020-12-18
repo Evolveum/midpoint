@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~ Copyright (C) 2010-2020 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -8,31 +8,28 @@
 
 <beans xmlns="http://www.springframework.org/schema/beans"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:context="http://www.springframework.org/schema/context"
-        xsi:schemaLocation="
-            http://www.springframework.org/schema/beans
-            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-            http://www.springframework.org/schema/context
-            http://www.springframework.org/schema/context/spring-context-3.0.xsd"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
         default-lazy-init="true">
 
-    <context:annotation-config/>
-    <context:component-scan base-package="com.evolveum.midpoint.repo.sql"/>
+    <!-- This @Configuration drives component-scan + can use @Conditional... -->
+    <bean id="sqlRepositoryBeanConfig" class="com.evolveum.midpoint.repo.sql.SqlRepositoryBeanConfig"/>
 
+    <!--
+    TODO: what about TestSqlRepositoryBeanConfig which would be analog of the above + have
+    all the beans below.
+    -->
     <bean id="testInterceptor"
             class="com.evolveum.midpoint.repo.sql.testing.TestInterceptor"/>
 
     <bean id="testSqlRepositoryBeanPostProcessor"
             class="com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryBeanPostProcessor"/>
 
-    <bean id="testSqlRepositoryFactory"
-            class="com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryFactory"/>
-
     <bean id="sqlAuditFactory" class="com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory"/>
 
     <bean id="testDataSourceFactory"
             class="com.evolveum.midpoint.repo.sql.DataSourceFactory">
-        <constructor-arg value="#{testSqlRepositoryFactory.sqlConfiguration}"/>
+        <constructor-arg value="#{repositoryServiceFactory.sqlConfiguration}"/>
     </bean>
 
     <bean id="testDataSource"
@@ -74,17 +71,15 @@
         <property name="dataSource" ref="proxiedTestDataSource"/>
         <property name="hibernateProperties">
             <props>
-                <prop key="hibernate.dialect">#{testSqlRepositoryFactory.sqlConfiguration.hibernateDialect}</prop>
+                <prop key="hibernate.dialect">#{repositoryServiceFactory.sqlConfiguration.hibernateDialect}</prop>
                 <prop key="hibernate.show_sql">false</prop>
-                <prop key="hibernate.hbm2ddl.auto">#{testSqlRepositoryFactory.sqlConfiguration.hibernateHbm2ddl}</prop>
+                <prop key="hibernate.hbm2ddl.auto">#{repositoryServiceFactory.sqlConfiguration.hibernateHbm2ddl}</prop>
                 <prop key="hibernate.id.new_generator_mappings">true</prop>
                 <prop key="hibernate.jdbc.batch_size">20</prop>
                 <prop key="javax.persistence.validation.mode">none</prop>
                 <prop key="hibernate.transaction.coordinator_class">jdbc</prop>
                 <prop key="hibernate.hql.bulk_id_strategy">org.hibernate.hql.spi.id.inline.InlineIdsOrClauseBulkIdStrategy</prop>
                 <prop key="hibernate.session_factory.statement_inspector">com.evolveum.midpoint.repo.sql.testing.TestStatementInspector</prop>
-                <!-- Todo implement strategy that will not do select when where clause contains only equals on primary key -->
-                <!--<prop key="hibernate.hql.bulk_id_strategy">com.evolveum.midpoint.repo.sql.util.EmptyMultiTableBulkIdStrategy</prop>-->
             </props>
         </property>
         <property name="implicitNamingStrategy">

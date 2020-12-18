@@ -29,7 +29,7 @@ import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sqlbase.SqlConfiguration;
+import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -46,8 +46,8 @@ public class AuditEventRecordSqlTransformer
         extends SqlTransformerBase<AuditEventRecordType, QAuditEventRecord, MAuditEventRecord> {
 
     public AuditEventRecordSqlTransformer(PrismContext prismContext,
-            QAuditEventRecordMapping mapping, SqlConfiguration sqlConfiguration) {
-        super(prismContext, mapping, sqlConfiguration);
+            QAuditEventRecordMapping mapping, SqlRepoContext sqlRepoContext) {
+        super(prismContext, mapping, sqlRepoContext);
     }
 
     public AuditEventRecordType toSchemaObject(MAuditEventRecord row) throws SchemaException {
@@ -103,7 +103,7 @@ public class AuditEventRecordSqlTransformer
         }
 
         SqlTransformer<ObjectDeltaOperationType, QAuditDelta, MAuditDelta> deltaTransformer =
-                QAuditDeltaMapping.INSTANCE.createTransformer(prismContext, sqlConfiguration);
+                QAuditDeltaMapping.INSTANCE.createTransformer(prismContext, sqlRepoContext);
         for (MAuditDelta delta : deltas) {
             record.delta(deltaTransformer.toSchemaObject(delta));
         }

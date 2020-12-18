@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -17,9 +17,16 @@ import org.apache.commons.configuration2.Configuration;
  */
 public interface RepositoryServiceFactory {
 
+    /** Method injecting configuration, called by initialization procedure. */
     void init(Configuration configuration) throws RepositoryServiceFactoryException;
 
+    /**
+     * Destroy method implements necessary shutdown steps.
+     * Do not hook this to any life-cycle method (e.g. don't annotate as pre-destroy),
+     * it will be called by the general repository infrastructure.
+     */
     void destroy() throws RepositoryServiceFactoryException;
 
+    /** Factory method used by initialization procedure. */
     RepositoryService createRepositoryService() throws RepositoryServiceFactoryException;
 }

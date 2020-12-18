@@ -68,8 +68,8 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         long time = System.currentTimeMillis();
         for (int i = 0; i < elements.size(); i++) {
             if (i % 500 == 0) {
-                logger.info("Previous cycle time {}. Next cycle: {}", new Object[] {
-                        (System.currentTimeMillis() - time - previousCycle), i });
+                logger.info("Previous cycle time {}. Next cycle: {}",
+                        (System.currentTimeMillis() - time - previousCycle), i);
                 previousCycle = System.currentTimeMillis() - time;
             }
 
@@ -77,7 +77,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
             repositoryService.addObject(object, null, new OperationResult("add performance test"));
         }
         logger.info("Time to add objects ({}): {}",
-                new Object[] { elements.size(), (System.currentTimeMillis() - time) });
+                elements.size(), (System.currentTimeMillis() - time));
 
         stats.logSummary();
     }
@@ -100,8 +100,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     public void addGetDSEESyncDoubleTest() throws Exception {
         final File OBJECTS_FILE = new File("./../../samples/dsee/odsee-localhost-advanced-sync.xml");
         if (!OBJECTS_FILE.exists()) {
-            logger.warn("skipping addGetDSEESyncDoubleTest, file {} not found.",
-                    new Object[] { OBJECTS_FILE.getPath() });
+            logger.warn("skipping addGetDSEESyncDoubleTest, file {} not found.", OBJECTS_FILE.getPath());
             return;
         }
         addGetCompare(OBJECTS_FILE);
@@ -313,7 +312,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
         ObjectDelta<ShadowType> delta = fileAccount.diff(repoAccount);
         AssertJUnit.assertNotNull(delta);
-        logger.info("delta\n{}", new Object[] { delta.debugDump(3) });
+        logger.info("delta\n{}", delta.debugDump(3));
         if (!delta.isEmpty()) {
             fail("delta is not empty: " + delta.debugDump());
         }

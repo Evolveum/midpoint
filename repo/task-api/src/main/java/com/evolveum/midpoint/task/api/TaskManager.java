@@ -165,7 +165,7 @@ public interface TaskManager {
      * @throws IllegalArgumentException
      *             wrong OID format, described change is not applicable
      */
-    void modifyTask(String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult)
+    void modifyTask(String oid, Collection<? extends ItemDelta<?, ?>> modifications, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
 
     /**

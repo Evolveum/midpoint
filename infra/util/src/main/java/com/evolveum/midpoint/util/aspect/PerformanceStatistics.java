@@ -119,7 +119,7 @@ public class PerformanceStatistics {
     * */
     private void dump(){
         LOGGER.debug("CPU usage: {} %, heap memory used: {} MB, committed: {} MB, non-heap memory used: {} MB, committed: {} MB, Threads: {}, daemon threads: {}. ",
-                new Object[]{formatCpuUsage(), usedHeapMemory/MB, committedHeapMemory/MB, usedNonHeapMemory/MB, committedNonHeapMemory/MB, threadCount, daemonThreadCount});
+                formatCpuUsage(), usedHeapMemory/MB, committedHeapMemory/MB, usedNonHeapMemory/MB, committedNonHeapMemory/MB, threadCount, daemonThreadCount);
     }   //dump
 
     /*

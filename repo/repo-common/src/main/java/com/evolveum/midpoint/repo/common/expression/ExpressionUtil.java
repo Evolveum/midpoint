@@ -635,7 +635,7 @@ public class ExpressionUtil {
                 }
                 // TODO: log more context
                 LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.",
-                        new Object[] { shortDesc, expressionResult });
+                        shortDesc, expressionResult);
 
                 ValueFilter evaluatedFilter = valueFilter.clone();
                 evaluatedFilter.setValue(expressionResult);

@@ -37,13 +37,13 @@ public class TableRow<X, T extends Table<X>> extends Component<T> {
         super(parent, parentElement);
     }
 
-    public TableRow clickCheckBox() {
+    public TableRow<X, T> clickCheckBox() {
         getParentElement().find("input[type=checkbox]")
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         return this;
     }
 
-    public TableRow clickCheckBoxByColumnName(String columnName) {
+    public TableRow<X, T> clickCheckBoxByColumnName(String columnName) {
         int index = getParent().findColumnByLabel(columnName);
         if (index < 0) {
             return null;
@@ -53,11 +53,11 @@ public class TableRow<X, T extends Table<X>> extends Component<T> {
         return this;
     }
 
-    public TableRow clickColumnByName(String name) {
+    public TableRow<X, T> clickColumnByName(String name) {
         return clickColumnByName(name, "a");
     }
 
-    public TableRow clickColumnByName(String name, String cellElementTagName) {
+    public TableRow<X, T> clickColumnByName(String name, String cellElementTagName) {
         int index = getParent().findColumnByLabel(name);
         if (index < 0) {
             return this;
@@ -68,7 +68,7 @@ public class TableRow<X, T extends Table<X>> extends Component<T> {
         return this;
     }
 
-    public TableRow setTextToInputFieldByColumnName(String columnName, String textValue) {
+    public TableRow<X, T> setTextToInputFieldByColumnName(String columnName, String textValue) {
         int index = getParent().findColumnByLabel(columnName);
         if (index < 0) {
             return this;
@@ -80,7 +80,7 @@ public class TableRow<X, T extends Table<X>> extends Component<T> {
         return this;
     }
 
-    public TableRow setValueToDropdownFieldByColumnName(String columnName, String textValue) {
+    public TableRow<X, T> setValueToDropdownFieldByColumnName(String columnName, String textValue) {
         int index = getParent().findColumnByLabel(columnName);
         if (index < 0) {
             return this;
@@ -91,7 +91,7 @@ public class TableRow<X, T extends Table<X>> extends Component<T> {
         return this;
     }
 
-    public TableRow setValueToDropDownByColumnName(String columnName, String selectValue) {
+    public TableRow<X, T> setValueToDropDownByColumnName(String columnName, String selectValue) {
         int index = getParent().findColumnByLabel(columnName);
         if (index < 0) {
             return this;
@@ -111,12 +111,12 @@ public class TableRow<X, T extends Table<X>> extends Component<T> {
         return cell;
     }
 
-    public TableRow clickColumnByKey(String key) {
+    public TableRow<X, T> clickColumnByKey(String key) {
         // todo implement
         return this;
     }
 
-    public InlineMenu<TableRow> getInlineMenu() {
+    public InlineMenu<TableRow<X, T>> getInlineMenu() {
         SelenideElement element = getParentElement().find("td:last-child div.btn-group");
         if (element == null) {
             return null;

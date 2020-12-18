@@ -8,7 +8,11 @@
 package com.evolveum.midpoint.schrodinger.component.common;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
+
+import com.evolveum.midpoint.schrodinger.MidPoint;
+
 import org.openqa.selenium.By;
 
 import com.evolveum.midpoint.schrodinger.component.Component;
@@ -51,7 +55,7 @@ public class TabPanel<T> extends Component<T> {
         link.shouldBe(Condition.visible);
 
         link.click();
-
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         SelenideElement li = link.parent();
         li.shouldHave(Condition.cssClass("active"));
 
