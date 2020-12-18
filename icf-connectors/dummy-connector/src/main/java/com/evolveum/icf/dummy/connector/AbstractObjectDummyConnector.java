@@ -788,11 +788,13 @@ public abstract class AbstractObjectDummyConnector extends AbstractBaseDummyConn
         if (configuration.getCaseIgnoreValues()) {
             AttributeBuilder ab = new AttributeBuilder();
             ab.setName(attr.getName());
-            for (Object value: attr.getValue()) {
-                if (value instanceof String) {
-                    ab.addValue(((String)value).toLowerCase());
-                } else {
-                    ab.addValue(value);
+            if (attr.getValue() != null) {
+                for (Object value : attr.getValue()) {
+                    if (value instanceof String) {
+                        ab.addValue(((String) value).toLowerCase());
+                    } else {
+                        ab.addValue(value);
+                    }
                 }
             }
             return ab.build();
