@@ -32,7 +32,6 @@ import java.util.List;
 
 public class M9OrganizationalStructure extends AbstractLabTest{
 
-    private static final File ORG_SECRET_OPS_FILE = new File(LAB_OBJECTS_DIRECTORY + "org/org-secret-ops.xml");
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override

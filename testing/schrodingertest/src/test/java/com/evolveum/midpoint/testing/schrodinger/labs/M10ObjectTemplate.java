@@ -83,6 +83,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
     @Test
     public void mod10test01SimpleObjectTemplate() throws IOException {
         importObject(ORG_EXAMPLE_FILE, true);
+        importObject(ORG_SECRET_OPS_FILE, true);
         importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE, true);
         csv1TargetFile = new File(getTestTargetDir(), CSV_1_FILE_SOURCE_NAME);
 
@@ -90,7 +91,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
 
         hrTargetFile = new File(getTestTargetDir(), HR_FILE_SOURCE_NAME);
-        FileUtils.copyFile(HR_SOURCE_FILE, hrTargetFile);
+        FileUtils.copyFile(HR_SOURCE_FILE_7_4_PART_4, hrTargetFile);
         importObject(HR_RESOURCE_FILE_8_1, true);
         changeResourceAttribute(HR_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, hrTargetFile.getAbsolutePath(), true);
 
