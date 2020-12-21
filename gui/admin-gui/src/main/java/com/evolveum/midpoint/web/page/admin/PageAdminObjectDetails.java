@@ -446,7 +446,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                 changeArchetypeButtonClicked(target);
             }
         };
-        changeArchetype.add(new VisibleBehaviour(() -> isChangeArchetypeAllowed() &&
+        changeArchetype.add(new VisibleBehaviour(() -> !getObjectWrapper().isReadOnly() && isChangeArchetypeAllowed() &&
                 getObjectArchetypeRef() != null && CollectionUtils.isNotEmpty(getArchetypeOidsListToAssign())));
         changeArchetype.add(AttributeAppender.append("class", "btn-default"));
         repeatingView.add(changeArchetype);
