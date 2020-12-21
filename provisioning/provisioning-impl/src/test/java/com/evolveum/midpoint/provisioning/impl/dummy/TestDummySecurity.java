@@ -31,7 +31,6 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
@@ -41,6 +40,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * The test of Provisioning service on the API level. The test is using dummy
  * resource for speed and flexibility.
  *
+ * It checks the access limitations.
+ *
  * @author Radovan Semancik
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
@@ -49,6 +50,9 @@ public class TestDummySecurity extends AbstractDummyTest {
 
     private String willIcfUid;
 
+    /**
+     * Drink is a non-creatable attribute.
+     */
     @Test
     public void test100AddAccountDrink() throws Exception {
         // GIVEN
@@ -126,9 +130,7 @@ public class TestDummySecurity extends AbstractDummyTest {
                 new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        result.computeStatus();
-        display("modifyObject result", result);
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         delta.checkConsistence();
         assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
@@ -156,9 +158,7 @@ public class TestDummySecurity extends AbstractDummyTest {
                 new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        result.computeStatus();
-        display("modifyObject result", result);
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         delta.checkConsistence();
         assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
@@ -167,6 +167,9 @@ public class TestDummySecurity extends AbstractDummyTest {
         syncServiceMock.assertSingleNotifySuccessOnly();
     }
 
+    /**
+     * Quote is a non-updatable attribute.
+     */
     @Test
     public void test210ModifyAccountQuote() throws Exception {
         Task task = getTestTask();
@@ -201,9 +204,7 @@ public class TestDummySecurity extends AbstractDummyTest {
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, result);
 
         // THEN
-        result.computeStatus();
-        display("getObject result", result);
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         display("Retrieved account shadow", shadow);
 
@@ -227,9 +228,7 @@ public class TestDummySecurity extends AbstractDummyTest {
                 query, null, null, result);
 
         // THEN
-        result.computeStatus();
-        display("searchObjects result", result);
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         display("Found " + allShadows.size() + " shadows");
 

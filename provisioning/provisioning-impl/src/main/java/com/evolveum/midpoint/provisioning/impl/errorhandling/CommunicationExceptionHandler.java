@@ -64,16 +64,13 @@ public class CommunicationExceptionHandler extends ErrorHandler {
         String stateChangeReason = "getting " + repositoryShadow + " ended with communication problem, " + cause.getMessage();
         markResourceDown(resource.getOid(), stateChangeReason, result, task);
 
-        // nothing to do, just return the shadow from the repo and set fetch
-        // result..
+        // nothing to do, just return the shadow from the repo and set fetch result..
         for (OperationResult subRes : parentResult.getSubresults()) {
             subRes.muteError();
         }
         result.recordPartialError("Could not get "+repositoryShadow+" from the resource "
                 + resource + ", because resource is unreachable. Returning shadow from the repository");
         repositoryShadow.asObjectable().setFetchResult(result.createOperationResultType());
-//                    operationResult.recordSuccess();
-//                    operationResult.computeStatus();
         return repositoryShadow;
     }
 

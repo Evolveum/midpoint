@@ -450,15 +450,12 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         result.computeStatus();
         result.cleanupResult();
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Finished searching. Metadata: {}", DebugUtil.shortDump(objects.getMetadata()));
-        }
+        LOGGER.trace("Finished searching. Metadata: {}", DebugUtil.shortDumpLazily(objects.getMetadata()));
         // validateObjects(objListType);
         return objects;
     }
 
     @NotNull
-    @SuppressWarnings("unchecked")
     private <T extends ObjectType> SearchResultList<PrismObject<T>> searchRepoObjects(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException {
 
@@ -466,13 +463,15 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         // TODO: should searching connectors trigger rediscovery?
 
-        Collection<SelectorOptions<GetOperationOptions>> repoOptions = null;
+        Collection<SelectorOptions<GetOperationOptions>> repoOptions;
         if (GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options))) {
             repoOptions = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
+        } else {
+            repoOptions = null;
         }
         repoObjects = getCacheRepositoryService().searchObjects(type, query, repoOptions, result);
 
-        SearchResultList<PrismObject<T>> newObjListType = new SearchResultList(new ArrayList<PrismObject<T>>());
+        SearchResultList<PrismObject<T>> newObjListType = new SearchResultList<>(new ArrayList<>());
         for (PrismObject<T> repoObject : repoObjects) {
             OperationResult objResult = new OperationResult(ProvisioningService.class.getName() + ".searchObjects.object");
 
@@ -481,7 +480,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
                 PrismObject<T> completeResource = completeObject(type, repoObject, options, task, objResult);
                 objResult.computeStatusIfUnknown();
                 if (!objResult.isSuccess()) {
-                    completeResource.asObjectable().setFetchResult(objResult.createOperationResultType());      // necessary e.g. to skip validation for resources that had issues when checked
+                    // necessary e.g. to skip validation for resources that had issues when checked
+                    completeResource.asObjectable().setFetchResult(objResult.createOperationResultType());
                     result.addSubresult(objResult);
                 }
                 newObjListType.add(completeResource);
@@ -900,9 +900,11 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
             ResultHandler<T> internalHandler = (object, objResult) -> handleRepoObject(type, object, options, handler, task, objResult);
 
-            Collection<SelectorOptions<GetOperationOptions>> repoOptions = null;
+            Collection<SelectorOptions<GetOperationOptions>> repoOptions;
             if (GetOperationOptions.isReadOnly(rootOptions)) {
                 repoOptions = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
+            } else {
+                repoOptions = null;
             }
 
             try {

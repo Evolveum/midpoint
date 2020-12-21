@@ -68,7 +68,7 @@ public class TestDummyExpression extends TestDummy {
 
     @Override
     protected Integer getTest115ExpectedCount() {
-        return null;
+        return null; // because of pagingStrategy=none in the resource definition
     }
 
     // No paging means no support for server-side sorting

@@ -11,6 +11,11 @@ import static org.testng.AssertJUnit.*;
 import java.io.File;
 import java.util.Collection;
 
+import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.util.FailableProcessor;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -243,4 +248,36 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
         asserter.display();
         return asserter;
     }
+
+    protected OperationResult testResourceAssertSuccess(String resourceOid, Task task) throws ObjectNotFoundException {
+        OperationResult result = provisioningService.testResource(resourceOid, task);
+        assertSuccess(result);
+        return result;
+    }
+
+    protected DummyResourceContoller initDummyResource(DummyTestResource resource, OperationResult result) throws Exception {
+        DummyResourceContoller controller = initDummyResource(resource.name, resource.file, resource.oid,
+                resource.controllerInitLambda, result);
+        resource.controller = controller;
+        return controller;
+    }
+
+    protected DummyResourceContoller initDummyResource(String name, File resourceFile, String resourceOid,
+            FailableProcessor<DummyResourceContoller> controllerInitLambda, OperationResult result) throws Exception {
+        DummyResourceContoller controller = DummyResourceContoller.create(name);
+        if (controllerInitLambda != null) {
+            controllerInitLambda.process(controller);
+        } else {
+            controller.populateWithDefaultSchema();
+        }
+        if (resourceFile != null) {
+            addResourceFromFile(resourceFile, IntegrationTestTools.DUMMY_CONNECTOR_TYPE, result);
+        }
+        if (resourceOid != null) {
+            PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, resourceOid, null, result);
+            controller.setResource(resource);
+        }
+        return controller;
+    }
+
 }

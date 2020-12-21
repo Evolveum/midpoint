@@ -121,6 +121,11 @@ public class ShadowCache {
         return prismContext;
     }
 
+    /**
+     * @param repositoryShadow Current shadow in the repository. If not specified, this method will retrieve it by OID.
+     * @param identifiersOverride Identifiers that are known to the caller and that should override
+     * the ones (if any) in the shadow.
+     */
     public PrismObject<ShadowType> getShadow(String oid, PrismObject<ShadowType> repositoryShadow,
             Collection<ResourceAttribute<?>> identifiersOverride, Collection<SelectorOptions<GetOperationOptions>> options,
             Task task, OperationResult parentResult)
@@ -229,7 +234,10 @@ public class ShadowCache {
 
         PrismObject<ShadowType> resourceObject;
 
-        if (identifiersOverride == null) {
+        Collection<? extends ResourceAttribute<?>> identifiers;
+        if (identifiersOverride != null) {
+            identifiers = identifiersOverride;
+        } else {
             Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(repositoryShadow);
             if (primaryIdentifiers == null || primaryIdentifiers.isEmpty()) {
                 if (ProvisioningUtil.hasPendingAddOperation(repositoryShadow) || ShadowUtil
@@ -260,10 +268,9 @@ public class ShadowCache {
                 parentResult.recordFatalError("No primary identifiers found in the repository shadow " + repositoryShadow, ex);
                 throw ex;
             }
+            identifiers = ShadowUtil.getAllIdentifiers(repositoryShadow);
         }
 
-        Collection<? extends ResourceAttribute<?>> identifiers = identifiersOverride != null ? identifiersOverride :
-                ShadowUtil.getAllIdentifiers(repositoryShadow);
         try {
 
             try {

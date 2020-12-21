@@ -11,12 +11,18 @@ import static org.testng.AssertJUnit.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.test.DummyTestResource;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.icf.dummy.connector.DummyConnector;
@@ -120,7 +126,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     protected static final String ACCOUNT_NEW_SCRIPT_OID = "c0c010c0-d34d-b44f-f11d-33322212abcd";
     protected static final File ENABLE_ACCOUNT_FILE = new File(TEST_DIR, "modify-will-enable.xml");
     protected static final File DISABLE_ACCOUNT_FILE = new File(TEST_DIR, "modify-will-disable.xml");
-    protected static final File MODIFY_ACCOUNT_FILE = new File(TEST_DIR, "modify-will-fullname.xml");
+    protected static final File MODIFY_WILL_FULLNAME_FILE = new File(TEST_DIR, "modify-will-fullname.xml");
     protected static final File SCRIPTS_FILE = new File(TEST_DIR, "scripts.xml");
 
     protected static final String NOT_PRESENT_OID = "deaddead-dead-dead-dead-deaddeaddead";
@@ -426,4 +432,27 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
                 stat.getPoolStatusNumIdle() + stat.getPoolStatusNumActive());
     }
 
+    /**
+     * Deletes all accounts on given dummy resource: from the resource and from the repository.
+     * The accounts can be broken, so we do the deletion on the very low level (repo + dummy resource).
+     */
+    protected void cleanupAccounts(DummyTestResource resource, OperationResult result) throws SchemaException,
+            ObjectNotFoundException, InterruptedException, FileNotFoundException, ConnectException, SchemaViolationException,
+            ConflictException, ObjectDoesNotExistException {
+        SearchResultList<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, getAllAccountsQuery(resource), null, result);
+        for (PrismObject<ShadowType> shadow : shadows) {
+            repositoryService.deleteObject(ShadowType.class, shadow.getOid(), result);
+        }
+        DummyResource dummyResource = resource.controller.getDummyResource();
+        for (DummyAccount dummyAccount : new ArrayList<>(dummyResource.listAccounts())) {
+            dummyResource.deleteAccountById(dummyAccount.getId());
+        }
+    }
+
+    @SuppressWarnings({ "SameParameterValue", "WeakerAccess" })
+    @NotNull
+    protected ObjectQuery getAllAccountsQuery(DummyTestResource resource) throws SchemaException {
+        return ObjectQueryUtil.createResourceAndObjectClassQuery(resource.oid,
+                resource.controller.getAccountObjectClass(), prismContext);
+    }
 }
