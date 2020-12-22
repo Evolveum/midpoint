@@ -550,6 +550,9 @@ public class LeftMenuPanel extends BasePanel<Void> {
         List<CompiledObjectCollectionView> objectViews = getPageBase().getCompiledGuiProfile().findAllApplicableObjectCollectionViews(type);
 
         objectViews.forEach(objectView -> {
+            if (objectView.getCollection() == null) {
+                return;
+            }
             DisplayType viewDisplayType = objectView.getDisplay();
 
             PageParameters pageParameters = new PageParameters();
