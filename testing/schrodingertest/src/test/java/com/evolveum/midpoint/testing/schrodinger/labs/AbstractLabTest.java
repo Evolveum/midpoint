@@ -68,6 +68,7 @@ public class AbstractLabTest extends AbstractSchrodingerTest {
     protected static final File ARCHETYPE_ORG_GROUP_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-org-group.xml");
     protected static final File OBJECT_TEMPLATE_USER_FILE = new File(LAB_OBJECTS_DIRECTORY + "objectTemplate/object-template-example-user.xml");
     protected static final File ORG_SECRET_OPS_FILE = new File(LAB_OBJECTS_DIRECTORY + "org/org-secret-ops.xml");
+    protected static final File CSV_3_RESOURCE_FILE_8_1 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-8-1.xml");
 
     protected static final String DIRECTORY_CURRENT_TEST = "labTests";
     protected static final String EXTENSION_SCHEMA_NAME = "extension-example.xsd";

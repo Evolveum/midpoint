@@ -72,6 +72,17 @@ public class M10ObjectTemplate extends AbstractLabTest{
     @Override
     public void beforeClass() throws IOException {
         super.beforeClass();
+        hrTargetFile = new File(getTestTargetDir(), HR_FILE_SOURCE_NAME);
+        FileUtils.copyFile(HR_SOURCE_FILE_7_4_PART_4, hrTargetFile);
+
+        csv3TargetFile = new File(getTestTargetDir(), CSV_3_FILE_SOURCE_NAME);
+        FileUtils.copyFile(CSV_3_SOURCE_FILE, csv3TargetFile);
+
+        csv1TargetFile = new File(getTestTargetDir(), CSV_1_FILE_SOURCE_NAME);
+        FileUtils.copyFile(CSV_1_SOURCE_FILE, csv1TargetFile);
+
+        csv2TargetFile = new File(getTestTargetDir(), CSV_2_FILE_SOURCE_NAME);
+        FileUtils.copyFile(CSV_2_SOURCE_FILE, csv2TargetFile);
     }
 
     @Override
@@ -85,10 +96,15 @@ public class M10ObjectTemplate extends AbstractLabTest{
         importObject(ORG_EXAMPLE_FILE, true);
         importObject(ORG_SECRET_OPS_FILE, true);
         importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE, true);
-        csv1TargetFile = new File(getTestTargetDir(), CSV_1_FILE_SOURCE_NAME);
 
         importObject(CSV_1_RESOURCE_FILE, true);
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
+
+        importObject(CSV_2_RESOURCE_FILE_5_5, true);
+        changeResourceAttribute(CSV_2_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv2TargetFile.getAbsolutePath(), true);
+
+        importObject(CSV_3_RESOURCE_FILE_8_1, true);
+        changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
 
         hrTargetFile = new File(getTestTargetDir(), HR_FILE_SOURCE_NAME);
         FileUtils.copyFile(HR_SOURCE_FILE_7_4_PART_4, hrTargetFile);
@@ -252,7 +268,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
         Assert.assertFalse(existFeedback);
         Assert.assertTrue(form.propertyWithTitleTextExists("telephoneNumber",
                 "Primary telephone number of the user, org. unit, etc."));
-        Assert.assertTrue(form.propertyWithTitleTextExists("telephoneNumber",
+        Assert.assertFalse(form.propertyWithTitleTextExists("telephoneNumber",
                 "Mobile Telephone Number"));
         Assert.assertTrue(form.isPropertyEnabled("honorificSuffix"));
 
@@ -268,7 +284,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
         form.addAttributeValue("empStatus", "O");
         form.addAttributeValue("familyName", "kirk2");
         Assert.assertTrue(form.and().and().feedback().isError());
-        Assert.assertTrue(form.propertyWithTitleTextExists("telephoneNumber",
+        Assert.assertFalse(form.propertyWithTitleTextExists("telephoneNumber",
                 "Primary telephone number of the user, org. unit, etc."));
         Assert.assertTrue(form.propertyWithTitleTextExists("telephoneNumber",
                 "Mobile Telephone Number"));
@@ -364,7 +380,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
                     .clickByName("cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com")
                         .compareInputAttributeValue("manager", "picard"));
 
-        addObjectFromFile(CSV_3_RESOURCE_FILE_10_4);
+        importObject(CSV_3_RESOURCE_FILE_10_4);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
 
