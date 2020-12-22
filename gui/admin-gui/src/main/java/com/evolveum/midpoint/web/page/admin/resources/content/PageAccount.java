@@ -263,7 +263,7 @@ public class PageAccount extends PageAdmin {
                 getPrismContext().adopt(delta);
             }
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Account delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
+                LOGGER.trace("Account delta computed from form:\n{}", delta.debugDump(3));
             }
 
             if (delta.isEmpty()) {

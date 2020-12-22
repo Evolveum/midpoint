@@ -19,7 +19,6 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -470,9 +469,9 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
         // Change part of connector configuration. We change quite a useless part. But midPoint does not know that
         // it is useless and need to re-initialize the connector
-        Collection<? extends ItemDelta> modifications = new ArrayList<>(1);
+        Collection<PropertyDelta<String>> modifications = new ArrayList<>(1);
         PropertyDelta<String> uselessStringDelta = createUselessStringDelta("patlama chamalalija paprtala");
-        ((Collection) modifications).add(uselessStringDelta);
+        modifications.add(uselessStringDelta);
 
         // WHEN
         provisioningService.modifyObject(ResourceType.class, RESOURCE_DUMMY_OID, modifications, null, null, task, result);
@@ -498,9 +497,9 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
         // Change part of connector configuration. We change quite a useless part. But midPoint does not know that
         // it is useless and need to re-initialize the connector
-        Collection<? extends ItemDelta> modifications = new ArrayList<>(1);
+        Collection<PropertyDelta<String>> modifications = new ArrayList<>(1);
         PropertyDelta<String> uselessStringDelta = createUselessStringDelta("Rudolfovo Tajemstvi");
-        ((Collection) modifications).add(uselessStringDelta);
+        modifications.add(uselessStringDelta);
 
         // WHEN
         repositoryService.modifyObject(ResourceType.class, RESOURCE_DUMMY_OID, modifications, result);
@@ -542,13 +541,12 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
     }
 
     private PropertyDelta<String> createUselessStringDelta(String newVal) {
-        PropertyDelta<String> uselessStringDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
+        return prismContext.deltaFactory().property().createModificationReplaceProperty(
                 ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION,
                         SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME,
                         DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_QNAME),
                 prismContext.definitionFactory().createPropertyDefinition(DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_QNAME, DOMUtil.XSD_STRING),
                 newVal);
-        return uselessStringDelta;
     }
 
     private void assertConnectorConfigChanged() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -608,6 +606,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
         assertConnectorInstanceUnchanged(resourceProvisioning);
     }
 
+    @SuppressWarnings({ "SameParameterValue", "UnusedReturnValue" })
     private String addAccount(File file) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, IOException, ExpressionEvaluationException, PolicyViolationException {
         Task task = taskManager.createTaskInstance(TestDummyResourceAndSchemaCaching.class.getName()
                 + ".addAccount");
@@ -619,6 +618,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
         return oid;
     }
 
+    @SuppressWarnings({ "SameParameterValue", "UnusedReturnValue" })
     private PrismObject<ShadowType> getAccount(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = createOperationResult("getAccount");
         PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, oid, null, null, result);

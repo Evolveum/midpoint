@@ -88,61 +88,68 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         LOGGER.info("Repository initialization finished.");
     }
 
-    @Override
-    public synchronized void destroy() {
-        if (sqlRepositoryService != null) {
-            sqlRepositoryService.destroy();
-        }
-
-        if (!getSqlConfiguration().isEmbedded()) {
-            LOGGER.info("Repository is not running in embedded mode, shutdown complete.");
+    private void dropDatabaseIfExists(SqlRepositoryConfiguration config) throws RepositoryServiceFactoryException {
+        if (!config.isDropIfExists()) {
+            LOGGER.info("Database wont be deleted, dropIfExists=false.");
             return;
         }
+        LOGGER.info("Deleting database.");
 
-        LOGGER.info("Waiting " + POOL_CLOSE_WAIT + " ms for the connection pool to be closed.");
+        File file = new File(config.getBaseDir());
+        final String fileName = config.getFileName();
         try {
-            Thread.sleep(POOL_CLOSE_WAIT);
-        } catch (InterruptedException e) {
-            // just ignore
-        }
+            //removing files based on http://www.h2database.com/html/features.html#database_file_layout
+            File dbFileOld = new File(file, fileName + ".h2.db");
+            removeFile(dbFileOld);
+            File dbFile = new File(file, fileName + ".mv.db");
+            removeFile(dbFile);
+            File lockFile = new File(file, fileName + ".lock.db");
+            removeFile(lockFile);
+            File traceFile = new File(file, fileName + ".trace.db");
+            removeFile(traceFile);
 
-        if (getSqlConfiguration().isAsServer()) {
-            LOGGER.info("Shutting down embedded H2");
-            if (server != null && server.isRunning(true)) {
-                server.stop();
+            File[] tempFiles = file.listFiles(
+                    (parent, name) -> name.matches("^" + fileName + "\\.[0-9]*\\.temp\\.db$"));
+            if (tempFiles != null) {
+                for (File temp : tempFiles) {
+                    removeFile(temp);
+                }
             }
+
+            File lobDir = new File(file, fileName + ".lobs.db");
+            if (lobDir.exists() && lobDir.isDirectory()) {
+                LOGGER.info("Deleting directory '{}'", lobDir.getAbsolutePath());
+                FileUtils.deleteDirectory(lobDir);
+            }
+        } catch (Exception ex) {
+            throw new RepositoryServiceFactoryException("Couldn't drop existing database files, reason: "
+                    + ex.getMessage(), ex);
+        }
+    }
+
+    private void removeFile(File file) {
+        if (file.exists()) {
+            LOGGER.info("Deleting file '{}', result: {}", file.getAbsolutePath(), file.delete());
         } else {
-            LOGGER.info("H2 running as local instance (from file); waiting " + H2_CLOSE_WAIT + " ms for the DB to be closed.");
-            try {
-                Thread.sleep(H2_CLOSE_WAIT);
-            } catch (InterruptedException e) {
-                // just ignore
+            LOGGER.info("File '{}' doesn't exist: delete status {}", file.getAbsolutePath(), file.delete());
+        }
+    }
+
+    private void startServer() throws RepositoryServiceFactoryException {
+        SqlRepositoryConfiguration config = getSqlConfiguration();
+        checkPort(config.getPort());
+
+        try {
+            String[] serverArguments = createArguments(config);
+            if (LOGGER.isTraceEnabled()) {
+                String stringArgs = StringUtils.join(serverArguments, " ");
+                LOGGER.trace("Starting H2 server with arguments: {}", stringArgs);
             }
+            server = Server.createTcpServer(serverArguments);
+            server.start();
+        } catch (Exception ex) {
+            throw new RepositoryServiceFactoryException(ex.getMessage(), ex);
         }
-
-        LOGGER.info("Shutdown complete.");
-    }
-
-    @NotNull
-    public SqlRepositoryConfiguration getSqlConfiguration() {
-        Validate.notNull(sqlConfiguration, "SQL repository configuration not available (null).");
-        return sqlConfiguration;
-    }
-
-    @Override
-    public synchronized RepositoryService createRepositoryService() {
-        if (sqlRepositoryService == null) {
-            sqlRepositoryService = new SqlRepositoryServiceImpl();
-        }
-        return sqlRepositoryService;
-    }
-
-    private String getRelativeBaseDirPath(String baseDir) {
-        String path = new File(".").toURI().relativize(new File(baseDir).toURI()).getPath();
-        if (Strings.isNullOrEmpty(path)) {
-            path = ".";
-        }
-        return path;
     }
 
     private void checkPort(int port) throws RepositoryServiceFactoryException {
@@ -168,23 +175,6 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
                 LOGGER.error("Reported IO error, while closing ServerSocket used to test availability " +
                         "of port for H2 Server", ex);
             }
-        }
-    }
-
-    private void startServer() throws RepositoryServiceFactoryException {
-        SqlRepositoryConfiguration config = getSqlConfiguration();
-        checkPort(config.getPort());
-
-        try {
-            String[] serverArguments = createArguments(config);
-            if (LOGGER.isTraceEnabled()) {
-                String stringArgs = StringUtils.join(serverArguments, " ");
-                LOGGER.trace("Starting H2 server with arguments: {}", stringArgs);
-            }
-            server = Server.createTcpServer(serverArguments);
-            server.start();
-        } catch (Exception ex) {
-            throw new RepositoryServiceFactoryException(ex.getMessage(), ex);
         }
     }
 
@@ -232,50 +222,60 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         return args.toArray(new String[0]);
     }
 
-    private void dropDatabaseIfExists(SqlRepositoryConfiguration config) throws RepositoryServiceFactoryException {
-        if (!config.isDropIfExists()) {
-            LOGGER.info("Database wont be deleted, dropIfExists=false.");
-            return;
+    private String getRelativeBaseDirPath(String baseDir) {
+        String path = new File(".").toURI().relativize(new File(baseDir).toURI()).getPath();
+        if (Strings.isNullOrEmpty(path)) {
+            path = ".";
         }
-        LOGGER.info("Deleting database.");
-
-        File file = new File(config.getBaseDir());
-        final String fileName = config.getFileName();
-        try {
-            //removing files based on http://www.h2database.com/html/features.html#database_file_layout
-            File dbFileOld = new File(file, fileName + ".h2.db");
-            removeFile(dbFileOld);
-            File dbFile = new File(file, fileName + ".mv.db");
-            removeFile(dbFile);
-            File lockFile = new File(file, fileName + ".lock.db");
-            removeFile(lockFile);
-            File traceFile = new File(file, fileName + ".trace.db");
-            removeFile(traceFile);
-
-            File[] tempFiles = file.listFiles(
-                    (parent, name) -> name.matches("^" + fileName + "\\.[0-9]*\\.temp\\.db$"));
-            if (tempFiles != null) {
-                for (File temp : tempFiles) {
-                    removeFile(temp);
-                }
-            }
-
-            File lobDir = new File(file, fileName + ".lobs.db");
-            if (lobDir.exists() && lobDir.isDirectory()) {
-                LOGGER.info("Deleting directory '{}'", lobDir.getAbsolutePath());
-                FileUtils.deleteDirectory(lobDir);
-            }
-        } catch (Exception ex) {
-            throw new RepositoryServiceFactoryException("Couldn't drop existing database files, reason: "
-                    + ex.getMessage(), ex);
-        }
+        return path;
     }
 
-    private void removeFile(File file) {
-        if (file.exists()) {
-            LOGGER.info("Deleting file '{}', result: {}", file.getAbsolutePath(), file.delete());
-        } else {
-            LOGGER.info("File '{}' doesn't exist: delete status {}", file.getAbsolutePath(), file.delete());
+    @Override
+    public synchronized RepositoryService createRepositoryService() {
+        if (sqlRepositoryService == null) {
+            sqlRepositoryService = new SqlRepositoryServiceImpl();
         }
+        return sqlRepositoryService;
+    }
+
+    @NotNull
+    public SqlRepositoryConfiguration getSqlConfiguration() {
+        Validate.notNull(sqlConfiguration, "SQL repository configuration not available (null).");
+        return sqlConfiguration;
+    }
+
+    @Override
+    public synchronized void destroy() {
+        if (sqlRepositoryService != null) {
+            sqlRepositoryService.destroy();
+        }
+
+        if (!getSqlConfiguration().isEmbedded()) {
+            LOGGER.info("Repository is not running in embedded mode, shutdown complete.");
+            return;
+        }
+
+        LOGGER.info("Waiting " + POOL_CLOSE_WAIT + " ms for the connection pool to be closed.");
+        try {
+            Thread.sleep(POOL_CLOSE_WAIT);
+        } catch (InterruptedException e) {
+            // just ignore
+        }
+
+        if (getSqlConfiguration().isAsServer()) {
+            LOGGER.info("Shutting down embedded H2");
+            if (server != null && server.isRunning(true)) {
+                server.stop();
+            }
+        } else {
+            LOGGER.info("H2 running as local instance (from file); waiting " + H2_CLOSE_WAIT + " ms for the DB to be closed.");
+            try {
+                Thread.sleep(H2_CLOSE_WAIT);
+            } catch (InterruptedException e) {
+                // just ignore
+            }
+        }
+
+        LOGGER.info("Shutdown complete.");
     }
 }

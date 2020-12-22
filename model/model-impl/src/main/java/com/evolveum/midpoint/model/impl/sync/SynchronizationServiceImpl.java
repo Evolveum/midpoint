@@ -195,7 +195,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             F ownerType = currentOwner.asObjectable();
             for (ObjectReferenceType linkRef : ownerType.getLinkRef()) {
                 if (shadowOid.equals(linkRef.getOid())) {
-                    Collection<? extends ItemDelta> modifications = prismContext.deltaFactory().reference().createModificationDeleteCollection(FocusType.F_LINK_REF, currentOwner.getDefinition(), linkRef.asReferenceValue().clone());
+                    Collection<? extends ItemDelta<?, ?>> modifications = prismContext.deltaFactory().reference().createModificationDeleteCollection(FocusType.F_LINK_REF, currentOwner.getDefinition(), linkRef.asReferenceValue().clone());
                         repositoryService.modifyObject(UserType.class, currentOwner.getOid(), modifications, subResult);
                     break;
                 }
@@ -1126,7 +1126,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         private String objectDisplayName;
         private String objectOid;
         private Throwable exception;
-        private long started;
+        private final long started;
 
         private boolean alreadySaved;
 

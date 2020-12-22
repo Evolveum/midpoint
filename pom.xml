@@ -164,7 +164,6 @@
         <cxf.version>3.3.1</cxf.version>
         <cxf-xjc.version>3.3.0</cxf-xjc.version>
         <wss4j.version>2.2.0</wss4j.version>
-        <dbunit.version>2.4.7</dbunit.version>
         <opendj.version>2.6.2</opendj.version>
         <quartz.version>2.3.2.e1</quartz.version>
         <selenium.version>3.141.59</selenium.version>
@@ -174,6 +173,7 @@
         <cache2k.version>1.2.1.Final</cache2k.version>
         <cas.client.version>3.5.0</cas.client.version>
         <testng.version>6.14.3</testng.version>
+        <!--<testng.version>7.3.0</testng.version> TODO: upgrade possible, works fine after "https" upgrade of DOCTYPE in suite XMLs -->
         <xml.resolver.version>1.2</xml.resolver.version>
         <xmlunit.version>2.1.1</xmlunit.version>
         <cron4j.version>2.2.3</cron4j.version>
@@ -203,10 +203,9 @@
         <surefire.version>3.0.0-M3</surefire.version>
         <reflections.version>0.9.11</reflections.version>
         <guava.version>28.1-jre</guava.version>
+        <!--<guava.version>30.0-jre</guava.version> TODO: possible upgrade, passes tests -->
         <jcommander.version>1.72</jcommander.version>
         <failsafe.version>3.0.0-M3</failsafe.version>
-        <antrun.version>1.8</antrun.version>
-        <javax.xml.soap.version>1.4.0</javax.xml.soap.version>
         <qpid-broker.version>7.1.1</qpid-broker.version>
         <apache-artemis.version>2.12.0</apache-artemis.version> <!-- matching Spring Boot Artemis dependency -->
         <asm.version>7.0</asm.version>
@@ -1991,15 +1990,6 @@
                             </java.util.logging.config.file>
                         </systemPropertyVariables>
                         <argLine>${surefire.args}</argLine>
-
-                        <!-- it's used for CI build to load JDBC libraries which can not
-                            be installed to public maven repository (MS SQL, ORACLE)
-                            TODO: should not be needed and classpath settings in POMs should cover it
-                        <additionalClasspathElements>
-                            <additionalClasspathElement>/opt/jenkins_db_configs/ojdbc7.jar</additionalClasspathElement>
-                            <additionalClasspathElement>c:\midpoint\jdbc-drivers\ojdbc7.jar</additionalClasspathElement>
-                        </additionalClasspathElements>
-                        -->
                         <suiteXmlFiles>
                             <suiteXmlFile>testng-unit.xml</suiteXmlFile>
                         </suiteXmlFiles>
@@ -2059,14 +2049,6 @@
                                 <value>com.evolveum.midpoint.tools.testng.TestListener,com.evolveum.midpoint.tools.testng.RetryListener</value>
                             </property>
                         </properties>
-                        <!-- it's used for CI build to load JDBC libraries which can not
-                            be installed to public maven repository (MS SQL, ORACLE)
-                            TODO: should not be needed and classpath settings in POMs should cover it
-                        <additionalClasspathElements>
-                            <additionalClasspathElement>/opt/jenkins_db_configs/ojdbc7.jar</additionalClasspathElement>
-                            <additionalClasspathElement>c:\midpoint\jdbc-drivers\ojdbc7.jar</additionalClasspathElement>
-                        </additionalClasspathElements>
-                        -->
                     </configuration>
                 </plugin>
 

@@ -52,6 +52,8 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
 
     @Test(groups={"M7"})
     public void mod07test01RunningImportFromResource() throws IOException {
+        importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE, true);
+
         hrTargetFile = new File(getTestTargetDir(), HR_FILE_SOURCE_NAME);
         FileUtils.copyFile(HR_SOURCE_FILE, hrTargetFile);
 

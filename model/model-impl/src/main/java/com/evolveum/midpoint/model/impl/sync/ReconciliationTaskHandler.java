@@ -480,7 +480,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
         auditHelper.audit(executionRecord, null, task, opResult);
 
         String message = errorDesc+": "+ex.getMessage();
-        LOGGER.error("Reconciliation: {}-{}", new Object[]{message, ex});
+        LOGGER.error("Reconciliation: {}-{}", message, ex);
         opResult.recordFatalError(message, ex);
         TaskHandlerUtil.appendLastFailuresInformation(OperationConstants.RECONCILIATION, task, opResult); // TODO implement more seriously
         runResult.setRunResultStatus(runResultStatus);
@@ -494,7 +494,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
         } else {
             message = errorDesc+": "+ex.getMessage();
         }
-        LOGGER.error("Reconciliation: {}-{}", new Object[]{message, ex});
+        LOGGER.error("Reconciliation: {}-{}", message, ex);
         opResult.recordFatalError(message, ex);
         runResult.setRunResultStatus(runResultStatus);
     }

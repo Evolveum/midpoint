@@ -379,7 +379,7 @@ public class PageUsers extends PageAdmin {
 
                 ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();
                 ModelExecuteOptions options = executeOptions.createOptions(getPrismContext());
-                LOGGER.debug("Using options {}.", new Object[] { executeOptions });
+                LOGGER.debug("Using options {}.", executeOptions);
                 getModelService().executeChanges(MiscUtil.createCollection(delta), options, task,
                         subResult);
                 subResult.computeStatus();
@@ -537,7 +537,7 @@ public class PageUsers extends PageAdmin {
 
                 ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();
                 ModelExecuteOptions options = executeOptions.createOptions(getPrismContext());
-                LOGGER.debug("Using options {}.", new Object[] { executeOptions });
+                LOGGER.debug("Using options {}.", executeOptions);
                 getModelService().executeChanges(MiscUtil.createCollection(objectDelta), options,
                         task, subResult);
                 subResult.recordSuccess();

@@ -989,8 +989,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     }
 
     @Override
-    public void modifyTask(String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws ObjectNotFoundException,
-            SchemaException, ObjectAlreadyExistsException {
+    public void modifyTask(String oid,
+            Collection<? extends ItemDelta<?, ?>> modifications, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "modifyTask");
         try {
             repositoryService.modifyObject(TaskType.class, oid, modifications, result);

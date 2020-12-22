@@ -104,7 +104,7 @@ public final class DescriptorLoader implements DebugDumpable {
             throws InstantiationException, IllegalAccessException {
 
         for (String pac : PACKAGES_TO_SCAN) {
-            LOGGER.debug("Scanning package package {} for page annotations", new Object[]{pac});
+            LOGGER.debug("Scanning package package {} for page annotations", pac);
 
             Set<Class<?>> classes = ClassPathUtil.listClasses(pac);
             for (Class<?> clazz : classes) {
@@ -195,8 +195,8 @@ public final class DescriptorLoader implements DebugDumpable {
         for (String url : descriptor.url()) {
             IPageParametersEncoder encoder = descriptor.encoder().newInstance();
 
-            LOGGER.trace("Mounting page '{}' to url '{}' with encoder '{}'.", new Object[]{
-                    clazz.getName(), url, encoder.getClass().getSimpleName()});
+            LOGGER.trace("Mounting page '{}' to url '{}' with encoder '{}'.",
+                    clazz.getName(), url, encoder.getClass().getSimpleName());
 
             application.mount(new ExactMatchMountedMapper(url, clazz, encoder));
             urlClassMap.put(url, clazz);
@@ -205,8 +205,8 @@ public final class DescriptorLoader implements DebugDumpable {
         for (Url url : descriptor.urls()) {
             IPageParametersEncoder encoder = descriptor.encoder().newInstance();
 
-            LOGGER.trace("Mounting page '{}' to url '{}' with encoder '{}'.", new Object[]{
-                    clazz.getName(), url, encoder.getClass().getSimpleName()});
+            LOGGER.trace("Mounting page '{}' to url '{}' with encoder '{}'.",
+                    clazz.getName(), url, encoder.getClass().getSimpleName());
 
             application.mount(new ExactMatchMountedMapper(url.mountUrl(), clazz, encoder));
             urlClassMap.put(url.mountUrl(), clazz);

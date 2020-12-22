@@ -14,8 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.common.configuration.api.RuntimeConfiguration;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -23,7 +21,15 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-public class RepositoryFactory implements RuntimeConfiguration {
+/**
+ * Generic factory that creates concrete {@link RepositoryServiceFactory} based on configuration.
+ * This is used as a Spring factory bean, something like "RepositoryServiceFactoryFactory".
+ * Created {@link RepositoryServiceFactory} is autowired and then its method
+ * {@link RepositoryServiceFactory#init(Configuration)} is called.
+ * This class does not care about {@link com.evolveum.midpoint.repo.api.RepositoryService} (since
+ * version 4.3).
+ */
+public class RepositoryFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(RepositoryFactory.class);
 
@@ -33,7 +39,6 @@ public class RepositoryFactory implements RuntimeConfiguration {
     @Autowired private MidpointConfiguration midpointConfiguration;
 
     private RepositoryServiceFactory repositoryServiceFactory;
-    private RepositoryService repositoryService;
 
     public RepositoryServiceFactory createRepositoryServiceFactory() {
         Configuration config = midpointConfiguration.getConfiguration(MidpointConfiguration.REPOSITORY_CONFIGURATION);
@@ -78,34 +83,5 @@ public class RepositoryFactory implements RuntimeConfiguration {
             LoggingUtils.logException(LOGGER, "Failed to destroy RepositoryServiceFactory", ex);
             throw new SystemException("Failed to destroy RepositoryServiceFactory", ex);
         }
-    }
-
-    @Override
-    public String getComponentId() {
-        return MidpointConfiguration.REPOSITORY_CONFIGURATION;
-    }
-
-    @Override
-    public Configuration getCurrentConfiguration() {
-        return midpointConfiguration.getConfiguration(MidpointConfiguration.REPOSITORY_CONFIGURATION);
-    }
-
-    public synchronized RepositoryService createRepositoryService() {
-        if (repositoryService != null) {
-            return repositoryService;
-        }
-
-        try {
-            LOGGER.debug("Creating repository service using factory {}", repositoryServiceFactory);
-            repositoryService = repositoryServiceFactory.createRepositoryService();
-        } catch (RepositoryServiceFactoryException | RuntimeException ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Failed to get repository service from factory " + repositoryServiceFactory, ex);
-            throw new SystemException("Failed to get repository service from factory " + repositoryServiceFactory, ex);
-        } catch (Error ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Failed to get repository service from factory " + repositoryServiceFactory, ex);
-            throw ex;
-        }
-
-        return repositoryService;
     }
 }

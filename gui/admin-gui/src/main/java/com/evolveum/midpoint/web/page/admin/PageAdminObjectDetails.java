@@ -446,7 +446,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                 changeArchetypeButtonClicked(target);
             }
         };
-        changeArchetype.add(new VisibleBehaviour(() -> isChangeArchetypeAllowed() &&
+        changeArchetype.add(new VisibleBehaviour(() -> !getObjectWrapper().isReadOnly() && isChangeArchetypeAllowed() &&
                 getObjectArchetypeRef() != null && CollectionUtils.isNotEmpty(getArchetypeOidsListToAssign())));
         changeArchetype.add(AttributeAppender.append("class", "btn-default"));
         repeatingView.add(changeArchetype);
@@ -779,10 +779,9 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
             PrismObject<OrgType> parentOrg = null;
             try {
 
-                parentOrg = getModelService().getObject(OrgType.class, parentOrgRef.getOid(), null, task,
-                        subResult);
-                LOGGER.trace("Loaded parent org with result {}",
-                        new Object[] { subResult.getLastSubresult() });
+                parentOrg = getModelService().getObject(
+                        OrgType.class, parentOrgRef.getOid(), null, task, subResult);
+                LOGGER.trace("Loaded parent org with result {}", subResult.getLastSubresult());
             } catch (AuthorizationException e) {
                 // This can happen if the user has permission to read parentOrgRef but it does not have
                 // the permission to read target org
@@ -852,7 +851,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
             delta = objectWrapper.getObjectDelta();
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("User delta computed from form:\n{}", new Object[] { delta.debugDump(3) });
+                LOGGER.trace("User delta computed from form:\n{}", delta.debugDump(3));
             }
         } catch (Exception ex) {
             result.recordFatalError(getString("pageAdminObjectDetails.message.cantCreateObject"), ex);
@@ -870,7 +869,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                     prepareObjectForAdd(objectToAdd);
                     getPrismContext().adopt(objectToAdd, getCompileTimeClass());
                     if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Delta before add user:\n{}", new Object[] { delta.debugDump(3) });
+                        LOGGER.trace("Delta before add user:\n{}", delta.debugDump(3));
                     }
 
                     if (!delta.isEmpty()) {
@@ -902,7 +901,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                     prepareObjectDeltaForModify(delta); //preparing of deltas for projections (ADD, DELETE, UNLINK)
 
                     if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Delta before modify user:\n{}", new Object[] { delta.debugDump(3) });
+                        LOGGER.trace("Delta before modify user:\n{}", delta.debugDump(3));
                     }
 
                     Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();

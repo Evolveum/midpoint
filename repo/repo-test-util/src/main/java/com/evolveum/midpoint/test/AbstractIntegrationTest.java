@@ -866,7 +866,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         PrismObjectDefinition<?> objectDefinition = prismContext.getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(clazz);
 
-        Collection<? extends ItemDelta> modifications = prismContext.deltaFactory().container()
+        Collection<? extends ItemDelta<?, ?>> modifications = prismContext.deltaFactory().container()
                 .createModificationReplaceContainerCollection(itemName, objectDefinition, syncSettings.asPrismContainerValue());
 
         OperationResult result = new OperationResult("Applying sync settings");
@@ -1417,7 +1417,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     // objectClassName may be null
-    protected RefinedAttributeDefinition getAttributeDefinition(ResourceType resourceType,
+    protected <T> RefinedAttributeDefinition<T> getAttributeDefinition(ResourceType resourceType,
             ShadowKindType kind, QName objectClassName, String attributeLocalName)
             throws SchemaException {
         RefinedResourceSchema refinedResourceSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);

@@ -87,7 +87,7 @@ public interface DeltaFactory {
         <T> PropertyDelta<T> createModificationDeleteProperty(ItemPath propertyPath, PrismObjectDefinition<?> objectDefinition,
                 T... propertyValues);
 
-        Collection<? extends ItemDelta> createModificationReplacePropertyCollection(QName propertyName,
+        Collection<? extends ItemDelta<?, ?>> createModificationReplacePropertyCollection(QName propertyName,
                 PrismObjectDefinition<?> objectDefinition, java.lang.Object... propertyValues);
     }
 
@@ -111,7 +111,7 @@ public interface DeltaFactory {
         ReferenceDelta createModificationReplace(ItemPath path, PrismObjectDefinition<?> objectDefinition,
                 Collection<PrismReferenceValue> refValues);
 
-        Collection<? extends ItemDelta> createModificationAddCollection(ItemName propertyName,
+        Collection<? extends ItemDelta<?, ?>> createModificationAddCollection(ItemName propertyName,
                 PrismObjectDefinition<?> objectDefinition, PrismReferenceValue refValue);
 
         ReferenceDelta createModificationAdd(ItemPath path, PrismObjectDefinition<?> objectDefinition,
@@ -125,19 +125,19 @@ public interface DeltaFactory {
 
         <T extends Objectable> ReferenceDelta createModificationAdd(Class<T> type, ItemName refName, PrismReferenceValue refValue);
 
-        <T extends Objectable> Collection<? extends ItemDelta> createModificationAddCollection(Class<T> type, ItemName refName,
-                String targetOid);
+        <T extends Objectable> Collection<? extends ItemDelta<?, ?>> createModificationAddCollection(
+                Class<T> type, ItemName refName, String targetOid);
 
-        <T extends Objectable> Collection<? extends ItemDelta> createModificationAddCollection(Class<T> type, ItemName refName,
-                PrismReferenceValue refValue);
+        <T extends Objectable> Collection<? extends ItemDelta<?, ?>> createModificationAddCollection(
+                Class<T> type, ItemName refName, PrismReferenceValue refValue);
 
-        <T extends Objectable> ReferenceDelta createModificationAdd(Class<T> type, ItemName refName,
-                PrismObject<?> refTarget);
+        <T extends Objectable> ReferenceDelta createModificationAdd(
+                Class<T> type, ItemName refName, PrismObject<?> refTarget);
 
-        <T extends Objectable> Collection<? extends ItemDelta> createModificationAddCollection(Class<T> type, ItemName refName,
-                PrismObject<?> refTarget);
+        <T extends Objectable> Collection<? extends ItemDelta<?, ?>> createModificationAddCollection(
+                Class<T> type, ItemName refName, PrismObject<?> refTarget);
 
-        Collection<? extends ItemDelta> createModificationDeleteCollection(QName propertyName,
+        Collection<? extends ItemDelta<?, ?>> createModificationDeleteCollection(QName propertyName,
                 PrismObjectDefinition<?> objectDefinition, PrismReferenceValue refValue);
 
         ReferenceDelta createModificationDelete(ItemPath path, PrismObjectDefinition<?> objectDefinition,
@@ -155,13 +155,13 @@ public interface DeltaFactory {
         <T extends Objectable> ReferenceDelta createModificationDelete(Class<T> type, QName refName,
                 PrismReferenceValue refValue);
 
-        <T extends Objectable> Collection<? extends ItemDelta> createModificationDeleteCollection(Class<T> type, QName refName,
+        <T extends Objectable> Collection<? extends ItemDelta<?, ?>> createModificationDeleteCollection(Class<T> type, QName refName,
                 PrismReferenceValue refValue);
 
         <T extends Objectable> ReferenceDelta createModificationDelete(Class<T> type, QName refName,
                 PrismObject<?> refTarget);
 
-        <T extends Objectable> Collection<? extends ItemDelta> createModificationDeleteCollection(Class<T> type, QName refName,
+        <T extends Objectable> Collection<? extends ItemDelta<?, ?>> createModificationDeleteCollection(Class<T> type, QName refName,
                 PrismObject<?> refTarget);
     }
 
@@ -213,7 +213,7 @@ public interface DeltaFactory {
 
         // cValues should be parent-less
         @Deprecated // TODO decide on removal
-        Collection<? extends ItemDelta> createModificationReplaceContainerCollection(ItemName containerName,
+        Collection<? extends ItemDelta<?, ?>> createModificationReplaceContainerCollection(ItemName containerName,
                 PrismObjectDefinition<?> objectDefinition, PrismContainerValue... cValues);
 
         // cValues should be parent-less

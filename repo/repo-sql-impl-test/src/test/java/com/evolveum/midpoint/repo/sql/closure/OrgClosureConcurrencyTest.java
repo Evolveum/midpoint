@@ -60,7 +60,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
 //    private static final int[] LINK_ROUNDS_FOR_LEVELS = { 0, 1, 1    };
 //    private static final int[] NODE_ROUNDS_FOR_LEVELS = { 1, 2, 1    };
 
-    private OrgClosureTestConfiguration configuration;
+    private final OrgClosureTestConfiguration configuration;
 
     public OrgClosureConcurrencyTest() {
         configuration = new OrgClosureTestConfiguration();
@@ -283,11 +283,11 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
     }
 
     private void removeEdge(Edge edge) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
-        List<ItemDelta> modifications = new ArrayList<>();
+        List<ItemDelta<?, ?>> modifications = new ArrayList<>();
         ObjectReferenceType parentOrgRef = new ObjectReferenceType();
         parentOrgRef.setType(OrgType.COMPLEX_TYPE);
         parentOrgRef.setOid(edge.getAncestor());
-        ItemDelta removeParent = prismContext.deltaFactory().reference()
+        ItemDelta<?, ?> removeParent = prismContext.deltaFactory().reference()
                 .createModificationDelete(OrgType.class, OrgType.F_PARENT_ORG_REF, parentOrgRef.asReferenceValue());
         modifications.add(removeParent);
         repositoryService.modifyObject(OrgType.class, edge.getDescendant(), modifications, new OperationResult("dummy"));
@@ -297,12 +297,12 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
     }
 
     private void addEdge(Edge edge) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
-        List<ItemDelta> modifications = new ArrayList<>();
+        List<ItemDelta<?, ?>> modifications = new ArrayList<>();
         ObjectReferenceType parentOrgRef = new ObjectReferenceType();
         parentOrgRef.setType(OrgType.COMPLEX_TYPE);
         parentOrgRef.setOid(edge.getAncestor());
-        ItemDelta itemDelta = prismContext.deltaFactory().reference().createModificationAdd(OrgType.class, OrgType.F_PARENT_ORG_REF,
-                parentOrgRef.asReferenceValue());
+        ItemDelta<?, ?> itemDelta = prismContext.deltaFactory().reference()
+                .createModificationAdd(OrgType.class, OrgType.F_PARENT_ORG_REF, parentOrgRef.asReferenceValue());
         modifications.add(itemDelta);
         repositoryService.modifyObject(OrgType.class, edge.getDescendant(), modifications, new OperationResult("dummy"));
         synchronized (this) {

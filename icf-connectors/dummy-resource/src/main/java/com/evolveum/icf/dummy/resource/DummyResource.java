@@ -1078,8 +1078,10 @@ public class DummyResource implements DebugDumpable {
                 sb.append(stackElement.toString());
                 sb.append("\n");
             }
-            LOGGER.debug("MONITOR dummy '{}' {} ({}): {} {}", new Object[]{instanceName, opName, counter, immediateClass, immediateMethod});
-            LOGGER.trace("MONITOR dummy '{}' {} ({}):\n{}", new Object[]{instanceName, opName, counter, sb});
+            LOGGER.debug("MONITOR dummy '{}' {} ({}): {} {}",
+                    instanceName, opName, counter, immediateClass, immediateMethod);
+            LOGGER.trace("MONITOR dummy '{}' {} ({}):\n{}",
+                    instanceName, opName, counter, sb);
         }
     }
 

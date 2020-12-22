@@ -328,8 +328,8 @@ public class SynchronizationExpressionsEvaluator {
             }
         }
 
-        LOGGER.debug("SYNCHRONIZATION: CONFIRMATION: expression for {} matched {} users.", new Object[] {
-                currentShadow, list.size() });
+        LOGGER.debug("SYNCHRONIZATION: CONFIRMATION: expression for {} matched {} users.",
+                currentShadow, list.size());
         return list;
     }
 

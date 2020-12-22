@@ -272,7 +272,7 @@ public class TestDummyCaching extends TestDummy {
     @Test
     @Override
     public void test119SearchAllAccountsMaxStaleness() throws Exception {
-        // GIVEN
+        given();
         OperationResult result = createOperationResult();
         ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
                 SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
@@ -285,11 +285,11 @@ public class TestDummyCaching extends TestDummy {
         Collection<SelectorOptions<GetOperationOptions>> options =
                 SelectorOptions.createCollection(GetOperationOptions.createMaxStaleness());
 
-        // WHEN
+        when();
         List<PrismObject<ShadowType>> allShadows = provisioningService.searchObjects(ShadowType.class,
                 query, options, null, result);
 
-        // THEN
+        then();
         display("searchObjects result", result);
         assertSuccess(result);
 

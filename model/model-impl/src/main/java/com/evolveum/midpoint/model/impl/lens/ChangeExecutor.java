@@ -768,7 +768,7 @@ public class ChangeExecutor {
         PrismReferenceValue linkRef = prismContext.itemFactory().createReferenceValue();
         linkRef.setOid(shadowOid);
         linkRef.setTargetType(ShadowType.COMPLEX_TYPE);
-        Collection<? extends ItemDelta> linkRefDeltas = prismContext.deltaFactory().reference()
+        Collection<? extends ItemDelta<?, ?>> linkRefDeltas = prismContext.deltaFactory().reference()
                 .createModificationAddCollection(FocusType.F_LINK_REF, getUserDefinition(), linkRef);
 
         try {
@@ -808,8 +808,8 @@ public class ChangeExecutor {
 
         LOGGER.debug("Unlinking shadow {} from focus {}", accountRef.getOid(), focusOid);
         OperationResult result = parentResult.createSubresult(OPERATION_UNLINK_ACCOUNT);
-        Collection<? extends ItemDelta> accountRefDeltas = prismContext.deltaFactory().reference().createModificationDeleteCollection(
-                FocusType.F_LINK_REF, getUserDefinition(), accountRef.clone());
+        Collection<? extends ItemDelta<?, ?>> accountRefDeltas = prismContext.deltaFactory().reference()
+                .createModificationDeleteCollection(FocusType.F_LINK_REF, getUserDefinition(), accountRef.clone());
 
         try {
             cacheRepositoryService.modifyObject(typeClass, focusOid, accountRefDeltas, result);
@@ -1598,7 +1598,7 @@ public class ChangeExecutor {
     }
 
     private <F extends ObjectType, T extends ObjectType> String modifyProvisioningObject(
-            Class<T> objectTypeClass, String oid, Collection<? extends ItemDelta> modifications,
+            Class<T> objectTypeClass, String oid, Collection<? extends ItemDelta<?, ?>> modifications,
             LensContext<F> context, LensElementContext<T> objectContext, ProvisioningOperationOptions options,
             ResourceType resource, Task task, OperationResult result) throws ObjectNotFoundException,
             CommunicationException, SchemaException, ConfigurationException,

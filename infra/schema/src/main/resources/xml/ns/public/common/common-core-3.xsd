@@ -8201,7 +8201,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Indicated if the attribute should be considered as secondary identifier. If set to true,
-                                this attribute is stored in repository and user for example by synchronization (correlation
+                                this attribute is stored in repository and used for example by synchronization (correlation
                                 rule), consistency mechanism, etc.
                             </xsd:documentation>
                             <xsd:appinfo>

@@ -297,19 +297,19 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertResource(resourceRepoAfter, "Resource after test")
                 .display()
                 .operationalState()
-                .assertAny()
-                .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.UP)
-                .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
-                .assertPropertyValueSatisfies(OperationalStateType.F_TIMESTAMP, approximatelyCurrent(60000))
-                .assertPropertyValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to UP"))
-                .end()
+                    .assertAny()
+                    .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.UP)
+                    .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
+                    .assertPropertyValueSatisfies(OperationalStateType.F_TIMESTAMP, approximatelyCurrent(60000))
+                    .assertPropertyValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to UP"))
+                    .end()
                 .operationalStateHistory()
-                .assertSize(1)
-                .value(0)
-                .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.UP)
-                .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
-                .assertPropertyValueSatisfies(OperationalStateType.F_TIMESTAMP, approximatelyCurrent(60000))
-                .assertPropertyValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to UP"));
+                    .assertSize(1)
+                    .value(0)
+                        .assertPropertyEquals(OperationalStateType.F_LAST_AVAILABILITY_STATUS, AvailabilityStatusType.UP)
+                        .assertPropertyEquals(OperationalStateType.F_NODE_ID, localNodeId)
+                        .assertPropertyValueSatisfies(OperationalStateType.F_TIMESTAMP, approximatelyCurrent(60000))
+                        .assertPropertyValueSatisfies(OperationalStateType.F_MESSAGE, startsWith("Status set to UP"));
 
         XmlSchemaType xmlSchemaTypeAfter = resourceTypeRepoAfter.getSchema();
         assertNotNull("No schema after test connection", xmlSchemaTypeAfter);
@@ -342,10 +342,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertDummyConnectorInstances(1);
 
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
-        assertResourceCacheMissesIncrement(1);          // incurred in assertDummyConnectorInstances call
+        assertResourceCacheMissesIncrement(1); // incurred in assertDummyConnectorInstances call
 
         assertResourceAfterTest();
-
     }
 
     protected void assertResourceAfterTest() {
@@ -1221,7 +1220,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     // test101 in the subclasses
 
     @Test
-    public void test102GetAccount() throws Exception {
+    public void test102GetAccountWill() throws Exception {
         // GIVEN
         OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -1259,7 +1258,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     }
 
     @Test
-    public void test103GetAccountNoFetch() throws Exception {
+    public void test103GetAccountWillNoFetch() throws Exception {
         // GIVEN
         OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -1298,9 +1297,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectModificationType changeAddRoleCaptain = PrismTestUtil.parseAtomicValue(MODIFY_ACCOUNT_FILE,
+        ObjectModificationType accountDeltaBean = PrismTestUtil.parseAtomicValue(MODIFY_WILL_FULLNAME_FILE,
                 ObjectModificationType.COMPLEX_TYPE);
-        ObjectDelta<ShadowType> accountDelta = DeltaConvertor.createObjectDelta(changeAddRoleCaptain,
+        ObjectDelta<ShadowType> accountDelta = DeltaConvertor.createObjectDelta(accountDeltaBean,
                 ShadowType.class, prismContext);
 
         // WHEN
@@ -1320,8 +1319,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
      * MID-3481
      */
     @Test
-    public void test106GetModifiedAccount() throws Exception {
-        // GIVEN
+    public void test106GetModifiedAccountWill() throws Exception {
+        given();
         OperationResult result = createOperationResult();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
@@ -1332,11 +1331,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
-        // WHEN
         when();
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, result);
 
-        // THEN
         then();
         assertSuccess(result);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
@@ -1455,7 +1452,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         if (expectedPassword == null && credentials == null) {
             return;
         }
-        assertNotNull("Missing credentendials in repo shadow " + shadowRepo, credentials);
+        assertNotNull("Missing credentials in repo shadow " + shadowRepo, credentials);
         PasswordType passwordType = credentials.getPassword();
         if (expectedPassword == null && passwordType == null) {
             return;

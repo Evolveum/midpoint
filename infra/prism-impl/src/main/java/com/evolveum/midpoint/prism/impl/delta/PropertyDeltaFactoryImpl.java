@@ -157,7 +157,7 @@ public class PropertyDeltaFactoryImpl implements DeltaFactory.Property {
     }
 
     @Override
-    public Collection<? extends ItemDelta> createModificationReplacePropertyCollection(QName propertyName,
+    public Collection<? extends ItemDelta<?, ?>> createModificationReplacePropertyCollection(QName propertyName,
             PrismObjectDefinition<?> objectDefinition, Object... propertyValues) {
         return PropertyDeltaImpl.createModificationReplacePropertyCollection(propertyName, objectDefinition, propertyValues);
     }

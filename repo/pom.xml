@@ -22,7 +22,7 @@
 
     <modules>
         <module>audit-api</module>
-        <module>audit-impl</module>
+        <module>audit-log-impl</module>
         <module>repo-api</module>
         <module>repo-cache</module>
         <module>system-init</module>

@@ -49,6 +49,25 @@ public class M10ObjectTemplate extends AbstractLabTest{
     private static final File CSV_3_RESOURCE_FILE_10_4 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-10-4.xml");
     private static final File SYSTEM_CONFIGURATION_FILE_11_1 = new File(LAB_OBJECTS_DIRECTORY + "systemConfiguration/system-configuration-11-1.xml");
 
+    @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextBeforeTestClass" })
+    @Override
+    protected void springTestContextPrepareTestInstance() throws Exception {
+        String home = System.getProperty("midpoint.home");
+        File schemaDir = new File(home, "schema");
+
+        if (!schemaDir.mkdir()) {
+            if (schemaDir.exists()) {
+                FileUtils.cleanDirectory(schemaDir);
+            } else {
+                throw new IOException("Creation of directory \"" + schemaDir.getAbsolutePath() + "\" unsuccessful");
+            }
+        }
+        File schemaFile = new File(schemaDir, EXTENSION_SCHEMA_NAME);
+        FileUtils.copyFile(EXTENSION_SCHEMA_FILE, schemaFile);
+
+        super.springTestContextPrepareTestInstance();
+    }
+
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override
     public void beforeClass() throws IOException {
@@ -58,12 +77,13 @@ public class M10ObjectTemplate extends AbstractLabTest{
     @Override
     protected List<File> getObjectListToImport(){
         return Arrays.asList(ARCHETYPE_ORG_FUNCTIONAL_FILE, ARCHETYPE_ORG_COMPANY_FILE, ARCHETYPE_ORG_GROUP_FILE,
-                ARCHETYPE_ORG_GROUP_LIST_FILE, KIRK_USER_TIBERIUS_FILE);
+                ARCHETYPE_ORG_GROUP_LIST_FILE, KIRK_USER_TIBERIUS_FILE, INTERNAL_EMPLOYEE_ROLE_FILE);
     }
 
     @Test
     public void mod10test01SimpleObjectTemplate() throws IOException {
         importObject(ORG_EXAMPLE_FILE, true);
+        importObject(ORG_SECRET_OPS_FILE, true);
         importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE, true);
         csv1TargetFile = new File(getTestTargetDir(), CSV_1_FILE_SOURCE_NAME);
 
@@ -71,8 +91,8 @@ public class M10ObjectTemplate extends AbstractLabTest{
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
 
         hrTargetFile = new File(getTestTargetDir(), HR_FILE_SOURCE_NAME);
-        FileUtils.copyFile(HR_SOURCE_FILE, hrTargetFile);
-        importObject(HR_NO_EXTENSION_RESOURCE_FILE, true);
+        FileUtils.copyFile(HR_SOURCE_FILE_7_4_PART_4, hrTargetFile);
+        importObject(HR_RESOURCE_FILE_8_1, true);
         changeResourceAttribute(HR_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, hrTargetFile.getAbsolutePath(), true);
 
         addObjectFromFile(HR_SYNCHRONIZATION_TASK_FILE);
