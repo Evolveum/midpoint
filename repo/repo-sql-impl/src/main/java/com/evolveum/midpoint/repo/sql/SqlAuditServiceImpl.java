@@ -558,19 +558,23 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         audit.setInitiatorRef(prismRefValue(
                 resultList.getString(QAuditEventRecord.INITIATOR_OID.getName()),
                 resultList.getString(QAuditEventRecord.INITIATOR_NAME.getName()),
+                resultList.getString(QAuditEventRecord.INITIATOR_NAME.getName()),
                 Objects.requireNonNullElse(
                         repoObjectType(resultList, QAuditEventRecord.INITIATOR_TYPE.getName()),
                         RObjectType.FOCUS)));
         audit.setAttorneyRef(prismRefValue(
                 resultList.getString(QAuditEventRecord.ATTORNEY_OID.getName()),
                 resultList.getString(QAuditEventRecord.ATTORNEY_NAME.getName()),
+                resultList.getString(QAuditEventRecord.ATTORNEY_NAME.getName()),
                 RObjectType.FOCUS));
         audit.setTargetRef(prismRefValue(
                 resultList.getString(QAuditEventRecord.TARGET_OID.getName()),
                 resultList.getString(QAuditEventRecord.TARGET_TYPE.getName()),
+                resultList.getString(QAuditEventRecord.TARGET_NAME.getName()),
                 repoObjectType(resultList, QAuditEventRecord.TARGET_TYPE.getName())));
         audit.setTargetOwnerRef(prismRefValue(
                 resultList.getString(QAuditEventRecord.TARGET_OWNER_OID.getName()),
+                resultList.getString(QAuditEventRecord.TARGET_OWNER_NAME.getName()),
                 resultList.getString(QAuditEventRecord.TARGET_OWNER_NAME.getName()),
                 repoObjectType(resultList, QAuditEventRecord.TARGET_OWNER_TYPE.getName())));
         return audit;
@@ -717,7 +721,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     }
 
     private PrismReferenceValue prismRefValue(
-            String oid, String description, RObjectType repoObjectType) {
+            String oid, String description, String targetName, RObjectType repoObjectType) {
         if (oid == null) {
             return null;
         }
@@ -726,6 +730,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 prismContext.getSchemaRegistry().determineTypeForClass(
                         repoObjectType.getJaxbClass()));
         prv.setDescription(description);
+        prv.setTargetName(new PolyString(targetName));
         return prv;
     }
 

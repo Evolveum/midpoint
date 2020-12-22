@@ -52,6 +52,7 @@ import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.AttributeModifier;
@@ -317,6 +318,11 @@ public class AuditLogViewerPanel extends BasePanel {
                         protected IModel<String> createLinkModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
                             AuditEventRecordType auditEventRecordType = unwrapModel(rowModel);
                             return Model.of(WebModelServiceUtils.resolveReferenceName(auditEventRecordType.getTargetRef(), getPageBase(), true));
+                        }
+
+                        @Override
+                        public boolean isEnabled(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
+                            return !AuditEventTypeType.DELETE_OBJECT.equals(rowModel.getObject().getValue().getEventType());
                         }
 
                         @Override
