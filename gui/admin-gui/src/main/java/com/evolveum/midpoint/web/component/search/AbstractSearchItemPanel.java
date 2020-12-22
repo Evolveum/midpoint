@@ -45,6 +45,7 @@ public abstract class AbstractSearchItemPanel<S extends SearchItem> extends Base
     private static final long serialVersionUID = 1L;
 
     private static final String ID_SEARCH_ITEM_CONTAINER = "searchItemContainer";
+    private static final String ID_SEARCH_ITEM_FIELD = "searchItemField";
     private static final String ID_SEARCH_ITEM_LABEL = "searchItemLabel";
     private static final String ID_HELP = "help";
     private static final String ID_REMOVE_BUTTON = "removeButton";
@@ -59,7 +60,7 @@ public abstract class AbstractSearchItemPanel<S extends SearchItem> extends Base
         initLayout();
     }
 
-    private void initLayout() {
+    protected void initLayout() {
         setOutputMarkupId(true);
 
         WebMarkupContainer searchItemContainer = new WebMarkupContainer(ID_SEARCH_ITEM_CONTAINER);
@@ -112,7 +113,9 @@ public abstract class AbstractSearchItemPanel<S extends SearchItem> extends Base
         return Model.of(item.getHelp(getPageBase()));
     }
 
-    protected abstract void initSearchItemField(WebMarkupContainer searchItemContainer);
+    protected void initSearchItemField(WebMarkupContainer searchItemContainer){
+        searchItemContainer.add(new WebMarkupContainer(ID_SEARCH_ITEM_FIELD));
+    }
 
     protected boolean canRemoveSearchItem() {
         return getModelObject().canRemoveSearchItem();
@@ -206,6 +209,16 @@ public abstract class AbstractSearchItemPanel<S extends SearchItem> extends Base
             }
         });
         return autoCompletePanel;
+    }
+
+    protected IModel<List<DisplayableValue<?>>> createEnumChoices(Class<? extends Enum> inputClass) {
+        Enum[] enumConstants = inputClass.getEnumConstants();
+        List<DisplayableValue<?>> list = new ArrayList<>();
+        for(int i = 0; i < enumConstants.length; i++){
+            list.add(new SearchValue<>(enumConstants[i], getString(enumConstants[i])));
+        }
+        return Model.ofList(list);
+
     }
 
 }

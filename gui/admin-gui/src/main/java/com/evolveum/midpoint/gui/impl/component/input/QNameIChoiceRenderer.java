@@ -23,6 +23,8 @@ public class QNameIChoiceRenderer implements IChoiceRenderer<QName> {
 
     private String prefix;
 
+    public QNameIChoiceRenderer(){}
+
     public QNameIChoiceRenderer(String prefix){
         this.prefix = prefix;
     }
@@ -36,7 +38,7 @@ public class QNameIChoiceRenderer implements IChoiceRenderer<QName> {
         String realPrefix = prefix != null && !prefix.isEmpty() ? (prefix + ".") : "";
         String key = realPrefix + qname.getLocalPart();
 
-        return new ResourceModel(key, key).getObject();
+        return new ResourceModel(key, qname.getLocalPart()).getObject();
     }
 
     @Override

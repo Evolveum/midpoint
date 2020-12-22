@@ -187,7 +187,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return createMemberPanel(panelId);
+                return createMemberPanel(panelId, parentPage);
             }
 
             @Override
@@ -205,7 +205,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return createGovernancePanel(panelId);
+                return createGovernancePanel(panelId, parentPage);
             }
 
             @Override
@@ -217,9 +217,9 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
         return tabs;
     }
 
-    public AbstractRoleMemberPanel<R> createMemberPanel(String panelId) {
+    public AbstractRoleMemberPanel<R> createMemberPanel(String panelId, PageBase parentPage) {
 
-        return new AbstractRoleMemberPanel<R>(panelId, new Model<>(getObject().asObjectable())) {
+        return new AbstractRoleMemberPanel<R>(panelId, new Model<>(getObject().asObjectable()), parentPage) {
 
             private static final long serialVersionUID = 1L;
 
@@ -228,12 +228,17 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
                 return getSupportedMembersTabRelations();
             }
 
+            @Override
+            protected String getStorageKeyTabSuffix() {
+                return "abstractRoleMembers";
+            }
+
         };
     }
 
-    public AbstractRoleMemberPanel<R> createGovernancePanel(String panelId) {
+    public AbstractRoleMemberPanel<R> createGovernancePanel(String panelId, PageBase parentPage) {
 
-        return new AbstractRoleMemberPanel<R>(panelId, new Model<>(getObject().asObjectable())) {
+        return new AbstractRoleMemberPanel<R>(panelId, new Model<>(getObject().asObjectable()), parentPage) {
 
             private static final long serialVersionUID = 1L;
 
@@ -247,6 +252,11 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
             @Override
             protected Map<String, String> getAuthorizations(QName complexType) {
                 return getGovernanceTabAuthorizations();
+            }
+
+            @Override
+            protected String getStorageKeyTabSuffix() {
+                return "abstractRoleGovernance";
             }
 
         };

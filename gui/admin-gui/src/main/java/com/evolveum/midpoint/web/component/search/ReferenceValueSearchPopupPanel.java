@@ -13,6 +13,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.TextField;
@@ -55,7 +57,6 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
             }
         });
         oidField.setOutputMarkupId(true);
-        oidField.add(new VisibleBehaviour(() -> true));
         oidField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour() {
             private static final long serialVersionUID = 1L;
 
@@ -66,6 +67,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
                 ReferenceValueSearchPopupPanel.this.getModelObject().setRelation(null);
             }
         });
+        oidField.add(new EnableBehaviour(() -> isItemPanelEnabled()));
         midpointForm.add(oidField);
 
         ReferenceAutocomplete nameField = new ReferenceAutocomplete(ID_NAME, Model.of(getModelObject()),
@@ -98,6 +100,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
             }
         });
         nameField.setOutputMarkupId(true);
+        nameField.add(new EnableBehaviour(() -> isItemPanelEnabled()));
         midpointForm.add(nameField);
 
         DropDownChoicePanel<QName> type = new DropDownChoicePanel<QName>(ID_TYPE, new PropertyModel<>(getModel(), "type"),
@@ -109,7 +112,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
 
             @Override
             public boolean isEnabled() {
-                return getSupportedTargetList().size() > 1;
+                return getSupportedTargetList().size() > 1 && isItemPanelEnabled();
             }
         });
         type.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
@@ -126,7 +129,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
 
             @Override
             public boolean isEnabled() {
-                return getAllowedRelations().size() > 1;
+                return getAllowedRelations().size() > 1 && isItemPanelEnabled();
             }
         });
         relation.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());

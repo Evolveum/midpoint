@@ -12,6 +12,9 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
 
 import javax.xml.namespace.QName;
@@ -21,13 +24,25 @@ import javax.xml.namespace.QName;
 public class MemberPanelStorage implements PageStorage{
     private static final long serialVersionUID = 1L;
 
+    public static final String F_RELATION = "relation";
+    public static final String F_ORG_SEARCH_SCOPE = "orgSearchScope";
+    public static final String F_INDIRECT = "indirect";
+    public static final String F_TENANT = "tenant";
+    public static final String F_PROJECT = "project";
+
     private ObjectPaging orgMemberPanelPaging;
 
     private Search search;
     private SearchBoxScopeType orgSearchScope;
     private Boolean isIndirect = false;
-    private QName relation = PrismConstants.Q_ANY;
-    private ObjectTypes type = null;
+    private QName relation = null;
+    private ObjectReferenceType tenant = new ObjectReferenceType();
+    private ObjectReferenceType project = new ObjectReferenceType();
+
+    public MemberPanelStorage(){
+        resetTenantRef();
+        resetProjectRef();
+    }
 
     public SearchBoxScopeType getOrgSearchScope() {
         return orgSearchScope;
@@ -53,12 +68,40 @@ public class MemberPanelStorage implements PageStorage{
         this.relation = relation;
     }
 
-    public ObjectTypes getType() {
-        return type;
+    public ObjectReferenceType getTenant() {
+        return tenant;
     }
 
-    public void setType(ObjectTypes type) {
-        this.type = type;
+    public void setTenant(ObjectReferenceType tenant) {
+        this.tenant = tenant;
+    }
+
+    public boolean isTenantEmpty() {
+        return getTenant().getOid() == null || getTenant().getOid() == null || getTenant().asReferenceValue().isEmpty();
+    }
+
+    public void resetTenantRef(){
+        ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setType(OrgType.COMPLEX_TYPE);
+        this.tenant = ref;
+    }
+
+    public ObjectReferenceType getProject() {
+        return project;
+    }
+
+    public void setProject(ObjectReferenceType project) {
+        this.project = project;
+    }
+
+    public boolean isProjectEmpty() {
+        return getProject() == null || getProject().getOid() == null || getProject().asReferenceValue().isEmpty();
+    }
+
+    public void resetProjectRef(){
+        ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setType(OrgType.COMPLEX_TYPE);
+        this.project = ref;
     }
 
     @Override

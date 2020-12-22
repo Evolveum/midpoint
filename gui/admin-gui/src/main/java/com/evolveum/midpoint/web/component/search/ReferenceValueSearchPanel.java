@@ -41,7 +41,7 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
 
                     @Override
                     protected List<QName> getAllowedRelations() {
-                        return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getPageBase());
+                        return ReferenceValueSearchPanel.this.getAllowedRelations();
                     }
 
                     @Override
@@ -53,6 +53,11 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
                     protected void confirmPerformed(AjaxRequestTarget target) {
                         target.add(ReferenceValueSearchPanel.this);
                         referenceValueUpdated(ReferenceValueSearchPanel.this.getModelObject(), target);
+                    }
+
+                    @Override
+                    protected Boolean isItemPanelEnabled() {
+                        return ReferenceValueSearchPanel.this.isItemPanelEnabled();
                     }
                 };
         value.setRenderBodyOnly(true);
@@ -70,5 +75,9 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
     }
 
     protected void referenceValueUpdated(ObjectReferenceType ort, AjaxRequestTarget target) {
+    }
+
+    protected List<QName> getAllowedRelations() {
+        return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getPageBase());
     }
 }

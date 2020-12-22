@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.page.admin.archetype;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 
 import org.apache.wicket.Page;
@@ -97,8 +98,8 @@ public class PageArchetype extends PageAdminAbstractRole<ArchetypeType> {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public AbstractRoleMemberPanel<ArchetypeType> createMemberPanel(String panelId) {
-                return new ArchetypeMembersPanel(panelId, new Model<>(getObject().asObjectable()));
+            public AbstractRoleMemberPanel<ArchetypeType> createMemberPanel(String panelId, PageBase pageBase) {
+                return new ArchetypeMembersPanel(panelId, new Model<>(getObject().asObjectable()), pageBase);
             }
 
             @Override

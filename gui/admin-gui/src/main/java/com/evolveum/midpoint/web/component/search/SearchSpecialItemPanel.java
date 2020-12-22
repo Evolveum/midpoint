@@ -47,7 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 /**
  * @author lskublik
  */
-public abstract class SearchSpecialItemPanel<T extends Serializable> extends BasePanel<T> {
+public abstract class SearchSpecialItemPanel<T extends Serializable> extends AbstractSearchItemPanel<SpecialSearchItem> {
 
     private static final long serialVersionUID = 1L;
 
@@ -56,17 +56,18 @@ public abstract class SearchSpecialItemPanel<T extends Serializable> extends Bas
     private static final String ID_SEARCH_ITEM_LABEL = "searchItemLabel";
     private static final String ID_HELP = "help";
 
+    private final IModel<T> modelValue;
+
     public SearchSpecialItemPanel(String id, IModel<T> model) {
-        super(id, model);
+        super(id, null);
+        this.modelValue = model;
     }
 
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
-        initLayout();
+    public IModel<T> getModelValue() {
+        return modelValue;
     }
 
-    private void initLayout() {
+    protected void initLayout() {
         setOutputMarkupId(true);
 
         WebMarkupContainer searchItemContainer = new WebMarkupContainer(ID_SEARCH_ITEM_CONTAINER);
@@ -99,13 +100,12 @@ public abstract class SearchSpecialItemPanel<T extends Serializable> extends Bas
         WebMarkupContainer inputPanel = initSearchItemField(ID_SEARCH_ITEM_FIELD);
         if (inputPanel instanceof InputPanel && !(inputPanel instanceof AutoCompleteTextPanel)) {
             ((InputPanel) inputPanel).getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
-//            ((InputPanel) inputPanel).getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         }
         inputPanel.setOutputMarkupId(true);
         searchItemContainer.add(inputPanel);
     }
 
-    private IModel<String> createHelpModel(){
+    protected IModel<String> createHelpModel(){
         return Model.of();
     }
 
@@ -119,7 +119,7 @@ public abstract class SearchSpecialItemPanel<T extends Serializable> extends Bas
         return Model.of();
     }
 
-    private IModel<String> createTitleModel() {
+    protected IModel<String> createTitleModel() {
         return Model.of();
     }
 }

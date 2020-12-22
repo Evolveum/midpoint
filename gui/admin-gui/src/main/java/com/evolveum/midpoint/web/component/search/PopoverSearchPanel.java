@@ -85,4 +85,8 @@ public abstract class PopoverSearchPanel<T> extends BasePanel<T> {
 
         target.appendJavaScript(script.toString());
     }
+
+    public Boolean isItemPanelEnabled() {
+        return true;
+    }
 }

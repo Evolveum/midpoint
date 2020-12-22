@@ -58,7 +58,9 @@ public class PopoverSearchPopupPanel<T> extends BasePanel<T> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                confirmPerformed(target);
+                if (isItemPanelEnabled()) {
+                    confirmPerformed(target);
+                }
             }
         };
         midpointForm.add(confirm);
@@ -71,6 +73,10 @@ public class PopoverSearchPopupPanel<T> extends BasePanel<T> {
 
     protected void confirmPerformed(AjaxRequestTarget target){
 
+    }
+
+    protected Boolean isItemPanelEnabled() {
+        return true;
     }
 
 }

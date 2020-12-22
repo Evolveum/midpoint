@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -53,7 +54,7 @@ public abstract class BaseSearchDataProvider<C extends Containerable, T extends 
 
     private IModel<Search<C>> search;
     private Class<C> oldType;
-    private ExpressionVariables variables = null;
+    private Map<String, Object> variables = new HashMap<>();
 
     public BaseSearchDataProvider(Component component, IModel<Search<C>> search) {
         this(component, search, false, true);
@@ -71,7 +72,15 @@ public abstract class BaseSearchDataProvider<C extends Containerable, T extends 
 
     @Override
     public ObjectQuery getQuery() {
-        return search.getObject() == null ? null : search.getObject().createObjectQuery(variables, getPageBase(), getCustomizeContentQuery());
+        ExpressionVariables expVariables = new ExpressionVariables();
+        for (Map.Entry<String, Object> entry : variables.entrySet()) {
+            if (entry.getValue() == null) {
+                expVariables.put(entry.getKey(), null, Object.class);
+            } else {
+                expVariables.put(entry.getKey(), entry.getValue(), entry.getValue().getClass());
+            }
+        }
+        return search.getObject() == null ? null : search.getObject().createObjectQuery(expVariables.isEmpty() ? null : expVariables, getPageBase(), getCustomizeContentQuery());
     }
 
     protected ObjectQuery getCustomizeContentQuery() {
@@ -95,8 +104,8 @@ public abstract class BaseSearchDataProvider<C extends Containerable, T extends 
 //        this.type = type;
 //    }
 
-    public void setQueryVariables(ExpressionVariables variables) {
-        this.variables = variables;
+    public void addQueryVariables(String name, Object value) {
+        this.variables.put(name, value);
     }
 
 }

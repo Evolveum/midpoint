@@ -12,6 +12,7 @@ import java.util.function.Supplier;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.search.*;
@@ -179,4 +180,11 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
     }
 
     protected void objectDetailsPerformed(AjaxRequestTarget target, O object){};
+
+    protected ContainerTypeSearchItem getTypeItem(Class<? extends O> type, List<DisplayableValue<Class<? extends O>>> allowedValues){
+        @NotNull ObjectTypes objectType = ObjectTypes.getObjectType(type);
+        return new ContainerTypeSearchItem<O>(new SearchValue(objectType.getClassDefinition(),
+                "ObjectType." + objectType.getTypeQName().getLocalPart()),
+                allowedValues);
+    }
 }

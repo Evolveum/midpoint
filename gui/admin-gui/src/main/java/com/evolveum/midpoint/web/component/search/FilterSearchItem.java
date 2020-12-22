@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.component.search;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -51,7 +52,6 @@ public class FilterSearchItem extends SearchItem {
 
 
     private SearchItemType predefinedFilter;
-    private boolean applyFilter;
     private DisplayableValue<? extends Serializable> input = new SearchValue<>();
     private List<DisplayableValue<?>> allowedValues = null;
 
@@ -59,6 +59,7 @@ public class FilterSearchItem extends SearchItem {
         super(search);
         Validate.notNull(predefinedFilter, "Filter must not be null.");
         this.predefinedFilter = predefinedFilter;
+        setApplyFilter(false);
     }
 
     @Override
@@ -90,14 +91,6 @@ public class FilterSearchItem extends SearchItem {
 
     public void setPredefinedFilter(SearchItemType predefinedFilter) {
         this.predefinedFilter = predefinedFilter;
-    }
-
-    public boolean isApplyFilter() {
-        return applyFilter;
-    }
-
-    public void setApplyFilter(boolean applyFilter) {
-        this.applyFilter = applyFilter;
     }
 
     @Override
@@ -135,7 +128,7 @@ public class FilterSearchItem extends SearchItem {
     @Override
     public String toString() {
         return "FilterSearchItem{" +
-                "applyFilter=" + applyFilter +
+                "applyFilter=" + isApplyFilter() +
                 ", predefinedFilter=" + predefinedFilter +
                 ", input=" + input +
                 '}';
@@ -184,10 +177,14 @@ public class FilterSearchItem extends SearchItem {
         return (List<DisplayableValue<?>>) value;
     }
 
-    public LookupTableType getLookupTable() {
-//        if (predefinedFilter != null && predefinedFilter.getParameter() != null) {
-//            return predefinedFilter.getParameter().getAllowedValuesLookupTable();
-//        }
+    public LookupTableType getLookupTable(PageBase pageBase) {
+        if (predefinedFilter != null && predefinedFilter.getParameter() != null
+                && predefinedFilter.getParameter().getAllowedValuesLookupTable() != null) {
+            PrismObject<LookupTableType> lokupTable = WebComponentUtil.findLookupTable(predefinedFilter.getParameter().getAllowedValuesLookupTable().asReferenceValue(), pageBase);
+            if (lokupTable != null) {
+                return lokupTable.asObjectable();
+            }
+        }
         return null;
     }
 }

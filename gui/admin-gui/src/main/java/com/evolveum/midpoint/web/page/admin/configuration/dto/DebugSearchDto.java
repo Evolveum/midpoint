@@ -88,7 +88,7 @@ public class DebugSearchDto implements Serializable, DebugDumpable {
     }
 
     public boolean isResourceEmpty() {
-        return getResource() == null || getResource().asReferenceValue().isEmpty();
+        return getResource() == null || getResource().getOid() == null || getResource().asReferenceValue().isEmpty();
     }
 
     public void resetResourceRef(){

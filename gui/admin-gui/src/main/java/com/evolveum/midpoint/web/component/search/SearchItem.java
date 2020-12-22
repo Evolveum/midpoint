@@ -27,6 +27,7 @@ public abstract class SearchItem implements Serializable {
     private boolean fixed;
     private boolean editWhenVisible;
     private SearchItemDefinition definition;
+    private boolean applyFilter = true;
 
     public SearchItem(Search search) {
         this.search = search;
@@ -72,7 +73,19 @@ public abstract class SearchItem implements Serializable {
         this.definition = definition;
     }
 
+    public boolean isApplyFilter() {
+        return applyFilter;
+    }
+
+    public void setApplyFilter(boolean applyFilter) {
+        this.applyFilter = applyFilter;
+    }
+
     protected boolean canRemoveSearchItem() {
+        return true;
+    }
+
+    public boolean isEnabled() {
         return true;
     }
 }

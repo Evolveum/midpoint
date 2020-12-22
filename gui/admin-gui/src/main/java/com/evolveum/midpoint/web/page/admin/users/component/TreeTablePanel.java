@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -77,11 +79,6 @@ public class TreeTablePanel extends BasePanel<String> {
     private static final long serialVersionUID = 1L;
     private final PageBase parentPage;
 
-    @Override
-    public PageBase getPageBase() {
-        return parentPage;
-    }
-
     protected static final String DOT_CLASS = TreeTablePanel.class.getName() + ".";
     protected static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
     protected static final String OPERATION_MOVE_OBJECT = DOT_CLASS + "moveObject";
@@ -103,7 +100,17 @@ public class TreeTablePanel extends BasePanel<String> {
         super(id, rootOid);
         this.parentPage = parentPage;
         setParent(parentPage);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
         initLayout(parentPage);
+    }
+
+    @Override
+    public PageBase getPageBase() {
+        return parentPage;
     }
 
     protected void initLayout(ModelServiceLocator serviceLocator) {
@@ -136,7 +143,7 @@ public class TreeTablePanel extends BasePanel<String> {
     }
 
     private OrgMemberPanel createMemberPanel(OrgType org) {
-        OrgMemberPanel memberPanel = new OrgMemberPanel(ID_MEMBER_PANEL, new Model<>(org)) {
+        OrgMemberPanel memberPanel = new OrgMemberPanel(ID_MEMBER_PANEL, new Model<>(org), getPageBase()) {
 
             private static final long serialVersionUID = 1L;
 
@@ -144,6 +151,11 @@ public class TreeTablePanel extends BasePanel<String> {
             protected AvailableRelationDto getSupportedRelations() {
                 return new AvailableRelationDto(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, TreeTablePanel.this.getPageBase()),
                         SchemaConstants.ORG_DEFAULT);
+            }
+
+            protected AbstractRoleMemberPanel<OrgType> getMemberPanel() {
+                AbstractRoleMemberPanel<OrgType> panel = (AbstractRoleMemberPanel<OrgType>)getParentPage().get("orgPanel:tabs:panel:memberPanel");
+                return panel == null ? super.getMemberPanel() : panel;
             }
         };
         memberPanel.setOutputMarkupId(true);

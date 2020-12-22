@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
@@ -34,6 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -150,7 +152,6 @@ public class PageDebugList extends PageAdminConfiguration {
                 DebugSearchDto dto = storage.getDebugSearchDto();
                 if (dto == null) {
                     dto = new DebugSearchDto();
-//                    dto.setType(ObjectTypes.SYSTEM_CONFIGURATION);
                     setupSearchDto(dto, getTypeItem());
                 }
 
@@ -569,6 +570,7 @@ public class PageDebugList extends PageAdminConfiguration {
                 search.addSpecialItem(createResourceRefSearchItem(dto, search));
                 search.addSpecialItem(createObjectClassSearchItem(dto, search));
             }
+            search.searchWasReload();
         }
         dto.setSearch(search);
     }
@@ -591,6 +593,11 @@ public class PageDebugList extends PageAdminConfiguration {
             @Override
             protected boolean canRemoveSearchItem() {
                 return false;
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return !dto.isResourceEmpty();
             }
         };
         if (dto.getObjectClass() != null) {
@@ -617,6 +624,7 @@ public class PageDebugList extends PageAdminConfiguration {
             @Override
             public void setValue(ObjectReferenceType value) {
                 dto.setResource(value);
+                super.setValue(value);
             }
         });
         return item;
@@ -626,26 +634,26 @@ public class PageDebugList extends PageAdminConfiguration {
         return new SpecialSearchItem(search) {
 
             @Override
-            public ObjectFilter createFilter() {
+            public ObjectFilter createFilter(PageBase pageBase) {
                 if (StringUtils.isNotEmpty(dto.getOidFilter())){
                     usedOidFilter = true;
-                    return getPrismContext().queryFor(getSearch().getTypeClass()).id(dto.getOidFilter()).buildFilter();
+                    return pageBase.getPrismContext().queryFor(getSearch().getTypeClass()).id(dto.getOidFilter()).buildFilter();
                 }
                 return null;
             }
 
             @Override
-            public SearchSpecialItemPanel createSpecialSearchPanel(String id) {
-                return new SearchSpecialItemPanel(id, new PropertyModel(searchModel, DebugSearchDto.F_OID_FILTER){
+            public SearchSpecialItemPanel createSpecialSearchPanel(String id, OnChangeAjaxBehavior updateBehaviour) {
+                return new SearchSpecialItemPanel<String>(id, new PropertyModel<String>(searchModel, DebugSearchDto.F_OID_FILTER){
                     @Override
-                    public void setObject(Object object) {
+                    public void setObject(String object) {
                         usedOidFilter = false;
                         super.setObject(object);
                     }
                 }) {
                     @Override
                     protected WebMarkupContainer initSearchItemField(String id) {
-                        TextPanel<String> inputPanel = new TextPanel<String>(id, getModel());
+                        TextPanel<String> inputPanel = new TextPanel<String>(id, getModelValue());
                         inputPanel.getBaseFormComponent().add(AttributeAppender.append("style", "width: 220px; max-width: 400px !important;"));
                         return inputPanel;
                     }

@@ -285,14 +285,17 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     public ObjectQuery createObjectQuery(ExpressionVariables variables, PageBase pageBase, ObjectQuery customizeContentQuery) {
         LOGGER.debug("Creating query from {}", this);
-        ObjectQuery query;
+        ObjectQuery query = createQueryfromDefaultItems(pageBase);
+        ObjectQuery searchTypeQuery = null;
         if (SearchBoxModeType.ADVANCED.equals(searchType)) {
-            query = createObjectQueryAdvanced(pageBase);
+            searchTypeQuery = createObjectQueryAdvanced(pageBase);
         } else if (SearchBoxModeType.FULLTEXT.equals(searchType)) {
-            query = createObjectQueryFullText(pageBase);
+            searchTypeQuery = createObjectQueryFullText(pageBase);
         } else {
-            query = createObjectQuerySimple(variables, pageBase);
+            searchTypeQuery = createObjectQuerySimple(variables, pageBase);
         }
+
+        query = mergeQueries(query, searchTypeQuery);
         if (query == null) {
             query = pageBase.getPrismContext().queryFor(getTypeClass()).build();
         }
@@ -303,6 +306,49 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         query = mergeQueries(query, customizeContentQuery);
 
         LOGGER.debug("Created query: {}", query);
+        return query;
+    }
+
+    private ObjectQuery createQueryfromDefaultItems(PageBase pageBase) {
+        List<SearchItem> specialItems = getSpecialItems();
+        if (specialItems.isEmpty()) {
+            return null;
+        }
+
+        List<ObjectFilter> conditions = new ArrayList<>();
+        for (SearchItem item : specialItems){
+            if (item.isEnabled() && item.isApplyFilter()) {
+                if (item instanceof SpecialSearchItem) {
+                    ObjectFilter filter = ((SpecialSearchItem) item).createFilter(pageBase);
+                    if (filter != null) {
+                        conditions.add(filter);
+                    }
+                }
+                if (item instanceof PropertySearchItem) {
+                    ObjectFilter filter = createFilterForSearchItem((PropertySearchItem) item, pageBase.getPrismContext());
+                    if (filter != null) {
+                        conditions.add(filter);
+                    }
+                }
+            }
+        }
+
+
+        ObjectQuery query;
+        if (getTypeClass() != null) {
+            query = pageBase.getPrismContext().queryFor(getTypeClass()).build();
+        } else {
+            query = pageBase.getPrismContext().queryFactory().createQuery();
+        }
+        switch (conditions.size()) {
+            case 0:
+                query = null;
+                break;
+            default:
+                for (ObjectFilter filter : conditions) {
+                    query.addFilter(filter);
+                }
+        }
         return query;
     }
 
@@ -334,16 +380,17 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     private ObjectQuery createObjectQuerySimple(ExpressionVariables defaultVariables, PageBase pageBase) {
         List<SearchItem> searchItems = getItems();
-        List<SearchItem> specialItems = getSpecialItems();
-        if (searchItems.isEmpty() && specialItems.isEmpty()) {
+        if (searchItems.isEmpty()) {
             return null;
         }
 
         List<ObjectFilter> conditions = new ArrayList<>();
         for (PropertySearchItem item : getPropertyItems()) {
-            ObjectFilter filter = createFilterForSearchItem(item, pageBase.getPrismContext());
-            if (filter != null) {
-                conditions.add(filter);
+            if (item.isEnabled() && item.isApplyFilter()) {
+                ObjectFilter filter = createFilterForSearchItem(item, pageBase.getPrismContext());
+                if (filter != null) {
+                    conditions.add(filter);
+                }
             }
         }
 
@@ -359,7 +406,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         }
 
         for (FilterSearchItem item : getFilterItems()) {
-            if (item.isApplyFilter()) {
+            if (item.isEnabled() && item.isApplyFilter()) {
 
                 SearchFilterType filter = item.getPredefinedFilter().getFilter();
                 if (filter == null && item.getPredefinedFilter().getFilterExpression() != null) {
@@ -391,22 +438,6 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
                 }
             }
         }
-
-        for (SearchItem item : specialItems){
-            if (item instanceof SpecialSearchItem) {
-                ObjectFilter filter = ((SpecialSearchItem)item).createFilter();
-                if (filter != null) {
-                    conditions.add(filter);
-                }
-            }
-            if (item instanceof PropertySearchItem) {
-                ObjectFilter filter = createFilterForSearchItem((PropertySearchItem) item, pageBase.getPrismContext());
-                if (filter != null) {
-                    conditions.add(filter);
-                }
-            }
-        }
-
 
         ObjectQuery query;
         if (getTypeClass() != null) {
@@ -473,8 +504,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
                 || DOMUtil.XSD_BOOLEAN.equals(propDef.getTypeName())) {
             //we're looking for enum value, therefore equals filter is ok
             //or if it's boolean value
-            DisplayableValue displayableValue = (DisplayableValue) searchValue.getValue();
-            Object value = displayableValue.getValue();
+            Object value = searchValue.getValue();
             return ctx.queryFor(ObjectType.class)
                     .item(path, propDef).eq(value).buildFilter();
         } else if (DOMUtil.XSD_INT.equals(propDef.getTypeName())
@@ -715,5 +745,12 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     public boolean isTypeChanged(){
         return getType() == null ? false : getType().isTypeChanged();
+    }
+
+    public void searchWasReload() {
+        if (getType() != null) {
+            DisplayableValue type = getType().getType();
+            getType().setType(type);
+        }
     }
 }

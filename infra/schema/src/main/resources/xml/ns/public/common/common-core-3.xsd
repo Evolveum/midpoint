@@ -10451,7 +10451,7 @@
                 Describes input parameters.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.2</a:since>
+                <a:since>4.3</a:since>
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
@@ -25618,6 +25618,9 @@
                             Also in the future can be used to predefine the value of the searchable item if path is defined.
                         </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SearchItemType.filter</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="filterExpression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
@@ -25628,6 +25631,11 @@
                             Expression return SearchFilterType.
                         </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                        <a:experimental>true</a:experimental>
+                        <a:displayName>SearchItemType.filterExpression</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
@@ -25657,6 +25665,8 @@
                         Parameter used in filter expression.
                     </xsd:documentation>
                     <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                        <a:experimental>true</a:experimental>
                         <a:displayName>SearchItemType.parameter</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -25667,6 +25677,8 @@
                         Define if item search panel will be showing as default or it will be available in 'more' panel. Default is 'true'.
                     </xsd:documentation>
                     <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                        <a:experimental>true</a:experimental>
                         <a:displayName>SearchItemType.showAsDefault</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -25680,6 +25692,7 @@
                 Describes input parameters for the search filter.
             </xsd:documentation>
             <xsd:appinfo>
+                <a:experimental>true</a:experimental>
                 <a:since>4.3</a:since>
                 <a:container/>
             </xsd:appinfo>
@@ -25690,8 +25703,10 @@
                     <xsd:element name="allowedValuesLookupTable" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:appinfo>
-                                <a:objectReferenceTargetType>tns:LookupTableType</a:objectReferenceTargetType>
                                 <a:since>4.3</a:since>
+                                <a:experimental>true</a:experimental>
+                                <a:objectReferenceTargetType>tns:LookupTableType</a:objectReferenceTargetType>
+                                <a:displayName>SearchFilterParameterType.allowedValuesLookupTable</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -25700,6 +25715,11 @@
                             <xsd:documentation>
                                 Expression that determines allowed value. Expected List&#60;DisplayableValue&#62;.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.3</a:since>
+                                <a:experimental>true</a:experimental>
+                                <a:displayName>SearchFilterParameterType.allowedValuesExpression</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>

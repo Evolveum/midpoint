@@ -8,16 +8,11 @@ package com.evolveum.midpoint.web.component.search;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.input.CheckPanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionParameterType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -25,7 +20,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ParameterType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -34,10 +28,8 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.util.ListModel;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -98,7 +90,7 @@ public class SearchFilterPanel extends AbstractSearchItemPanel<FilterSearchItem>
 
                     if (choices == null) {
                         choices = CollectionUtils.isEmpty(getModelObject().getAllowedValues(getPageBase())) ?
-                                createEnumChoises((Class<? extends Enum>) inputClass) : Model.ofList(getModelObject().getAllowedValues(getPageBase()));
+                                createEnumChoices((Class<? extends Enum>) inputClass) : Model.ofList(getModelObject().getAllowedValues(getPageBase()));
                     }
                     if (choices != null) {
                         inputPanel = createDropDownChoices(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), FilterSearchItem.F_INPUT), choices, false);
@@ -109,7 +101,7 @@ public class SearchFilterPanel extends AbstractSearchItemPanel<FilterSearchItem>
                             new PropertyModel(getModel(), FilterSearchItem.F_INPUT_VALUE));
                     break;
                 case TEXT:
-                    LookupTableType lookupTable = getModelObject().getLookupTable();
+                    LookupTableType lookupTable = getModelObject().getLookupTable(getPageBase());
                     if (lookupTable != null) {
                         inputPanel = createAutoCompetePanel(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), FilterSearchItem.F_INPUT_VALUE),
                                 lookupTable);
@@ -127,15 +119,5 @@ public class SearchFilterPanel extends AbstractSearchItemPanel<FilterSearchItem>
             searchItemContainer.add(inputPanel);
         }
         searchItemContainer.add(inputPanel);
-    }
-
-    private IModel<List<DisplayableValue<?>>> createEnumChoises(Class<? extends Enum> inputClass) {
-        Enum[] enumConstants = inputClass.getEnumConstants();
-        List<DisplayableValue<?>> list = new ArrayList<>();
-        for(int i = 0; i < enumConstants.length; i++){
-            list.add(new SearchValue<>(enumConstants[i], getString(enumConstants[i])));
-        }
-        return Model.ofList(list);
-
     }
 }

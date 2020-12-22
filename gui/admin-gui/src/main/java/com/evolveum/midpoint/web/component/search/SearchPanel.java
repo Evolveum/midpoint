@@ -13,6 +13,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
@@ -25,6 +27,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.attributes.ThrottlingSettings;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
@@ -153,7 +156,8 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         PropertyModel<ObjectCollectionSearchItem> collectionModel = new PropertyModel<>(getModel(), Search.F_COLLECTION);
         SearchObjectCollectionPanel collectionPanel = new SearchObjectCollectionPanel(ID_COLLECTION_REF_PANEL, collectionModel);
         form.add(collectionPanel);
-        collectionPanel.add(new VisibleBehaviour(() -> collectionModel != null && collectionModel.getObject() != null));
+        collectionPanel.add(new VisibleBehaviour(() -> collectionModel != null && collectionModel.getObject() != null
+                && getModelObject().isCollectionItemVisible()));
 
         PropertyModel<ContainerTypeSearchItem> typeModel = new PropertyModel<>(getModel(), Search.F_TYPE);
         SearchTypePanel typePanel = new SearchTypePanel(ID_TYPE_PANEL, typeModel){
@@ -174,7 +178,15 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
             protected void populateItem(ListItem<SearchItem> item) {
                 WebMarkupContainer searchItem;
                 if (item.getModelObject() instanceof SpecialSearchItem) {
-                    searchItem = ((SpecialSearchItem)item.getModelObject()).createSpecialSearchPanel(ID_SPECIAL_ITEM);
+                    OnChangeAjaxBehavior updateBehaviour = new OnChangeAjaxBehavior() {
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        protected void onUpdate(AjaxRequestTarget target) {
+                            searchPerformed(target);
+                        }
+                    };
+                    searchItem = ((SpecialSearchItem) item.getModelObject()).createSpecialSearchPanel(ID_SPECIAL_ITEM, updateBehaviour);
                 } else {
                     IModel itemModel = item.getModel();
                     searchItem = new SearchPropertyPanel<T>(ID_SPECIAL_ITEM, (IModel<PropertySearchItem<T>>) itemModel) {

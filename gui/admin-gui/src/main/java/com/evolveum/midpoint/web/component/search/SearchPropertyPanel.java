@@ -9,7 +9,10 @@ package com.evolveum.midpoint.web.component.search;
 import java.io.Serializable;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -67,6 +70,11 @@ public class SearchPropertyPanel<T extends Serializable> extends AbstractSearchI
                     protected void referenceValueUpdated(ObjectReferenceType ort, AjaxRequestTarget target) {
                         searchPerformed(target);
                     }
+
+                    @Override
+                    public Boolean isItemPanelEnabled() {
+                        return item.isEnabled();
+                    }
                 };
                 break;
             case BOOLEAN:
@@ -102,6 +110,7 @@ public class SearchPropertyPanel<T extends Serializable> extends AbstractSearchI
             ((InputPanel) searchItemField).getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
             ((InputPanel) searchItemField).getBaseFormComponent().add(AttributeAppender.append("style", "width: 140px; max-width: 400px !important;"));
             ((InputPanel) searchItemField).getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+            ((InputPanel) searchItemField).getBaseFormComponent().add(new EnableBehaviour(() -> item.isEnabled()));
         }
         searchItemField.setOutputMarkupId(true);
         searchItemContainer.add(searchItemField);

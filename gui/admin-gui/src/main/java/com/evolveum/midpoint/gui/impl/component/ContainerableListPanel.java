@@ -147,8 +147,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
             private static final long serialVersionUID = 1L;
 
-            private Class <? extends C> type = defaultType;
-
             @Override
             public Search load() {
                 Search<C> search = null;
@@ -157,10 +155,12 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 if (storage != null) {
                     search = storage.getSearch();
                 }
-                Search<C> newSearch = createSearch(type);
+                Search<C> newSearch = createSearch(getType());
                 if (search == null ||
-                        (!SearchBoxModeType.ADVANCED.equals(search.getSearchType()) && !search.getAllDefinitions().containsAll(newSearch.getAllDefinitions()))) {
+                        (!SearchBoxModeType.ADVANCED.equals(search.getSearchType()) && !search.getAllDefinitions().containsAll(newSearch.getAllDefinitions()))
+                        || search.isTypeChanged()) {
                     search = newSearch;
+                    search.searchWasReload();
                 }
 
                 String searchByName = getSearchByNameParameterValue();
@@ -180,17 +180,10 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                     search.setCollectionSearchItem(new ObjectCollectionSearchItem(search, getObjectCollectionView()));
                     search.setCollectionItemVisible(isCollectionViewPanelForWidget());
                 }
-                return search;
-            }
-
-            @Override
-            public void reset() {
-                if (getObject() == null || getObject().getTypeClass() == null) {
-                    type = defaultType;
-                } else {
-                    type = getObject().getTypeClass();
+                if (storage != null) {
+                    storage.setSearch(search);
                 }
-                super.reset();
+                return search;
             }
         };
     }
@@ -737,7 +730,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
             @Override
             protected void searchPerformed(AjaxRequestTarget target) {
-                ContainerableListPanel.this.searchPerformed(target);
+                ContainerableListPanel.this.refreshTable(target);
             }
 
             @Override
@@ -888,41 +881,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return options;
     }
 
-    @SuppressWarnings("deprecation")
-    private void searchPerformed(AjaxRequestTarget target) {
-        saveSearchModel(null);
-        Table table = getTable();
-        table.setCurrentPage(null);
-        target.add((Component) table);
-        target.add(getPageBase().getFeedbackPanel());
-
-    }
-
     public void refreshTable(AjaxRequestTarget target) {
         BoxedTablePanel<PO> table = getTable();
-//        if (isTypeChanged(newTypeClass)) {
-//            Class<C> newType = newTypeClass;
-//
-////            ISelectableDataProvider provider = getDataProvider();
-////            provider.setQuery(createQuery());
-//            if (newType != null) {
-//                if (provider instanceof ContainerListDataProvider) {
-//                    ((ContainerListDataProvider) provider).setType(newTypeClass);
-//                }
-//                if (provider instanceof SelectableBeanContainerDataProvider) {
-//                    ((SelectableBeanContainerDataProvider) provider).setType(newTypeClass);
-//                }
-//            }
-//
-//            ((WebMarkupContainer) table.get("box")).addOrReplace(initSearch("header"));
-//            if (newType != null && !getType().equals(newType)) {
-//                setType(newType);
-//                resetSearchModel();
-//                table.setCurrentPage(null);
-//            } else {
-//                saveSearchModel(getCurrentTablePaging());
-//            }
-//        }
         if (searchModel.getObject().isTypeChanged()){
             ((WebMarkupContainer) table.get("box")).addOrReplace(initSearch("header"));
             resetSearchModel();
@@ -943,7 +903,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     public void resetSearchModel(){
         PageStorage storage = getPageStorage();
         if (storage != null) {
-            storage.setSearch(null);
             storage.setPaging(null);
         }
 
