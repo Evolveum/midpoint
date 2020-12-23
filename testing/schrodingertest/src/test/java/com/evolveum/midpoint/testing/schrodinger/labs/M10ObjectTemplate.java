@@ -87,7 +87,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
 
     @Override
     protected List<File> getObjectListToImport(){
-        return Arrays.asList(ARCHETYPE_ORG_FUNCTIONAL_FILE, ARCHETYPE_ORG_COMPANY_FILE, ARCHETYPE_ORG_GROUP_FILE,
+        return Arrays.asList(ARCHETYPE_EMPLOYEE_FILE, ARCHETYPE_ORG_FUNCTIONAL_FILE, ARCHETYPE_ORG_COMPANY_FILE, ARCHETYPE_ORG_GROUP_FILE,
                 ARCHETYPE_ORG_GROUP_LIST_FILE, KIRK_USER_TIBERIUS_FILE, INTERNAL_EMPLOYEE_ROLE_FILE);
     }
 
@@ -106,8 +106,6 @@ public class M10ObjectTemplate extends AbstractLabTest{
         importObject(CSV_3_RESOURCE_FILE_8_1, true);
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
 
-        hrTargetFile = new File(getTestTargetDir(), HR_FILE_SOURCE_NAME);
-        FileUtils.copyFile(HR_SOURCE_FILE_7_4_PART_4, hrTargetFile);
         importObject(HR_RESOURCE_FILE_8_1, true);
         changeResourceAttribute(HR_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, hrTargetFile.getAbsolutePath(), true);
 
