@@ -730,7 +730,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 prismContext.getSchemaRegistry().determineTypeForClass(
                         repoObjectType.getJaxbClass()));
         prv.setDescription(description);
-        prv.setTargetName(new PolyString(targetName));
+        if (targetName != null) {
+            prv.setTargetName(new PolyString(targetName));
+        }
         return prv;
     }
 
