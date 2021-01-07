@@ -606,7 +606,11 @@ public class CsvController extends FileFormatController {
         if (isSingleValue || realValue == null) {
             stringValues.add((String) realValue);
         } else {
-            stringValues.addAll((List<String>) realValue);
+            if (realValue instanceof String) {
+                stringValues.add((String) realValue);
+            } else {
+                stringValues.addAll((List<String>) realValue);
+            }
         }
         return stringValues;
     }

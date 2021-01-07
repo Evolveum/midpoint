@@ -81,7 +81,7 @@ public abstract class SqlTransformerBase<S, Q extends FlexibleRelationalPathBase
      */
     @Nullable
     protected ObjectReferenceType objectReferenceType(
-            @Nullable String oid, RObjectType repoObjectType, String description) {
+            @Nullable String oid, RObjectType repoObjectType, String targetName) {
         if (oid == null) {
             return null;
         }
@@ -94,7 +94,8 @@ public abstract class SqlTransformerBase<S, Q extends FlexibleRelationalPathBase
                 .oid(oid)
                 .type(prismContext.getSchemaRegistry().determineTypeForClass(
                         repoObjectType.getJaxbClass()))
-                .description(description);
+                .description(targetName)
+                .targetName(targetName);
     }
 
     /**

@@ -225,6 +225,10 @@ public class ImportReportPopupPanel extends BasePanel<ReportDto> implements Popu
         }
         reportImportData.setName(new PolyStringType(dataName));
         reportImportData.setFilePath(newFilePath);
+        ObjectReferenceType reportRef = new ObjectReferenceType();
+        reportRef.setType(ReportType.COMPLEX_TYPE);
+        reportRef.setOid(report.getOid());
+        reportImportData.setReportRef(reportRef);
         Collection<ObjectDelta<? extends ObjectType>> deltas = Collections.singleton(reportImportData.asPrismObject().createAddDelta());
         Task task = getPageBase().createSimpleTask(OPERATION_CREATE_REPORT_DATA);
         try {

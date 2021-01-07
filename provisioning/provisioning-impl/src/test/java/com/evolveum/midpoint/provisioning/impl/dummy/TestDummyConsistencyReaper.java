@@ -66,7 +66,7 @@ public class TestDummyConsistencyReaper extends TestDummyConsistency {
 
     @Test
     @Override
-    public void test109RefreshAccountMorganDead() throws Exception {
+    public void test109RefreshAccountMorganDead() {
         // Nothing to do.
         // We cannot refresh shadow. It is deleted already.
     }

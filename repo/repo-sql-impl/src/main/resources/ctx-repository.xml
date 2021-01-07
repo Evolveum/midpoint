@@ -8,29 +8,12 @@
 
 <beans xmlns="http://www.springframework.org/schema/beans"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:context="http://www.springframework.org/schema/context"
-        xsi:schemaLocation="
-            http://www.springframework.org/schema/beans
-            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-            http://www.springframework.org/schema/context
-            http://www.springframework.org/schema/context/spring-context-3.0.xsd"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
         default-lazy-init="true">
 
-    <!-- TODO: consider the necessity of the whole config:
-    1. let SqlAuditServiceFactory initialize like SqlRepositoryFactory (AuditFactory creating the bean)
-    2. component-scan: probably necessary for EntityRegistry, SqlRepositoryBeanConfig and tons of @Components
-
-    Best thing would be to have a configuration that would recognize that SqlRepositoryFactory is used
-    (created by RepositoryFactory) and then autoscan the sql package, ignoring it otherwise.
-    Perhaps auto-configuration is a way... not sure yet.
-    Perhaps making RepositoryFactory @Configuration would help too.
-    -->
-
-    <!--<bean id="sqlRepositoryFactory"-->
-    <!--        class="com.evolveum.midpoint.repo.sql.SqlRepositoryFactory"/>-->
+    <!-- This @Configuration drives component-scan + can use @Conditional... -->
+    <bean id="sqlRepositoryBeanConfig" class="com.evolveum.midpoint.repo.sql.SqlRepositoryBeanConfig"/>
 
     <bean id="sqlAuditFactory" class="com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory"/>
-
-    <context:annotation-config/>
-    <context:component-scan base-package="com.evolveum.midpoint.repo.sql"/>
 </beans>

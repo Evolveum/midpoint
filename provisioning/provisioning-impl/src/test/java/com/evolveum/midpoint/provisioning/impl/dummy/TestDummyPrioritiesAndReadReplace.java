@@ -52,19 +52,17 @@ import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 /**
- * The test of Provisioning service on the API level. The test is using dummy
- * resource for speed and flexibility.
+ * Tests readReplaceMode feature (along with the attribute modification priorities).
  *
  * @author Radovan Semancik
  * @author Pavol Mederly
- *
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 
-    protected String willIcfUid;
+    private String willIcfUid;
 
     public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-priorities-read-replace");
     public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
@@ -74,7 +72,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
         return RESOURCE_DUMMY_FILE;
     }
 
-    protected MatchingRule<String> getUidMatchingRule() {
+    private MatchingRule<String> getUidMatchingRule() {
         return null;
     }
 
@@ -176,21 +174,21 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
         // todo add correct definition
         ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 ACCOUNT_WILL_OID, dummyResourceCtl.getAttributeFullnamePath(), "Pirate Master Will Turner");
-        PropertyDelta weaponDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeWeaponPath());
+        PropertyDelta<String> weaponDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeWeaponPath());
         weaponDelta.setDefinition(
                 getAttributeDefinition(resourceType,
                         ShadowKindType.ACCOUNT, null,
                         DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
         weaponDelta.setRealValuesToReplace("Gun");
         objectDelta.addModification(weaponDelta);
-        PropertyDelta lootDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeLootPath());
+        PropertyDelta<Integer> lootDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeLootPath());
         lootDelta.setDefinition(
                 getAttributeDefinition(resourceType,
                         ShadowKindType.ACCOUNT, null,
                         DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME));
         lootDelta.setRealValuesToReplace(43);
         objectDelta.addModification(lootDelta);
-        PropertyDelta titleDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
+        PropertyDelta<String> titleDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
         titleDelta.setDefinition(
                 getAttributeDefinition(resourceType,
                         ShadowKindType.ACCOUNT, null,
@@ -235,13 +233,14 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
         checkAttributesDelta(updatesExecuted.get(2), "updateDelta", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
     }
 
-    protected void checkAttributesUpdated(OperationResult operationResult, String operation, String... attributeNames) {
+    void checkAttributesUpdated(OperationResult operationResult, String operation, String... attributeNames) {
         assertEquals("Wrong operation name", ProvisioningTestUtil.CONNID_CONNECTOR_FACADE_CLASS_NAME + "." + operation, operationResult.getOperation());
         Collection<String> updatedAttributes = parseUpdatedAttributes(operationResult.getParams().get("attributes").toString());
         assertEquals("Names of updated attributes do not match", new HashSet<>(Arrays.asList(attributeNames)), updatedAttributes);
     }
 
-    protected void checkAttributesDelta(OperationResult operationResult, String operation, String... attributeNames) {
+    @SuppressWarnings("SameParameterValue")
+    private void checkAttributesDelta(OperationResult operationResult, String operation, String... attributeNames) {
         assertEquals("Wrong operation name", ProvisioningTestUtil.CONNID_CONNECTOR_FACADE_CLASS_NAME + "." + operation, operationResult.getOperation());
         Collection<String> updatedAttributes = parseUpdatedAttributes(operationResult.getParams().get("attributesDelta").toString());
         assertEquals("Names of updated attributes do not match", new HashSet<>(Arrays.asList(attributeNames)), updatedAttributes);
@@ -271,7 +270,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
         ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 ACCOUNT_WILL_OID, dummyResourceCtl.getAttributeFullnamePath(), "Pirate Great Master Will Turner");
         // read replace attribute, priority 0
-        PropertyDelta weaponDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeWeaponPath());
+        PropertyDelta<String> weaponDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeWeaponPath());
         weaponDelta.setDefinition(
                 getAttributeDefinition(resourceType,
                         ShadowKindType.ACCOUNT, null,
@@ -280,7 +279,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
         weaponDelta.addRealValuesToDelete("GUN");            // case-insensitive treatment should work here
         objectDelta.addModification(weaponDelta);
         // read replace attribute, priority 1
-        PropertyDelta lootDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeLootPath());
+        PropertyDelta<Integer> lootDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeLootPath());
         lootDelta.setDefinition(
                 getAttributeDefinition(resourceType,
                         ShadowKindType.ACCOUNT, null,
@@ -289,7 +288,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
         lootDelta.addRealValuesToDelete(43);
         objectDelta.addModification(lootDelta);
         // NOT a read-replace attribute
-        PropertyDelta titleDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
+        PropertyDelta<String> titleDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
         titleDelta.setDefinition(
                 getAttributeDefinition(resourceType,
                         ShadowKindType.ACCOUNT, null,
@@ -298,7 +297,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
         titleDelta.addRealValuesToDelete("Pirate Master");
         objectDelta.addModification(titleDelta);
         // read replace attribute
-        PropertyDelta drinkDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME));
+        PropertyDelta<String> drinkDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME));
         drinkDelta.setDefinition(
                 getAttributeDefinition(resourceType,
                         ShadowKindType.ACCOUNT, null,
@@ -342,8 +341,8 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
         List<OperationResult> updatesExecuted = TestUtil.selectSubresults(result,
                 ProvisioningTestUtil.CONNID_CONNECTOR_FACADE_CLASS_NAME + ".updateDelta");
         assertEquals("Wrong number of updates executed", 3, updatesExecuted.size());
-        checkAttributesDelta(updatesExecuted.get(0), "updateDelta", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);        // prio 0, read-replace
-        checkAttributesDelta(updatesExecuted.get(1), "updateDelta", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME);            // prio 1, read-replace
+        checkAttributesDelta(updatesExecuted.get(0), "updateDelta", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME); // priority 0, read-replace
+        checkAttributesDelta(updatesExecuted.get(1), "updateDelta", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME); // priority 1, read-replace
         checkAttributesDelta(updatesExecuted.get(2), "updateDelta", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME);    // prio none, read-replace + real replace
     }
 

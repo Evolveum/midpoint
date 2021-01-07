@@ -2524,7 +2524,7 @@ public class ResourceObjectConverter {
         if (enableAttributeDefinition == null) {
             result.recordWarning("Resource " + ObjectTypeUtil.toShortString(ctx.getResource())
                     + "  attribute for simulated activation/lockout capability" + enableAttributeName
-                    + " in not present in the schema for objeclass " + ctx.getObjectClassDefinition()+". Processing of activation for "+ ObjectTypeUtil.toShortString(shadow)+" was skipped");
+                    + " in not present in the schema for objectclass " + ctx.getObjectClassDefinition()+". Processing of activation for "+ ObjectTypeUtil.toShortString(shadow)+" was skipped");
             shadow.setFetchResult(result.createOperationResultType());
             return null;
         }

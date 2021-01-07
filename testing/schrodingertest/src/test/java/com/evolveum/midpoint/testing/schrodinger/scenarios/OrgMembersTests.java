@@ -12,11 +12,13 @@ import java.util.List;
 
 import com.codeborne.selenide.Selenide;
 
+import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
 import com.evolveum.midpoint.schrodinger.component.org.MemberPanel;
 import com.evolveum.midpoint.schrodinger.component.org.MemberTable;
 
 import com.evolveum.midpoint.schrodinger.component.org.OrgRootTab;
 
+import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.page.role.RolePage;
 
 import com.evolveum.midpoint.schrodinger.page.service.ServicePage;
@@ -117,24 +119,23 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
                         .and()
                         .clickAdd();
 
-        MemberPanel<OrgRootTab> memberPanel = basicPage.orgStructure()
+        AssignmentHolderObjectListTable<MemberPanel<OrgRootTab>, AssignmentHolderDetailsPage> membersTable =
+                basicPage.orgStructure()
                     .selectTabWithRootOrg(ORG_WITH_MEMBER_NAME)
-                        .getMemberPanel();
+                        .getMemberPanel()
+                            .table()
+                                .clickRefreshButton()
+                                .search()
+                                .byName()
+                                .inputValue("UniqueNameUserForMemberTest")
+                                .updateSearch()
+                            .and();
         Selenide.screenshot("test00300assignExistingUserAsMember_membersPanel");
-        Assert.assertTrue(memberPanel
-                .table()
+        Assert.assertTrue(membersTable
                     .containsText("UniqueNameUserForMemberTest"));
-        //test that schrodinger looks correctly for the element inside parent element, not on the whole page
-        // (both page and popup window contains tables with Name column, we need to look through Name column in the popup)
-        Assert.assertNotNull(basicPage.orgStructure()
-                                .selectTabWithRootOrg(ORG_WITH_MEMBER_NAME)
-                                    .getMemberPanel()
-                                    .assignMember()
-                                        .table()
-                                            .rowByColumnLabel("Name", "NotMemberUser"));
     }
 
-    @Test
+    @Test (priority = 4)
     public void test00400createNewUserMemberObject() {
         UserPage newUserPage = (UserPage) basicPage.orgStructure()
                 .selectTabWithRootOrg(ORG_WITH_MEMBER_NAME)
@@ -165,7 +166,7 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
         Assert.assertTrue(memberTable.containsText("Member"));
     }
 
-    @Test
+    @Test (priority = 5)
     public void test00500createNewRoleMemberObject() {
         RolePage newRolePage = (RolePage) basicPage.orgStructure()
                 .selectTabWithRootOrg(ORG_WITH_MEMBER_NAME)
@@ -198,7 +199,7 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
         Assert.assertTrue(memberTable.containsText("Manager"));
     }
 
-    @Test
+    @Test (priority = 6)
     public void test00600createNewOrgOwnerObject() {
         OrgPage newOrgPage = (OrgPage) basicPage.orgStructure()
                 .selectTabWithRootOrg(ORG_WITH_MEMBER_NAME)
@@ -231,7 +232,7 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
         Assert.assertTrue(memberTable.containsText("Owner"));
     }
 
-    @Test
+    @Test (priority = 7)
     public void test00700createNewServiceApproverObject() {
         ServicePage newServicePage = (ServicePage) basicPage.orgStructure()
                 .selectTabWithRootOrg(ORG_WITH_MEMBER_NAME)

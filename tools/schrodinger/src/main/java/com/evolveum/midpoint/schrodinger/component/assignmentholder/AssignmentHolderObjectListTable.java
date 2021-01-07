@@ -100,6 +100,14 @@ public abstract class AssignmentHolderObjectListTable<P, PD extends AssignmentHo
         return new ExportPopupPanel<>(getParent(), Utils.getModalWindowSelenideElement());
     }
 
+    public AssignmentHolderObjectListTable<P, PD> clickRefreshButton() {
+        getToolbarButton(".fa.fa-refresh")
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .click();
+        Selenide.sleep(2000);
+        return this;
+    }
+
     public PD newObjectCollectionButtonClickPerformed(String mainButtonIconCssClass, String objCollectionButtonIconCssClass){
         SelenideElement mainButtonElement = getToolbarButton(mainButtonIconCssClass)
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);

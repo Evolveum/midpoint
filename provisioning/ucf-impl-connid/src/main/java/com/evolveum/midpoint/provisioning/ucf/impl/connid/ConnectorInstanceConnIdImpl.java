@@ -122,15 +122,15 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
     private static final String OP_FETCH_CHANGES = ConnectorInstance.class.getName() + ".fetchChanges";
 
-    ConnectorInfo cinfo;
-    ConnectorType connectorType;
-    ConnectorFacade connIdConnectorFacade;
-    String resourceSchemaNamespace;
-    private PrismSchema connectorSchema;
+    private final ConnectorInfo connectorInfo;
+    private final ConnectorType connectorType;
+    private ConnectorFacade connIdConnectorFacade;
+    private final String resourceSchemaNamespace;
+    private final PrismSchema connectorSchema;
     private APIConfiguration apiConfig = null;
 
-    Protector protector;
-    PrismContext prismContext;
+    private final Protector protector;
+    private final PrismContext prismContext;
     private final ConnIdNameMapper connIdNameMapper;
     private final ConnIdConvertor connIdConvertor;
 
@@ -155,7 +155,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     ConnectorInstanceConnIdImpl(ConnectorInfo connectorInfo, ConnectorType connectorType,
             String schemaNamespace, PrismSchema connectorSchema, Protector protector,
             PrismContext prismContext, LocalizationService localizationService) {
-        this.cinfo = connectorInfo;
+        this.connectorInfo = connectorInfo;
         this.connectorType = connectorType;
         this.resourceSchemaNamespace = schemaNamespace;
         this.connectorSchema = connectorSchema;
@@ -167,7 +167,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     }
 
     /**
-     * Complex description for development diagnotics, e.g. ConnectorSpec(resource OID....)
+     * Complex description for development diagnostics, e.g. ConnectorSpec(resource OID....)
      */
     public String getDescription() {
         return description;
@@ -202,14 +202,12 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     }
 
     @Override
-    public synchronized void configure(PrismContainerValue<?> configurationOriginal, List<QName> generateObjectClasses, OperationResult parentResult)
+    public synchronized void configure(@NotNull PrismContainerValue<?> configurationOriginal, List<QName> generateObjectClasses, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException {
 
         OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_CONFIGURE);
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Configuring connector {}, provided configuration:\n{}", connectorType, configurationOriginal.debugDump(1));
-        }
+        LOGGER.trace("Configuring connector {}, provided configuration:\n{}", connectorType, configurationOriginal.debugDumpLazily(1));
 
         try {
             this.generateObjectClasses = generateObjectClasses;
@@ -221,7 +219,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             PrismContainerValue<?> configurationCloned = configurationOriginal.clone();
             configurationCloned.applyDefinition(getConfigurationContainerDefinition());
 
-            ConnIdConfigurationTransformer configTransformer = new ConnIdConfigurationTransformer(connectorType, cinfo, protector);
+            ConnIdConfigurationTransformer configTransformer = new ConnIdConfigurationTransformer(connectorType, connectorInfo, protector);
             // Transform XML configuration from the resource to the ConnId connector configuration
             try {
                 apiConfig = configTransformer.transformConnectorConfiguration(configurationCloned);
@@ -230,13 +228,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                 throw e;
             }
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Configuring connector {}, transformed configuration:", connectorType);
-                for (String propName : apiConfig.getConfigurationProperties().getPropertyNames()) {
-                    LOGGER.trace("P: {} = {}", propName,
-                            apiConfig.getConfigurationProperties().getProperty(propName).getValue());
-                }
-            }
+            logTransformedConfiguration();
 
             apiConfig.setInstanceName(getInstanceName());
 
@@ -288,6 +280,15 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         }
     }
 
+    private void logTransformedConfiguration() {
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Configuring connector {}, transformed configuration:", connectorType);
+            for (String propName : apiConfig.getConfigurationProperties().getPropertyNames()) {
+                LOGGER.trace("P: {} = {}", propName, apiConfig.getConfigurationProperties().getProperty(propName).getValue());
+            }
+        }
+    }
+
     private PrismContainerDefinition<?> getConfigurationContainerDefinition() throws SchemaException {
         QName configContainerQName = new QName(connectorType.getNamespace(),
                 ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
@@ -300,12 +301,10 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         return configContainerDef;
     }
 
-
-
     @Override
     public ConnectorOperationalStatus getOperationalStatus() throws ObjectNotFoundException {
 
-        if (!(cinfo instanceof LocalConnectorInfoImpl)) {
+        if (!(connectorInfo instanceof LocalConnectorInfoImpl)) {
             LOGGER.trace("Cannot get operational status of a remote connector {}", connectorType);
             return null;
         }
@@ -317,7 +316,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
         ConnectorOperationalStatus status = new ConnectorOperationalStatus();
 
-        ConnectorOperationalContext connectorOperationalContext = new ConnectorOperationalContext((LocalConnectorInfoImpl)cinfo, (APIConfigurationImpl) apiConfig);
+        ConnectorOperationalContext connectorOperationalContext = new ConnectorOperationalContext((LocalConnectorInfoImpl) connectorInfo, (APIConfigurationImpl) apiConfig);
 
         Class<? extends Connector> connectorClass = connectorOperationalContext.getConnectorClass();
         if (connectorClass != null) {

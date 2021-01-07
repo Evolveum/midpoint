@@ -18,6 +18,8 @@ import com.evolveum.midpoint.prism.PrismContainer;
 
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCustomColumnPropertyType;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
+
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -214,7 +216,9 @@ public class DefaultColumnUtils {
             }
             if (!StringUtils.isEmpty(defaultColumn.getLabel())) {
                 DisplayType display = new DisplayType();
-                display.setLabel(new PolyStringType(defaultColumn.getLabel()));
+                PolyStringType label = new PolyStringType(defaultColumn.getLabel());
+                label.setTranslation(new PolyStringTranslationType().key(defaultColumn.getLabel()));
+                display.setLabel(label);
                 column.setDisplay(display);
             }
             columns.add(column);

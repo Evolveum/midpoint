@@ -498,4 +498,12 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
                 .doesNotContain(uri);
         return this;
     }
+
+    public PrismObjectAsserter<O,RA> assertSuccessOrNoFetchResult() {
+        OperationResultType fetchResult = object.asObjectable().getFetchResult();
+        if (fetchResult != null && fetchResult.getStatus() != OperationResultStatusType.SUCCESS) {
+            fail("Expected none or success fetch result, got " + fetchResult.getStatus() + ": " + fetchResult.toString());
+        }
+        return this;
+    }
 }

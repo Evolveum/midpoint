@@ -34,16 +34,13 @@ import java.util.List;
 
 public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
 
-    private static final File HR_RESOURCE_FILE_8_1 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-hr.xml");
-    private static final File CSV_3_RESOURCE_FILE_8_1 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-8-1.xml");
-
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override
     public void beforeClass() throws IOException {
         super.beforeClass();
 
         hrTargetFile = new File(getTestTargetDir(), HR_FILE_SOURCE_NAME);
-        FileUtils.copyFile(HR_SOURCE_FILE, hrTargetFile);
+        FileUtils.copyFile(HR_SOURCE_FILE_7_4_PART_4, hrTargetFile);
 
         csv3TargetFile = new File(getTestTargetDir(), CSV_3_FILE_SOURCE_NAME);
         FileUtils.copyFile(CSV_3_SOURCE_FILE, csv3TargetFile);
