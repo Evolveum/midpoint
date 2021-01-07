@@ -14,6 +14,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.UserSelectionButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.wicket.Component;
@@ -153,7 +154,11 @@ public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleT
                     DisplayType display = def.getDisplay();
                     if (display != null) {
                         PolyStringType label = display.getLabel();
-                        if (PolyStringUtils.isNotEmpty(label)) {
+                        if (PolyStringUtils.isNotEmpty(label)){
+                            PolyStringTranslationType translation = label.getTranslation();
+                            if (translation != null && translation.getKey() != null) {
+                                return getPageBase().createStringResource(translation.getKey());
+                            }
                             return getPageBase().createStringResource(label);
                         }
                     }
