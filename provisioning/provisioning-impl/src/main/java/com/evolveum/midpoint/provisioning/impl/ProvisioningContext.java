@@ -201,6 +201,7 @@ public class ProvisioningContext extends StateReporter {
             }
             ExpressionVariables variables = new ExpressionVariables();
             variables.put(ExpressionConstants.VAR_RESOURCE, resource, ResourceType.class);
+            variables.put(ExpressionConstants.VAR_CONFIGURATION, resourceManager.getSystemConfiguration(), SystemConfigurationType.class);
             ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(filter, variables, MiscSchemaUtil.getExpressionProfile(), expressionFactory, getPrismContext(), "protected filter", getTask(), result);
             pattern.addFilter(evaluatedFilter);
             protectedAccountPatterns.add(pattern);

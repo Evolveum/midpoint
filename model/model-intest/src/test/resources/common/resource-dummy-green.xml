@@ -214,7 +214,27 @@
                     </q:equal>
                 </filter>
             </protected>
-
+            <protected>
+                <filter>
+                    <q:equal>
+                        <q:path>
+                            declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+                            attributes/icfs:name
+                        </q:path>
+                        <expression>
+                            <c:script>
+                                <code>
+                                    //just to test if system config variable was set
+                                    if (configuration) {
+                                        return "system"
+                                    }
+                                    return "error"
+                                </code>
+                            </c:script>
+                        </expression>
+                    </q:equal>
+                </filter>
+            </protected>
             <activation>
                 <administrativeStatus>
                     <outbound>

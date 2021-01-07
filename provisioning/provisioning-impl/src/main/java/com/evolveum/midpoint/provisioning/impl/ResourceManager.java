@@ -606,7 +606,7 @@ public class ResourceManager {
             Expression<PrismPropertyValue<T>, PrismPropertyDefinition<T>> expression = expressionFactory.makeExpression(expressionType, propDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
             ExpressionVariables variables = new ExpressionVariables();
 
-            SystemConfigurationType systemConfiguration = provisioningService.getSystemConfiguration();
+            SystemConfigurationType systemConfiguration = getSystemConfiguration();
             variables.put(ExpressionConstants.VAR_CONFIGURATION, PrismObject.asPrismObject(systemConfiguration),
                     SystemConfigurationType.class);
             variables.put(ExpressionConstants.VAR_RESOURCE, resource, ResourceType.class);
@@ -629,6 +629,10 @@ public class ResourceManager {
         for (PrismPropertyValue<T> extraValue: extraValues) {
             configurationProperty.add(extraValue);
         }
+    }
+
+    public SystemConfigurationType getSystemConfiguration() {
+        return provisioningService.getSystemConfiguration();
     }
 
     private ResourceSchema fetchResourceSchema(PrismObject<ResourceType> resource, Map<String, Collection<Object>> capabilityMap, OperationResult parentResult)
