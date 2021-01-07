@@ -11,6 +11,7 @@ import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.MatchMode;
@@ -175,7 +176,13 @@ public class RootHibernateQuery extends HibernateQuery {
         return new SimpleComparisonCondition(this, propertyPath, value, comparatorSymbol, ignoreCase);
     }
 
+    public static final char LIKE_ESCAPE_CHAR = '!';
+    private static final String LIKE_ESCAPED_CHARS = "_%" + LIKE_ESCAPE_CHAR;
+
     public Condition createLike(String propertyPath, String value, MatchMode matchMode, boolean ignoreCase) {
+        if (StringUtils.containsAny(value, LIKE_ESCAPED_CHARS)) {
+            value = escapeLikeValue(value);
+        }
         switch (matchMode) {
             case ANYWHERE: value = "%" + value + "%"; break;
             case START: value = value + "%"; break;
@@ -183,6 +190,19 @@ public class RootHibernateQuery extends HibernateQuery {
             default: throw new IllegalStateException("Unsupported match mode: " + matchMode);
         }
         return new SimpleComparisonCondition(this, propertyPath, value, "like", ignoreCase);
+    }
+
+    private String escapeLikeValue(String value) {
+        StringBuilder sb = new StringBuilder(value);
+        for (int i = 0; i < sb.length(); i++) {
+            if (LIKE_ESCAPED_CHARS.indexOf(sb.charAt(i)) == -1) {
+                continue;
+            }
+
+            sb.insert(i, LIKE_ESCAPE_CHAR);
+            i += 1;
+        }
+        return sb.toString();
     }
 
     public AndCondition createAnd(Condition... conditions) {

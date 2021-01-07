@@ -965,7 +965,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "from\n" +
                     "  RUser u\n" +
                     "where\n" +
-                    "  lower(u.fullName.norm) like :norm";
+                    "  lower(u.fullName.norm) like :norm escape '!'";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -1006,7 +1006,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  RObject o\n" +
                     "    left join o.employeeType e\n" +
                     "where\n" +
-                    "  e like :e\n";
+                    "  e like :e escape '!'\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -2270,7 +2270,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "from\n" +
                     "  RObject o\n" +
                     "where\n" +
-                    "  o.name.orig like :orig\n";
+                    "  o.name.orig like :orig escape '!'\n";
             assertEqualsIgnoreWhitespace(expected, real);
 
             OperationResult result = new OperationResult("test0540queryObjectClassTypeUser");
@@ -3361,8 +3361,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "    left join l.target t\n" +
                     "where\n" +
                     "  (\n" +
-                    "    t.nameCopy.orig like :orig and\n" +
-                    "    t.nameCopy.norm like :norm\n" +
+                    "    t.nameCopy.orig like :orig escape '!' and\n" +
+                    "    t.nameCopy.norm like :norm escape '!'\n" +
                     "  )\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -3394,7 +3394,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "    left join l.target t\n" +
                     "    left join t.resourceRef.target t2\n" +
                     "where\n" +
-                    "  t2.name.norm like :norm\n";
+                    "  t2.name.norm like :norm escape '!'\n";
             assertEqualsIgnoreWhitespace(expected, real);
 
         } finally {
@@ -3795,7 +3795,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     + "  RUser u\n"
                     + "    left join u.textInfoItems t\n"
                     + "where\n"
-                    + "  t.text like :text";
+                    + "  t.text like :text escape '!'";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -3819,7 +3819,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     + "  RUser u\n"
                     + "    left join u.textInfoItems t\n"
                     + "where\n"
-                    + "  t.text like :text";
+                    + "  t.text like :text escape '!'";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -3845,8 +3845,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     + "    left join u.textInfoItems t2\n"
                     + "where\n"
                     + "  (\n"
-                    + "    t.text like :text and\n"
-                    + "    t2.text like :text2\n"
+                    + "    t.text like :text escape '!' and\n"
+                    + "    t2.text like :text2 escape '!'\n"
                     + "  )";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -4280,7 +4280,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                         + "    select distinct\n"
                         + "      u.oid\n"
                         + "    from\n"
-                        + "      RUser u left join u.employeeType e where e like :e)\n"
+                        + "      RUser u left join u.employeeType e where e like :e escape '!')\n"
                         + "order by u.nameCopy.orig asc";
             } else {
                 expected = "select distinct\n"
@@ -4288,7 +4288,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                         + "  u.fullObject,\n"
                         + "  u.nameCopy.orig\n"
                         + "from\n"
-                        + "  RUser u left join u.employeeType e where e like :e\n"
+                        + "  RUser u left join u.employeeType e where e like :e escape '!'\n"
                         + "order by u.nameCopy.orig asc\n";
             }
             assertEqualsIgnoreWhitespace(expected, real);
@@ -4432,7 +4432,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .item(UserType.F_EMPLOYEE_TYPE).startsWith("a")
                     .build();
             String real = getInterpretedQuery2(session, UserType.class, query, true, distinct());
-            String expected = "select count(distinct u.oid) from RUser u left join u.employeeType e where e like :e";
+            String expected = "select count(distinct u.oid) from RUser u left join u.employeeType e where e like :e escape '!'";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
