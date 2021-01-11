@@ -12,15 +12,18 @@
 
 set -eu
 
-: "${PSQL:="psql"}"                                   # can be overridden to psql.exe on Windows to avoid tty problems
-: "${BUILD_NUMBER:="dev"}"                            # normally set by Jenkins
-: "${GIT_BRANCH:=$(git rev-parse --abbrev-ref HEAD)}" # normally set by Jenkins
-: "${GIT_COMMIT:=$(git show -s --format=%H)}"         # normally set by Jenkins
+# can be overridden to psql.exe on Windows to avoid tty problems
+: "${PSQL:="psql"}"
+# the rest is normally set by Jenkins, BRANCH is used instead of GIT_BRANCH that contains slashes
+: "${BUILD_NUMBER:="dev"}"
+: "${BRANCH:=$(git rev-parse --abbrev-ref HEAD)}"
+: "${GIT_COMMIT:=$(git show -s --format=%H)}"
 
 # backup
 mkdir -p "${HOME}/perf-out/"
 if [ -z "${TGZFILE:-}" ]; then
-  TARFILE="${HOME}/perf-out/mp-perf-${GIT_BRANCH}-${BUILD_NUMBER}-${GIT_COMMIT}.tar"
+  # if branch contains / we replace it with _ which we generally don't use in branch names
+  TARFILE="${HOME}/perf-out/mp-perf-${BRANCH/\//_}-${BUILD_NUMBER}-${GIT_COMMIT}.tar"
   rm -f "${TARFILE}" "${TARFILE}.gz"
   find -wholename '*target/PERF-*' -exec tar --transform 's/.*\///g' -rvf "${TARFILE}" {} \;
   gzip "${TARFILE}"
@@ -28,7 +31,9 @@ if [ -z "${TGZFILE:-}" ]; then
   echo "Performance reports backed up to ${TGZFILE}"
 else
   echo "Importing ${TGZFILE} to DB"
-  GIT_BRANCH=$(basename $TGZFILE | cut -d- -f3)
+  BRANCH=$(basename $TGZFILE | cut -d- -f3)
+  # _ was likely / originally, see above
+  BRANCH="${BRANCH/_/\/}"
   BUILD_NUMBER=$(basename $TGZFILE | cut -d- -f4)
   GIT_COMMIT=$(basename $TGZFILE | cut -d- -f5 | cut -d. -f1)
 fi
@@ -44,7 +49,7 @@ fi
 
 # create new build entry
 BUILD_ID=$(
-  "${PSQL}" -qtAX -c "insert into mst_build (build, branch, commit_hash, date) values ('${BUILD_NUMBER}', '${GIT_BRANCH}', '${GIT_COMMIT}', '${COMMIT_DATE}') returning id"
+  "${PSQL}" -qtAX -c "insert into mst_build (build, branch, commit_hash, date) values ('${BUILD_NUMBER}', '${BRANCH}', '${GIT_COMMIT}', '${COMMIT_DATE}') returning id"
 )
 
 echo "BUILD_ID = $BUILD_ID"
