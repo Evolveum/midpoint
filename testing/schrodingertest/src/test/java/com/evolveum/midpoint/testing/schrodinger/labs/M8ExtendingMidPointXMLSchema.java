@@ -34,7 +34,6 @@ import java.util.List;
 
 public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
 
-    private static final File CSV_3_RESOURCE_FILE_8_1 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-8-1.xml");
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override
