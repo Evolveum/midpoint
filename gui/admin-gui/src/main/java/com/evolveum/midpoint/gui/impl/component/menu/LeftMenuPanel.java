@@ -209,6 +209,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         }
         menu.addMainMenuItem(createCertificationItems());
         menu.addMainMenuItem(createServerTasksItems());
+        menu.addMainMenuItem(createNodesItems());
         menu.addMainMenuItem(createReportsItems());
         return menu;
     }
@@ -365,11 +366,15 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private MainMenuItem createServerTasksItems() {
-        MainMenuItem tasksMenu = createMainMenuItem("PageAdmin.menu.top.serverTasks", GuiStyleConstants.CLASS_OBJECT_TASK_ICON_COLORED
-        );
+        MainMenuItem tasksMenu = createMainMenuItem("PageAdmin.menu.top.serverTasks", GuiStyleConstants.CLASS_OBJECT_TASK_ICON_COLORED);
         createBasicAssignmentHolderMenuItems(tasksMenu, TaskType.COMPLEX_TYPE, PageTypes.TASK, true);
-        tasksMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.serverTasks.nodes", PageNodes.class));
         return tasksMenu;
+    }
+
+    private MainMenuItem createNodesItems() {
+        MainMenuItem nodesMenu = createMainMenuItem("PageAdmin.menu.top.nodes", GuiStyleConstants.CLASS_OBJECT_NODE_ICON_COLORED);
+        nodesMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.nodes.list", PageNodes.class));
+        return nodesMenu;
     }
 
     private MainMenuItem createReportsItems() {
