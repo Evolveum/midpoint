@@ -30,7 +30,6 @@ public class SearchObjectCollectionPanel extends AbstractSearchItemPanel<ObjectC
 
     private static final long serialVersionUID = 1L;
 
-    private static final String ID_CHECK_DISABLE_FIELD = "checkDisable";
     private static final String ID_CLICKABLE_NAME= "clickableName";
 
     public SearchObjectCollectionPanel(String id, IModel<ObjectCollectionSearchItem> model) {
@@ -61,23 +60,6 @@ public class SearchObjectCollectionPanel extends AbstractSearchItemPanel<ObjectC
         };
         ajaxLinkPanel.setOutputMarkupId(true);
         searchItemContainer.add(ajaxLinkPanel);
-
-        CheckPanel checkPanel = new CheckPanel(ID_CHECK_DISABLE_FIELD,
-                getModelObject() == null ? Model.of() : new PropertyModel<>(getModel(), FilterSearchItem.F_APPLY_FILTER));
-        (checkPanel).getBaseFormComponent().add(new OnChangeAjaxBehavior() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
-                searchPerformed(ajaxRequestTarget);
-            }
-        });
-        checkPanel.add(AttributeModifier.append("class", "pull-right"));
-        checkPanel.add(AttributeAppender.append("style", "margin-top: 3px;"));
-        checkPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-
-        checkPanel.setOutputMarkupId(true);
-        searchItemContainer.add(checkPanel);
     }
 
     @Override
