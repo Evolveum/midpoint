@@ -278,20 +278,11 @@ public abstract class ResourceContentPanel extends Panel {
 
                     @Override
                     protected ObjectQuery getCustomizeContentQuery() {
-                        QueryFactory queryFactory = pageBase.getPrismContext().queryFactory();
-
-                        List<ObjectFilter> filters = new ArrayList<>();
                         ObjectQuery customQuery = ResourceContentPanel.this.createQuery();
                         if (customQuery != null && customQuery.getFilter() != null) {
-                            filters.add(customQuery.getFilter());
+                            return customQuery;
                         }
-                        if (filters.size() == 0) {
-                            return null;
-                        }
-                        if (filters.size() == 1) {
-                            return queryFactory.createQuery(filters.iterator().next());
-                        }
-                        return queryFactory.createQuery(queryFactory.createAnd(filters));
+                        return null;
                     }
 
                     @Override

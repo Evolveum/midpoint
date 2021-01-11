@@ -193,6 +193,11 @@ public class PageCreatedReports extends PageAdmin {
                     protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
                         return PageCreatedReports.this.createCustomOrdering(sortParam);
                     }
+
+                    @Override
+                    protected ObjectQuery getCustomizeContentQuery() {
+                        return appendTypeFilter();
+                    }
                 };
                 provider.setCompiledObjectCollectionView(getObjectCollectionView());
                 provider.setOptions(createOptions());
@@ -212,11 +217,6 @@ public class PageCreatedReports extends PageAdmin {
             @Override
             protected boolean isObjectDetailsEnabled(IModel<SelectableBean<ReportDataType>> rowModel) {
                 return false;
-            }
-
-            @Override
-            protected ObjectQuery getCustomizeContentQuery() {
-                return appendTypeFilter();
             }
 
             @Override

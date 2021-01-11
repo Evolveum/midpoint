@@ -100,10 +100,6 @@ public abstract class BaseSearchDataProvider<C extends Containerable, T extends 
         return super.size();
     }
 
-    //    public void setType(Class<C> type) {
-//        this.type = type;
-//    }
-
     public void addQueryVariables(String name, Object value) {
         this.variables.put(name, value);
     }

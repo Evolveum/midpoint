@@ -30,6 +30,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 /**
  * @author lazyman
@@ -47,7 +48,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
     }
 
     public SelectableBeanObjectDataProvider(Component component, Set<? extends O> selected) {
-        super(component, null, selected, true);
+        super(component, Model.of(), selected, true);
     }
 
     public List<SelectableBean<O>> createDataObjectWrappers(Class<? extends O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)

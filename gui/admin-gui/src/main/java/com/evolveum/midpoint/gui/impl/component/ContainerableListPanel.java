@@ -645,11 +645,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 return ContainerableListPanel.this.getPageStorage();
             }
 
-//            @Override
-//            public ObjectQuery getQuery() {
-//                return ContainerableListPanel.this.createQuery();
-//            }
-
             @Override
             protected ObjectQuery getCustomizeContentQuery() {
                 return ContainerableListPanel.this.getCustomizeContentQuery();

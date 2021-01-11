@@ -121,10 +121,9 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         final Form searchForm = new MidpointForm(ID_SEARCH_FORM);
         searchForm.setOutputMarkupId(true);
 
-        SearchPanel search = new SearchPanel(ID_SEARCH,
-                Model.of(getRoleCatalogStorage().getSearch() != null ? getRoleCatalogStorage().getSearch() :
-                        SearchFactory.createSearch(getQueryClass(), getPageBase())),
-                false) {
+        IModel<Search> searchModel = Model.of(getRoleCatalogStorage().getSearch() != null ? getRoleCatalogStorage().getSearch() :
+                SearchFactory.createSearch(getQueryClass(), getPageBase()));
+        SearchPanel search = new SearchPanel(ID_SEARCH, searchModel, false) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -132,6 +131,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
                 AbstractShoppingCartTabPanel.this.searchPerformed(target);
             }
         };
+        getRoleCatalogStorage().setSearch(searchModel.getObject());
         searchForm.add(search);
         shoppingCartContainer.add(searchForm);
     }

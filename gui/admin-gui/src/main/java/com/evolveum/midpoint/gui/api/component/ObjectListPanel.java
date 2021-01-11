@@ -128,6 +128,11 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
                 }
                 return super.createObjectOrderings(sortParam);
             }
+
+            @Override
+            protected ObjectQuery getCustomizeContentQuery() {
+                return ObjectListPanel.this.getCustomizeContentQuery();
+            }
         };
         provider.setCompiledObjectCollectionView(getObjectCollectionView());
         provider.setOptions(createOptions());
