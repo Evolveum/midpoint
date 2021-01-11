@@ -258,7 +258,8 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
     @Override
     public SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
             ShadowResultHandler handler, AttributesToReturn attributesToReturn,
-            PagedSearchCapabilityType pagedSearchConfigurationType, SearchHierarchyConstraints searchHierarchyConstraints,
+            PagedSearchCapabilityType pagedSearchConfiguration, SearchHierarchyConstraints searchHierarchyConstraints,
+            FetchErrorReportingMethodType errorReportingMethod,
             StateReporter reporter, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("search");
         return null;

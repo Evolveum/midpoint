@@ -23,6 +23,8 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.*;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
 import org.identityconnectors.common.pooling.ObjectPoolConfiguration;
@@ -88,11 +90,6 @@ import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
@@ -162,8 +159,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         this.protector = protector;
         this.prismContext = prismContext;
         connIdNameMapper = new ConnIdNameMapper(schemaNamespace);
-        connIdConvertor = new ConnIdConvertor(protector, resourceSchemaNamespace, localizationService);
-        connIdConvertor.setConnIdNameMapper(connIdNameMapper);
+        connIdConvertor = new ConnIdConvertor(protector, resourceSchemaNamespace, localizationService, connIdNameMapper);
     }
 
     /**
@@ -497,8 +493,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     }
 
     @Override
-    public PrismObject<ShadowType> fetchObject(ResourceObjectIdentification resourceObjectIdentification, AttributesToReturn attributesToReturn, StateReporter reporter,
-                                                             OperationResult parentResult)
+    public PrismObject<ShadowType> fetchObject(ResourceObjectIdentification resourceObjectIdentification,
+            AttributesToReturn attributesToReturn, StateReporter reporter, OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
             SchemaException, SecurityViolationException, ConfigurationException {
 
@@ -557,8 +553,10 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             }
 
             PrismObjectDefinition<ShadowType> shadowDefinition = toShadowDefinition(objectClassDefinition);
+            // TODO configure error reporting method
             PrismObject<ShadowType> shadow = connIdConvertor
-                    .convertToResourceObject(co, shadowDefinition, false, caseIgnoreAttributeNames, legacySchema, result);
+                    .convertToResourceObject(co, shadowDefinition, false, caseIgnoreAttributeNames,
+                            legacySchema, FetchErrorReportingMethodType.DEFAULT, result);
 
             result.recordSuccess();
             return shadow;
@@ -1789,8 +1787,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     @Override
     public SearchResultMetadata search(final ObjectClassComplexTypeDefinition objectClassDefinition,
             final ObjectQuery query, final ShadowResultHandler handler, AttributesToReturn attributesToReturn,
-            PagedSearchCapabilityType pagedSearchCapabilityType, SearchHierarchyConstraints searchHierarchyConstraints,
-            final StateReporter reporter, OperationResult parentResult)
+            PagedSearchCapabilityType pagedSearchConfiguration, SearchHierarchyConstraints searchHierarchyConstraints,
+            FetchErrorReportingMethodType errorReportingMethod, StateReporter reporter, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SecurityViolationException, SchemaException,
                         ObjectNotFoundException {
 
@@ -1818,11 +1816,11 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         }
         final PrismObjectDefinition<ShadowType> objectDefinition = toShadowDefinition(objectClassDefinition);
 
-        if (pagedSearchCapabilityType == null) {
-            pagedSearchCapabilityType = getCapability(PagedSearchCapabilityType.class);
+        if (pagedSearchConfiguration == null) {
+            pagedSearchConfiguration = getCapability(PagedSearchCapabilityType.class);
         }
 
-        final boolean useConnectorPaging = pagedSearchCapabilityType != null;
+        boolean useConnectorPaging = pagedSearchConfiguration != null;
         if (!useConnectorPaging && query != null && query.getPaging() != null &&
                 (query.getPaging().getOffset() != null || query.getPaging().getMaxSize() != null)) {
             InternalMonitor.recordCount(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
@@ -1853,16 +1851,14 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                     }
                 }
                 PrismObject<ShadowType> resourceObject;
-                Validate.notNull(connectorObject, "null connector object");
+                Validate.notNull(connectorObject, "null connector object"); // todo apply error reporting method?
                 try {
-                    resourceObject = connIdConvertor.convertToResourceObject(connectorObject, objectDefinition, false, caseIgnoreAttributeNames, legacySchema,
-                            result);
+                    resourceObject = connIdConvertor.convertToResourceObject(connectorObject, objectDefinition, false,
+                            caseIgnoreAttributeNames, legacySchema, errorReportingMethod, result);
                 } catch (SchemaException e) {
                     recordResume();
                     throw new IntermediateException(e);
                 }
-
-                Validate.notNull(resourceObject, "null resource object");
 
                 // .. and pass it to the handler
                 boolean cont = handler.handle(resourceObject);
@@ -1914,8 +1910,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                     isAscending = paging.getDirection() != OrderDirection.DESCENDING;
                     desc = "(explicitly specified orderBy attribute)";
                 } else {
-                    orderByAttributeName = pagedSearchCapabilityType.getDefaultSortField();
-                    isAscending = pagedSearchCapabilityType.getDefaultSortDirection() != OrderDirectionType.DESCENDING;
+                    orderByAttributeName = pagedSearchConfiguration.getDefaultSortField();
+                    isAscending = pagedSearchConfiguration.getDefaultSortDirection() != OrderDirectionType.DESCENDING;
                     desc = "(default orderBy attribute from capability definition)";
                 }
                 if (orderByAttributeName != null) {
@@ -2347,8 +2343,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             PrismObjectDefinition<ShadowType> objectDefinition = toShadowDefinition(deltaObjectClass);
             LOGGER.trace("Object definition: {}", objectDefinition);
 
+            // TODO error reporting method
             PrismObject<ShadowType> currentResourceObject = connIdConvertor.convertToResourceObject(connIdDelta.getObject(),
-                    objectDefinition, false, caseIgnoreAttributeNames, legacySchema, result);
+                    objectDefinition, false, caseIgnoreAttributeNames, legacySchema, FetchErrorReportingMethodType.DEFAULT, result);
             LOGGER.trace("Got (current) resource object: {}", currentResourceObject.debugDumpLazily());
             Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(currentResourceObject);
 

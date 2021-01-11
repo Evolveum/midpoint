@@ -873,15 +873,13 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             result.cleanupResult();
             SearchResultMetadata metadata = new SearchResultMetadata();
             metadata.setApproxNumberOfAllResults(0);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Finished searching. Nothing to do. Filter is NONE. Metadata: {}", metadata.shortDump());
-            }
+            LOGGER.trace("Finished searching. Nothing to do. Filter is NONE. Metadata: {}", metadata.shortDumpLazily());
             return metadata;
         }
 
         final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
-        SearchResultMetadata metadata = null;
+        SearchResultMetadata metadata;
         if (ShadowType.class.isAssignableFrom(type)) {
 
             try {
@@ -909,7 +907,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
             try {
 
-                metadata = getCacheRepositoryService().searchObjectsIterative(type, query, internalHandler, repoOptions, true, result);
+                metadata = cacheRepositoryService.searchObjectsIterative(type, query, internalHandler, repoOptions, true, result);
 
                 result.computeStatus();
                 result.recordSuccessIfUnknown();
@@ -917,6 +915,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
             } catch (Throwable e) {
                 ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+                throw e;
             }
         }
 

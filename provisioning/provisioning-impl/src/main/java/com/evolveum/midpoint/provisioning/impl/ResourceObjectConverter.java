@@ -98,7 +98,7 @@ public class ResourceObjectConverter {
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
     @Autowired private Tracer tracer;
     @Autowired private ExpressionFactory expressionFactory;
-    
+
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectConverter.class);
 
     static final String FULL_SHADOW_KEY = ResourceObjectConverter.class.getName()+".fullShadow";
@@ -184,7 +184,8 @@ public class ResourceObjectConverter {
                 }
             };
             try {
-                connector.search(ctx.getObjectClassDefinition(), query, handler, attributesToReturn, null, null, ctx, parentResult);
+                connector.search(ctx.getObjectClassDefinition(), query, handler, attributesToReturn, null, null,
+                        FetchErrorReportingMethodType.DEFAULT, ctx, parentResult);
                 if (shadowHolder.isEmpty()) {
                     throw new ObjectNotFoundException("No object found for secondary identifier "+secondaryIdentifier);
                 }
@@ -1265,7 +1266,7 @@ public class ResourceObjectConverter {
 
     public SearchResultMetadata searchResourceObjects(final ProvisioningContext ctx,
             final ResultHandler<ShadowType> resultHandler, ObjectQuery query, final boolean fetchAssociations,
-            final OperationResult parentResult) throws SchemaException,
+            FetchErrorReportingMethodType errorReportingMethod, final OperationResult parentResult) throws SchemaException,
             CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
         LOGGER.trace("Searching resource objects, query: {}", query);
@@ -1345,12 +1346,11 @@ public class ResourceObjectConverter {
                         }
                     },
                     attributesToReturn, objectClassDef.getPagedSearches(ctx.getResource()), searchHierarchyConstraints,
-                    ctx, parentResult);
+                    errorReportingMethod, ctx, parentResult);
 
         } catch (GenericFrameworkException e) {
             parentResult.recordFatalError("Generic error in the connector: " + e.getMessage(), e);
             throw new SystemException("Generic error in the connector: " + e.getMessage(), e);
-
         } catch (CommunicationException ex) {
             parentResult.recordFatalError(
                     "Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
@@ -1363,6 +1363,8 @@ public class ResourceObjectConverter {
                     + ex.getMessage(), ex);
         } catch (TunnelException e) {
             Throwable cause = e.getCause();
+            parentResult.recordFatalError("Problem while communicating with the connector " + connector + ": " +
+                    cause.getMessage(), cause);
             if (cause instanceof SchemaException) {
                 throw (SchemaException)cause;
             } else if (cause instanceof CommunicationException) {

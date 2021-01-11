@@ -12,7 +12,12 @@ import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -37,10 +42,6 @@ import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Tests the behavior of provisioning module under erroneous conditions
@@ -408,7 +409,7 @@ public class TestDummyNegative extends AbstractDummyTest {
         }
     }
 
-    @Test(enabled = false)
+    @Test
     public void test250SearchForBrokenAccounts() throws Exception {
         given();
         Task task = getTestTask();
@@ -428,8 +429,12 @@ public class TestDummyNegative extends AbstractDummyTest {
             objects.add(object);
             return true;
         };
+        Collection<SelectorOptions<GetOperationOptions>> options =
+                schemaHelper.getOperationOptionsBuilder()
+                        .errorReportingMethod(FetchErrorReportingMethodType.FETCH_RESULT)
+                        .build();
         provisioningService.searchObjectsIterative(ShadowType.class, getAllAccountsQuery(RESOURCE_DUMMY_BROKEN_ACCOUNTS),
-                null, handler, task, result);
+                options, handler, task, result);
 
         then();
         display("objects", objects);
