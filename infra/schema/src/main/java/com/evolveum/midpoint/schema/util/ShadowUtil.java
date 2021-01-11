@@ -14,6 +14,8 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -26,6 +28,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -804,6 +807,10 @@ public class ShadowUtil {
         return passwd.getValue();
     }
 
+    public static Object shortDumpShadowLazily(PrismObject<ShadowType> shadow) {
+        return DebugUtil.lazy(() -> shortDumpShadow(shadow));
+    }
+
     public static String shortDumpShadow(PrismObject<ShadowType> shadow) {
         if (shadow == null) {
             return "null";
@@ -850,5 +857,14 @@ public class ShadowUtil {
         }
     }
 
+    public static boolean hasFetchError(@NotNull PrismObject<ShadowType> shadow) {
+        OperationResultType fetchResult = shadow.asObjectable().getFetchResult();
+        return fetchResult != null && OperationResultUtil.isError(fetchResult.getStatus());
+    }
 
+    public static void recordFetchError(PrismObject<ShadowType> shadow, OperationResult result) {
+        OperationResultType resultBean = result.createOperationResultType();
+        assert OperationResultUtil.isError(resultBean.getStatus());
+        shadow.asObjectable().setFetchResult(resultBean);
+    }
 }

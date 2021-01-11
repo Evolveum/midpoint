@@ -32,6 +32,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AbstractWriteCapabilityType;
@@ -237,8 +238,10 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
     public SearchResultMetadata search(
             ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
             ShadowResultHandler handler, AttributesToReturn attributesToReturn,
-            PagedSearchCapabilityType pagedSearchConfigurationType,
-            SearchHierarchyConstraints searchHierarchyConstraints, StateReporter reporter,
+            PagedSearchCapabilityType pagedSearchConfiguration,
+            SearchHierarchyConstraints searchHierarchyConstraints,
+            FetchErrorReportingMethodType errorReportingMethod,
+            StateReporter reporter,
             OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("search");
         // Read operations are not supported. We cannot really manually read the content of an off-line resource.

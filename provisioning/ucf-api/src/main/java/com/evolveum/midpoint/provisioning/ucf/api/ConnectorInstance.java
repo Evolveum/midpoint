@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import org.jetbrains.annotations.NotNull;
@@ -174,23 +175,38 @@ public interface ConnectorInstance {
      *
      * This method will execute search operation on the resource and will pass
      * any objects that are found. A "handler" callback will be called for each
-     * of the objects found.
+     * of the objects found (depending also on the error reporting method).
      *
      * The call to this method will return only after all the callbacks were
      * called, therefore it is not asynchronous in a strict sense.
      *
      * If nothing is found the method should behave as if there is an empty result set
-     * (handler is never called) and the call should result in a success.
-     * The ObjectNotFoundException should be throws only if there is an error in search
-     * parameters, e.g. if search base points to an non-existent object.
+     * (handler is never called) and the call should result in a success. So the ObjectNotFoundException
+     * should be thrown only if there is an error in search parameters, e.g. if search base points to an non-existent object.
      *
-     * @throws SchemaException error converting object from the native (connector) format
-     * @throws ObjectNotFoundException if something from the search parameters refers non-existent object.
-     *                                     e.g. if search base points to an non-existent object.
+     * BEWARE: The implementation of the handler should be consistent with the value of errorReportingMethod parameter:
+     * if the method is FETCH_RESULT, the handler must be ready to process also incomplete/malformed objects (flagged
+     * by appropriate fetchResult).
+     *
+     * @param objectClassDefinition Definition of the object class of the objects being searched for.
+     * @param query Object query to be used.
+     * @param handler Handler that is called for each object found.
+     * @param attributesToReturn Attributes that are to be returned; TODO describe exact semantics
+     * @param pagedSearchConfiguration Configuration (capability) describing how paged searches are to be done.
+     * @param searchHierarchyConstraints Specifies in what parts of hierarchy the search should be executed.
+     * @param errorReportingMethod How should errors during processing individual objects be reported.
+     *                             If EXCEPTION (the default), an appropriate exception is thrown.
+     *                             If FETCH_RESULT, the error is reported within the shadow affected.
+     *
+     * @throws SchemaException if the search couldn't be executed because of a problem with the schema; or there is a schema
+     *                         problem with an object returned (and error reporting method is EXCEPTION).
+     * @throws ObjectNotFoundException if something from the search parameters refers non-existent object,
+     *                                 e.g. if search base points to an non-existent object.
      */
     SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
-            ShadowResultHandler handler, AttributesToReturn attributesToReturn, PagedSearchCapabilityType pagedSearchConfigurationType,
-            SearchHierarchyConstraints searchHierarchyConstraints, StateReporter reporter, OperationResult parentResult)
+            ShadowResultHandler handler, AttributesToReturn attributesToReturn, PagedSearchCapabilityType pagedSearchConfiguration,
+            SearchHierarchyConstraints searchHierarchyConstraints, FetchErrorReportingMethodType errorReportingMethod,
+            StateReporter reporter, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException,
                     ObjectNotFoundException;
 

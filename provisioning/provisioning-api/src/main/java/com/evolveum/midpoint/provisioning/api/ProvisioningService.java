@@ -264,7 +264,7 @@ public interface ProvisioningService {
      * @param handler
      *            result handler
      * @param task
-     *@param parentResult
+     * @param parentResult
      *            parent OperationResult (in/out)
      *  @throws IllegalArgumentException
      *             wrong object type

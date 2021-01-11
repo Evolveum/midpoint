@@ -17,6 +17,9 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -44,16 +47,9 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationDirectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
 /**
@@ -271,7 +267,8 @@ class EntitlementConverter {
                         ShadowUtil.getHumanReadableName(resourceObject), query);
             }
             try {
-                connector.search(entitlementDef, query, handler, attributesToReturn, null, searchHierarchyConstraints, subjectCtx, parentResult);
+                connector.search(entitlementDef, query, handler, attributesToReturn, null, searchHierarchyConstraints,
+                        FetchErrorReportingMethodType.DEFAULT, subjectCtx, parentResult);
             } catch (GenericFrameworkException e) {
                 throw new GenericConnectorException("Generic error in the connector " + connector + ". Reason: "
                         + e.getMessage(), e);
@@ -487,7 +484,8 @@ class EntitlementConverter {
                 try {
                     LOGGER.trace("Searching for associations in deleted shadow, query: {}", query);
                     ConnectorInstance connector = subjectCtx.getConnector(ReadCapabilityType.class, parentResult);
-                    connector.search(entitlementOcDef, query, handler, attributesToReturn, null, searchHierarchyConstraints, subjectCtx, parentResult);
+                    connector.search(entitlementOcDef, query, handler, attributesToReturn, null, searchHierarchyConstraints,
+                            FetchErrorReportingMethodType.DEFAULT, subjectCtx, parentResult);
                 } catch (TunnelException e) {
                     throw (SchemaException)e.getCause();
                 } catch (GenericFrameworkException e) {
