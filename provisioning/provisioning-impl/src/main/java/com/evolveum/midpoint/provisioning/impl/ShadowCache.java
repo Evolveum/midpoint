@@ -27,6 +27,7 @@ import com.evolveum.midpoint.provisioning.impl.shadowmanager.ShadowManager;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -114,6 +115,7 @@ public class ShadowCache {
     @Autowired private ProvisioningContextFactory ctxFactory;
     @Autowired private Protector protector;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
+    @Autowired private ExpressionFactory expressionFactory;
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowCache.class);
 
@@ -411,16 +413,6 @@ public class ShadowCache {
         return shadowCaretaker.applyPendingOperations(ctx, repoShadow, resourceShadow, false, now);
     }
 
-    private boolean canReturnCachedAfterObjectNotFound(Collection<SelectorOptions<GetOperationOptions>> options,
-            PrismObject<ShadowType> repositoryShadow, ResourceType resource) {
-        if (repositoryShadow.asObjectable().getPendingOperation().isEmpty()) {
-            return false;
-        }
-        // TODO: which case is this exactly?
-        // Explicitly check the capability of the resource (primary connector), not capabilities of additional connectors
-        return ProvisioningUtil.isPrimaryCachingOnly(resource);
-    }
-
     private boolean canImmediatelyReturnCached(Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow, ShadowState shadowState, ResourceType resource) throws ConfigurationException {
         if (ProvisioningUtil.resourceReadIsCachingOnly(resource)) {
             return true;
@@ -444,7 +436,7 @@ public class ShadowCache {
                 // We need current reliable state. Never return cached data.
                 return false;
             case CACHED:
-                return isCachedShadowValid(options, repositoryShadow, resource);
+                return isCachedShadowValid(options, repositoryShadow);
             case FUTURE:
                 // We could, e.g. if there is a pending create operation. But let's try real get operation first.
                 return false;
@@ -453,7 +445,7 @@ public class ShadowCache {
         }
     }
 
-    private boolean isCachedShadowValid(Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow, ResourceType resource) throws ConfigurationException {
+    private boolean isCachedShadowValid(Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow) throws ConfigurationException {
         long stalenessOption = GetOperationOptions.getStaleness(SelectorOptions.findRootOptions(options));
         if (stalenessOption == 0L) {
             return false;
@@ -476,10 +468,6 @@ public class ShadowCache {
         }
         long retrievalTimestampMillis = XmlTypeConverter.toMillis(retrievalTimestamp);
         return (clock.currentTimeMillis() - retrievalTimestampMillis < stalenessOption);
-    }
-
-    private boolean isCompensate(GetOperationOptions rootOptions) {
-        return !GetOperationOptions.isDoNotDiscovery(rootOptions);
     }
 
     public String addShadow(PrismObject<ShadowType> shadowToAdd, OperationProvisioningScriptsType scripts,
@@ -1931,13 +1919,6 @@ public class ShadowCache {
         shadowCaretaker.applyAttributesDefinition(ctx, shadow);
     }
 
-    public void setProtectedShadow(PrismObject<ShadowType> shadow, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        ProvisioningContext ctx = ctxFactory.create(shadow, null, parentResult);
-        ctx.assertDefinition();
-        ProvisioningUtil.setProtectedFlag(ctx, shadow, matchingRuleRegistry, relationRegistry);
-    }
-
     public void applyDefinition(final ObjectQuery query, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(query.getFilter(), prismContext);
@@ -2426,8 +2407,8 @@ public class ShadowCache {
                 } catch (RuntimeException e) {
                     objResult.recordFatalError(e);
                     throw e;
-                } catch (SchemaException | ConfigurationException | ObjectNotFoundException
-                        | CommunicationException | ExpressionEvaluationException e) {
+                } catch (SchemaException | ConfigurationException | ObjectNotFoundException | CommunicationException |
+                        ExpressionEvaluationException | SecurityViolationException e) {
                     objResult.recordFatalError(e);
                     shadow.asObjectable().setFetchResult(objResult.createOperationResultType());
                     throw new SystemException(e);
@@ -2453,11 +2434,11 @@ public class ShadowCache {
     private void processRepoShadow(ProvisioningContext ctx, PrismObject<ShadowType> shadow,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult objResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SecurityViolationException {
         shadowCaretaker.applyAttributesDefinition(ctx, shadow);
         // fixing MID-1640; hoping that the protected object filter uses only identifiers
         // (that are stored in repo)
-        ProvisioningUtil.setProtectedFlag(ctx, shadow, matchingRuleRegistry, relationRegistry);
+        ProvisioningUtil.setProtectedFlag(ctx, shadow, matchingRuleRegistry, relationRegistry, expressionFactory, objResult);
 
         validateShadow(shadow, true);
 
@@ -2631,30 +2612,6 @@ public class ShadowCache {
 
     }
 
-    private PrismObjectDefinition<ShadowType> getShadowDefinition() {
-        return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
-    }
-
-//    private void deleteShadowFromRepoIfNeeded(Change change, OperationResult parentResult)
-//            throws ObjectNotFoundException {
-//        if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE
-//                && change.getOldShadow() != null) {
-//            LOGGER.trace("Deleting detected shadow object form repository.");
-//            try {
-//                repositoryService.deleteObject(ShadowType.class, change.getOldShadow().getOid(),
-//                        parentResult);
-//                LOGGER.debug("Shadow object successfully deleted form repository.");
-//            } catch (ObjectNotFoundException ex) {
-//                // What we want to delete is already deleted. Not a big problem.
-//                LOGGER.debug("Shadow object {} already deleted from repository ({})", change.getOldShadow(),
-//                        ex);
-//                parentResult.recordHandledError(
-//                        "Shadow object " + change.getOldShadow() + " already deleted from repository", ex);
-//            }
-//
-//        }
-//    }
-
     /**
      * Make sure that the shadow is complete, e.g. that all the mandatory fields
      * are filled (e.g name, resourceRef, ...) Also transforms the shadow with
@@ -2719,7 +2676,7 @@ public class ShadowCache {
         transplantPasswordMetadata(repoShadowType, resultAccountShadow);
 
         // protected
-        ProvisioningUtil.setProtectedFlag(ctx, resultShadow, matchingRuleRegistry, relationRegistry);
+        ProvisioningUtil.setProtectedFlag(ctx, resultShadow, matchingRuleRegistry, relationRegistry, expressionFactory, parentResult);
 
         // exists, dead
         // This may seem strange, but always take exists and dead flags from the repository.

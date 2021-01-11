@@ -30,13 +30,18 @@ import com.evolveum.midpoint.repo.sql.util.MidPointPhysicalNamingStrategy;
  * {@link TransactionManager}.
  * {@link ConditionalOnMissingBean} annotations are used to avoid duplicate bean acquirement that
  * would happen when combined with alternative configurations (e.g. context XMLs for test).
+ * {@link ConditionalOnExpression} class annotation activates this configuration only if midpoint
+ * {@code config.xml} specifies the repository factory class from SQL package.
+ * <p>
+ * Spring configuration note - ConditionalOnExpression is ugly, but the following does NOT work:
+ * <ul>
+ * <li>{@code @ConditionalOnBean(SqlRepositoryFactory.class)} - with {@code RepositoryServiceFactory}
+ * it does, but that does not help.</li>
+ * <li>{@code @ConditionalOnExpression("#{repositoryFactory...} - because {@code RepositoryFactory}
+ * is not initialized yet and all injected stuff is still {@code null}.</li>
+ * </ul>
  */
 @Configuration
-// TODO: WIP - works for SqlRepositoryFactory, but probably we need to add Test version too.
-//  Also, this seems to have to be this ugly, because the following does NOT work:
-//  - @ConditionalOnBean(SqlRepositoryFactory.class) (RepositoryServiceFactory does, but that does not help)
-//  - @ConditionalOnExpression("#{repositoryFactory... something reasonable here,
-//    because RepositoryFactory is not initialized yet and all injected stuff is still null
 @ConditionalOnExpression("#{midpointConfiguration.getConfiguration('midpoint.repository')"
         + ".getString('repositoryServiceFactoryClass').startsWith('com.evolveum.midpoint.repo.sql.')}")
 @ComponentScan

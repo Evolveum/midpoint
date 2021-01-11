@@ -12,7 +12,6 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
@@ -24,6 +23,7 @@ import com.evolveum.midpoint.provisioning.impl.shadowmanager.ShadowManager;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -72,6 +72,7 @@ public class ChangeProcessor {
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
     @Autowired private RelationRegistry relationRegistry;
     @Autowired private SchemaHelper schemaHelper;
+    @Autowired private ExpressionFactory expressionFactory;
 
     /**
      * Local sequence number of a change that is being processed in the current thread.
@@ -184,7 +185,6 @@ public class ChangeProcessor {
 
             notifyChangeResult.computeStatus("Error in notify change operation.");
 
-            //noinspection RedundantIfStatement
             if (notifyChangeResult.isSuccess() || notifyChangeResult.isHandledError()
                     || notifyChangeResult.isNotApplicable() || notifyChangeResult.isInProgress()) {
                 // Do not delete dead shadows. Keep dead shadow around because they contain results
@@ -297,7 +297,7 @@ public class ChangeProcessor {
         @NotNull PrismObject<ShadowType> oldShadow = change.getOldRepoShadow();
         LOGGER.trace("Processing change, old shadow: {}", ShadowUtil.shortDumpShadow(oldShadow));
 
-        ProvisioningUtil.setProtectedFlag(ctx, oldShadow, matchingRuleRegistry, relationRegistry);
+        ProvisioningUtil.setProtectedFlag(ctx, oldShadow, matchingRuleRegistry, relationRegistry, expressionFactory, parentResult);
 
         if (change.getCurrentResourceObject() == null && !change.isDelete()) {
             LOGGER.trace("Going to compute current resource object because it's null and delta is not delete");
@@ -331,7 +331,7 @@ public class ChangeProcessor {
                     PrismObject<ShadowType> resourceObject = oldShadow.clone();     // this might not be correct w.r.t. index-only attributes!
                     if (change.getObjectDelta() != null) {
                         change.getObjectDelta().applyTo(resourceObject);
-                        markIndexOnlyItemsAsIncomplete(resourceObject, change.getObjectDelta(), ctx);
+                        markIndexOnlyItemsAsIncomplete(resourceObject, ctx);
                         LOGGER.trace("-> current object was taken from old shadow + delta:\n{}", resourceObject.debugDumpLazily());
                     } else {
                         LOGGER.trace("-> current object was taken from old shadow:\n{}", resourceObject.debugDumpLazily());
@@ -373,7 +373,7 @@ public class ChangeProcessor {
      * will know that it cannot use this data to update cached (index-only) attributes in repo shadow.
      */
     private void markIndexOnlyItemsAsIncomplete(PrismObject<ShadowType> resourceObject,
-            ObjectDelta<ShadowType> resourceObjectDelta, ProvisioningContext ctx)
+            ProvisioningContext ctx)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
         RefinedObjectClassDefinition ocDef = ctx.computeCompositeObjectClassDefinition(resourceObject);
