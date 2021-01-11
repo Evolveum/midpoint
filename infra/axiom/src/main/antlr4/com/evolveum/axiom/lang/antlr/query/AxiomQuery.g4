@@ -65,11 +65,11 @@ negation: NOT_KEYWORD;
 filter: left=filter (SEP+ AND_KEYWORD SEP+ right=filter) #andFilter
            | left=filter (SEP+ OR_KEYWORD SEP+ right=filter) #orFilter
            | itemFilter #genFilter
-           | subfilter #subFilter;
+           | subfilterSpec #subFilter;
 
 
-subfilter: '(' SEP* filter SEP* ')';
+subfilterSpec: '(' SEP* filter SEP* ')';
 itemFilter: path (SEP+ negation)? SEP+ filterName (matchingRule)? (SEP+ (subfilterOrValue))?;
-subfilterOrValue : subfilter | valueSpecification;
+subfilterOrValue : subfilterSpec | valueSpecification;
 
 

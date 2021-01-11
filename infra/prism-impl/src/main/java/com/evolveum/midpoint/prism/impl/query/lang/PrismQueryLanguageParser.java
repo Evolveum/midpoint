@@ -199,7 +199,7 @@ public class PrismQueryLanguageParser {
         } else if (root instanceof GenFilterContext) {
             return itemFilter(complexType, ((GenFilterContext) root).itemFilter());
         } else if (root instanceof SubFilterContext) {
-            return parseFilter(complexType, ((SubFilterContext) root).subfilter().filter());
+            return parseFilter(complexType, ((SubFilterContext) root).subfilterSpec().filter());
         }
         throw new IllegalStateException("Unsupported Filter Context");
     }
@@ -305,7 +305,7 @@ public class PrismQueryLanguageParser {
     private ObjectFilter matchesFilter(PrismContainerDefinition<?> parent, ItemPath path,ItemDefinition<?> definition,  QName matchingRule, SubfilterOrValueContext subfilterOrValue) throws SchemaException {
         Preconditions.checkArgument(definition instanceof PrismContainerDefinition<?>);
         PrismContainerDefinition<?> containerDef = (PrismContainerDefinition<?>) definition;
-        FilterContext subfilterTree = subfilterOrValue.subfilter().filter();
+        FilterContext subfilterTree = subfilterOrValue.subfilterSpec().filter();
         ObjectFilter subfilter = parseFilter(containerDef, subfilterTree);
         return ExistsFilterImpl.createExists(path, (PrismContainerDefinition<?>) parent, subfilter);
 
