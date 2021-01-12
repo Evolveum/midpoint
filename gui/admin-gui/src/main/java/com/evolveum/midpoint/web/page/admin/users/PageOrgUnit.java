@@ -11,7 +11,6 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -115,7 +114,7 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 
                     @Override
                     protected AvailableRelationDto getSupportedRelations() {
-                        return getSupportedMembersTabRelations();
+                        return getSupportedMembersTabRelations(getDefaultRelationConfiguration());
                     }
 
                     @Override
@@ -135,7 +134,7 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 
                     @Override
                     protected AvailableRelationDto getSupportedRelations() {
-                        return getSupportedGovernanceTabRelations();
+                        return getSupportedGovernanceTabRelations(getDefaultRelationConfiguration());
                     }
 
                     @Override

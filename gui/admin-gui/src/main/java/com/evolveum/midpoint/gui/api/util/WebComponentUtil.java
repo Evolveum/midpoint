@@ -753,6 +753,14 @@ public final class WebComponentUtil {
         return archetypeRef;
     }
 
+    private static String getArchetypeOid(AssignmentHolderType assignmentHolder) {
+        ObjectReferenceType archetypeRef = getArchetypeReference(assignmentHolder);
+        if (archetypeRef != null) {
+            return archetypeRef.getOid();
+        }
+        return null;
+    }
+
     public static void iterativeExecuteBulkAction(PageBase pageBase, ExecuteScriptType script, Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException {
@@ -4849,5 +4857,21 @@ public final class WebComponentUtil {
         plusIcon.setColor("green");
         builder.appendLayerIcon(plusIcon, LayeredIconCssStyle.BOTTOM_RIGHT_STYLE);
         return builder.build();
+    }
+
+    public static CompiledObjectCollectionView getCollectionViewByObject(AssignmentHolderType assignmentHolder, PageBase pageBase) {
+        String archetypeOid = getArchetypeOid(assignmentHolder);
+        if (!StringUtils.isEmpty(archetypeOid)) {
+            List<CompiledObjectCollectionView> collectionViews =
+                    pageBase.getCompiledGuiProfile().getObjectCollectionViews();
+            for (CompiledObjectCollectionView view : collectionViews) {
+                if (view.getCollection() != null && view.getCollection().getCollectionRef() != null
+                        && archetypeOid.equals(view.getCollection().getCollectionRef().getOid())) {
+                    return view;
+                }
+            }
+        }
+        QName type = classToQName(pageBase.getPrismContext(), assignmentHolder.getClass());
+        return pageBase.getCompiledGuiProfile().findObjectCollectionView(type, null);
     }
 }

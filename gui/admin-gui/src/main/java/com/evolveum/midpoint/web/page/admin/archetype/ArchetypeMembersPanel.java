@@ -36,11 +36,11 @@ public class ArchetypeMembersPanel extends AbstractRoleMemberPanel<ArchetypeType
 
     @Override
     protected AvailableRelationDto getSupportedRelations() {
-        return new AvailableRelationDto(Arrays.asList(SchemaConstants.ORG_DEFAULT));
+        return new AvailableRelationDto(Arrays.asList(SchemaConstants.ORG_DEFAULT), getDefaultRelationConfiguration());
     }
 
     @Override
-    protected List<QName> getSupportedObjectTypes(boolean includeAbstractTypes) {
+    protected List<QName> getDefaultSupportedObjectTypes(boolean includeAbstractTypes) {
         return WebComponentUtil.createAssignmentHolderTypeQnamesList();
     }
 

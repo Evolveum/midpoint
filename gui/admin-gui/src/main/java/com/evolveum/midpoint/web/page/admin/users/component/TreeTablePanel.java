@@ -150,7 +150,7 @@ public class TreeTablePanel extends BasePanel<String> {
             @Override
             protected AvailableRelationDto getSupportedRelations() {
                 return new AvailableRelationDto(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, TreeTablePanel.this.getPageBase()),
-                        SchemaConstants.ORG_DEFAULT);
+                        SchemaConstants.ORG_DEFAULT, getDefaultRelationConfiguration());
             }
 
             protected AbstractRoleMemberPanel<OrgType> getMemberPanel() {

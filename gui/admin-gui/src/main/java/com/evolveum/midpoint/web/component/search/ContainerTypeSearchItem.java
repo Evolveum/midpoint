@@ -8,26 +8,16 @@ package com.evolveum.midpoint.web.component.search;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypeSearchItemConfigurationType;
 
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,6 +36,7 @@ public class ContainerTypeSearchItem<C extends Containerable> extends SearchItem
     private DisplayableValue<Class<C>> type;
     private Class<C> oldType;
     private boolean visible = false;
+    private ObjectTypeSearchItemConfigurationType configuration = null;
 
     public ContainerTypeSearchItem(Class<C> typeClass) {
         this(new SearchValue(typeClass, ""), null);
@@ -66,7 +57,18 @@ public class ContainerTypeSearchItem<C extends Containerable> extends SearchItem
 
     @Override
     public String getName() {
+        if (configuration != null && configuration.getDisplay() != null && configuration.getDisplay().getLabel() != null){
+            return WebComponentUtil.getTranslatedPolyString(configuration.getDisplay().getLabel());
+        }
         return PageBase.createStringResourceStatic(null, "ContainerTypeSearchItem.name").getString();
+    }
+
+    @Override
+    public String getHelp(PageBase pageBase) {
+        if (configuration != null && configuration.getDisplay() != null && configuration.getDisplay().getHelp() != null){
+            return WebComponentUtil.getTranslatedPolyString(configuration.getDisplay().getHelp());
+        }
+        return "";
     }
 
     @Override
@@ -108,7 +110,8 @@ public class ContainerTypeSearchItem<C extends Containerable> extends SearchItem
     }
 
     public boolean isVisible(){
-        return allowedValues != null && !allowedValues.isEmpty() && visible;
+        return allowedValues != null && !allowedValues.isEmpty() && visible
+                && (configuration == null || CompiledGuiProfile.isVisible(configuration.getVisibility(), null));
     }
 
     public void setTypeClass(Class<C> type) {
@@ -124,5 +127,9 @@ public class ContainerTypeSearchItem<C extends Containerable> extends SearchItem
             return true;
         }
         return !oldType.equals(getTypeClass());
+    }
+
+    public void setConfiguration(ObjectTypeSearchItemConfigurationType configuration) {
+        this.configuration = configuration;
     }
 }

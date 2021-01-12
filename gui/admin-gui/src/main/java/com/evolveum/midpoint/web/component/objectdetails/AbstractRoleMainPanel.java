@@ -225,7 +225,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
             @Override
             protected AvailableRelationDto getSupportedRelations() {
-                return getSupportedMembersTabRelations();
+                return getSupportedMembersTabRelations(getDefaultRelationConfiguration());
             }
 
             @Override
@@ -244,7 +244,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
             @Override
             protected AvailableRelationDto getSupportedRelations() {
-                AvailableRelationDto availableRelations = getSupportedGovernanceTabRelations();
+                AvailableRelationDto availableRelations = getSupportedGovernanceTabRelations(getDefaultRelationConfiguration());
                 availableRelations.setDefaultRelation(null);
                 return availableRelations;
             }
@@ -262,15 +262,16 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
         };
     }
 
-    protected AvailableRelationDto getSupportedMembersTabRelations() {
+    protected AvailableRelationDto getSupportedMembersTabRelations(RelationSearchItemConfigurationType defaultRelationConfiguration) {
         List<QName> relations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getDetailsPage());
         List<QName> governance = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage());
         governance.forEach(r -> relations.remove(r));
-        return new AvailableRelationDto(relations);
+        return new AvailableRelationDto(relations, defaultRelationConfiguration);
     }
 
-    protected AvailableRelationDto getSupportedGovernanceTabRelations() {
-        return new AvailableRelationDto(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage()), SchemaConstants.ORG_APPROVER);
+    protected AvailableRelationDto getSupportedGovernanceTabRelations(RelationSearchItemConfigurationType defaultRelationConfiguration) {
+        return new AvailableRelationDto(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage()),
+                SchemaConstants.ORG_APPROVER, defaultRelationConfiguration);
     }
 
     protected Map<String, String> getGovernanceTabAuthorizations() {

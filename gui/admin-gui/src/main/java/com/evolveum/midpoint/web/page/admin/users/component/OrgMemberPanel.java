@@ -11,19 +11,14 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.web.session.MemberPanelStorage;
-import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
@@ -85,7 +80,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     }
 
     @Override
-    protected List<QName> getSupportedObjectTypes(boolean includeAbstractTypes) {
+    protected List<QName> getDefaultSupportedObjectTypes(boolean includeAbstractTypes) {
             List<QName> objectTypes = WebComponentUtil.createAssignmentHolderTypeQnamesList();
             objectTypes.remove(ShadowType.COMPLEX_TYPE);
             objectTypes.remove(ObjectType.COMPLEX_TYPE);
@@ -110,7 +105,8 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     @Override
     protected AvailableRelationDto getSupportedRelations() {
         AvailableRelationDto availableRelationDto =
-                new AvailableRelationDto(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, getPageBase()));
+                new AvailableRelationDto(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, getPageBase()),
+                        getDefaultRelationConfiguration());
         availableRelationDto.setDefaultRelation(PrismConstants.Q_ANY);
         return availableRelationDto;
     }

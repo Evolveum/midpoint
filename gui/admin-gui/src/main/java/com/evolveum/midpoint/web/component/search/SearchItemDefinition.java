@@ -18,7 +18,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.model.StringResourceModel;
 
 import javax.xml.namespace.QName;
 
@@ -35,7 +34,7 @@ public class SearchItemDefinition implements Serializable, Comparable<SearchItem
     private List<QName> allowedValues;
     private String description;
     private boolean isSelected = false;
-    private boolean showAsDefault = true;
+    private boolean visibleByDefault = true;
 
     public SearchItemDefinition(ItemPath path, ItemDefinition def, List<QName> allowedValues) {
         this.path = path;
@@ -46,7 +45,7 @@ public class SearchItemDefinition implements Serializable, Comparable<SearchItem
     public SearchItemDefinition(SearchItemType predefinedFilter) {
         this.predefinedFilter = predefinedFilter;
         this.description = predefinedFilter != null ? predefinedFilter.getDescription() : null;
-        this.showAsDefault = !Boolean.FALSE.equals(predefinedFilter.isShowAsDefault());
+        this.visibleByDefault = !Boolean.FALSE.equals(predefinedFilter.isVisibleByDefault());
         this.displayName = predefinedFilter.getDisplayName();
     }
 
@@ -86,8 +85,8 @@ public class SearchItemDefinition implements Serializable, Comparable<SearchItem
         isSelected = selected;
     }
 
-    public boolean isShowAsDefault() {
-        return showAsDefault;
+    public boolean isVisibleByDefault() {
+        return visibleByDefault;
     }
 
     public String getName() {
