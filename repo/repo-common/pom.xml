@@ -56,6 +56,11 @@
             <artifactId>security-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>audit-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!--
         TODO: this one is strange, it's the only repo non-api dependency and seems to be needed
         for one line: RepositoryCache.enterLocalCaches... in AbstractSearchIterativeResultHandler

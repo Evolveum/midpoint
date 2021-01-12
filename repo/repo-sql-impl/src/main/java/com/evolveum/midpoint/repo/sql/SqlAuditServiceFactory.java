@@ -23,7 +23,6 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.hibernate.SessionFactory;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 
 import com.evolveum.midpoint.audit.api.AuditService;
@@ -31,21 +30,27 @@ import com.evolveum.midpoint.audit.api.AuditServiceFactory;
 import com.evolveum.midpoint.audit.api.AuditServiceFactoryException;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
+import com.evolveum.midpoint.repo.sql.audit.mapping.QAuditEventRecordMapping;
+import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sql.helpers.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.SqlTableMetadata;
-import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditEventRecord;
-import com.evolveum.midpoint.repo.sql.audit.mapping.QAuditEventRecordMapping;
 import com.evolveum.midpoint.repo.sql.util.EntityStateInterceptor;
 import com.evolveum.midpoint.repo.sql.util.MidPointImplicitNamingStrategy;
 import com.evolveum.midpoint.repo.sql.util.MidPointPhysicalNamingStrategy;
+import com.evolveum.midpoint.repo.sqlbase.SqlTableMetadata;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * {@link AuditServiceFactory} for {@link SqlAuditServiceImpl}, that is DB-based auditing.
+ * <p>
+ * This works only if legacy repository is used, which is handled by ConditionalOnExpression.
+ * If this class is specified in config.xml as audit factory, without old repository it fails
+ * because it will not be found as a bean.
  */
+//@ConditionalOnExpression("#{midpointConfiguration.getConfiguration('midpoint.repository')"
+//        + ".getString('repositoryServiceFactoryClass').startsWith('com.evolveum.midpoint.repo.sql.')}")
 public class SqlAuditServiceFactory implements AuditServiceFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlAuditServiceFactory.class);
@@ -54,13 +59,26 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
     private static final String CONF_AUDIT_SERVICE_COLUMN_NAME = "columnName";
     private static final String CONF_AUDIT_SERVICE_EVENT_RECORD_PROPERTY_NAME = "eventRecordPropertyName";
 
-    @Autowired private BaseHelper defaultBaseHelper;
-    @Autowired private PrismContext prismContext;
-    @Autowired private MidPointImplicitNamingStrategy midPointImplicitNamingStrategy;
-    @Autowired private MidPointPhysicalNamingStrategy midPointPhysicalNamingStrategy;
-    @Autowired private EntityStateInterceptor entityStateInterceptor;
+    private final BaseHelper defaultBaseHelper;
+    private final PrismContext prismContext;
+    private final MidPointImplicitNamingStrategy midPointImplicitNamingStrategy;
+    private final MidPointPhysicalNamingStrategy midPointPhysicalNamingStrategy;
+    private final EntityStateInterceptor entityStateInterceptor;
 
     private SqlAuditServiceImpl auditService;
+
+    public SqlAuditServiceFactory(
+            BaseHelper defaultBaseHelper,
+            PrismContext prismContext,
+            MidPointImplicitNamingStrategy midPointImplicitNamingStrategy,
+            MidPointPhysicalNamingStrategy midPointPhysicalNamingStrategy,
+            EntityStateInterceptor entityStateInterceptor) {
+        this.defaultBaseHelper = defaultBaseHelper;
+        this.prismContext = prismContext;
+        this.midPointImplicitNamingStrategy = midPointImplicitNamingStrategy;
+        this.midPointPhysicalNamingStrategy = midPointPhysicalNamingStrategy;
+        this.entityStateInterceptor = entityStateInterceptor;
+    }
 
     @Override
     public synchronized void init(@NotNull Configuration configuration) throws AuditServiceFactoryException {

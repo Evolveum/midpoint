@@ -7,16 +7,21 @@
 package com.evolveum.midpoint.repo.sqale;
 
 import org.apache.commons.configuration2.Configuration;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
+import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 public class SqaleRepositoryServiceFactory implements RepositoryServiceFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqaleRepositoryServiceFactory.class);
+
+    @Autowired
+    private SqlRepoContext sqlRepoContext;
 
     private SqaleRepositoryService repositoryService;
 
