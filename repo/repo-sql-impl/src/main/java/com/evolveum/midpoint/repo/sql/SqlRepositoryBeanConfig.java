@@ -1,13 +1,21 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql;
 
-import java.util.Properties;
-import javax.sql.DataSource;
+import com.evolveum.midpoint.audit.api.AuditServiceFactory;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
+import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
+import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
+import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
+import com.evolveum.midpoint.repo.sql.util.EntityStateInterceptor;
+import com.evolveum.midpoint.repo.sql.util.MidPointImplicitNamingStrategy;
+import com.evolveum.midpoint.repo.sql.util.MidPointPhysicalNamingStrategy;
+import com.evolveum.midpoint.repo.sqlbase.SystemConfigurationChangeDispatcherImpl;
 
 import org.hibernate.SessionFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -19,14 +27,8 @@ import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.transaction.TransactionManager;
 
-import com.evolveum.midpoint.audit.api.AuditServiceFactory;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
-import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
-import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
-import com.evolveum.midpoint.repo.sql.util.EntityStateInterceptor;
-import com.evolveum.midpoint.repo.sql.util.MidPointImplicitNamingStrategy;
-import com.evolveum.midpoint.repo.sql.util.MidPointPhysicalNamingStrategy;
+import javax.sql.DataSource;
+import java.util.Properties;
 
 /**
  * SQL repository related configuration from {@link DataSourceFactory} through ORM all the way to
@@ -145,5 +147,12 @@ public class SqlRepositoryBeanConfig {
         return new SqlAuditServiceFactory(
                 defaultBaseHelper, prismContext, midPointImplicitNamingStrategy,
                 midPointPhysicalNamingStrategy, entityStateInterceptor);
+    }
+
+    // TODO it would be better to have dependencies explicit here, but there is cyclic one
+    //  in SystemConfigurationChangeDispatcherImpl.
+    @Bean
+    public SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher() {
+        return new SystemConfigurationChangeDispatcherImpl();
     }
 }
