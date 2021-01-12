@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorHandlingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationMethodType;
 import org.jetbrains.annotations.NotNull;
 
@@ -58,6 +60,8 @@ public interface GetOperationOptionsBuilder {
     GetOperationOptionsBuilder iterationMethod(IterationMethodType value);
     GetOperationOptionsBuilder executionPhase();
     GetOperationOptionsBuilder executionPhase(Boolean value);
+    GetOperationOptionsBuilder errorHandling(FetchErrorHandlingType errorHandling);
+    GetOperationOptionsBuilder errorReportingMethod(FetchErrorReportingMethodType method);
 
     GetOperationOptionsBuilder setFrom(Collection<SelectorOptions<GetOperationOptions>> options);
     GetOperationOptionsBuilder mergeFrom(Collection<SelectorOptions<GetOperationOptions>> options);

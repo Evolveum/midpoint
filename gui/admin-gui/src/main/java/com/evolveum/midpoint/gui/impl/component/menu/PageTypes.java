@@ -5,6 +5,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.cases.PageCases;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
@@ -20,7 +21,7 @@ public enum PageTypes {
     ROLE("roles", GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, PageRoles.class, PageRole.class),
     SERVICE("services", GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON, PageServices.class, PageService.class),
     TASK("tasks", GuiStyleConstants.CLASS_OBJECT_TASK_ICON, PageTasks.class, PageTask.class),
-    RESOURCE("resources", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, PageResources.class, PageResource.class),
+    RESOURCE("resources", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, PageResources.class, PageResourceWizard.class),
     CASE("cases", GuiStyleConstants.EVO_CASE_OBJECT_ICON, PageCases.class, null);
 
     private String identifier;

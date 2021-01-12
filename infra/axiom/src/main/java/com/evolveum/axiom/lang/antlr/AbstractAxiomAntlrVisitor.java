@@ -144,26 +144,14 @@ public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
 
     static String convert(StringContext string) {
         if(string.singleQuoteString() != null) {
-            return convertSingleQuote(string.singleQuoteString().getText());
+            return AxiomAntlrLiterals.convertSingleQuote(string.singleQuoteString().getText());
         }
         if(string.doubleQuoteString() != null) {
-            return covertDoubleQuote(string.doubleQuoteString().getText());
+            return AxiomAntlrLiterals.convertDoubleQuote(string.doubleQuoteString().getText());
         }
-        return convertMultiline(string.multilineString().getText());
+        return AxiomAntlrLiterals.convertMultiline(string.multilineString().getText());
     }
 
-    private static String convertSingleQuote(String text) {
-        int stop = text.length();
-        return text.substring(1, stop - 1);
-    }
 
-    private static String covertDoubleQuote(String text) {
-        int stop = text.length();
-        return text.substring(1, stop - 1);
-    }
-
-    private static String convertMultiline(String text) {
-        return text.replace("\"\"\"", "");
-    }
 
 }

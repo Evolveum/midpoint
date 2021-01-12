@@ -136,7 +136,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         OperationResult result = createOperationResult();
 
         // WHEN
-        cc.search(accountDefinition, null, handler, null, null, null, null, result);
+        cc.search(accountDefinition, null, handler, null, null, null, null, null, result);
 
         // THEN
         assertEquals("Unexpected number of search results", 1, searchResults.size());
@@ -176,7 +176,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
             @Override
             public void run() {
                 try {
-                    cc.search(accountDefinition, null, handler, null, null, null, null, result);
+                    cc.search(accountDefinition, null, handler, null, null, null, null, null, result);
                 } catch (CommunicationException | GenericFrameworkException | SchemaException
                         | SecurityViolationException | ObjectNotFoundException e) {
                     logger.error("Error in the search: {}", e.getMessage(), e);
@@ -251,7 +251,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
             @Override
             public void run() {
                 try {
-                    cc.search(accountDefinition, null, handler1, null, null, null, null, result1);
+                    cc.search(accountDefinition, null, handler1, null, null, null, null, null, result1);
                 } catch (CommunicationException | GenericFrameworkException | SchemaException
                         | SecurityViolationException | ObjectNotFoundException e) {
                     logger.error("Error in the search: {}", e.getMessage(), e);
@@ -276,7 +276,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
             @Override
             public void run() {
                 try {
-                    cc.search(accountDefinition, null, handler2, null, null, null, null, result2);
+                    cc.search(accountDefinition, null, handler2, null, null, null, null, null, result2);
                 } catch (CommunicationException | GenericFrameworkException | SchemaException
                         | SecurityViolationException | ObjectNotFoundException e) {
                     logger.error("Error in the search: {}", e.getMessage(), e);

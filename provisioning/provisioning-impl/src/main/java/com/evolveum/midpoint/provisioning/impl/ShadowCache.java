@@ -72,6 +72,10 @@ import javax.xml.namespace.QName;
 
 import java.util.*;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType.EXCEPTION;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType.FETCH_RESULT;
+
 /**
  * Shadow cache is a facade that covers all the operations with shadows. It
  * takes care of splitting the operations between repository and resource,
@@ -79,8 +83,8 @@ import java.util.*;
  * process.
  *
  * The two principal classes that do the operations are:
- * ResourceObjectConvertor: executes operations on resource
- * ShadowManager: executes operations in the repository
+ * {@link ResourceObjectConverter}: executes operations on resource
+ * {@link ShadowManager}: executes operations in the repository
  *
  * @author Radovan Semancik
  * @author Katarina Valalikova
@@ -166,7 +170,7 @@ public class ShadowCache {
         try {
             ctx.assertDefinition();
         } catch (SchemaException | ConfigurationException | ObjectNotFoundException | CommunicationException | ExpressionEvaluationException e) {
-            if (GetOperationOptions.isRaw(rootOptions)) {
+            if (isRaw(rootOptions)) {
                 // when using raw (repository option), return the repo shadow as it is. it's better than nothing and in this case we don't even need resource
                 //TODO maybe change assertDefinition to consider rawOption?
                 parentResult.computeStatusIfUnknown();
@@ -184,7 +188,7 @@ public class ShadowCache {
         ResourceType resource = ctx.getResource();
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 
-        if (GetOperationOptions.isNoFetch(rootOptions) || GetOperationOptions.isRaw(rootOptions)) {
+        if (isNoFetch(rootOptions) || isRaw(rootOptions)) {
             return processNoFetchGet(ctx, repositoryShadow, options, now, task, parentResult);
         }
 
@@ -373,7 +377,7 @@ public class ShadowCache {
     }
 
     private boolean shouldRefreshOnRead(ResourceType resource, GetOperationOptions rootOptions) {
-        return GetOperationOptions.isForceRefresh(rootOptions) || GetOperationOptions.isForceRetry(rootOptions) || ResourceTypeUtil.isRefreshOnRead(resource);
+        return isForceRefresh(rootOptions) || isForceRetry(rootOptions) || ResourceTypeUtil.isRefreshOnRead(resource);
     }
 
     private PrismObject<ShadowType> processNoFetchGet(ProvisioningContext ctx,
@@ -383,7 +387,7 @@ public class ShadowCache {
         LOGGER.trace("Processing noFetch get for {}", repositoryShadow);
 
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-        if (!GetOperationOptions.isRaw(rootOptions)) {
+        if (!isRaw(rootOptions)) {
             // Even with noFetch we still want to delete expired pending operations. And even delete
             // the shadow if needed.
             repositoryShadow = refreshShadowQuick(ctx, repositoryShadow, now, task, parentResult);
@@ -422,8 +426,8 @@ public class ShadowCache {
             // NOTE: this is just for tombstone! Schrodinger's shadows (corpse) will still work as if they were alive.
             return true;
         }
-        long stalenessOption = GetOperationOptions.getStaleness(SelectorOptions.findRootOptions(options));
-        PointInTimeType pit = GetOperationOptions.getPointInTimeType(SelectorOptions.findRootOptions(options));
+        long stalenessOption = getStaleness(SelectorOptions.findRootOptions(options));
+        PointInTimeType pit = getPointInTimeType(SelectorOptions.findRootOptions(options));
         if (pit == null) {
             if (stalenessOption > 0) {
                 pit = PointInTimeType.CACHED;
@@ -446,7 +450,7 @@ public class ShadowCache {
     }
 
     private boolean isCachedShadowValid(Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow) throws ConfigurationException {
-        long stalenessOption = GetOperationOptions.getStaleness(SelectorOptions.findRootOptions(options));
+        long stalenessOption = getStaleness(SelectorOptions.findRootOptions(options));
         if (stalenessOption == 0L) {
             return false;
         }
@@ -2002,13 +2006,11 @@ public class ShadowCache {
 //    }
 
     public SearchResultMetadata searchObjectsIterative(ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, final ResultHandler<ShadowType> handler,
-            final boolean readFromRepository, Task task, final OperationResult parentResult)
-                    throws SchemaException, ObjectNotFoundException, CommunicationException,
-                    ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-
+            Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<ShadowType> handler,
+            boolean readFromRepository, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         ProvisioningContext ctx = createContextForSearch(query, options, task, parentResult);
-
         return searchObjectsIterative(ctx, query, options, handler, readFromRepository, parentResult);
     }
 
@@ -2026,26 +2028,36 @@ public class ShadowCache {
 
     @NotNull
     public SearchResultList<PrismObject<ShadowType>> searchObjects(ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, final OperationResult parentResult)
-                    throws SchemaException, ObjectNotFoundException, CommunicationException,
-                    ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         ProvisioningContext ctx = createContextForSearch(query, options, task, parentResult);
         return searchObjects(ctx, query, options, parentResult);
     }
 
-    public SearchResultMetadata searchObjectsIterative(final ProvisioningContext ctx, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, final ResultHandler<ShadowType> handler,
-            final boolean readFromRepository, final OperationResult parentResult)
-                    throws SchemaException, ObjectNotFoundException, CommunicationException,
-                    ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public SearchResultMetadata searchObjectsIterative(ProvisioningContext ctx, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<ShadowType> handler,
+            boolean readFromRepository, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         applyDefinition(ctx, query);
 
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
         if (ProvisioningUtil.shouldDoRepoSearch(rootOptions)) {
             return searchObjectsIterativeRepository(ctx, query, options, handler, parentResult);
+        } else {
+            return searchObjectIterativeResource(ctx, query, options, handler, readFromRepository, parentResult, rootOptions);
         }
+    }
+
+    private SearchResultMetadata searchObjectIterativeResource(ProvisioningContext ctx, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<ShadowType> handler,
+            boolean readFromRepository, OperationResult parentResult, GetOperationOptions rootOptions)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException, SecurityViolationException {
+
         boolean isDoDiscovery = ProvisioningUtil.isDoDiscovery(ctx.getResource(), rootOptions);
+        FetchErrorReportingMethodType errorReportingMethod = getErrorReportingMethod(rootOptions);
 
         // We need to record the fetch down here. Now it is certain that we are
         // going to fetch from resource
@@ -2057,76 +2069,112 @@ public class ShadowCache {
         ResultHandler<ShadowType> resultHandler = (PrismObject<ShadowType> resourceObject, OperationResult objResult) -> {
             LOGGER.trace("Found resource object\n{}", resourceObject.debugDumpLazily(1));
             PrismObject<ShadowType> resultShadow;
+
+            if (!ShadowUtil.hasFetchError(resourceObject)) {
                 try {
-                    // The shadow does not have any kind or intent at this point.
-                    // But at least locate the definition using object classes.
-                    ProvisioningContext estimatedShadowCtx = shadowCaretaker.reapplyDefinitions(ctx, resourceObject);
-                    // Try to find shadow that corresponds to the resource object.
-                    if (readFromRepository) {
-                        PrismObject<ShadowType> repoShadow = acquireRepositoryShadow(
-                                estimatedShadowCtx, resourceObject, true, isDoDiscovery, objResult);
-
-                        // This determines the definitions exactly. How the repo
-                        // shadow should have proper kind/intent
-                        ProvisioningContext shadowCtx = shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
-                        // TODO: shadowState
-                        repoShadow = shadowManager.updateShadow(shadowCtx, resourceObject, null, repoShadow, null, objResult);
-
-                        resultShadow = completeShadow(shadowCtx, resourceObject, repoShadow, isDoDiscovery, objResult);
-
-                        // TODO do we want also to futurize the shadow like in getObject?
-
-                        //check and fix kind/intent
-                        ShadowType repoShadowType = repoShadow.asObjectable();
-                        if (isDoDiscovery && (repoShadowType.getKind() == null || repoShadowType.getIntent() == null)) { //TODO: check also empty?
-                            // notify resourceObjectChangeListeners to fix kind and intent for Shadow
-                            // Do NOT invoke this if discovery is disabled. This may ruin the flow (e.g. when importing objects)
-                            // or it may lead to discovery loops.
-                            notifyResourceObjectChangeListeners(repoShadow, ctx.getResource().asPrismObject(), false);
-                        }
-
-                    } else {
-                        resultShadow = resourceObject;
-                    }
-
-                    validateShadow(resultShadow, readFromRepository);
-
-                } catch (SchemaException e) {
-                    objResult.recordFatalError("Schema error: " + e.getMessage(), e);
-                    LOGGER.error("Schema error: {}", e.getMessage(), e);
-                    return false;
-                } catch (ConfigurationException e) {
-                    objResult.recordFatalError("Configuration error: " + e.getMessage(), e);
-                    LOGGER.error("Configuration error: {}", e.getMessage(), e);
-                    return false;
-                } catch (ObjectNotFoundException | CommunicationException
+                    resultShadow = treatObjectFound(ctx, readFromRepository, isDoDiscovery, resourceObject, objResult);
+                } catch (SchemaException | ConfigurationException | ObjectNotFoundException | CommunicationException
                         | SecurityViolationException | GenericConnectorException | ExpressionEvaluationException | EncryptionException e) {
                     objResult.recordFatalError(e.getMessage(), e);
-                    LOGGER.error("{}", e.getMessage(), e);
-                    return false;
+                    if (errorReportingMethod == EXCEPTION) {
+                        throw new TunnelException(e);
+                    } else if (errorReportingMethod == FETCH_RESULT) {
+                        resultShadow = resourceObject;
+                        ShadowUtil.recordFetchError(resultShadow, objResult);
+                    } else {
+                        // This is the default (4.2 and before) behavior: we silently skip the problematic object and stop.
+                        // TODO This is not very correct behavior. We should probably change it.
+                        LOGGER.error("An error occurred while processing resource object {}. Silently skipping it and stopping the search. Reason: {}",
+                                resourceObject, e.getMessage(), e);
+                        return false;
+                    }
                 }
+            } else {
+                resultShadow = resourceObject;
+            }
 
-                boolean doContinue;
-                try {
-
-                    doContinue =  handler.handle(resultShadow, objResult);
-
-                    objResult.computeStatus();
-                    objResult.recordSuccessIfUnknown();
-
-                } catch (RuntimeException | Error e) {
-                    objResult.recordFatalError(e);
-                    throw e;
-                }
-
-                return doContinue;
-            };
+            try {
+                return handler.handle(resultShadow, objResult);
+            } catch (RuntimeException | Error e) {
+                objResult.recordFatalError(e);
+                throw e;
+            } finally {
+                objResult.computeStatusIfUnknown();
+            }
+        };
 
         boolean fetchAssociations = SelectorOptions.hasToLoadPath(ShadowType.F_ASSOCIATION, options);
+        try {
+            return resourceObjectConverter.searchResourceObjects(ctx, resultHandler, attributeQuery,
+                    fetchAssociations, errorReportingMethod, parentResult);
+        } catch (TunnelException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof ObjectNotFoundException) {
+                throw (ObjectNotFoundException) cause;
+            } else if (cause instanceof SchemaException) {
+                throw (SchemaException) cause;
+            } else if (cause instanceof CommunicationException) {
+                throw (CommunicationException) cause;
+            } else if (cause instanceof ConfigurationException) {
+                throw (ConfigurationException) cause;
+            } else if (cause instanceof SecurityViolationException) {
+                throw (SecurityViolationException) cause;
+            } else if (cause instanceof ExpressionEvaluationException) {
+                throw (ExpressionEvaluationException) cause;
+            } else if (cause instanceof RuntimeException) {
+                throw (RuntimeException) cause;
+            } else {
+                throw new SystemException(cause.getMessage(), cause);
+            }
+        }
+    }
 
-        return resourceObjectConverter.searchResourceObjects(ctx, resultHandler, attributeQuery,
-                fetchAssociations, parentResult);
+    /**
+     * Contains processing of an object that has been found on a resource before it is passed to the caller-provided handler.
+     * We do basically four things:
+     * 1. apply definitions,
+     * 2. update repo shadow,
+     * 3. complete the shadow,
+     * 4. notify resource object change listeners in order to get kind+intent (if needed).
+     */
+    @NotNull
+    private PrismObject<ShadowType> treatObjectFound(ProvisioningContext ctx, boolean updateRepository,
+            boolean isDoDiscovery, PrismObject<ShadowType> resourceObject, OperationResult objResult) throws SchemaException,
+            ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
+            EncryptionException, SecurityViolationException {
 
+        PrismObject<ShadowType> resultShadow;
+
+        // The shadow does not have any kind or intent at this point.
+        // But at least locate the definition using object classes.
+        ProvisioningContext estimatedShadowCtx = shadowCaretaker.reapplyDefinitions(ctx, resourceObject);
+        // Try to find shadow that corresponds to the resource object.
+        if (updateRepository) {
+            PrismObject<ShadowType> repoShadow = acquireRepositoryShadow(
+                    estimatedShadowCtx, resourceObject, true, isDoDiscovery, objResult);
+
+            // This determines the definitions exactly. Now the repo shadow should have proper kind/intent
+            ProvisioningContext shadowCtx = shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
+            // TODO: shadowState
+            repoShadow = shadowManager.updateShadow(shadowCtx, resourceObject, null, repoShadow, null, objResult);
+            resultShadow = completeShadow(shadowCtx, resourceObject, repoShadow, isDoDiscovery, objResult);
+
+            // TODO do we want also to futurize the shadow like in getObject?
+
+            //check and fix kind/intent
+            ShadowType repoShadowBean = repoShadow.asObjectable();
+            if (isDoDiscovery && (repoShadowBean.getKind() == null || repoShadowBean.getIntent() == null)) { //TODO: check also empty?
+                // notify resourceObjectChangeListeners to fix kind and intent for Shadow
+                // Do NOT invoke this if discovery is disabled. This may ruin the flow (e.g. when importing objects)
+                // or it may lead to discovery loops.
+                notifyResourceObjectChangeListeners(repoShadow, ctx.getResource().asPrismObject(), false);
+            }
+
+        } else {
+            resultShadow = resourceObject;
+        }
+        validateShadow(resultShadow, updateRepository);
+        return resultShadow;
     }
 
     @NotNull
@@ -2162,14 +2210,12 @@ public class ShadowCache {
     private PrismObject<ShadowType> acquireRepositoryShadow(ProvisioningContext ctx,
             PrismObject<ShadowType> resourceShadow, boolean unknownIntent, boolean isDoDiscovery, OperationResult parentResult)
                     throws SchemaException, ConfigurationException, ObjectNotFoundException,
-                    CommunicationException, SecurityViolationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
+                    CommunicationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
 
         PrismObject<ShadowType> existingRepoShadow = shadowManager.lookupLiveShadowInRepository(ctx, resourceShadow, parentResult);
 
         if (existingRepoShadow != null) {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Found shadow object in the repository {}", ShadowUtil.shortDumpShadow(existingRepoShadow));
-            }
+            LOGGER.trace("Found shadow object in the repository {}", ShadowUtil.shortDumpShadowLazily(existingRepoShadow));
             return existingRepoShadow;
         }
 
@@ -2427,7 +2473,7 @@ public class ShadowCache {
         for (PrismObject<ShadowType> object : objects) {
             repoHandler.handle(object, parentResult.createMinorSubresult(ShadowCache.class.getName() + ".handleObject"));
         }
-        parentResult.summarize();       // todo is this ok?
+        parentResult.summarize(); // todo is this ok?
         return objects;
     }
 
@@ -2442,7 +2488,7 @@ public class ShadowCache {
 
         validateShadow(shadow, true);
 
-        if (GetOperationOptions.isMaxStaleness(SelectorOptions.findRootOptions(options))) {
+        if (isMaxStaleness(SelectorOptions.findRootOptions(options))) {
             CachingMetadataType cachingMetadata = shadow.asObjectable().getCachingMetadata();
             if (cachingMetadata == null) {
                 objResult.recordFatalError("Requested cached data but no cached data are available in the shadow");
@@ -2480,8 +2526,11 @@ public class ShadowCache {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
 
-        ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(query.getFilter(), prismContext);
-        final ProvisioningContext ctx = ctxFactory.create(coordinates, null, result);
+        ObjectFilter filter = query != null ? query.getFilter() : null;
+        ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(filter, prismContext);
+        assert query != null; // otherwise coordinates couldn't be found
+
+        ProvisioningContext ctx = ctxFactory.create(coordinates, null, result);
         ctx.assertDefinition();
         applyDefinition(ctx, query);
 
@@ -2532,12 +2581,10 @@ public class ShadowCache {
 
                 final Holder<Integer> countHolder = new Holder<>(0);
 
-                final ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+                final ResultHandler<ShadowType> handler = new ResultHandler<>() {
                     @Override
                     public boolean handle(PrismObject<ShadowType> shadow, OperationResult objResult) {
-                        int count = countHolder.getValue();
-                        count++;
-                        countHolder.setValue(count);
+                        countHolder.setValue(countHolder.getValue() + 1);
                         return true;
                     }
 
@@ -2576,22 +2623,15 @@ public class ShadowCache {
             } else if (simulate == CountObjectsSimulateType.SEQUENTIAL_SEARCH) {
                 //fix for MID-5204. as sequentialSearch option causes to fetch all resource objects,
                 // query paging is senseless here
-                if (query != null) {
-                    query.setPaging(null);
-                }
+                query = query.clone();
+                query.setPaging(null);
                 LOGGER.trace("countObjects: simulating counting with sequential search (likely performance impact)");
                 // traditional way of counting objects (i.e. counting them one by one)
                 final Holder<Integer> countHolder = new Holder<>(0);
 
-                final ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
-
-                    @Override
-                    public boolean handle(PrismObject<ShadowType> shadow, OperationResult objResult) {
-                        int count = countHolder.getValue();
-                        count++;
-                        countHolder.setValue(count);
-                        return true;
-                    }
+                final ResultHandler<ShadowType> handler = (shadow, objResult) -> {
+                    countHolder.setValue(countHolder.getValue() + 1);
+                    return true;
                 };
 
                 Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
@@ -2606,10 +2646,8 @@ public class ShadowCache {
 
             } else {
                 throw new IllegalArgumentException("Unknown count capability simulate type " + simulate);
-
             }
         }
-
     }
 
     /**
@@ -2617,7 +2655,7 @@ public class ShadowCache {
      * are filled (e.g name, resourceRef, ...) Also transforms the shadow with
      * respect to simulated capabilities. Also shadowRefs are added to associations.
      */
-    public PrismObject<ShadowType> completeShadow(ProvisioningContext ctx,
+    @NotNull public PrismObject<ShadowType> completeShadow(ProvisioningContext ctx,
             PrismObject<ShadowType> resourceShadow, PrismObject<ShadowType> repoShadow, boolean isDoDiscovery,
             OperationResult parentResult)
                     throws SchemaException, ConfigurationException, ObjectNotFoundException,

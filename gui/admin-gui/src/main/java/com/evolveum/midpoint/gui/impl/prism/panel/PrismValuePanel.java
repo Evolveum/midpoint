@@ -121,8 +121,15 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
         GuiComponentFactory factory = null;
         if (getModelObject() != null && getModelObject().getParent() != null) {
-            factory = getPageBase().getRegistry().findValuePanelFactory(getModelObject().getParent());
+            try {
+
+                factory = getPageBase().getRegistry().findValuePanelFactory(getModelObject().getParent());
+
+            } catch (Throwable e) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Failed to find value panel factory for {}. Ignoring and continuing with default value panel.", e, getModelObject().getParent());
+            }
         }
+
         WebMarkupContainer valueContainer = new WebMarkupContainer(ID_VALUE_CONTAINER);
         valueContainer.setOutputMarkupId(true);
         form.add(valueContainer);

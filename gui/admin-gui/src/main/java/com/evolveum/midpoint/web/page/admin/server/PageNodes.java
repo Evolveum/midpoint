@@ -82,7 +82,7 @@ public class PageNodes extends PageAdmin {
 
             @Override
             protected UserProfileStorage.TableId getTableId() {
-                return UserProfileStorage.TableId.PAGE_TASKS_NODES_PANEL;
+                return UserProfileStorage.TableId.PAGE_NODES_PANEL;
             }
 
             @Override

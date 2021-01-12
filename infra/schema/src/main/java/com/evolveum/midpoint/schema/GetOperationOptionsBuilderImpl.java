@@ -12,6 +12,8 @@ import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorHandlingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationMethodType;
 import org.jetbrains.annotations.NotNull;
 
@@ -240,6 +242,17 @@ public class GetOperationOptionsBuilderImpl implements GetOperationOptionsBuilde
     public GetOperationOptionsBuilder executionPhase(Boolean value) {
         return forPaths(opts -> opts.setExecutionPhase(value));
     }
+
+    @Override
+    public GetOperationOptionsBuilder errorHandling(FetchErrorHandlingType errorHandling) {
+        return forPaths(opts -> opts.setErrorHandling(errorHandling));
+    }
+
+    @Override
+    public GetOperationOptionsBuilder errorReportingMethod(FetchErrorReportingMethodType method) {
+        return forPaths(opts -> opts.setErrorReportingMethod(method, prismContext));
+    }
+
     //endregion
 
     //region Query

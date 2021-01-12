@@ -54,4 +54,8 @@ public class OperationResultUtil {
                 OperationResultStatusType.HANDLED_ERROR.equals(result) ||
                 OperationResultStatusType.WARNING.equals(result);
     }
+
+    public static boolean isError(OperationResultStatusType status) {
+        return status == OperationResultStatusType.FATAL_ERROR || status == OperationResultStatusType.PARTIAL_ERROR;
+    }
 }

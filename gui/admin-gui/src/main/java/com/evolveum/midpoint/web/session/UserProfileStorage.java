@@ -61,7 +61,7 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         PAGE_RESOURCE_GENERIC_PANEL_RESOURCE_MODE,
         PAGE_RESOURCE_OBJECT_CLASS_PANEL,
         PAGE_TASKS_PANEL,
-        PAGE_TASKS_NODES_PANEL,
+        PAGE_NODES_PANEL,
         PAGE_USERS_PANEL,
         PAGE_WORK_ITEMS,
         PAGE_WORKFLOW_REQUESTS,

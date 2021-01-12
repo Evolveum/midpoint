@@ -214,10 +214,10 @@ public class ShadowCaretaker {
 
     /**
      * Reapplies definition to the shadow if needed. The definition needs to be
-     * reapplied e.g. if the shadow has auxiliary object classes, it if subclass
+     * reapplied e.g. if the shadow has auxiliary object classes, if it is of a subclass
      * of the object class that was originally requested, etc.
      */
-    public ProvisioningContext reapplyDefinitions(ProvisioningContext ctx,
+    ProvisioningContext reapplyDefinitions(ProvisioningContext ctx,
             PrismObject<ShadowType> rawResourceShadow) throws SchemaException, ConfigurationException,
                     ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
         ShadowType rawResourceShadowType = rawResourceShadow.asObjectable();

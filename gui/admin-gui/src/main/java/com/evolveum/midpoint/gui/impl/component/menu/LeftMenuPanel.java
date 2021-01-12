@@ -209,6 +209,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         }
         menu.addMainMenuItem(createCertificationItems());
         menu.addMainMenuItem(createServerTasksItems());
+        menu.addMainMenuItem(createNodesItems());
         menu.addMainMenuItem(createReportsItems());
         return menu;
     }
@@ -302,7 +303,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
     private MainMenuItem createResourcesItems() {
         MainMenuItem resourceMenu = createMainMenuItem("PageAdmin.menu.top.resources", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED);
         createBasicAssignmentHolderMenuItems(resourceMenu, ResourceType.COMPLEX_TYPE, PageTypes.RESOURCE, true);
-        resourceMenu.addMenuItem(createFocusPageViewMenu("PageAdmin.menu.top.resources.view", PageResource.class));
+        createFocusPageViewMenu(resourceMenu,"PageAdmin.menu.top.resources.view", PageResource.class);
         resourceMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.resources.import", PageImportResource.class));
         resourceMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.connectorHosts.list", PageConnectorHosts.class));
         return resourceMenu;
@@ -322,12 +323,12 @@ public class LeftMenuPanel extends BasePanel<Void> {
         casesMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.caseWorkItems.list", PageCaseWorkItemsAllocatedToMe.class));
         casesMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.workItems.selectAttorney", PageAttorneySelection.class));
 
-        casesMenu.addMenuItem(createFocusPageViewMenu("PageAdmin.menu.top.workItems.listAttorney", PageWorkItemsAttorney.class));
+        createFocusPageViewMenu(casesMenu, "PageAdmin.menu.top.workItems.listAttorney", PageWorkItemsAttorney.class);
 
         casesMenu.addMenuItem(new MenuItem("PageWorkItemsClaimable.title", PageWorkItemsClaimable.class));
 
-        casesMenu.addMenuItem(createFocusPageViewMenu("PageAdmin.menu.top.case.view", PageCase.class));
-        casesMenu.addMenuItem(createFocusPageViewMenu("PageAdmin.menu.top.caseWorkItems.view", PageCaseWorkItem.class));
+        createFocusPageViewMenu(casesMenu,"PageAdmin.menu.top.case.view", PageCase.class);
+        createFocusPageViewMenu(casesMenu, "PageAdmin.menu.top.caseWorkItems.view", PageCaseWorkItem.class);
 
         return casesMenu;
     }
@@ -365,11 +366,15 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private MainMenuItem createServerTasksItems() {
-        MainMenuItem tasksMenu = createMainMenuItem("PageAdmin.menu.top.serverTasks", GuiStyleConstants.CLASS_OBJECT_TASK_ICON_COLORED
-        );
+        MainMenuItem tasksMenu = createMainMenuItem("PageAdmin.menu.top.serverTasks", GuiStyleConstants.CLASS_OBJECT_TASK_ICON_COLORED);
         createBasicAssignmentHolderMenuItems(tasksMenu, TaskType.COMPLEX_TYPE, PageTypes.TASK, true);
-        tasksMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.serverTasks.nodes", PageNodes.class));
         return tasksMenu;
+    }
+
+    private MainMenuItem createNodesItems() {
+        MainMenuItem nodesMenu = createMainMenuItem("PageAdmin.menu.top.nodes", GuiStyleConstants.CLASS_OBJECT_NODE_ICON_COLORED);
+        nodesMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.nodes.list", PageNodes.class));
+        return nodesMenu;
     }
 
     private MainMenuItem createReportsItems() {
@@ -457,52 +462,63 @@ public class LeftMenuPanel extends BasePanel<Void> {
 
     private boolean isEditForAdminObjectDetails() {
         PageBase pageBase = getPageBase();
-        if (!(pageBase instanceof PageAdminObjectDetails)) {
-            return false;
+        if (pageBase instanceof PageAdminObjectDetails) {
+            PageAdminObjectDetails page = (PageAdminObjectDetails) pageBase;
+            return page.isOidParameterExists() || page.isEditingFocus();
         }
 
-        PageAdminObjectDetails page = (PageAdminObjectDetails) pageBase;
-        return page.isOidParameterExists() || page.isEditingFocus();
+        return false;
     }
 
     private boolean isEditForResourceWizzard() {
+        PageBase pageBase = getPageBase();
+
+        if (pageBase instanceof PageResourceWizard) {
+            return !((PageResourceWizard) pageBase).isNewResource();
+        }
+
+        return false;
+    }
+
+    private boolean isAddForResourceWizzard() {
         PageBase pageBase = getPageBase();
         if (!(pageBase instanceof PageResourceWizard)) {
             return false;
         }
 
-        return !((PageResourceWizard) pageBase).isNewResource();
+        return ((PageResourceWizard) pageBase).isNewResource();
     }
 
     private void createFocusPageNewEditMenu(MainMenuItem mainMenuItem, String newKey, String editKey,
             final Class<? extends PageAdmin> newPageClass) {
-        boolean editActive = classMatches(newPageClass) && (isEditForAdminObjectDetails() || isEditForResourceWizzard());
-        if (editActive) {
-            MenuItem edit = new MenuItem(editKey, newPageClass);
-            mainMenuItem.addMenuItem(edit);
-        }
-
 
         boolean addActive = classMatches(newPageClass) && !isEditForAdminObjectDetails() && !isEditForResourceWizzard();
         MenuItem newMenu = new MenuItem(newKey,
                 GuiStyleConstants.CLASS_PLUS_CIRCLE, newPageClass, null, addActive);
         mainMenuItem.addMenuItem(newMenu);
+
+        boolean editActive = classMatches(newPageClass) && (isEditForAdminObjectDetails() || isEditForResourceWizzard());
+        if (editActive) {
+            MenuItem edit = new MenuItem(editKey, newPageClass);
+            mainMenuItem.addMenuItem(edit);
+        }
     }
 
     private boolean classMatches(Class<? extends PageBase> page) {
         return getPageBase().getClass().equals(page);
     }
 
-    private MenuItem createFocusPageViewMenu(
-            String viewKey, final Class<? extends PageBase> newPageType) {
-        return new MenuItem(viewKey, newPageType);
+    private void createFocusPageViewMenu(MainMenuItem mainMenuItem, String viewKey, final Class<? extends PageBase> newPageType) {
+        boolean editActive = classMatches(newPageType);
+        if (editActive) {
+            mainMenuItem.addMenuItem(new MenuItem(viewKey, newPageType));
+        }
     }
 
 
 
     private MainMenuItem createArchetypesItems() {
-        MainMenuItem item = new MainMenuItem("PageAdmin.menu.top.archetypes", GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON
-        );
+        MainMenuItem item = new MainMenuItem("PageAdmin.menu.top.archetypes", GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON);
         item.addMenuItem(addObjectListPageMenuItem("PageAdmin.menu.top.archetypes.list", GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON, PageArchetypes.class));
         addCollectionsMenuItems(item, ArchetypeType.COMPLEX_TYPE, PageArchetypes.class);
 

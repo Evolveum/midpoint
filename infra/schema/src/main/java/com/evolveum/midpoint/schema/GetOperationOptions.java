@@ -12,6 +12,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorHandlingType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -194,6 +199,12 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
      */
     private Boolean executionPhase;
 
+    /**
+     * How should be errors during object fetch process handled and reported.
+     * (Currently supported only for searchObjectsIterative and only in provisioning.)
+     */
+    private FetchErrorHandlingType errorHandling;
+
     /*
      *  !!! After adding option here don't forget to update equals, clone, merge, etc. !!!
      */
@@ -335,6 +346,38 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         return opts;
     }
 
+    public Boolean getResolveNames() {
+        return resolveNames;
+    }
+
+    public void setResolveNames(Boolean resolveNames) {
+        this.resolveNames = resolveNames;
+    }
+
+    public GetOperationOptions resolveNames(Boolean resolveNames) {
+        this.resolveNames = resolveNames;
+        return this;
+    }
+
+    public static boolean isResolveNames(GetOperationOptions options) {
+        if (options == null) {
+            return false;
+        }
+        if (options.resolveNames == null) {
+            return false;
+        }
+        return options.resolveNames;
+    }
+
+    /**
+     * Resolve the object reference names.
+     */
+    public static GetOperationOptions createResolveNames() {
+        GetOperationOptions opts = new GetOperationOptions();
+        opts.setResolveNames(true);
+        return opts;
+    }
+
     public Boolean getNoFetch() {
         return noFetch;
     }
@@ -369,70 +412,13 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         return opts;
     }
 
-    public Boolean getResolveNames() {
-        return resolveNames;
-    }
-
-    public void setResolveNames(Boolean resolveNames) {
-        this.resolveNames = resolveNames;
-    }
-
-    public GetOperationOptions resolveNames(Boolean resolveNames) {
-        this.resolveNames = resolveNames;
-        return this;
-    }
-
-    public static boolean isResolveNames(GetOperationOptions options) {
-        if (options == null) {
-            return false;
-        }
-        if (options.resolveNames == null) {
-            return false;
-        }
-        return options.resolveNames;
-    }
-
     /**
-     * Resolve the object reference names.
+     * No not fetch any information from external sources, e.g. do not fetch account data from resource,
+     * do not fetch resource schema, etc.
+     * Such operation returns only the data stored in midPoint repository.
      */
-    public static GetOperationOptions createResolveNames() {
-        GetOperationOptions opts = new GetOperationOptions();
-        opts.setResolveNames(true);
-        return opts;
-    }
-
-    public Boolean getTolerateRawData() {
-        return tolerateRawData;
-    }
-
-    public void setTolerateRawData(Boolean value) {
-        this.tolerateRawData = value;
-    }
-
-    public GetOperationOptions tolerateRawData(Boolean value) {
-        this.tolerateRawData = value;
-        return this;
-    }
-
-    public static boolean isTolerateRawData(GetOperationOptions options) {
-        if (options == null) {
-            return false;
-        }
-        if (options.tolerateRawData == null) {
-            return false;
-        }
-        return options.tolerateRawData;
-    }
-
-    /**
-     * Tolerate "raw" data in returned object. In some cases, raw data are tolerated by default (e.g. if raw=true
-     * and the object is ResourceType or ShadowType). But generally, toleration of raw data can be explicitly requested
-     * by setting this flag to TRUE.
-     */
-    public static GetOperationOptions createTolerateRawData() {
-        GetOperationOptions opts = new GetOperationOptions();
-        opts.setTolerateRawData(true);
-        return opts;
+    public static Collection<SelectorOptions<GetOperationOptions>> createNoFetchCollection() {
+        return SelectorOptions.createCollection(createNoFetch());
     }
 
     public Boolean getRaw() {
@@ -476,13 +462,38 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         return SelectorOptions.createCollection(createRaw());
     }
 
+    public Boolean getTolerateRawData() {
+        return tolerateRawData;
+    }
+
+    public void setTolerateRawData(Boolean value) {
+        this.tolerateRawData = value;
+    }
+
+    public GetOperationOptions tolerateRawData(Boolean value) {
+        this.tolerateRawData = value;
+        return this;
+    }
+
+    public static boolean isTolerateRawData(GetOperationOptions options) {
+        if (options == null) {
+            return false;
+        }
+        if (options.tolerateRawData == null) {
+            return false;
+        }
+        return options.tolerateRawData;
+    }
+
     /**
-     * No not fetch any information from external sources, e.g. do not fetch account data from resource,
-     * do not fetch resource schema, etc.
-     * Such operation returns only the data stored in midPoint repository.
+     * Tolerate "raw" data in returned object. In some cases, raw data are tolerated by default (e.g. if raw=true
+     * and the object is ResourceType or ShadowType). But generally, toleration of raw data can be explicitly requested
+     * by setting this flag to TRUE.
      */
-    public static Collection<SelectorOptions<GetOperationOptions>> createNoFetchCollection() {
-        return SelectorOptions.createCollection(createNoFetch());
+    public static GetOperationOptions createTolerateRawData() {
+        GetOperationOptions opts = new GetOperationOptions();
+        opts.setTolerateRawData(true);
+        return opts;
     }
 
     public Boolean getDoNotDiscovery() {
@@ -517,6 +528,19 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         GetOperationOptions opts = new GetOperationOptions();
         opts.setDoNotDiscovery(true);
         return opts;
+    }
+
+    public RelationalValueSearchQuery getRelationalValueSearchQuery() {
+        return relationalValueSearchQuery;
+    }
+
+    public void setRelationalValueSearchQuery(RelationalValueSearchQuery relationalValueSearchQuery) {
+        this.relationalValueSearchQuery = relationalValueSearchQuery;
+    }
+
+    public GetOperationOptions relationalValueSearchQuery(RelationalValueSearchQuery relationalValueSearchQuery) {
+        this.relationalValueSearchQuery = relationalValueSearchQuery;
+        return this;
     }
 
     /**
@@ -802,35 +826,6 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         return opts;
     }
 
-    public Boolean getExecutionPhase() {
-        return executionPhase;
-    }
-
-    public void setExecutionPhase(Boolean executionPhase) {
-        this.executionPhase = executionPhase;
-    }
-
-    public GetOperationOptions executionPhase(Boolean executionPhase) {
-        this.executionPhase = executionPhase;
-        return this;
-    }
-
-    public static boolean isExecutionPhase(GetOperationOptions options) {
-        if (options == null) {
-            return false;
-        }
-        if (options.executionPhase == null) {
-            return false;
-        }
-        return options.executionPhase;
-    }
-
-    public static GetOperationOptions createExecutionPhase() {
-        GetOperationOptions opts = new GetOperationOptions();
-        opts.setExecutionPhase(true);
-        return opts;
-    }
-
     public DefinitionProcessingOption getDefinitionProcessing() {
         return definitionProcessing;
     }
@@ -883,17 +878,62 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         return opts;
     }
 
-    public RelationalValueSearchQuery getRelationalValueSearchQuery() {
-        return relationalValueSearchQuery;
+    public Boolean getExecutionPhase() {
+        return executionPhase;
     }
 
-    public void setRelationalValueSearchQuery(RelationalValueSearchQuery relationalValueSearchQuery) {
-        this.relationalValueSearchQuery = relationalValueSearchQuery;
+    public void setExecutionPhase(Boolean executionPhase) {
+        this.executionPhase = executionPhase;
     }
 
-    public GetOperationOptions relationalValueSearchQuery(RelationalValueSearchQuery relationalValueSearchQuery) {
-        this.relationalValueSearchQuery = relationalValueSearchQuery;
+    public GetOperationOptions executionPhase(Boolean executionPhase) {
+        this.executionPhase = executionPhase;
         return this;
+    }
+
+    public static boolean isExecutionPhase(GetOperationOptions options) {
+        if (options == null) {
+            return false;
+        }
+        if (options.executionPhase == null) {
+            return false;
+        }
+        return options.executionPhase;
+    }
+
+    public static GetOperationOptions createExecutionPhase() {
+        GetOperationOptions opts = new GetOperationOptions();
+        opts.setExecutionPhase(true);
+        return opts;
+    }
+
+    public FetchErrorHandlingType getErrorHandling() {
+        return errorHandling;
+    }
+
+    public void setErrorHandling(FetchErrorHandlingType value) {
+        this.errorHandling = value;
+    }
+
+    public void setErrorReportingMethod(FetchErrorReportingMethodType method, PrismContext prismContext) {
+        if (errorHandling == null) {
+            errorHandling = new FetchErrorHandlingType(prismContext);
+        }
+        errorHandling.setReportingMethod(method);
+    }
+
+    public GetOperationOptions errorHandling(FetchErrorHandlingType value) {
+        this.errorHandling = value;
+        return this;
+    }
+
+    public static FetchErrorHandlingType getErrorHandling(GetOperationOptions options) {
+        return options != null ? options.errorHandling : null;
+    }
+
+    public static FetchErrorReportingMethodType getErrorReportingMethod(GetOperationOptions options) {
+        FetchErrorHandlingType errorHandling = getErrorHandling(options);
+        return errorHandling != null ? errorHandling.getReportingMethod() : null;
     }
 
     @Override
@@ -913,36 +953,49 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
                 Objects.equals(readOnly, that.readOnly) &&
                 Objects.equals(pointInTimeType, that.pointInTimeType) &&
                 Objects.equals(staleness, that.staleness) &&
+                Objects.equals(forceRefresh, that.forceRefresh) &&
+                Objects.equals(forceRetry, that.forceRetry) &&
+                Objects.equals(distinct, that.distinct) &&
                 Objects.equals(attachDiagData, that.attachDiagData) &&
-                Objects.equals(executionPhase, that.executionPhase);
+                Objects.equals(definitionProcessing, that.definitionProcessing) &&
+                Objects.equals(iterationMethod, that.iterationMethod) &&
+                Objects.equals(executionPhase, that.executionPhase) &&
+                Containerable.equivalent(errorHandling, that.errorHandling);
     }
 
     @Override
     public int hashCode() {
         return Objects
-                .hash(retrieve, resolve, resolveNames, noFetch, raw, tolerateRawData, doNotDiscovery, relationalValueSearchQuery,
+                .hash(retrieve, resolve, resolveNames, noFetch, raw, tolerateRawData, doNotDiscovery,
                         allowNotFound, readOnly, staleness, distinct, definitionProcessing, attachDiagData, executionPhase);
     }
 
     public GetOperationOptions clone() {
         GetOperationOptions clone = new GetOperationOptions();
-        clone.noFetch = this.noFetch;
-        clone.doNotDiscovery = this.doNotDiscovery;
-        clone.raw = this.raw;
+        clone.retrieve = this.retrieve;
         clone.resolve = this.resolve;
         clone.resolveNames = this.resolveNames;
-        clone.retrieve = this.retrieve;
+        clone.noFetch = this.noFetch;
+        clone.raw = this.raw;
+        clone.tolerateRawData = this.tolerateRawData;
+        clone.doNotDiscovery = this.doNotDiscovery;
+        if (this.relationalValueSearchQuery != null) {
+            clone.relationalValueSearchQuery = this.relationalValueSearchQuery.clone();
+        }
         clone.allowNotFound = this.allowNotFound;
         clone.readOnly = this.readOnly;
         clone.pointInTimeType = this.pointInTimeType;
         clone.staleness = this.staleness;
+        clone.forceRefresh = this.forceRefresh;
+        clone.forceRetry = this.forceRetry;
         clone.distinct = this.distinct;
         clone.attachDiagData = this.attachDiagData;
-        clone.executionPhase = this.executionPhase;
-        if (this.relationalValueSearchQuery != null) {
-            clone.relationalValueSearchQuery = this.relationalValueSearchQuery.clone();
-        }
         clone.definitionProcessing = this.definitionProcessing;
+        clone.iterationMethod = this.iterationMethod;
+        clone.executionPhase = this.executionPhase;
+        if (this.errorHandling != null) {
+            clone.errorHandling = this.errorHandling.clone();
+        }
         return clone;
     }
 
@@ -956,22 +1009,36 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 
     @Override
     public void shortDump(StringBuilder sb) {
+        appendVal(sb, "retrieve", retrieve);
         appendFlag(sb, "resolve", resolve);
         appendFlag(sb, "resolveNames", resolveNames);
         appendFlag(sb, "noFetch", noFetch);
         appendFlag(sb, "raw", raw);
+        appendFlag(sb, "tolerateRawData", tolerateRawData);
         appendFlag(sb, "doNotDiscovery", doNotDiscovery);
-        appendVal(sb, "retrieve", retrieve);
+        appendVal(sb, "relationalValueSearchQuery", relationalValueSearchQuery);
         appendFlag(sb, "allowNotFound", allowNotFound);
         appendFlag(sb, "readOnly", readOnly);
         appendVal(sb, "pointInTimeType", pointInTimeType);
         appendVal(sb, "staleness", staleness);
+        appendFlag(sb, "forceRefresh", forceRefresh);
+        appendFlag(sb, "forceRetry", forceRetry);
         appendVal(sb, "distinct", distinct);
-        appendVal(sb, "relationalValueSearchQuery", relationalValueSearchQuery);
-        appendVal(sb, "definitionProcessing", definitionProcessing);
         appendFlag(sb, "attachDiagData", attachDiagData);
+        appendVal(sb, "definitionProcessing", definitionProcessing);
+        appendVal(sb, "iterationMethod", iterationMethod);
         appendFlag(sb, "executionPhase", executionPhase);
+        appendVal(sb, "errorHandling", prettyPrint(errorHandling));
         removeLastComma(sb);
+    }
+
+    private Object prettyPrint(FetchErrorHandlingType errorHandling) {
+        if (errorHandling == null) {
+            return null;
+        }
+
+        // Currently this is the only relevant information
+        return errorHandling.getReportingMethod();
     }
 
     public static Collection<SelectorOptions<GetOperationOptions>> fromRestOptions(List<String> options, List<String> include,
@@ -1052,7 +1119,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         Collection<SelectorOptions<GetOperationOptions>> merged = new ArrayList<>();
         for (Collection<SelectorOptions<GetOperationOptions>> part : parts) {
             for (SelectorOptions<GetOperationOptions> increment : CollectionUtils.emptyIfNull(part)) {
-                if (increment != null) {        // should always be so
+                if (increment != null) { // should always be so
                     Collection<GetOperationOptions> existing = SelectorOptions.findOptionsForPath(
                             merged, increment.getItemPath(emptyPath));
                     if (existing.isEmpty()) {
@@ -1068,7 +1135,6 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         return merged;
     }
 
-    @SuppressWarnings("ConstantConditions")
     public void merge(GetOperationOptions increment) {
         if (increment == null) {
             return;
@@ -1095,7 +1161,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
             this.doNotDiscovery = increment.doNotDiscovery;
         }
         if (increment.relationalValueSearchQuery != null) {
-            this.relationalValueSearchQuery = increment.relationalValueSearchQuery;
+            this.relationalValueSearchQuery = increment.relationalValueSearchQuery.clone();
         }
         if (increment.allowNotFound != null) {
             this.allowNotFound = increment.allowNotFound;
@@ -1108,6 +1174,12 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         }
         if (increment.staleness != null) {
             this.staleness = increment.staleness;
+        }
+        if (increment.forceRefresh != null) {
+            this.forceRefresh = increment.forceRefresh;
+        }
+        if (increment.forceRetry != null) {
+            this.forceRetry = increment.forceRetry;
         }
         if (increment.distinct != null) {
             this.distinct = increment.distinct;
@@ -1123,6 +1195,9 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         }
         if (increment.executionPhase != null) {
             this.executionPhase = increment.executionPhase;
+        }
+        if (increment.errorHandling != null) {
+            this.errorHandling = increment.errorHandling.clone();
         }
     }
 }
