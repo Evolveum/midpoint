@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schrodinger.component.AssignmentsTab;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.component.common.PrismFormWithActionButtons;
 import com.evolveum.midpoint.schrodinger.component.configuration.ObjectPolicyTab;
+import com.evolveum.midpoint.schrodinger.component.org.ManagerPanel;
 import com.evolveum.midpoint.schrodinger.component.org.OrgRootTab;
 import com.evolveum.midpoint.schrodinger.component.resource.ResourceAccountsTab;
 import com.evolveum.midpoint.schrodinger.page.resource.ViewResourcePage;
@@ -297,12 +298,14 @@ public class M10ObjectTemplate extends AbstractLabTest{
 
         OrgRootTab rootTab = basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure");
-        Assert.assertTrue(rootTab.getOrgHierarchyPanel()
+        ManagerPanel<OrgRootTab> managerPanel = rootTab.getOrgHierarchyPanel()
                 .showTreeNodeDropDownMenu("Technology Division")
-                    .expandAll()
+                .expandAll()
                 .selectOrgInTree("IT Administration Department")
                 .and()
-            .getManagerPanel()
+                .getManagerPanel();
+        Selenide.screenshot("managersPanel");
+        Assert.assertTrue(managerPanel
                 .containsManager("John Wicks"));
 
         rootTab.getMemberPanel()
