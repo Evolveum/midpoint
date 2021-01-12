@@ -50,7 +50,7 @@ public class AxiomAntlrLiterals {
         return Double.parseDouble(value.getText());
     }
 
-    private static String convertString(StringValueContext value) {
+    public static String convertString(StringValueContext value) {
         return convertString(value.stringLiteral());
     }
 

@@ -59,6 +59,8 @@
         <xsd:sequence>
             <xsd:element ref="tns:indexedString" maxOccurs="unbounded"/>
             <xsd:element ref="tns:intType" maxOccurs="unbounded" />
+            <xsd:element name="num" maxOccurs="unbounded" type="xsd:int" />
+            <xsd:element name="dateTime" maxOccurs="unbounded" type="xsd:dateTime" />
         </xsd:sequence>
     </xsd:complexType>
 
