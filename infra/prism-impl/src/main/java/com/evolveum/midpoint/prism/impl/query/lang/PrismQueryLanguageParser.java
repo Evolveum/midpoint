@@ -23,6 +23,7 @@ import com.evolveum.axiom.lang.antlr.query.AxiomQueryParser.SubfilterOrValueCont
 import com.evolveum.axiom.lang.antlr.query.AxiomQueryParser.ValueSpecificationContext;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -113,9 +114,10 @@ public class PrismQueryLanguageParser {
         }
     };
 
+    private static final QName EQUALS_NAME = queryName("equals");
 
     private static final Map<String, QName> ALIASES_TO_NAME = ImmutableMap.<String, QName>builder()
-            .put("=", queryName("equal"))
+            .put("=", queryName("equals"))
             .put("<", queryName("less"))
             .put(">", queryName("greater"))
             .put("<=", queryName("lessOrEquals"))
@@ -123,7 +125,7 @@ public class PrismQueryLanguageParser {
             .build();
 
     private final Map<QName, ItemFilterFactory> filterFactories = ImmutableMap.<QName, ItemFilterFactory>builder()
-            .put(queryName("equal"), new PropertyFilterFactory() {
+            .put(queryName("equals"), new PropertyFilterFactory() {
 
                 @Override
                 public ObjectFilter valueFilter(PrismPropertyDefinition<?> definition, ItemPath path, QName matchingRule,
@@ -218,9 +220,8 @@ public class PrismQueryLanguageParser {
             .build()
             ;
 
-
-
     private final PrismContext context;
+    private Map<String, String> namespaceContext;
 
     public PrismQueryLanguageParser(PrismContext context) {
         this.context = context;
@@ -257,6 +258,8 @@ public class PrismQueryLanguageParser {
         }
         throw new IllegalStateException("Unsupported Filter Context");
     }
+
+
 
     private ObjectFilter andFilter(PrismContainerDefinition<?> complexType, AndFilterContext root) throws SchemaException {
         Builder<ObjectFilter> filters = ImmutableList.builder();
@@ -316,7 +319,7 @@ public class PrismQueryLanguageParser {
 
     private ItemPath path(PrismContainerDefinition<?> complexType, PathContext path) {
         // FIXME: Implement proper parsing of decomposed item path from Antlr
-        UniformItemPath ret = ItemPathHolder.parseFromString(path.getText());
+        UniformItemPath ret = ItemPathHolder.parseFromString(path.getText(), namespaceContext);
         return ret;
     }
 
@@ -345,12 +348,16 @@ public class PrismQueryLanguageParser {
 
     private Object parseLiteral(PrismPropertyDefinition<?> definition, LiteralValueContext string) {
         Class<?> targetType = definition.getTypeClass();
-        String text = extractText(string);
+        return parseLiteral(targetType, string);
+    }
+
+    private Object parseLiteral(Class<?> targetType, LiteralValueContext string) {
+        String text = extractTextForm(string);
         return XmlTypeConverter.toJavaValue(text, new HashMap<>(), targetType);
     }
 
 
-    private String extractText(LiteralValueContext string) {
+    private String extractTextForm(LiteralValueContext string) {
         if(string instanceof StringValueContext) {
             return AxiomAntlrLiterals.convertString((StringValueContext) string);
         }
@@ -374,9 +381,66 @@ public class PrismQueryLanguageParser {
         throw new UnsupportedOperationException("Unknown schema type");
     }
 
+    /**
+     *
+     * <code>
+     * name matches (orig = "foo")
+     * name matches (norm = "bar")
+     * name matches (orig = "foo" and norm = "bar")
+     *
+     * </code>
+     *
+     * @param path
+     * @param definition
+     * @param filter
+     * @return
+     * @throws SchemaException
+     */
     private ObjectFilter matchesPolystringFilter(ItemPath path, PrismPropertyDefinition<?> definition,
-            FilterContext filter) {
-        throw new UnsupportedOperationException("Matches for reference not implemented");
+            FilterContext filter) throws SchemaException {
+        String orig = null;
+        String norm = null;
+
+        if (filter instanceof AndFilterContext) {
+            AndFilterContext andFilter = (AndFilterContext) filter;
+            orig = valueFromFilters(String.class, "orig", andFilter.left, andFilter.right);
+            norm = valueFromFilters(String.class, "norm", andFilter.left, andFilter.right);
+            schemaCheck(orig != null, "orig must be defined in matches polystring filter.");
+            schemaCheck(norm != null, "norm must be defined in matches polystring filter.");
+            PolyString value = new PolyString(orig, norm);
+            return EqualFilterImpl.createEqual(path, definition, null, context, value);
+        } else if (filter instanceof GenFilterContext) {
+            orig = valueFromFilters(String.class, "orig", filter);
+            norm = valueFromFilters(String.class, "norm", filter);
+
+            if(norm != null) {
+                return EqualFilterImpl.createEqual(path, definition, PrismConstants.POLY_STRING_NORM_MATCHING_RULE_NAME, context, new PolyString(norm, norm));
+            } else if (orig != null) {
+                return EqualFilterImpl.createEqual(path, definition, PrismConstants.POLY_STRING_ORIG_MATCHING_RULE_NAME, context, new PolyString(orig, norm));
+            }
+        }
+        throw new SchemaException("Incorrect syntax for matches polystring");
+    }
+
+    private <T> T valueFromFilters(Class<T> type, String name, FilterContext... children) throws SchemaException {
+        for(FilterContext child : children) {
+            if (child instanceof GenFilterContext) {
+                ItemFilterContext filter = ((GenFilterContext) child).itemFilter();
+                if (EQUALS_NAME.equals(filterName(filter.filterName()))) {
+                    if (name.equals(filter.path().getText())) {
+                        return extractValue(type, filter.subfilterOrValue());
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private <T> T extractValue(Class<T> type, SubfilterOrValueContext subfilterOrValue) throws SchemaException {
+        schemaCheck(subfilterOrValue.valueSpecification() != null, "Literal value required");
+        LiteralValueContext literalContext = subfilterOrValue.valueSpecification().literalValue();
+        schemaCheck(literalContext != null, "Literal value required");
+        return type.cast(parseLiteral(type, literalContext));
     }
 
     private ObjectFilter matchesReferenceFilter(ItemPath path, PrismReferenceDefinition definition,

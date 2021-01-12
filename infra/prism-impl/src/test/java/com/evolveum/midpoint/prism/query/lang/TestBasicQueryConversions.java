@@ -61,8 +61,14 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
 
     private void verify(String query, ObjectFilter original, PrismObject<?> user) throws SchemaException {
         ObjectFilter dslFilter = parse(query);
-        assertEquals(dslFilter.toString(), original.toString());
-        assertEquals(ObjectQuery.match(user, dslFilter, MATCHING_RULE_REGISTRY), ObjectQuery.match(user, original, MATCHING_RULE_REGISTRY));
+        boolean javaResult = ObjectQuery.match(user, original, MATCHING_RULE_REGISTRY);
+        boolean dslResult = ObjectQuery.match(user, dslFilter, MATCHING_RULE_REGISTRY);
+        try {
+            assertEquals(dslFilter.toString(), original.toString());
+            assertEquals(dslResult, javaResult, "Filters do not match.");
+        } catch (AssertionError e) {
+            throw new AssertionError(e.getMessage() + "for filter: \n    " + query);
+        }
     }
 
     @Test
@@ -170,6 +176,15 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
                 .item(UserType.F_NAME).eq(name)
                 .buildFilter();
         verify("name matches (orig = \"jack\" and norm = \"jack\")", filter);
+        verify("name matches (norm = \"jack\")",
+                getPrismContext().queryFor(UserType.class)
+                .item(UserType.F_NAME).eq(name).matchingNorm()
+                .buildFilter());
+        verify("name matches (orig = \"jack\")",
+                getPrismContext().queryFor(UserType.class)
+                .item(UserType.F_NAME).eq(name).matchingOrig()
+                .buildFilter());
+
     }
 
 
@@ -248,7 +263,7 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
     public void testGtFilter() throws Exception {
         ObjectFilter filter =
                 getPrismContext().queryFor(UserType.class)
-                        .item(UserType.F_NAME).gt("j").matchingOrig()
+                        .item(UserType.F_NAME).gt(new PolyString("j")).matchingOrig()
                         .buildFilter();
         verify("name >[polyStringOrig] \"j\"",filter);
     }
@@ -257,7 +272,7 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
     public void testLtFilter() throws Exception {
         ObjectFilter filter =
                 getPrismContext().queryFor(UserType.class)
-                        .item(UserType.F_NAME).lt("j").matchingNorm()
+                        .item(UserType.F_NAME).lt(new PolyString("j")).matchingNorm()
                         .buildFilter();
         verify("name <[polyStringNorm] \"j\"",filter);
     }
