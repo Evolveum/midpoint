@@ -93,6 +93,9 @@ public class M10ObjectTemplate extends AbstractLabTest{
 
     @Test
     public void mod10test01SimpleObjectTemplate() throws IOException {
+        importObject(OBJECT_TEMPLATE_USER_SIMPLE_FILE, true);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+
         importObject(ORG_EXAMPLE_FILE, true);
         importObject(ORG_SECRET_OPS_FILE, true);
         importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE, true);
@@ -110,9 +113,6 @@ public class M10ObjectTemplate extends AbstractLabTest{
         changeResourceAttribute(HR_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, hrTargetFile.getAbsolutePath(), true);
 
         addObjectFromFile(HR_SYNCHRONIZATION_TASK_FILE);
-        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        addObjectFromFile(OBJECT_TEMPLATE_USER_SIMPLE_FILE);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
 
         basicPage.listResources()
