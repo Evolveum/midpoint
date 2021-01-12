@@ -71,14 +71,6 @@ public class UserTest extends AbstractSchrodingerTest {
         Assert.assertTrue(userForm.compareInputAttributeValue("givenName", "john"));
         Assert.assertTrue(userForm.compareInputAttributeValue("familyName", "doe"));
 
-//        user.selectTabProjections().and()
-//            .selectTabPersonas().and()
-//            .selectTabAssignments().and()
-//            .selectTabTasks().and()
-//            .selectTabDelegations().and()
-//            .selectTabDelegatedToMe().and()
-        //@formatter:on
-
     }
 
     @Test //covers MID-5845
@@ -138,30 +130,26 @@ public class UserTest extends AbstractSchrodingerTest {
                 .selectTabDelegatedToMe()
                     .getDelegationDetailsPanel("DelegateFromUser")
                     .expandDetailsPanel("DelegateFromUser");
-        Assert.assertFalse(delegationDetailsPanel.isAssignmentPrivileges(), "Assignment privileges should not be selected");
-        Assert.assertFalse(delegationDetailsPanel.isAssignmentLimitations(), "Assignment limitations should not be selected");
-        Assert.assertTrue(delegationDetailsPanel.isApprovalWorkItems(), "Workflow approvals (for approval work items) should be selected");
-        Assert.assertTrue(delegationDetailsPanel.isCertificationWorkItems(), "Workflow approvals (for certification work items) should be selected");
+        Assert.assertFalse(delegationDetailsPanel.isAssignmentPrivilegesSelected(), "Assignment privileges should not be selected");
+        Assert.assertFalse(delegationDetailsPanel.isAssignmentLimitationsSelected(), "Assignment limitations should not be selected");
+        Assert.assertTrue(delegationDetailsPanel.isApprovalWorkItemsSelected(), "Workflow approvals (for approval work items) should be selected");
+        Assert.assertTrue(delegationDetailsPanel.isCertificationWorkItemsSelected(), "Workflow approvals (for certification work items) should be selected");
 
         Assert.assertFalse(delegationDetailsPanel.isDescriptionEnabled(), "Description should be disabled");
-        Assert.assertFalse(delegationDetailsPanel.getValidFromPanel().findDate().isEnabled(), "Date field should be disabled");
-        Assert.assertFalse(delegationDetailsPanel.getValidFromPanel().findHours().isEnabled(), "Hours field should be disabled");
-        Assert.assertFalse(delegationDetailsPanel.getValidFromPanel().findMinutes().isEnabled(), "Minutes field should be disabled");
+        Assert.assertTrue(delegationDetailsPanel.isValidFromPanelDisabled(), "Valid from panel should be disabled");
 
         DelegationDetailsPanel delegationDetailsFromUser = showUser("DelegateFromUser")
                 .selectTabDelegations()
                 .getDelegationDetailsPanel("DelegateToUser")
                 .expandDetailsPanel("DelegateToUser");
 
-        Assert.assertFalse(delegationDetailsFromUser.isAssignmentPrivileges(), "Assignment privileges should not be selected");
-        Assert.assertFalse(delegationDetailsFromUser.isAssignmentLimitations(), "Assignment limitations should not be selected");
-        Assert.assertTrue(delegationDetailsFromUser.isApprovalWorkItems(), "Workflow approvals (for approval work items) should be selected");
-        Assert.assertTrue(delegationDetailsFromUser.isCertificationWorkItems(), "Workflow approvals (for certification work items) should be selected");
+        Assert.assertFalse(delegationDetailsFromUser.isAssignmentPrivilegesSelected(), "Assignment privileges should not be selected");
+        Assert.assertFalse(delegationDetailsFromUser.isAssignmentLimitationsSelected(), "Assignment limitations should not be selected");
+        Assert.assertTrue(delegationDetailsFromUser.isApprovalWorkItemsSelected(), "Workflow approvals (for approval work items) should be selected");
+        Assert.assertTrue(delegationDetailsFromUser.isCertificationWorkItemsSelected(), "Workflow approvals (for certification work items) should be selected");
 
         Assert.assertFalse(delegationDetailsFromUser.isDescriptionEnabled(), "Description should be disabled");
-        Assert.assertFalse(delegationDetailsFromUser.getValidFromPanel().findDate().isEnabled(), "Date field should be disabled");
-        Assert.assertFalse(delegationDetailsFromUser.getValidFromPanel().findHours().isEnabled(), "Hours field should be disabled");
-        Assert.assertFalse(delegationDetailsFromUser.getValidFromPanel().findMinutes().isEnabled(), "Minutes field should be disabled");
+        Assert.assertTrue(delegationDetailsFromUser.isValidFromPanelDisabled(), "Valid from panel should be disabled");
     }
 
     @Test
