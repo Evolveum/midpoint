@@ -1,29 +1,27 @@
 grammar AxiomQuery;
 
-SEMICOLON : ';';
-LEFT_BRACE : '{';
-RIGHT_BRACE : '}';
-COLON : ':';
-PLUS : '+';
-LINE_COMMENT :  [ \n\r\t]* ('//' (~[\r\n]*)) [ \n\r\t]* -> skip;
-SEP: [ \n\r\t]+;
 
-AND_KEYWORD: 'and';
-OR_KEYWORD: 'or';
-NOT_KEYWORD: 'not';
-IDENTIFIER : [a-zA-Z_][a-zA-Z0-9_\-]*;
+nullLiteral: 'null';
+booleanLiteral: 'true' | 'false';
 
-fragment SQOUTE : '\'';
-fragment DQOUTE : '"';
+intLiteral: INT;
+floatLiteral: FLOAT;
+stringLiteral : STRING_SINGLEQUOTE #singleQuoteString 
+    | STRING_DOUBLEQUOTE #doubleQuoteString
+    | STRING_MULTILINE_START (~('"""'))*'"""' # multilineString;
 
-fragment ESC : '\\';
 
-STRING_SINGLEQUOTE: SQOUTE ((ESC SQOUTE) | ~[\n'])* SQOUTE;
-STRING_DOUBLEQUOTE: DQOUTE ((ESC DQOUTE) | ~[\n"])* DQOUTE;
-STRING_MULTILINE_START: '"""' ('\r')? '\n';
+literalValue: 
+      value=('true' | 'false') #booleanValue
+    | value=INT #intValue
+    | value=FLOAT #floatValue
+    | stringLiteral #stringValue
+    | 'null' #nullValue;
 
+// endgrammar axiom literals
 
 //statement : SEP* identifier SEP* (argument)? SEP* (SEMICOLON | LEFT_BRACE SEP* (statement)* SEP* RIGHT_BRACE SEP*) SEP*;
+
 itemName: prefixedName #dataName
     | '@' prefixedName #infraName;
 
@@ -32,10 +30,7 @@ prefixedName: (prefix=IDENTIFIER COLON)? localName=IDENTIFIER
     | (prefix=IDENTIFIER)? COLON localName=(AND_KEYWORD | NOT_KEYWORD | OR_KEYWORD);
 
 
-argument : prefixedName | string;
-string : STRING_SINGLEQUOTE #singleQuoteString 
-    | STRING_DOUBLEQUOTE #doubleQuoteString
-    | STRING_MULTILINE_START (~('"""'))*'"""' # multilineString;
+argument : prefixedName | literalValue;
 
 variable: '$' itemName;
 parent: '..';
@@ -58,7 +53,11 @@ matchingRule: '[' prefixedName ']';
 
 
 // Currently value could be string or path
-valueSpecification: string | path;
+valueSpecification: literalValue | path;
+
+
+
+
 negation: NOT_KEYWORD;
 // Filter could be Value filter or Logic Filter
 
@@ -72,4 +71,58 @@ subfilterSpec: '(' SEP* filter SEP* ')';
 itemFilter: path (SEP+ negation)? SEP+ filterName (matchingRule)? (SEP+ (subfilterOrValue))?;
 subfilterOrValue : subfilterSpec | valueSpecification;
 
+
+
+
+
+
+// grammar AxiomLiterals;
+
+SEMICOLON : ';';
+LEFT_BRACE : '{';
+RIGHT_BRACE : '}';
+COLON : ':';
+PLUS : '+';
+LINE_COMMENT :  [ \n\r\t]* ('//' (~[\r\n]*)) [ \n\r\t]* -> skip;
+SEP: [ \n\r\t]+;
+
+AND_KEYWORD: 'and';
+OR_KEYWORD: 'or';
+NOT_KEYWORD: 'not';
+IDENTIFIER : [a-zA-Z_][a-zA-Z0-9_\-]*;
+
+fragment SQOUTE : '\'';
+fragment DQOUTE : '"';
+
+fragment ESC : '\\';
+//fragment ESC: '\\' ( ["\\/bfnrt] | UNICODE);
+
+
+
+STRING_SINGLEQUOTE: SQOUTE ((ESC SQOUTE) | ~[\n'])* SQOUTE;
+STRING_DOUBLEQUOTE: DQOUTE ((ESC DQOUTE) | ~[\n"])* DQOUTE;
+STRING_MULTILINE_START: '"""' ('\r')? '\n';
+
+
+
+fragment UNICODE: 'u' HEX HEX HEX HEX;
+
+fragment HEX: [0-9a-fA-F];
+
+fragment NONZERO_DIGIT: [1-9];
+fragment DIGIT: [0-9];
+fragment FRACTIONAL_PART: '.' DIGIT+;
+fragment EXPONENTIAL_PART: EXPONENT_INDICATOR SIGN? DIGIT+;
+fragment EXPONENT_INDICATOR: [eE];
+fragment SIGN: [+-];
+fragment NEGATIVE_SIGN: '-';
+
+FLOAT: INT FRACTIONAL_PART
+    | INT EXPONENTIAL_PART
+    | INT FRACTIONAL_PART EXPONENTIAL_PART
+    ;
+
+INT: NEGATIVE_SIGN? '0'
+    | NEGATIVE_SIGN? NONZERO_DIGIT DIGIT*
+    ;
 

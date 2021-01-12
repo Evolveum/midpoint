@@ -50,6 +50,18 @@
         </xsd:annotation>
     </xsd:element>
 
+    <xsd:complexType name="UserTypeExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="foo:UserType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="tns:indexedString" maxOccurs="unbounded"/>
+            <xsd:element ref="tns:intType" maxOccurs="unbounded" />
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:element name="indexedString" type="xsd:string">
         <xsd:annotation>
             <xsd:appinfo>

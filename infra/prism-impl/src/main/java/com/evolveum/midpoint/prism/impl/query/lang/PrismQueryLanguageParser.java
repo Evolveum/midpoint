@@ -8,17 +8,14 @@ import javax.xml.namespace.QName;
 import com.evolveum.axiom.lang.antlr.AxiomAntlrLiterals;
 import com.evolveum.axiom.lang.antlr.AxiomQuerySource;
 import com.evolveum.axiom.lang.antlr.query.AxiomQueryParser.AndFilterContext;
-import com.evolveum.axiom.lang.antlr.query.AxiomQueryParser.DoubleQuoteStringContext;
 import com.evolveum.axiom.lang.antlr.query.AxiomQueryParser.FilterContext;
 import com.evolveum.axiom.lang.antlr.query.AxiomQueryParser.FilterNameContext;
 import com.evolveum.axiom.lang.antlr.query.AxiomQueryParser.GenFilterContext;
 import com.evolveum.axiom.lang.antlr.query.AxiomQueryParser.ItemFilterContext;
-import com.evolveum.axiom.lang.antlr.query.AxiomQueryParser.MultilineStringContext;
+import com.evolveum.axiom.lang.antlr.query.AxiomQueryParser.LiteralValueContext;
 import com.evolveum.axiom.lang.antlr.query.AxiomQueryParser.OrFilterContext;
 import com.evolveum.axiom.lang.antlr.query.AxiomQueryParser.PathContext;
 import com.evolveum.axiom.lang.antlr.query.AxiomQueryParser.PrefixedNameContext;
-import com.evolveum.axiom.lang.antlr.query.AxiomQueryParser.SingleQuoteStringContext;
-import com.evolveum.axiom.lang.antlr.query.AxiomQueryParser.StringContext;
 import com.evolveum.axiom.lang.antlr.query.AxiomQueryParser.SubFilterContext;
 import com.evolveum.axiom.lang.antlr.query.AxiomQueryParser.SubfilterOrValueContext;
 import com.evolveum.axiom.lang.antlr.query.AxiomQueryParser.ValueSpecificationContext;
@@ -27,9 +24,12 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.impl.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.impl.query.EqualFilterImpl;
 import com.evolveum.midpoint.prism.impl.query.ExistsFilterImpl;
+import com.evolveum.midpoint.prism.impl.query.GreaterFilterImpl;
+import com.evolveum.midpoint.prism.impl.query.LessFilterImpl;
 import com.evolveum.midpoint.prism.impl.query.NotFilterImpl;
 import com.evolveum.midpoint.prism.impl.query.SubstringFilterImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -70,8 +70,8 @@ public class PrismQueryLanguageParser {
             ValueSpecificationContext valueSpec = subfilterOrValue.valueSpecification();
             if(valueSpec.path() != null) {
                 throw new UnsupportedOperationException("FIXME: Implement right side lookup");
-            } else if (valueSpec.string() != null) {
-                Object parsedValue = parseLiteral(propDef, valueSpec.string());
+            } else if (valueSpec.literalValue() != null) {
+                Object parsedValue = parseLiteral(propDef, valueSpec.literalValue());
                 return valueFilter(propDef, path, matchingRule, parsedValue);
             }
             throw new IllegalStateException();
@@ -133,6 +133,34 @@ public class PrismQueryLanguageParser {
                 public ObjectFilter propertyFilter(PrismPropertyDefinition<?> definition, ItemPath path, QName matchingRule,
                         ItemPath rightPath, PrismPropertyDefinition<?> rightDef) {
                     return EqualFilterImpl.createEqual(path, definition, matchingRule, rightPath, rightDef);
+                }
+            })
+            .put(queryName("greater"), new PropertyFilterFactory() {
+                @Override
+                ObjectFilter valueFilter(PrismPropertyDefinition<?> definition, ItemPath path, QName matchingRule,
+                        Object value) {
+                    return GreaterFilterImpl.createGreater(path, definition, matchingRule, value,false, context);
+                }
+
+                @Override
+                ObjectFilter propertyFilter(PrismPropertyDefinition<?> definition, ItemPath path, QName matchingRule,
+                        ItemPath rightPath, PrismPropertyDefinition<?> rightDef) {
+                    // TODO Auto-generated method stub
+                    return null;
+                }
+            })
+            .put(queryName("less"), new PropertyFilterFactory() {
+                @Override
+                ObjectFilter valueFilter(PrismPropertyDefinition<?> definition, ItemPath path, QName matchingRule,
+                        Object value) {
+                    return LessFilterImpl.createLess(path, definition, matchingRule, value,false, context);
+                }
+
+                @Override
+                ObjectFilter propertyFilter(PrismPropertyDefinition<?> definition, ItemPath path, QName matchingRule,
+                        ItemPath rightPath, PrismPropertyDefinition<?> rightDef) {
+                    // TODO Auto-generated method stub
+                    return null;
                 }
             })
             .put(queryName("contains"), new SubstringFilterFactory(false, false))
@@ -282,33 +310,38 @@ public class PrismQueryLanguageParser {
     ObjectFilter createEqual(PrismPropertyDefinition<?> definition, ItemPath path, QName matchingRule, ValueSpecificationContext value) {
         if(value.path() != null) {
             throw new UnsupportedOperationException("FIXME: Implement right side lookup");
-        } else if (value.string() != null) {
-            Object parsedValue = parseLiteral(definition, value.string());
+        } else if (value.literalValue() != null) {
+            Object parsedValue = parseLiteral(definition, value.literalValue());
             return EqualFilterImpl.createEqual(path, definition, matchingRule, context, parsedValue);
         }
         throw new IllegalStateException();
     }
 
-    private Object parseLiteral(PrismPropertyDefinition<?> definition, StringContext string) {
-        // FIXME: Use property definition for parsing (date, name, qname, etc)
-        if (string instanceof DoubleQuoteStringContext) {
-            return AxiomAntlrLiterals.convertDoubleQuote(string.getText());
-        } else if (string instanceof SingleQuoteStringContext) {
-            return AxiomAntlrLiterals.convertSingleQuote(string.getText());
-        } else if (string instanceof MultilineStringContext) {
-            return AxiomAntlrLiterals.convertMultiline(string.getText());
-        }
-        return null;
+    private Object parseLiteral(PrismPropertyDefinition<?> definition, LiteralValueContext string) {
+        return AxiomAntlrLiterals.convert(string);
     }
 
 
     private ObjectFilter matchesFilter(PrismContainerDefinition<?> parent, ItemPath path,ItemDefinition<?> definition,  QName matchingRule, SubfilterOrValueContext subfilterOrValue) throws SchemaException {
-        Preconditions.checkArgument(definition instanceof PrismContainerDefinition<?>);
-        PrismContainerDefinition<?> containerDef = (PrismContainerDefinition<?>) definition;
-        FilterContext subfilterTree = subfilterOrValue.subfilterSpec().filter();
-        ObjectFilter subfilter = parseFilter(containerDef, subfilterTree);
-        return ExistsFilterImpl.createExists(path, (PrismContainerDefinition<?>) parent, subfilter);
+        schemaCheck(subfilterOrValue.subfilterSpec() != null, "matches filter requires subfilter");
+        if (definition instanceof PrismContainerDefinition<?>) {
+            PrismContainerDefinition<?> containerDef = (PrismContainerDefinition<?>) definition;
+            FilterContext subfilterTree = subfilterOrValue.subfilterSpec().filter();
+            ObjectFilter subfilter = parseFilter(containerDef, subfilterTree);
+            return ExistsFilterImpl.createExists(path, (PrismContainerDefinition<?>) parent, subfilter);
+        } else if(definition instanceof PrismReferenceDefinition) {
+            return matchesReferenceFilter(path, (PrismReferenceDefinition) definition, subfilterOrValue.subfilterSpec().filter());
 
+        }
+        throw new UnsupportedOperationException("Unknown schema type");
+    }
+
+    private ObjectFilter matchesReferenceFilter(ItemPath path, PrismReferenceDefinition definition,
+            FilterContext filter) {
+        // TODO Auto-generated method stub
+
+
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     public static PrismQueryLanguageParser create(PrismContext prismContext) {
