@@ -6,13 +6,7 @@
  */
 package com.evolveum.midpoint.web;
 
-import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.util.Locale;
-import java.util.Map;
-
-import javax.servlet.ServletContext;
-
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -27,72 +21,78 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.web.context.WebApplicationContext;
 
+import javax.servlet.ServletContext;
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.util.Locale;
+import java.util.Map;
+
 public class MockWebApplicationContext implements WebApplicationContext {
 
-    private ApplicationContext appContext;
-    private ServletContext servletContext;
+    private final ApplicationContext appContext;
+    private final ServletContext servletContext;
 
     public MockWebApplicationContext(ApplicationContext appContext, ServletContext servletContext) {
         this.appContext = appContext;
         this.servletContext = servletContext;
     }
 
-    public boolean containsBean(String arg0) {
+    public boolean containsBean(@NotNull String arg0) {
         return appContext.containsBean(arg0);
     }
 
-    public boolean containsBeanDefinition(String arg0) {
+    public boolean containsBeanDefinition(@NotNull String arg0) {
         return appContext.containsBeanDefinition(arg0);
     }
 
-    public boolean containsLocalBean(String arg0) {
+    public boolean containsLocalBean(@NotNull String arg0) {
         return appContext.containsLocalBean(arg0);
     }
 
-    public <A extends Annotation> A findAnnotationOnBean(String arg0, Class<A> arg1)
+    public <A extends Annotation> A findAnnotationOnBean(@NotNull String arg0, @NotNull Class<A> arg1)
             throws NoSuchBeanDefinitionException {
         return appContext.findAnnotationOnBean(arg0, arg1);
     }
 
-    public String[] getAliases(String arg0) {
+    public String @NotNull [] getAliases(@NotNull String arg0) {
         return appContext.getAliases(arg0);
     }
 
-    public String getApplicationName() {
+    public @NotNull String getApplicationName() {
         return appContext.getApplicationName();
     }
 
-    public AutowireCapableBeanFactory getAutowireCapableBeanFactory() throws IllegalStateException {
+    public @NotNull AutowireCapableBeanFactory getAutowireCapableBeanFactory() throws IllegalStateException {
         return appContext.getAutowireCapableBeanFactory();
     }
 
-    public <T> T getBean(Class<T> arg0, Object... arg1) throws BeansException {
+    public <T> @NotNull T getBean(@NotNull Class<T> arg0, Object @NotNull ... arg1) throws BeansException {
         return appContext.getBean(arg0, arg1);
     }
 
     @Override
-    public <T> ObjectProvider<T> getBeanProvider(Class<T> aClass) {
+    public <T> @NotNull ObjectProvider<T> getBeanProvider(@NotNull Class<T> aClass) {
         return appContext.getBeanProvider(aClass);
     }
 
     @Override
-    public <T> ObjectProvider<T> getBeanProvider(ResolvableType resolvableType) {
+    public <T> @NotNull ObjectProvider<T> getBeanProvider(@NotNull ResolvableType resolvableType) {
         return appContext.getBeanProvider(resolvableType);
     }
 
-    public <T> T getBean(Class<T> arg0) throws BeansException {
+    public <T> @NotNull T getBean(@NotNull Class<T> arg0) throws BeansException {
         return appContext.getBean(arg0);
     }
 
-    public <T> T getBean(String arg0, Class<T> arg1) throws BeansException {
+    public <T> @NotNull T getBean(@NotNull String arg0, @NotNull Class<T> arg1) throws BeansException {
         return appContext.getBean(arg0, arg1);
     }
 
-    public Object getBean(String arg0, Object... arg1) throws BeansException {
+    public @NotNull Object getBean(@NotNull String arg0, Object @NotNull ... arg1) throws BeansException {
         return appContext.getBean(arg0, arg1);
     }
 
-    public Object getBean(String arg0) throws BeansException {
+    public @NotNull Object getBean(@NotNull String arg0) throws BeansException {
         return appContext.getBean(arg0);
     }
 
@@ -100,46 +100,46 @@ public class MockWebApplicationContext implements WebApplicationContext {
         return appContext.getBeanDefinitionCount();
     }
 
-    public String[] getBeanDefinitionNames() {
+    public String @NotNull [] getBeanDefinitionNames() {
         return appContext.getBeanDefinitionNames();
     }
 
-    public String[] getBeanNamesForAnnotation(Class<? extends Annotation> arg0) {
+    public String @NotNull [] getBeanNamesForAnnotation(@NotNull Class<? extends Annotation> arg0) {
         return appContext.getBeanNamesForAnnotation(arg0);
     }
 
-    public String[] getBeanNamesForType(Class<?> arg0, boolean arg1, boolean arg2) {
+    public String @NotNull [] getBeanNamesForType(Class<?> arg0, boolean arg1, boolean arg2) {
         return appContext.getBeanNamesForType(arg0, arg1, arg2);
     }
 
-    public String[] getBeanNamesForType(Class<?> arg0) {
+    public String @NotNull [] getBeanNamesForType(Class<?> arg0) {
         return appContext.getBeanNamesForType(arg0);
     }
 
-    public String[] getBeanNamesForType(ResolvableType arg0) {
+    public String @NotNull [] getBeanNamesForType(@NotNull ResolvableType arg0) {
         return appContext.getBeanNamesForType(arg0);
     }
 
     @Override
-    public String[] getBeanNamesForType(ResolvableType type, boolean includeNonSingletons, boolean allowEagerInit) {
+    public String @NotNull [] getBeanNamesForType(@NotNull ResolvableType type, boolean includeNonSingletons, boolean allowEagerInit) {
         return appContext.getBeanNamesForType(type, includeNonSingletons, allowEagerInit);
     }
 
     @Override
-    public Class<?> getType(String name, boolean allowFactoryBeanInit) throws NoSuchBeanDefinitionException {
+    public Class<?> getType(@NotNull String name, boolean allowFactoryBeanInit) throws NoSuchBeanDefinitionException {
         return appContext.getType(name, allowFactoryBeanInit);
     }
 
-    public <T> Map<String, T> getBeansOfType(Class<T> arg0, boolean arg1, boolean arg2)
+    public <T> @NotNull Map<String, T> getBeansOfType(Class<T> arg0, boolean arg1, boolean arg2)
             throws BeansException {
         return appContext.getBeansOfType(arg0, arg1, arg2);
     }
 
-    public <T> Map<String, T> getBeansOfType(Class<T> arg0) throws BeansException {
+    public <T> @NotNull Map<String, T> getBeansOfType(Class<T> arg0) throws BeansException {
         return appContext.getBeansOfType(arg0);
     }
 
-    public Map<String, Object> getBeansWithAnnotation(Class<? extends Annotation> arg0)
+    public @NotNull Map<String, Object> getBeansWithAnnotation(@NotNull Class<? extends Annotation> arg0)
             throws BeansException {
         return appContext.getBeansWithAnnotation(arg0);
     }
@@ -148,19 +148,19 @@ public class MockWebApplicationContext implements WebApplicationContext {
         return appContext.getClassLoader();
     }
 
-    public String getDisplayName() {
+    public @NotNull String getDisplayName() {
         return appContext.getDisplayName();
     }
 
-    public Environment getEnvironment() {
+    public @NotNull Environment getEnvironment() {
         return appContext.getEnvironment();
     }
 
-    public String getMessage(String code, Object[] args, String defaultMessage, Locale locale) {
+    public String getMessage(@NotNull String code, Object[] args, String defaultMessage, @NotNull Locale locale) {
         return appContext.getMessage(code, args, defaultMessage, locale);
     }
 
-    public String getMessage(String code, Object[] args, Locale locale) throws NoSuchMessageException {
+    public @NotNull String getMessage(@NotNull String code, Object[] args, @NotNull Locale locale) throws NoSuchMessageException {
         return appContext.getMessage(code, args, locale);
     }
 
@@ -176,15 +176,15 @@ public class MockWebApplicationContext implements WebApplicationContext {
         return appContext.getParentBeanFactory();
     }
 
-    public Resource getResource(String arg0) {
+    public @NotNull Resource getResource(@NotNull String arg0) {
         return appContext.getResource(arg0);
     }
 
-    public Resource[] getResources(String arg0) throws IOException {
+    public Resource @NotNull [] getResources(@NotNull String arg0) throws IOException {
         return appContext.getResources(arg0);
     }
 
-    public void publishEvent(ApplicationEvent event) {
+    public void publishEvent(@NotNull ApplicationEvent event) {
         appContext.publishEvent(event);
     }
 
@@ -192,31 +192,31 @@ public class MockWebApplicationContext implements WebApplicationContext {
         return appContext.getStartupDate();
     }
 
-    public Class<?> getType(String arg0) throws NoSuchBeanDefinitionException {
+    public Class<?> getType(@NotNull String arg0) throws NoSuchBeanDefinitionException {
         return appContext.getType(arg0);
     }
 
-    public boolean isPrototype(String arg0) throws NoSuchBeanDefinitionException {
+    public boolean isPrototype(@NotNull String arg0) throws NoSuchBeanDefinitionException {
         return appContext.isPrototype(arg0);
     }
 
-    public boolean isSingleton(String arg0) throws NoSuchBeanDefinitionException {
+    public boolean isSingleton(@NotNull String arg0) throws NoSuchBeanDefinitionException {
         return appContext.isSingleton(arg0);
     }
 
-    public boolean isTypeMatch(String arg0, Class<?> arg1) throws NoSuchBeanDefinitionException {
+    public boolean isTypeMatch(@NotNull String arg0, @NotNull Class<?> arg1) throws NoSuchBeanDefinitionException {
         return appContext.isTypeMatch(arg0, arg1);
     }
 
-    public boolean isTypeMatch(String arg0, ResolvableType arg1) throws NoSuchBeanDefinitionException {
+    public boolean isTypeMatch(@NotNull String arg0, @NotNull ResolvableType arg1) throws NoSuchBeanDefinitionException {
         return appContext.isTypeMatch(arg0, arg1);
     }
 
-    public void publishEvent(Object event) {
+    public void publishEvent(@NotNull Object event) {
         appContext.publishEvent(event);
     }
 
-    public String getMessage(MessageSourceResolvable resolvable, Locale locale)
+    public @NotNull String getMessage(@NotNull MessageSourceResolvable resolvable, @NotNull Locale locale)
             throws NoSuchMessageException {
         return appContext.getMessage(resolvable, locale);
     }
@@ -226,4 +226,15 @@ public class MockWebApplicationContext implements WebApplicationContext {
         return servletContext;
     }
 
+    @Override
+    public <T> @NotNull ObjectProvider<T> getBeanProvider(
+            @NotNull Class<T> requiredType, boolean allowEagerInit) {
+        return appContext.getBeanProvider(requiredType, allowEagerInit);
+    }
+
+    @Override
+    public <T> @NotNull ObjectProvider<T> getBeanProvider(
+            @NotNull ResolvableType requiredType, boolean allowEagerInit) {
+        return appContext.getBeanProvider(requiredType, allowEagerInit);
+    }
 }

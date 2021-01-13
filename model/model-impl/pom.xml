@@ -219,6 +219,24 @@
             <artifactId>spring-boot-starter-amqp</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <!--
+        Excluding javax.annotation-api coming via:
+        org.springframework.boot:spring-boot-starter-amqp -> org.springframework.amqp:spring-rabbit
+        -> org.springframework.amqp:spring-amqp -> org.springframework.retry:spring-retry:jar:1.3.0:runtime
+        -> javax.annotation:javax.annotation-api
+        -->
+        <dependency>
+            <groupId>org.springframework.retry</groupId>
+            <artifactId>spring-retry</artifactId>
+            <version>1.3.0</version>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.annotation</groupId>
+                    <artifactId>javax.annotation-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
         <!-- Test -->
         <dependency>
