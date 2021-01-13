@@ -128,7 +128,7 @@ public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
                 .form();
 
         form.assertInputAttributeValueMatches("ouPath", "0300");
-        form.assertInputAttributeValueMatches("isManager", "True");
+        form.assertSelectAttributeValueMatches("isManager", "True");
         form.assertInputAttributeValueMatches("empStatus", "A");
 
         form.and()

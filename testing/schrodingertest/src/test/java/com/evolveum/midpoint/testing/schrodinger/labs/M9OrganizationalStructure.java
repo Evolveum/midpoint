@@ -174,7 +174,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                     .getMemberPanel()
                         .selectType("User")
                             .table()
-                            .assertTableContainsText("kirk");
+                            .assertTableDoesntContainText("kirk");
 
         basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")

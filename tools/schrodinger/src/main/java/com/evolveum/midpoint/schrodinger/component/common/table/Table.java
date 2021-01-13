@@ -158,6 +158,12 @@ public class Table<T> extends Component<T> {
         }
     }
 
+    public void assertTableDoesntContainText (String text) {
+        if (containsText(text)) {
+            throw new AssertionError("Table shouldn't contain text '" + text + "'.");
+        }
+    }
+
     public boolean containsLinkTextPartially(String value) {
         return $(byPartialLinkText(value)).is(Condition.visible);
     }
