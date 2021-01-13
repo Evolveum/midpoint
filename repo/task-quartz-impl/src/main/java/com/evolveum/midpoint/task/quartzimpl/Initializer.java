@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,8 +9,9 @@ package com.evolveum.midpoint.task.quartzimpl;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
+import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
+import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
+import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryServiceFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
 import com.evolveum.midpoint.task.quartzimpl.execution.JobExecutor;
@@ -51,22 +52,20 @@ public class Initializer {
                 + (configuration.isClustered() ? "" : "NOT ") + "clustered. Threads: " + configuration.getThreads());
 
         if (configuration.isJdbcJobStore()) {
-
-            // quartz properties related to database connection will be taken from SQL repository
-            String defaultJdbcUrlPrefix = null;
-            SqlRepositoryConfiguration sqlConfig = null;
+            // Let's find Quartz JDBC setup fallback (which will be used very likely)
+            JdbcRepositoryConfiguration jdbcConfig = null;
             try {
-                SqlRepositoryFactory sqlRepositoryFactory = taskManager.getBeanFactory().getBean(SqlRepositoryFactory.class);
-                sqlConfig = sqlRepositoryFactory.getSqlConfiguration();
-                if (sqlConfig.isEmbedded()) {
-                    defaultJdbcUrlPrefix = sqlConfig.getDefaultEmbeddedJdbcUrlPrefix();
+                RepositoryServiceFactory repositoryServiceFactory =
+                        taskManager.getBeanFactory().getBean(RepositoryServiceFactory.class);
+                if (repositoryServiceFactory instanceof JdbcRepositoryServiceFactory) {
+                    jdbcConfig = ((JdbcRepositoryServiceFactory) repositoryServiceFactory).jdbcRepositoryConfiguration();
                 }
             } catch (NoSuchBeanDefinitionException e) {
                 LOGGER.info("SqlRepositoryFactory is not available, JDBC Job Store configuration will be taken from taskManager section only.");
                 LOGGER.trace("Reason is", e);
             }
 
-            configuration.setJdbcJobStoreInformation(midpointConfiguration, sqlConfig, defaultJdbcUrlPrefix);
+            configuration.setJdbcJobStoreInformation(midpointConfiguration, jdbcConfig);
             configuration.validateJdbcJobStoreInformation();
         }
 
