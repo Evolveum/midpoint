@@ -50,17 +50,17 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:complexType name="UserTypeExtensionType">
+    <xsd:complexType name="UserExtensionType">
         <xsd:annotation>
             <xsd:appinfo>
                 <a:extension ref="foo:UserType"/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element ref="tns:indexedString" maxOccurs="unbounded"/>
-            <xsd:element ref="tns:intType" maxOccurs="unbounded" />
-            <xsd:element name="num" maxOccurs="unbounded" type="xsd:int" />
-            <xsd:element name="dateTime" maxOccurs="unbounded" type="xsd:dateTime" />
+            <xsd:element ref="tns:indexedString" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="tns:intType" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="num" minOccurs="0" maxOccurs="unbounded" type="xsd:int" />
+            <xsd:element name="dateTime" minOccurs="0" maxOccurs="unbounded" type="xsd:dateTime" />
         </xsd:sequence>
     </xsd:complexType>
 
