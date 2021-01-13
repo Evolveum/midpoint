@@ -324,13 +324,11 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
 
     @Test // MID-6601
     public void testOidGtFilter() throws Exception {
-        PrismObject<UserType> user = parseUserJacky();
         ObjectFilter filter =
                 getPrismContext().queryFor(UserType.class)
                         .item(PrismConstants.T_ID).gt("00")
                         .buildFilter();
-        boolean match = ObjectQuery.match(user, filter, MATCHING_RULE_REGISTRY);
-        AssertJUnit.assertTrue("filter does not match object", match);
+        verify("# > '00'", filter);
     }
 
     @Test // MID-6601

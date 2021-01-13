@@ -32,14 +32,26 @@ prefixedName: (prefix=IDENTIFIER COLON)? localName=IDENTIFIER
 
 argument : prefixedName | literalValue;
 
+
+// Axiom Path (different from Prism Item Path)
 variable: '$' itemName;
 parent: '..';
 // Path could start with ../ or context variable ($var) or item name
 firstComponent: (parent ( '/' parent )*) | variable | pathComponent;
 
-path: firstComponent ( '/' pathComponent)*;
+axiomPath: firstComponent ( '/' pathComponent)*;
 pathComponent: itemName (pathValue)?;
 pathValue: '[' argument ']';
+
+itemPathComponent: '#' #IdentifierComponent
+    | '@' #DereferenceComponent
+    | prefixedName #ItemComponent;
+
+path: '.' #SelfPath
+    | parent ( '/' parent)* ( '/' itemPathComponent)* #ParentPath
+    | itemPathComponent ( '/' itemPathComponent)* #DescendantPath;
+
+
 
 
 // Aliases for basic filters (equals, less, greater, lessOrEquals, greaterOrEquals

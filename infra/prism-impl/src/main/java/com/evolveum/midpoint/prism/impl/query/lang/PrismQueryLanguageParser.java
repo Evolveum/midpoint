@@ -88,7 +88,7 @@ public class PrismQueryLanguageParser {
             ValueSpecificationContext valueSpec = subfilterOrValue.valueSpecification();
             if (valueSpec.path() != null) {
                 ItemPath rightPath = path(parentDef, valueSpec.path());
-                PrismPropertyDefinition<?> rightDef = parentDef.findItemDefinition(rightPath, PrismPropertyDefinition.class);
+                PrismPropertyDefinition<?> rightDef = findDefinition(parentDef,rightPath, PrismPropertyDefinition.class);
                 return propertyFilter(propDef, path, matchingRule, rightPath, rightDef);
             } else if (valueSpec.literalValue() != null) {
                 Object parsedValue = parseLiteral(propDef, valueSpec.literalValue());
@@ -227,6 +227,7 @@ public class PrismQueryLanguageParser {
                         return ExistsFilterImpl.createExists(itemPath, parentDef, null);
                     }
                 })
+
             .build();
 
     private final Map<QName, ItemFilterFactory> notFilterFactories = ImmutableMap.<QName, ItemFilterFactory>builder()
@@ -322,7 +323,7 @@ public class PrismQueryLanguageParser {
                 ? toFilterName(MATCHING_RULE_NS, itemFilter.matchingRule().prefixedName())
                 : null;
         ItemPath path = path(parent, itemFilter.path());
-        ItemDefinition<?> itemDefinition = parent.findItemDefinition(path);
+        ItemDefinition<?> itemDefinition = findDefinition(parent, path, ItemDefinition.class);
         ItemFilterFactory factory = filterFactories.get(filterName);
         schemaCheck(factory != null, "Unknown filter %s", filterName);
 
@@ -339,6 +340,14 @@ public class PrismQueryLanguageParser {
         }
         return filter;
 
+    }
+
+    private <T extends ItemDefinition<?>> T findDefinition(PrismContainerDefinition<?> parent, ItemPath path, Class<T> type) {
+        if (path.isEmpty() && type.isInstance(parent)) {
+           return type.cast(parent);
+        }
+        // FIXME: Workaround for
+        return  parent.getComplexTypeDefinition().findItemDefinition(path,type);
     }
 
     static void schemaCheck(boolean condition, String template, Object... arguments) throws SchemaException {
@@ -370,17 +379,6 @@ public class PrismQueryLanguageParser {
         String ns = defaultNs;
         // FIXME: Add namespace detection
         return new QName(ns, itemName.localName.getText());
-    }
-
-    ObjectFilter createEqual(PrismPropertyDefinition<?> definition, ItemPath path, QName matchingRule,
-            ValueSpecificationContext value) {
-        if (value.path() != null) {
-            throw new UnsupportedOperationException("FIXME: Implement right side lookup");
-        } else if (value.literalValue() != null) {
-            Object parsedValue = parseLiteral(definition, value.literalValue());
-            return EqualFilterImpl.createEqual(path, definition, matchingRule, context, parsedValue);
-        }
-        throw new IllegalStateException();
     }
 
     private Object parseLiteral(PrismPropertyDefinition<?> definition, LiteralValueContext string) {
