@@ -68,7 +68,7 @@ public abstract class CasesTablePanel extends MainObjectListPanel<CaseType> {
     protected ISelectableDataProvider createProvider() {
         PageStorage storage = getPageStorage();
         SelectableBeanObjectDataProvider<CaseType> provider = new SelectableBeanObjectDataProvider<CaseType>(
-                getPageBase(), CaseType.class, null) {
+                getPageBase(), getSearchModel(), null) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -93,10 +93,6 @@ public abstract class CasesTablePanel extends MainObjectListPanel<CaseType> {
                 return WebComponentUtil.createMetadataOrdering(sortParam, "createTimestamp", getPrismContext());
             }
 
-            @Override
-            public ObjectQuery getQuery() {
-                return createQuery();
-            }
         };
         provider.setCompiledObjectCollectionView(getObjectCollectionView());
         provider.setOptions(createOptions());

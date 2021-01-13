@@ -240,7 +240,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 
         parentPage.showResult(result);
         target.add(parentPage.getFeedbackPanel());
-        focusListComponent.refreshTable(objectClass, target);
+        focusListComponent.refreshTable(target);
         focusListComponent.clearCache();
     }
 
@@ -282,7 +282,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
         parentPage.showResult(result);
         target.add(parentPage.getFeedbackPanel());
         focusListComponent.clearCache();
-        focusListComponent.refreshTable(objectClass, target);
+        focusListComponent.refreshTable(target);
     }
 
     private void reconcilePerformed(AjaxRequestTarget target, F selectedObject) {
@@ -314,7 +314,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 
         parentPage.showResult(result);
         target.add(parentPage.getFeedbackPanel());
-        focusListComponent.refreshTable(objectClass, target);
+        focusListComponent.refreshTable(target);
         focusListComponent.clearCache();
     }
 

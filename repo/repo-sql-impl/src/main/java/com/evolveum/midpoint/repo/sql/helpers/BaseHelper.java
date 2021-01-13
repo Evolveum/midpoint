@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -24,11 +24,12 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.repo.sql.*;
 import com.evolveum.midpoint.repo.sql.audit.mapping.QueryModelMappingConfig;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
+import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.InstantType;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.MidpointOracleTemplates;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.MidpointSQLServerTemplates;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.InstantType;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.backoff.BackoffComputer;
 import com.evolveum.midpoint.util.backoff.ExponentialBackoffComputer;
@@ -290,7 +291,7 @@ public class BaseHelper {
             return sqlRepoContext;
         }
 
-        Database database =
+        SupportedDatabase database =
                 sqlRepositoryConfiguration.getDatabaseType();
         Configuration querydslConfiguration;
         switch (database) {

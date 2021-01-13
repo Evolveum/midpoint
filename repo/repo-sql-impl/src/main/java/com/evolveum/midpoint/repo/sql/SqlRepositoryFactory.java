@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -23,15 +23,16 @@ import org.h2.tools.Server;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
+import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
+import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryServiceFactory;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Factory for {@link SqlRepositoryServiceImpl} implementing {@link RepositoryService}.
  */
-public class SqlRepositoryFactory implements RepositoryServiceFactory {
+public class SqlRepositoryFactory implements JdbcRepositoryServiceFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryFactory.class);
 
@@ -242,6 +243,11 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
     public SqlRepositoryConfiguration getSqlConfiguration() {
         Validate.notNull(sqlConfiguration, "SQL repository configuration not available (null).");
         return sqlConfiguration;
+    }
+
+    @Override
+    public JdbcRepositoryConfiguration jdbcRepositoryConfiguration() {
+        return getSqlConfiguration();
     }
 
     @Override

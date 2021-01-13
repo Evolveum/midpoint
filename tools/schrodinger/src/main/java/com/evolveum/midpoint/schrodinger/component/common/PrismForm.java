@@ -133,6 +133,13 @@ public class PrismForm<T> extends Component<T> {
 
     }
 
+    public void assertInputAttributeValueMatches(String attributeName, String expectedValue) {
+        if (!compareInputAttributeValue(attributeName, expectedValue)) {
+            throw new AssertionError("The value of the input attribute " + attributeName
+                    + " doesn't match to expected value '" + expectedValue + "'.");
+        }
+    }
+
     //seems that the property fields in new container are wrapped to extra parent, that is why we need one extra parent() call
     //needs to be checked
     public Boolean compareInputAttributeValueInNewContainer(String name, String expectedValue) {
@@ -203,6 +210,13 @@ public class PrismForm<T> extends Component<T> {
             return expectedValue.isEmpty();
         }
 
+    }
+
+    public void assertSelectAttributeValueMatches(String attributeName, String expectedValue) {
+        if (!compareSelectAttributeValue(attributeName, expectedValue)) {
+            throw new AssertionError("The value of the select attribute " + attributeName
+                    + " doesn't match to expected value '" + expectedValue + "'.");
+        }
     }
 
     public PrismForm<T> addAttributeValue(QName name, String value) {

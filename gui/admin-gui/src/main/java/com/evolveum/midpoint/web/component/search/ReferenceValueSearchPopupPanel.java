@@ -13,6 +13,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.TextField;
@@ -29,7 +31,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurA
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends SpecialPopoverSearchPopupPanel<ObjectReferenceType> {
+public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends PopoverSearchPopupPanel<ObjectReferenceType> {
 
     private static final long serialVersionUID = 1L;
 
@@ -55,15 +57,17 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Specia
             }
         });
         oidField.setOutputMarkupId(true);
-        oidField.add(new VisibleBehaviour(() -> true));
         oidField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onUpdate(AjaxRequestTarget target) {
                 ReferenceValueSearchPopupPanel.this.getModelObject().asReferenceValue().setObject(null);
+                ReferenceValueSearchPopupPanel.this.getModelObject().setTargetName(null);
+                ReferenceValueSearchPopupPanel.this.getModelObject().setRelation(null);
             }
         });
+        oidField.add(new EnableBehaviour(() -> isItemPanelEnabled()));
         midpointForm.add(oidField);
 
         ReferenceAutocomplete nameField = new ReferenceAutocomplete(ID_NAME, Model.of(getModelObject()),
@@ -96,7 +100,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Specia
             }
         });
         nameField.setOutputMarkupId(true);
-        nameField.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        nameField.add(new EnableBehaviour(() -> isItemPanelEnabled()));
         midpointForm.add(nameField);
 
         DropDownChoicePanel<QName> type = new DropDownChoicePanel<QName>(ID_TYPE, new PropertyModel<>(getModel(), "type"),
@@ -108,7 +112,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Specia
 
             @Override
             public boolean isEnabled() {
-                return getSupportedTargetList().size() > 1;
+                return getSupportedTargetList().size() > 1 && isItemPanelEnabled();
             }
         });
         type.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
@@ -125,7 +129,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Specia
 
             @Override
             public boolean isEnabled() {
-                return getAllowedRelations().size() > 1;
+                return getAllowedRelations().size() > 1 && isItemPanelEnabled();
             }
         });
         relation.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());

@@ -8,22 +8,16 @@ package com.evolveum.midpoint.web.component.search;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
-import com.evolveum.midpoint.web.component.input.TextPanel;
 
 /**
  * @author honchar
  */
-public class DateIntervalSearchPanel extends SpecialPopoverSearchPanel {
+public class DateIntervalSearchPanel extends PopoverSearchPanel {
 
     private static final long serialVersionUID = 1L;
 
@@ -37,7 +31,7 @@ public class DateIntervalSearchPanel extends SpecialPopoverSearchPanel {
     }
 
     @Override
-    protected SpecialPopoverSearchPopupPanel createPopupPopoverPanel(String id) {
+    protected PopoverSearchPopupPanel createPopupPopoverPanel(String id) {
         return new DateIntervalSearchPopupPanel(id, fromDateModel, toDateModel) {
 
             private static final long serialVersionUID = 1L;

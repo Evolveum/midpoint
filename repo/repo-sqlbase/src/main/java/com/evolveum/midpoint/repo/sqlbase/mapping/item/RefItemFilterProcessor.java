@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqlbase.mapping.item;
 
 import java.util.function.Function;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import com.querydsl.core.types.*;
 
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -15,29 +17,48 @@ import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.sqlbase.SqlPathContext;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Filter processor for a reference attribute path.
  */
-public class RefItemFilterProcessor extends SinglePathItemFilterProcessor<RefFilter> {
+public class RefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
 
     /**
      * Returns the mapper function creating the string filter processor from context.
      */
     public static ItemSqlMapper mapper(Function<EntityPath<?>, Path<?>> rootToQueryItem) {
-        return new ItemSqlMapper(ctx -> new RefItemFilterProcessor(ctx, rootToQueryItem));
+        return new ItemSqlMapper(ctx -> new RefItemFilterProcessor(ctx, rootToQueryItem, null, null));
     }
 
+    public static ItemSqlMapper mapper(Function<EntityPath<?>, Path<?>> rootOidToQueryItem, Function<EntityPath<?>, Path<?>> rootTypeToQueryItem, Function<Class<ObjectType>, Integer> typeConversionFunction) {
+        return new ItemSqlMapper(ctx -> new RefItemFilterProcessor(ctx, rootOidToQueryItem, rootTypeToQueryItem, typeConversionFunction));
+    }
+
+    private final Path<?> oidPath;
+    private final Path<?> typePath;
+    private final Function<Class<ObjectType>, Integer> typeConversionFunction;
+
     private RefItemFilterProcessor(
-            SqlPathContext<?, ?, ?> context, Function<EntityPath<?>, Path<?>> rootToQueryItem) {
-        super(context, rootToQueryItem);
+            SqlPathContext<?, ?, ?> context, Function<EntityPath<?>, Path<?>> rootOidToQueryItem, Function<EntityPath<?>, Path<?>> rootTypeToQueryItem, Function<Class<ObjectType>, Integer> typeConversionFunction) {
+        super(context);
+        this.oidPath = rootOidToQueryItem.apply(context.path());
+        this.typePath = rootTypeToQueryItem != null ? rootTypeToQueryItem.apply(context.path()) : null;
+        this.typeConversionFunction = typeConversionFunction;
     }
 
     @Override
     public Predicate process(RefFilter filter) {
         PrismReferenceValue singleValue = filter.getSingleValue();
         Referencable ref = singleValue != null ? singleValue.getRealValue() : null;
-        return ref != null
-                ? ExpressionUtils.predicate(Ops.EQ, path, ConstantImpl.create(ref.getOid()))
-                : ExpressionUtils.predicate(Ops.IS_NULL, path);
+        if (ref != null) {
+            if (ref.getOid() != null) {
+                return ExpressionUtils.predicate(Ops.EQ, oidPath, ConstantImpl.create(ref.getOid()));
+            } else if (ref.getType() != null && typePath != null && typeConversionFunction != null) {
+                Class<ObjectType> type = context.prismContext().getSchemaRegistry().getCompileTimeClass(ref.getType());
+                return ExpressionUtils.predicate(Ops.EQ, typePath, ConstantImpl.create(typeConversionFunction.apply(type)));
+            }
+        }
+        return ExpressionUtils.predicate(Ops.IS_NULL, oidPath);
     }
 }

@@ -60,8 +60,8 @@ public class FilterConfigPanelTest extends AbstractSchrodingerTest {
         midPoint.formLogin().login(username, password);
 
         UsersPageTable usersPageTable = basicPage.listUsers("FilterTestUsers").table();
-        Assert.assertEquals(1, usersPageTable.countTableObjects());
-        Assert.assertTrue(usersPageTable.containsText("FilterConfigTest"));
+        usersPageTable.assertTableObjectsCountEquals(1);
+        usersPageTable.assertTableContainsText("FilterConfigTest");
     }
 
     @Test
@@ -92,8 +92,8 @@ public class FilterConfigPanelTest extends AbstractSchrodingerTest {
         midPoint.formLogin().login(username, password);
 
         UsersPageTable usersPageTable = basicPage.listUsers("NewObjCollectionTest").table();
-        Assert.assertEquals(usersPageTable.countTableObjects(), 1);
-        Assert.assertTrue(usersPageTable.containsText("NewObjCollectionTestUser"));
+        usersPageTable.assertTableObjectsCountEquals(1);
+        usersPageTable.assertTableContainsText("NewObjCollectionTestUser");
     }
 
     @Test
@@ -122,8 +122,8 @@ public class FilterConfigPanelTest extends AbstractSchrodingerTest {
         midPoint.formLogin().login(username, password);
 
         UsersPageTable usersPageTable = basicPage.listUsers("ObjRefAttributeConfigTest").table();
-        Assert.assertEquals(1, usersPageTable.countTableObjects());
-        Assert.assertTrue(usersPageTable.containsText("ObjRefPropertyConfigUser"));
+        usersPageTable.assertTableObjectsCountEquals(1);
+        usersPageTable.assertTableContainsText("ObjRefPropertyConfigUser");
     }
 
     @Test
@@ -153,8 +153,8 @@ public class FilterConfigPanelTest extends AbstractSchrodingerTest {
         midPoint.formLogin().login(username, password);
 
         UsersPageTable usersPageTable = basicPage.listUsers("DropdownPropertyConfigTest").table();
-        Assert.assertEquals(1, usersPageTable.countTableObjects());
-        Assert.assertTrue(usersPageTable.containsText("DropdownPropertyConfigUser"));
+        usersPageTable.assertTableObjectsCountEquals(1);
+        usersPageTable.assertTableContainsText("DropdownPropertyConfigUser");
     }
 
 }

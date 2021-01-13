@@ -1,15 +1,14 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
-import com.evolveum.midpoint.repo.sql.Database;
-
 import java.util.*;
 
+import com.google.common.base.Strings;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +17,8 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
+import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
+import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManagerConfigurationException;
 import com.evolveum.midpoint.task.api.UseThreadInterrupt;
@@ -183,7 +183,7 @@ public class TaskManagerConfiguration {
     private boolean useRepositoryConnectionProvider;
     private boolean createQuartzTables;
 
-    private Database database;
+    private SupportedDatabase database;
     private boolean databaseIsEmbedded;
 
     /*
@@ -261,13 +261,18 @@ public class TaskManagerConfiguration {
         Iterator<String> keyIterator = c.getKeys();
         while (keyIterator.hasNext()) {
             String keyName = keyIterator.next();
-            String normalizedKeyName = StringUtils.substringBefore(keyName, ".");                       // because of subkeys
-            normalizedKeyName = StringUtils.substringBefore(normalizedKeyName, "[");                    // because of [@xmlns:c]
-            int colon = normalizedKeyName.indexOf(':');                                                 // because of c:generalChangeProcessorConfiguration
+            if (Strings.isNullOrEmpty(keyName)) {
+                continue; // happens if <taskManager> element is empty
+            }
+
+            String normalizedKeyName = StringUtils.substringBefore(keyName, "."); // because of subkeys
+            normalizedKeyName = StringUtils.substringBefore(normalizedKeyName, "["); // because of [@xmlns:c]
+            int colon = normalizedKeyName.indexOf(':'); // because of c:generalChangeProcessorConfiguration
             if (colon != -1) {
                 normalizedKeyName = normalizedKeyName.substring(colon + 1);
             }
-            if (!knownKeysSet.contains(keyName) && !knownKeysSet.contains(normalizedKeyName)) {         // ...we need to test both because of keys like 'midpoint.home'
+            if (!knownKeysSet.contains(keyName) && !knownKeysSet.contains(normalizedKeyName)) {
+                // ...we need to test both because of keys like 'midpoint.home'
                 throw new TaskManagerConfigurationException("Unknown key " + keyName + " in task manager configuration");
             }
         }
@@ -402,54 +407,63 @@ public class TaskManagerConfiguration {
         }
     }
 
-    private static final Map<Database, String> SCHEMAS = new HashMap<>();
-    private static final Map<Database, String> DELEGATES = new HashMap<>();
+    private static final Map<SupportedDatabase, String> SCHEMAS = new HashMap<>();
+    private static final Map<SupportedDatabase, String> DELEGATES = new HashMap<>();
 
-    private static void addDbInfo(Database database, String schema, String delegate) {
+    private static void addDbInfo(SupportedDatabase database, String schema, String delegate) {
         SCHEMAS.put(database, schema);
         DELEGATES.put(database, delegate);
     }
 
     static {
-        addDbInfo(Database.H2, "tables_h2.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
-        addDbInfo(Database.MYSQL, "tables_mysql_innodb.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
-        addDbInfo(Database.MARIADB, "tables_mysql_innodb.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
-        addDbInfo(Database.POSTGRESQL, "tables_postgres.sql", "org.quartz.impl.jdbcjobstore.PostgreSQLDelegate");
-        addDbInfo(Database.ORACLE, "tables_oracle.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");    // todo shouldn't we use OracleDelegate?
-        addDbInfo(Database.SQLSERVER, "tables_sqlServer.sql", "org.quartz.impl.jdbcjobstore.MSSQLDelegate");
+        addDbInfo(SupportedDatabase.H2,
+                "tables_h2.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
+        addDbInfo(SupportedDatabase.MYSQL,
+                "tables_mysql_innodb.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
+        addDbInfo(SupportedDatabase.MARIADB,
+                "tables_mysql_innodb.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
+        addDbInfo(SupportedDatabase.POSTGRESQL,
+                "tables_postgres.sql", "org.quartz.impl.jdbcjobstore.PostgreSQLDelegate");
+        addDbInfo(SupportedDatabase.ORACLE,
+                // TODO shouldn't we use OracleDelegate?
+                "tables_oracle.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
+        addDbInfo(SupportedDatabase.SQLSERVER,
+                "tables_sqlServer.sql", "org.quartz.impl.jdbcjobstore.MSSQLDelegate");
     }
 
-    void setJdbcJobStoreInformation(MidpointConfiguration masterConfig, SqlRepositoryConfiguration sqlConfig, String defaultJdbcUrlPrefix) {
+    void setJdbcJobStoreInformation(
+            MidpointConfiguration masterConfig, JdbcRepositoryConfiguration jdbcConfig) {
 
-        Configuration c = masterConfig.getConfiguration(MidpointConfiguration.TASK_MANAGER_CONFIGURATION);
+        Configuration taskManagerConf = masterConfig.getConfiguration(MidpointConfiguration.TASK_MANAGER_CONFIGURATION);
 
-        database = sqlConfig != null ? sqlConfig.getDatabaseType() : null;
+        database = jdbcConfig != null ? jdbcConfig.getDatabaseType() : null;
 
         String defaultSqlSchemaFile = SCHEMAS.get(database);
         String defaultDriverDelegate = DELEGATES.get(database);
 
-        sqlSchemaFile = c.getString(SQL_SCHEMA_FILE_CONFIG_ENTRY, defaultSqlSchemaFile);
-        jdbcDriverDelegateClass = c.getString(JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY, defaultDriverDelegate);
+        sqlSchemaFile = taskManagerConf.getString(SQL_SCHEMA_FILE_CONFIG_ENTRY, defaultSqlSchemaFile);
+        jdbcDriverDelegateClass = taskManagerConf.getString(JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY, defaultDriverDelegate);
 
-        createQuartzTables = c.getBoolean(CREATE_QUARTZ_TABLES_CONFIG_ENTRY, CREATE_QUARTZ_TABLES_DEFAULT);
-        databaseIsEmbedded = sqlConfig != null && sqlConfig.isEmbedded();
+        createQuartzTables = taskManagerConf.getBoolean(CREATE_QUARTZ_TABLES_CONFIG_ENTRY, CREATE_QUARTZ_TABLES_DEFAULT);
+        databaseIsEmbedded = jdbcConfig != null && jdbcConfig.isEmbedded();
 
-        useRepositoryConnectionProvider = c.getBoolean(USE_REPOSITORY_CONNECTION_PROVIDER_CONFIG_ENTRY, false);
+        useRepositoryConnectionProvider = taskManagerConf.getBoolean(USE_REPOSITORY_CONNECTION_PROVIDER_CONFIG_ENTRY, false);
         if (useRepositoryConnectionProvider) {
             LOGGER.info("Using connection provider from repository (ignoring all the other database-related configuration)");
-            if (sqlConfig != null && sqlConfig.isUsingH2()) {
+            if (jdbcConfig != null && jdbcConfig.isUsingH2()) {
                 LOGGER.warn("This option is not supported for H2! Please change the task manager configuration.");
             }
         } else {
-            jdbcDriver = c.getString(JDBC_DRIVER_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getDriverClassName() : null);
+            jdbcDriver = taskManagerConf.getString(JDBC_DRIVER_CONFIG_ENTRY,
+                    jdbcConfig != null ? jdbcConfig.getDriverClassName() : null);
 
-            String explicitJdbcUrl = c.getString(JDBC_URL_CONFIG_ENTRY, null);
+            String explicitJdbcUrl = taskManagerConf.getString(JDBC_URL_CONFIG_ENTRY, null);
             if (explicitJdbcUrl == null) {
-                if (sqlConfig != null) {
-                    if (sqlConfig.isEmbedded()) {
-                        jdbcUrl = defaultJdbcUrlPrefix + "-quartz;MVCC=TRUE;DB_CLOSE_ON_EXIT=FALSE";
+                if (jdbcConfig != null) {
+                    if (jdbcConfig.isEmbedded()) {
+                        jdbcUrl = jdbcConfig.getDefaultEmbeddedJdbcUrlPrefix() + "-quartz;MVCC=TRUE;DB_CLOSE_ON_EXIT=FALSE";
                     } else {
-                        jdbcUrl = sqlConfig.getJdbcUrl();
+                        jdbcUrl = jdbcConfig.getJdbcUrl();
                     }
                 } else {
                     jdbcUrl = null;
@@ -457,9 +471,9 @@ public class TaskManagerConfiguration {
             } else {
                 jdbcUrl = explicitJdbcUrl;
             }
-            dataSource = c.getString(DATA_SOURCE_CONFIG_ENTRY, null);
-            if (dataSource == null && explicitJdbcUrl == null && sqlConfig != null) {
-                dataSource = sqlConfig.getDataSource();             // we want to use quartz-specific JDBC if there is one (i.e. we do not want to inherit data source from repo in such a case)
+            dataSource = taskManagerConf.getString(DATA_SOURCE_CONFIG_ENTRY, null);
+            if (dataSource == null && explicitJdbcUrl == null && jdbcConfig != null) {
+                dataSource = jdbcConfig.getDataSource();             // we want to use quartz-specific JDBC if there is one (i.e. we do not want to inherit data source from repo in such a case)
             }
 
             if (dataSource != null) {
@@ -468,8 +482,10 @@ public class TaskManagerConfiguration {
                 LOGGER.info("Quartz database is at {} (a JDBC URL)", jdbcUrl);
             }
 
-            jdbcUser = c.getString(JDBC_USER_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getJdbcUsername() : null);
-            jdbcPassword = c.getString(JDBC_PASSWORD_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getJdbcPassword() : null);
+            jdbcUser = taskManagerConf.getString(JDBC_USER_CONFIG_ENTRY,
+                    jdbcConfig != null ? jdbcConfig.getJdbcUsername() : null);
+            jdbcPassword = taskManagerConf.getString(JDBC_PASSWORD_CONFIG_ENTRY,
+                    jdbcConfig != null ? jdbcConfig.getJdbcPassword() : null);
         }
     }
 

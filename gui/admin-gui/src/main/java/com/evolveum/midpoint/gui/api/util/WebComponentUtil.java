@@ -753,6 +753,14 @@ public final class WebComponentUtil {
         return archetypeRef;
     }
 
+    private static String getArchetypeOid(AssignmentHolderType assignmentHolder) {
+        ObjectReferenceType archetypeRef = getArchetypeReference(assignmentHolder);
+        if (archetypeRef != null) {
+            return archetypeRef.getOid();
+        }
+        return null;
+    }
+
     public static void iterativeExecuteBulkAction(PageBase pageBase, ExecuteScriptType script, Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException {
@@ -1994,7 +2002,7 @@ public final class WebComponentUtil {
         return getRelationRegistry().isOfKind(relation, kind);
     }
 
-    protected static RelationRegistry getRelationRegistry() {
+    public static RelationRegistry getRelationRegistry() {
         if (staticallyProvidedRelationRegistry != null) {
             return staticallyProvidedRelationRegistry;
         } else {
@@ -2261,9 +2269,8 @@ public final class WebComponentUtil {
         return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON);
     }
 
-    public static ObjectFilter evaluateExpressionsInFilter(ObjectFilter objectFilter, OperationResult result, PageBase pageBase) {
+    public static ObjectFilter evaluateExpressionsInFilter(ObjectFilter objectFilter, ExpressionVariables variables, OperationResult result, PageBase pageBase) {
         try {
-            ExpressionVariables variables = new ExpressionVariables();
             return ExpressionUtil.evaluateFilterExpressions(objectFilter, variables, MiscSchemaUtil.getExpressionProfile(),
                     pageBase.getExpressionFactory(), pageBase.getPrismContext(), "collection filter",
                     pageBase.createSimpleTask(result.getOperation()), result);
@@ -2273,6 +2280,11 @@ public final class WebComponentUtil {
             pageBase.error("Unable to evaluate filter exception, " + ex.getMessage());
         }
         return objectFilter;
+    }
+
+    public static ObjectFilter evaluateExpressionsInFilter(ObjectFilter objectFilter, OperationResult result, PageBase pageBase) {
+        ExpressionVariables variables = new ExpressionVariables();
+        return evaluateExpressionsInFilter(objectFilter, variables, result, pageBase);
     }
 
     public static String createReportIcon() {
@@ -3047,9 +3059,8 @@ public final class WebComponentUtil {
         target.add(pageBase.getFeedbackPanel());
     }
 
-    public static List<QName> getCategoryRelationChoices(AreaCategoryType category, ModelServiceLocator pageBase) {
+    public static List<QName> getCategoryRelationChoices(AreaCategoryType category, List<RelationDefinitionType> defList) {
         List<QName> relationsList = new ArrayList<>();
-        List<RelationDefinitionType> defList = getRelationDefinitions(pageBase);
         defList.sort(new Comparator<RelationDefinitionType>() {
             @Override
             public int compare(RelationDefinitionType rD1, RelationDefinitionType rD2) {
@@ -3079,6 +3090,10 @@ public final class WebComponentUtil {
             }
         });
         return relationsList;
+    }
+
+    public static List<QName> getCategoryRelationChoices(AreaCategoryType category, ModelServiceLocator pageBase) {
+        return getCategoryRelationChoices(category, getRelationDefinitions(pageBase));
     }
 
     private static RelationKindType getHighestRelationKind(List<RelationKindType> kinds) {
@@ -3377,7 +3392,10 @@ public final class WebComponentUtil {
                 super.bind(component);
 
                 component.add(AttributeModifier.replace("onkeydown",
-                        Model.of("if(event.keyCode == 13) {$('[about=\"" + submitButtonAboutAttribute + "\"]').click();}")));
+                        Model.of("if(event.keyCode == 13) {"
+                                + "event.die();"
+                                + "$('[about=\"" + submitButtonAboutAttribute + "\"]').click();"
+                                + "}")));
             }
         };
     }
@@ -4737,6 +4755,10 @@ public final class WebComponentUtil {
 
     public static <I extends Item> PrismObject<LookupTableType> findLookupTable(ItemDefinition<I> definition, PageBase page) {
         PrismReferenceValue valueEnumerationRef = definition.getValueEnumerationRef();
+        return findLookupTable(valueEnumerationRef, page);
+    }
+
+    public static <I extends Item> PrismObject<LookupTableType> findLookupTable(PrismReferenceValue valueEnumerationRef, PageBase page) {
         if (valueEnumerationRef == null) {
             return null;
         }
@@ -4835,5 +4857,21 @@ public final class WebComponentUtil {
         plusIcon.setColor("green");
         builder.appendLayerIcon(plusIcon, LayeredIconCssStyle.BOTTOM_RIGHT_STYLE);
         return builder.build();
+    }
+
+    public static CompiledObjectCollectionView getCollectionViewByObject(AssignmentHolderType assignmentHolder, PageBase pageBase) {
+        String archetypeOid = getArchetypeOid(assignmentHolder);
+        if (!StringUtils.isEmpty(archetypeOid)) {
+            List<CompiledObjectCollectionView> collectionViews =
+                    pageBase.getCompiledGuiProfile().getObjectCollectionViews();
+            for (CompiledObjectCollectionView view : collectionViews) {
+                if (view.getCollection() != null && view.getCollection().getCollectionRef() != null
+                        && archetypeOid.equals(view.getCollection().getCollectionRef().getOid())) {
+                    return view;
+                }
+            }
+        }
+        QName type = classToQName(pageBase.getPrismContext(), assignmentHolder.getClass());
+        return pageBase.getCompiledGuiProfile().findObjectCollectionView(type, null);
     }
 }

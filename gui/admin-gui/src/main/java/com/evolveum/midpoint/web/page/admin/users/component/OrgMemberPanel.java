@@ -11,17 +11,14 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.web.session.MemberPanelStorage;
-import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
@@ -29,22 +26,12 @@ import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
 import com.evolveum.midpoint.web.page.admin.roles.MemberOperationsHelper;
 
 public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
+    private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(OrgMemberPanel.class);
 
-
-    protected static final String ID_SEARCH_BY_TYPE = "searchByType";
-
-    protected static final ObjectTypes OBJECT_TYPES_DEFAULT = ObjectTypes.USER;
-
-
-
-    protected static final String DOT_CLASS = OrgMemberPanel.class.getName() + ".";
-
-    private static final long serialVersionUID = 1L;
-
-    public OrgMemberPanel(String id, IModel<OrgType> model) {
-        super(id, model);
+    public OrgMemberPanel(String id, IModel<OrgType> model, PageBase parentPage) {
+        super(id, model, parentPage);
         setOutputMarkupId(true);
     }
 
@@ -54,29 +41,23 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     }
 
     @Override
-    protected ObjectQuery createMemberQuery(boolean indirect, Collection<QName> relations) {
-        ObjectTypes searchType = getSearchType();
-        if (SearchBoxScopeType.ONE_LEVEL.equals(getSearchScope())) {
-            if (AssignmentHolderType.class.isAssignableFrom(searchType.getClassDefinition())) {
-                return super.createMemberQuery(indirect, relations);
-            }
-            else {
-                ObjectReferenceType ref = MemberOperationsHelper.createReference(getModelObject(), getSelectedRelation());
-                return getPageBase().getPrismContext().queryFor(searchType.getClassDefinition())
-                        .type(searchType.getClassDefinition())
-                        .isDirectChildOf(ref.asReferenceValue()).build();
-            }
-        }
-        return getSubtreeScopeMembersQuery();
-    }
-
-    @Override
     protected ObjectQuery getActionQuery(QueryScope scope, Collection<QName> relations) {
-        if (SearchBoxScopeType.ONE_LEVEL.equals(getSearchScope()) ||
-                (SearchBoxScopeType.SUBTREE.equals(getSearchScope()) && !QueryScope.ALL.equals(scope))) {
+        if (SearchBoxScopeType.ONE_LEVEL.equals(getMemberPanelStorage().getOrgSearchScope()) ||
+                (SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope())
+                        && !QueryScope.ALL.equals(scope))) {
             return super.getActionQuery(scope, relations);
         } else {
-            return getSubtreeScopeMembersQuery();
+            String oid = getModelObject().getOid();
+
+            ObjectReferenceType ref = MemberOperationsHelper.createReference(getModelObject(), getSelectedRelation());
+            ObjectQuery query = getPageBase().getPrismContext().queryFor(getSearchTypeClass())
+                    .type(getSearchTypeClass())
+                    .isChildOf(ref.asReferenceValue()).build();
+
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Searching members of org {} with query:\n{}", oid, query.debugDump());
+            }
+            return query;
         }
     }
 
@@ -87,19 +68,9 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
                 .build();
     }
 
-    private ObjectQuery getSubtreeScopeMembersQuery(){
-        String oid = getModelObject().getOid();
-        ObjectTypes searchType = getSearchType();
-
-        ObjectReferenceType ref = MemberOperationsHelper.createReference(getModelObject(), getSelectedRelation());
-        ObjectQuery query = getPageBase().getPrismContext().queryFor(searchType.getClassDefinition())
-                .type(searchType.getClassDefinition())
-                .isChildOf(ref.asReferenceValue()).build();
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Searching members of org {} with query:\n{}", oid, query.debugDump());
-        }
-        return query;
+    @Override
+    protected Class<? extends ObjectType> getChoiceForAllTypes() {
+        return AssignmentHolderType.class;
     }
 
     @Override
@@ -109,7 +80,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     }
 
     @Override
-    protected List<QName> getSupportedObjectTypes(boolean includeAbstractTypes) {
+    protected List<QName> getDefaultSupportedObjectTypes(boolean includeAbstractTypes) {
             List<QName> objectTypes = WebComponentUtil.createAssignmentHolderTypeQnamesList();
             objectTypes.remove(ShadowType.COMPLEX_TYPE);
             objectTypes.remove(ObjectType.COMPLEX_TYPE);
@@ -127,35 +98,25 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     }
 
     @Override
-    protected QName getObjectTypesListParentType(){
-        return AssignmentHolderType.COMPLEX_TYPE;
-    }
-
-    @Override
     protected <O extends ObjectType> Class<O> getDefaultObjectType() {
-        return getMemberPanelStorage().getType() != null ? (Class) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(),
-                getMemberPanelStorage().getType().getTypeQName()) : (Class) UserType.class;
+        return (Class<O>) UserType.class;
     }
 
     @Override
     protected AvailableRelationDto getSupportedRelations() {
         AvailableRelationDto availableRelationDto =
-                new AvailableRelationDto(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, getPageBase()));
+                new AvailableRelationDto(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, getPageBase()),
+                        getDefaultRelationConfiguration());
         availableRelationDto.setDefaultRelation(PrismConstants.Q_ANY);
         return availableRelationDto;
     }
 
-    @Override
-    protected MemberPanelStorage getMemberPanelStorage(){
-        String storageKey = getTableId(getComplexTypeQName()) != null ? getTableId(getComplexTypeQName()).name() : null;
-        PageStorage storage = null;
-        if (StringUtils.isNotEmpty(storageKey)) {
-            storage = getPageBase().getSessionStorage().getPageStorageMap().get(storageKey);
-            if (storage == null) {
-                storage = getPageBase().getSessionStorage().initPageStorage(storageKey);
-            }
-        }
-        return (MemberPanelStorage) storage;
+    private Class<? extends AssignmentHolderType> getSearchTypeClass() {
+        return getMemberPanelStorage().getSearch().getTypeClass();
     }
 
+    @Override
+    protected String getStorageKeyTabSuffix() {
+        return "orgTreeMembers";
+    }
 }

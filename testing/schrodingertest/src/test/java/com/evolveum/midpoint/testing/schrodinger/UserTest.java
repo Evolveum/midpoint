@@ -7,6 +7,13 @@
 
 package com.evolveum.midpoint.testing.schrodinger;
 
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
+
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
 import com.evolveum.midpoint.schrodinger.component.DateTimePanel;
 import com.evolveum.midpoint.schrodinger.component.common.DelegationDetailsPanel;
@@ -15,12 +22,6 @@ import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.testng.Assert;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -67,9 +68,9 @@ public class UserTest extends AbstractSchrodingerTest {
                 .clickByName("jdoe222323")
                 .selectTabBasic()
                 .form();
-        Assert.assertTrue(userForm.compareInputAttributeValue("name", "jdoe222323"));
-        Assert.assertTrue(userForm.compareInputAttributeValue("givenName", "john"));
-        Assert.assertTrue(userForm.compareInputAttributeValue("familyName", "doe"));
+        userForm.assertInputAttributeValueMatches("name", "jdoe222323");
+        userForm.assertInputAttributeValueMatches("givenName", "john");
+        userForm.assertInputAttributeValueMatches("familyName", "doe");
 
     }
 
@@ -94,19 +95,17 @@ public class UserTest extends AbstractSchrodingerTest {
         loginPage.loginWithReloadLoginPage(getUsername(), getPassword(), LOCALIZATION_VALUE);
 
         ListUsersPage usersPage = basicPage.listUsers();
-        Assert.assertTrue(
-                usersPage
-                        .table()
-                            .search()
-                            .byName()
-                            .inputValue(LOCALIZATION_TEST_USER_NAME_ORIG)
-                            .updateSearch()
-                        .and()
-                        .clickByName(LOCALIZATION_TEST_USER_NAME_ORIG)
-                            .selectTabBasic()
-                                .form()
-                                .compareInputAttributeValue("name", LOCALIZATION_TEST_USER_NAME_DE)
-        );
+        usersPage
+                .table()
+                    .search()
+                        .byName()
+                        .inputValue(LOCALIZATION_TEST_USER_NAME_ORIG)
+                        .updateSearch()
+                    .and()
+                    .clickByName(LOCALIZATION_TEST_USER_NAME_ORIG)
+                        .selectTabBasic()
+                            .form()
+                                .assertInputAttributeValueMatches("name", LOCALIZATION_TEST_USER_NAME_DE);
     }
 
     @Test
@@ -130,10 +129,10 @@ public class UserTest extends AbstractSchrodingerTest {
                 .selectTabDelegatedToMe()
                     .getDelegationDetailsPanel("DelegateFromUser")
                     .expandDetailsPanel("DelegateFromUser");
-        Assert.assertFalse(delegationDetailsPanel.isAssignmentPrivilegesSelected(), "Assignment privileges should not be selected");
-        Assert.assertFalse(delegationDetailsPanel.isAssignmentLimitationsSelected(), "Assignment limitations should not be selected");
-        Assert.assertTrue(delegationDetailsPanel.isApprovalWorkItemsSelected(), "Workflow approvals (for approval work items) should be selected");
-        Assert.assertTrue(delegationDetailsPanel.isCertificationWorkItemsSelected(), "Workflow approvals (for certification work items) should be selected");
+        delegationDetailsPanel.assertAssignmentPrivilegesNotSelected();
+        delegationDetailsPanel.assertAssignmentLimitationsNotSelected();
+        delegationDetailsPanel.assertApprovalWorkItemsSelected();
+        delegationDetailsPanel.assertCertificationWorkItemsSelected();
 
         Assert.assertFalse(delegationDetailsPanel.isDescriptionEnabled(), "Description should be disabled");
         Assert.assertTrue(delegationDetailsPanel.isValidFromPanelDisabled(), "Valid from panel should be disabled");
@@ -143,10 +142,10 @@ public class UserTest extends AbstractSchrodingerTest {
                 .getDelegationDetailsPanel("DelegateToUser")
                 .expandDetailsPanel("DelegateToUser");
 
-        Assert.assertFalse(delegationDetailsFromUser.isAssignmentPrivilegesSelected(), "Assignment privileges should not be selected");
-        Assert.assertFalse(delegationDetailsFromUser.isAssignmentLimitationsSelected(), "Assignment limitations should not be selected");
-        Assert.assertTrue(delegationDetailsFromUser.isApprovalWorkItemsSelected(), "Workflow approvals (for approval work items) should be selected");
-        Assert.assertTrue(delegationDetailsFromUser.isCertificationWorkItemsSelected(), "Workflow approvals (for certification work items) should be selected");
+        delegationDetailsFromUser.assertAssignmentPrivilegesNotSelected();
+        delegationDetailsFromUser.assertAssignmentLimitationsNotSelected();
+        delegationDetailsFromUser.assertApprovalWorkItemsSelected();
+        delegationDetailsFromUser.assertCertificationWorkItemsSelected();
 
         Assert.assertFalse(delegationDetailsFromUser.isDescriptionEnabled(), "Description should be disabled");
         Assert.assertTrue(delegationDetailsFromUser.isValidFromPanelDisabled(), "Valid from panel should be disabled");

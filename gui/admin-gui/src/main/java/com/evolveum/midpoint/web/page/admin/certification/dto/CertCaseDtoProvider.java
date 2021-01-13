@@ -62,17 +62,17 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWork
         LOGGER.trace("begin::iterator() from {} count {}.", first, count);
         getAvailableData().clear();
 
-        Task task = getPage().createSimpleTask(OPERATION_SEARCH_OBJECTS);
+        Task task = getPageBase().createSimpleTask(OPERATION_SEARCH_OBJECTS);
         OperationResult result = task.getResult();
         try {
             ObjectPaging paging = createPaging(first, count);
             Collection<SelectorOptions<GetOperationOptions>> resolveNames = createCollection(createResolveNames());
-            List<AccessCertificationCaseType> caseList = searchCases(campaignOid, paging, resolveNames, getPage().getPrismContext(), task, result);
+            List<AccessCertificationCaseType> caseList = searchCases(campaignOid, paging, resolveNames, getPageBase().getPrismContext(), task, result);
             for (AccessCertificationCaseType acase : caseList) {
-                getAvailableData().add(new CertCaseDto(acase, getPage(), task, result));
+                getAvailableData().add(new CertCaseDto(acase, getPageBase(), task, result));
             }
         } catch (Exception ex) {
-            result.recordFatalError(getPage().createStringResource("CertCaseDtoProvider.message.internalIterator.fatalError").getString(), ex);
+            result.recordFatalError(getPageBase().createStringResource("CertCaseDtoProvider.message.internalIterator.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't list decisions", ex);
         } finally {
             result.computeStatusIfUnknown();
@@ -87,7 +87,7 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWork
     }
 
     private void handleNotSuccessOrHandledErrorInIterator(OperationResult result){
-        getPage().showResult(result);
+        getPageBase().showResult(result);
         throw new RestartResponseException(PageError.class);
     }
 
@@ -97,17 +97,17 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWork
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
-            Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
-            count = countCases(campaignOid, null, getPage().getPrismContext(), task, result);
+            Task task = getPageBase().createSimpleTask(OPERATION_COUNT_OBJECTS);
+            count = countCases(campaignOid, null, getPageBase().getPrismContext(), task, result);
         } catch (Exception ex) {
-            result.recordFatalError(getPage().createStringResource("CertCaseDtoProvider.message.internalSize.fatalError").getString(), ex);
+            result.recordFatalError(getPageBase().createStringResource("CertCaseDtoProvider.message.internalSize.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);
         } finally {
             result.computeStatusIfUnknown();
         }
 
         if (!WebComponentUtil.isSuccessOrHandledError(result)) {
-            getPage().showResult(result, false);
+            getPageBase().showResult(result, false);
             throw new RestartResponseException(PageError.class);
         }
 
