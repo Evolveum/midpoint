@@ -183,15 +183,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
             protected void populateItem(ListItem<SearchItem> item) {
                 WebMarkupContainer searchItem;
                 if (item.getModelObject() instanceof SpecialSearchItem) {
-                    OnChangeAjaxBehavior updateBehaviour = new OnChangeAjaxBehavior() {
-                        private static final long serialVersionUID = 1L;
-
-                        @Override
-                        protected void onUpdate(AjaxRequestTarget target) {
-                            searchPerformed(target);
-                        }
-                    };
-                    searchItem = ((SpecialSearchItem) item.getModelObject()).createSpecialSearchPanel(ID_SPECIAL_ITEM, updateBehaviour);
+                    searchItem = ((SpecialSearchItem) item.getModelObject()).createSpecialSearchPanel(ID_SPECIAL_ITEM, target -> searchPerformed(target));
                 } else {
                     IModel itemModel = item.getModel();
                     searchItem = new SearchPropertyPanel<T>(ID_SPECIAL_ITEM, (IModel<PropertySearchItem<T>>) itemModel) {

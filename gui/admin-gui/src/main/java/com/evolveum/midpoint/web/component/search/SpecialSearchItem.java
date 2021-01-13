@@ -11,9 +11,12 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 
 import java.io.Serializable;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * @author lskublik
@@ -38,6 +41,6 @@ public abstract class SpecialSearchItem extends SearchItem implements Serializab
 
     public abstract ObjectFilter createFilter(PageBase pageBase, ExpressionVariables variables);
 
-    public abstract SearchSpecialItemPanel createSpecialSearchPanel(String id, OnChangeAjaxBehavior updateBehaviour);
+    public abstract SearchSpecialItemPanel createSpecialSearchPanel(String id, Consumer<AjaxRequestTarget> searchPerformedConsumer);
 
 }

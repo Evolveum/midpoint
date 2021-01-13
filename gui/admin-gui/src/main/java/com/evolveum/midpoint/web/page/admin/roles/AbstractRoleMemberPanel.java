@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.page.admin.roles;
 
 import java.util.*;
+import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
@@ -221,7 +222,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         if (defaultProjectConfiguration == null) {
             defaultProjectConfiguration = new UserInterfaceFeatureType();
         }
-        setDisplay(defaultProjectConfiguration, "project/org", "abstractRoleMemberPanel.indirectMembers", null);
+        setDisplay(defaultProjectConfiguration, "project/org", "abstractRoleMemberPanel.project", null);
     }
 
     private void setDisplay(UserInterfaceFeatureType configuration, String orig, String labelKey, String helpKey) {
@@ -506,7 +507,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             @Override
-            public SearchSpecialItemPanel createSpecialSearchPanel(String id, OnChangeAjaxBehavior updateBehaviour) {
+            public SearchSpecialItemPanel createSpecialSearchPanel(String id, Consumer<AjaxRequestTarget> searchPerformedConsumer) {
                 return new SearchSpecialItemPanel(id, new PropertyModel(getMemberPanelStorage(), MemberPanelStorage.F_RELATION)) {
                     @Override
                     protected WebMarkupContainer initSearchItemField(String id) {
@@ -541,7 +542,13 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                         }, false);
                         inputPanel.getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
                         inputPanel.getBaseFormComponent().add(AttributeAppender.append("style", "width: 100px; max-width: 400px !important;"));
-                        inputPanel.getBaseFormComponent().add(updateBehaviour);
+                        inputPanel.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+                            @Override
+                            protected void onUpdate(AjaxRequestTarget target) {
+                                searchPerformedConsumer.accept(target);
+                            }
+                        });
+
                         inputPanel.getBaseFormComponent().add(new EnableBehaviour(() -> getSupportedRelations().getAvailableRelationList().size() > 1));
                         inputPanel.setOutputMarkupId(true);
                         return inputPanel;
@@ -589,14 +596,19 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             @Override
-            public SearchSpecialItemPanel createSpecialSearchPanel(String id, OnChangeAjaxBehavior updateBehaviour) {
+            public SearchSpecialItemPanel createSpecialSearchPanel(String id, Consumer<AjaxRequestTarget> searchPerformedConsumer) {
                 return new SearchSpecialItemPanel(id, new PropertyModel(getMemberPanelStorage(), MemberPanelStorage.F_ORG_SEARCH_SCOPE)) {
                     @Override
                     protected WebMarkupContainer initSearchItemField(String id) {
                         DropDownChoicePanel inputPanel = new DropDownChoicePanel(id, getModelValue(), Model.of(Arrays.asList(SearchBoxScopeType.values())), new EnumChoiceRenderer(), false);
                         inputPanel.getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
                         inputPanel.getBaseFormComponent().add(AttributeAppender.append("style", "width: 88px; max-width: 400px !important;"));
-                        inputPanel.getBaseFormComponent().add(updateBehaviour);
+                        inputPanel.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+                            @Override
+                            protected void onUpdate(AjaxRequestTarget target) {
+                                searchPerformedConsumer.accept(target);
+                            }
+                        });
                         inputPanel.setOutputMarkupId(true);
                         return inputPanel;
                     }
@@ -648,7 +660,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             @Override
-            public SearchSpecialItemPanel createSpecialSearchPanel(String id, OnChangeAjaxBehavior updateBehaviour) {
+            public SearchSpecialItemPanel createSpecialSearchPanel(String id, Consumer<AjaxRequestTarget> searchPerformedConsumer) {
                 SearchSpecialItemPanel panel = new SearchSpecialItemPanel(id, new PropertyModel(getMemberPanelStorage(), MemberPanelStorage.F_INDIRECT)) {
                     @Override
                     protected WebMarkupContainer initSearchItemField(String id) {
@@ -669,7 +681,12 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                         inputPanel.getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
                         inputPanel.getBaseFormComponent().add(AttributeAppender.append("style", "width: 68"
                                 + "px; max-width: 400px !important;"));
-                        inputPanel.getBaseFormComponent().add(updateBehaviour);
+                        inputPanel.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+                            @Override
+                            protected void onUpdate(AjaxRequestTarget target) {
+                                searchPerformedConsumer.accept(target);
+                            }
+                        });
                         inputPanel.getBaseFormComponent().add(new EnableBehaviour(() -> !SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope())));
                         inputPanel.setOutputMarkupId(true);
                         return inputPanel;
@@ -731,7 +748,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             @Override
-            public SearchSpecialItemPanel createSpecialSearchPanel(String id, OnChangeAjaxBehavior updateBehaviour) {
+            public SearchSpecialItemPanel createSpecialSearchPanel(String id, Consumer<AjaxRequestTarget> searchPerformedConsumer) {
                 IModel tenantModel = new PropertyModel(getMemberPanelStorage(), MemberPanelStorage.F_TENANT) {
                     @Override
                     public void setObject(Object object) {
@@ -750,7 +767,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                         ReferenceValueSearchPanel searchItemField = new ReferenceValueSearchPanel(id, getModelValue(), tenantRefDef) {
                             @Override
                             protected void referenceValueUpdated(ObjectReferenceType ort, AjaxRequestTarget target) {
-                                searchPerformed(target);
+                                searchPerformedConsumer.accept(target);
                             }
 
                             @Override
@@ -825,7 +842,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             @Override
-            public SearchSpecialItemPanel createSpecialSearchPanel(String id, OnChangeAjaxBehavior updateBehaviour) {
+            public SearchSpecialItemPanel createSpecialSearchPanel(String id, Consumer<AjaxRequestTarget> searchPerformedConsumer) {
                 IModel projectModel = new PropertyModel(getMemberPanelStorage(), MemberPanelStorage.F_PROJECT) {
                     @Override
                     public void setObject(Object object) {
@@ -844,7 +861,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                         ReferenceValueSearchPanel searchItemField = new ReferenceValueSearchPanel(id, getModelValue(), projectRefDef) {
                             @Override
                             protected void referenceValueUpdated(ObjectReferenceType ort, AjaxRequestTarget target) {
-                                searchPerformed(target);
+                                searchPerformedConsumer.accept(target);
                             }
 
                             @Override
