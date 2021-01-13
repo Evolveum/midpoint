@@ -9,10 +9,11 @@
     <form wicket:id="form" class="form-inline pull-right search-form" style="padding-bottom:5px; width:100%">
 
         <div class="form-inline">
-            <div class="form-group pull-right" wicket:id="linksContainer" style="vertical-align: top; margin-top: -5px;">
+            <div class="form-group pull-right" wicket:id="linksContainer" style="vertical-align: top; margin-top: -5px; display: grid;">
                 <a class="btn btn-sm btn-link" wicket:id="basic" style="display: table-cell; vertical-align: top; padding: 0px;"/>
                 <a class="btn btn-sm btn-link" wicket:id="advanced" style="padding: 0px;"/>
                 <a class="btn btn-sm btn-link" wicket:id="fullText" style="padding: 0px;"/>
+                <a class="btn btn-sm btn-link" wicket:id="oid" style="display: table-cell; vertical-align: top; padding: 0px;"/>
             </div>
 
             <div class="form-group pull-right" style="vertical-align: top; padding-right: 5px;" wicket:id="searchContainer">
@@ -68,6 +69,7 @@
         <wicket:container wicket:id="specialItems">
             <div wicket:id="specialItem" class="form-group" style="float:right;  padding-right: 5px; margin-bottom: 5px;"/>
         </wicket:container>
+        <div wicket:id="oidItem" class="form-group" style="float:right;  padding-right: 5px; margin-bottom: 5px;"/>
         <div wicket:id="typePanel" class="form-group" style="float:right;  padding-right: 5px; margin-bottom: 5px;"/>
         <div wicket:id="collectionRefPanel" class="form-group" style="float:right;  padding-right: 5px; margin-bottom: 5px;"/>
 

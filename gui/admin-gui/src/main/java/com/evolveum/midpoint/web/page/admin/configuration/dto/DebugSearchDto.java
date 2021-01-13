@@ -37,23 +37,12 @@ public class DebugSearchDto implements Serializable, DebugDumpable {
 //    private ObjectTypes type;
     private ObjectReferenceType resource;
     private Search search;
-    private String oidFilter;
+//    private String oidFilter;
     private QName objectClass;
 
     public DebugSearchDto(){
         resetResourceRef();
     }
-
-//    public ObjectTypes getType() {
-//        if (type == null) {
-//            type = ObjectTypes.SYSTEM_CONFIGURATION;
-//        }
-//        return type;
-//    }
-
-//    public void setType(ObjectTypes type) {
-//        this.type = type;
-//    }
 
     public ObjectReferenceType getResource() {
         return resource;
@@ -79,13 +68,13 @@ public class DebugSearchDto implements Serializable, DebugDumpable {
         this.objectClass = objectClass;
     }
 
-    public String getOidFilter() {
-        return oidFilter;
-    }
-
-    public void setOidFilter(String oidFilter) {
-        this.oidFilter = oidFilter;
-    }
+//    public String getOidFilter() {
+//        return oidFilter;
+//    }
+//
+//    public void setOidFilter(String oidFilter) {
+//        this.oidFilter = oidFilter;
+//    }
 
     public boolean isResourceEmpty() {
         return getResource() == null || getResource().getOid() == null || getResource().asReferenceValue().isEmpty();

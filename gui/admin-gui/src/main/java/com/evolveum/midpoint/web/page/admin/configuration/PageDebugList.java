@@ -528,20 +528,17 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private void listObjectsPerformed(AjaxRequestTarget target) {
         DebugSearchDto dto = searchModel.getObject();
-        if (StringUtils.isNotEmpty(dto.getOidFilter())) {
-            if (!usedOidFilter) {
-                OperationResult result = new OperationResult(OPERATION_LOAD_OBJECT_BY_OID);
-                Task task = createSimpleTask(OPERATION_LOAD_OBJECT_BY_OID);
-                PrismObject<ObjectType> objectToDisplay = WebModelServiceUtils.loadObject(ObjectType.class, dto.getOidFilter(), PageDebugList.this,
-                        task, result);
-                if (objectToDisplay != null && objectToDisplay.getCompileTimeClass() != null) {
-                    ContainerTypeSearchItem oldType = searchModel.getObject().getSearch().getType();
-                    oldType.setType(new SearchValue<>(objectToDisplay.getCompileTimeClass(),
-                            "ObjectType." + ObjectTypes.getObjectType(objectToDisplay.getCompileTimeClass()).getTypeQName().getLocalPart()));
-                    setupSearchDto(dto, oldType);
-                }
-            } else {
-                dto.setOidFilter(null);
+        Search search = dto.getSearch();
+        if (StringUtils.isNotEmpty(search.getOid())) {
+            OperationResult result = new OperationResult(OPERATION_LOAD_OBJECT_BY_OID);
+            Task task = createSimpleTask(OPERATION_LOAD_OBJECT_BY_OID);
+            PrismObject<ObjectType> objectToDisplay = WebModelServiceUtils.loadObject(ObjectType.class, search.getOid(), PageDebugList.this,
+                    task, result);
+            if (objectToDisplay != null && objectToDisplay.getCompileTimeClass() != null) {
+                ContainerTypeSearchItem oldType = searchModel.getObject().getSearch().getType();
+                oldType.setType(new SearchValue<>(objectToDisplay.getCompileTimeClass(),
+                        "ObjectType." + ObjectTypes.getObjectType(objectToDisplay.getCompileTimeClass()).getTypeQName().getLocalPart()));
+                setupSearchDto(dto, oldType);
             }
         }
 
@@ -561,11 +558,10 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private void setupSearchDto(DebugSearchDto dto, ContainerTypeSearchItem<? extends ObjectType> type) {
         Search search = dto.getSearch();
-        if (search == null || search.isTypeChanged()) {
+        if (search == null || (search.isTypeChanged() && !search.isOidSearchMode())) {
 
-            search = SearchFactory.createSearch(type, this);
+            search = SearchFactory.createSearch(type, this, true);
             search.setCanConfigure(true);
-            search.addSpecialItem(createOidSearchItem(dto, search));
             if (ShadowType.class.equals(getType())) {
                 search.addSpecialItem(createResourceRefSearchItem(dto, search));
                 search.addSpecialItem(createObjectClassSearchItem(dto, search));
@@ -628,43 +624,6 @@ public class PageDebugList extends PageAdminConfiguration {
             }
         });
         return item;
-    }
-
-    private SpecialSearchItem createOidSearchItem(DebugSearchDto dto, Search search) {
-        return new SpecialSearchItem(search) {
-
-            @Override
-            public ObjectFilter createFilter(PageBase pageBase) {
-                if (StringUtils.isNotEmpty(dto.getOidFilter())){
-                    usedOidFilter = true;
-                    return pageBase.getPrismContext().queryFor(getSearch().getTypeClass()).id(dto.getOidFilter()).buildFilter();
-                }
-                return null;
-            }
-
-            @Override
-            public SearchSpecialItemPanel createSpecialSearchPanel(String id, OnChangeAjaxBehavior updateBehaviour) {
-                return new SearchSpecialItemPanel<String>(id, new PropertyModel<String>(searchModel, DebugSearchDto.F_OID_FILTER){
-                    @Override
-                    public void setObject(String object) {
-                        usedOidFilter = false;
-                        super.setObject(object);
-                    }
-                }) {
-                    @Override
-                    protected WebMarkupContainer initSearchItemField(String id) {
-                        TextPanel<String> inputPanel = new TextPanel<String>(id, getModelValue());
-                        inputPanel.getBaseFormComponent().add(AttributeAppender.append("style", "width: 220px; max-width: 400px !important;"));
-                        return inputPanel;
-                    }
-
-                    @Override
-                    protected IModel<String> createLabelModel() {
-                        return getPageBase().createStringResource("pageDebugList.oid");
-                    }
-                };
-            }
-        };
     }
 
     private void objectEditPerformed(String oid, Class<? extends ObjectType> type) {

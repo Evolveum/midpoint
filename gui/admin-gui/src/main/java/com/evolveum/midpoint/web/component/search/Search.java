@@ -53,6 +53,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     public static final String F_ADVANCED_QUERY = "advancedQuery";
     public static final String F_ADVANCED_ERROR = "advancedError";
     public static final String F_FULL_TEXT = "fullText";
+    public static final String F_OID = "oid";
     public static final String F_COLLECTION = "collectionSearchItem";
     public static final String F_TYPE = "type";
 
@@ -71,6 +72,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     private String advancedQuery;
     private String advancedError;
     private String fullText;
+    private String oid;
 
     private final ContainerTypeSearchItem typeSearchItem;
     private final List<SearchItemDefinition> allDefinitions;
@@ -81,20 +83,26 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     private ObjectCollectionSearchItem objectCollectionSearchItem;
     private boolean isCollectionItemVisible = false;
+    private boolean isOidSearchEnabled = false;
 
     public Search(ContainerTypeSearchItem<C> typeSearchItem, List<SearchItemDefinition> allDefinitions) {
-        this(typeSearchItem, allDefinitions, false, null);
+        this(typeSearchItem, allDefinitions, false, null, false);
     }
 
     public Search(ContainerTypeSearchItem<C> typeSearchItem, List<SearchItemDefinition> allDefinitions,
-            boolean isFullTextSearchEnabled, SearchBoxModeType searchBoxModeType) {
+            boolean isFullTextSearchEnabled, SearchBoxModeType searchBoxModeType, boolean isOidSearchenabled) {
         this.typeSearchItem = typeSearchItem;
         this.allDefinitions = allDefinitions;
+        this.isOidSearchEnabled = isOidSearchenabled;
 
         this.isFullTextSearchEnabled = isFullTextSearchEnabled;
 
         if (searchBoxModeType != null) {
-            searchType = searchBoxModeType;
+            if (!isOidSearchenabled && SearchBoxModeType.OID.equals(searchBoxModeType)){
+                searchType = SearchBoxModeType.BASIC;
+            } else {
+                searchType = searchBoxModeType;
+            }
         } else if (isFullTextSearchEnabled) {
             searchType = SearchBoxModeType.FULLTEXT;
         } else {
@@ -275,41 +283,40 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return this.createObjectQuery(null, pageBase);
     }
 
-    public ObjectQuery createObjectQuery(PageBase pageBase, ObjectQuery customizeContentQuery) {
-        return this.createObjectQuery(null, pageBase, customizeContentQuery);
-    }
-
     public ObjectQuery createObjectQuery(ExpressionVariables variables, PageBase pageBase) {
         return this.createObjectQuery(variables, pageBase, null);
     }
 
     public ObjectQuery createObjectQuery(ExpressionVariables variables, PageBase pageBase, ObjectQuery customizeContentQuery) {
         LOGGER.debug("Creating query from {}", this);
-        ObjectQuery query = createQueryfromDefaultItems(pageBase);
-        ObjectQuery searchTypeQuery = null;
-        if (SearchBoxModeType.ADVANCED.equals(searchType)) {
-            searchTypeQuery = createObjectQueryAdvanced(pageBase);
-        } else if (SearchBoxModeType.FULLTEXT.equals(searchType)) {
-            searchTypeQuery = createObjectQueryFullText(pageBase);
+        ObjectQuery query;
+        if (SearchBoxModeType.OID.equals(searchType)){
+            query = createObjectQueryOid(pageBase);
         } else {
-            searchTypeQuery = createObjectQuerySimple(variables, pageBase);
+            query = createQueryFromDefaultItems(pageBase);
+            ObjectQuery searchTypeQuery = null;
+            if (SearchBoxModeType.ADVANCED.equals(searchType)) {
+                searchTypeQuery = createObjectQueryAdvanced(pageBase);
+            } else if (SearchBoxModeType.FULLTEXT.equals(searchType)) {
+                searchTypeQuery = createObjectQueryFullText(pageBase);
+            } else {
+                searchTypeQuery = createObjectQuerySimple(variables, pageBase);
+            }
+
+            query = mergeQueries(query, searchTypeQuery);
+            if (query == null) {
+                query = pageBase.getPrismContext().queryFor(getTypeClass()).build();
+            }
+
+            ObjectQuery archetypeQuery = getArchetypeQuery(pageBase);
+            query = mergeQueries(query, archetypeQuery);
         }
-
-        query = mergeQueries(query, searchTypeQuery);
-        if (query == null) {
-            query = pageBase.getPrismContext().queryFor(getTypeClass()).build();
-        }
-
-        ObjectQuery archetypeQuery = getArchetypeQuery(pageBase);
-        query = mergeQueries(query, archetypeQuery);
-
         query = mergeQueries(query, customizeContentQuery);
-
         LOGGER.debug("Created query: {}", query);
         return query;
     }
 
-    private ObjectQuery createQueryfromDefaultItems(PageBase pageBase) {
+    private ObjectQuery createQueryFromDefaultItems(PageBase pageBase) {
         List<SearchItem> specialItems = getSpecialItems();
         if (specialItems.isEmpty()) {
             return null;
@@ -641,6 +648,16 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return query;
     }
 
+    private ObjectQuery createObjectQueryOid(PageBase pageBase) {
+        if (StringUtils.isEmpty(oid)) {
+            return null;
+        }
+        ObjectQuery query = pageBase.getPrismContext().queryFor(ObjectType.class)
+                .id(oid)
+                .build();
+        return query;
+    }
+
     private ObjectFilter createAdvancedObjectFilter(PrismContext ctx) throws SchemaException {
         if (StringUtils.isEmpty(advancedQuery)) {
             return null;
@@ -752,5 +769,21 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             DisplayableValue type = getType().getType();
             getType().setType(type);
         }
+    }
+
+    public String getOid() {
+        return oid;
+    }
+
+    public void setOid(String oid) {
+        this.oid = oid;
+    }
+
+    public boolean isOidSearchEnabled() {
+        return isOidSearchEnabled;
+    }
+
+    public boolean isOidSearchMode() {
+        return SearchBoxModeType.OID.equals(getSearchType());
     }
 }
