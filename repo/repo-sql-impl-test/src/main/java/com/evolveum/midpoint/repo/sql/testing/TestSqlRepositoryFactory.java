@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.Database;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -28,7 +29,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * This repository factory should be used for testing purposes only.
  * It behaves like {@link com.evolveum.midpoint.repo.sql.SqlRepositoryFactory}, but during
  * configuration initialization it checks system properties and overrides loaded configuration
- * ({@link com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration}).
+ * ({@link SqlRepositoryConfiguration}).
  *
  * @author lazyman
  */

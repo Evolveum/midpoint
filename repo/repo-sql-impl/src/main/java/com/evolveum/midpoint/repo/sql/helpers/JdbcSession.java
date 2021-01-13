@@ -1,12 +1,10 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql.helpers;
-
-import static com.evolveum.midpoint.repo.sql.Database.ORACLE;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -22,10 +20,10 @@ import com.querydsl.sql.dml.SQLInsertClause;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.repo.sql.Database;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.TransactionIsolation;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
+import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -185,7 +183,7 @@ public class JdbcSession implements AutoCloseable {
         StringBuilder type = new StringBuilder(getNativeTypeName(column.getJdbcType()));
         if (column.hasSize()) {
             type.append('(').append(column.getSize());
-            if (databaseType() == ORACLE && isVarcharType(column.getJdbcType())) {
+            if (databaseType() == SupportedDatabase.ORACLE && isVarcharType(column.getJdbcType())) {
                 // this properly sizes the varchar for Unicode
                 type.append(" CHAR");
             }
@@ -237,7 +235,7 @@ public class JdbcSession implements AutoCloseable {
         return connection;
     }
 
-    public Database databaseType() {
+    public SupportedDatabase databaseType() {
         return repoConfiguration.getDatabaseType();
     }
 
