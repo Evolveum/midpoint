@@ -6,18 +6,11 @@
  */
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.audit.api.AuditServiceFactory;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
-import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
-import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
-import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
-import com.evolveum.midpoint.repo.sql.util.EntityStateInterceptor;
-import com.evolveum.midpoint.repo.sql.util.MidPointImplicitNamingStrategy;
-import com.evolveum.midpoint.repo.sql.util.MidPointPhysicalNamingStrategy;
-import com.evolveum.midpoint.repo.sqlbase.SystemConfigurationChangeDispatcherImpl;
+import java.util.Properties;
+import javax.sql.DataSource;
 
 import org.hibernate.SessionFactory;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -27,8 +20,17 @@ import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.transaction.TransactionManager;
 
-import javax.sql.DataSource;
-import java.util.Properties;
+import com.evolveum.midpoint.audit.api.AuditServiceFactory;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
+import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
+import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
+import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
+import com.evolveum.midpoint.repo.sql.util.EntityStateInterceptor;
+import com.evolveum.midpoint.repo.sql.util.MidPointImplicitNamingStrategy;
+import com.evolveum.midpoint.repo.sql.util.MidPointPhysicalNamingStrategy;
+import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
+import com.evolveum.midpoint.repo.sqlbase.SystemConfigurationChangeDispatcherImpl;
 
 /**
  * SQL repository related configuration from {@link DataSourceFactory} through ORM all the way to
@@ -60,7 +62,7 @@ public class SqlRepositoryBeanConfig {
     @Bean
     @ConditionalOnMissingBean
     public DataSourceFactory dataSourceFactory(SqlRepositoryFactory sqlRepositoryFactory) {
-        return new DataSourceFactory(sqlRepositoryFactory.getSqlConfiguration());
+        return new DataSourceFactory(sqlRepositoryFactory.getConfiguration());
     }
 
     @Bean
@@ -88,13 +90,26 @@ public class SqlRepositoryBeanConfig {
     @Bean
     public LocalSessionFactoryBean sessionFactory(
             DataSource dataSource,
-            DataSourceFactory dataSourceFactory,
+            SqlRepositoryFactory sqlRepositoryFactory,
+            MidPointImplicitNamingStrategy midPointImplicitNamingStrategy,
+            MidPointPhysicalNamingStrategy midPointPhysicalNamingStrategy,
+            EntityStateInterceptor entityStateInterceptor) {
+
+        SqlRepositoryConfiguration configuration = sqlRepositoryFactory.getConfiguration();
+
+        return sessionFactory(dataSource, configuration, midPointImplicitNamingStrategy,
+                midPointPhysicalNamingStrategy, entityStateInterceptor);
+    }
+
+    // Used by programmatic audit initialization
+    @NotNull
+    public LocalSessionFactoryBean sessionFactory(
+            DataSource dataSource,
+            SqlRepositoryConfiguration configuration,
             MidPointImplicitNamingStrategy midPointImplicitNamingStrategy,
             MidPointPhysicalNamingStrategy midPointPhysicalNamingStrategy,
             EntityStateInterceptor entityStateInterceptor) {
         LocalSessionFactoryBean bean = new LocalSessionFactoryBean();
-
-        SqlRepositoryConfiguration configuration = dataSourceFactory.configuration();
 
         // While dataSource == dataSourceFactory.getDataSource(), we're using dataSource as
         // parameter to assure, that Spring already called the factory method. Explicit is good.

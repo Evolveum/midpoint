@@ -27,6 +27,7 @@ import com.evolveum.midpoint.repo.sql.audit.mapping.QueryModelMappingConfig;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
+import com.evolveum.midpoint.repo.sqlbase.TransactionIsolation;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.InstantType;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.MidpointOracleTemplates;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.MidpointSQLServerTemplates;
@@ -92,7 +93,7 @@ public class BaseHelper {
             SqlRepositoryFactory repositoryFactory,
             SessionFactory sessionFactory,
             DataSource dataSource) {
-        this(repositoryFactory.getSqlConfiguration(), sessionFactory, dataSource);
+        this(repositoryFactory.getConfiguration(), sessionFactory, dataSource);
     }
 
     public SessionFactory getSessionFactory() {

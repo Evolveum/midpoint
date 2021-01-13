@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -85,7 +85,7 @@ public class JdbcPingTaskHandler implements TaskHandler {
         String testQuery = get(task, SchemaConstants.JDBC_PING_TEST_QUERY_QNAME, "select 1");
 
         JdbcRepositoryConfiguration config = jdbcRepositoryServiceFactory != null
-                ? jdbcRepositoryServiceFactory.jdbcRepositoryConfiguration() : null;
+                ? jdbcRepositoryServiceFactory.getConfiguration() : null;
         String jdbcDriver = get(task, SchemaConstants.JDBC_PING_DRIVER_CLASS_NAME_QNAME, config != null ? config.getDriverClassName() : "");
         String jdbcUrl = get(task, SchemaConstants.JDBC_PING_JDBC_URL_QNAME, config != null ? config.getJdbcUrl() : "");
         String jdbcUsername = get(task, SchemaConstants.JDBC_PING_JDBC_USERNAME_QNAME, config != null ? config.getJdbcUsername() : "");

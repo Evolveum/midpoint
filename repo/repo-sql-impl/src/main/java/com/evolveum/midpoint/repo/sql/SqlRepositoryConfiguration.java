@@ -28,6 +28,7 @@ import com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager;
 import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
+import com.evolveum.midpoint.repo.sqlbase.TransactionIsolation;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -745,6 +746,7 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
         return dropIfExists;
     }
 
+    @Override
     public TransactionIsolation getTransactionIsolation() {
         return transactionIsolation;
     }
@@ -795,18 +797,22 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
         return dataSource;
     }
 
+    @Override
     public int getMinPoolSize() {
         return minPoolSize;
     }
 
+    @Override
     public int getMaxPoolSize() {
         return maxPoolSize;
     }
 
+    @Override
     public Long getMaxLifetime() {
         return maxLifetime;
     }
 
+    @Override
     public Long getIdleTimeout() {
         return idleTimeout;
     }
@@ -891,6 +897,7 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
         return schemaVariant;
     }
 
+    @Override
     public long getInitializationFailTimeout() {
         return initializationFailTimeout;
     }

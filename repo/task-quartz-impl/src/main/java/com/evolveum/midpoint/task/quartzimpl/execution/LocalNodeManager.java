@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -22,7 +22,7 @@ import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 import org.quartz.listeners.SchedulerListenerSupport;
 
-import com.evolveum.midpoint.repo.sql.DataSourceFactory;
+import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManagerException;
@@ -181,7 +181,6 @@ public class LocalNodeManager {
         LOGGER.debug("createQuartzDbSchema: trying JDBC connection {}", connection);
         try {
             if (areQuartzTablesMissing(connection)) {
-
                 if (configuration.isCreateQuartzTables()) {
                     try {
                         Reader scriptReader = getResourceReader(configuration.getSqlSchemaFile());

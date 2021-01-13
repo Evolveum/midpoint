@@ -14,5 +14,5 @@ import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
  */
 public interface JdbcRepositoryServiceFactory extends RepositoryServiceFactory {
 
-    JdbcRepositoryConfiguration jdbcRepositoryConfiguration();
+    JdbcRepositoryConfiguration getConfiguration();
 }

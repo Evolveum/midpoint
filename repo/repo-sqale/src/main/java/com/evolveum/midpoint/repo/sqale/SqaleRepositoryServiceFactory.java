@@ -46,7 +46,7 @@ public class SqaleRepositoryServiceFactory implements JdbcRepositoryServiceFacto
     }
 
     @Override
-    public JdbcRepositoryConfiguration jdbcRepositoryConfiguration() {
+    public JdbcRepositoryConfiguration getConfiguration() {
         return null; // TODO
     }
 }

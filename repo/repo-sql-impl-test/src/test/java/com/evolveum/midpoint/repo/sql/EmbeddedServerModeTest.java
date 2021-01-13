@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (c) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -13,10 +15,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class EmbeddedServerModeTest extends BaseSQLRepoTest {
 
@@ -29,7 +28,7 @@ public class EmbeddedServerModeTest extends BaseSQLRepoTest {
 
         Connection connection = null;
         try {
-            SqlRepositoryConfiguration config = sqlFactory.getSqlConfiguration();
+            SqlRepositoryConfiguration config = sqlFactory.getConfiguration();
 
             Class.forName(config.getDriverClassName());
             connection = DriverManager.getConnection(config.getJdbcUrl(),

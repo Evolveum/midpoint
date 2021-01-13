@@ -58,7 +58,7 @@ public class Initializer {
                 RepositoryServiceFactory repositoryServiceFactory =
                         taskManager.getBeanFactory().getBean(RepositoryServiceFactory.class);
                 if (repositoryServiceFactory instanceof JdbcRepositoryServiceFactory) {
-                    jdbcConfig = ((JdbcRepositoryServiceFactory) repositoryServiceFactory).jdbcRepositoryConfiguration();
+                    jdbcConfig = ((JdbcRepositoryServiceFactory) repositoryServiceFactory).getConfiguration();
                 }
             } catch (NoSuchBeanDefinitionException e) {
                 LOGGER.info("SqlRepositoryFactory is not available, JDBC Job Store configuration will be taken from taskManager section only.");
