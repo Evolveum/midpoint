@@ -81,7 +81,7 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
                         .item(UserType.F_GIVEN_NAME).eq("Jack").matchingCaseIgnore()
                         .and().item(UserType.F_FULL_NAME).contains("arr")
                         .buildFilter();
-        verify("givenName =[stringIgnoreCase] \"Jack\" and fullName contains \"arr\"", filter);
+        verify("givenName =[stringIgnoreCase] 'Jack' and fullName contains 'arr'", filter);
     }
 
     @Test
@@ -106,7 +106,7 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
                 .exists(UserType.F_ASSIGNMENT)
                 .item(AssignmentType.F_DESCRIPTION).eq("Assignment 2")
                 .buildFilter();
-        verify("assignment matches ( description = \"Assignment 2\"", filter);
+        verify("assignment matches ( description = 'Assignment 2'", filter);
     }
 
     @Test
@@ -115,7 +115,7 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
         ObjectFilter filter = getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_LOCALITY).startsWith("C")
                 .buildFilter();
-        verify("locality startsWith \"C\"", filter);
+        verify("locality startsWith 'C'", filter);
     }
 
 
@@ -126,7 +126,7 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
                 .or().item(UserType.F_GIVEN_NAME).eq("Jackie")
                 .buildFilter();
 
-        verify("givenName = \"Jack\" or givenName = \"Jackie\"", filter);
+        verify("givenName = 'Jack' or givenName = 'Jackie'", filter);
     }
 
     @Test
@@ -134,7 +134,7 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
         ObjectFilter filter = getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_GIVEN_NAME).eq("Jackie")
                 .buildFilter();
-        verify("givenName = \"Jackie\"", filter);
+        verify("givenName = 'Jackie'", filter);
     }
 
     @Test
@@ -143,7 +143,7 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
         ObjectFilter filter = getPrismContext().queryFor(UserType.class)
                 .item(ItemPath.create(UserType.F_EXTENSION, "indexedString"), def).eq("alpha")
                 .buildFilter();
-        verify("extension/indexedString = \"alpha\" ", filter);
+        verify("extension/indexedString = 'alpha' ", filter);
     }
 
     @Test
@@ -152,7 +152,7 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
         ObjectFilter filter = getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_LOCALITY).eq("some")
                 .buildFilter();
-        verify("locality = \"some\"", filter);
+        verify("locality = 'some'", filter);
     }
 
     @Test
@@ -184,8 +184,8 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
                         .or().item(UserType.F_GIVEN_NAME).eq("Jackie")
                         .endBlock()
                         .buildFilter();
-        verify("familyName = \"Sparrow\" and fullName contains \"arr\" "
-                + "and ( givenName = \"Jack\" or givenName = \"Jackie\" ) ", filter);
+        verify("familyName = 'Sparrow' and fullName contains 'arr' "
+                + "and ( givenName = 'Jack' or givenName = 'Jackie' ) ", filter);
     }
 
     @Test
@@ -194,12 +194,12 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
         ObjectFilter filter = getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_NAME).eq(name)
                 .buildFilter();
-        verify("name matches (orig = \"jack\" and norm = \"jack\")", filter);
-        verify("name matches (norm = \"jack\")",
+        verify("name matches (orig = 'jack' and norm = 'jack')", filter);
+        verify("name matches (norm = 'jack')",
                 getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_NAME).eq(name).matchingNorm()
                 .buildFilter());
-        verify("name matches (orig = \"jack\")",
+        verify("name matches (orig = 'jack')",
                 getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_NAME).eq(name).matchingOrig()
                 .buildFilter());
@@ -214,7 +214,7 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
                 .exists(UserType.F_ASSIGNMENT)
                 .item(AssignmentType.F_DESCRIPTION).eq("Assignment NONE")
                 .buildFilter();
-        verify("assignment matches (description = \"Assignment NONE\")",filter,user);
+        verify("assignment matches (description = 'Assignment NONE')",filter,user);
     }
 
     @Test   // MID-4173
@@ -242,7 +242,7 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
         ObjectFilter filter = getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION).eq("Assignment 2")
                 .buildFilter();
-        verify(" assignment/description = \"Assignment 2\"", filter);
+        verify(" assignment/description = 'Assignment 2'", filter);
     }
 
     @Test   // MID-4217
@@ -251,7 +251,7 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
                 .item(UserType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION).eq("Assignment XXXXX")
                 .buildFilter();
 
-        verify("assignment/description = \"Assignment XXXXX\"", filter);
+        verify("assignment/description = 'Assignment XXXXX'", filter);
     }
 
     @Test   // MID-4217
@@ -259,7 +259,7 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
         ObjectFilter filter = getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_ACCOUNT_REF).ref("c0c010c0-d34d-b33f-f00d-aaaaaaaa1113")
                 .buildFilter();
-        verify("accountRef matches ( oid = \"c0c010c0-d34d-b33f-f00d-aaaaaaaa1113\")",filter);
+        verify("accountRef matches ( oid = 'c0c010c0-d34d-b33f-f00d-aaaaaaaa1113')",filter);
     }
 
     @Test   // MID-4217
@@ -267,7 +267,7 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
         ObjectFilter filter = getPrismContext().queryFor(UserType.class)
                 .item(UserType.F_ACCOUNT_REF).ref("xxxxxxxxxxxxxx")
                 .buildFilter();
-        verify("accountRef matches ( oid = \"xxxxxxxxxxxxxx\")",filter);
+        verify("accountRef matches ( oid = 'xxxxxxxxxxxxxx')",filter);
     }
 
     @Test
@@ -284,7 +284,7 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
                 getPrismContext().queryFor(UserType.class)
                         .item(UserType.F_NAME).gt(new PolyString("j")).matchingOrig()
                         .buildFilter();
-        verify("name >[polyStringOrig] \"j\"",filter);
+        verify("name >[polyStringOrig] 'j'",filter);
     }
 
     @Test // MID-6487
@@ -293,7 +293,7 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
                 getPrismContext().queryFor(UserType.class)
                         .item(UserType.F_NAME).lt(new PolyString("j")).matchingNorm()
                         .buildFilter();
-        verify("name <[polyStringNorm] \"j\"",filter);
+        verify("name <[polyStringNorm] 'j'",filter);
     }
 
     @Test // MID-6487
