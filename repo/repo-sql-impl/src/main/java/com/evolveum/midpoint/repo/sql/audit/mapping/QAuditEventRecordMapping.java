@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,6 +9,10 @@ package com.evolveum.midpoint.repo.sql.audit.mapping;
 import static com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditEventRecord.TABLE_NAME;
 import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.*;
 
+import java.util.function.Function;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.audit.querymodel.*;
@@ -16,18 +20,12 @@ import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sqlbase.SqlPathContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlDetailFetchMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.*;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.function.Function;
 
 /**
  * Mapping between {@link QAuditEventRecord} and {@link AuditEventRecordType}.
@@ -80,14 +78,13 @@ public class QAuditEventRecordMapping
          * No need to map initiatorName, initiatorType, attorneyName for query, OID should suffice.
          * There is also no F_ATTORNEY_NAME and similar paths - unless these are "extension" columns?
          */
-        addItemMapping(F_INITIATOR_REF, RefItemFilterProcessor.mapper(path(q -> q.initiatorOid), path(q -> q.initiatorType),
-                typeConversion()));
+        addItemMapping(F_INITIATOR_REF, RefItemFilterProcessor.mapper(
+                path(q -> q.initiatorOid), path(q -> q.initiatorType), typeConversion()));
         addItemMapping(F_ATTORNEY_REF, RefItemFilterProcessor.mapper(path(q -> q.attorneyOid)));
-        addItemMapping(F_TARGET_REF, RefItemFilterProcessor.mapper(path(q -> q.targetOid), path(q -> q.targetType),
-                typeConversion()));
-        addItemMapping(F_TARGET_OWNER_REF,
-                RefItemFilterProcessor.mapper(path(q -> q.targetOwnerOid), path(q -> q.targetOwnerType),
-                        typeConversion()));
+        addItemMapping(F_TARGET_REF, RefItemFilterProcessor.mapper(
+                path(q -> q.targetOid), path(q -> q.targetType), typeConversion()));
+        addItemMapping(F_TARGET_OWNER_REF, RefItemFilterProcessor.mapper(
+                path(q -> q.targetOwnerOid), path(q -> q.targetOwnerType), typeConversion()));
 
         addItemMapping(F_CUSTOM_COLUMN_PROPERTY, AuditCustomColumnItemFilterProcessor.mapper());
 
