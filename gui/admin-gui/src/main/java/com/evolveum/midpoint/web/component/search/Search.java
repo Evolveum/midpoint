@@ -293,7 +293,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         if (SearchBoxModeType.OID.equals(searchType)){
             query = createObjectQueryOid(pageBase);
         } else {
-            query = createQueryFromDefaultItems(pageBase);
+            query = createQueryFromDefaultItems(pageBase, variables);
             ObjectQuery searchTypeQuery = null;
             if (SearchBoxModeType.ADVANCED.equals(searchType)) {
                 searchTypeQuery = createObjectQueryAdvanced(pageBase);
@@ -316,7 +316,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return query;
     }
 
-    private ObjectQuery createQueryFromDefaultItems(PageBase pageBase) {
+    private ObjectQuery createQueryFromDefaultItems(PageBase pageBase, ExpressionVariables variables) {
         List<SearchItem> specialItems = getSpecialItems();
         if (specialItems.isEmpty()) {
             return null;
@@ -326,7 +326,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         for (SearchItem item : specialItems){
             if (item.isEnabled() && item.isApplyFilter()) {
                 if (item instanceof SpecialSearchItem) {
-                    ObjectFilter filter = ((SpecialSearchItem) item).createFilter(pageBase);
+                    ObjectFilter filter = ((SpecialSearchItem) item).createFilter(pageBase, variables);
                     if (filter != null) {
                         conditions.add(filter);
                     }

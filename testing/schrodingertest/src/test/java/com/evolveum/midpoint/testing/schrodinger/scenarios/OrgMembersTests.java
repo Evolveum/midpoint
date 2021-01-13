@@ -190,10 +190,10 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
                 .table();
         memberPanel.selectType("All");
         memberTable
-                            .search()
-                            .byName()
-                            .inputValue("NewRoleAsOrgManager")
-                .updateSearch()
+                .search()
+                    .byName()
+                    .inputValue("NewRoleAsOrgManager")
+                    .updateSearch()
                 .and()
                 .assertTableObjectsCountEquals(1);
         Assert.assertTrue(memberTable.containsText("Manager"));

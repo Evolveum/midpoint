@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -414,7 +415,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                     PrismContext prismContext = getPageBase().getPrismContext();
                     List relations = getSupportedRelations().getAvailableRelationList();
 
-                    R object = getMemberPanel().getModelObject();
+                    R object = AbstractRoleMemberPanel.this.getModelObject();
                     Class type = getSearchModel().getObject().getTypeClass();
                     return prismContext.queryFor(type).exists(AssignmentHolderType.F_ASSIGNMENT)
                             .block()
@@ -429,7 +430,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             protected ISelectableDataProvider createProvider() {
                 SelectableBeanObjectDataProvider provider = (SelectableBeanObjectDataProvider) super.createProvider();
                 provider.setIsMemberPanel(true);
-                provider.addQueryVariables(ExpressionConstants.VAR_OBJECT, AbstractRoleMemberPanel.this.getModelObject());
+                provider.addQueryVariables(ExpressionConstants.VAR_PARENT_OBJECT, AbstractRoleMemberPanel.this.getModelObject());
                 return provider;
             }
 
@@ -452,13 +453,19 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
     private String createStorageKey() {
         UserProfileStorage.TableId tableId = getTableId(getComplexTypeQName());
-        return tableId.name() + "_" + getStorageKeyTabSuffix();
+        GuiObjectListPanelConfigurationType view = getAdditionalPanelConfig();
+        String collectionName = view != null ? ("_" + view.getIdentifier()) : "";
+        return tableId.name() + "_" + getStorageKeyTabSuffix() + collectionName;
     }
 
     private SearchItem createRelationItem(Search search) {
         return new SpecialSearchItem(search) {
             @Override
-            public ObjectFilter createFilter(PageBase pageBase) {
+            public ObjectFilter createFilter(PageBase pageBase, ExpressionVariables variables) {
+                R object = getParentVariables(variables);
+                if (object == null) {
+                    return null;
+                }
                 PrismContext prismContext = pageBase.getPrismContext();
                 List relations;
                 QName relation = getMemberPanelStorage().getRelation();
@@ -470,7 +477,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
                 ObjectFilter filter;
                 Boolean indirect = getMemberPanelStorage().getIndirect();
-                R object = getMemberPanel().getModelObject();
                 Class type = search.getTypeClass();
                 if(!Boolean.TRUE.equals(indirect)) {
                     S_AtomicFilterExit q = prismContext.queryFor(type).exists(AssignmentHolderType.F_ASSIGNMENT)
@@ -555,16 +561,31 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         };
     }
 
+    private R getParentVariables(ExpressionVariables variables) {
+        try {
+            return (R) variables.getValue(ExpressionConstants.VAR_PARENT_OBJECT, AbstractRoleType.class);
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't load parent object.");
+        }
+        return null;
+    }
+
     private SearchItem createScopeItem(Search search) {
         return new SpecialSearchItem(search) {
             @Override
-            public ObjectFilter createFilter(PageBase pageBase) {
-                Class type = search.getTypeClass();
-                if (SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope())) {
-                    ObjectReferenceType ref = MemberOperationsHelper.createReference(getMemberPanel().getModelObject(), getSelectedRelation());
-                    return pageBase.getPrismContext().queryFor(type).isChildOf(ref.asReferenceValue()).buildFilter();
+            public ObjectFilter createFilter(PageBase pageBase, ExpressionVariables variables) {
+                R object = getParentVariables(variables);
+                if (object == null) {
+                    return null;
                 }
-                return null;
+                Class type = search.getTypeClass();
+                ObjectReferenceType ref = MemberOperationsHelper.createReference(object, getSelectedRelation());
+                return pageBase.getPrismContext().queryFor(type).isChildOf(ref.asReferenceValue()).buildFilter();
+            }
+
+            @Override
+            public boolean isApplyFilter() {
+                return SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope());
             }
 
             @Override
@@ -597,13 +618,16 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     private SearchItem createIndirectItem(Search search) {
         return new SpecialSearchItem(search) {
             @Override
-            public ObjectFilter createFilter(PageBase pageBase) {
+            public ObjectFilter createFilter(PageBase pageBase, ExpressionVariables variables) {
+                R object = getParentVariables(variables);
+                if (object == null) {
+                    return null;
+                }
                 List relations = getSupportedRelations().getAvailableRelationList();
 
                 ObjectFilter filter;
                 PrismContext prismContext = pageBase.getPrismContext();
                 Class type = search.getTypeClass();
-                R object = getMemberPanel().getModelObject();
                 if(!Boolean.TRUE.equals(getMemberPanelStorage().getIndirect())) {
                     filter = prismContext.queryFor(type).exists(AssignmentHolderType.F_ASSIGNMENT)
                             .block()
@@ -680,12 +704,15 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             @Override
-            public ObjectFilter createFilter(PageBase pageBase) {
+            public ObjectFilter createFilter(PageBase pageBase, ExpressionVariables variables) {
+                R object = getParentVariables(variables);
+                if (object == null) {
+                    return null;
+                }
                 PrismContext prismContext = pageBase.getPrismContext();
                 List relations = getSupportedRelations().getAvailableRelationList();
 
                 ObjectFilter filter;
-                R object = getMemberPanel().getModelObject();
                 Class type = search.getTypeClass();
                 S_AtomicFilterExit q = prismContext.queryFor(type).exists(AssignmentHolderType.F_ASSIGNMENT)
                         .block()
@@ -775,12 +802,15 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             @Override
-            public ObjectFilter createFilter(PageBase pageBase) {
+            public ObjectFilter createFilter(PageBase pageBase, ExpressionVariables variables) {
+                R object = getParentVariables(variables);
+                if (object == null) {
+                    return null;
+                }
                 PrismContext prismContext = pageBase.getPrismContext();
                 List relations = getSupportedRelations().getAvailableRelationList();
 
                 ObjectFilter filter;
-                R object = getMemberPanel().getModelObject();
                 Class type = search.getTypeClass();
                 S_AtomicFilterExit q = prismContext.queryFor(type).exists(AssignmentHolderType.F_ASSIGNMENT)
                         .block()
@@ -1096,7 +1126,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     protected abstract AvailableRelationDto getSupportedRelations();
 
     protected GuiObjectListPanelConfigurationType getAdditionalPanelConfig() {
-        CompiledObjectCollectionView view = WebComponentUtil.getCollectionViewByObject(getModelObject(), getPageBase());
+        CompiledObjectCollectionView view = WebComponentUtil.getCollectionViewByObject(getModelObject(), getParentPage());
         if (view != null && view.getAdditionalPanels() != null) {
             return view.getAdditionalPanels().getMemberPanel();
         }
@@ -1347,10 +1377,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
     protected MainObjectListPanel<FocusType> getMemberTable() {
         return (MainObjectListPanel<FocusType>) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
-    }
-
-    protected AbstractRoleMemberPanel<R> getMemberPanel() {
-        return this;
     }
 
     protected QueryScope getQueryScope() {
