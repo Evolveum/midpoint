@@ -111,7 +111,7 @@ public class CaseTests extends AbstractSchrodingerTest {
                     .inputValue(REQUEST_CASE_NAME + CASE_CREATION_TEST_USER_NAME)
                     .updateSearch()
                  .and()
-                 .containsLinkTextPartially(REQUEST_CASE_NAME + CASE_CREATION_TEST_USER_NAME);
+                 .assertTableContainsLinkTextPartially(REQUEST_CASE_NAME + CASE_CREATION_TEST_USER_NAME);
 
      }
 

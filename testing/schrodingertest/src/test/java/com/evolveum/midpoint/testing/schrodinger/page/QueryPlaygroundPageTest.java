@@ -51,18 +51,12 @@ public class QueryPlaygroundPageTest extends AbstractSchrodingerTest {
                 .useInObjectListButtonClick();
 
         ListUsersPage usersPage = basicPage.listUsers();
-        Assert.assertTrue(
-                usersPage
-                        .table()
-                        .containsLinkTextPartially("a_start")
-        );
+        usersPage
+                .table()
+                        .assertTableContainsLinkTextPartially("a_start");
 
-        Assert.assertFalse(
-                usersPage
-                        .table()
-                        .containsLinkTextPartially("b_start")
-        );
-
-
+        usersPage
+                .table()
+                        .assertTableDoesntContainLinkTextPartially("b_start");
     }
 }

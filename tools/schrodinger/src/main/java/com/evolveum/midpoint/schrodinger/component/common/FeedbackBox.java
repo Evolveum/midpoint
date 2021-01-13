@@ -105,4 +105,28 @@ public class FeedbackBox<T> extends Component<T> {
         return $(By.linkText(messageText)).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).exists();
     }
 
+    public void assertSuccess() {
+        if (!isSuccess()) {
+            throw new AssertionError("Feedback panel status is not success.");
+        }
+    }
+
+    public void assertError() {
+        if (!isError()) {
+            throw new AssertionError("Feedback panel status is not error.");
+        }
+    }
+
+    public void assertWarning() {
+        if (!isWarning()) {
+            throw new AssertionError("Feedback panel status is not warning.");
+        }
+    }
+
+    public void assertInfo() {
+        if (!isInfo()) {
+            throw new AssertionError("Feedback panel status is not info.");
+        }
+    }
+
 }

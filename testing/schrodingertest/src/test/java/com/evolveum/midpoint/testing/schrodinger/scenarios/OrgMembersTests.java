@@ -96,11 +96,11 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
                     .and()
                     .clickAdd();
         orgTreePage = basicPage.orgStructure();
-        Assert.assertTrue(orgTreePage
+        orgTreePage
                 .selectTabWithRootOrg(ORG_NAME)
                     .getMemberPanel()
                         .table()
-                        .containsLinksTextPartially(USER_NAME));
+                        .assertTableContainsLinkTextPartially(USER_NAME);
     }
 
     @Test (priority = 3)

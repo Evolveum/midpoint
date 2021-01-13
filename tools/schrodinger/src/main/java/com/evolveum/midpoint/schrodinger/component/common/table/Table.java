@@ -152,18 +152,6 @@ public class Table<T> extends Component<T> {
         return getParentElement().$(byText(value)).is(Condition.visible);
     }
 
-    public void assertTableContainsText (String text) {
-        if (!containsText(text)) {
-            throw new AssertionError("Table doesn't contain text '" + text + "'.");
-        }
-    }
-
-    public void assertTableDoesntContainText (String text) {
-        if (containsText(text)) {
-            throw new AssertionError("Table shouldn't contain text '" + text + "'.");
-        }
-    }
-
     public boolean containsLinkTextPartially(String value) {
         return $(byPartialLinkText(value)).is(Condition.visible);
     }
@@ -219,4 +207,39 @@ public class Table<T> extends Component<T> {
         }
     }
 
+    public void assertTableContainsText (String text) {
+        if (!containsText(text)) {
+            throw new AssertionError("Table doesn't contain text '" + text + "'.");
+        }
+    }
+
+    public void assertTableDoesntContainText (String text) {
+        if (containsText(text)) {
+            throw new AssertionError("Table shouldn't contain text '" + text + "'.");
+        }
+    }
+
+    public void assertTableContainsLinkTextPartially (String linkText) {
+        if (!containsLinkTextPartially(linkText)) {
+            throw new AssertionError("Table doesn't contain link text '" + linkText + "'.");
+        }
+    }
+
+    public void assertTableDoesntContainLinkTextPartially (String linkText) {
+        if (containsLinkTextPartially(linkText)) {
+            throw new AssertionError("Table shouldn't contain link text '" + linkText + "'.");
+        }
+    }
+
+    public void assertTableContainsLinksTextPartially (String... linkTextValues) {
+        if (!containsLinksTextPartially(linkTextValues)) {
+            throw new AssertionError("Table doesn't contain links text.");
+        }
+    }
+
+    public void assertTableDoesntContainLinksTextPartially (String... linkTextValues) {
+        if (containsLinksTextPartially(linkTextValues)) {
+            throw new AssertionError("Table shouldn't contain links text.");
+        }
+    }
 }

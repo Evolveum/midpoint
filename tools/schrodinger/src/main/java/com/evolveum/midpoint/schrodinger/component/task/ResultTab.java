@@ -62,4 +62,14 @@ public class ResultTab extends Component<TaskPage> {
     public Table<ResultTab> getResultsTable() {
         return new Table<>(this, $(Schrodinger.byDataId("operationResult")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S));
     }
+
+    public ResultTab assertOperationValueByTokenMatch(String tokenValue, String expectedValue) {
+        String realValue = getOperationValueByToken(tokenValue);
+        if ((expectedValue == null && realValue != null) || (realValue == null && expectedValue != null) ||
+                (expectedValue != null && !expectedValue.equals(realValue))) {
+            throw new AssertionError("'Operation' value doesn't match to " + expectedValue);
+        }
+        return this;
+    }
+
 }

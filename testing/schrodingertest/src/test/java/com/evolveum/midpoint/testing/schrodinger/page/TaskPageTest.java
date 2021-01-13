@@ -87,25 +87,19 @@ public class TaskPageTest extends AbstractSchrodingerTest {
                     .clickByName("OperationStatisticsCleanupTest");
         OperationStatisticsTab operationStatisticsTab = taskPage
                 .selectTabOperationStatistics();
-        Assert.assertEquals(operationStatisticsTab.getSuccessfullyProcessed(), Integer.valueOf(30),
-                "The count of successfully processed objects doesn't match");
-        Assert.assertEquals(operationStatisticsTab.getObjectsFailedToBeProcessed(), Integer.valueOf(3),
-                "The count of failed objects doesn't match");
-        Assert.assertEquals(operationStatisticsTab.getObjectsTotalCount(), Integer.valueOf(33),
-                "The total count of processed objects doesn't match");
-        Assert.assertTrue(taskPage
+        operationStatisticsTab.assertSuccessfullyProcessedCountMatch(30);
+        operationStatisticsTab.assertObjectsFailedToBeProcessedCountMatch(3);
+        operationStatisticsTab.assertObjectsTotalCountMatch(33);
+        taskPage
                 .cleanupEnvironmentalPerformanceInfo()
                 .clickYes()
                 .feedback()
-                .isSuccess());
+                .assertSuccess();
         operationStatisticsTab = taskPage
                 .selectTabOperationStatistics();
-        Assert.assertNull(operationStatisticsTab.getSuccessfullyProcessed(),
-                "The count of successfully processed objects after cleanup is not null");
-        Assert.assertNull(operationStatisticsTab.getObjectsFailedToBeProcessed(),
-                "The count of failed objects after cleanup is not null");
-        Assert.assertNull(operationStatisticsTab.getObjectsTotalCount(),
-                "The total count of processed objects after cleanup is not null");
+        operationStatisticsTab.assertSuccessfullyProcessedIsNull();
+        operationStatisticsTab.assertObjectsFailedToBeProcessedIsNull();
+        operationStatisticsTab.assertObjectsTotalIsNull();
 
     }
 
@@ -129,11 +123,11 @@ public class TaskPageTest extends AbstractSchrodingerTest {
                 "'Max' value doesn't match");
         Assert.assertEquals(environmentalPerformanceTab.getStatisticsPanel().getMappingsEvaluationTotalTimeValue(), "2",
                 "'Total time' value doesn't match");
-        Assert.assertTrue(taskPage
+        taskPage
                 .cleanupEnvironmentalPerformanceInfo()
                 .clickYes()
                 .feedback()
-                .isSuccess());
+                .assertSuccess();
         environmentalPerformanceTab = taskPage
                 .selectTabEnvironmentalPerformance();
         Assert.assertNull(environmentalPerformanceTab.getStatisticsPanel().getMappingsEvaluationContainingObjectValue(),
@@ -161,8 +155,7 @@ public class TaskPageTest extends AbstractSchrodingerTest {
                 .selectTabResult();
         Assert.assertTrue(resultTab.getResultsTable().containsText(tokenValue),
                 "'Token' value '" + tokenValue +"' is absent");
-        Assert.assertEquals(resultTab.getOperationValueByToken(tokenValue), "run",
-                "'Operation' value doesn't match");
+        resultTab.assertOperationValueByTokenMatch(tokenValue, "run");
         Assert.assertEquals(resultTab.getStatusValueByToken(tokenValue), "IN_PROGRESS",
                 "'Status' value doesn't match");
         Assert.assertEquals(resultTab.getTimestampValueByToken(tokenValue), "1/1/20, 12:00:00 AM",
@@ -178,8 +171,7 @@ public class TaskPageTest extends AbstractSchrodingerTest {
                 .selectTabResult();
         Assert.assertFalse(resultTab.getResultsTable().containsText(tokenValue),
                 "'Token' value '" + tokenValue +"' is present after cleanup");
-        Assert.assertNull(resultTab.getOperationValueByToken(tokenValue),
-                "'Operation' value is not null after cleanup");
+        resultTab.assertOperationValueByTokenMatch(tokenValue, null);
         Assert.assertNull(resultTab.getStatusValueByToken(tokenValue),
                 "'Status' value is not null after cleanup");
         Assert.assertNull(resultTab.getTimestampValueByToken(tokenValue),
