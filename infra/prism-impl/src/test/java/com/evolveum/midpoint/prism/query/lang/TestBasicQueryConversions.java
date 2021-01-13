@@ -3,6 +3,7 @@ package com.evolveum.midpoint.prism.query.lang;
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_DATETIME_ELEMENT;
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_NUM_ELEMENT;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -79,6 +80,14 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
                         .and().item(UserType.F_FULL_NAME).contains("arr")
                         .buildFilter();
         verify("givenName =[stringIgnoreCase] \"Jack\" and fullName contains \"arr\"", filter);
+    }
+
+    @Test
+    public void testPathComparison() throws SchemaException, IOException {
+        ObjectFilter dslFilter = parse("fullName != givenName");
+        boolean match = ObjectQuery.match(parseUserJacky(),dslFilter,MATCHING_RULE_REGISTRY);
+        assertTrue(match);
+        verify("fullName not equal givenName", dslFilter);
     }
 
     @Test   // MID-4173

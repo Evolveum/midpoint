@@ -44,7 +44,7 @@ pathValue: '[' argument ']';
 
 // Aliases for basic filters (equals, less, greater, lessOrEquals, greaterOrEquals
 //
-filterNameAlias: '=' | '<' | '>' | '<=' | '>=';
+filterNameAlias: '=' | '<' | '>' | '<=' | '>=' | '!=';
 
 
 filterName: prefixedName | filterNameAlias;

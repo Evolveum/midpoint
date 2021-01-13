@@ -87,7 +87,9 @@ public class PrismQueryLanguageParser {
             PrismPropertyDefinition<?> propDef = (PrismPropertyDefinition<?>) definition;
             ValueSpecificationContext valueSpec = subfilterOrValue.valueSpecification();
             if (valueSpec.path() != null) {
-                throw new UnsupportedOperationException("FIXME: Implement right side lookup");
+                ItemPath rightPath = path(parentDef, valueSpec.path());
+                PrismPropertyDefinition<?> rightDef = parentDef.findItemDefinition(rightPath, PrismPropertyDefinition.class);
+                return propertyFilter(propDef, path, matchingRule, rightPath, rightDef);
             } else if (valueSpec.literalValue() != null) {
                 Object parsedValue = parseLiteral(propDef, valueSpec.literalValue());
                 return valueFilter(propDef, path, matchingRule, parsedValue);
@@ -96,10 +98,10 @@ public class PrismQueryLanguageParser {
         }
 
         abstract ObjectFilter valueFilter(PrismPropertyDefinition<?> definition, ItemPath path, QName matchingRule,
-                Object value);
+                Object value) throws SchemaException;
 
         abstract ObjectFilter propertyFilter(PrismPropertyDefinition<?> definition, ItemPath path, QName matchingRule,
-                ItemPath rightPath, PrismPropertyDefinition<?> rightDef);
+                ItemPath rightPath, PrismPropertyDefinition<?> rightDef) throws SchemaException;
 
     }
 
@@ -115,8 +117,8 @@ public class PrismQueryLanguageParser {
 
         @Override
         ObjectFilter propertyFilter(PrismPropertyDefinition<?> definition, ItemPath path, QName matchingRule,
-                ItemPath rightPath, PrismPropertyDefinition<?> rightDef) {
-            throw new UnsupportedOperationException();
+                ItemPath rightPath, PrismPropertyDefinition<?> rightDef) throws SchemaException {
+            throw new SchemaException("substring filter does not support path or right side.");
         }
 
         @Override
@@ -130,23 +132,38 @@ public class PrismQueryLanguageParser {
     private static final QName EQUALS_NAME = queryName("equal");
 
     private static final Map<String, QName> ALIASES_TO_NAME = ImmutableMap.<String, QName>builder()
-            .put("=", queryName("equal")).put("<", queryName("less")).put(">", queryName("greater"))
-            .put("<=", queryName("lessOrEqual")).put(">=", queryName("greaterOrEqual")).build();
+            .put("=", queryName("equal"))
+            .put("<", queryName("less"))
+            .put(">", queryName("greater"))
+            .put("<=", queryName("lessOrEqual"))
+            .put(">=", queryName("greaterOrEqual"))
+            .put("!=", queryName("notEqual"))
+            .build();
+
+    private final ItemFilterFactory equalFilter = new PropertyFilterFactory() {
+        @Override
+        public ObjectFilter valueFilter(PrismPropertyDefinition<?> definition, ItemPath path,
+                QName matchingRule, Object value) {
+            return EqualFilterImpl.createEqual(path, definition, matchingRule, context, value);
+        }
+
+        @Override
+        public ObjectFilter propertyFilter(PrismPropertyDefinition<?> definition, ItemPath path,
+                QName matchingRule, ItemPath rightPath, PrismPropertyDefinition<?> rightDef) {
+            return EqualFilterImpl.createEqual(path, definition, matchingRule, rightPath, rightDef);
+        }
+    };
 
     private final Map<QName, ItemFilterFactory> filterFactories = ImmutableMap.<QName, ItemFilterFactory>builder()
-            .put(queryName("equal"), new PropertyFilterFactory() {
-                    @Override
-                    public ObjectFilter valueFilter(PrismPropertyDefinition<?> definition, ItemPath path,
-                            QName matchingRule, Object value) {
-                        return EqualFilterImpl.createEqual(path, definition, matchingRule, context, value);
-                    }
+            .put(queryName("equal"), equalFilter)
+            .put(queryName("notEqual"), new ItemFilterFactory() {
 
-                    @Override
-                    public ObjectFilter propertyFilter(PrismPropertyDefinition<?> definition, ItemPath path,
-                            QName matchingRule, ItemPath rightPath, PrismPropertyDefinition<?> rightDef) {
-                        return EqualFilterImpl.createEqual(path, definition, matchingRule, rightPath, rightDef);
-                    }
-                })
+                @Override
+                public ObjectFilter create(PrismContainerDefinition<?> parentDef, ItemPath itemPath, ItemDefinition<?> itemDef,
+                        QName matchingRule, SubfilterOrValueContext subfilterOrValue) throws SchemaException {
+                    return NotFilterImpl.createNot(equalFilter.create(parentDef, itemPath, itemDef, matchingRule, subfilterOrValue));
+                }
+            })
             .put(queryName("greater"), new PropertyFilterFactory() {
                     @Override
                     ObjectFilter valueFilter(PrismPropertyDefinition<?> definition, ItemPath path, QName matchingRule,
