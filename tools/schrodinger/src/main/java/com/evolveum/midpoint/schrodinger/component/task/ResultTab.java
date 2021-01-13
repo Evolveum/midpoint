@@ -72,4 +72,31 @@ public class ResultTab extends Component<TaskPage> {
         return this;
     }
 
+    public ResultTab assertStatusValueByTokenMatch(String tokenValue, String expectedValue) {
+        String realValue = getStatusValueByToken(tokenValue);
+        if ((expectedValue == null && realValue != null) || (realValue == null && expectedValue != null) ||
+                (expectedValue != null && !expectedValue.equals(realValue))) {
+            throw new AssertionError("'Status' value doesn't match to " + expectedValue);
+        }
+        return this;
+    }
+
+    public ResultTab assertTimestampValueByTokenMatch(String tokenValue, String expectedValue) {
+        String realValue = getTimestampValueByToken(tokenValue);
+        if ((expectedValue == null && realValue != null) || (realValue == null && expectedValue != null) ||
+                (expectedValue != null && !expectedValue.equals(realValue))) {
+            throw new AssertionError("'Timestamp' value doesn't match to " + expectedValue);
+        }
+        return this;
+    }
+
+    public ResultTab assertMessageValueByTokenMatch(String tokenValue, String expectedValue) {
+        String realValue = getMessageValueByToken(tokenValue);
+        if ((expectedValue == null && realValue != null) || (realValue == null && expectedValue != null) ||
+                (expectedValue != null && !expectedValue.equals(realValue))) {
+            throw new AssertionError("'Message' value doesn't match to " + expectedValue);
+        }
+        return this;
+    }
+
 }
