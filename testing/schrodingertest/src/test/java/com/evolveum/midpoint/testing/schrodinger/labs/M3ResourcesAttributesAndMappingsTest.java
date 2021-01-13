@@ -60,12 +60,10 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
                     .clickEditResourceConfiguration()
                     .form();
         // Unique attribute name should be login
-        Assert.assertTrue(configTab
-                            .compareInputAttributeValue(UNIQUE_ATTRIBUTE_NAME, CSV_1_UNIQUE_ATTRIBUTE_NAME));
+        configTab.assertInputAttributeValueMatches(UNIQUE_ATTRIBUTE_NAME, CSV_1_UNIQUE_ATTRIBUTE_NAME);
 
         // Password attribute name should be password
-        Assert.assertTrue(configTab
-                .compareInputAttributeValue(PASSWORD_ATTRIBUTE_NAME, CSV_1_PASSWORD_ATTRIBUTE_NAME));
+        configTab.assertInputAttributeValueMatches(PASSWORD_ATTRIBUTE_NAME, CSV_1_PASSWORD_ATTRIBUTE_NAME);
 
         ResourceWizardPage resourceWizard = basicPage.listResources()
                 .table()
@@ -154,7 +152,7 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
                 .form();
 
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
-        Assert.assertTrue(accountForm.compareInputAttributeValue("fname", "Jim T."));
+        accountForm.assertInputAttributeValueMatches("fname", "Jim T.");
 
         showUser("kirk")
                     .selectTabProjections()

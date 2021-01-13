@@ -199,8 +199,7 @@ public class SynchronizationTests extends AbstractSchrodingerTest {
         Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         ListUsersPage usersPage = basicPage.listUsers();
-        Assert.assertTrue(
-            usersPage
+        usersPage
                     .table()
                         .search()
                             .byName()
@@ -210,8 +209,7 @@ public class SynchronizationTests extends AbstractSchrodingerTest {
                     .clickByName(ScenariosCommons.TEST_USER_DON_NAME)
                         .selectTabBasic()
                             .form()
-                                .compareInputAttributeValue("givenName","Donato")
-        );
+                                .assertInputAttributeValueMatches("givenName","Donato");
     }
 
     @Test (priority = 5, dependsOnMethods = {LINKED_USER_ACCOUNT_MODIFIED})

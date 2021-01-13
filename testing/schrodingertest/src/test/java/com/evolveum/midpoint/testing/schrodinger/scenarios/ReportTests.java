@@ -30,29 +30,28 @@ public class ReportTests extends AbstractSchrodingerTest {
             .feedback()
             .isSuccess(),
                 "Couldn't create new report");
-        Assert.assertEquals(1, basicPage.listReports()
+        basicPage.listReports()
             .table()
                 .search()
                     .byName()
                     .inputValue("TestReport")
                     .updateSearch()
                     .and()
-                .countTableObjects());
-        Assert.assertTrue(basicPage.listReports().table().containsText("TestReport"));
+                .assertTableObjectsCountEquals(1);
+        basicPage.listReports().table().assertTableContainsText("TestReport");
     }
 
     @Test
     public void test00200runUsersReport() {
         ReportTable reportTable = basicPage.listReports().table();
         reportTable.runReport("All audit records report");
-        Assert.assertEquals(1, basicPage.listReports("Collection reports")
+        basicPage.listReports("Collection reports")
             .table()
                 .search()
                     .byName()
                     .inputValue("All audit records report")
                     .updateSearch()
                     .and()
-                .countTableObjects(),
-                "Report isn't found after run");
+                .assertTableObjectsCountEquals(1);
     }
 }

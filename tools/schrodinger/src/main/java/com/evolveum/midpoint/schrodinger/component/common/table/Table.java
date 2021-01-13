@@ -152,6 +152,12 @@ public class Table<T> extends Component<T> {
         return getParentElement().$(byText(value)).is(Condition.visible);
     }
 
+    public void assertTableContainsText (String text) {
+        if (!containsText(text)) {
+            throw new AssertionError("Table doesn't contain text '" + text + "'.");
+        }
+    }
+
     public boolean containsLinkTextPartially(String value) {
         return $(byPartialLinkText(value)).is(Condition.visible);
     }
@@ -188,4 +194,23 @@ public class Table<T> extends Component<T> {
         }
         return Integer.parseInt(countStringValue.substring(lastSpaceIndex + 1));
     }
+
+    public void assertColumnIndexMatches(String columnLabel, int expectedIndex) {
+        if (findColumnByLabel(columnLabel) != expectedIndex) {
+            throw new AssertionError("'" + columnLabel + "' column index doesn't match to " + expectedIndex);
+        }
+    }
+
+    public void assertTableObjectsCountEquals(int expectedObjectsCount) {
+        if (countTableObjects() != expectedObjectsCount) {
+            throw new AssertionError("Table objects count doesn't equal to expected value " + expectedObjectsCount);
+        }
+    }
+
+    public void assertTableObjectsCountNotEquals(int objectsCount) {
+        if (countTableObjects() == objectsCount) {
+            throw new AssertionError("Table objects count equals to expected value " + objectsCount);
+        }
+    }
+
 }
