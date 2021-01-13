@@ -71,8 +71,8 @@ public class TaskPageTest extends AbstractSchrodingerTest {
                         .selectTabBasic()
                             .form();
 
-        Assert.assertTrue(taskForm.compareInputAttributeValue("name", name));
-        Assert.assertTrue(taskForm.compareInputAttributeValue("handlerUri", handler));
+        taskForm.assertInputAttributeValueMatches("name", name);
+        taskForm.assertInputAttributeValueMatches("handlerUri", handler);
     }
 
     @Test

@@ -156,13 +156,13 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
                 .selectTabWithRootOrg(ORG_WITH_MEMBER_NAME)
                 .getMemberPanel()
                 .table();
-        Assert.assertEquals(memberTable
+        memberTable
                             .search()
                             .byName()
                             .inputValue("NewUserAsOrgMember")
                 .updateSearch()
                 .and()
-                .countTableObjects(), 1, "Created member is absent in org members table");
+                .assertTableObjectsCountEquals(1);
         Assert.assertTrue(memberTable.containsText("Member"));
     }
 
@@ -189,13 +189,13 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
         MemberTable<MemberPanel<OrgRootTab>> memberTable = memberPanel
                 .table();
         memberPanel.selectType("All");
-        Assert.assertEquals(memberTable
+        memberTable
                             .search()
                             .byName()
                             .inputValue("NewRoleAsOrgManager")
                 .updateSearch()
                 .and()
-                .countTableObjects(), 1, "Created member is absent in org members table");
+                .assertTableObjectsCountEquals(1);
         Assert.assertTrue(memberTable.containsText("Manager"));
     }
 
@@ -222,13 +222,13 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
         MemberTable<MemberPanel<OrgRootTab>> memberTable = memberPanel
                 .table();
         memberPanel.selectType("All");
-        Assert.assertEquals(memberTable
+        memberTable
                             .search()
                             .byName()
                             .inputValue("NewOrgAsOrgOwner")
                 .updateSearch()
                 .and()
-                .countTableObjects(), 1, "Created member is absent in org members table");
+                .assertTableObjectsCountEquals(1);
         Assert.assertTrue(memberTable.containsText("Owner"));
     }
 
@@ -255,13 +255,13 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
         MemberTable<MemberPanel<OrgRootTab>> memberTable = memberPanel
                 .table();
         memberPanel.selectType("All");
-        Assert.assertEquals(memberTable
+        memberTable
                             .search()
                             .byName()
                             .inputValue("NewServiceAsOrgApprover")
                 .updateSearch()
                 .and()
-                .countTableObjects(), 1, "Created member is absent in org members table");
+                .assertTableObjectsCountEquals(1);
         Assert.assertTrue(memberTable.containsText("Approver"));
     }
 }
