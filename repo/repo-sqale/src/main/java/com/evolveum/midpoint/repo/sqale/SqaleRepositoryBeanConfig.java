@@ -1,62 +1,39 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sql;
+package com.evolveum.midpoint.repo.sqale;
 
-import com.evolveum.midpoint.audit.api.AuditServiceFactory;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
-import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
-import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
-import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
-import com.evolveum.midpoint.repo.sql.util.EntityStateInterceptor;
-import com.evolveum.midpoint.repo.sql.util.MidPointImplicitNamingStrategy;
-import com.evolveum.midpoint.repo.sql.util.MidPointPhysicalNamingStrategy;
-import com.evolveum.midpoint.repo.sqlbase.SystemConfigurationChangeDispatcherImpl;
-
-import org.hibernate.SessionFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.orm.hibernate5.HibernateTransactionManager;
-import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
-import org.springframework.transaction.TransactionManager;
 
-import javax.sql.DataSource;
-import java.util.Properties;
+import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 
 /**
- * SQL repository related configuration from {@link DataSourceFactory} through ORM all the way to
- * {@link TransactionManager}.
+ * New SQL repository related configuration.
  * {@link ConditionalOnMissingBean} annotations are used to avoid duplicate bean acquirement that
  * would happen when combined with alternative configurations (e.g. context XMLs for test).
  * {@link ConditionalOnExpression} class annotation activates this configuration only if midpoint
  * {@code config.xml} specifies the repository factory class from SQL package.
- * <p>
- * Spring configuration note - ConditionalOnExpression is ugly, but the following does NOT work:
- * <ul>
- * <li>{@code @ConditionalOnBean(SqlRepositoryFactory.class)} - with {@code RepositoryServiceFactory}
- * it does, but that does not help.</li>
- * <li>{@code @ConditionalOnExpression("#{repositoryFactory...} - because {@code RepositoryFactory}
- * is not initialized yet and all injected stuff is still {@code null}.</li>
- * </ul>
  */
 @Configuration
 @ConditionalOnExpression("#{midpointConfiguration.getConfiguration('midpoint.repository')"
-        + ".getString('repositoryServiceFactoryClass').startsWith('com.evolveum.midpoint.repo.sql.')}")
+        + ".getString('repositoryServiceFactoryClass').startsWith('com.evolveum.midpoint.repo.sqale.')}")
 @ComponentScan
-public class SqlRepositoryBeanConfig {
+public class SqaleRepositoryBeanConfig {
 
     @Bean
-    public ExtItemDictionary extItemDictionary() {
-        return new ExtItemDictionary();
+    public SqlRepoContext sqlRepoContext() {
+        // TODO fill in
+        return new SqlRepoContext(null, null);
     }
 
+    /*
     @Bean
     @ConditionalOnMissingBean
     public DataSourceFactory dataSourceFactory(SqlRepositoryFactory sqlRepositoryFactory) {
@@ -136,23 +113,7 @@ public class SqlRepositoryBeanConfig {
 
         return htm;
     }
+    */
 
-    @Bean
-    public AuditServiceFactory sqlAuditServiceFactory(
-            BaseHelper defaultBaseHelper,
-            PrismContext prismContext,
-            MidPointImplicitNamingStrategy midPointImplicitNamingStrategy,
-            MidPointPhysicalNamingStrategy midPointPhysicalNamingStrategy,
-            EntityStateInterceptor entityStateInterceptor) {
-        return new SqlAuditServiceFactory(
-                defaultBaseHelper, prismContext, midPointImplicitNamingStrategy,
-                midPointPhysicalNamingStrategy, entityStateInterceptor);
-    }
-
-    // TODO it would be better to have dependencies explicit here, but there is cyclic one
-    //  in SystemConfigurationChangeDispatcherImpl.
-    @Bean
-    public SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher() {
-        return new SystemConfigurationChangeDispatcherImpl();
-    }
+    // TODO @Bean for AuditServiceFactory
 }

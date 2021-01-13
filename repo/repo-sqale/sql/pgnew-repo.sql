@@ -1,3 +1,8 @@
+-- Copyright (C) 2010-2021 Evolveum and contributors
+--
+-- This work is dual-licensed under the Apache License 2.0
+-- and European Union Public License. See LICENSE file for details.
+--
 -- @formatter:off because of terribly unreliable IDEA reformat for SQL
 -- Naming conventions:
 -- M_ prefix is used for tables in main part of the repo, MA_ for audit tables (can be separate)
@@ -101,7 +106,7 @@ CREATE TABLE m_object (
     name_orig VARCHAR(255) NOT NULL,
     fullObject BYTEA,
     createChannel INTEGER REFERENCES m_qname(id),
-    createTimestamp TIMESTAMP,
+    createTimestamp TIMESTAMPTZ,
     creatorRef_relation VARCHAR(157),
     creatorRef_targetOid VARCHAR(36),
     creatorRef_targetType INTEGER,
@@ -110,7 +115,7 @@ CREATE TABLE m_object (
     modifierRef_targetOid VARCHAR(36),
     modifierRef_targetType INTEGER,
     modifyChannel INTEGER REFERENCES m_qname(id),
-    modifyTimestamp TIMESTAMP,
+    modifyTimestamp TIMESTAMPTZ,
     tenantRef_relation VARCHAR(157),
     tenantRef_targetOid VARCHAR(36),
     tenantRef_targetType INTEGER,
@@ -149,14 +154,14 @@ CREATE TABLE m_focus (
     -- will be overridden with GENERATED value in concrete table
     objectTypeClass INTEGER DEFAULT 17,
     administrativeStatus INTEGER,
-    archiveTimestamp TIMESTAMP,
+    archiveTimestamp TIMESTAMPTZ,
     disableReason VARCHAR(255),
-    disableTimestamp TIMESTAMP,
+    disableTimestamp TIMESTAMPTZ,
     effectiveStatus INTEGER,
-    enableTimestamp TIMESTAMP,
-    validFrom TIMESTAMP,
-    validTo TIMESTAMP,
-    validityChangeTimestamp TIMESTAMP,
+    enableTimestamp TIMESTAMPTZ,
+    validFrom TIMESTAMPTZ,
+    validTo TIMESTAMPTZ,
+    validityChangeTimestamp TIMESTAMPTZ,
     validityStatus INTEGER,
     costCenter VARCHAR(255),
     emailAddress VARCHAR(255),
@@ -167,8 +172,8 @@ CREATE TABLE m_focus (
     preferredLanguage VARCHAR(255),
     telephoneNumber VARCHAR(255),
     timezone VARCHAR(255),
-    passwordCreateTimestamp TIMESTAMP,
-    passwordModifyTimestamp TIMESTAMP,
+    passwordCreateTimestamp TIMESTAMPTZ,
+    passwordModifyTimestamp TIMESTAMPTZ,
 
     CHECK (FALSE) NO INHERIT
 )
@@ -221,12 +226,12 @@ CREATE TABLE m_shadow (
     dead BOOLEAN,
     exist BOOLEAN,
     failedOperationType INTEGER,
-    fullSynchronizationTimestamp TIMESTAMP,
+    fullSynchronizationTimestamp TIMESTAMPTZ,
     pendingOperationCount INTEGER,
     primaryIdentifierValue VARCHAR(255),
     status INTEGER,
     synchronizationSituation INTEGER,
-    synchronizationTimestamp TIMESTAMP
+    synchronizationTimestamp TIMESTAMPTZ
 )
     INHERITS (m_object);
 
@@ -253,18 +258,18 @@ CREATE TABLE m_assignment (
     -- new column may avoid join to object for some queries
     owner_type INTEGER NOT NULL,
     administrativeStatus INTEGER,
-    archiveTimestamp TIMESTAMP,
+    archiveTimestamp TIMESTAMPTZ,
     disableReason VARCHAR(255),
-    disableTimestamp TIMESTAMP,
+    disableTimestamp TIMESTAMPTZ,
     effectiveStatus INTEGER,
-    enableTimestamp TIMESTAMP,
-    validFrom TIMESTAMP,
-    validTo TIMESTAMP,
-    validityChangeTimestamp TIMESTAMP,
+    enableTimestamp TIMESTAMPTZ,
+    validFrom TIMESTAMPTZ,
+    validTo TIMESTAMPTZ,
+    validityChangeTimestamp TIMESTAMPTZ,
     validityStatus INTEGER,
     assignmentOwner INTEGER,
     createChannel VARCHAR(255),
-    createTimestamp TIMESTAMP,
+    createTimestamp TIMESTAMPTZ,
     creatorRef_relation VARCHAR(157),
     creatorRef_targetOid VARCHAR(36),
     creatorRef_targetType INTEGER,
@@ -273,7 +278,7 @@ CREATE TABLE m_assignment (
     modifierRef_targetOid VARCHAR(36),
     modifierRef_targetType INTEGER,
     modifyChannel VARCHAR(255),
-    modifyTimestamp TIMESTAMP,
+    modifyTimestamp TIMESTAMPTZ,
     orderValue INTEGER,
     orgRef_relation VARCHAR(157),
     orgRef_targetOid VARCHAR(36),
@@ -304,7 +309,7 @@ CREATE TABLE m_acc_cert_campaign (
     definitionRef_relation VARCHAR(157),
     definitionRef_targetOid VARCHAR(36),
     definitionRef_targetType INTEGER,
-    endTimestamp TIMESTAMP,
+    endTimestamp TIMESTAMPTZ,
     handlerUri VARCHAR(255),
     iteration INTEGER NOT NULL,
     name_norm VARCHAR(255),
@@ -313,7 +318,7 @@ CREATE TABLE m_acc_cert_campaign (
     ownerRef_targetOid VARCHAR(36),
     ownerRef_targetType INTEGER,
     stageNumber INTEGER,
-    startTimestamp TIMESTAMP,
+    startTimestamp TIMESTAMPTZ,
     state INTEGER
 )
     INHERITS (m_object);
@@ -333,14 +338,14 @@ CREATE TABLE m_acc_cert_case (
     id INTEGER NOT NULL,
     owner_oid VARCHAR(36) NOT NULL,
     administrativeStatus INTEGER,
-    archiveTimestamp TIMESTAMP,
+    archiveTimestamp TIMESTAMPTZ,
     disableReason VARCHAR(255),
-    disableTimestamp TIMESTAMP,
+    disableTimestamp TIMESTAMPTZ,
     effectiveStatus INTEGER,
-    enableTimestamp TIMESTAMP,
-    validFrom TIMESTAMP,
-    validTo TIMESTAMP,
-    validityChangeTimestamp TIMESTAMP,
+    enableTimestamp TIMESTAMPTZ,
+    validFrom TIMESTAMPTZ,
+    validTo TIMESTAMPTZ,
+    validityChangeTimestamp TIMESTAMPTZ,
     validityStatus INTEGER,
     currentStageOutcome VARCHAR(255),
     fullObject BYTEA,
@@ -352,9 +357,9 @@ CREATE TABLE m_acc_cert_case (
     orgRef_targetOid VARCHAR(36),
     orgRef_targetType INTEGER,
     outcome VARCHAR(255),
-    remediedTimestamp TIMESTAMP,
-    reviewDeadline TIMESTAMP,
-    reviewRequestedTimestamp TIMESTAMP,
+    remediedTimestamp TIMESTAMPTZ,
+    reviewDeadline TIMESTAMPTZ,
+    reviewRequestedTimestamp TIMESTAMPTZ,
     stageNumber INTEGER,
     targetRef_relation VARCHAR(157),
     targetRef_targetOid VARCHAR(36),
@@ -369,8 +374,8 @@ CREATE TABLE m_acc_cert_case (
 CREATE TABLE m_acc_cert_definition (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     handlerUri VARCHAR(255),
-    lastCampaignClosedTimestamp TIMESTAMP,
-    lastCampaignStartedTimestamp TIMESTAMP,
+    lastCampaignClosedTimestamp TIMESTAMPTZ,
+    lastCampaignStartedTimestamp TIMESTAMPTZ,
     name_norm VARCHAR(255),
     name_orig VARCHAR(255),
     ownerRef_relation VARCHAR(157),
@@ -394,10 +399,10 @@ CREATE TABLE m_acc_cert_wi (
     id INTEGER NOT NULL,
     owner_id INTEGER NOT NULL,
     owner_owner_oid UUID NOT NULL,
-    closeTimestamp TIMESTAMP,
+    closeTimestamp TIMESTAMPTZ,
     iteration INTEGER NOT NULL,
     outcome VARCHAR(255),
-    outputChangeTimestamp TIMESTAMP,
+    outputChangeTimestamp TIMESTAMPTZ,
     performerRef_relation VARCHAR(157),
     performerRef_targetOid UUID,
     performerRef_targetType INTEGER,
@@ -439,7 +444,7 @@ CREATE TABLE m_object_ext_boolean (
 CREATE TABLE m_object_ext_date (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
     ext_item_id VARCHAR(32) NOT NULL,
-    value TIMESTAMP NOT NULL,
+    value TIMESTAMPTZ NOT NULL,
     PRIMARY KEY (owner_oid, ext_item_id, value)
 );
 CREATE TABLE m_object_ext_long (
