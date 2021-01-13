@@ -24,11 +24,13 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.impl.match.MatchingRuleRegistryFactory;
+import com.evolveum.midpoint.prism.impl.query.FullTextFilterImpl;
 import com.evolveum.midpoint.prism.impl.query.lang.PrismQueryLanguageParser;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.FullTextFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -88,6 +90,14 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
         boolean match = ObjectQuery.match(parseUserJacky(),dslFilter,MATCHING_RULE_REGISTRY);
         assertTrue(match);
         verify("fullName not equal givenName", dslFilter);
+    }
+
+    @Test
+    public void testFullText() throws SchemaException, IOException {
+        FullTextFilter filter = FullTextFilterImpl.createFullText("jack");
+        ObjectFilter dslFilter = parse(". fullText 'jack'");
+        assertEquals(dslFilter.toString(), filter.toString());
+
     }
 
     @Test   // MID-4173

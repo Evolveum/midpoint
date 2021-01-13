@@ -33,9 +33,12 @@ import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.impl.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.impl.query.EqualFilterImpl;
 import com.evolveum.midpoint.prism.impl.query.ExistsFilterImpl;
+import com.evolveum.midpoint.prism.impl.query.FullTextFilterImpl;
 import com.evolveum.midpoint.prism.impl.query.GreaterFilterImpl;
+import com.evolveum.midpoint.prism.impl.query.InOidFilterImpl;
 import com.evolveum.midpoint.prism.impl.query.LessFilterImpl;
 import com.evolveum.midpoint.prism.impl.query.NotFilterImpl;
+import com.evolveum.midpoint.prism.impl.query.OrgFilterImpl;
 import com.evolveum.midpoint.prism.impl.query.RefFilterImpl;
 import com.evolveum.midpoint.prism.impl.query.SubstringFilterImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -46,6 +49,7 @@ import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.OrgFilter.Scope;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.google.common.base.Preconditions;
@@ -102,6 +106,28 @@ public class PrismQueryLanguageParser {
 
         abstract ObjectFilter propertyFilter(PrismPropertyDefinition<?> definition, ItemPath path, QName matchingRule,
                 ItemPath rightPath, PrismPropertyDefinition<?> rightDef) throws SchemaException;
+
+    }
+
+    private abstract class SelfFilterFactory implements ItemFilterFactory {
+
+        protected final String filterName;
+
+        public SelfFilterFactory(String filterName) {
+            this.filterName = filterName;
+        }
+
+
+
+        @Override
+        public ObjectFilter create(PrismContainerDefinition<?> parentDef, ItemPath itemPath, ItemDefinition<?> itemDef,
+                QName matchingRule, SubfilterOrValueContext subfilterOrValue) throws SchemaException {
+            schemaCheck(itemPath.isEmpty(), "Only '.' is supported for %s", filterName);
+            return create(parentDef, matchingRule, subfilterOrValue);
+        }
+
+        protected abstract ObjectFilter create(PrismContainerDefinition<?> parentDef, QName matchingRule,
+                SubfilterOrValueContext subfilterOrValue) throws SchemaException;
 
     }
 
@@ -227,7 +253,46 @@ public class PrismQueryLanguageParser {
                         return ExistsFilterImpl.createExists(itemPath, parentDef, null);
                     }
                 })
+            .put(queryName("fullText"), new SelfFilterFactory("fullText") {
 
+                @Override
+                protected ObjectFilter create(PrismContainerDefinition<?> parentDef, QName matchingRule,
+                        SubfilterOrValueContext subfilterOrValue) throws SchemaException {
+                    return FullTextFilterImpl.createFullText(requireStringLiteral(filterName, subfilterOrValue));
+                }
+            })
+            .put(queryName("inOid"), new SelfFilterFactory("inOid") {
+
+                @Override
+                protected ObjectFilter create(PrismContainerDefinition<?> parentDef, QName matchingRule,
+                        SubfilterOrValueContext subfilterOrValue) throws SchemaException {
+                    return InOidFilterImpl.createInOid(requireStringLiteral(filterName,subfilterOrValue));
+                }
+            })
+            .put(queryName("ownedByOid"), new SelfFilterFactory("ownedByOid") {
+
+                @Override
+                protected ObjectFilter create(PrismContainerDefinition<?> parentDef, QName matchingRule,
+                        SubfilterOrValueContext subfilterOrValue) throws SchemaException {
+                    return InOidFilterImpl.createOwnerHasOidIn(requireStringLiteral(filterName,subfilterOrValue));
+                }
+            })
+            .put(queryName("inOrg"), new SelfFilterFactory("inOrg") {
+
+                @Override
+                protected ObjectFilter create(PrismContainerDefinition<?> parentDef, QName matchingRule,
+                        SubfilterOrValueContext subfilterOrValue) throws SchemaException {
+                    return OrgFilterImpl.createOrg(requireStringLiteral(filterName,subfilterOrValue), Scope.SUBTREE);
+                }
+            })
+            .put(queryName("isRoot"), new SelfFilterFactory("isRoot") {
+
+                @Override
+                protected ObjectFilter create(PrismContainerDefinition<?> parentDef, QName matchingRule,
+                        SubfilterOrValueContext subfilterOrValue) throws SchemaException {
+                    return OrgFilterImpl.createRootOrg();
+                }
+            })
             .build();
 
     private final Map<QName, ItemFilterFactory> notFilterFactories = ImmutableMap.<QName, ItemFilterFactory>builder()
@@ -250,6 +315,12 @@ public class PrismQueryLanguageParser {
 
     public PrismQueryLanguageParser(PrismContext context) {
         this(context, ImmutableMap.of());
+    }
+
+    protected String requireStringLiteral(String filterName, SubfilterOrValueContext subfilterOrValue) throws SchemaException {
+        schemaCheck(subfilterOrValue.valueSpecification() != null, "String literal must be specified for %s.", filterName);
+        schemaCheck(subfilterOrValue.valueSpecification().literalValue() != null, "String literal must be specified for %s.", filterName);
+        return parseLiteral(String.class, subfilterOrValue.valueSpecification().literalValue());
     }
 
     public PrismQueryLanguageParser(PrismContext context, Map<String, String> namespaceContext) {
@@ -317,7 +388,6 @@ public class PrismQueryLanguageParser {
 
     private ObjectFilter itemFilter(PrismContainerDefinition<?> parent, ItemFilterContext itemFilter)
             throws SchemaException {
-        // TODO Auto-generated method stub
         QName filterName = filterName(itemFilter.filterName());
         QName matchingRule = itemFilter.matchingRule() != null
                 ? toFilterName(MATCHING_RULE_NS, itemFilter.matchingRule().prefixedName())
@@ -386,7 +456,7 @@ public class PrismQueryLanguageParser {
         return parseLiteral(targetType, string);
     }
 
-    private Object parseLiteral(Class<?> targetType, LiteralValueContext string) {
+    private <T> T parseLiteral(Class<T> targetType, LiteralValueContext string) {
         String text = extractTextForm(string);
         return XmlTypeConverter.toJavaValue(text, new HashMap<>(), targetType);
     }
