@@ -13,15 +13,18 @@ import java.util.List;
 import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.input.TextPanel;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugSearchDto;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.midpoint.util.QNameUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -30,7 +33,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.attributes.ThrottlingSettings;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
@@ -53,7 +55,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -79,9 +80,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
     private static final String ID_SPECIAL_ITEM = "specialItem";
     private static final String ID_OID_ITEM = "oidItem";
     private static final String ID_SEARCH_CONTAINER = "searchContainer";
-    private static final String ID_SEARCH_SIMPLE = "searchSimple";
     private static final String ID_SEARCH_BUTTON_BEFORE_DROPDOWN = "searchButtonBeforeDropdown";
-    private static final String ID_SEARCH_DROPDOWN = "searchDropdown";
     private static final String ID_MORE = "more";
     private static final String ID_POPOVER = "popover";
     private static final String ID_ADD_TEXT = "addText";
@@ -93,12 +92,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
     private static final String ID_PROP_NAME = "propName";
     private static final String ID_PROP_LINK = "propLink";
     private static final String ID_PROP_LIST = "propList";
-    private static final String ID_ADVANCED = "advanced";
-    private static final String ID_FULL_TEXT = "fullText";
-    private static final String ID_BASIC_SEARCH = "basic";
-    private static final String ID_OID = "oid";
     private static final String ID_FULL_TEXT_CONTAINER = "fullTextContainer";
-    private static final String ID_LINKS_CONTAINER = "linksContainer";
     private static final String ID_FULL_TEXT_FIELD = "fullTextField";
     private static final String ID_ADVANCED_GROUP = "advancedGroup";
     private static final String ID_MORE_GROUP = "moreGroup";
@@ -109,9 +103,6 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
     private static final String ID_MENU_ITEM_BODY = "menuItemBody";
     private static final String ID_COLLECTION_REF_PANEL = "collectionRefPanel";
     private static final String ID_TYPE_PANEL = "typePanel";
-
-    private static final String OPERATION_LOAD_COLLECTION_REF_WRAPPER = SearchPanel.class.getSimpleName()
-            + ".loadCollectionRefWrapper()";
 
     private LoadableModel<MoreDialogDto> moreDialogModel;
     boolean advancedSearch;
@@ -308,23 +299,17 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         more.setOutputMarkupId(true);
         moreGroup.add(more);
 
-//        AjaxLink<Void> searchConfigurationButton = new AjaxLink<Void>(ID_SEARCH_CONFIGURATION) {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                searchConfigurationPerformed(target);
-//            }
-//        };
-//        searchConfigurationButton.add(new VisibleBehaviour(() -> false));
-//        searchConfigurationButton.setOutputMarkupId(true);
-//        form.add(searchConfigurationButton);
-
         WebMarkupContainer searchContainer = new WebMarkupContainer(ID_SEARCH_CONTAINER);
         searchContainer.setOutputMarkupId(true);
         form.add(searchContainer);
 
-        AjaxSubmitButton searchSimple = new AjaxSubmitButton(ID_SEARCH_SIMPLE) {
+        final CompositedIconBuilder builder = new CompositedIconBuilder();
+        builder.setBasicIcon("fa fa-search", IconCssStyle.IN_ROW_STYLE);
+        IconType plusIcon = new IconType();
+        plusIcon.setColor("white");
+        builder.appendLayerIcon(getIconLabelByModeModel(), plusIcon, LayeredIconCssStyle.BOTTOM_RIGHT_STYLE);
+        AjaxCompositedIconSubmitButton searchButtonBeforeDropdown = new AjaxCompositedIconSubmitButton(ID_SEARCH_BUTTON_BEFORE_DROPDOWN, builder.build(),
+                getPageBase().createStringResource("MainObjectListPanel.createReport")) {
 
             private static final long serialVersionUID = 1L;
 
@@ -338,79 +323,37 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
                 searchPerformed(target);
             }
         };
-        searchSimple.add(new VisibleEnableBehaviour() {
 
-            private static final long serialVersionUID = 1L;
-
+        IModel<String> buttonRightPaddingModel = new IModel<String>() {
             @Override
-            public boolean isEnabled() {
-                return (SearchBoxModeType.BASIC.equals(getModelObject().getSearchType())
-                        || SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchType())
-                        || SearchBoxModeType.OID.equals(getModelObject().getSearchType())
-                        || (SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType()) && !queryPlaygroundAccessible));
-            }
-
-            @Override
-            public boolean isVisible() {
-                return (SearchBoxModeType.BASIC.equals(getModelObject().getSearchType())
-                        || SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchType())
-                        || SearchBoxModeType.OID.equals(getModelObject().getSearchType())
-                        || (SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType()) && !queryPlaygroundAccessible));
-            }
-        });
-        searchSimple.setOutputMarkupId(true);
-        searchContainer.add(searchSimple);
-        form.setDefaultButton(searchSimple);
-
-        WebMarkupContainer searchDropdown = new WebMarkupContainer(ID_SEARCH_DROPDOWN);
-        searchDropdown.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType())
-                        && queryPlaygroundAccessible;
-            }
-        });
-        searchContainer.add(searchDropdown);
-
-        AjaxSubmitButton searchButtonBeforeDropdown = new AjaxSubmitButton(ID_SEARCH_BUTTON_BEFORE_DROPDOWN) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onError(AjaxRequestTarget target) {
-                target.add(form);
-            }
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target) {
-                searchPerformed(target);
+            public String getObject() {
+                return "padding-right: " + (SearchBoxModeType.BASIC.equals(getModelObject().getSearchType()) ? "23" : "16") + "px";
             }
         };
+        searchButtonBeforeDropdown.add(AttributeAppender.append("style", buttonRightPaddingModel));
+
         searchButtonBeforeDropdown.add(new VisibleEnableBehaviour() {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isEnabled() {
-                if (SearchBoxModeType.BASIC.equals(getModelObject().getSearchType())
-                        || SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchType())) {
-                    return true;
+                if (SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType())) {
+                    Search search = getModelObject();
+                    PrismContext ctx = getPageBase().getPrismContext();
+                    return search.isAdvancedQueryValid(ctx);
                 }
-
-                Search search = getModelObject();
-                PrismContext ctx = getPageBase().getPrismContext();
-                return search.isAdvancedQueryValid(ctx);
+                return true;
             }
         });
-        searchDropdown.add(searchButtonBeforeDropdown);
+        searchButtonBeforeDropdown.setOutputMarkupId(true);
+        searchContainer.add(searchButtonBeforeDropdown);
+        form.setDefaultButton(searchButtonBeforeDropdown);
 
         List<InlineMenuItem> searchItems = new ArrayList<>();
 
         InlineMenuItem searchItem = new InlineMenuItem(
-                createStringResource("SearchPanel.search")) {
+                createStringResource("SearchPanel.basic")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -421,17 +364,15 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        PrismContext ctx = getPageBase().getPrismContext();
-                        if (getModelObject().isAdvancedQueryValid(ctx)) {
-                            searchPerformed(target);
-                        }
+                        searchTypeUpdated(target, SearchBoxModeType.BASIC);
                     }
                 };
             }
         };
         searchItems.add(searchItem);
 
-        searchItem = new InlineMenuItem(createStringResource("SearchPanel.debug")) {
+        searchItem = new InlineMenuItem(
+                createStringResource("SearchPanel.advanced")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -442,9 +383,57 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        debugPerformed();
+                        searchTypeUpdated(target, SearchBoxModeType.ADVANCED);
                     }
                 };
+            }
+        };
+        searchItems.add(searchItem);
+
+        searchItem = new InlineMenuItem(
+                createStringResource("SearchPanel.fullText")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        searchTypeUpdated(target, SearchBoxModeType.FULLTEXT);
+                    }
+                };
+            }
+
+            @Override
+            public IModel<Boolean> getVisible() {
+                return Model.of(isFullTextSearchEnabled());
+            }
+        };
+        searchItems.add(searchItem);
+
+        searchItem = new InlineMenuItem(
+                createStringResource("SearchPanel.oid")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        searchTypeUpdated(target, SearchBoxModeType.OID);
+                    }
+                };
+            }
+
+            @Override
+            public IModel<Boolean> getVisible() {
+                return Model.of(getModelObject().isOidSearchEnabled());
             }
         };
         searchItems.add(searchItem);
@@ -458,111 +447,15 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
                 WebMarkupContainer menuItemBody = new MenuLinkPanel(ID_MENU_ITEM_BODY, item.getModel());
                 menuItemBody.setRenderBodyOnly(true);
                 item.add(menuItemBody);
+                menuItemBody.add(new VisibleEnableBehaviour(){
+                    @Override
+                    public boolean isVisible() {
+                        return item.getModelObject().getVisible().getObject();
+                    }
+                });
             }
         };
-        searchDropdown.add(li);
-
-        WebMarkupContainer linksContainer = new WebMarkupContainer(ID_LINKS_CONTAINER);
-        linksContainer.setOutputMarkupId(true);
-        form.add(linksContainer);
-
-        AjaxButton advanced = new AjaxButton(ID_ADVANCED, createStringResource("SearchPanel.advanced")) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                searchTypeUpdated(target, SearchBoxModeType.ADVANCED);
-            }
-        };
-        advanced.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return !SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType());
-            }
-        });
-        linksContainer.add(advanced);
-
-        AjaxButton fullTextButton = new AjaxButton(ID_FULL_TEXT, createStringResource("SearchPanel.fullText")) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                searchTypeUpdated(target, SearchBoxModeType.FULLTEXT);
-            }
-        };
-        fullTextButton.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return isFullTextSearchEnabled() &&
-                        !SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchType());
-            }
-        });
-        linksContainer.add(fullTextButton);
-
-        AjaxButton oid = new AjaxButton(ID_OID, createStringResource("SearchPanel.oid")) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                searchTypeUpdated(target, SearchBoxModeType.OID);
-            }
-        };
-        oid.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return !SearchBoxModeType.OID.equals(getModelObject().getSearchType()) && getModelObject().isOidSearchEnabled();
-            }
-        });
-        linksContainer.add(oid);
-
-        AjaxButton basicSearchButton = new AjaxButton(ID_BASIC_SEARCH, createStringResource("SearchPanel.basic")) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                searchTypeUpdated(target, SearchBoxModeType.BASIC);
-            }
-        };
-        basicSearchButton.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return !SearchBoxModeType.BASIC.equals(getModelObject().getSearchType());
-            }
-        });
-        linksContainer.add(basicSearchButton);
-
-        if (isFullTextSearchEnabled() && getModelObject().isOidSearchEnabled()) {
-            oid.add(AttributeAppender.append("style", "line-height: 1;"));
-            advanced.add(AttributeAppender.append("style", "line-height: 1;"));
-            fullTextButton.add(AttributeAppender.append("style", "line-height: 1;"));
-            basicSearchButton.add(AttributeAppender.append("style", "line-height: 1;"));
-        }
-
-        advanced.add(new AttributeAppender("style", new LoadableModel<String>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String load() {
-                return basicSearchButton.isVisible() ? "" : "display: table-cell; vertical-align: top;";
-            }
-        }));
+        searchContainer.add(li);
 
         initPopover();
 
@@ -644,6 +537,23 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
             }
         });
         advancedGroup.add(advancedError);
+    }
+
+    private IModel<String> getIconLabelByModeModel() {
+        return new IModel<String>(){
+            @Override
+            public String getObject() {
+                if (SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType())) {
+                    return "Adv";
+                } else if (SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchType())) {
+                    return "Full";
+                } else if (SearchBoxModeType.OID.equals(getModelObject().getSearchType())) {
+                    return "Oid";
+                } else {
+                    return "Basic";
+                }
+            }
+        };
     }
 
     private void debugPerformed() {
@@ -907,6 +817,9 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
     }
 
     private void searchTypeUpdated(AjaxRequestTarget target, SearchBoxModeType searchType) {
+        if (searchType.equals(getModelObject().getSearchType())) {
+            return;
+        }
         SearchBoxModeType oldMode = getModelObject().getSearchType();
         getModelObject().setSearchType(searchType);
         if (getModelObject().isTypeChanged() && SearchBoxModeType.OID.equals(oldMode)) {

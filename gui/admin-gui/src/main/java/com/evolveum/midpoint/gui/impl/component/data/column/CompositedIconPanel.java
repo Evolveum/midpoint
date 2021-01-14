@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
+import com.evolveum.midpoint.gui.impl.component.icon.LayerIcon;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebComponent;
@@ -56,15 +58,15 @@ public class CompositedIconPanel extends Panel {
         layeredIcon.add(basicIcon);
 
         RepeatingView listItems = new RepeatingView(ID_LAYER_ICONS);
-        for (IconType layerIcon : compositedIcon.getLayerIcons()) {
+        for (LayerIcon layerIcon : compositedIcon.getLayerIcons()) {
             if (layerIcon == null) {
                 continue;
             }
-            if (StringUtils.isNotEmpty(layerIcon.getCssClass())) {
+            if (StringUtils.isNotEmpty(layerIcon.getIconType().getCssClass())) {
                 WebComponent icon = new WebComponent(listItems.newChildId());
-                icon.add(AttributeAppender.append("class", layerIcon.getCssClass()));
-                if (StringUtils.isNotEmpty(layerIcon.getColor())) {
-                    icon.add(AttributeAppender.append("style", "color: " + layerIcon.getColor()));
+                icon.add(AttributeAppender.append("class", layerIcon.getIconType().getCssClass()));
+                if (StringUtils.isNotEmpty(layerIcon.getIconType().getColor())) {
+                    icon.add(AttributeAppender.append("style", "color: " + layerIcon.getIconType().getColor()));
                 }
                 listItems.add(icon);
             }

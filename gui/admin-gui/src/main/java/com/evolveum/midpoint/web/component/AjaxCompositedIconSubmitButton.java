@@ -1,16 +1,16 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.component;
+package com.evolveum.midpoint.web.component;
 
 import com.evolveum.midpoint.gui.impl.component.icon.LayerIcon;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.MarkupStream;
@@ -21,17 +21,14 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
 /**
- * @author Viliam Repan (lazyman)
  * @author skublik
  */
-public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
-
-    private static final long serialVersionUID = 1L;
+public abstract class AjaxCompositedIconSubmitButton extends AjaxSubmitLink {
 
     private IModel<String> title;
     private CompositedIcon icon;
 
-    public AjaxCompositedIconButton(String id, CompositedIcon icon, IModel<String> title) {
+    public AjaxCompositedIconSubmitButton(String id, CompositedIcon icon, IModel<String> title) {
         super(id);
 
         this.title = title;
@@ -53,7 +50,7 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
 
             @Override
             public String getObject() {
-                return !AjaxCompositedIconButton.this.isEnabled() ? "disabled" : "";
+                return !AjaxCompositedIconSubmitButton.this.isEnabled() ? "disabled" : "";
             }
         }));
     }
