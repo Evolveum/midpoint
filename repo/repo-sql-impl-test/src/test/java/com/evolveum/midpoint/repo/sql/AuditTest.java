@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -17,14 +18,11 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.sql.helpers.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.PageOf;
-import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
-import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditRefValue;
-import com.evolveum.midpoint.repo.sqlbase.QueryException;
+import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.repo.sqlbase.*;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -141,15 +139,19 @@ public class AuditTest extends BaseSQLRepoTest {
         return arv;
     }
 
+    @Autowired
+    private SqlAuditServiceFactory auditServiceFactory;
+
     private MAuditEventRecord getAuditEventRecord(int expectedCount, int index)
             throws QueryException {
+        // "create" does not actually create a new audit service, but returns the existing one
+        SqlRepoContext sqlRepoContext = auditServiceFactory.createAuditService().getSqlRepoContext();
         SqlQueryContext<AuditEventRecordType, QAuditEventRecord, MAuditEventRecord> context =
-                SqlQueryContext.from(AuditEventRecordType.class,
-                        prismContext, baseHelper.sqlRepoContext());
+                SqlQueryContext.from(AuditEventRecordType.class, prismContext, sqlRepoContext);
         QAuditEventRecord aer = context.root();
         context.sqlQuery().orderBy(aer.id.asc());
 
-        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startReadOnlyTransaction()) {
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
             PageOf<MAuditEventRecord> result = context.executeQuery(jdbcSession.connection())
                     .map(t -> t.get(aer));
 

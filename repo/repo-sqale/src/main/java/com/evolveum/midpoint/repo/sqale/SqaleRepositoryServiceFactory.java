@@ -21,6 +21,7 @@ public class SqaleRepositoryServiceFactory implements JdbcRepositoryServiceFacto
 
     private static final Trace LOGGER = TraceManager.getTrace(SqaleRepositoryServiceFactory.class);
 
+    // filled-in by spring when SqaleRepositoryBeanConfig does its job
     @Autowired
     private SqlRepoContext sqlRepoContext;
 
@@ -35,7 +36,7 @@ public class SqaleRepositoryServiceFactory implements JdbcRepositoryServiceFacto
     @Override
     public RepositoryService createRepositoryService() {
         if (repositoryService == null) {
-            repositoryService = new SqaleRepositoryService();
+            repositoryService = new SqaleRepositoryService(sqlRepoContext);
         }
         return repositoryService;
     }

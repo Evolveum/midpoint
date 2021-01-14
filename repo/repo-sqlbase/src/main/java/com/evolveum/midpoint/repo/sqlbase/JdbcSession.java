@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sql.helpers;
+package com.evolveum.midpoint.repo.sqlbase;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -20,10 +20,6 @@ import com.querydsl.sql.dml.SQLInsertClause;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
-import com.evolveum.midpoint.repo.sqlbase.TransactionIsolation;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
-import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -50,23 +46,22 @@ public class JdbcSession implements AutoCloseable {
     private static final Trace LOGGER = TraceManager.getTrace(JdbcSession.class);
 
     private final Connection connection;
-    // TODO: this is repo-sql-impl class, should be replaced/abstracted
-    private final SqlRepositoryConfiguration repoConfiguration;
+    private final JdbcRepositoryConfiguration jdbcRepositoryConfiguration;
     private final SqlRepoContext sqlRepoContext;
 
     private boolean rollbackForReadOnly;
 
     public JdbcSession(
             @NotNull Connection connection,
-            @NotNull SqlRepositoryConfiguration repoConfiguration,
+            @NotNull JdbcRepositoryConfiguration jdbcRepositoryConfiguration,
             @NotNull SqlRepoContext sqlRepoContext) {
         this.connection = Objects.requireNonNull(connection);
-        this.repoConfiguration = repoConfiguration;
+        this.jdbcRepositoryConfiguration = jdbcRepositoryConfiguration;
         this.sqlRepoContext = sqlRepoContext;
 
         try {
             // Connection has its transaction isolation set by Hikari, except for obscure ones.
-            if (repoConfiguration.getTransactionIsolation() == TransactionIsolation.SNAPSHOT) {
+            if (jdbcRepositoryConfiguration.getTransactionIsolation() == TransactionIsolation.SNAPSHOT) {
                 LOGGER.trace("Setting transaction isolation level SNAPSHOT.");
                 // bit rough from a constructor, but it's safe, connection field is already set
                 executeStatement("SET TRANSACTION ISOLATION LEVEL SNAPSHOT");
@@ -118,8 +113,8 @@ public class JdbcSession implements AutoCloseable {
         rollbackForReadOnly = false;
         if (readonly) {
             // If null, DB does not support read-only transactions.
-            if (repoConfiguration.getReadOnlyTransactionStatement() != null) {
-                executeStatement(repoConfiguration.getReadOnlyTransactionStatement());
+            if (jdbcRepositoryConfiguration.getReadOnlyTransactionStatement() != null) {
+                executeStatement(jdbcRepositoryConfiguration.getReadOnlyTransactionStatement());
             } else {
                 rollbackForReadOnly = true;
             }
@@ -236,7 +231,7 @@ public class JdbcSession implements AutoCloseable {
     }
 
     public SupportedDatabase databaseType() {
-        return repoConfiguration.getDatabaseType();
+        return jdbcRepositoryConfiguration.getDatabaseType();
     }
 
     @Override
@@ -283,7 +278,7 @@ public class JdbcSession implements AutoCloseable {
             @Nullable OperationResult result) {
         LOGGER.debug("General runtime exception occurred.", ex);
 
-        if (isExceptionRelatedToSerialization(ex)) {
+        if (jdbcRepositoryConfiguration.shouldRollback(ex)) {
             rollbackTransaction(ex, result, false);
             // this exception will be caught and processed in logOperationAttempt,
             // so it's safe to pass any RuntimeException here
@@ -308,7 +303,7 @@ public class JdbcSession implements AutoCloseable {
             @Nullable OperationResult result) {
         LOGGER.error("General checked exception occurred.", ex);
 
-        boolean fatal = !isExceptionRelatedToSerialization(ex);
+        boolean fatal = !jdbcRepositoryConfiguration.shouldRollback(ex);
         rollbackTransaction(ex, result, fatal);
         throw new SystemException(ex.getMessage(), ex);
     }
@@ -323,10 +318,5 @@ public class JdbcSession implements AutoCloseable {
         }
 
         rollback();
-    }
-
-    private boolean isExceptionRelatedToSerialization(@NotNull Throwable ex) {
-        return new TransactionSerializationProblemDetector(repoConfiguration, LOGGER)
-                .isExceptionRelatedToSerialization(ex);
     }
 }
