@@ -61,7 +61,7 @@ public class AccountTests extends AbstractSchrodingerTest {
 
         UserPage user = basicPage.newUser();
 
-        Assert.assertTrue(user.selectTabBasic()
+        user.selectTabBasic()
                     .form()
                         .addAttributeValue("name", TEST_USER_MIKE_NAME)
                         .addAttributeValue(UserType.F_GIVEN_NAME, "Michelangelo")
@@ -72,23 +72,20 @@ public class AccountTests extends AbstractSchrodingerTest {
                 .checkKeepDisplayingResults()
                     .clickSave()
                     .feedback()
-                    .isSuccess()
-        );
+                    .assertSuccess();
     }
 
     @Test(priority = 2, groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void importCsvResource(){
         ImportObjectPage importPage = basicPage.importObject();
 
-        Assert.assertTrue(
-                importPage
+        importPage
                 .getObjectsFromFile()
                 .chooseFile(CSV_RESOURCE_MEDIUM)
                 .checkOverwriteExistingObject()
                 .clickImportFileButton()
                     .feedback()
-                    .isSuccess()
-        );
+                    .assertSuccess();
     }
 
 
@@ -114,8 +111,7 @@ public class AccountTests extends AbstractSchrodingerTest {
     @Test(priority = 4, dependsOnMethods = {CREATE_MP_USER_DEPENDENCY,CHANGE_RESOURCE_FILE_PATH_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void addAccount() {
         ListUsersPage users = basicPage.listUsers();
-        Assert.assertTrue(
-            users
+        users
                 .table()
                     .search()
                     .byName()
@@ -133,8 +129,7 @@ public class AccountTests extends AbstractSchrodingerTest {
                     .checkKeepDisplayingResults()
                         .clickSave()
                         .feedback()
-                        .isSuccess()
-        );
+                        .assertSuccess();
     }
 
     @Test (priority = 5, dependsOnMethods = {ADD_ACCOUNT_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)

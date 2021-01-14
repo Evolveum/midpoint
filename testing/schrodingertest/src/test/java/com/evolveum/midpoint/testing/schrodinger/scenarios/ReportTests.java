@@ -19,7 +19,7 @@ public class ReportTests extends AbstractSchrodingerTest {
 
     @Test
     public void test00100createReport() {
-        Assert.assertTrue(basicPage.listReports()
+        basicPage.listReports()
         .newObjectCollection("New collection report")
             .selectTabBasic()
                 .form()
@@ -28,8 +28,7 @@ public class ReportTests extends AbstractSchrodingerTest {
                 .and()
             .clickSave()
             .feedback()
-            .isSuccess(),
-                "Couldn't create new report");
+            .assertSuccess();
         basicPage.listReports()
             .table()
                 .search()

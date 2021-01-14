@@ -42,7 +42,7 @@ public class PolyStringTests extends AbstractSchrodingerTest {
     public void createUserWithDiacritic(){
         UserPage user = basicPage.newUser();
 
-        Assert.assertTrue(user.selectTabBasic()
+        user.selectTabBasic()
                     .form()
                         .addAttributeValue("name", TEST_USER_JOZKO_NAME)
                         .addAttributeValue(UserType.F_GIVEN_NAME, TEST_USER_JOZKO_GIVEN_NAME)
@@ -54,8 +54,7 @@ public class PolyStringTests extends AbstractSchrodingerTest {
                 .checkKeepDisplayingResults()
                     .clickSave()
                         .feedback()
-                        .isSuccess()
-        );
+                        .assertSuccess();
     }
 
     @Test (dependsOnMethods = {CREATE_USER_WITH_DIACRITIC_DEPENDENCY})

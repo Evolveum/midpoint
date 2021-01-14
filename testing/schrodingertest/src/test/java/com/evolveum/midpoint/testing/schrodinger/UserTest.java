@@ -110,7 +110,7 @@ public class UserTest extends AbstractSchrodingerTest {
 
     @Test
     public void test0030createDelegationTest() {
-        Assert.assertTrue(showUser("DelegateFromUser")
+        showUser("DelegateFromUser")
                 .selectTabDelegations()
                     .clickAddDelegation()
                         .table()
@@ -123,7 +123,7 @@ public class UserTest extends AbstractSchrodingerTest {
                     .and()
                 .clickSave()
                 .feedback()
-                .isSuccess());
+                .assertSuccess();
 
         DelegationDetailsPanel delegationDetailsPanel = showUser("DelegateToUser")
                 .selectTabDelegatedToMe()
@@ -160,7 +160,7 @@ public class UserTest extends AbstractSchrodingerTest {
                 "User shouldn't login, doesn't has rights yet");
         midPoint.formLogin().login(username, password);
 
-        Assert.assertTrue(showUser("DelegateEndUserRoleFromUser")
+        showUser("DelegateEndUserRoleFromUser")
                 .selectTabDelegations()
                     .clickAddDelegation()
                         .table()
@@ -178,8 +178,7 @@ public class UserTest extends AbstractSchrodingerTest {
                     .and()
                 .clickSave()
                 .feedback()
-                .isSuccess(),
-                "Couldn't delegate DelegableEndUserRole role to user");
+                .assertSuccess();
 
         basicPage.loggedUser().logout();
         Assert.assertTrue(midPoint.formLogin().login("DelegateEndUserRoleToUser", "password")

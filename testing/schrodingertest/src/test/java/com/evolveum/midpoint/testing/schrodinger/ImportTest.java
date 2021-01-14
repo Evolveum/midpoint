@@ -34,9 +34,8 @@ public class ImportTest extends AbstractSchrodingerTest {
                 .getObjectsFromEmbeddedEditor()
                 .setEditorXmlText(xml);
 
-        Assert.assertTrue(
-                importObject.clickImportXmlButton()
-                        .feedback()
-                        .isSuccess());
+        importObject.clickImportXmlButton()
+                .feedback()
+                        .assertSuccess();
     }
 }

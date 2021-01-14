@@ -22,28 +22,24 @@ public class QueryPlaygroundPageTest extends AbstractSchrodingerTest {
     public void test001useInObjectListOptionTest() {
         UserPage user = basicPage.newUser();
 
-        Assert.assertTrue(
-                user.selectTabBasic()
+        user.selectTabBasic()
                         .form()
                         .addAttributeValue("name", "a_start")
                         .and()
                         .and()
                         .clickSave()
                         .feedback()
-                        .isSuccess()
-        );
+                        .assertSuccess();
 
         user = basicPage.newUser();
-        Assert.assertTrue(
-                user.selectTabBasic()
+        user.selectTabBasic()
                         .form()
                         .addAttributeValue("name", "b_start")
                         .and()
                         .and()
                         .clickSave()
                         .feedback()
-                        .isSuccess()
-        );
+                        .assertSuccess();
 
         QueryPlaygroundPage queryPlaygroundPage = basicPage.queryPlayground();
         queryPlaygroundPage

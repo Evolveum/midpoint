@@ -252,9 +252,9 @@ public class CaseTests extends AbstractSchrodingerTest {
                 .table()
                 .clickByName(FORWARD_WORKITEM_TO_USER_NAME);
 
-        Assert.assertTrue(allRequestsPage
+        allRequestsPage
                 .feedback()
-                .isSuccess());
+                .assertSuccess();
 
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
 

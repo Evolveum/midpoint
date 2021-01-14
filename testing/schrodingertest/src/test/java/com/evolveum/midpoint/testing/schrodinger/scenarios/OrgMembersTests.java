@@ -71,7 +71,7 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
     public void test00200assignDefaultRelationMember(){
         UserPage user = basicPage.newUser();
 
-        Assert.assertTrue(user.selectTabBasic()
+        user.selectTabBasic()
                 .form()
                     .addAttributeValue("name", USER_NAME)
                     .and()
@@ -79,7 +79,7 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
                 .checkKeepDisplayingResults()
                 .clickSave()
                 .feedback()
-                .isSuccess());
+                .assertSuccess();
 
         OrgTreePage orgTreePage = basicPage.orgStructure();
         orgTreePage
