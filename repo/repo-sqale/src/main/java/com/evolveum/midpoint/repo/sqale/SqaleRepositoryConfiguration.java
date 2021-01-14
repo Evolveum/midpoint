@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
+import com.evolveum.midpoint.repo.sqlbase.TransactionIsolation;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 /**
@@ -174,5 +175,36 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     @Override
     public boolean isUsing(SupportedDatabase db) {
         return databaseType == db;
+    }
+
+    // TODO
+    @Override
+    public TransactionIsolation getTransactionIsolation() {
+        return null;
+    }
+
+    @Override
+    public int getMinPoolSize() {
+        return 0;
+    }
+
+    @Override
+    public int getMaxPoolSize() {
+        return 0;
+    }
+
+    @Override
+    public Long getMaxLifetime() {
+        return null;
+    }
+
+    @Override
+    public Long getIdleTimeout() {
+        return null;
+    }
+
+    @Override
+    public long getInitializationFailTimeout() {
+        return 0;
     }
 }

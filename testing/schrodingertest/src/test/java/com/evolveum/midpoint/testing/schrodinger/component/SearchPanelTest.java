@@ -78,25 +78,25 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
                 .inputValue("searchByNameUser")
                 .updateSearch();
         table.assertTableContainsText("searchByNameUser");
-        table.assertTableContainsText("searchByGivenNameUser");
-        table.assertTableContainsText("searchByFamilyNameUser");
+        table.assertTableDoesntContainText("searchByGivenNameUser");
+        table.assertTableDoesntContainText("searchByFamilyNameUser");
         usersListSearch.clearTextSearchItemByNameAndUpdate(NAME_ATTRIBUTE);
 
         usersListSearch
                 .textInputPanelByItemName(GIVEN_NAME_ATTRIBUTE)
                 .inputValue("searchByGivenNameUser")
                 .updateSearch();
-        table.assertTableContainsText("searchByNameUser");
+        table.assertTableDoesntContainText("searchByNameUser");
         table.assertTableContainsText("searchByGivenNameUser");
-        table.assertTableContainsText("searchByFamilyNameUser");
+        table.assertTableDoesntContainText("searchByFamilyNameUser");
         usersListSearch.clearTextSearchItemByNameAndUpdate(GIVEN_NAME_ATTRIBUTE);
 
         usersListSearch
                 .textInputPanelByItemName(FAMILY_NAME_ATTRIBUTE)
                 .inputValue("searchByFamilyNameUser")
                 .updateSearch();
-        table.assertTableContainsText("searchByNameUser");
-        table.assertTableContainsText("searchByGivenNameUser");
+        table.assertTableDoesntContainText("searchByNameUser");
+        table.assertTableDoesntContainText("searchByGivenNameUser");
         table.assertTableContainsText("searchByFamilyNameUser");
         usersListSearch.clearTextSearchItemByNameAndUpdate(FAMILY_NAME_ATTRIBUTE);
     }
@@ -151,7 +151,7 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
                 .inputRefOid("332fd5e-sdf7-4322-9ff3-1848cd6ed4aa")
                 .updateSearch();
         table.assertTableObjectsCountEquals(1);
-        Assert.assertTrue(table.containsLinksTextPartially("testUserWithRoleMembershipSearchByOid"));
+        table.assertTableContainsLinkTextPartially("testUserWithRoleMembershipSearchByOid");
     }
 
     @Test
@@ -163,7 +163,7 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
                 .inputRefType("Organization")
                 .updateSearch();
         table.assertTableObjectsCountEquals(1);
-        Assert.assertTrue(table.containsLinksTextPartially("testUserWithRoleMembershipSearchByType"));
+        table.assertTableContainsLinkTextPartially("testUserWithRoleMembershipSearchByType");
     }
 
     @Test
@@ -175,7 +175,7 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
                 .inputRefRelation("Manager")
                 .updateSearch();
         table.assertTableObjectsCountEquals(1);
-        Assert.assertTrue(table.containsLinksTextPartially("testUserWithRoleMembershipSearchByRelation"));
+        table.assertTableContainsLinkTextPartially("testUserWithRoleMembershipSearchByRelation");
     }
 
     @Test
@@ -187,7 +187,7 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
                 .inputRefName("roleMembershipByName", "roleMembershipByNameSearch")
                 .updateSearch();
         table.assertTableObjectsCountEquals(1);
-        Assert.assertTrue(table.containsLinksTextPartially("testUserWithRoleMembershipSearchByName"));
+        table.assertTableContainsLinkTextPartially("testUserWithRoleMembershipSearchByName");
         Assert.assertTrue(search.referencePanelByItemName(ROLE_MEMBERSHIP_ATTRIBUTE).matchRefSearchFieldValue(REF_SEARCH_FIELD_VALUE));
     }
 
@@ -204,14 +204,14 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
                 .inputValue("544")
                 .updateSearch();
         table.assertTableObjectsCountEquals(1);
-        Assert.assertTrue(table.containsLinksTextPartially("searchByEmployeeNumberUser"));
+        table.assertTableContainsLinkTextPartially("searchByEmployeeNumberUser");
 
         search.clearTextSearchItemByNameAndUpdate("By employee number");
         search.textInputPanelByItemName("By email", false)
                 .inputValue("testEmailAddress@test.com")
                 .updateSearch();
         table.assertTableObjectsCountEquals(1);
-        Assert.assertTrue(table.containsLinksTextPartially("searchByEmailAddressUser"));
+        table.assertTableContainsLinkTextPartially("searchByEmailAddressUser");
     }
 
     @Test

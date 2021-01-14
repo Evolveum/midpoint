@@ -31,12 +31,17 @@ public interface JdbcRepositoryConfiguration {
     String PROPERTY_FULL_OBJECT_FORMAT = "fullObjectFormat";
 
     SupportedDatabase getDatabaseType();
+    TransactionIsolation getTransactionIsolation();
     String getDataSource();
     String getDriverClassName();
     String getJdbcUrl();
     String getJdbcUsername();
     boolean isEmbedded();
     String getJdbcPassword();
+    int getMinPoolSize();
+    int getMaxPoolSize();
+    Long getMaxLifetime();
+    Long getIdleTimeout();
     boolean isUseZip();
     boolean isUseZipAudit();
     boolean isUsing(SupportedDatabase db);
@@ -67,4 +72,5 @@ public interface JdbcRepositoryConfiguration {
     default boolean isUsingSQLServer() {
         return isUsing(SupportedDatabase.SQLSERVER);
     }
+    long getInitializationFailTimeout();
 }

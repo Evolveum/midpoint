@@ -198,6 +198,14 @@
         <jasper.version>6.5.0</jasper.version>
         <derby.version>10.11.1.1</derby.version>
         <wro4j.version>1.9.0</wro4j.version>
+        <!--
+        TODO: Jackson and snakeyaml are also in Spring Boot BOM, and some of the jackson deps are
+        already on 2.11.x line. However, aligning all jackson to 2.11 with or without upgrading
+        snakeyaml version results in:
+        [ERROR] testParseObjects_1_ListOfThree_ReadFirstTwo(com.evolveum.midpoint.prism.lex.TestYamlParser)  Time elapsed: 0.004 s  <<< FAILURE!
+        org.yaml.snakeyaml.emitter.EmitterException: expected NodeEvent, but got <org.yaml.snakeyaml.events.DocumentEndEvent()>
+        It is unclear now what the core problem is.
+        -->
         <jackson.version>2.10.0</jackson.version>
         <snakeyaml.version>1.23</snakeyaml.version>
         <surefire.version>3.0.0-M3</surefire.version>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,16 +8,13 @@ package com.evolveum.midpoint.repo.sqlbase.mapping.item;
 
 import java.util.function.Function;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import com.querydsl.core.types.*;
 
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.sqlbase.SqlPathContext;
-
-import org.jetbrains.annotations.Nullable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Filter processor for a reference attribute path.
@@ -31,8 +28,12 @@ public class RefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
         return new ItemSqlMapper(ctx -> new RefItemFilterProcessor(ctx, rootToQueryItem, null, null));
     }
 
-    public static ItemSqlMapper mapper(Function<EntityPath<?>, Path<?>> rootOidToQueryItem, Function<EntityPath<?>, Path<?>> rootTypeToQueryItem, Function<Class<ObjectType>, Integer> typeConversionFunction) {
-        return new ItemSqlMapper(ctx -> new RefItemFilterProcessor(ctx, rootOidToQueryItem, rootTypeToQueryItem, typeConversionFunction));
+    public static ItemSqlMapper mapper(
+            Function<EntityPath<?>, Path<?>> rootOidToQueryItem,
+            Function<EntityPath<?>, Path<?>> rootTypeToQueryItem,
+            Function<Class<ObjectType>, Integer> typeConversionFunction) {
+        return new ItemSqlMapper(ctx -> new RefItemFilterProcessor(
+                ctx, rootOidToQueryItem, rootTypeToQueryItem, typeConversionFunction));
     }
 
     private final Path<?> oidPath;
@@ -40,7 +41,10 @@ public class RefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
     private final Function<Class<ObjectType>, Integer> typeConversionFunction;
 
     private RefItemFilterProcessor(
-            SqlPathContext<?, ?, ?> context, Function<EntityPath<?>, Path<?>> rootOidToQueryItem, Function<EntityPath<?>, Path<?>> rootTypeToQueryItem, Function<Class<ObjectType>, Integer> typeConversionFunction) {
+            SqlPathContext<?, ?, ?> context,
+            Function<EntityPath<?>, Path<?>> rootOidToQueryItem,
+            Function<EntityPath<?>, Path<?>> rootTypeToQueryItem,
+            Function<Class<ObjectType>, Integer> typeConversionFunction) {
         super(context);
         this.oidPath = rootOidToQueryItem.apply(context.path());
         this.typePath = rootTypeToQueryItem != null ? rootTypeToQueryItem.apply(context.path()) : null;

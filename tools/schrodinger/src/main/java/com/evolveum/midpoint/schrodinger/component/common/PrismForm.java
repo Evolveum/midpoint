@@ -498,4 +498,18 @@ public class PrismForm<T> extends Component<T> {
         containerPanel.scrollTo();
         return new PrismContainerPanel<PrismForm<T>>(this, containerPanel);
     }
+
+    public PrismForm<T> assertPropertyWithTitleTextExist(String propertyName, String text) {
+        if (!propertyWithTitleTextExists(propertyName, text)) {
+            throw new AssertionError("Property " + propertyName + " with title text '" + text + "' doesn't exist.");
+        }
+        return this;
+    }
+
+    public PrismForm<T> assertPropertyEnabled(String propertyName) {
+        if (!isPropertyEnabled(propertyName)) {
+            throw new AssertionError("Property " + propertyName + " is disabled.");
+        }
+        return this;
+    }
 }

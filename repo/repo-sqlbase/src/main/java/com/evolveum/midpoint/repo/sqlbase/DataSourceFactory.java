@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sql;
+package com.evolveum.midpoint.repo.sqlbase;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -28,17 +28,17 @@ public class DataSourceFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(DataSourceFactory.class);
 
-    private final SqlRepositoryConfiguration configuration;
+    private final JdbcRepositoryConfiguration configuration;
 
     private boolean internalDataSource = false;
 
     private DataSource dataSource;
 
-    public DataSourceFactory(SqlRepositoryConfiguration configuration) {
+    public DataSourceFactory(JdbcRepositoryConfiguration configuration) {
         this.configuration = configuration;
     }
 
-    public SqlRepositoryConfiguration configuration() {
+    public JdbcRepositoryConfiguration configuration() {
         return configuration;
     }
 

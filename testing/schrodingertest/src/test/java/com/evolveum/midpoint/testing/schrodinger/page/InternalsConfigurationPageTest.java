@@ -36,7 +36,7 @@ public class InternalsConfigurationPageTest extends AbstractSchrodingerTest {
 
         clockTab.changeTime("5/15/2099", "10", "30", DateTimePanel.AmOrPmChoice.PM);
 
-        Assert.assertTrue(basicPage.feedback().isSuccess());
+        basicPage.feedback().assertSuccess();
 
         basicPage.aboutPage();
         clockTab = basicPage.internalsConfiguration().clockTab();
@@ -54,6 +54,6 @@ public class InternalsConfigurationPageTest extends AbstractSchrodingerTest {
 
         clockTab.resetTime();
 
-        Assert.assertTrue(basicPage.feedback().isSuccess());
+        basicPage.feedback().assertSuccess();
     }
 }

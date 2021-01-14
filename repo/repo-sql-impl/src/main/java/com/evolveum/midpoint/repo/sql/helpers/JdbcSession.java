@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
-import com.evolveum.midpoint.repo.sql.TransactionIsolation;
+import com.evolveum.midpoint.repo.sqlbase.TransactionIsolation;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
 import com.evolveum.midpoint.schema.result.OperationResult;

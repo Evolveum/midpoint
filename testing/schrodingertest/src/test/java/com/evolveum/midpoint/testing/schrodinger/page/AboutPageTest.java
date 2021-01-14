@@ -64,20 +64,18 @@ public class AboutPageTest extends AbstractSchrodingerTest {
     @Test
     public void repoSelfTestFeedbackPositive() {
 
-        Assert.assertTrue(aboutPage
+        aboutPage
                 .repositorySelfTest()
                 .feedback()
-                .isSuccess()
-        );
+                .assertSuccess();
     }
 
     @Test
     public void reindexRepositoryObjectsFeedbackInfo() {
-        Assert.assertTrue(aboutPage
+        aboutPage
                 .reindexRepositoryObjects()
                 .feedback()
-                .isInfo()
-        );
+                .assertInfo();
 
     }
 

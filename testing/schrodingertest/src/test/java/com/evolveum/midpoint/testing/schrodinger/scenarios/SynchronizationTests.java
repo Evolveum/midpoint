@@ -341,8 +341,7 @@ public class SynchronizationTests extends AbstractSchrodingerTest {
     @Test (priority = 8, dependsOnMethods = {RESOURCE_ACCOUNT_CREATED_WHEN_UNREACHABLE})
     public void resourceAccountCreatedWhenResourceUnreachableToBeLinked() throws IOException {
         ListUsersPage listUsersPage= basicPage.listUsers();
-        Assert.assertTrue(
-            listUsersPage
+        listUsersPage
                     .table()
                         .search()
                             .byName()
@@ -361,8 +360,7 @@ public class SynchronizationTests extends AbstractSchrodingerTest {
                         .and()
                         .clickSave()
                             .feedback()
-                    .isSuccess()
-        );
+                    .assertSuccess();
         Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME , ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csvTargetFile.getAbsolutePath()+"err",false);

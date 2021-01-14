@@ -66,7 +66,7 @@ public class FilterConfigPanelTest extends AbstractSchrodingerTest {
 
     @Test
     public void createNewObjectCollectionWithConfiguredFilter() {
-        Assert.assertTrue(basicPage
+        basicPage
                 .newObjectCollection()
                     .selectTabBasic()
                         .form()
@@ -80,13 +80,13 @@ public class FilterConfigPanelTest extends AbstractSchrodingerTest {
                 .confirmConfiguration()
                 .clickSave()
                 .feedback()
-                .isSuccess());
+                .assertSuccess();
 
-        Assert.assertTrue(basicPage
+        basicPage
                 .adminGui()
                 .addNewObjectCollection("NewObjCollectionTest", "User", "Object collection", "NewObjCollectionTest")
                 .feedback()
-                .isSuccess());
+                .assertSuccess();
 
         midPoint.logout();
         midPoint.formLogin().login(username, password);
