@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
@@ -183,7 +184,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
             protected void populateItem(ListItem<SearchItem> item) {
                 WebMarkupContainer searchItem;
                 if (item.getModelObject() instanceof SpecialSearchItem) {
-                    searchItem = ((SpecialSearchItem) item.getModelObject()).createSpecialSearchPanel(ID_SPECIAL_ITEM, target -> searchPerformed(target));
+                    searchItem = ((SpecialSearchItem) item.getModelObject()).createSpecialSearchPanel(ID_SPECIAL_ITEM, (Consumer<AjaxRequestTarget> & Serializable) target -> searchPerformed(target));
                 } else {
                     IModel itemModel = item.getModel();
                     searchItem = new SearchPropertyPanel<T>(ID_SPECIAL_ITEM, (IModel<PropertySearchItem<T>>) itemModel) {
