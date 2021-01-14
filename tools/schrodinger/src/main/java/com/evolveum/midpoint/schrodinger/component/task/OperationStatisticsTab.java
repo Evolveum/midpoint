@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.schrodinger.component.task;
 
 import com.codeborne.selenide.SelenideElement;
+import org.testng.Assert;
 
 import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
@@ -42,39 +43,33 @@ public class OperationStatisticsTab extends Component<TaskPage> {
         return Integer.valueOf(textValue);
     }
 
-    public void assertSuccessfullyProcessedCountMatch(int expectedCount) {
-        if (getObjectsFailedToBeProcessed() != expectedCount) {
-            throw new AssertionError("The count of successfully processed objects doesn't match to " + expectedCount);
-        }
+    public OperationStatisticsTab assertSuccessfullyProcessedCountMatch(int expectedCount) {
+        Assert.assertTrue(getSuccessfullyProcessed() == expectedCount, "The count of successfully processed objects doesn't match to " + expectedCount);
+        return this;
     }
 
-    public void assertSuccessfullyProcessedIsNull() {
-        if (getObjectsFailedToBeProcessed() != null) {
-            throw new AssertionError("The value of successfully processed objects should be null.");
-        }
+    public OperationStatisticsTab assertSuccessfullyProcessedIsNull() {
+        Assert.assertNull(getSuccessfullyProcessed(), "The value of successfully processed objects should be null.");
+        return this;
     }
 
-    public void assertObjectsFailedToBeProcessedCountMatch(int expectedCount) {
-        if (getObjectsFailedToBeProcessed() != expectedCount) {
-            throw new AssertionError("The count of failed objects doesn't match to " + expectedCount);
-        }
+    public OperationStatisticsTab assertObjectsFailedToBeProcessedCountMatch(int expectedCount) {
+        Assert.assertTrue(getObjectsFailedToBeProcessed() == expectedCount, "The count of failed objects doesn't match to " + expectedCount);
+        return this;
     }
 
-    public void assertObjectsFailedToBeProcessedIsNull() {
-        if (getObjectsFailedToBeProcessed() != null) {
-            throw new AssertionError("The value of failed objects should be null.");
-        }
+    public OperationStatisticsTab assertObjectsFailedToBeProcessedIsNull() {
+        Assert.assertNull(getObjectsFailedToBeProcessed(), "The value of failed objects should be null.");
+        return this;
     }
 
-    public void assertObjectsTotalCountMatch(int expectedCount) {
-        if (getObjectsTotalCount() != expectedCount) {
-            throw new AssertionError("The total count of processed objects doesn't match to " + expectedCount);
-        }
+    public OperationStatisticsTab assertObjectsTotalCountMatch(int expectedCount) {
+        Assert.assertTrue(getObjectsTotalCount() == expectedCount, "The total count of processed objects doesn't match to " + expectedCount);
+        return this;
     }
 
-    public void assertObjectsTotalIsNull() {
-        if (getObjectsTotalCount() != null) {
-            throw new AssertionError("The total count of processed objects should be null.");
-        }
+    public OperationStatisticsTab assertObjectsTotalIsNull() {
+        Assert.assertNull(getObjectsTotalCount(), "The total count of processed objects should be null.");
+        return null;
     }
 }

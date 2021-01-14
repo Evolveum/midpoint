@@ -14,6 +14,7 @@ import com.evolveum.midpoint.schrodinger.component.task.TaskBasicTab;
 import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
+import org.testng.Assert;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -106,30 +107,22 @@ public class FeedbackBox<T> extends Component<T> {
     }
 
     public FeedbackBox<T> assertSuccess() {
-        if (!isSuccess()) {
-            throw new AssertionError("Feedback panel status is not success.");
-        }
+        Assert.assertTrue(isSuccess(), "Feedback panel status is not success.");
         return this;
     }
 
     public FeedbackBox<T> assertError() {
-        if (!isError()) {
-            throw new AssertionError("Feedback panel status is not error.");
-        }
+        Assert.assertTrue(isError(), "Feedback panel status is not error.");
         return this;
     }
 
     public FeedbackBox<T> assertWarning() {
-        if (!isWarning()) {
-            throw new AssertionError("Feedback panel status is not warning.");
-        }
+        Assert.assertTrue(isWarning(), "Feedback panel status is not warning.");
         return this;
     }
 
     public FeedbackBox<T> assertInfo() {
-        if (!isInfo()) {
-            throw new AssertionError("Feedback panel status is not info.");
-        }
+        Assert.assertTrue(isInfo(), "Feedback panel status is not info.");
         return this;
     }
 

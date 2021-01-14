@@ -30,6 +30,8 @@ import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.component.modal.ObjectBrowserModal;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
+import org.testng.Assert;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -133,11 +135,10 @@ public class PrismForm<T> extends Component<T> {
 
     }
 
-    public void assertInputAttributeValueMatches(String attributeName, String expectedValue) {
-        if (!compareInputAttributeValue(attributeName, expectedValue)) {
-            throw new AssertionError("The value of the input attribute " + attributeName
+    public PrismForm<T> assertInputAttributeValueMatches(String attributeName, String expectedValue) {
+        Assert.assertTrue(compareInputAttributeValue(attributeName, expectedValue), "The value of the input attribute " + attributeName
                     + " doesn't match to expected value '" + expectedValue + "'.");
-        }
+        return this;
     }
 
     //seems that the property fields in new container are wrapped to extra parent, that is why we need one extra parent() call
@@ -212,11 +213,10 @@ public class PrismForm<T> extends Component<T> {
 
     }
 
-    public void assertSelectAttributeValueMatches(String attributeName, String expectedValue) {
-        if (!compareSelectAttributeValue(attributeName, expectedValue)) {
-            throw new AssertionError("The value of the select attribute " + attributeName
+    public PrismForm<T> assertSelectAttributeValueMatches(String attributeName, String expectedValue) {
+        Assert.assertTrue(compareSelectAttributeValue(attributeName, expectedValue),"The value of the select attribute " + attributeName
                     + " doesn't match to expected value '" + expectedValue + "'.");
-        }
+        return this;
     }
 
     public PrismForm<T> addAttributeValue(QName name, String value) {
@@ -500,16 +500,13 @@ public class PrismForm<T> extends Component<T> {
     }
 
     public PrismForm<T> assertPropertyWithTitleTextExist(String propertyName, String text) {
-        if (!propertyWithTitleTextExists(propertyName, text)) {
-            throw new AssertionError("Property " + propertyName + " with title text '" + text + "' doesn't exist.");
-        }
+        Assert.assertTrue(propertyWithTitleTextExists(propertyName, text),
+                "Property " + propertyName + " with title text '" + text + "' doesn't exist.");
         return this;
     }
 
     public PrismForm<T> assertPropertyEnabled(String propertyName) {
-        if (!isPropertyEnabled(propertyName)) {
-            throw new AssertionError("Property " + propertyName + " is disabled.");
-        }
+        Assert.assertTrue(isPropertyEnabled(propertyName), "Property " + propertyName + " is disabled.");
         return this;
     }
 }
