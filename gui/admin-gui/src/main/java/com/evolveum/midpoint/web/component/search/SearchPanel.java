@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.component.search;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
@@ -80,6 +81,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
     private static final String ID_SPECIAL_ITEM = "specialItem";
     private static final String ID_OID_ITEM = "oidItem";
     private static final String ID_SEARCH_CONTAINER = "searchContainer";
+    private static final String ID_DEBUG = "debug";
     private static final String ID_SEARCH_BUTTON_BEFORE_DROPDOWN = "searchButtonBeforeDropdown";
     private static final String ID_MORE = "more";
     private static final String ID_POPOVER = "popover";
@@ -148,6 +150,27 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
 
         MidpointForm<?> form = new MidpointForm<>(ID_FORM);
         add(form);
+
+        AjaxButton debug = new AjaxButton(ID_DEBUG, createStringResource("SearchPanel.debug")) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                debugPerformed();
+            }
+        };
+        debug.add(new VisibleEnableBehaviour() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType())
+                        && queryPlaygroundAccessible;
+            }
+        });
+        form.add(debug);
 
         PropertyModel<ObjectCollectionSearchItem> collectionModel = new PropertyModel<>(getModel(), Search.F_COLLECTION);
         SearchObjectCollectionPanel collectionPanel = new SearchObjectCollectionPanel(ID_COLLECTION_REF_PANEL, collectionModel);
@@ -338,7 +361,8 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
 
             @Override
             public boolean isEnabled() {
-                if (SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType())) {
+                if (SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType())
+                        || SearchBoxModeType.QUERY_DSL.equals(getModelObject().getSearchType())) {
                     Search search = getModelObject();
                     PrismContext ctx = getPageBase().getPrismContext();
                     return search.isAdvancedQueryValid(ctx);
@@ -438,6 +462,30 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         };
         searchItems.add(searchItem);
 
+        searchItem = new InlineMenuItem(
+                createStringResource("SearchPanel.queryDsl")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        searchTypeUpdated(target, SearchBoxModeType.QUERY_DSL);
+                    }
+                };
+            }
+
+            @Override
+            public IModel<Boolean> getVisible() {
+                return Model.of(getPageBase().getCompiledGuiProfile().isEnableExperimentalFeatures());
+            }
+        };
+        searchItems.add(searchItem);
+
         ListView<InlineMenuItem> li = new ListView<InlineMenuItem>(ID_MENU_ITEM, Model.ofList(searchItems)) {
 
             private static final long serialVersionUID = 1L;
@@ -450,7 +498,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
                 menuItemBody.add(new VisibleEnableBehaviour(){
                     @Override
                     public boolean isVisible() {
-                        return item.getModelObject().getVisible().getObject();
+                        return Boolean.TRUE.equals(item.getModelObject().getVisible().getObject());
                     }
                 });
             }
@@ -491,7 +539,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         fullTextContainer.add(fullTextInput);
 
         WebMarkupContainer advancedGroup = new WebMarkupContainer(ID_ADVANCED_GROUP);
-        advancedGroup.add(createVisibleBehaviour(SearchBoxModeType.ADVANCED));
+        advancedGroup.add(createVisibleBehaviour(SearchBoxModeType.ADVANCED, SearchBoxModeType.QUERY_DSL));
         advancedGroup.add(AttributeAppender.append("class", createAdvancedGroupStyle()));
         advancedGroup.setOutputMarkupId(true);
         form.add(advancedGroup);
@@ -500,8 +548,27 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         advancedCheck.add(AttributeAppender.append("class", createAdvancedGroupLabelStyle()));
         advancedGroup.add(advancedCheck);
 
-        TextArea<?> advancedArea = new TextArea<>(ID_ADVANCED_AREA,
-                new PropertyModel<>(getModel(), Search.F_ADVANCED_QUERY));
+
+        IModel<String> advancedValueModel = new IModel<String>() {
+            @Override
+            public String getObject() {
+                if (SearchBoxModeType.QUERY_DSL.equals(getModelObject().getSearchType())) {
+                    return getModelObject().getDslQuery();
+                }
+                return getModelObject().getAdvancedQuery();
+            }
+
+            @Override
+            public void setObject(String object) {
+                if (SearchBoxModeType.QUERY_DSL.equals(getModelObject().getSearchType())) {
+                    getModelObject().setDslQuery(object);
+                } else {
+                    getModelObject().setAdvancedQuery(object);
+                }
+            }
+        };
+
+        TextArea<?> advancedArea = new TextArea<>(ID_ADVANCED_AREA, advancedValueModel);
         advancedArea.add(new AjaxFormComponentUpdatingBehavior("keyup") {
 
             @Override
@@ -517,6 +584,16 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
                         new ThrottlingSettings(ID_ADVANCED_AREA, Duration.milliseconds(500), true));
             }
         });
+        IModel<String> advanceAreaPlaceholderModel = new IModel<String>() {
+            @Override
+            public String getObject() {
+                if (SearchBoxModeType.QUERY_DSL.equals(getModelObject().getSearchType())) {
+                    return getPageBase().createStringResource("SearchPanel.insertQueryDsl").getString();
+                }
+                return getPageBase().createStringResource("SearchPanel.insertFilterXml").getString();
+            }
+        };
+        advancedArea.add(AttributeAppender.append("placeholder", advanceAreaPlaceholderModel));
         advancedGroup.add(advancedArea);
 
         Label advancedError = new Label(ID_ADVANCED_ERROR,
@@ -549,6 +626,8 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
                     return "Full";
                 } else if (SearchBoxModeType.OID.equals(getModelObject().getSearchType())) {
                     return "Oid";
+                } else if (SearchBoxModeType.QUERY_DSL.equals(getModelObject().getSearchType())) {
+                    return "DSL";
                 } else {
                     return "Basic";
                 }
@@ -603,7 +682,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         };
     }
 
-    private VisibleEnableBehaviour createVisibleBehaviour(SearchBoxModeType searchType) {
+    private VisibleEnableBehaviour createVisibleBehaviour(SearchBoxModeType ... searchType) {
         return new VisibleEnableBehaviour() {
 
             private static final long serialVersionUID = 1L;
@@ -611,7 +690,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
             @Override
             public boolean isVisible() {
                 return getModelObject() != null && getModelObject().getSearchType() != null
-                        && getModelObject().getSearchType().equals(searchType);
+                        && Arrays.asList(searchType).contains(getModelObject().getSearchType());
             }
         };
     }
