@@ -21,6 +21,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -132,17 +133,18 @@ public class PageAttorneySelection extends PageBase {
             }
 
             @Override
-            protected ObjectQuery createQuery() {
-                ObjectQuery query = super.createQuery();
-                if (query == null) {
-                    query = PageAttorneySelection.this.getPrismContext().queryFactory().createQuery();
-                }
-
+            protected ObjectQuery getCustomizeContentQuery() {
                 ModelInteractionService service = getModelInteractionService();
-
                 Task task = createSimpleTask(OPERATION_GET_DONOR_FILTER);
                 try {
-                    ObjectFilter filter = query.getFilter();
+                    ObjectQuery origQuery = ((SelectableBeanObjectDataProvider)getDataProvider()).getQuery();
+                    ObjectFilter filter;
+                    ObjectQuery query = PageAttorneySelection.this.getPrismContext().queryFactory().createQuery();
+                    if (origQuery != null) {
+                        filter = origQuery.getFilter();
+                    } else {
+                        filter = query.getFilter();
+                    }
                     // todo target authorization action
                     filter = service.getDonorFilter(UserType.class, filter, null,
                             task, task.getResult());

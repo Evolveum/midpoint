@@ -48,7 +48,7 @@ public class ReportSearchDto implements Serializable, DebugDumpable {
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
-        sb.append("DebugSearchDto\n");
+        sb.append("ReportSearchDto\n");
         DebugUtil.debugDumpWithLabelLn(sb, "text", text, indent+1);
         DebugUtil.debugDumpWithLabel(sb, "parent", parent, indent+1);
         return sb.toString();

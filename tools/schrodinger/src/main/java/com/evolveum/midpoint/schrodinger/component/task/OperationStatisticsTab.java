@@ -41,4 +41,40 @@ public class OperationStatisticsTab extends Component<TaskPage> {
         }
         return Integer.valueOf(textValue);
     }
+
+    public void assertSuccessfullyProcessedCountMatch(int expectedCount) {
+        if (getObjectsFailedToBeProcessed() != expectedCount) {
+            throw new AssertionError("The count of successfully processed objects doesn't match to " + expectedCount);
+        }
+    }
+
+    public void assertSuccessfullyProcessedIsNull() {
+        if (getObjectsFailedToBeProcessed() != null) {
+            throw new AssertionError("The value of successfully processed objects should be null.");
+        }
+    }
+
+    public void assertObjectsFailedToBeProcessedCountMatch(int expectedCount) {
+        if (getObjectsFailedToBeProcessed() != expectedCount) {
+            throw new AssertionError("The count of failed objects doesn't match to " + expectedCount);
+        }
+    }
+
+    public void assertObjectsFailedToBeProcessedIsNull() {
+        if (getObjectsFailedToBeProcessed() != null) {
+            throw new AssertionError("The value of failed objects should be null.");
+        }
+    }
+
+    public void assertObjectsTotalCountMatch(int expectedCount) {
+        if (getObjectsTotalCount() != expectedCount) {
+            throw new AssertionError("The total count of processed objects doesn't match to " + expectedCount);
+        }
+    }
+
+    public void assertObjectsTotalIsNull() {
+        if (getObjectsTotalCount() != null) {
+            throw new AssertionError("The total count of processed objects should be null.");
+        }
+    }
 }

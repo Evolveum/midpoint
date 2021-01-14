@@ -10,10 +10,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
 import com.evolveum.midpoint.web.page.admin.roles.MemberOperationsHelper;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -22,25 +23,24 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 
 import javax.xml.namespace.QName;
 
 public class ArchetypeMembersPanel extends AbstractRoleMemberPanel<ArchetypeType> {
 
-    public ArchetypeMembersPanel(String id, IModel<ArchetypeType> model) {
-        super(id, model);
+    public ArchetypeMembersPanel(String id, IModel<ArchetypeType> model, PageBase pageBase) {
+        super(id, model, pageBase);
     }
 
     private static final long serialVersionUID = 1L;
 
     @Override
     protected AvailableRelationDto getSupportedRelations() {
-        return new AvailableRelationDto(Arrays.asList(SchemaConstants.ORG_DEFAULT));
+        return new AvailableRelationDto(Arrays.asList(SchemaConstants.ORG_DEFAULT), getDefaultRelationConfiguration());
     }
 
     @Override
-    protected List<QName> getSupportedObjectTypes(boolean includeAbstractTypes) {
+    protected List<QName> getDefaultSupportedObjectTypes(boolean includeAbstractTypes) {
         return WebComponentUtil.createAssignmentHolderTypeQnamesList();
     }
 
@@ -50,14 +50,21 @@ public class ArchetypeMembersPanel extends AbstractRoleMemberPanel<ArchetypeType
                 objectTypes, archetypeRefList);
     }
 
-
-
     @Override
     protected List<InlineMenuItem> createRowActions() {
         List<InlineMenuItem> menu =  new ArrayList<InlineMenuItem>();
         createAssignMemberRowAction(menu);
         createRecomputeMemberRowAction(menu);
         return menu;
+    }
 
+    @Override
+    protected Class<? extends ObjectType> getChoiceForAllTypes() {
+        return AssignmentHolderType.class;
+    }
+
+    @Override
+    protected String getStorageKeyTabSuffix() {
+        return "archetypeMembers";
     }
 }

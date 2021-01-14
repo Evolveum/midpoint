@@ -59,15 +59,13 @@ public class OrganizationStructureTests extends AbstractSchrodingerTest {
         FileUtils.copyFile(CSV_INITIAL_SOURCE_FILE, csvTargetFile);
 
         ImportObjectPage importPage = basicPage.importObject();
-        Assert.assertTrue(
-                importPage
+        importPage
                     .getObjectsFromFile()
                     .chooseFile(ORG_MONKEY_ISLAND_SOURCE_FILE)
                     .checkOverwriteExistingObject()
                     .clickImportFileButton()
                         .feedback()
-                        .isSuccess()
-        );
+                        .assertSuccess();
     }
 
 //    @Test (dependsOnMethods ={IMPORT_ORG_STRUCT_DEPENDENCY})
@@ -97,8 +95,7 @@ public class OrganizationStructureTests extends AbstractSchrodingerTest {
         userPage.checkKeepDisplayingResults()
                 .clickSave()
                     .feedback()
-                    .isSuccess()
-        ;
+                    .assertSuccess();
     }
 
 //    @Test (dependsOnMethods ={ORG_UNIT_ACCOUNT_INDUCEMENT_DEPENDENCY})
@@ -120,7 +117,7 @@ public class OrganizationStructureTests extends AbstractSchrodingerTest {
         userPage.checkKeepDisplayingResults()
                 .clickSave()
                     .feedback()
-                    .isSuccess();
+                    .assertSuccess();
     }
 
 //    @Test (dependsOnMethods ={ASSIGN_ORG_UNIT_DEPENDENCY})

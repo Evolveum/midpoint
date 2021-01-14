@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.web.component.search;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 
@@ -18,12 +19,12 @@ import org.apache.wicket.model.IModel;
 /**
  * @author Viliam Repan (lazyman)
  */
-public class SearchFormPanel extends BasePanel<Search> {
+public class SearchFormPanel<C extends Containerable> extends BasePanel<Search<C>> {
 
     private static final String ID_SEARCH = "search";
     private static final String ID_SEARCH_FORM = "searchForm";
 
-    public SearchFormPanel(String id, IModel<Search> model) {
+    public SearchFormPanel(String id, IModel<Search<C>> model) {
         super(id, model);
 
         initLayout();
@@ -38,8 +39,8 @@ public class SearchFormPanel extends BasePanel<Search> {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
-                SearchFormPanel.this.searchPerformed(query, target);
+            public void searchPerformed(AjaxRequestTarget target) {
+                SearchFormPanel.this.searchPerformed(target);
             }
 
             @Override
@@ -50,7 +51,7 @@ public class SearchFormPanel extends BasePanel<Search> {
         searchForm.add(search);
     }
 
-    protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
+    protected void searchPerformed(AjaxRequestTarget target) {
 
     }
 

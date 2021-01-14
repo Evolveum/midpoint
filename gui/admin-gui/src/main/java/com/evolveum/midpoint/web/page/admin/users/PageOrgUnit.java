@@ -10,6 +10,8 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -104,35 +106,45 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
             }
 
             @Override
-            public OrgMemberPanel createMemberPanel(String panelId) {
+            public OrgMemberPanel createMemberPanel(String panelId, PageBase parentPage) {
 
-                return new OrgMemberPanel(panelId, new Model<>(getObject().asObjectable())) {
+                return new OrgMemberPanel(panelId, new Model<>(getObject().asObjectable()), parentPage) {
 
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     protected AvailableRelationDto getSupportedRelations() {
-                        return getSupportedMembersTabRelations();
+                        return getSupportedMembersTabRelations(getDefaultRelationConfiguration());
+                    }
+
+                    @Override
+                    protected String getStorageKeyTabSuffix() {
+                        return "orgMembers";
                     }
 
                 };
             }
 
             @Override
-            public OrgMemberPanel createGovernancePanel(String panelId) {
+            public OrgMemberPanel createGovernancePanel(String panelId, PageBase parentPage) {
 
-                return new OrgMemberPanel(panelId, new Model<>(getObject().asObjectable())) {
+                return new OrgMemberPanel(panelId, new Model<>(getObject().asObjectable()), parentPage) {
 
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     protected AvailableRelationDto getSupportedRelations() {
-                        return getSupportedGovernanceTabRelations();
+                        return getSupportedGovernanceTabRelations(getDefaultRelationConfiguration());
                     }
 
                     @Override
                     protected Map<String, String> getAuthorizations(QName complexType) {
                         return getGovernanceTabAuthorizations();
+                    }
+
+                    @Override
+                    protected String getStorageKeyTabSuffix() {
+                        return "orgGovernance";
                     }
 
                 };

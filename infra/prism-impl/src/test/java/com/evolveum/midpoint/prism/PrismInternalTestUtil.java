@@ -13,7 +13,6 @@ import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,7 +31,6 @@ import com.evolveum.midpoint.prism.foo.*;
 import com.evolveum.midpoint.prism.impl.PrismContextImpl;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.impl.schema.axiom.AxiomEnabledSchemaRegistry;
-import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -86,6 +84,9 @@ public class PrismInternalTestUtil implements PrismContextFactory {
     public static final String USER_JACK_DESCRIPTION = "This must be the best pirate the world has ever seen";
     public static final String USER_JACK_POLYNAME_ORIG = "Džek Sperou";
     public static final String USER_JACK_POLYNAME_NORM = "dzek sperou";
+
+    public static final QName USER_EXTENSION = new QName("http://midpoint.evolveum.com/xml/ns/test/extension", "UserExtensionType");
+
 
     // User: barbossa (very simple user)
     public static final String USER_BARBOSSA_FILE_BASENAME = "user-barbossa";
@@ -472,7 +473,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
     private static void assertUserJackExtension(PrismObject<UserType> user, boolean withIncomplete) {
         PrismContext prismContext = user.getPrismContext();
         PrismContainer<?> extension = user.getExtension();
-        assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);
+        //assertContainerDefinition(extension, "extension", USER_EXTENSION_QNAME, 0, 1);
         PrismContainerValue<?> extensionValue = extension.getValue();
         assertTrue("Extension parent", extensionValue.getParent() == extension);
         assertNull("Extension ID", extensionValue.getId());

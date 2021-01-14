@@ -71,7 +71,7 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
     public void test00200assignDefaultRelationMember(){
         UserPage user = basicPage.newUser();
 
-        Assert.assertTrue(user.selectTabBasic()
+        user.selectTabBasic()
                 .form()
                     .addAttributeValue("name", USER_NAME)
                     .and()
@@ -79,7 +79,7 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
                 .checkKeepDisplayingResults()
                 .clickSave()
                 .feedback()
-                .isSuccess());
+                .assertSuccess();
 
         OrgTreePage orgTreePage = basicPage.orgStructure();
         orgTreePage
@@ -96,11 +96,11 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
                     .and()
                     .clickAdd();
         orgTreePage = basicPage.orgStructure();
-        Assert.assertTrue(orgTreePage
+        orgTreePage
                 .selectTabWithRootOrg(ORG_NAME)
                     .getMemberPanel()
                         .table()
-                        .containsLinksTextPartially(USER_NAME));
+                        .assertTableContainsLinkTextPartially(USER_NAME);
     }
 
     @Test (priority = 3)
@@ -156,13 +156,13 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
                 .selectTabWithRootOrg(ORG_WITH_MEMBER_NAME)
                 .getMemberPanel()
                 .table();
-        Assert.assertEquals(memberTable
+        memberTable
                             .search()
                             .byName()
                             .inputValue("NewUserAsOrgMember")
                 .updateSearch()
                 .and()
-                .countTableObjects(), 1, "Created member is absent in org members table");
+                .assertTableObjectsCountEquals(1);
         Assert.assertTrue(memberTable.containsText("Member"));
     }
 
@@ -189,13 +189,13 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
         MemberTable<MemberPanel<OrgRootTab>> memberTable = memberPanel
                 .table();
         memberPanel.selectType("All");
-        Assert.assertEquals(memberTable
-                            .search()
-                            .byName()
-                            .inputValue("NewRoleAsOrgManager")
-                .updateSearch()
+        memberTable
+                .search()
+                    .byName()
+                    .inputValue("NewRoleAsOrgManager")
+                    .updateSearch()
                 .and()
-                .countTableObjects(), 1, "Created member is absent in org members table");
+                .assertTableObjectsCountEquals(1);
         Assert.assertTrue(memberTable.containsText("Manager"));
     }
 
@@ -222,13 +222,13 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
         MemberTable<MemberPanel<OrgRootTab>> memberTable = memberPanel
                 .table();
         memberPanel.selectType("All");
-        Assert.assertEquals(memberTable
+        memberTable
                             .search()
                             .byName()
                             .inputValue("NewOrgAsOrgOwner")
                 .updateSearch()
                 .and()
-                .countTableObjects(), 1, "Created member is absent in org members table");
+                .assertTableObjectsCountEquals(1);
         Assert.assertTrue(memberTable.containsText("Owner"));
     }
 
@@ -255,13 +255,13 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
         MemberTable<MemberPanel<OrgRootTab>> memberTable = memberPanel
                 .table();
         memberPanel.selectType("All");
-        Assert.assertEquals(memberTable
+        memberTable
                             .search()
                             .byName()
                             .inputValue("NewServiceAsOrgApprover")
                 .updateSearch()
                 .and()
-                .countTableObjects(), 1, "Created member is absent in org members table");
+                .assertTableObjectsCountEquals(1);
         Assert.assertTrue(memberTable.containsText("Approver"));
     }
 }

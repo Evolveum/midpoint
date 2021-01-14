@@ -111,7 +111,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         PrismForm<AccountPage> accountForm = shadow.form();
         Selenide.sleep(1000);
-        Assert.assertTrue(accountForm.compareInputAttributeValue("fname", "Jim Tiberius"));
+        accountForm.assertInputAttributeValueMatches("fname", "Jim Tiberius");
 
         showUser("kirk")
             .selectTabBasic()
@@ -232,13 +232,13 @@ public class M4ProvisioningToResources extends AbstractLabTest {
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         PrismForm<AccountPage> accountForm = shadow.form();
         Selenide.sleep(1000);
-        Assert.assertTrue(accountForm.compareInputAttributeValue("phone", "123555-1010"));
+        accountForm.assertInputAttributeValueMatches("phone", "123555-1010");
 
         showShadow(CSV_3_RESOURCE_NAME, "Distinguished Name", "cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com");
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
 
-        Assert.assertTrue(accountForm.compareInputAttributeValue("telephoneNumber", "123 / 555 - 1010"));
-        Assert.assertTrue(accountForm.compareInputAttributeValue("description", "This user is created by midPoint"));
+        accountForm.assertInputAttributeValueMatches("telephoneNumber", "123 / 555 - 1010");
+        accountForm.assertInputAttributeValueMatches("description", "This user is created by midPoint");
 
     }
 
@@ -283,7 +283,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         PrismForm<AccountPage> accountForm = shadow.form();
         Selenide.sleep(1000);
-        Assert.assertTrue(accountForm.compareInputAttributeValue("lname", "PICARD"));
+        accountForm.assertInputAttributeValueMatches("lname", "PICARD");
 
         showUser("kirk")
                 .checkReconcile()
@@ -293,7 +293,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
 
         showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
-        Assert.assertTrue(accountForm.compareInputAttributeValue("lname", "KIRK"));
+        accountForm.assertInputAttributeValueMatches("lname", "KIRK");
 
     }
 
@@ -318,7 +318,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                     .feedback()
                         .isSuccess();
         AccountPage shadow = showShadow(CSV_3_RESOURCE_NAME, "Distinguished Name", "cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com");
-        Assert.assertTrue(shadow.form().compareInputAttributeValue("manager", "xxx"));
+        shadow.form().assertInputAttributeValueMatches("manager", "xxx");
 
         importObject(CSV_3_RESOURCE_FILE_4_4, true);
 

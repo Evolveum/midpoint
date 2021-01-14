@@ -112,7 +112,7 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
                     }
 
             @Override
-            protected ObjectQuery createQuery() {
+            protected ObjectQuery getCustomizeContentQuery() {
                 List<String> personaOidsList = getPersonasOidsList();
                 ObjectQuery query = getPageBase().getPrismContext().queryFor(FocusType.class)
                         .id(personaOidsList.toArray(new String[0]))

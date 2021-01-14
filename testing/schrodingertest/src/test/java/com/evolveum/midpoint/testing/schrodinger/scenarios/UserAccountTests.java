@@ -200,6 +200,6 @@ public class UserAccountTests extends AccountTests {
                         .clickYes()
                     .and()
                 .feedback()
-                    .isSuccess()
-        ;}
+                    .isSuccess();
+    }
 }

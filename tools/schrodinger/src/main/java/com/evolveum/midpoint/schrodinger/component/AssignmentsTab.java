@@ -123,4 +123,11 @@ public class AssignmentsTab<P extends AssignmentHolderDetailsPage> extends TabWi
     protected String getPrismViewPanelId() {
         return "assignmentsContainer";
     }
+
+    public AssignmentsTab<P> assertAssignmentsWithRelationExist(String relation, String... expectedAssignments) {
+        if (!containsAssignmentsWithRelation(relation, expectedAssignments)) {
+            throw new AssertionError("Assignments doesn't exist.");
+        }
+        return this;
+    }
 }

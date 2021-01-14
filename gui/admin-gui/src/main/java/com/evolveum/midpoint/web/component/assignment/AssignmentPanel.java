@@ -225,12 +225,6 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                     }
 
                     @Override
-                    public void refreshTable(Class<AssignmentType> newTypeClass, AjaxRequestTarget ajaxRequestTarget) {
-                        super.refreshTable(newTypeClass, ajaxRequestTarget);
-                        AssignmentPanel.this.refreshTable(ajaxRequestTarget);
-                    }
-
-                    @Override
                     protected IModel<List<PrismContainerValueWrapper<AssignmentType>>> loadValuesModel() {
                         return AssignmentPanel.this.loadValuesModel(super.loadValuesModel());
                     }

@@ -13,18 +13,9 @@ import java.time.ZoneId;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
 import com.evolveum.midpoint.gui.impl.GuiChannel;
 import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -33,15 +24,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
-import com.evolveum.midpoint.web.component.search.DateSearchItem;
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.*;
 
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
@@ -65,7 +53,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
@@ -134,10 +121,12 @@ public class AuditLogViewerPanel extends BasePanel {
                 return null;
             }
 
+
+
             @Override
-            protected Search createSearch() {
+            protected Search createSearch(Class<? extends AuditEventRecordType> type) {
                 AuditLogStorage storage = (AuditLogStorage) getPageStorage();
-                Search search = SearchFactory.createContainerSearch(getType(), AuditEventRecordType.F_TIMESTAMP, getPageBase());
+                Search search = SearchFactory.createContainerSearch(new ContainerTypeSearchItem(new SearchValue(type, "")), AuditEventRecordType.F_TIMESTAMP, getPageBase());
                 DateSearchItem timestampItem = (DateSearchItem) search.findPropertySearchItem(AuditEventRecordType.F_TIMESTAMP);
                 if (timestampItem.getFromDate() == null && timestampItem.getToDate() == null && !isCollectionViewPanelForWidget()) {
                     Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
@@ -166,7 +155,7 @@ public class AuditLogViewerPanel extends BasePanel {
             protected ISelectableDataProvider createProvider() {
                 PageStorage pageStorage = getPageStorage();
                 SelectableBeanContainerDataProvider<AuditEventRecordType> provider = new SelectableBeanContainerDataProvider<AuditEventRecordType>(
-                        AuditLogViewerPanel.this, AuditEventRecordType.class, null, false) {
+                        AuditLogViewerPanel.this, getSearchModel(), null, false) {
 
                     @Override
                     protected PageStorage getPageStorage() {
@@ -174,21 +163,16 @@ public class AuditLogViewerPanel extends BasePanel {
                     }
 
                     @Override
-                    public ObjectQuery getQuery() {
-                        return createQuery();
-                    }
-
-                    @Override
                     protected Integer countObjects(Class<? extends AuditEventRecordType> type, ObjectQuery query,
                             Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result) {
-                        return getPage().getAuditService().countObjects(query, currentOptions, result);
+                        return getPageBase().getAuditService().countObjects(query, currentOptions, result);
                     }
 
                     @Override
                     protected List<AuditEventRecordType> searchObjects(Class<? extends AuditEventRecordType> type, ObjectQuery query,
                             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
                             throws SchemaException {
-                        return getPage().getAuditService().searchObjects(query, options, result);
+                        return getPageBase().getAuditService().searchObjects(query, options, result);
                     }
 
                     @NotNull

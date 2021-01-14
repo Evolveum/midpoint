@@ -160,4 +160,49 @@ public class DelegationDetailsPanel<T> extends Component<T> {
         return $(Schrodinger.byDataId("certificationWorkItems")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
                 .isSelected();
     }
+
+    public void assertApprovalWorkItemsSelected() {
+        if (!isApprovalWorkItemsSelected()) {
+            throw new AssertionError("Workflow approvals (for approval work items) checkbox is not selected but should be.");
+        }
+    }
+
+    public void assertApprovalWorkItemsNotSelected() {
+        if (isApprovalWorkItemsSelected()) {
+            throw new AssertionError("Workflow approvals (for approval work items) checkbox is selected but shouldn't be.");
+        }
+    }
+    public void assertAssignmentLimitationsSelected() {
+        if (!isAssignmentLimitationsSelected()) {
+            throw new AssertionError("Assignment limitations checkbox is not selected but should be.");
+        }
+    }
+
+    public void assertAssignmentLimitationsNotSelected() {
+        if (isAssignmentLimitationsSelected()) {
+            throw new AssertionError("Assignment limitations checkbox is selected but shouldn't be.");
+        }
+    }
+    public void assertAssignmentPrivilegesSelected() {
+        if (!isAssignmentPrivilegesSelected()) {
+            throw new AssertionError("Assignment privileges checkbox is not selected but should be.");
+        }
+    }
+
+    public void assertAssignmentPrivilegesNotSelected() {
+        if (isAssignmentPrivilegesSelected()) {
+            throw new AssertionError("Assignment privileges checkbox is selected but shouldn't be.");
+        }
+    }
+    public void assertCertificationWorkItemsSelected() {
+        if (!isCertificationWorkItemsSelected()) {
+            throw new AssertionError("Workflow approvals (for certification work items) checkbox is not selected but should be.");
+        }
+    }
+
+    public void assertCertificationWorkItemsNotSelected() {
+        if (isCertificationWorkItemsSelected()) {
+            throw new AssertionError("Workflow approvals (for certification work items) checkbox is selected but shouldn't be.");
+        }
+    }
 }

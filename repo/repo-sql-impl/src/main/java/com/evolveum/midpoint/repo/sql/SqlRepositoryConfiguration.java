@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,7 +8,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
-import static com.evolveum.midpoint.repo.sql.Database.*;
+import static com.evolveum.midpoint.repo.sql.Database.H2;
 
 import java.io.File;
 import java.io.FileReader;
@@ -26,19 +26,24 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager;
 import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepositoryBaseConfiguration;
+import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
+import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
+import com.evolveum.midpoint.repo.sqlbase.TransactionIsolation;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * This class is used for SQL repository configuration.
+ * This class is used for SQL+Hibernate repository configuration.
  * It reads values from Apache configuration object (xml).
- *
- * TODO: move non-Hibernate stuff to SqlRepositoryBaseConfiguration.
+ * <p>
+ * Implementation note:
+ * It was considered to extract SQL only portions to the superclass and use it for midScale
+ * repository (repo-sqale), but the interaction between Hibernate and JDBC stuff is very strong
+ * here, especially around guessing of default values for database type, driver class, etc.
  */
-public class SqlRepositoryConfiguration extends SqlRepositoryBaseConfiguration {
+public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryConfiguration.class);
 
@@ -173,7 +178,6 @@ public class SqlRepositoryConfiguration extends SqlRepositoryBaseConfiguration {
     private static final int DEFAULT_MAX_POOL_SIZE = 20;
     private static final int DEFAULT_MAX_OBJECTS_FOR_IMPLICIT_FETCH_ALL_ITERATION_METHOD = 500;
 
-    public static final String PROPERTY_DATABASE = "database";
     public static final String PROPERTY_BASE_DIR = "baseDir";
     public static final String PROPERTY_DROP_IF_EXISTS = "dropIfExists";
     public static final String PROPERTY_AS_SERVER = "asServer";
@@ -181,23 +185,10 @@ public class SqlRepositoryConfiguration extends SqlRepositoryBaseConfiguration {
     public static final String PROPERTY_FILE_NAME = "fileName";
     public static final String PROPERTY_TCP_SSL = "tcpSSL";
     public static final String PROPERTY_EMBEDDED = "embedded";
-    public static final String PROPERTY_DRIVER_CLASS_NAME = "driverClassName";
     public static final String PROPERTY_HIBERNATE_HBM2DDL = "hibernateHbm2ddl";
     public static final String PROPERTY_HIBERNATE_DIALECT = "hibernateDialect";
-    public static final String PROPERTY_JDBC_PASSWORD = "jdbcPassword";
-    public static final String PROPERTY_JDBC_PASSWORD_FILE = "jdbcPasswordFile";
-    public static final String PROPERTY_JDBC_USERNAME = "jdbcUsername";
-    public static final String PROPERTY_JDBC_URL = "jdbcUrl";
-    public static final String PROPERTY_DATASOURCE = "dataSource";
-    public static final String PROPERTY_USE_ZIP = "useZip";
-    public static final String PROPERTY_USE_ZIP_AUDIT = "useZipAudit";
     public static final String PROPERTY_CREATE_MISSING_CUSTOM_COLUMNS = "createMissingCustomColumns";
 
-    /**
-     * Specifies language used for writing fullObject attribute.
-     * See LANG constants in {@link com.evolveum.midpoint.prism.PrismContext} for supported values.
-     */
-    public static final String PROPERTY_FULL_OBJECT_FORMAT = "fullObjectFormat";
     public static final String PROPERTY_MIN_POOL_SIZE = "minPoolSize";
     public static final String PROPERTY_MAX_POOL_SIZE = "maxPoolSize";
     public static final String PROPERTY_MAX_LIFETIME = "maxLifetime";
@@ -219,7 +210,6 @@ public class SqlRepositoryConfiguration extends SqlRepositoryBaseConfiguration {
     //closure
     public static final String PROPERTY_IGNORE_ORG_CLOSURE = "ignoreOrgClosure";
     public static final String PROPERTY_ORG_CLOSURE_STARTUP_ACTION = "orgClosureStartupAction";
-    public static final String PROPERTY_SKIP_ORG_CLOSURE_STRUCTURE_CHECK = "skipOrgClosureStructureCheck";
     public static final String PROPERTY_STOP_ON_ORG_CLOSURE_STARTUP_FAILURE = "stopOnOrgClosureStartupFailure";
 
     public static final String PROPERTY_SKIP_EXPLICIT_SCHEMA_VALIDATION = "skipExplicitSchemaValidation";
@@ -250,6 +240,7 @@ public class SqlRepositoryConfiguration extends SqlRepositoryBaseConfiguration {
      * May be null if couldn't be derived in any reasonable way.
      */
     private final Database database;
+    private final SupportedDatabase databaseType; // the same as Database, but more general type
 
     //embedded configuration
     private final boolean embedded;
@@ -265,7 +256,7 @@ public class SqlRepositoryConfiguration extends SqlRepositoryBaseConfiguration {
     private final String jdbcUsername;
     private final String jdbcPassword;
     private final String hibernateDialect;
-    private String hibernateHbm2ddl; // not final only because of testing
+    private final String hibernateHbm2ddl;
     private final String dataSource;
     private final int minPoolSize;
     private final int maxPoolSize;
@@ -297,7 +288,6 @@ public class SqlRepositoryConfiguration extends SqlRepositoryBaseConfiguration {
 
     private final boolean ignoreOrgClosure;
     private final OrgClosureManager.StartupAction orgClosureStartupAction;
-    private final boolean skipOrgClosureStructureCheck;
     private final boolean stopOnOrgClosureStartupFailure;
 
     private final boolean createMissingCustomColumns;
@@ -357,6 +347,8 @@ public class SqlRepositoryConfiguration extends SqlRepositoryBaseConfiguration {
             }
             database = guessedDatabase;
         }
+        databaseType = database != null ? SupportedDatabase.valueOf(database.name()) : null;
+
         driverClassName = Objects.requireNonNullElse(configuredDriverClassName, getDefaultDriverClassName(dataSource, database));
         hibernateDialect = Objects.requireNonNullElse(configuredHibernateDialect, getDefaultHibernateDialect(database));
         embedded = Objects.requireNonNullElse(configuredEmbedded, getDefaultEmbedded(dataSource, database));
@@ -425,7 +417,6 @@ public class SqlRepositoryConfiguration extends SqlRepositoryBaseConfiguration {
         orgClosureStartupAction = OrgClosureManager.StartupAction.fromValue(
                 configuration.getString(PROPERTY_ORG_CLOSURE_STARTUP_ACTION,
                         OrgClosureManager.StartupAction.REBUILD_IF_NEEDED.toString()));
-        skipOrgClosureStructureCheck = configuration.getBoolean(PROPERTY_SKIP_ORG_CLOSURE_STRUCTURE_CHECK, false);
         stopOnOrgClosureStartupFailure = configuration.getBoolean(PROPERTY_STOP_ON_ORG_CLOSURE_STARTUP_FAILURE, true);
 
         skipExplicitSchemaValidation = configuration.getBoolean(PROPERTY_SKIP_EXPLICIT_SCHEMA_VALIDATION,
@@ -448,7 +439,7 @@ public class SqlRepositoryConfiguration extends SqlRepositoryBaseConfiguration {
         enableNoFetchExtensionValuesDeletion = configuration.getBoolean(PROPERTY_ENABLE_NO_FETCH_EXTENSION_VALUES_DELETION, false);
         enableIndexOnlyItems = configuration.getBoolean(PROPERTY_ENABLE_INDEX_ONLY_ITEMS, false);
 
-        int maxTextSize = (database == MYSQL || database == MARIADB) && UTF8MB4.equalsIgnoreCase(schemaVariant) ? 191 : 255;
+        int maxTextSize = isUsingMySqlCompatible() && UTF8MB4.equalsIgnoreCase(schemaVariant) ? 191 : 255;
         textInfoColumnSize = configuration.getInt(PROPERTY_TEXT_INFO_COLUMN_SIZE, maxTextSize);
     }
 
@@ -684,6 +675,7 @@ public class SqlRepositoryConfiguration extends SqlRepositoryBaseConfiguration {
         return driverClassName;
     }
 
+    @Override
     public boolean isEmbedded() {
         return embedded;
     }
@@ -702,11 +694,6 @@ public class SqlRepositoryConfiguration extends SqlRepositoryBaseConfiguration {
 
     public String getHibernateHbm2ddl() {
         return hibernateHbm2ddl;
-    }
-
-    // use only for testing
-    public void setHibernateHbm2ddl(String hibernateHbm2ddl) {
-        this.hibernateHbm2ddl = hibernateHbm2ddl;
     }
 
     /**
@@ -759,6 +746,7 @@ public class SqlRepositoryConfiguration extends SqlRepositoryBaseConfiguration {
         return dropIfExists;
     }
 
+    @Override
     public TransactionIsolation getTransactionIsolation() {
         return transactionIsolation;
     }
@@ -809,18 +797,22 @@ public class SqlRepositoryConfiguration extends SqlRepositoryBaseConfiguration {
         return dataSource;
     }
 
+    @Override
     public int getMinPoolSize() {
         return minPoolSize;
     }
 
+    @Override
     public int getMaxPoolSize() {
         return maxPoolSize;
     }
 
+    @Override
     public Long getMaxLifetime() {
         return maxLifetime;
     }
 
+    @Override
     public Long getIdleTimeout() {
         return idleTimeout;
     }
@@ -856,46 +848,22 @@ public class SqlRepositoryConfiguration extends SqlRepositoryBaseConfiguration {
         return orgClosureStartupAction;
     }
 
-    public boolean isUsingH2() {
-        return isUsing(H2);
-    }
-
-    private boolean isUsing(Database db) {
-        // Originally we checked here also the driver/dialect; but this is no longer necessary as the database
-        // guesswork is done at initialization time.
-        return database == db;
-    }
-
-    public boolean isUsingOracle() {
-        return isUsing(ORACLE);
-    }
-
-    public boolean isUsingMySqlCompatible() {
-        return isUsing(MYSQL) || isUsing(MARIADB);
-    }
-
-    public boolean isUsingPostgreSQL() {
-        return isUsing(POSTGRESQL);
-    }
-
-    public boolean isUsingSQLServer() {
-        return isUsing(SQLSERVER);
+    @Override
+    public boolean isUsing(SupportedDatabase db) {
+        return databaseType == db;
     }
 
     public boolean isStopOnOrgClosureStartupFailure() {
         return stopOnOrgClosureStartupFailure;
     }
 
-    public boolean isSkipOrgClosureStructureCheck() {
-        return skipOrgClosureStructureCheck;
-    }
-
     public boolean isCreateMissingCustomColumns() {
         return createMissingCustomColumns;
     }
 
-    public Database getDatabaseType() {
-        return database;
+    @Override
+    public SupportedDatabase getDatabaseType() {
+        return database != null ? SupportedDatabase.valueOf(database.name()) : null;
     }
 
     @NotNull
@@ -929,6 +897,7 @@ public class SqlRepositoryConfiguration extends SqlRepositoryBaseConfiguration {
         return schemaVariant;
     }
 
+    @Override
     public long getInitializationFailTimeout() {
         return initializationFailTimeout;
     }

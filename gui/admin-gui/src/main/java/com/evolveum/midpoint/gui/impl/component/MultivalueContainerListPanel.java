@@ -19,7 +19,7 @@ import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeMainPanel;
-import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
@@ -50,8 +50,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
@@ -71,9 +69,10 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         super(id, type);
     }
 
-    protected Search createSearch() {
+    @Override
+    protected Search createSearch(Class<? extends C> type) {
         PrismContainerDefinition<C> containerDefinition = getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(getType());
-        return SearchFactory.createContainerSearch(getType(), null, initSearchableItems(containerDefinition), getPageBase());
+        return SearchFactory.createContainerSearch(new ContainerTypeSearchItem<C>(new SearchValue(type, containerDefinition.getDisplayName())), null, initSearchableItems(containerDefinition), getPageBase());
     }
 
     protected List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<C> containerDef){
@@ -86,13 +85,8 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
 
     @Override
     protected ISelectableDataProvider<C, PrismContainerValueWrapper<C>> createProvider() {
-        MultivalueContainerListDataProvider<C> containersProvider = new MultivalueContainerListDataProvider<C>(this, loadValuesModel()) {
+        MultivalueContainerListDataProvider<C> containersProvider = new MultivalueContainerListDataProvider<C>(this, getSearchModel(), loadValuesModel()) {
             private static final long serialVersionUID = 1L;
-
-            @Override
-            public ObjectQuery getQuery() {
-                return createQuery();
-            }
 
             @Override
             protected List<PrismContainerValueWrapper<C>> searchThroughList() {

@@ -78,7 +78,7 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
 
         ProgressPage progressPage = previewPage.clickSave();
         Selenide.sleep(3000);
-        assertTrue(progressPage.feedback().isSuccess());
+        progressPage.feedback().assertSuccess();
     }
 
     @Test (priority = 2, dependsOnMethods = {"test001createUser"})
@@ -111,7 +111,7 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
 
         ProgressPage progressPage = previewPage.clickSave();
         Selenide.sleep(1000);
-        assertTrue(progressPage.feedback().isSuccess());
+        progressPage.feedback().assertSuccess();
     }
 
     @Test (priority = 3, dependsOnMethods = {"test001createUser"})
@@ -136,7 +136,7 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
                 .clickSave();
         //@formatter:on
 
-        assertTrue(previewPage.feedback().isSuccess());
+        previewPage.feedback().assertSuccess();
 
     }
 
@@ -188,7 +188,7 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
                     .clickSave();
         //@formatter:on
 
-        assertTrue(previewPage.feedback().isSuccess());
+        previewPage.feedback().assertSuccess();
 
     }
 
@@ -214,7 +214,7 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
                     .clickSave();
         //@formatter:on
 
-        assertTrue(previewPage.feedback().isSuccess());
+        previewPage.feedback().assertSuccess();
 
     }
 

@@ -11,6 +11,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.search.ContainerTypeSearchItem;
+
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
@@ -58,7 +60,7 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
     protected Search createSearch() {
         List<SearchItemDefinition> availableDefs = new ArrayList<>();
         availableDefs.addAll(createAttributeDefinitionList());
-        return new Search(ShadowType.class, availableDefs);
+        return new Search(new ContainerTypeSearchItem(ShadowType.class), availableDefs);
     }
 
     private <T extends ObjectType> List<SearchItemDefinition> createAttributeDefinitionList() {

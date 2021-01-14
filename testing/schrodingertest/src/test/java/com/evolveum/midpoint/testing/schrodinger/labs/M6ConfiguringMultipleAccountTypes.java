@@ -89,28 +89,28 @@ public class M6ConfiguringMultipleAccountTypes extends AbstractLabTest {
         AbstractTableWithPrismView<ProjectionsTab<UserPage>> table = showUser("kirk").selectTabProjections()
                 .table();
         Selenide.screenshot("kirk_user_projections");
-        Assert.assertTrue(table.search()
+        table.search()
                 .referencePanelByItemName("Resource")
                     .inputRefOid("10000000-9999-9999-0000-a000ff000002")
                     .updateSearch()
                 .and()
-             .containsText("jkirk"));
-        Assert.assertTrue(table.containsText("_kirk"));
+             .assertTableContainsText("jkirk");
+        table.assertTableContainsText("_kirk");
 
-        Assert.assertTrue(table.search()
+       table.search()
                 .referencePanelByItemName("Resource")
                     .inputRefOid("10000000-9999-9999-0000-a000ff000003")
                     .updateSearch()
                 .and()
-            .containsText("jkirk"));
+            .assertTableContainsText("jkirk");
 
-        Assert.assertTrue(table.search()
+        table.search()
                 .referencePanelByItemName("Resource")
                     .inputRefOid("10000000-9999-9999-0000-a000ff000004")
                     .updateSearch()
                 .and()
-            .containsText("cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com"));
-        Assert.assertTrue(table.containsText("cn=Jim Tiberius Kirk,ou=_Administrators_,ou=ExAmPLE,dc=example,dc=com"));
+            .assertTableContainsText("cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com");
+        table.assertTableContainsText("cn=Jim Tiberius Kirk,ou=_Administrators_,ou=ExAmPLE,dc=example,dc=com");
 
         Assert.assertTrue(existShadow(CSV_1_RESOURCE_NAME, "Name", "jkirk", "default", true));
         Assert.assertTrue(existShadow(CSV_1_RESOURCE_NAME, "Name", "_kirk", "test", true));

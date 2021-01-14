@@ -10,7 +10,10 @@ package com.evolveum.midpoint.prism;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
@@ -31,6 +34,7 @@ import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
+import com.evolveum.midpoint.prism.query.PrismQueryLanguageParser;
 import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
@@ -392,4 +396,12 @@ public interface PrismContext extends ProtectorCreator {
 
     @Experimental
     EquivalenceStrategy getProvenanceEquivalenceStrategy();
+
+
+    default PrismQueryLanguageParser createQueryParser() {
+        return createQueryParser(Collections.emptyMap());
+    }
+
+    PrismQueryLanguageParser createQueryParser(Map<String, String> prefixToNamespace);
+
 }

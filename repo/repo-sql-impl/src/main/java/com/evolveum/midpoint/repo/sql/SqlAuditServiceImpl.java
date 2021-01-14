@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -54,6 +54,7 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sql.util.TemporaryTableDialect;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
+import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -441,12 +442,12 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startReadOnlyTransaction()) {
             try {
                 Connection conn = jdbcSession.connection();
-                Database database = sqlConfiguration().getDatabaseType();
+                SupportedDatabase database = sqlConfiguration().getDatabaseType();
                 int count = 0;
                 String basicQuery = query;
                 if (StringUtils.isBlank(query)) {
                     basicQuery = "select * from m_audit_event "
-                            + (database.equals(Database.ORACLE) ? "" : "as ")
+                            + (database == SupportedDatabase.ORACLE ? "" : "as ")
                             + "aer where 1=1 order by aer.timestampValue desc";
                 }
                 SelectQueryBuilder queryBuilder = new SelectQueryBuilder(database, basicQuery);
@@ -495,7 +496,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         //query for deltas
         String tableAliasPreposition =
-                jdbcSession.databaseType().equals(Database.ORACLE) ? "" : "as ";
+                jdbcSession.databaseType() == SupportedDatabase.ORACLE ? "" : "as ";
         OperationResult deltaResult = result.createMinorSubresult(OP_LOAD_AUDIT_DELTA);
         try (PreparedStatement subStmt = jdbcSession.connection().prepareStatement(
                 "select * from m_audit_delta " + tableAliasPreposition
@@ -875,14 +876,15 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     }
 
     private void checkTemporaryTablesSupport() {
-        Database database = sqlConfiguration().getDatabaseType();
+        SupportedDatabase database = sqlConfiguration().getDatabaseType();
         try {
             TemporaryTableDialect.getTempTableDialect(database);
         } catch (SystemException e) {
-            LOGGER.error("Database type {} doesn't support temporary tables, couldn't cleanup audit logs.",
+            LOGGER.error(
+                    "Database type {} doesn't support temporary tables, couldn't cleanup audit logs.",
                     database);
-            throw new SystemException(
-                    "Database type " + database + " doesn't support temporary tables, couldn't cleanup audit logs.");
+            throw new SystemException("Database type " + database
+                    + " doesn't support temporary tables, couldn't cleanup audit logs.");
         }
     }
 
@@ -1055,12 +1057,12 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     public long countObjects(String query, Map<String, Object> params) {
         try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startReadOnlyTransaction()) {
             try {
-                Database database = jdbcSession.databaseType();
+                SupportedDatabase database = jdbcSession.databaseType();
 
                 String basicQuery = query;
                 if (StringUtils.isBlank(query)) {
                     basicQuery = "select count(*) from m_audit_event "
-                            + (database.equals(Database.ORACLE) ? "" : "as ")
+                            + (database == SupportedDatabase.ORACLE ? "" : "as ")
                             + "aer where 1 = 1";
                 }
                 SelectQueryBuilder queryBuilder = new SelectQueryBuilder(database, basicQuery);

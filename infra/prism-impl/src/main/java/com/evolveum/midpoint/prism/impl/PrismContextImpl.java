@@ -12,6 +12,8 @@ import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import java.util.Map;
+
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
@@ -39,6 +41,7 @@ import com.evolveum.midpoint.prism.impl.polystring.AlphanumericPolyStringNormali
 import com.evolveum.midpoint.prism.impl.polystring.ConfigurableNormalizer;
 import com.evolveum.midpoint.prism.impl.query.QueryFactoryImpl;
 import com.evolveum.midpoint.prism.impl.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.impl.query.lang.PrismQueryLanguageParserImpl;
 import com.evolveum.midpoint.prism.impl.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.impl.schema.SchemaFactoryImpl;
 import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
@@ -51,6 +54,7 @@ import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
+import com.evolveum.midpoint.prism.query.PrismQueryLanguageParser;
 import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
@@ -326,6 +330,7 @@ public final class PrismContextImpl implements PrismContext {
         return defaultRelation;
     }
 
+    @Override
     public void setDefaultRelation(QName defaultRelation) {
         this.defaultRelation = defaultRelation;
     }
@@ -382,7 +387,7 @@ public final class PrismContextImpl implements PrismContext {
     @NotNull
     @Override
     public PrismParserNoIO parserFor(@NotNull RootXNode xnode) {
-        return new PrismParserImplNoIO(new ParserXNodeSource((RootXNodeImpl) xnode), null, getDefaultParsingContext(), this, null, null, null, null);
+        return new PrismParserImplNoIO(new ParserXNodeSource(xnode), null, getDefaultParsingContext(), this, null, null, null, null);
     }
 
     @NotNull
@@ -712,5 +717,10 @@ public final class PrismContextImpl implements PrismContext {
 
     public void setProvenanceEquivalenceStrategy(EquivalenceStrategy provenanceEquivalenceStrategy) {
         this.provenanceEquivalenceStrategy = provenanceEquivalenceStrategy;
+    }
+
+    @Override
+    public PrismQueryLanguageParser createQueryParser(Map<String, String> prefixToNamespace) {
+        return new PrismQueryLanguageParserImpl(this);
     }
 }

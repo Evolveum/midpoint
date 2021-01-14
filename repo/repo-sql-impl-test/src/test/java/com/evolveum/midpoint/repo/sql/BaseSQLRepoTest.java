@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -221,11 +221,6 @@ public class BaseSQLRepoTest extends AbstractSpringTest
 
     protected <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException {
         return prismContext.deltaFor(objectClass);
-    }
-
-    @SuppressWarnings("unused")
-    protected SqlRepositoryConfiguration getRepositoryConfiguration() {
-        return ((SqlRepositoryServiceImpl) repositoryService).sqlConfiguration();
     }
 
     protected GetOperationOptionsBuilder getOperationOptionsBuilder() {

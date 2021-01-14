@@ -188,4 +188,67 @@ public class Table<T> extends Component<T> {
         }
         return Integer.parseInt(countStringValue.substring(lastSpaceIndex + 1));
     }
+
+    public Table<T> assertColumnIndexMatches(String columnLabel, int expectedIndex) {
+        if (findColumnByLabel(columnLabel) != expectedIndex) {
+            throw new AssertionError("'" + columnLabel + "' column index doesn't match to " + expectedIndex);
+        }
+        return this;
+    }
+
+    public Table<T> assertTableObjectsCountEquals(int expectedObjectsCount) {
+        if (countTableObjects() != expectedObjectsCount) {
+            throw new AssertionError("Table objects count doesn't equal to expected value " + expectedObjectsCount);
+        }
+        return this;
+    }
+
+    public Table<T> assertTableObjectsCountNotEquals(int objectsCount) {
+        if (countTableObjects() == objectsCount) {
+            throw new AssertionError("Table objects count equals to expected value " + objectsCount);
+        }
+        return this;
+    }
+
+    public Table<T> assertTableContainsText (String text) {
+        if (!containsText(text)) {
+            throw new AssertionError("Table doesn't contain text '" + text + "'.");
+        }
+        return this;
+    }
+
+    public Table<T> assertTableDoesntContainText (String text) {
+        if (containsText(text)) {
+            throw new AssertionError("Table shouldn't contain text '" + text + "'.");
+        }
+        return this;
+    }
+
+    public Table<T> assertTableContainsLinkTextPartially (String linkText) {
+        if (!containsLinkTextPartially(linkText)) {
+            throw new AssertionError("Table doesn't contain link text '" + linkText + "'.");
+        }
+        return this;
+    }
+
+    public Table<T> assertTableDoesntContainLinkTextPartially (String linkText) {
+        if (containsLinkTextPartially(linkText)) {
+            throw new AssertionError("Table shouldn't contain link text '" + linkText + "'.");
+        }
+        return this;
+    }
+
+    public Table<T> assertTableContainsLinksTextPartially (String... linkTextValues) {
+        if (!containsLinksTextPartially(linkTextValues)) {
+            throw new AssertionError("Table doesn't contain links text.");
+        }
+        return this;
+    }
+
+    public Table<T> assertTableDoesntContainLinksTextPartially (String... linkTextValues) {
+        if (containsLinksTextPartially(linkTextValues)) {
+            throw new AssertionError("Table shouldn't contain links text.");
+        }
+        return this;
+    }
 }

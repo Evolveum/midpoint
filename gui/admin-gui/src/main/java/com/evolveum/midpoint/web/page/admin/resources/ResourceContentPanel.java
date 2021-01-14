@@ -13,7 +13,6 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -23,14 +22,12 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
-import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -91,7 +88,6 @@ import com.evolveum.midpoint.web.component.data.column.ObjectLinkColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.search.PropertySearchItem;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -282,24 +278,15 @@ public abstract class ResourceContentPanel extends Panel {
 
                     @Override
                     protected ObjectQuery getCustomizeContentQuery() {
-                        QueryFactory queryFactory = pageBase.getPrismContext().queryFactory();
-
-                        List<ObjectFilter> filters = new ArrayList<>();
                         ObjectQuery customQuery = ResourceContentPanel.this.createQuery();
                         if (customQuery != null && customQuery.getFilter() != null) {
-                            filters.add(customQuery.getFilter());
+                            return customQuery;
                         }
-                        if (filters.size() == 0) {
-                            return null;
-                        }
-                        if (filters.size() == 1) {
-                            return queryFactory.createQuery(filters.iterator().next());
-                        }
-                        return queryFactory.createQuery(queryFactory.createAnd(filters));
+                        return null;
                     }
 
                     @Override
-                    protected Search createSearch() {
+                    protected Search createSearch(Class<? extends ShadowType> type) {
                         return ResourceContentPanel.this.createSearch();
                     }
                 };
@@ -909,7 +896,7 @@ public abstract class ResourceContentPanel extends Panel {
 
         result.computeStatusIfUnknown();
         getPageBase().showResult(result);
-        getTable().refreshTable(null, target);
+        getTable().refreshTable(target);
         target.add(getPageBase().getFeedbackPanel());
     }
 
@@ -958,7 +945,7 @@ public abstract class ResourceContentPanel extends Panel {
 
         result.computeStatusIfUnknown();
         getPageBase().showResult(result);
-        getTable().refreshTable(null, target);
+        getTable().refreshTable(target);
         target.add(getPageBase().getFeedbackPanel());
 
     }
@@ -1024,7 +1011,7 @@ public abstract class ResourceContentPanel extends Panel {
 
         result.computeStatusIfUnknown();
         getPageBase().showResult(result);
-        getTable().refreshTable(null, target);
+        getTable().refreshTable(target);
         target.add(getPageBase().getFeedbackPanel());
 
     }
@@ -1128,7 +1115,7 @@ public abstract class ResourceContentPanel extends Panel {
 
         pageBase.showResult(result);
         target.add(pageBase.getFeedbackPanel());
-        getTable().refreshTable(null, target);
+        getTable().refreshTable(target);
         target.add(ResourceContentPanel.this);
     }
 

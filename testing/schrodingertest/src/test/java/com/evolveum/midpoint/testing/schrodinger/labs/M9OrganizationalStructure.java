@@ -99,7 +99,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                     .feedback()
                         .isSuccess();
 
-        Assert.assertTrue(basicPage.orgStructure()
+        basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                     .getOrgHierarchyPanel()
                         .showTreeNodeDropDownMenu("Secret Operations")
@@ -108,7 +108,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                             .edit()
                                 .selectTabBasic()
                                     .form()
-                                        .compareInputAttributeValue("Name", "0919"));
+                                        .assertInputAttributeValueMatches("Name", "0919");
 
         showUser("kirk").selectTabAssignments()
                 .clickAddAssignemnt("New Organization type assignment with Member relation")
@@ -133,7 +133,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                 .feedback()
                     .isSuccess();
 
-        Assert.assertTrue(basicPage.orgStructure()
+        basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                     .getOrgHierarchyPanel()
                         .showTreeNodeDropDownMenu("Secret Operations")
@@ -143,7 +143,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                     .getMemberPanel()
                         .selectType("User")
                         .table()
-                            .containsText("kirk"));
+                            .assertTableContainsText("kirk");
 
         showUser("kirk").selectTabAssignments()
                 .table()
@@ -164,7 +164,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
         importObject(CSV_1_RESOURCE_FILE, true);
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
 
-        Assert.assertFalse(basicPage.orgStructure()
+        basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                     .getOrgHierarchyPanel()
                         .showTreeNodeDropDownMenu("Secret Operations")
@@ -174,7 +174,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                     .getMemberPanel()
                         .selectType("User")
                             .table()
-                            .containsText("kirk"));
+                            .assertTableDoesntContainText("kirk");
 
         basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
@@ -221,7 +221,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                     .feedback()
                         .isInfo();
 
-        Assert.assertTrue(basicPage.orgStructure()
+        basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                     .getOrgHierarchyPanel()
                         .showTreeNodeDropDownMenu("Secret Operations")
@@ -231,7 +231,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                     .getMemberPanel()
                         .selectType("User")
                             .table()
-                            .containsText("kirk"));
+                            .assertTableContainsText("kirk");
 
         AccountPage accountPage = showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
         Selenide.screenshot("M9_accountPage");
