@@ -40,6 +40,7 @@ public class TaskFinishChecker implements Checker {
     private final int showProgressEach;
     private final boolean verbose;
     private final Consumer<Task> taskConsumer;
+    private final Boolean checkAlsoExecutionStatus;
 
     private Task freshTask;
     private long progressLastShown;
@@ -54,6 +55,7 @@ public class TaskFinishChecker implements Checker {
         showProgressEach = builder.showProgressEach;
         verbose = builder.verbose;
         taskConsumer = builder.taskConsumer;
+        checkAlsoExecutionStatus = builder.checkAlsoExecutionStatus;
     }
 
     @Override
@@ -75,12 +77,27 @@ public class TaskFinishChecker implements Checker {
             return false;
         } else if (isError(result, checkSubresult)) {
             if (errorOk) {
-                return true;
+                return executionStatusIsDone();
             } else {
                 throw new AssertionError("Error in " + freshTask + ": " + TestUtil.getErrorMessage(result));
             }
         } else {
-            return !isUnknown(result, checkSubresult) && !isInProgress(result, checkSubresult);
+            boolean resultDone = !isUnknown(result, checkSubresult) && !isInProgress(result, checkSubresult);
+            return resultDone && executionStatusIsDone();
+        }
+    }
+    
+    private boolean executionStatusIsDone() {
+        return !shouldCheckAlsoExecutionStatus() ||
+                freshTask.getExecutionStatus() == TaskExecutionStatus.CLOSED ||
+                freshTask.getExecutionStatus() == TaskExecutionStatus.SUSPENDED;
+    }
+
+    private boolean shouldCheckAlsoExecutionStatus() {
+        if (checkAlsoExecutionStatus != null) {
+            return checkAlsoExecutionStatus;
+        } else {
+            return freshTask.isSingle(); // For single-run tasks we can safely check the execution status.
         }
     }
 
@@ -111,6 +128,12 @@ public class TaskFinishChecker implements Checker {
         private int showProgressEach;
         private boolean verbose;
         private Consumer<Task> taskConsumer;
+
+        /**
+         * Does extra check based on execution status: the task is not considered finished if it is not CLOSED or SUSPENDED.
+         * Default is true for single-run tasks and false for recurring ones.
+         */
+        private Boolean checkAlsoExecutionStatus;
 
         public Builder taskManager(TaskManager val) {
             taskManager = val;
@@ -154,6 +177,11 @@ public class TaskFinishChecker implements Checker {
 
         public Builder taskConsumer(Consumer<Task> val) {
             taskConsumer = val;
+            return this;
+        }
+
+        public Builder checkAlsoExecutionStatus(Boolean val) {
+            checkAlsoExecutionStatus = val;
             return this;
         }
 

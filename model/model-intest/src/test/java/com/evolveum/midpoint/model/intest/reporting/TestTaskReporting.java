@@ -5,9 +5,10 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.intest;
+package com.evolveum.midpoint.model.intest.reporting;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
@@ -51,6 +52,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
             "resource-target.xml", "f1859897-0c10-430e-aefe-7ced49d14a23", "target");
     private static final TestResource<RoleType> ROLE_TARGET = new TestResource<>(TEST_DIR, "role-target.xml", "fdcd5c7a-86c0-4a0e-8b22-dda79183fcf3");
     private static final TestResource<TaskType> TASK_IMPORT = new TestResource<>(TEST_DIR, "task-import.xml", "e06f3f5c-4acc-4c6a-baa3-5c7a954ce4e9");
+    private static final TestResource<TaskType> TASK_RECONCILIATION = new TestResource<>(TEST_DIR, "task-reconciliation.xml", "566c822c-5db4-4879-a159-3749fef11c7a");
 
     private static final int USERS = 10;
 
@@ -77,24 +79,30 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
      * The task has basically nothing to do here: it cannot continue processing objects.
      * (Except for modifying the query to avoid poisoned object or objects.)
      */
-    @Test(enabled = false)
+    @Test
     public void test090ImportWithSearchFailing() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        DummyAccount account = RESOURCE_DUMMY_SOURCE.controller.getDummyResource().getAccountByUsername("u-000003");
+        String originalName = "u-000003";
+        DummyAccount account = RESOURCE_DUMMY_SOURCE.controller.getDummyResource().getAccountByUsername(originalName);
         account.setName(null); // This causes a failure during query execution (not even in the results handler).
+        try {
 
-        when();
-        addObject(TASK_IMPORT, task, result);
-        Task importTask = waitForTaskFinish(TASK_IMPORT.oid, true);
+            when();
+            addObject(TASK_IMPORT, task, result);
+            Task importTask = waitForTaskFinish(TASK_IMPORT.oid, builder -> builder.errorOk(true));
 
-        then();
-        stabilize();
-        assertTask(importTask, "import task after")
-                .assertSuccess()
-                .display();
+            then();
+            assertTask(importTask, "import task after")
+                    .display()
+                    .assertFatalError()
+                    .assertClosed();
+
+        } finally {
+            account.setName(originalName);
+        }
     }
 
     @Test
@@ -104,7 +112,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
         OperationResult result = task.getResult();
 
         when();
-        addObject(TASK_IMPORT, task, result);
+        rerunTask(TASK_IMPORT.oid, result);
         Task importTask = waitForTaskFinish(TASK_IMPORT.oid, true);
 
         then();
@@ -124,12 +132,42 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
         account.replaceAttributeValue(ATTR_NUMBER, "WRONG"); // Will cause problem when updating shadow
 
         when();
-        rerunTask(TASK_IMPORT.oid, result);
+        rerunTaskErrorsOk(TASK_IMPORT.oid, result);
 
         then();
         stabilize();
         assertTask(TASK_IMPORT.oid, "import task after")
                 .display()
-                .assertSuccess();
+                .assertPartialError()
+                .assertClosed()
+                .assertProgress(10)
+                .iterativeTaskInformation()
+                    .display()
+                    .end();
+    }
+
+    @Test
+    public void test120ReconciliationWithBrokenAccount() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // 3rd account is already broken
+
+        when();
+        addObject(TASK_RECONCILIATION, task, result);
+        waitForTaskFinish(TASK_RECONCILIATION.oid, builder -> builder.errorOk(true));
+
+        then();
+        stabilize();
+        assertTask(TASK_RECONCILIATION.oid, "reconciliation task after")
+                .display()
+                .displayOperationResult()
+                //.assertPartialError()
+                .assertClosed()
+                .assertProgress(11)
+                .iterativeTaskInformation()
+                    .display()
+                    .end();
     }
 }

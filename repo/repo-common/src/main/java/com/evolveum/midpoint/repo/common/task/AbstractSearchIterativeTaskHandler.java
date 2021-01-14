@@ -422,7 +422,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
         ObjectQuery bucketNarrowedQuery;
         try {
             bucketNarrowedQuery = taskManager.narrowQueryForWorkBucket(queryFromHandler, type,
-                    getIdentifierDefinitionProvider(localCoordinatorTask, opResult), localCoordinatorTask,
+                    resultHandler.getIdentifierDefinitionProvider(), localCoordinatorTask,
                     workBucket, opResult);
         } catch (SchemaException | ObjectNotFoundException e) {
             throw new ExitWorkBucketHandlerException(
@@ -462,11 +462,6 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
                     logErrorAndSetResult(runResult, null, "Error while creating a result handler", e,
                     OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR));
         }
-    }
-
-    protected Function<ItemPath,ItemDefinition<?>> getIdentifierDefinitionProvider(Task localCoordinatorTask,
-            OperationResult opResult) {
-        return null;
     }
 
     /**

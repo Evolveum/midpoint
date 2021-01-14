@@ -8,12 +8,13 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.impl.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
@@ -23,16 +24,17 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Function;
 
 /**
  * Iterative search result handler for account synchronization. Works both for
@@ -52,31 +54,32 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizeAccountResultHandler.class);
 
-    private ResourceObjectChangeListener objectChangeListener;
-    private String resourceOid;
+    private final ResourceObjectChangeListener objectChangeListener;
+    private final String resourceOid;
     // TODO Is PCV really not thread safe for reading?! Even now, after Xerces-related issues were eliminated?
-    private ThreadLocal<ResourceType> resourceWorkingCopy = new ThreadLocal<>();       // because PrismContainer is not thread safe even for reading, each thread must have its own copy
-    private ResourceType resourceReadOnly;                // this is a "master copy", not to be touched by getters - its content is copied into resourceWorkingCopy content when needed
-    private ObjectClassComplexTypeDefinition objectClassDef;
+    private final ThreadLocal<ResourceType> resourceWorkingCopy = new ThreadLocal<>(); // because PrismContainer is not thread safe even for reading, each thread must have its own copy
+    private final ResourceType resourceReadOnly; // this is a "master copy", not to be touched by getters - its content is copied into resourceWorkingCopy content when needed
+    @NotNull private final ObjectClassComplexTypeDefinition objectClassDef;
+    @NotNull private final SynchronizationObjectsFilter objectsFilter;
     private QName sourceChannel;
     private boolean forceAdd;
-    private boolean intentIsNull;
 
-    public SynchronizeAccountResultHandler(ResourceType resource, ObjectClassComplexTypeDefinition objectClassDef,
-            String processShortName, RunningTask coordinatorTask, ResourceObjectChangeListener objectChangeListener,
+    public SynchronizeAccountResultHandler(ResourceType resource, @NotNull ObjectClassComplexTypeDefinition objectClassDef,
+            @NotNull SynchronizationObjectsFilter objectsFilter, String processShortName, RunningTask coordinatorTask, ResourceObjectChangeListener objectChangeListener,
             TaskPartitionDefinitionType stageType, TaskManager taskManager) {
         super(coordinatorTask, SynchronizeAccountResultHandler.class.getName(), processShortName, "from "+resource, stageType, taskManager);
+        this.objectsFilter = objectsFilter;
         this.objectChangeListener = objectChangeListener;
         this.resourceReadOnly = resource;
         this.resourceOid = resource.getOid();
         this.objectClassDef = objectClassDef;
         forceAdd = false;
-        setRecordIterationStatistics(false);        // we do statistics ourselves in handler, because in case of reconciliation
-                                                    // we are not called via AbstractSearchIterativeResultHandler.processRequest
-    }
 
-    void setIntentIsNull(boolean intentIsNull) {
-        this.intentIsNull = intentIsNull;
+        /*
+         * We do statistics ourselves in handler, because in case of reconciliation
+         * we are not called via AbstractSearchIterativeResultHandler.processRequest
+         */
+        setRecordIterationStatistics(false);
     }
 
     public void setForceAdd(boolean forceAdd) {
@@ -91,7 +94,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
         return resourceOid;
     }
 
-    private ResourceType getResourceWorkingCopy() {
+    @NotNull private ResourceType getResourceWorkingCopy() {
         ResourceType existingWorkingCopy = resourceWorkingCopy.get();
         if (existingWorkingCopy != null) {
             return existingWorkingCopy;
@@ -117,14 +120,25 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
         ShadowType shadow = shadowObject.asObjectable();
         try {
             workerTask.recordIterativeOperationStart(shadow);
-            boolean rv = handleObjectInternal(shadowObject, started, workerTask, result);
-            result.computeStatusIfUnknown();
-            if (result.isError()) {
-                workerTask.recordIterativeOperationEnd(shadow, started, RepoCommonUtils.getResultException(result));
+            if (!ObjectTypeUtil.hasFetchError(shadowObject)) {
+                boolean rv = handleObjectInternal(shadowObject, started, workerTask, result);
+                result.computeStatusIfUnknown();
+                if (result.isError()) {
+                    workerTask.recordIterativeOperationEnd(shadow, started, RepoCommonUtils.getResultException(result));
+                } else {
+                    workerTask.recordIterativeOperationEnd(shadow, started, null);
+                }
+                return rv;
             } else {
-                workerTask.recordIterativeOperationEnd(shadow, started, null);
+                OperationResultType fetchResult = shadow.getFetchResult();
+                // The following exception will be artificial, without stack trace because
+                // of operation result conversions (native -> bean -> native).
+                Throwable fetchResultException = RepoCommonUtils.getResultException(fetchResult);
+                workerTask.recordIterativeOperationEnd(shadow, started, fetchResultException);
+                result.recordFatalError("Skipped malformed resource object: " + fetchResultException.getMessage(),
+                        fetchResultException);
+                return true;
             }
-            return rv;
         } catch (Throwable t) {
             workerTask.recordIterativeOperationEnd(shadow, started, t);
             throw t;
@@ -144,14 +158,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
             return workerTask.canRun();
         }
 
-        boolean isMatches;
-        if (intentIsNull && objectClassDef instanceof RefinedObjectClassDefinition) {
-            isMatches = ((RefinedObjectClassDefinition)objectClassDef).matchesWithoutIntent(shadow);
-        } else {
-            isMatches = objectClassDef.matches(shadow);
-        }
-
-        if (objectClassDef != null && !isShadowUnknown(shadow) && !isMatches) {
+        if (!isShadowUnknown(shadow) && !objectsFilter.matches(shadow)) {
             LOGGER.trace("{} skipping {} because it does not match objectClass/kind/intent specified in {}",
                     getProcessShortNameCapitalized(), shadowObject, objectClassDef);
             SynchronizationInformation.Record record = SynchronizationInformation.Record.createNotApplicable();
@@ -210,5 +217,16 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
     private boolean isShadowUnknown(ShadowType shadowType) {
         return ShadowKindType.UNKNOWN == shadowType.getKind()
                 || SchemaConstants.INTENT_UNKNOWN.equals(shadowType.getIntent());
+    }
+
+    @Override
+    protected Function<ItemPath, ItemDefinition<?>> getIdentifierDefinitionProvider() {
+        return itemPath -> {
+            if (itemPath.startsWithName(ShadowType.F_ATTRIBUTES)) {
+                return objectClassDef.findAttributeDefinition(itemPath.rest().asSingleName());
+            } else {
+                return null;
+            }
+        };
     }
 }

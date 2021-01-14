@@ -940,24 +940,29 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     @Override
     public String addTask(PrismObject<TaskType> taskPrism, RepoAddOptions options, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "addTask");
-        if (taskPrism.asObjectable().getOwnerRef() == null) {
-            try {
-                MidPointPrincipal principal = SecurityUtil.getPrincipal();
-                if (principal != null) {
-                    ObjectReferenceType newOwnerRef = ObjectTypeUtil.createObjectRef(principal.getFocus(), prismContext);
-                    taskPrism.asObjectable().setOwnerRef(newOwnerRef);
+        try {
+            if (taskPrism.asObjectable().getOwnerRef() == null) {
+                try {
+                    MidPointPrincipal principal = SecurityUtil.getPrincipal();
+                    if (principal != null) {
+                        ObjectReferenceType newOwnerRef = ObjectTypeUtil.createObjectRef(principal.getFocus(), prismContext);
+                        taskPrism.asObjectable().setOwnerRef(newOwnerRef);
+                    }
+                } catch (SecurityViolationException e) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine logged-in user. Task owner was not set.", e);
                 }
-            } catch (SecurityViolationException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine logged-in user. Task owner was not set.", e);
             }
+            TaskQuartzImpl task = createTaskInstance(taskPrism, result);            // perhaps redundant, but it's more convenient to work with Task than with Task prism
+            if (task.getTaskIdentifier() == null) {
+                task.setTaskIdentifier(generateTaskIdentifier().toString());
+            }
+            return addTaskToRepositoryAndQuartz(task, options, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
         }
-        TaskQuartzImpl task = createTaskInstance(taskPrism, result);            // perhaps redundant, but it's more convenient to work with Task than with Task prism
-        if (task.getTaskIdentifier() == null) {
-            task.setTaskIdentifier(generateTaskIdentifier().toString());
-        }
-        String oid = addTaskToRepositoryAndQuartz(task, options, result);
-        result.computeStatus();
-        return oid;
     }
 
     private String addTaskToRepositoryAndQuartz(Task task, RepoAddOptions options,

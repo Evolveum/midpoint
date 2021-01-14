@@ -7,14 +7,14 @@
 package com.evolveum.midpoint.model.impl.importer;
 
 import java.util.Collection;
-import java.util.function.Function;
 
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.model.impl.sync.SynchronizationObjectsFilter;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.SchemaHelper;
 import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -87,6 +87,7 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
     @Autowired private TaskManager taskManager;
     @Autowired private ProvisioningService provisioningService;
     @Autowired private ChangeNotificationDispatcher changeNotificationDispatcher;
+    @Autowired private SchemaHelper schemaHelper;
 
     private PrismPropertyDefinition<QName> objectclassPropertyDefinition;
 
@@ -169,73 +170,22 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
         if (resource == null) {
             return null;
         }
-        return createHandler(partition, resource, null, runResult, coordinatorTask, opResult);
-    }
-
-    // shadowToImport - it is used to derive objectClass/intent/kind when importing a single shadow
-    private SynchronizeAccountResultHandler createHandler(TaskPartitionDefinitionType partition, ResourceType resource, PrismObject<ShadowType> shadowToImport,
-            TaskRunResult runResult, RunningTask coordinatorTask, OperationResult opResult) {
-        ObjectClassComplexTypeDefinition objectClass = determineObjectClassDefinition(resource, shadowToImport, runResult, coordinatorTask, opResult);
-        if (objectClass == null) {
-            return null;
-        }
-        return createHandler(partition, resource, objectClass, coordinatorTask);
+        return createHandler(resource, null, coordinatorTask, partition, runResult, opResult);
     }
 
     // shadowToImport - it is used to derive objectClass/intent/kind when importing a single shadow
     private SynchronizeAccountResultHandler createHandlerForSingleShadow(@NotNull ResourceType resource, @NotNull PrismObject<ShadowType> shadowToImport,
             TaskRunResult runResult, RunningTask task, OperationResult opResult) {
-        ObjectClassComplexTypeDefinition objectClass = determineObjectClassDefinition(resource, shadowToImport, runResult, task, opResult);
-        if (objectClass == null) {
-            return null;
-        }
-        return createHandler(null, resource, objectClass, task);
+        return createHandler(resource, shadowToImport, task, null, runResult, opResult);
     }
 
-    private SynchronizeAccountResultHandler createHandler(TaskPartitionDefinitionType partition, @NotNull ResourceType resource, @NotNull ObjectClassComplexTypeDefinition objectClass,
-            RunningTask coordinatorTask) {
-        LOGGER.info("Start executing import from resource {}, importing object class {}", resource, objectClass.getTypeName());
+    private SynchronizeAccountResultHandler createHandler(@NotNull ResourceType resource,
+            @Nullable PrismObject<ShadowType> shadowToImport, RunningTask coordinatorTask, TaskPartitionDefinitionType partition,
+            TaskRunResult runResult, OperationResult opResult) {
 
-        SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource, objectClass, "import",
-                coordinatorTask, changeNotificationDispatcher, partition, taskManager);
-        handler.setSourceChannel(SchemaConstants.CHANNEL_IMPORT);
-        handler.setForceAdd(true);
-        handler.setStopOnError(false);
-        handler.setContextDesc("from "+resource);
-        handler.setLogObjectProgress(true);
-
-        return handler;
-    }
-
-    // TODO
-    @Override
-    protected Function<ItemPath, ItemDefinition<?>> getIdentifierDefinitionProvider(Task localCoordinatorTask,
-            OperationResult opResult) {
-        TaskRunResult dummyRunResult = new TaskRunResult();
-        ResourceType resource = resolveObjectRef(ResourceType.class, dummyRunResult, localCoordinatorTask, opResult);
-        if (resource == null) {
-            return null;
-        }
-        ObjectClassComplexTypeDefinition objectClass = determineObjectClassDefinition(resource, null, dummyRunResult, localCoordinatorTask, opResult);
-        if (objectClass == null) {
-            return null;
-        }
-        return itemPath -> {
-            if (itemPath.startsWithName(ShadowType.F_ATTRIBUTES)) {
-                return objectClass.findAttributeDefinition(itemPath.rest().asSingleName());
-            } else {
-                return null;
-            }
-        };
-    }
-
-    @Nullable
-    private ObjectClassComplexTypeDefinition determineObjectClassDefinition(ResourceType resource,
-            PrismObject<ShadowType> shadowToImport, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
-        RefinedResourceSchema refinedSchema;
         ObjectClassComplexTypeDefinition objectClass;
         try {
-            refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
+            RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
 
             LOGGER.trace("Refined schema:\n{}", refinedSchema.debugDumpLazily());
 
@@ -256,7 +206,20 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return null;
         }
-        return objectClass;
+
+        LOGGER.info("Start executing import from resource {}, importing object class {}", resource, objectClass.getTypeName());
+
+        SynchronizationObjectsFilter objectsFilter = ModelImplUtils.determineSynchronizationObjectsFilter(objectClass, coordinatorTask);
+
+        SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource, objectClass, objectsFilter, "import",
+                coordinatorTask, changeNotificationDispatcher, partition, taskManager);
+        handler.setSourceChannel(SchemaConstants.CHANNEL_IMPORT);
+        handler.setForceAdd(true);
+        handler.setStopOnError(false);
+        handler.setContextDesc("from "+resource);
+        handler.setLogObjectProgress(true);
+
+        return handler;
     }
 
     @Override
@@ -268,20 +231,16 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
     protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptions(
             SynchronizeAccountResultHandler resultHandler, TaskRunResult runResult, Task coordinatorTask,
             OperationResult opResult) {
-        Collection<SelectorOptions<GetOperationOptions>> options = super.createSearchOptions(resultHandler, runResult, coordinatorTask, opResult);
-        GetOperationOptions doDiscovery = new GetOperationOptions();
-        doDiscovery.setDoNotDiscovery(false);
-        if (options == null) {
-            options = SelectorOptions.createCollection(doDiscovery);
-        } else {
-            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-            if (rootOptions == null) {
-                options.add(SelectorOptions.create(doDiscovery));
-            } else {
-                rootOptions.setDoNotDiscovery(false);
-            }
-        }
-        return options;
+        Collection<SelectorOptions<GetOperationOptions>> defaultOptions = schemaHelper.getOperationOptionsBuilder()
+                .doNotDiscovery(false)
+                .errorReportingMethod(FetchErrorReportingMethodType.FETCH_RESULT)
+                .build();
+        Collection<SelectorOptions<GetOperationOptions>> configuredOptions =
+                super.createSearchOptions(resultHandler, runResult, coordinatorTask, opResult);
+
+        // It is questionable if "do not discovery" and "error reporting" can be overridden from the task
+        // or not. Let us assume reasonable administrators and allow the overriding. Otherwise we would swap the arguments below.
+        return GetOperationOptions.merge(prismContext, defaultOptions, configuredOptions);
     }
 
     @Override

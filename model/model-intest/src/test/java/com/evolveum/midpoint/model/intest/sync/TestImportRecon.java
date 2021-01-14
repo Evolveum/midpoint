@@ -1306,7 +1306,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECONCILE_DUMMY_OID);
         OperationResultType reconTaskResult = reconTaskAfter.asObjectable().getResult();
         display("Recon task result", reconTaskResult);
-        TestUtil.assertSuccess(reconTaskResult);
+
+        // There's (expected) "object not found" error related to ht that was renamed.
+        TestUtil.assertSuccess("reconciliation", reconTaskResult, 4);
     }
 
     private void addReconScripts(Collection<ProvisioningScriptSpec> scripts, String username, String fullName, boolean modified) {

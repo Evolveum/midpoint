@@ -3121,8 +3121,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return waitForTaskFinish(taskOid, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
     }
 
-    protected Task waitForTaskFinish(String taskOid, boolean checkSubresult, Function<TaskFinishChecker.Builder, TaskFinishChecker.Builder> customizer) throws CommonException {
-        return waitForTaskFinish(taskOid, checkSubresult, 0, DEFAULT_TASK_WAIT_TIMEOUT, false, 0, customizer);
+    protected Task waitForTaskFinish(String taskOid, Function<TaskFinishChecker.Builder, TaskFinishChecker.Builder> customizer) throws CommonException {
+        return waitForTaskFinish(taskOid, false, 0, DEFAULT_TASK_WAIT_TIMEOUT, false, 0, customizer);
     }
 
     protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout) throws CommonException {

@@ -6,7 +6,9 @@
  */
 package com.evolveum.midpoint.repo.common.task;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
@@ -38,6 +40,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 
 /**
  * @author semancik
@@ -159,10 +162,6 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
     @Override
     public boolean handle(PrismObject<O> object, OperationResult parentResult) {
-        if (object.getOid() == null) {
-            throw new IllegalArgumentException("Object has null OID");
-        }
-
         ProcessingRequest request = new ProcessingRequest(object);
         if (requestQueue != null) {
             // by not putting anything in the parent result we hope the status will be SUCCESS
@@ -177,7 +176,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
                 return false;
             }
         } else {
-            processRequest(request, coordinatorTask, parentResult);            // coordinator is also a worker here
+            processRequest(request, coordinatorTask, parentResult); // coordinator is also a worker here
         }
 
         return !shouldStop(parentResult);
@@ -250,8 +249,12 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
     public void completeProcessing(Task task, OperationResult result) {
         signalAllItemsSubmitted();
-        waitForCompletion(result);              // in order to provide correct statistics results, we have to wait until all child tasks finish
+        waitForCompletion(result); // in order to provide correct statistics results, we have to wait until all child tasks finish
         updateOperationResult(result);
+    }
+
+    protected Function<ItemPath, ItemDefinition<?>> getIdentifierDefinitionProvider() {
+        return null;
     }
 
     class WorkerHandler implements LightweightTaskHandler {
@@ -446,7 +449,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
         } else {
             message = result.getMessage();
         }
-        if (logErrors && LOGGER.isErrorEnabled()) {
+        if (logErrors) {
             LOGGER.error("{} of object {} {} failed: {}", getProcessShortNameCapitalized(), object, getContextDesc(), message, ex);
         }
         // We do not want to override the result set by handler. This is just a fallback case
@@ -456,7 +459,6 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
         }
         result.summarize();
         return canContinue(task, ex, result);
-//        return !isStopOnError();
     }
 
     private boolean canContinue(Task task, Throwable ex, OperationResult result) {
@@ -517,7 +519,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
     public void createWorkerThreads(RunningTask coordinatorTask) {
         Integer threadsCount = getWorkerThreadsCount(coordinatorTask);
         if (threadsCount == null || threadsCount == 0) {
-            return;             // nothing to do
+            return;
         }
 
         // remove subtasks that could have been created during processing of previous buckets

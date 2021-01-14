@@ -232,7 +232,13 @@ public interface ObjectClassComplexTypeDefinition extends ComplexTypeDefinition 
     @Override
     ObjectClassComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction);
 
-    boolean matches(ShadowType shadowType);
+    /**
+     * Do not use. Unclear semantics.
+     * For synchronization tasks use {@link com.evolveum.midpoint.model.impl.sync.SynchronizationObjectsFilter} class instead.
+     */
+    @SuppressWarnings("JavadocReference")
+    @Deprecated
+    boolean matches(ShadowType shadow);
 
     MutableObjectClassComplexTypeDefinition toMutable();
 }

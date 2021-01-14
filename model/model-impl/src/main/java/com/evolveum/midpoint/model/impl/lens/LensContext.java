@@ -123,7 +123,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      */
     private MetadataType requestMetadata;
 
-    /*
+    /**
      * Executed deltas from rotten contexts.
      */
     private final List<LensObjectDeltaOperation<?>> rottenExecutedDeltas = new ArrayList<>();
