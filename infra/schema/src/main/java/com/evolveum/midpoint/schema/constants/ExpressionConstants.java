@@ -48,6 +48,7 @@ public class ExpressionConstants {
     public static final String VAR_CONFIGURATION = "configuration";
     public static final String VAR_ENTITLEMENT = "entitlement";
     public static final String VAR_FILE = "file";
+    public static final String VAR_PARENT_OBJECT = "parent";
 
     /**
      * User that is currently executing the operation.

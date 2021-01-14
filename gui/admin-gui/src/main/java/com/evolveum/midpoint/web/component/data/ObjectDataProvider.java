@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.component.data;
 import java.io.Serializable;
 import java.util.*;
 
+import com.evolveum.midpoint.web.component.search.Search;
+
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -29,39 +31,38 @@ import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author lazyman
  */
-public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
-        extends BaseSortableDataProvider<W> {
+public class ObjectDataProvider<W extends Serializable, O extends ObjectType>
+        extends BaseSearchDataProvider<O, W> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectDataProvider.class);
     private static final String DOT_CLASS = ObjectDataProvider.class.getName() + ".";
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
     private static final String OPERATION_COUNT_OBJECTS = DOT_CLASS + "countObjects";
 
-    private final Set<T> selected = new HashSet<>();
+    private final Set<O> selected = new HashSet<>();
 
-    private Class<T> type;
     private Collection<SelectorOptions<GetOperationOptions>> options;
 
-    public ObjectDataProvider(Component component, Class<T> type) {
-        super(component, true);
-
-        Validate.notNull(type);
-        this.type = type;
+    public ObjectDataProvider(Component component, IModel<Search<O>> search) {
+        super(component, search, true);
     }
 
-    public List<T> getSelectedData() {
+    public List<O> getSelectedData() {
         for (Serializable s : super.getAvailableData()) {
             if (s instanceof SelectableBeanImpl) {
-                SelectableBeanImpl<T> selectable = (SelectableBeanImpl<T>) s;
+                SelectableBeanImpl<O> selectable = (SelectableBeanImpl<O>) s;
                 if (selectable.isSelected() && selectable.getValue() != null) {
                     selected.add(selectable.getValue());
                 }
             }
         }
-        List<T> allSelected = new ArrayList<>(selected);
+        List<O> allSelected = new ArrayList<>(selected);
         return allSelected;
     }
 
@@ -77,7 +78,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
 
         for (W available : getAvailableData()) {
             if (available instanceof SelectableBeanImpl) {
-                SelectableBeanImpl<T> selectableBean = (SelectableBeanImpl<T>) available;
+                SelectableBeanImpl<O> selectableBean = (SelectableBeanImpl<O>) available;
                 if (selectableBean.isSelected() && selectableBean.getValue() != null) {
                     selected.add(selectableBean.getValue());
                 }
@@ -86,7 +87,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
 
         for (W available : getAvailableData()) {
             if (available instanceof SelectableBeanImpl) {
-                SelectableBeanImpl<T> selectableBean = (SelectableBeanImpl<T>) available;
+                SelectableBeanImpl<O> selectableBean = (SelectableBeanImpl<O>) available;
                 if (!selectableBean.isSelected()) {
                     selected.remove(selectableBean.getValue());
                 }
@@ -98,7 +99,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
         OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECTS);
         try {
             ObjectPaging paging = createPaging(first, count);
-            Task task = getPage().createSimpleTask(OPERATION_SEARCH_OBJECTS);
+            Task task = getPageBase().createSimpleTask(OPERATION_SEARCH_OBJECTS);
 
             ObjectQuery query = getQuery();
             if (query == null) {
@@ -107,20 +108,20 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
             query.setPaging(paging);
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Query {} with {}", type.getSimpleName(), query.debugDump());
+                LOGGER.trace("Query {} with {}", getType().getSimpleName(), query.debugDump());
             }
 
-            List<PrismObject<T>> list = getModel().searchObjects(type, query, getOptionsToUse(), task, result);
+            List<PrismObject<O>> list = getModel().searchObjects(getType(), query, getOptionsToUse(), task, result);
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Query {} resulted in {} objects", type.getSimpleName(), list.size());
+                LOGGER.trace("Query {} resulted in {} objects", getType().getSimpleName(), list.size());
             }
 
-            for (PrismObject<T> object : list) {
+            for (PrismObject<O> object : list) {
                 getAvailableData().add(createDataObjectWrapper(object));
             }
         } catch (Exception ex) {
-            result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.listObjects.fatalError").getString(), ex);
+            result.recordFatalError(getPageBase().createStringResource("ObjectDataProvider.message.listObjects.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't list objects", ex);
         } finally {
             result.computeStatusIfUnknown();
@@ -140,12 +141,12 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
     }
 
     protected void handleNotSuccessOrHandledErrorInIterator(OperationResult result) {
-        getPage().showResult(result);
+        getPageBase().showResult(result);
         throw new RestartResponseException(PageError.class);
     }
 
-    public W createDataObjectWrapper(PrismObject<T> obj) {
-        SelectableBeanImpl<T> selectable = new SelectableBeanImpl<>(obj.asObjectable());
+    public W createDataObjectWrapper(PrismObject<O> obj) {
+        SelectableBeanImpl<O> selectable = new SelectableBeanImpl<>(obj.asObjectable());
         if (selected.contains(obj.asObjectable())) {
             selectable.setSelected(true);
         }
@@ -158,17 +159,17 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
-            Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
-            count = getModel().countObjects(type, getQuery(), getOptionsToUse(), task, result);
+            Task task = getPageBase().createSimpleTask(OPERATION_COUNT_OBJECTS);
+            count = getModel().countObjects(getType(), getQuery(), getOptionsToUse(), task, result);
         } catch (Exception ex) {
-            result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.countObjects.fatalError").getString(), ex);
+            result.recordFatalError(getPageBase().createStringResource("ObjectDataProvider.message.countObjects.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);
         } finally {
             result.computeStatusIfUnknown();
         }
 
         if (!WebComponentUtil.isSuccessOrHandledError(result) && !OperationResultStatus.NOT_APPLICABLE.equals(result.getStatus())) {
-            getPage().showResult(result);
+            getPageBase().showResult(result);
             throw new RestartResponseException(PageError.class);
         }
 
@@ -178,20 +179,20 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
 
     @Override
     protected CachedSize getCachedSize(Map<Serializable, CachedSize> cache) {
-        return cache.get(new TypedCacheKey(getQuery(), type));
+        return cache.get(new TypedCacheKey(getQuery(), getType()));
     }
 
     @Override
     protected void addCachedSize(Map<Serializable, CachedSize> cache, CachedSize newSize) {
-        cache.put(new TypedCacheKey(getQuery(), type), newSize);
+        cache.put(new TypedCacheKey(getQuery(), getType()), newSize);
     }
 
-    public void setType(Class<T> type) {
-        Validate.notNull(type, "Class must not be null.");
-        this.type = type;
-
-        clearCache();
-    }
+//    public void setType(Class<O> type) {
+//        Validate.notNull(type, "Class must not be null.");
+//        this.type = type;
+//
+//        clearCache();
+//    }
 
     public Collection<SelectorOptions<GetOperationOptions>> getOptions() {
         return options;

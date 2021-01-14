@@ -30,6 +30,7 @@ public class Search<T> extends Component<T> {
 
     public TextInputSearchItemPanel<Search<T>> byName() {
         choiceBasicSearch();
+
         SelenideElement nameElement = getItemByName("Name");
         if (nameElement == null){
             addSearchItemByNameLinkClick("Name");
@@ -105,7 +106,9 @@ public class Search<T> extends Component<T> {
     private void choiceBasicSearch() {
         SelenideElement linksContainer = getParentElement().$(Schrodinger.byDataId("div", "linksContainer")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
         try {
-            linksContainer.$(Schrodinger.byDataId("a", "basic")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+            SelenideElement basicLink = linksContainer.$(Schrodinger.byDataId("a", "basic"));
+            basicLink.waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+            basicLink.waitWhile(Condition.appears, MidPoint.TIMEOUT_MEDIUM_6_S);
         } catch (Throwable t) {
             // all is ok, basic search is already selected option, TODO: Schrodinger should provide easy method to check component existence
         }

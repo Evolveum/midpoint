@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.google.common.collect.ImmutableSet;
 
 public class TestExtraSchema extends AbstractPrismTest {
 
@@ -39,6 +40,7 @@ public class TestExtraSchema extends AbstractPrismTest {
 
     private static final ItemName USER_EXTENSION_TYPE_QNAME = new ItemName(NS_USER_EXT, "UserExtensionType");
     private static final ItemName USER_2_EXTENSION_TYPE_QNAME = new ItemName(NS_USER_2_EXT, "User2ExtensionType");
+    private static final ItemName USER_3__EXTENSION_TYPE_QNAME = new ItemName(PrismInternalTestUtil.USER_EXTENSION);
 
     private static final ItemName USER_EXT_2_ELEMENT = new ItemName(NS_USER_2_EXT, "ext2");
 
@@ -147,7 +149,8 @@ public class TestExtraSchema extends AbstractPrismTest {
 
         assertTrue("Extension is not dynamic", extDef.isRuntimeSchema());
         assertTrue("Wrong extension type " + extDef.getTypeName(),
-                USER_EXTENSION_TYPE_QNAME.equals(extDef.getTypeName()) || USER_2_EXTENSION_TYPE_QNAME.equals(extDef.getTypeName()));
+                ImmutableSet.<QName>of(USER_EXTENSION_TYPE_QNAME, USER_2_EXTENSION_TYPE_QNAME, USER_3__EXTENSION_TYPE_QNAME).contains(extDef.getTypeName())
+                );
         assertEquals("Wrong extension displayOrder", (Integer) 1000, extDef.getDisplayOrder());
 
         PrismPropertyDefinition barPropDef = extDef.findPropertyDefinition(USER_EXT_BAR_ELEMENT);

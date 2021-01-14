@@ -12,6 +12,7 @@ import java.io.Serializable;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.session.PageStorage;
 
 import org.apache.commons.lang3.Validate;
@@ -162,7 +163,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         return new Model<>(object);
     }
 
-    protected PageBase getPage() {
+    protected PageBase getPageBase() {
         if (component instanceof PageBase) {
             return (PageBase) component;
         }

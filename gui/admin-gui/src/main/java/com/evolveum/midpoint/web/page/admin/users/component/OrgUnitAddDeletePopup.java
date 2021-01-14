@@ -79,8 +79,18 @@ public class OrgUnitAddDeletePopup extends ModalWindow{
     public void initLayout(WebMarkupContainer content){
         List<IColumn<SelectableBeanImpl<ObjectType>, String>> columns = initColumns();
 
-        ObjectDataProvider provider = new ObjectDataProvider(getPageBase(), OrgType.class);
-        provider.setQuery(getDataProviderQuery());
+        ObjectQuery query = getDataProviderQuery();
+        ObjectDataProvider provider = new ObjectDataProvider(getPageBase(), null){
+            @Override
+            public ObjectQuery getQuery() {
+                return query;
+            }
+
+            @Override
+            public Class getType() {
+                return OrgType.class;
+            }
+        };
 
         TablePanel table = new TablePanel<>(ID_TABLE, provider, columns);
         table.setOutputMarkupId(true);

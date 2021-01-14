@@ -34,6 +34,7 @@ import java.util.List;
 
 public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
 
+
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override
     public void beforeClass() throws IOException {

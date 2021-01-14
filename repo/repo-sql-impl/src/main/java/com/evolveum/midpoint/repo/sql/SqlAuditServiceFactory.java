@@ -37,6 +37,7 @@ import com.evolveum.midpoint.repo.sql.helpers.JdbcSession;
 import com.evolveum.midpoint.repo.sql.util.EntityStateInterceptor;
 import com.evolveum.midpoint.repo.sql.util.MidPointImplicitNamingStrategy;
 import com.evolveum.midpoint.repo.sql.util.MidPointPhysicalNamingStrategy;
+import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.repo.sqlbase.SqlTableMetadata;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -155,7 +156,7 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
         // creating managed beans - we want to create alternative non-managed BaseHelper.
         SqlRepositoryBeanConfig beanConfig = new SqlRepositoryBeanConfig();
         LocalSessionFactoryBean sessionFactoryBean = beanConfig.sessionFactory(
-                dataSource, dataSourceFactory, midPointImplicitNamingStrategy,
+                dataSource, config, midPointImplicitNamingStrategy,
                 midPointPhysicalNamingStrategy, entityStateInterceptor);
         // we don't want to check all the entities, only audit ones
         sessionFactoryBean.setPackagesToScan("com.evolveum.midpoint.repo.sql.data.audit");

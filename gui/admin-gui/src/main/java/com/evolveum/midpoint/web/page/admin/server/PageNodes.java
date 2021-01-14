@@ -361,7 +361,7 @@ public class PageNodes extends PageAdmin {
         }
 
         showResult(result);
-        getTable().refreshTable(NodeType.class, target);
+        getTable().refreshTable(target);
         target.add(getTable());
     }
 
@@ -384,7 +384,7 @@ public class PageNodes extends PageAdmin {
             result.recordFatalError(createStringResource("pageTasks.message.stopSchedulersPerformed.fatalError").getString(), e);
         }
         showResult(result);
-        getTable().refreshTable(NodeType.class, target);
+        getTable().refreshTable(target);
         target.add(getTable());
     }
 
@@ -416,7 +416,7 @@ public class PageNodes extends PageAdmin {
         showResult(result);
 
         // refresh feedback and table
-        getTable().refreshTable(NodeType.class, target);
+        getTable().refreshTable(target);
         target.add(getTable());
 
     }
@@ -448,7 +448,7 @@ public class PageNodes extends PageAdmin {
         }
         showResult(result);
 
-        getTable().refreshTable(NodeType.class, target);
+        getTable().refreshTable(target);
         target.add(getTable());
     }
 

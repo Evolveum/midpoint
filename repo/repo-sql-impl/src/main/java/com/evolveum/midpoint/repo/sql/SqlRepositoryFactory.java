@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -20,18 +20,17 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.h2.tools.Server;
-import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
+import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryServiceFactory;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Factory for {@link SqlRepositoryServiceImpl} implementing {@link RepositoryService}.
  */
-public class SqlRepositoryFactory implements RepositoryServiceFactory {
+public class SqlRepositoryFactory implements JdbcRepositoryServiceFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryFactory.class);
 
@@ -136,7 +135,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
     }
 
     private void startServer() throws RepositoryServiceFactoryException {
-        SqlRepositoryConfiguration config = getSqlConfiguration();
+        SqlRepositoryConfiguration config = getConfiguration();
         checkPort(config.getPort());
 
         try {
@@ -238,8 +237,8 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         return sqlRepositoryService;
     }
 
-    @NotNull
-    public SqlRepositoryConfiguration getSqlConfiguration() {
+    @Override
+    public SqlRepositoryConfiguration getConfiguration() {
         Validate.notNull(sqlConfiguration, "SQL repository configuration not available (null).");
         return sqlConfiguration;
     }
@@ -250,7 +249,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             sqlRepositoryService.destroy();
         }
 
-        if (!getSqlConfiguration().isEmbedded()) {
+        if (!getConfiguration().isEmbedded()) {
             LOGGER.info("Repository is not running in embedded mode, shutdown complete.");
             return;
         }
@@ -262,7 +261,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             // just ignore
         }
 
-        if (getSqlConfiguration().isAsServer()) {
+        if (getConfiguration().isAsServer()) {
             LOGGER.info("Shutting down embedded H2");
             if (server != null && server.isRunning(true)) {
                 server.stop();

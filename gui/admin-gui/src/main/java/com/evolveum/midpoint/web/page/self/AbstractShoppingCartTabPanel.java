@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.search.Search;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxChannel;
@@ -119,22 +121,22 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         final Form searchForm = new MidpointForm(ID_SEARCH_FORM);
         searchForm.setOutputMarkupId(true);
 
-        SearchPanel search = new SearchPanel(ID_SEARCH,
-                Model.of(getRoleCatalogStorage().getSearch() != null ? getRoleCatalogStorage().getSearch() :
-                        SearchFactory.createSearch(getQueryClass(), getPageBase())),
-                false) {
+        IModel<Search> searchModel = Model.of(getRoleCatalogStorage().getSearch() != null ? getRoleCatalogStorage().getSearch() :
+                SearchFactory.createSearch(getQueryClass(), getPageBase()));
+        SearchPanel search = new SearchPanel(ID_SEARCH, searchModel, false) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
-                AbstractShoppingCartTabPanel.this.searchPerformed(query, target);
+            public void searchPerformed(AjaxRequestTarget target) {
+                AbstractShoppingCartTabPanel.this.searchPerformed(target);
             }
         };
+        getRoleCatalogStorage().setSearch(searchModel.getObject());
         searchForm.add(search);
         shoppingCartContainer.add(searchForm);
     }
 
-    protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
+    protected void searchPerformed(AjaxRequestTarget target) {
         getRoleCatalogStorage().setSearch(getSearchPanel().getModelObject());
         target.add(AbstractShoppingCartTabPanel.this);
     }
@@ -385,8 +387,15 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
     }
 
     private ObjectDataProvider<AssignmentEditorDto, AbstractRoleType> getTabPanelProvider() {
+        IModel<Search<AbstractRoleType>> searchModel = new IModel<Search<AbstractRoleType>>() {
+
+            @Override
+            public Search<AbstractRoleType> getObject() {
+                return getRoleCatalogStorage().getSearch();
+            }
+        };
         ObjectDataProvider provider = new ObjectDataProvider<AssignmentEditorDto, AbstractRoleType>(AbstractShoppingCartTabPanel.this,
-                AbstractRoleType.class) {
+                searchModel) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -402,11 +411,11 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
             }
 
             @Override
-            public ObjectQuery getQuery() {
+            protected ObjectQuery getCustomizeContentQuery() {
                 return createContentQuery();
             }
         };
-        provider.setType(getQueryClass());
+//        searchModel.getObject().setTypeClass(getQueryClass());
         return provider;
     }
 
@@ -443,20 +452,10 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         if (assignableRolesFilter != null) {
             memberQuery.addFilter(assignableRolesFilter);
         }
-//        if (getQueryType() != null && !AbstractRoleType.COMPLEX_TYPE.equals(getQueryType())){
-//            memberQuery.addFilter(getPrismContext().queryFactory().createType(getQueryType(), null));
-//        }
-
-        SearchPanel searchPanel = getSearchPanel();
-        ObjectQuery searchQuery = searchPanel.getModelObject().createObjectQuery(getPageBase());
-        if (searchQuery != null && searchQuery.getFilter() != null) {
-            memberQuery.addFilter(searchQuery.getFilter());
-        }
-
         return memberQuery;
     }
 
-    private SearchPanel getSearchPanel() {
+    private SearchPanel<R> getSearchPanel() {
         return (SearchPanel) get(createComponentPath(ID_SHOPPING_CART_CONTAINER, ID_SEARCH_FORM, ID_SEARCH));
     }
 

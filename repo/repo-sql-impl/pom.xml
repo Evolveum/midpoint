@@ -136,11 +136,6 @@
             <artifactId>hibernate-jpa-2.1-api</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP</artifactId>
-        </dependency>
-
         <!-- H2 -->
         <dependency>
             <groupId>com.h2database</groupId>

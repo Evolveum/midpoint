@@ -1,17 +1,17 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.ninja.util;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -39,10 +39,10 @@ public class InitializationBeanPostprocessor implements BeanPostProcessor {
 
         MidpointConfiguration config = (MidpointConfiguration) bean;
         Configuration repositoryConfig = config.getConfiguration(MidpointConfiguration.REPOSITORY_CONFIGURATION);
-        repositoryConfig.setProperty(SqlRepositoryConfiguration.PROPERTY_DATABASE, getDatabase(jdbcUrl));
-        repositoryConfig.setProperty(SqlRepositoryConfiguration.PROPERTY_JDBC_URL, jdbcUrl);
-        repositoryConfig.setProperty(SqlRepositoryConfiguration.PROPERTY_JDBC_USERNAME, jdbcUsername);
-        repositoryConfig.setProperty(SqlRepositoryConfiguration.PROPERTY_JDBC_PASSWORD, jdbcPassword);
+        repositoryConfig.setProperty(JdbcRepositoryConfiguration.PROPERTY_DATABASE, getDatabase(jdbcUrl));
+        repositoryConfig.setProperty(JdbcRepositoryConfiguration.PROPERTY_JDBC_URL, jdbcUrl);
+        repositoryConfig.setProperty(JdbcRepositoryConfiguration.PROPERTY_JDBC_USERNAME, jdbcUsername);
+        repositoryConfig.setProperty(JdbcRepositoryConfiguration.PROPERTY_JDBC_PASSWORD, jdbcPassword);
 
         return config;
     }

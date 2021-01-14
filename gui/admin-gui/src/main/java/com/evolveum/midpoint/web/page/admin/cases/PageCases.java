@@ -22,7 +22,6 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -36,7 +35,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -235,7 +233,7 @@ public class PageCases extends PageAdmin {
 
         showResult(result);
         target.add(getFeedbackPanel());
-        getTablePanel().refreshTable(CaseType.class, target);
+        getTablePanel().refreshTable(target);
         getTablePanel().clearCache();
     }
 
@@ -261,7 +259,7 @@ public class PageCases extends PageAdmin {
 
         showResult(result);
         target.add(getFeedbackPanel());
-        getTablePanel().refreshTable(CaseType.class, target);
+        getTablePanel().refreshTable(target);
         getTablePanel().clearCache();
     }
 

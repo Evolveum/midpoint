@@ -219,9 +219,9 @@ public class SessionStorage implements Serializable, DebugDumpable {
         }
         if (key.startsWith(KEY_OBJECT_LIST)) {
             pageStorage = new ObjectListStorage();
-        } else if (KEY_ORG_MEMBER_PANEL.equals(key)
-                || KEY_ROLE_MEMBER_PANEL.equals(key)
-                || KEY_SERVICE_MEMBER_PANEL.equals(key)) {
+        } else if (key.startsWith(KEY_ORG_MEMBER_PANEL)
+                || key.startsWith(KEY_ROLE_MEMBER_PANEL)
+                || key.startsWith(KEY_SERVICE_MEMBER_PANEL)) {
             pageStorage = new MemberPanelStorage();
         } else if (KEY_ASSIGNMENTS_TAB.equals(key)
                 || KEY_INDUCEMENTS_TAB.equals(key)

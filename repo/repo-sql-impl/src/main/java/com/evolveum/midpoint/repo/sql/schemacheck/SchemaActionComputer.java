@@ -1,11 +1,14 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.schemacheck;
+
+import static com.evolveum.midpoint.repo.sqlbase.SupportedDatabase.MARIADB;
+import static com.evolveum.midpoint.repo.sqlbase.SupportedDatabase.MYSQL;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -18,12 +21,12 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.repo.sql.Database;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.MissingSchemaAction;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.UpgradeableSchemaAction;
 import com.evolveum.midpoint.repo.sql.data.common.RGlobalMetadata;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
+import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -279,13 +282,13 @@ class SchemaActionComputer {
     }
 
     private String determineUpgradeScriptFileName(@NotNull String from, @NotNull String to) {
-        Database database = getDatabase();
-        return database.name().toLowerCase() + "-upgrade-" + from + "-" + to + getVariantSuffix() + ".sql";
+        return getDatabaseType().name().toLowerCase()
+                + "-upgrade-" + from + "-" + to + getVariantSuffix() + ".sql";
     }
 
     private String determineCreateScriptFileName() {
-        Database database = getDatabase();
-        return database.name().toLowerCase() + "-" + REQUIRED_DATABASE_SCHEMA_VERSION + "-all" + getVariantSuffix() + ".sql";
+        return getDatabaseType().name().toLowerCase()
+                + "-" + REQUIRED_DATABASE_SCHEMA_VERSION + "-all" + getVariantSuffix() + ".sql";
     }
 
     private String getVariantSuffix() {
@@ -294,13 +297,13 @@ class SchemaActionComputer {
     }
 
     @NotNull
-    private Database getDatabase() {
-        Database database = baseHelper.getConfiguration().getDatabaseType();
+    private SupportedDatabase getDatabaseType() {
+        SupportedDatabase database = baseHelper.getConfiguration().getDatabaseType();
         if (database == null) {
             throw new SystemException("Couldn't create/upgrade DB schema because database kind is not known");
         }
-        if (database == Database.MARIADB) {
-            database = Database.MYSQL;
+        if (database == MARIADB) {
+            return MYSQL;
         }
         return database;
     }
