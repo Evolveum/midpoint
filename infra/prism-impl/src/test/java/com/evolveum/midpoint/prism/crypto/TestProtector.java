@@ -172,7 +172,7 @@ public class TestProtector extends AbstractPrismTest {
         assertFalse("compare8 unexpected success", compare8);
 
         // change the hash ... comparison should fail
-        pst.getHashedDataType().getDigestValue()[1] = 0x12;
+        pst.getHashedDataType().getDigestValue()[1]++;
 
         // WHEN
         boolean compare9 = protector256.compareCleartext(pst, checkPstClear);
