@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2010-2020 Evolveum and contributors
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -25,11 +25,9 @@
     <bean id="testSqlRepositoryBeanPostProcessor"
             class="com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryBeanPostProcessor"/>
 
-    <bean id="sqlAuditFactory" class="com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory"/>
-
     <bean id="testDataSourceFactory"
-            class="com.evolveum.midpoint.repo.sql.DataSourceFactory">
-        <constructor-arg value="#{repositoryServiceFactory.sqlConfiguration}"/>
+            class="com.evolveum.midpoint.repo.sqlbase.DataSourceFactory">
+        <constructor-arg value="#{repositoryServiceFactory.configuration}"/>
     </bean>
 
     <bean id="testDataSource"
@@ -71,9 +69,9 @@
         <property name="dataSource" ref="proxiedTestDataSource"/>
         <property name="hibernateProperties">
             <props>
-                <prop key="hibernate.dialect">#{repositoryServiceFactory.sqlConfiguration.hibernateDialect}</prop>
+                <prop key="hibernate.dialect">#{repositoryServiceFactory.configuration.hibernateDialect}</prop>
                 <prop key="hibernate.show_sql">false</prop>
-                <prop key="hibernate.hbm2ddl.auto">#{repositoryServiceFactory.sqlConfiguration.hibernateHbm2ddl}</prop>
+                <prop key="hibernate.hbm2ddl.auto">#{repositoryServiceFactory.configuration.hibernateHbm2ddl}</prop>
                 <prop key="hibernate.id.new_generator_mappings">true</prop>
                 <prop key="hibernate.jdbc.batch_size">20</prop>
                 <prop key="javax.persistence.validation.mode">none</prop>

@@ -31,7 +31,7 @@ public class CredentialsPageTest extends AbstractSchrodingerTest {
         basicPage.loggedUser().logout();
         midPoint.formLogin()
                 .loginWithReloadLoginPage("CredentialsPageTestUser", "password");
-        Assert.assertTrue(basicPage.credentials()
+        basicPage.credentials()
                 .passwordTab()
                     .changePasswordPanel()
                         .setOldPasswordValue("password")
@@ -41,7 +41,7 @@ public class CredentialsPageTest extends AbstractSchrodingerTest {
                     .and()
                 .save()
                 .feedback()
-                .isSuccess());
+                .assertSuccess();
         basicPage.loggedUser().logout();
         midPoint.formLogin()
                 .loginWithReloadLoginPage("CredentialsPageTestUser", "password1");

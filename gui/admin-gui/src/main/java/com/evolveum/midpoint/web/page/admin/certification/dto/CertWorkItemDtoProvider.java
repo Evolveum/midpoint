@@ -61,26 +61,26 @@ public class CertWorkItemDtoProvider extends BaseSortableDataProvider<CertWorkIt
         OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECTS);
         try {
             ObjectPaging paging = createPaging(first, count);
-            Task task = getPage().createSimpleTask(OPERATION_SEARCH_OBJECTS);
+            Task task = getPageBase().createSimpleTask(OPERATION_SEARCH_OBJECTS);
 
             ObjectQuery caseQuery = getQuery();
             caseQuery = caseQuery != null ? caseQuery.clone() : getPrismContext().queryFactory().createQuery();
             caseQuery.setPaging(paging);
 
             Collection<SelectorOptions<GetOperationOptions>> resolveNames = createCollection(createResolveNames());
-            AccessCertificationService acs = getPage().getCertificationService();
+            AccessCertificationService acs = getPageBase().getCertificationService();
             List<AccessCertificationWorkItemType> workitems = acs.searchOpenWorkItems(caseQuery, notDecidedOnly, allItems, resolveNames, task, result);
             for (AccessCertificationWorkItemType workItem : workitems) {
-                getAvailableData().add(new CertWorkItemDto(workItem, getPage()));
+                getAvailableData().add(new CertWorkItemDto(workItem, getPageBase()));
             }
         } catch (Exception ex) {
-            result.recordFatalError(getPage().createStringResource("CertCaseDtoProvider.message.internalIterator.fatalError").getString(), ex);
+            result.recordFatalError(getPageBase().createStringResource("CertCaseDtoProvider.message.internalIterator.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't list decisions", ex);
         } finally {
             result.computeStatusIfUnknown();
         }
 
-        getPage().showResult(result, false);
+        getPageBase().showResult(result, false);
 
         LOGGER.trace("end::iterator()");
         return getAvailableData().iterator();
@@ -92,19 +92,19 @@ public class CertWorkItemDtoProvider extends BaseSortableDataProvider<CertWorkIt
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
-            Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
-            AccessCertificationService acs = getPage().getCertificationService();
+            Task task = getPageBase().createSimpleTask(OPERATION_COUNT_OBJECTS);
+            AccessCertificationService acs = getPageBase().getCertificationService();
             ObjectQuery query = getQuery().clone();
             count = acs.countOpenWorkItems(query, notDecidedOnly, allItems,null, task, result);
         } catch (Exception ex) {
             result.recordFatalError(
-                    getPage().createStringResource("CertWorkItemDtoProvider.message.internalSize.fatalError", ex.getMessage()).getString(), ex);
+                    getPageBase().createStringResource("CertWorkItemDtoProvider.message.internalSize.fatalError", ex.getMessage()).getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects: " + ex.getMessage(), ex);
         } finally {
             result.computeStatusIfUnknown();
         }
 
-        getPage().showResult(result, false);
+        getPageBase().showResult(result, false);
 
         LOGGER.trace("end::internalSize()");
         return count;

@@ -37,29 +37,29 @@ public class CustomColumnTest extends AbstractSchrodingerTest {
 
     @Test(priority = 1)
     public void test00100checkUserCustomColumns() {
-        Assert.assertEquals(basicPage.listUsers("Custom columns view")
+        basicPage.listUsers("Custom columns view")
                 .table()
-                    .findColumnByLabel("Name (custom)"), 3, "Name column index doesn't match");
-        Assert.assertEquals(basicPage.listUsers("Custom columns view")
+                    .assertColumnIndexMatches("Name (custom)", 3);
+        basicPage.listUsers("Custom columns view")
                 .table()
-                    .findColumnByLabel("Role membership"), 4, "Role membership column index doesn't match");
-        Assert.assertEquals(basicPage.listUsers("Custom columns view")
+                    .assertColumnIndexMatches("Role membership", 4);
+        basicPage.listUsers("Custom columns view")
                 .table()
-                    .findColumnByLabel("Preferred language"), 5, "Preferred language column index doesn't match");
+                    .assertColumnIndexMatches("Preferred language", 5);
     }
 
     @Test(priority = 2)
     public void test00200checkUserCustomColumnsKeyLabels() {
         ListUsersPage usersPage = basicPage.listUsers("Custom columns label test");
-        Assert.assertEquals(usersPage
+        usersPage
                 .table()
-                    .findColumnByLabel("Enable"), 3, "Enable column index doesn't match");
-        Assert.assertEquals(usersPage
+                    .assertColumnIndexMatches("Enable", 3);
+        usersPage
                 .table()
-                    .findColumnByLabel("Disable"), 4, "Disable column index doesn't match");
-        Assert.assertEquals(usersPage
+                    .assertColumnIndexMatches("Disable", 4);
+        usersPage
                 .table()
-                    .findColumnByLabel("Unlink"), 5, "Unlink column index doesn't match");
+                    .assertColumnIndexMatches("Unlink", 5);
     }
 
     @Test(priority = 3)

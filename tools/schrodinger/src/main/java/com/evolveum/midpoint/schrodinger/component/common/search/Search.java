@@ -30,6 +30,7 @@ public class Search<T> extends Component<T> {
 
     public TextInputSearchItemPanel<Search<T>> byName() {
         choiceBasicSearch();
+
         SelenideElement nameElement = getItemByName("Name");
         if (nameElement == null){
             addSearchItemByNameLinkClick("Name");
@@ -94,7 +95,7 @@ public class Search<T> extends Component<T> {
     }
 
     public Search<T> updateSearch(){
-        SelenideElement simpleSearchButton = getParentElement().$x(".//a[@" + Schrodinger.DATA_S_ID + "='searchSimple']")
+        SelenideElement simpleSearchButton = getParentElement().$x(".//button[@" + Schrodinger.DATA_S_ID + "='searchButtonBeforeDropdown']")
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
         Actions builder = new Actions(WebDriverRunner.getWebDriver());
         builder.moveToElement(simpleSearchButton, 5, 5).click().build().perform();
@@ -103,21 +104,30 @@ public class Search<T> extends Component<T> {
     }
 
     private void choiceBasicSearch() {
-        SelenideElement linksContainer = getParentElement().$(Schrodinger.byDataId("div", "linksContainer")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+        clickDroDownForSearchMode();
         try {
-            linksContainer.$(Schrodinger.byDataId("a", "basic")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+            SelenideElement basicLink = getParentElement().$x(".//a[@"+Schrodinger.DATA_S_ID+"='menuItemLink' and contains(text(), 'Basic')]");
+            basicLink.waitUntil(Condition.appears, MidPoint.TIMEOUT_MEDIUM_6_S).click();
+            basicLink.waitWhile(Condition.appears, MidPoint.TIMEOUT_MEDIUM_6_S);
         } catch (Throwable t) {
-            // all is ok, basic search is already selected option, TODO: Schrodinger should provide easy method to check component existence
+            getParentElement().$x(".//a[@"+Schrodinger.DATA_S_ID+"='more']").waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
         }
     }
 
-    public InputBox<Search<T>> byFullText() {
+    private void clickDroDownForSearchMode() {
+        SelenideElement dropDownButton = getParentElement().$x(".//div[@"+Schrodinger.DATA_S_ID+"='searchContainer']").$x(".//button[@data-toggle='dropdown']");
+        dropDownButton.waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        dropDownButton.waitUntil(Condition.attribute("aria-expanded", "true"), MidPoint.TIMEOUT_MEDIUM_6_S);
+    }
 
-        SelenideElement linksContainer = getParentElement().$(Schrodinger.byDataId("div", "linksContainer")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+    public InputBox<Search<T>> byFullText() {
+        clickDroDownForSearchMode();
         try {
-            linksContainer.$(Schrodinger.byDataId("a", "fullText")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+            SelenideElement basicLink = getParentElement().$x(".//a[@"+Schrodinger.DATA_S_ID+"='menuItemLink' and contains(text(), 'Full text')]");
+            basicLink.waitUntil(Condition.appears, MidPoint.TIMEOUT_MEDIUM_6_S).click();
+            basicLink.waitWhile(Condition.appears, MidPoint.TIMEOUT_MEDIUM_6_S);
         } catch (Throwable t) {
-            // all is ok, fullText search is already selected option, TODO: Schrodinger should provide easy method to check component existence
+            // all is ok, fullText search is already selected option, check is provided next in next row
         }
 
         // we assume fulltext is enabled in systemconfig, else error is thrown here:

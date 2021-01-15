@@ -111,7 +111,7 @@ public class CaseTests extends AbstractSchrodingerTest {
                     .inputValue(REQUEST_CASE_NAME + CASE_CREATION_TEST_USER_NAME)
                     .updateSearch()
                  .and()
-                 .containsLinkTextPartially(REQUEST_CASE_NAME + CASE_CREATION_TEST_USER_NAME);
+                 .assertTableContainsLinkTextPartially(REQUEST_CASE_NAME + CASE_CREATION_TEST_USER_NAME);
 
      }
 
@@ -150,10 +150,10 @@ public class CaseTests extends AbstractSchrodingerTest {
                 .updateSearch()
                 .and()
                 .clickByPartialName(REQUEST_CASE_NAME + CASE_CREATION_TEST_USER_NAME);
-        Assert.assertTrue(casePage
+        casePage
                         .selectTabChildren()
                         .table()
-                        .currentTableContains("div", "closed"));
+                        .assertCurrentTableContains("div", "closed");
 
         Assert.assertTrue(casePage
                         .selectTabOperationRequest()
@@ -196,10 +196,10 @@ public class CaseTests extends AbstractSchrodingerTest {
                 .and()
                 .clickByPartialName(REQUEST_CASE_NAME + REJECT_WORKITEM_TEST_USER_NAME);
 
-        Assert.assertTrue(casePage
+        casePage
                         .selectTabChildren()
                         .table()
-                        .currentTableContains("div", "closed"));
+                        .assertCurrentTableContains("div", "closed");
         Assert.assertTrue(casePage
                 .selectTabOperationRequest()
                 .changesAreRejected());
@@ -252,9 +252,9 @@ public class CaseTests extends AbstractSchrodingerTest {
                 .table()
                 .clickByName(FORWARD_WORKITEM_TO_USER_NAME);
 
-        Assert.assertTrue(allRequestsPage
+        allRequestsPage
                 .feedback()
-                .isSuccess());
+                .assertSuccess();
 
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
 

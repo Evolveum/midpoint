@@ -81,49 +81,41 @@ public class UsersTest extends AbstractSchrodingerTest {
 
         ListUsersPage users = basicPage.listUsers();
 
-        Assert.assertTrue(
-            users
+        users
                 .table()
                     .search()
                         .textInputPanelByItemName("title")
                             .inputValue("PhD.")
                     .updateSearch()
                     .and()
-                .currentTableContains("searchUser")
-        );
+                .assertCurrentTableContains("searchUser");
 
-        Assert.assertTrue(
-                users
+        users
                 .table()
                     .search()
                         .textInputPanelByItemName("title")
                             .inputValue("PhD")
                     .updateSearch()
                     .and()
-                .currentTableContains("searchUser")
-        );
+                .assertCurrentTableContains("searchUser");
 
-        Assert.assertFalse(
-            users
+        users
                 .table()
                     .search()
                         .textInputPanelByItemName("title")
                             .inputValue("Ing.")
                     .updateSearch()
                     .and()
-                .currentTableContains("searchUser")
-        );
+                .assertCurrentTableDoesntContain("searchUser");
 
-        Assert.assertFalse(
-            users
+        users
                 .table()
                     .search()
                         .textInputPanelByItemName("title")
                             .inputValue("Ing")
                     .updateSearch()
                     .and()
-                .currentTableContains("searchUser")
-        );
+                .assertCurrentTableDoesntContain("searchUser");
 
     }
 

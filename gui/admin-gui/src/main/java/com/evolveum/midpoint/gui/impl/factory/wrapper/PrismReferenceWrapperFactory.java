@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceWrapperImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
  *
  */
 @Component
+@Primary
 public class PrismReferenceWrapperFactory<R extends Referencable> extends ItemWrapperFactoryImpl<PrismReferenceWrapper<R>, PrismReferenceValue, PrismReference, PrismReferenceValueWrapperImpl<R>>{
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismReferenceWrapperFactory.class);

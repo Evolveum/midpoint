@@ -1,15 +1,24 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.task.quartzimpl.handlers;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
+import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
+import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryServiceFactory;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
@@ -20,15 +29,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import java.sql.*;
-
-/**
- * @author Pavol Mederly
- */
 @Component
 public class JdbcPingTaskHandler implements TaskHandler {
 
@@ -38,8 +38,8 @@ public class JdbcPingTaskHandler implements TaskHandler {
     @Autowired
     private TaskManager taskManager;
 
-    @Autowired(required = false)                            // during some tests the repo is not available
-    private SqlRepositoryFactory sqlRepositoryFactory;
+    @Autowired(required = false) // during some tests the repo is not available
+    private JdbcRepositoryServiceFactory jdbcRepositoryServiceFactory;
 
     @PostConstruct
     public void initialize() {
@@ -63,6 +63,7 @@ public class JdbcPingTaskHandler implements TaskHandler {
                 max = time;
             }
         }
+
         void recordFailure() {
             failCount++;
         }
@@ -77,13 +78,14 @@ public class JdbcPingTaskHandler implements TaskHandler {
     @Override
     public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
 
-        OperationResult opResult = new OperationResult(JdbcPingTaskHandler.class.getName()+".run");
+        OperationResult opResult = new OperationResult(JdbcPingTaskHandler.class.getName() + ".run");
 
         int tests = get(task, SchemaConstants.JDBC_PING_TESTS_QNAME, 0);
         int interval = get(task, SchemaConstants.JDBC_PING_INTERVAL_QNAME, 10);
         String testQuery = get(task, SchemaConstants.JDBC_PING_TEST_QUERY_QNAME, "select 1");
 
-        SqlRepositoryConfiguration config = sqlRepositoryFactory != null ? sqlRepositoryFactory.getSqlConfiguration() : null;
+        JdbcRepositoryConfiguration config = jdbcRepositoryServiceFactory != null
+                ? jdbcRepositoryServiceFactory.getConfiguration() : null;
         String jdbcDriver = get(task, SchemaConstants.JDBC_PING_DRIVER_CLASS_NAME_QNAME, config != null ? config.getDriverClassName() : "");
         String jdbcUrl = get(task, SchemaConstants.JDBC_PING_JDBC_URL_QNAME, config != null ? config.getJdbcUrl() : "");
         String jdbcUsername = get(task, SchemaConstants.JDBC_PING_JDBC_USERNAME_QNAME, config != null ? config.getJdbcUsername() : "");

@@ -13,22 +13,18 @@ import java.util.Map.Entry;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.schema.util.DiagnosticContextHolder;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.ObjectReferenceColumn;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.server.CasesTablePanel;
 import com.evolveum.midpoint.web.session.PageStorage;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -173,7 +169,7 @@ public class PageCreatedReports extends PageAdmin {
             protected ISelectableDataProvider createProvider() {
                 PageStorage storage = getObjectListPanel().getPageStorage();
                 SelectableBeanObjectDataProvider<ReportDataType> provider = new SelectableBeanObjectDataProvider<ReportDataType>(
-                        getPageBase(), ReportDataType.class, null) {
+                        getPageBase(), getSearchModel(), null) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -199,8 +195,8 @@ public class PageCreatedReports extends PageAdmin {
                     }
 
                     @Override
-                    public ObjectQuery getQuery() {
-                        return createQuery();
+                    protected ObjectQuery getCustomizeContentQuery() {
+                        return appendTypeFilter();
                     }
                 };
                 provider.setCompiledObjectCollectionView(getObjectCollectionView());
@@ -221,11 +217,6 @@ public class PageCreatedReports extends PageAdmin {
             @Override
             protected boolean isObjectDetailsEnabled(IModel<SelectableBean<ReportDataType>> rowModel) {
                 return false;
-            }
-
-            @Override
-            protected ObjectQuery getCustomizeContentQuery() {
-                return appendTypeFilter();
             }
 
             @Override
@@ -250,7 +241,7 @@ public class PageCreatedReports extends PageAdmin {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                table.refreshTable(ReportDataType.class, target);
+                table.refreshTable(target);
             }
         });
         reportTypeSelect.setOutputMarkupId(true);
@@ -577,7 +568,7 @@ public class PageCreatedReports extends PageAdmin {
         result.computeStatusIfUnknown();
 
         getObjectListPanel().clearCache();
-        getObjectListPanel().refreshTable(ReportDataType.class, target);
+        getObjectListPanel().refreshTable(target);
 
         showResult(result);
         target.add(getFeedbackPanel());

@@ -30,9 +30,7 @@ public class UserPhotoTests extends AbstractSchrodingerTest {
     //@Test TODO test commented out because of MID-4774
     public void createMidpointUserWithPhotoLarge(){
         UserPage user = basicPage.newUser();
-
-        Assert.assertTrue(
-                user
+        user
                     .selectTabBasic()
                         .form()
                         .addAttributeValue("name", TEST_USER_LEO_NAME)
@@ -44,15 +42,13 @@ public class UserPhotoTests extends AbstractSchrodingerTest {
                 .checkKeepDisplayingResults()
                 .clickSave()
                     .feedback()
-                    .isError()
-        );
+                    .assertError();
     }
 
     @Test //(dependsOnMethods = {CREATE_USER_WITH_LARGE_PHOTO_DEPENDENCY}) // TODO uncomment test dependency after MID-4774 fix
     public void createMidpointUserWithPhotoJustRight(){
         UserPage user = basicPage.newUser();
-        Assert.assertTrue(
-                    user
+        user
                         .selectTabBasic()
                             .form()
                             .addAttributeValue("name", TEST_USER_LEO_NAME)
@@ -64,15 +60,13 @@ public class UserPhotoTests extends AbstractSchrodingerTest {
                     .checkKeepDisplayingResults()
                     .clickSave()
                         .feedback()
-                        .isSuccess()
-        );
+                        .assertSuccess();
     }
 
     @Test (dependsOnMethods = {CREATE_USER_WITH_NORMAL_PHOTO_DEPENDENCY})
     public void deleteUserPhoto(){
          ListUsersPage usersPage = basicPage.listUsers();
-         Assert.assertTrue(
-                 usersPage
+         usersPage
                     .table()
                         .search()
                         .byName()
@@ -88,7 +82,6 @@ public class UserPhotoTests extends AbstractSchrodingerTest {
                     .checkKeepDisplayingResults()
                     .clickSave()
                         .feedback()
-                        .isSuccess()
-         );
+                        .assertSuccess();
     }
 }

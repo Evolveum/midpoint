@@ -14,6 +14,7 @@ import com.evolveum.midpoint.schrodinger.component.task.TaskBasicTab;
 import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
+import org.testng.Assert;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -103,6 +104,26 @@ public class FeedbackBox<T> extends Component<T> {
 
     public Boolean doesMessageExist(String messageText) {
         return $(By.linkText(messageText)).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).exists();
+    }
+
+    public FeedbackBox<T> assertSuccess() {
+        Assert.assertTrue(isSuccess(), "Feedback panel status is not success.");
+        return this;
+    }
+
+    public FeedbackBox<T> assertError() {
+        Assert.assertTrue(isError(), "Feedback panel status is not error.");
+        return this;
+    }
+
+    public FeedbackBox<T> assertWarning() {
+        Assert.assertTrue(isWarning(), "Feedback panel status is not warning.");
+        return this;
+    }
+
+    public FeedbackBox<T> assertInfo() {
+        Assert.assertTrue(isInfo(), "Feedback panel status is not info.");
+        return this;
     }
 
 }

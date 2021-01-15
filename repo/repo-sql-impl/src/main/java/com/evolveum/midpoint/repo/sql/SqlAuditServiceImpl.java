@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -36,7 +36,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.repo.sql.audit.SqlQueryExecutor;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditDelta;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.audit.mapping.*;
@@ -48,12 +47,11 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.RChangeType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
-import com.evolveum.midpoint.repo.sql.helpers.JdbcSession;
 import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sql.util.TemporaryTableDialect;
-import com.evolveum.midpoint.repo.sqlbase.QueryException;
+import com.evolveum.midpoint.repo.sqlbase.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -98,7 +96,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     private static final String QUERY_MAX_RESULT = "setMaxResults";
     private static final String QUERY_FIRST_RESULT = "setFirstResult";
 
-    private final BaseHelper baseHelper;
+    private final BaseHelper baseHelper; // only for logging/exception handling
+    private final SqlRepoContext sqlRepoContext;
     private final PrismContext prismContext;
 
     private final SqlQueryExecutor sqlQueryExecutor;
@@ -107,15 +106,21 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     public SqlAuditServiceImpl(
             BaseHelper baseHelper,
+            SqlRepoContext sqlRepoContext,
             PrismContext prismContext) {
         this.baseHelper = baseHelper;
+        this.sqlRepoContext = sqlRepoContext;
         this.prismContext = prismContext;
-        this.sqlQueryExecutor = new SqlQueryExecutor(baseHelper, prismContext);
+        this.sqlQueryExecutor = new SqlQueryExecutor(sqlRepoContext, prismContext);
+    }
+
+    public SqlRepoContext getSqlRepoContext() {
+        return sqlRepoContext;
     }
 
     @Override
     public SqlRepositoryConfiguration sqlConfiguration() {
-        return baseHelper.getConfiguration();
+        return (SqlRepositoryConfiguration) sqlRepoContext.getJdbcRepositoryConfiguration();
     }
 
     @Override
@@ -142,7 +147,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     }
 
     private void auditAttempt(AuditEventRecord record) {
-        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startTransaction()) {
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             try {
                 long recordId = insertAuditEventRecord(jdbcSession, record);
 
@@ -169,7 +174,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         QAuditEventRecordMapping aerMapping = QAuditEventRecordMapping.INSTANCE;
         QAuditEventRecord aer = aerMapping.defaultAlias();
         MAuditEventRecord aerBean = aerMapping
-                .createTransformer(prismContext, baseHelper.sqlRepoContext())
+                .createTransformer(prismContext, sqlRepoContext)
                 .from(record);
         SQLInsertClause insert = jdbcSession.insert(aer).populate(aerBean);
 
@@ -438,15 +443,15 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                     DebugUtil.debugDump(params, 2));
         }
 
-        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startReadOnlyTransaction()) {
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
             try {
                 Connection conn = jdbcSession.connection();
-                Database database = sqlConfiguration().getDatabaseType();
+                SupportedDatabase database = sqlConfiguration().getDatabaseType();
                 int count = 0;
                 String basicQuery = query;
                 if (StringUtils.isBlank(query)) {
                     basicQuery = "select * from m_audit_event "
-                            + (database.equals(Database.ORACLE) ? "" : "as ")
+                            + (database == SupportedDatabase.ORACLE ? "" : "as ")
                             + "aer where 1=1 order by aer.timestampValue desc";
                 }
                 SelectQueryBuilder queryBuilder = new SelectQueryBuilder(database, basicQuery);
@@ -495,7 +500,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         //query for deltas
         String tableAliasPreposition =
-                jdbcSession.databaseType().equals(Database.ORACLE) ? "" : "as ";
+                jdbcSession.databaseType() == SupportedDatabase.ORACLE ? "" : "as ";
         OperationResult deltaResult = result.createMinorSubresult(OP_LOAD_AUDIT_DELTA);
         try (PreparedStatement subStmt = jdbcSession.connection().prepareStatement(
                 "select * from m_audit_delta " + tableAliasPreposition
@@ -875,14 +880,15 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     }
 
     private void checkTemporaryTablesSupport() {
-        Database database = sqlConfiguration().getDatabaseType();
+        SupportedDatabase database = sqlConfiguration().getDatabaseType();
         try {
             TemporaryTableDialect.getTempTableDialect(database);
         } catch (SystemException e) {
-            LOGGER.error("Database type {} doesn't support temporary tables, couldn't cleanup audit logs.",
+            LOGGER.error(
+                    "Database type {} doesn't support temporary tables, couldn't cleanup audit logs.",
                     database);
-            throw new SystemException(
-                    "Database type " + database + " doesn't support temporary tables, couldn't cleanup audit logs.");
+            throw new SystemException("Database type " + database
+                    + " doesn't support temporary tables, couldn't cleanup audit logs.");
         }
     }
 
@@ -894,7 +900,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             BiFunction<JdbcSession, String, Integer> recordsSelector,
             Holder<Integer> totalCountHolder, long batchStart, OperationResult subResult) {
 
-        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startTransaction()) {
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             try {
                 TemporaryTableDialect ttDialect = TemporaryTableDialect
                         .getTempTableDialect(sqlConfiguration().getDatabaseType());
@@ -1053,14 +1059,14 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     }
 
     public long countObjects(String query, Map<String, Object> params) {
-        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startReadOnlyTransaction()) {
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
             try {
-                Database database = jdbcSession.databaseType();
+                SupportedDatabase database = jdbcSession.databaseType();
 
                 String basicQuery = query;
                 if (StringUtils.isBlank(query)) {
                     basicQuery = "select count(*) from m_audit_event "
-                            + (database.equals(Database.ORACLE) ? "" : "as ")
+                            + (database == SupportedDatabase.ORACLE ? "" : "as ")
                             + "aer where 1 = 1";
                 }
                 SelectQueryBuilder queryBuilder = new SelectQueryBuilder(database, basicQuery);

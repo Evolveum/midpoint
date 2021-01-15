@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -48,7 +48,7 @@ public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor {
 
         TestSqlRepositoryFactory factory = context.getBean(TestSqlRepositoryFactory.class);
         //we'll attempt to drop database objects if configuration contains dropIfExists=true and embedded=false
-        SqlRepositoryConfiguration config = factory.getSqlConfiguration();
+        SqlRepositoryConfiguration config = factory.getConfiguration();
         if (!config.isDropIfExists() || config.isEmbedded()) {
             LOGGER.info("We're not deleting objects from DB, drop if exists=false or embedded=true.");
             return bean;
@@ -62,7 +62,7 @@ public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor {
             session.beginTransaction();
 
             Query query;
-            if (useProcedure(factory.getSqlConfiguration())) {
+            if (useProcedure(factory.getConfiguration())) {
                 LOGGER.info("Using truncate procedure.");
                 query = session.createNativeQuery("{ call " + TRUNCATE_PROCEDURE + "() }");
                 query.executeUpdate();

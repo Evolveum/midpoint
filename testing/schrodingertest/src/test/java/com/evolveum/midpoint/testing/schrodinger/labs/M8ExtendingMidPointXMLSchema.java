@@ -34,6 +34,7 @@ import java.util.List;
 
 public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
 
+
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override
     public void beforeClass() throws IOException {
@@ -127,9 +128,9 @@ public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
                 .selectTabBasic()
                 .form();
 
-        Assert.assertTrue(form.compareInputAttributeValue("ouPath", "0300"));
-        Assert.assertTrue(form.compareSelectAttributeValue("isManager", "True"));
-        Assert.assertTrue(form.compareInputAttributeValue("empStatus", "A"));
+        form.assertInputAttributeValueMatches("ouPath", "0300");
+        form.assertSelectAttributeValueMatches("isManager", "True");
+        form.assertInputAttributeValueMatches("empStatus", "A");
 
         form.and()
                 .and()
@@ -153,10 +154,10 @@ public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         PrismForm<AccountPage> accountForm = shadow.form();
         Selenide.sleep(1000);
-        Assert.assertTrue(accountForm.compareInputAttributeValue("dep", "Human Resources"));
+        accountForm.assertInputAttributeValueMatches("dep", "Human Resources");
 
         showShadow(CSV_2_RESOURCE_NAME, "Login", "jsmith");
-        Assert.assertTrue(accountForm.compareInputAttributeValue("department", "Human Resources"));
+        accountForm.assertInputAttributeValueMatches("department", "Human Resources");
 
         Assert.assertTrue(existShadow(CSV_3_RESOURCE_NAME, "Distinguished Name", "cn=John Smith,ou=0300,ou=ExAmPLE,dc=example,dc=com"));
     }

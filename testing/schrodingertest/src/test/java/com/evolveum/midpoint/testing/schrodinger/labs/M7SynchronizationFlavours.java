@@ -76,9 +76,9 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
         UserPage owner = accountTab.table()
                 .clickOnOwnerByName("X001212");
 
-        Assert.assertTrue(owner.selectTabBasic()
+        owner.selectTabBasic()
                 .form()
-                    .compareInputAttributeValue("name", "X001212"));
+                    .assertInputAttributeValueMatches("name", "X001212");
 
         basicPage.listResources()
                 .table()
@@ -95,9 +95,9 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
                                         .feedback()
                                             .isInfo();
 
-        Assert.assertEquals(showTask("Initial import from HR")
+        showTask("Initial import from HR")
                 .selectTabOperationStatistics()
-                    .getSuccessfullyProcessed(), Integer.valueOf(14));
+                    .assertSuccessfullyProcessedCountMatch(14);
         Assert.assertEquals(basicPage.listUsers(ARCHETYPE_EMPLOYEE_PLURAL_LABEL).getCountOfObjects(), 14);
     }
 
@@ -143,11 +143,9 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
 
         showTask("CSV-1 Reconciliation", "Reconciliation tasks").clickRunNow();
 
-        Assert.assertTrue(
-                showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
+        showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
                         .form()
-                        .compareInputAttributeValues("groups", "Internal Employees",
-                                "Essential Documents"));
+                        .assertInputAttributeValuesMatches("groups", "Internal Employees", "Essential Documents");
 
     }
 
@@ -185,39 +183,39 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
 
         FileUtils.copyFile(HR_SOURCE_FILE_7_4_PART_1, hrTargetFile);
         Selenide.sleep(20000);
-        Assert.assertTrue(showUser("X000999")
+        showUser("X000999")
                 .selectTabBasic()
                     .form()
-                        .compareInputAttributeValue("givenName", "Arnold"));
-        Assert.assertTrue(showUser("X000999")
+                        .assertInputAttributeValueMatches("givenName", "Arnold");
+        showUser("X000999")
                 .selectTabBasic()
-                .form()
-                .compareInputAttributeValue("familyName", "Rimmer"));
-        Assert.assertTrue(showUser("X000999")
+                    .form()
+                        .assertInputAttributeValueMatches("familyName", "Rimmer");
+        showUser("X000999")
                 .selectTabBasic()
-                .form()
-                .compareSelectAttributeValue("administrativeStatus", "Enabled"));
+                    .form()
+                        .assertSelectAttributeValueMatches("administrativeStatus", "Enabled");
 
         FileUtils.copyFile(HR_SOURCE_FILE_7_4_PART_2, hrTargetFile);
         Selenide.sleep(20000);
-        Assert.assertTrue(showUser("X000999")
+        showUser("X000999")
                 .selectTabBasic()
-                .form()
-                .compareInputAttributeValue("givenName", "Arnold J."));
+                    .form()
+                        .assertInputAttributeValueMatches("givenName", "Arnold J.");
 
         FileUtils.copyFile(HR_SOURCE_FILE_7_4_PART_3, hrTargetFile);
         Selenide.sleep(20000);
-        Assert.assertTrue(showUser("X000999")
+        showUser("X000999")
                 .selectTabBasic()
-                .form()
-                .compareSelectAttributeValue("administrativeStatus", "Disabled"));
+                    .form()
+                        .assertSelectAttributeValueMatches("administrativeStatus", "Disabled");
 
         FileUtils.copyFile(HR_SOURCE_FILE_7_4_PART_4, hrTargetFile);
         Selenide.sleep(20000);
-        Assert.assertTrue(showUser("X000999")
+        showUser("X000999")
                 .selectTabBasic()
-                .form()
-                .compareSelectAttributeValue("administrativeStatus", "Enabled"));
+                    .form()
+                        .assertSelectAttributeValueMatches("administrativeStatus", "Enabled");
 
     }
 

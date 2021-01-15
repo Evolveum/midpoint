@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import com.evolveum.midpoint.schrodinger.util.Utils;
 
 import org.openqa.selenium.By;
+import org.testng.Assert;
 
 import static com.codeborne.selenide.Selenide.$;
 /**
@@ -67,6 +68,38 @@ public class DelegationDetailsPanel<T> extends Component<T> {
                 $(Schrodinger.byDataId("delegationValidFrom")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S));
     }
 
+    public boolean isValidFromPanelEnabled () {
+        getValidFromPanel().findDate().shouldBe(Condition.enabled);
+        if (!getValidFromPanel().findDate().isEnabled()) {
+            return false;
+        }
+        getValidFromPanel().findHours().shouldBe(Condition.enabled);
+        if (!getValidFromPanel().findHours().isEnabled()) {
+            return false;
+        }
+        getValidFromPanel().findMinutes().shouldBe(Condition.enabled);
+        if (!getValidFromPanel().findMinutes().isEnabled()) {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean isValidFromPanelDisabled () {
+        getValidFromPanel().findDate().shouldBe(Condition.disabled);
+        if (getValidFromPanel().findDate().isEnabled()) {
+            return false;
+        }
+        getValidFromPanel().findHours().shouldBe(Condition.disabled);
+        if (getValidFromPanel().findHours().isEnabled()) {
+            return false;
+        }
+        getValidFromPanel().findMinutes().shouldBe(Condition.disabled);
+        if (getValidFromPanel().findMinutes().isEnabled()) {
+            return false;
+        }
+        return true;
+    }
+
     public DelegationDetailsPanel<T> setValidFromValue(String date, String hours, String minutes, DateTimePanel.AmOrPmChoice amOrPmChoice) {
         DateTimePanel<DelegationDetailsPanel<T>> validFromPanel = new DateTimePanel<>(this,
                 $(Schrodinger.byDataId("delegationValidFrom")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S));
@@ -91,7 +124,7 @@ public class DelegationDetailsPanel<T> extends Component<T> {
         return this;
     }
 
-    public boolean isAssignmentPrivileges() {
+    public boolean isAssignmentPrivilegesSelected() {
         if ($(Schrodinger.byDataId("assignmentPrivilegesCheckbox")).exists()) {
             return $(Schrodinger.byDataId("assignmentPrivilegesCheckbox")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
                     .isSelected();
@@ -104,7 +137,7 @@ public class DelegationDetailsPanel<T> extends Component<T> {
         return this;
     }
 
-    public boolean isAssignmentLimitations() {
+    public boolean isAssignmentLimitationsSelected() {
         return $(Schrodinger.byDataId("allowTransitive")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
                 .isSelected();
     }
@@ -114,7 +147,7 @@ public class DelegationDetailsPanel<T> extends Component<T> {
         return this;
     }
 
-    public boolean isApprovalWorkItems() {
+    public boolean isApprovalWorkItemsSelected() {
         return $(Schrodinger.byDataId("approvalWorkItems")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
                 .isSelected();
     }
@@ -124,8 +157,48 @@ public class DelegationDetailsPanel<T> extends Component<T> {
         return this;
     }
 
-    public boolean isCertificationWorkItems() {
+    public boolean isCertificationWorkItemsSelected() {
         return $(Schrodinger.byDataId("certificationWorkItems")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
                 .isSelected();
+    }
+
+    public DelegationDetailsPanel<T> assertApprovalWorkItemsSelected() {
+        Assert.assertTrue(isApprovalWorkItemsSelected(), "Workflow approvals (for approval work items) checkbox is not selected but should be.");
+        return this;
+    }
+
+    public DelegationDetailsPanel<T> assertApprovalWorkItemsNotSelected() {
+        Assert.assertTrue(isApprovalWorkItemsSelected(), "Workflow approvals (for approval work items) checkbox is selected but shouldn't be.");
+        return this;
+    }
+
+    public DelegationDetailsPanel<T> assertAssignmentLimitationsSelected() {
+        Assert.assertTrue(isAssignmentLimitationsSelected(), "Assignment limitations checkbox is not selected but should be.");
+        return this;
+    }
+
+    public DelegationDetailsPanel<T> assertAssignmentLimitationsNotSelected() {
+        Assert.assertTrue(isAssignmentLimitationsSelected(), "Assignment limitations checkbox is selected but shouldn't be.");
+        return this;
+    }
+
+    public DelegationDetailsPanel<T> assertAssignmentPrivilegesSelected() {
+        Assert.assertTrue(isAssignmentPrivilegesSelected(),"Assignment privileges checkbox is not selected but should be.");
+        return this;
+    }
+
+    public DelegationDetailsPanel<T> assertAssignmentPrivilegesNotSelected() {
+        Assert.assertTrue(isAssignmentPrivilegesSelected(),"Assignment privileges checkbox is selected but shouldn't be.");
+        return this;
+    }
+
+    public DelegationDetailsPanel<T> assertCertificationWorkItemsSelected() {
+        Assert.assertTrue(isCertificationWorkItemsSelected(), "Workflow approvals (for certification work items) checkbox is not selected but should be.");
+        return this;
+    }
+
+    public DelegationDetailsPanel<T> assertCertificationWorkItemsNotSelected() {
+        Assert.assertFalse(isCertificationWorkItemsSelected(), "Workflow approvals (for certification work items) checkbox is selected but shouldn't be.");
+        return this;
     }
 }

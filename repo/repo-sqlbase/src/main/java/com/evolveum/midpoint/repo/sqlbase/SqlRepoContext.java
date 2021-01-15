@@ -1,6 +1,14 @@
+/*
+ * Copyright (C) 2010-2021 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.repo.sqlbase;
 
 import java.sql.Connection;
+import java.sql.SQLException;
+import javax.sql.DataSource;
 
 import com.querydsl.sql.Configuration;
 import com.querydsl.sql.RelationalPath;
@@ -12,6 +20,8 @@ import com.querydsl.sql.dml.SQLInsertClause;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
+import com.evolveum.midpoint.util.exception.SystemException;
 
 /**
  * Encapsulates Querydsl {@link Configuration}, our {@link QueryModelMappingRegistry}
@@ -20,13 +30,20 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  */
 public class SqlRepoContext {
 
+    private final JdbcRepositoryConfiguration jdbcRepositoryConfiguration;
     private final Configuration querydslConfig;
     private final QueryModelMappingRegistry mappingRegistry;
-    // TODO: add datasource? can this be replacement for BaseHelper?
+    private final DataSource dataSource;
 
-    public SqlRepoContext(Configuration querydslConfig, QueryModelMappingRegistry mappingRegistry) {
-        this.querydslConfig = querydslConfig;
+    public SqlRepoContext(
+            JdbcRepositoryConfiguration jdbcRepositoryConfiguration,
+            DataSource dataSource,
+            QueryModelMappingRegistry mappingRegistry) {
+        this.jdbcRepositoryConfiguration = jdbcRepositoryConfiguration;
+        this.querydslConfig = QuerydslUtils.querydslConfiguration(
+                jdbcRepositoryConfiguration.getDatabaseType());
         this.mappingRegistry = mappingRegistry;
+        this.dataSource = dataSource;
     }
 
     public SQLQuery<?> newQuery() {
@@ -57,5 +74,22 @@ public class SqlRepoContext {
 
     public SQLDeleteClause newDelete(Connection connection, RelationalPath<?> entity) {
         return new SQLDeleteClause(connection, querydslConfig, entity);
+    }
+
+    public JdbcRepositoryConfiguration getJdbcRepositoryConfiguration() {
+        return jdbcRepositoryConfiguration;
+    }
+
+    /**
+     * Creates {@link JdbcSession} that typically represents transactional work on JDBC connection.
+     * All other lifecycle methods are to be called on the returned object.
+     * Object is {@link AutoCloseable} and can be used in try-with-resource blocks.
+     */
+    public JdbcSession newJdbcSession() {
+        try {
+            return new JdbcSession(dataSource.getConnection(), jdbcRepositoryConfiguration, this);
+        } catch (SQLException e) {
+            throw new SystemException("Cannot create JDBC connection", e);
+        }
     }
 }

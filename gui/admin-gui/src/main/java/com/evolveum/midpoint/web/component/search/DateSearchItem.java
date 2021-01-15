@@ -23,8 +23,8 @@ public class DateSearchItem extends PropertySearchItem {
     private XMLGregorianCalendar fromDate;
     private XMLGregorianCalendar toDate;
 
-    public DateSearchItem(Search search, ItemPath path, ItemDefinition definition, PolyStringType displayName) {
-        super(search, path, definition, null, displayName);
+    public DateSearchItem(Search search, SearchItemDefinition definition) {
+        super(search, definition);
     }
 
     public XMLGregorianCalendar getFromDate() {
@@ -44,7 +44,7 @@ public class DateSearchItem extends PropertySearchItem {
     }
 
     @Override
-    public Type getType() {
+    public Type getSearchItemType() {
         return Type.DATE;
     }
 }

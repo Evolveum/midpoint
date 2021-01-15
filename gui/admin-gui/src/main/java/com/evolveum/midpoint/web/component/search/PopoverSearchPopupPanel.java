@@ -21,7 +21,7 @@ import org.apache.wicket.model.IModel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-public class SpecialPopoverSearchPopupPanel<T> extends BasePanel<T> {
+public class PopoverSearchPopupPanel<T> extends BasePanel<T> {
 
     private static final long serialVersionUID = 1L;
 
@@ -29,11 +29,11 @@ public class SpecialPopoverSearchPopupPanel<T> extends BasePanel<T> {
     private static final String ID_CONFIRM_BUTTON = "confirmButton";
 
 
-    public SpecialPopoverSearchPopupPanel(String id) {
+    public PopoverSearchPopupPanel(String id) {
         super(id);
     }
 
-    public SpecialPopoverSearchPopupPanel(String id, IModel<T> model) {
+    public PopoverSearchPopupPanel(String id, IModel<T> model) {
         super(id,model);
     }
 
@@ -58,7 +58,9 @@ public class SpecialPopoverSearchPopupPanel<T> extends BasePanel<T> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                confirmPerformed(target);
+                if (isItemPanelEnabled()) {
+                    confirmPerformed(target);
+                }
             }
         };
         midpointForm.add(confirm);
@@ -71,6 +73,10 @@ public class SpecialPopoverSearchPopupPanel<T> extends BasePanel<T> {
 
     protected void confirmPerformed(AjaxRequestTarget target){
 
+    }
+
+    protected Boolean isItemPanelEnabled() {
+        return true;
     }
 
 }

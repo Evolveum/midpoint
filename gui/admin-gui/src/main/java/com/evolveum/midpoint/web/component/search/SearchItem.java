@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.component.search;
 import java.io.Serializable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.Containerable;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -18,13 +19,15 @@ public abstract class SearchItem implements Serializable {
     private static final long serialVersionUID = 1L;
 
     public enum Type {
-        TEXT, BOOLEAN, ENUM, BROWSER, REFERENCE, FILTER, DATE, ITEM_PATH
+        TEXT, BOOLEAN, ENUM, BROWSER, REFERENCE, FILTER, DATE, ITEM_PATH, OBJECT_COLLECTION
     }
 
-    private final Search search;
+    private final Search<Containerable> search;
 
     private boolean fixed;
     private boolean editWhenVisible;
+    private SearchItemDefinition definition;
+    private boolean applyFilter = true;
 
     public SearchItem(Search search) {
         this.search = search;
@@ -32,13 +35,17 @@ public abstract class SearchItem implements Serializable {
 
     public abstract String getName();
 
-    public abstract Type getType();
+    public abstract Type getSearchItemType();
 
     protected String getTitle(PageBase pageBase) {
         return "";
     }
 
-    public Search getSearch() {
+    public String getHelp(PageBase pageBase) {
+        return "";
+    }
+
+    public Search<Containerable> getSearch() {
         return search;
     }
 
@@ -56,5 +63,29 @@ public abstract class SearchItem implements Serializable {
 
     public void setEditWhenVisible(boolean editWhenVisible) {
         this.editWhenVisible = editWhenVisible;
+    }
+
+    public SearchItemDefinition getDefinition() {
+        return definition;
+    }
+
+    public void setDefinition(SearchItemDefinition definition) {
+        this.definition = definition;
+    }
+
+    public boolean isApplyFilter() {
+        return applyFilter;
+    }
+
+    public void setApplyFilter(boolean applyFilter) {
+        this.applyFilter = applyFilter;
+    }
+
+    protected boolean canRemoveSearchItem() {
+        return true;
+    }
+
+    public boolean isEnabled() {
+        return true;
     }
 }

@@ -6,8 +6,11 @@
  */
 package com.evolveum.midpoint.schrodinger.component.task;
 
+import static com.codeborne.selenide.Selenide.$;
+
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import org.testng.Assert;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
@@ -16,7 +19,7 @@ import com.evolveum.midpoint.schrodinger.component.common.table.TableRow;
 import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
-import static com.codeborne.selenide.Selenide.$;
+import java.util.Objects;
 
 /**
  * @author honchar
@@ -62,4 +65,29 @@ public class ResultTab extends Component<TaskPage> {
     public Table<ResultTab> getResultsTable() {
         return new Table<>(this, $(Schrodinger.byDataId("operationResult")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S));
     }
+
+    public ResultTab assertOperationValueByTokenMatch(String tokenValue, String expectedValue) {
+        String realValue = getOperationValueByToken(tokenValue);
+        Assert.assertEquals(realValue, expectedValue, "'Operation' value doesn't match to " + expectedValue);
+        return this;
+    }
+
+    public ResultTab assertStatusValueByTokenMatch(String tokenValue, String expectedValue) {
+        String realValue = getStatusValueByToken(tokenValue);
+        Assert.assertEquals(realValue, expectedValue, "'Status' value doesn't match to " + expectedValue);
+        return this;
+    }
+
+    public ResultTab assertTimestampValueByTokenMatch(String tokenValue, String expectedValue) {
+        String realValue = getTimestampValueByToken(tokenValue);
+        Assert.assertEquals(realValue, expectedValue, "'Timestamp' value doesn't match to " + expectedValue);
+        return this;
+    }
+
+    public ResultTab assertMessageValueByTokenMatch(String tokenValue, String expectedValue) {
+        String realValue = getMessageValueByToken(tokenValue);
+        Assert.assertEquals(realValue, expectedValue, "'Message' value doesn't match to " + expectedValue);
+        return this;
+    }
+
 }

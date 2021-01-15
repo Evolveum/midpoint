@@ -10445,13 +10445,13 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:complexType name="ExpressionParameterType">
+    <xsd:complexType name="ParameterType">
         <xsd:annotation>
             <xsd:documentation>
-                Describes input parameters to the expression.
+                Describes input parameters.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>3.7</a:since>
+                <a:since>4.3</a:since>
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
@@ -10470,14 +10470,32 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Expression that determines parameter value.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ExpressionParameterType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes input parameters to the expression.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>3.7</a:since>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ParameterType">
+                <xsd:sequence>
+                    <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Expression that determines parameter value.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:simpleType name="ExpressionReturnMultiplicityType">
@@ -25576,16 +25594,94 @@
                            </xsd:appinfo>
                        </xsd:annotation>
                    </xsd:element>
-                   <xsd:element name="defaultScope" type="tns:SearchBoxScopeType" minOccurs="0" maxOccurs="1" default="oneLevel">
+                   <xsd:element name="scopeConfiguration" type="tns:ScopeSearchItemConfigurationType" minOccurs="0" maxOccurs="1">
                     <xsd:annotation>
                         <xsd:documentation>
-                            The scope of the search box. Scope may not be applicable to all types of lists/views.
+                            Configuration for the scope of the search box. Scope may not be applicable to all types of lists/views.
                             E.g. it does not make sense for flat searches. Therefore some views may not even display
                             scope selection at all.
                         </xsd:documentation>
                            <xsd:appinfo>
-                            <a:displayName>SearchBoxConfigurationType.defaultScope</a:displayName>
-                            <a:since>3.9</a:since>
+                            <a:displayName>SearchBoxConfigurationType.scopeConfiguration</a:displayName>
+                            <a:since>4.3</a:since>
+                           </xsd:appinfo>
+                       </xsd:annotation>
+                   </xsd:element>
+                   <xsd:element name="objectTypeConfiguration" type="tns:ObjectTypeSearchItemConfigurationType" minOccurs="0" maxOccurs="1">
+                       <xsd:annotation>
+                           <xsd:documentation>
+                               Configuration for default type of object for search boxes that support object type selection.
+                               E.g. UserType or RoleType. Setting it to ObjectType should display all objects.
+                               Type selection may not be applicable to all types of lists/views.
+                               E.g. it does not make sense for lists that only contain objects of a single type.
+                               Therefore some views may not even display object type selection at all.
+                           </xsd:documentation>
+                           <xsd:appinfo>
+                               <a:displayName>SearchBoxConfigurationType.objectTypeConfiguration</a:displayName>
+                               <a:since>4.3</a:since>
+                           </xsd:appinfo>
+                       </xsd:annotation>
+                   </xsd:element>
+                   <xsd:element name="relationConfiguration" type="tns:RelationSearchItemConfigurationType" minOccurs="0" maxOccurs="1">
+                       <xsd:annotation>
+                           <xsd:documentation>
+                               Configuration for the relation of the search box. Relation may not be applicable to all types of lists/views.
+                               E.g. it does not make sense for flat searches. Therefore some views may not even display
+                               scope selection at all.
+                           </xsd:documentation>
+                           <xsd:appinfo>
+                               <a:displayName>SearchBoxConfigurationType.objectTypeConfiguration</a:displayName>
+                               <a:since>4.3</a:since>
+                           </xsd:appinfo>
+                       </xsd:annotation>
+                   </xsd:element>
+                   <xsd:element name="indirectConfiguration" type="tns:IndirectSearchItemConfigurationType" minOccurs="0" maxOccurs="1">
+                       <xsd:annotation>
+                           <xsd:documentation>
+                               Configuration for the relation of the search box. Relation may not be applicable to all types of lists/views.
+                               E.g. it does not make sense for flat searches. Therefore some views may not even display
+                               scope selection at all.
+                           </xsd:documentation>
+                           <xsd:appinfo>
+                               <a:displayName>SearchBoxConfigurationType.objectTypeConfiguration</a:displayName>
+                               <a:since>4.3</a:since>
+                           </xsd:appinfo>
+                       </xsd:annotation>
+                   </xsd:element>
+                   <xsd:element name="projectConfiguration" type="tns:UserInterfaceFeatureType" minOccurs="0" maxOccurs="1">
+                       <xsd:annotation>
+                           <xsd:documentation>
+                               Configuration for the project/org search item. Project/Org is applicable only to role members table.
+                           </xsd:documentation>
+                           <xsd:appinfo>
+                               <a:displayName>SearchBoxConfigurationType.objectTypeConfiguration</a:displayName>
+                               <a:since>4.3</a:since>
+                           </xsd:appinfo>
+                       </xsd:annotation>
+                   </xsd:element>
+                   <xsd:element name="tenantConfiguration" type="tns:UserInterfaceFeatureType" minOccurs="0" maxOccurs="1">
+                       <xsd:annotation>
+                           <xsd:documentation>
+                               Configuration for the tenant search item. Tenant is applicable only to role members table.
+                           </xsd:documentation>
+                           <xsd:appinfo>
+                               <a:displayName>SearchBoxConfigurationType.objectTypeConfiguration</a:displayName>
+                               <a:since>4.3</a:since>
+                           </xsd:appinfo>
+                       </xsd:annotation>
+                   </xsd:element>
+                   <xsd:element name="defaultScope" type="tns:SearchBoxScopeType" minOccurs="0" maxOccurs="1" default="oneLevel">
+                       <xsd:annotation>
+                           <xsd:documentation>
+                               The scope of the search box. Scope may not be applicable to all types of lists/views.
+                               E.g. it does not make sense for flat searches. Therefore some views may not even display
+                               scope selection at all.
+                           </xsd:documentation>
+                           <xsd:appinfo>
+                               <a:displayName>SearchBoxConfigurationType.defaultScope</a:displayName>
+                               <a:since>3.9</a:since>
+                               <a:deprecated>true</a:deprecated>
+                               <a:deprecatedSince>4.3</a:deprecatedSince>
                            </xsd:appinfo>
                        </xsd:annotation>
                    </xsd:element>
@@ -25601,6 +25697,8 @@
                            <xsd:appinfo>
                             <a:displayName>SearchBoxConfigurationType.defaultObjectType</a:displayName>
                             <a:since>3.9</a:since>
+                            <a:deprecated>true</a:deprecated>
+                            <a:deprecatedSince>4.3</a:deprecatedSince>
                            </xsd:appinfo>
                        </xsd:annotation>
                    </xsd:element>
@@ -25627,6 +25725,138 @@
                    </xsd:element>
                    <!-- TODO: default relation (e.g. defalt, manager, all relations) -->
                </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ObjectTypeSearchItemConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration for default object type.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:UserInterfaceFeatureType">
+                <xsd:sequence>
+                    <xsd:element name="defaultValue" type="xsd:QName" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Default value of search item panel. Default value of this attribute is different by the page.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ObjectTypeSearchItemConfigurationType.defaultValue</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="supportedTypes" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Define allowed values for search item panel. Default allowed values are different by the page.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ObjectTypeSearchItemConfigurationType.defaultValue</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="RelationSearchItemConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration for relation search item.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:UserInterfaceFeatureType">
+                <xsd:sequence>
+                    <xsd:element name="defaultValue" type="xsd:QName" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Default value of search item panel. Default value of this attribute is different by the page.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>RelationSearchItemConfigurationType.defaultValue</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="supportedRelations" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Define allowed values for search item panel. Default allowed values are different by the page.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>RelationSearchItemConfigurationType.supportedRelations</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="IndirectSearchItemConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration for indirect search item.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:UserInterfaceFeatureType">
+                <xsd:sequence>
+                    <xsd:element name="indirect" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Default value of search item panel.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>IndirectSearchItemConfigurationType.defaultValue</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ScopeSearchItemConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration for scope search item.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:UserInterfaceFeatureType">
+                <xsd:sequence>
+                    <xsd:element name="defaultValue" type="tns:SearchBoxScopeType" minOccurs="0" maxOccurs="1" default="oneLevel">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Default value of search item panel.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ScopeSearchItemConfiguration.defaultValue</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="SearchItemsType">
@@ -25680,6 +25910,24 @@
                             Also in the future can be used to predefine the value of the searchable item if path is defined.
                         </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SearchItemType.filter</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="filterExpression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Filter defines a custom filter which can be included during search execution.
+                            Expression return SearchFilterType.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                        <a:experimental>true</a:experimental>
+                        <a:displayName>SearchItemType.filterExpression</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
@@ -25703,7 +25951,72 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="parameter" type="c:SearchFilterParameterType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Parameter used in filter expression.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                        <a:experimental>true</a:experimental>
+                        <a:displayName>SearchItemType.parameter</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="visibleByDefault" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Define if item search panel will be showing as default or it will be available in 'more' panel. Default is 'true'.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                        <a:experimental>true</a:experimental>
+                        <a:displayName>SearchItemType.visibleByDefault</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SearchFilterParameterType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes input parameters for the search filter.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.3</a:since>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ParameterType">
+                <xsd:sequence>
+                    <xsd:element name="allowedValuesLookupTable" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:since>4.3</a:since>
+                                <a:experimental>true</a:experimental>
+                                <a:objectReferenceTargetType>tns:LookupTableType</a:objectReferenceTargetType>
+                                <a:displayName>SearchFilterParameterType.allowedValuesLookupTable</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="allowedValuesExpression" type="tns:ExpressionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Expression that determines allowed value. Expected List&#60;DisplayableValue&#62;.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.3</a:since>
+                                <a:experimental>true</a:experimental>
+                                <a:displayName>SearchFilterParameterType.allowedValuesExpression</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:simpleType name="SearchBoxModeType">
@@ -25740,6 +26053,26 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="FULLTEXT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="oid">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Oid search mode. Single input field used to search by oid over whole database.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OID"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="queryDsl">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Query DSL search mode. Ability to create complex query using a query DSL.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="QUERY_DSL"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

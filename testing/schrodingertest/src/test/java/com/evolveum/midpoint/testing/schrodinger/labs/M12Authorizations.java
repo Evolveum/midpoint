@@ -72,13 +72,13 @@ public class M12Authorizations extends AbstractLabTest{
         login.login("X000005", "qwerty12345XXXX");
 
         ProfilePage profile = basicPage.profile();
-        Assert.assertTrue(profile.selectTabProjections()
+        profile.selectTabProjections()
             .table()
-                .containsLinksTextPartially("")); //TODO projections names
+                .assertTableContainsLinksTextPartially(""); //TODO projections names
 
-        Assert.assertTrue(profile.selectTabAssignments()
+        profile.selectTabAssignments()
                 .table()
-                    .containsLinksTextPartially("Basic user", "")); //TODO roles names
+                    .assertTableContainsLinksTextPartially("Basic user", ""); //TODO roles names
 
         basicPage.credentials(); //TODO implement credentials page
 

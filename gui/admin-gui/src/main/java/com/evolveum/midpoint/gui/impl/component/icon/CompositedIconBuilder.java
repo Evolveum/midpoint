@@ -17,12 +17,14 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
+import org.apache.wicket.model.IModel;
+
 /**
  * @author skublik
  */
 public class CompositedIconBuilder {
 
-    private final List<IconType> layerIcons = new ArrayList<>();
+    private final List<LayerIcon> layerIcons = new ArrayList<>();
 
     private String basicIcon = "";
     private String colorHtmlValue = "";
@@ -36,11 +38,11 @@ public class CompositedIconBuilder {
         basicIcon = icon + " " + style;
     }
 
-    private void appendLayerIcon(IconType icon) {
+    private void appendLayerIcon(LayerIcon icon) {
         layerIcons.add(icon);
     }
 
-    private void appendLayerIcon(int index, IconType icon) {
+    private void appendLayerIcon(int index, LayerIcon icon) {
         layerIcons.add(index, icon);
     }
 
@@ -70,7 +72,7 @@ public class CompositedIconBuilder {
         if (StringUtils.isNotEmpty(additionalCssClass)) {
             sb.append(" ").append(additionalCssClass);
         }
-        appendLayerIcon(0, WebComponentUtil.createIconType(sb.toString()));
+        appendLayerIcon(0, new LayerIcon(WebComponentUtil.createIconType(sb.toString())));
         return this;
     }
 
@@ -104,7 +106,7 @@ public class CompositedIconBuilder {
         if (StringUtils.isNotEmpty(additionalCssClass)) {
             sb.append(" ").append(additionalCssClass);
         }
-        appendLayerIcon(WebComponentUtil.createIconType(sb.toString()));
+        appendLayerIcon(new LayerIcon(WebComponentUtil.createIconType(sb.toString())));
         return this;
     }
 
@@ -120,8 +122,24 @@ public class CompositedIconBuilder {
         }
         String layerIconClass = sb.toString();
         sb.append(" ").append(style.getStrokeLayerCssClass());
-        appendLayerIcon(WebComponentUtil.createIconType(sb.toString(), icon.getColor()));
-        appendLayerIcon(WebComponentUtil.createIconType(layerIconClass, icon.getColor()));
+        appendLayerIcon(new LayerIcon(WebComponentUtil.createIconType(sb.toString(), icon.getColor())));
+        appendLayerIcon(new LayerIcon(WebComponentUtil.createIconType(layerIconClass, icon.getColor())));
+        return this;
+    }
+
+    public CompositedIconBuilder appendLayerIcon(IModel<String> labelModel, IconType icon, LayeredIconCssStyle style) {
+        Validate.notNull(icon, "no icon object");
+        Validate.notNull(labelModel, "no icon label");
+        Validate.notNull(style, "no icon style");
+
+        StringBuilder sb = new StringBuilder(style.getLayerCssClass());
+        if (StringUtils.isNotEmpty(icon.getColor())) {
+            sb.append(" ").append(icon.getColor()).append(" ");
+        }
+        String layerIconClass = sb.toString();
+        sb.append(" ").append(style.getStrokeLayerCssClass());
+        appendLayerIcon(new LayerIcon(WebComponentUtil.createIconType(sb.toString(), icon.getColor()), labelModel));
+        appendLayerIcon(new LayerIcon(WebComponentUtil.createIconType(layerIconClass, icon.getColor()), labelModel));
         return this;
     }
 
@@ -135,7 +153,7 @@ public class CompositedIconBuilder {
         if (StringUtils.isNotEmpty(icon.getColor())) {
             sb.append(" ").append(icon.getColor());
         }
-        appendLayerIcon(WebComponentUtil.createIconType(sb.toString(), icon.getColor()));
+        appendLayerIcon(new LayerIcon(WebComponentUtil.createIconType(sb.toString(), icon.getColor())));
         return this;
     }
 

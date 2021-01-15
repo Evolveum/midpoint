@@ -30,6 +30,8 @@ import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.component.modal.ObjectBrowserModal;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
+import org.testng.Assert;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -203,6 +205,12 @@ public class PrismForm<T> extends Component<T> {
             return expectedValue.isEmpty();
         }
 
+    }
+
+    public PrismForm<T> assertSelectAttributeValueMatches(String attributeName, String expectedValue) {
+        Assert.assertTrue(compareSelectAttributeValue(attributeName, expectedValue),"The value of the select attribute " + attributeName
+                    + " doesn't match to expected value '" + expectedValue + "'.");
+        return this;
     }
 
     public PrismForm<T> addAttributeValue(QName name, String value) {
@@ -484,4 +492,28 @@ public class PrismForm<T> extends Component<T> {
         containerPanel.scrollTo();
         return new PrismContainerPanel<PrismForm<T>>(this, containerPanel);
     }
+
+    public PrismForm<T> assertPropertyWithTitleTextExist(String propertyName, String text) {
+        Assert.assertTrue(propertyWithTitleTextExists(propertyName, text),
+                "Property " + propertyName + " with title text '" + text + "' doesn't exist.");
+        return this;
+    }
+
+    public PrismForm<T> assertPropertyEnabled(String propertyName) {
+        Assert.assertTrue(isPropertyEnabled(propertyName), "Property " + propertyName + " is disabled.");
+        return this;
+    }
+
+    public PrismForm<T> assertInputAttributeValueMatches(String attributeName, String expectedValue) {
+        Assert.assertTrue(compareInputAttributeValue(attributeName, expectedValue), "The value of the input attribute " + attributeName
+                + " doesn't match to expected value '" + expectedValue + "'.");
+        return this;
+    }
+
+    public PrismForm<T> assertInputAttributeValuesMatches(String attributeName, String... expectedValues) {
+        Assert.assertTrue(compareInputAttributeValues(attributeName, expectedValues), "The values of the input attribute " + attributeName
+                + " doesn't match to expected values.");
+        return this;
+    }
+
 }

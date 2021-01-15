@@ -12,6 +12,7 @@ import java.util.function.Supplier;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.search.*;
@@ -54,16 +55,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
     private static final String DOT_CLASS = ObjectListPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_CUSTOM_MENU_ITEMS = DOT_CLASS + "loadCustomMenuItems";
 
-    private ObjectTypes type;
-
-    public Class<O> getType() {
-        return (Class) type.getClassDefinition();
-    }
-
-    public void setType(Class<? extends O> type) {
-        this.type = type  != null ? ObjectTypes.getObjectType(type) : null;
-    }
-
     /**
      * @param defaultType specifies type of the object that will be selected by default. It can be changed.
      */
@@ -76,7 +67,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
      */
     public ObjectListPanel(String id, Class<? extends O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options) {
         super(id, defaultType, options);
-        this.type = defaultType  != null ? ObjectTypes.getObjectType(defaultType) : null;
     }
 
     protected String getSearchByNameParameterValue() {
@@ -92,9 +82,10 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
         return value.toString();
     }
 
-    protected Search createSearch() {
-        return SearchFactory.createSearch(type.getClassDefinition(), isCollectionViewPanelForCompiledView() ? getCollectionNameParameterValue().toString() : null,
-                getFixedSearchItems(), null, getPageBase(), true);
+    @Override
+    protected Search createSearch(Class<? extends O> type) {
+        return SearchFactory.createSearch(new ContainerTypeSearchItem<O>(new SearchValue(type, "")), isCollectionViewPanelForCompiledView() ? getCollectionNameParameterValue().toString() : null,
+                getFixedSearchItems(), null, getPageBase(), null, true, true, Search.PanelType.DEFAULT);
     }
 
     protected List<ItemPath> getFixedSearchItems() {
@@ -106,7 +97,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
     protected ISelectableDataProvider createProvider() {
         List<O> preSelectedObjectList = getPreselectedObjectList();
         SelectableBeanObjectDataProvider<O> provider = new SelectableBeanObjectDataProvider<O>(
-                getPageBase(), (Class) type.getClassDefinition(), preSelectedObjectList == null ? null : new HashSet<>(preSelectedObjectList)) {
+                getPageBase(), getSearchModel(), preSelectedObjectList == null ? null : new HashSet<>(preSelectedObjectList)) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -139,8 +130,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
             }
 
             @Override
-            public ObjectQuery getQuery() {
-                return createQuery();
+            protected ObjectQuery getCustomizeContentQuery() {
+                return ObjectListPanel.this.getCustomizeContentQuery();
             }
         };
         provider.setCompiledObjectCollectionView(getObjectCollectionView());
@@ -194,4 +185,11 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
     }
 
     protected void objectDetailsPerformed(AjaxRequestTarget target, O object){};
+
+    protected ContainerTypeSearchItem getTypeItem(Class<? extends O> type, List<DisplayableValue<Class<? extends O>>> allowedValues){
+        @NotNull ObjectTypes objectType = ObjectTypes.getObjectType(type);
+        return new ContainerTypeSearchItem<O>(new SearchValue(objectType.getClassDefinition(),
+                "ObjectType." + objectType.getTypeQName().getLocalPart()),
+                allowedValues);
+    }
 }

@@ -20,6 +20,8 @@ import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import com.evolveum.midpoint.schrodinger.util.Utils;
 
+import org.testng.Assert;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -122,5 +124,10 @@ public class AssignmentsTab<P extends AssignmentHolderDetailsPage> extends TabWi
     @Override
     protected String getPrismViewPanelId() {
         return "assignmentsContainer";
+    }
+
+    public AssignmentsTab<P> assertAssignmentsWithRelationExist(String relation, String... expectedAssignments) {
+        Assert.assertEquals(containsAssignmentsWithRelation(relation, expectedAssignments), "Assignments doesn't exist.");
+        return this;
     }
 }

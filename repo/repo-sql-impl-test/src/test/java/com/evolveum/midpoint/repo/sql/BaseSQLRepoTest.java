@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -53,11 +53,12 @@ import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
-import com.evolveum.midpoint.repo.sql.helpers.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.repo.sql.testing.TestQueryListener;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.*;
@@ -223,11 +224,6 @@ public class BaseSQLRepoTest extends AbstractSpringTest
         return prismContext.deltaFor(objectClass);
     }
 
-    @SuppressWarnings("unused")
-    protected SqlRepositoryConfiguration getRepositoryConfiguration() {
-        return ((SqlRepositoryServiceImpl) repositoryService).sqlConfiguration();
-    }
-
     protected GetOperationOptionsBuilder getOperationOptionsBuilder() {
         return schemaHelper.getOperationOptionsBuilder();
     }
@@ -332,7 +328,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest
 
     protected <S, Q extends FlexibleRelationalPathBase<R>, R> List<R> select(
             QueryModelMapping<S, Q, R> mapping, Predicate... conditions) {
-        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startReadOnlyTransaction()) {
+        try (JdbcSession jdbcSession = createJdbcSession().startReadOnlyTransaction()) {
             Q alias = mapping.defaultAlias();
             SQLQuery<R> query = jdbcSession.query()
                     .select(alias)
@@ -353,7 +349,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest
 
     protected <S, Q extends FlexibleRelationalPathBase<R>, R> long count(
             QueryModelMapping<S, Q, R> mapping, Predicate... conditions) {
-        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startReadOnlyTransaction()) {
+        try (JdbcSession jdbcSession = createJdbcSession().startReadOnlyTransaction()) {
             Q alias = mapping.defaultAlias();
             return jdbcSession.query()
                     .select(alias)
@@ -361,5 +357,11 @@ public class BaseSQLRepoTest extends AbstractSpringTest
                     .where(conditions)
                     .fetchCount();
         }
+    }
+
+    /** Creates new {@link JdbcSession} based on {@link #baseHelper} setup. */
+    protected JdbcSession createJdbcSession() {
+        return new SqlRepoContext(baseHelper.getConfiguration(), baseHelper.dataSource(), null)
+                .newJdbcSession();
     }
 }

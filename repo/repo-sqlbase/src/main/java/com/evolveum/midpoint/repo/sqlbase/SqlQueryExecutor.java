@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sql.audit;
+package com.evolveum.midpoint.repo.sqlbase;
 
 import java.util.Collection;
 
@@ -13,11 +13,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
-import com.evolveum.midpoint.repo.sql.helpers.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.PageOf;
-import com.evolveum.midpoint.repo.sqlbase.QueryException;
-import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -34,12 +29,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public class SqlQueryExecutor {
 
-    private final BaseHelper baseHelper;
+    private final SqlRepoContext sqlRepoContext;
     private final PrismContext prismContext;
 
-    public SqlQueryExecutor(BaseHelper baseHelper, PrismContext prismContext) {
+    public SqlQueryExecutor(SqlRepoContext sqlRepoContext, PrismContext prismContext) {
+        this.sqlRepoContext = sqlRepoContext;
         this.prismContext = prismContext;
-        this.baseHelper = baseHelper;
     }
 
     public <S, Q extends FlexibleRelationalPathBase<R>, R> int count(
@@ -49,14 +44,14 @@ public class SqlQueryExecutor {
             throws QueryException {
 
         SqlQueryContext<S, Q, R> context =
-                SqlQueryContext.from(schemaType, prismContext, baseHelper.sqlRepoContext());
+                SqlQueryContext.from(schemaType, prismContext, sqlRepoContext);
         if (query != null) {
             context.process(query.getFilter());
         }
         // TODO MID-6319: all options can be applied, just like for list?
         context.processOptions(options);
 
-        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startReadOnlyTransaction()) {
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
             return context.executeCount(jdbcSession.connection());
         }
     }
@@ -68,7 +63,7 @@ public class SqlQueryExecutor {
             throws QueryException, SchemaException {
 
         SqlQueryContext<S, Q, R> context =
-                SqlQueryContext.from(schemaType, prismContext, baseHelper.sqlRepoContext());
+                SqlQueryContext.from(schemaType, prismContext, sqlRepoContext);
         if (query != null) {
             context.process(query.getFilter());
             context.processObjectPaging(query.getPaging());
@@ -76,7 +71,7 @@ public class SqlQueryExecutor {
         context.processOptions(options);
 
         PageOf<Tuple> result;
-        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startReadOnlyTransaction()) {
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
             result = context.executeQuery(jdbcSession.connection());
         }
 
