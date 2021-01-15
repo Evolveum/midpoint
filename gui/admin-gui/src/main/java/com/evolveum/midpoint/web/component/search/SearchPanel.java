@@ -12,12 +12,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
@@ -182,6 +184,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         SearchTypePanel typePanel = new SearchTypePanel(ID_TYPE_PANEL, typeModel){
             @Override
             protected void searchPerformed(AjaxRequestTarget target) {
+                resetMoreDialogModel();
                 SearchPanel.this.searchPerformed(target);
             }
         };
@@ -840,9 +843,13 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
     private List<SearchItemDefinition> createPropertiesList() {
         List<SearchItemDefinition> list = new ArrayList<>();
 
-        Search search = getModelObject();
-        list.addAll(search.getAllDefinitions());
+        List<ItemPath> specialItemPaths = new ArrayList<>();
+        getModelObject().getSpecialItems().stream().filter(specItem -> (specItem instanceof PropertySearchItem))
+                .forEach(specItem -> specialItemPaths.add(((PropertySearchItem<?>) specItem).getPath()));
 
+        Search search = getModelObject();
+        search.getAllDefinitions().stream().filter((Predicate<SearchItemDefinition>) def -> !ItemPathCollectionsUtil.containsEquivalent(specialItemPaths, def.getPath()))
+                .forEach((Consumer<SearchItemDefinition>) def -> list.add(def));
         Collections.sort(list);
 
         return list;

@@ -14,6 +14,7 @@ import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ParameterType;
@@ -94,6 +95,12 @@ public class SearchFilterPanel extends AbstractSearchItemPanel<FilterSearchItem>
                     }
                     if (choices != null) {
                         inputPanel = createDropDownChoices(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), FilterSearchItem.F_INPUT), choices, false);
+                        ((InputPanel) inputPanel).getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
+                            @Override
+                            protected void onUpdate(AjaxRequestTarget target) {
+                                searchPerformed(target);
+                            }
+                        });
                         break;
                     }
                 case ITEM_PATH:

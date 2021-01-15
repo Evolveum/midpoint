@@ -6,9 +6,8 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
@@ -19,6 +18,8 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.SearchItem;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.Component;
@@ -209,9 +210,22 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
             protected List<O> getPreselectedObjectList(){
                 return selectedObjectsList;
             }
+
+            @Override
+            protected Search createSearch(Class<? extends O> type) {
+                Search search = super.createSearch(type);
+                getSpecialSearchItemFunctions().forEach(function -> {
+                    search.addSpecialItem(function.apply(search));
+                });
+                return search;
+            }
         };
         listPanel.setOutputMarkupId(true);
         return listPanel;
+    }
+
+    protected Set<Function<Search, SearchItem>> getSpecialSearchItemFunctions() {
+        return Collections.emptySet();
     }
 
     protected void addPerformed(AjaxRequestTarget target, QName type, List<O> selected) {

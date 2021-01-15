@@ -595,6 +595,11 @@ public class PageDebugList extends PageAdminConfiguration {
             public boolean isEnabled() {
                 return !dto.isResourceEmpty();
             }
+
+            @Override
+            public boolean isApplyFilter() {
+                return isEnabled();
+            }
         };
         if (dto.getObjectClass() != null) {
             item.setValue(new SearchValue<>(dto.getObjectClass()));

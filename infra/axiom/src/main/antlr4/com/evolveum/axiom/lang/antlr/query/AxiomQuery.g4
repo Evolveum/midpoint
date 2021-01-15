@@ -45,11 +45,13 @@ pathValue: '[' argument ']';
 
 itemPathComponent: '#' #IdentifierComponent
     | '@' #DereferenceComponent
-    | prefixedName #ItemComponent;
+    | prefixedName #ItemComponent
+    ;
 
 path: '.' #SelfPath
     | parent ( '/' parent)* ( '/' itemPathComponent)* #ParentPath
-    | itemPathComponent ( '/' itemPathComponent)* #DescendantPath;
+    | itemPathComponent ( '/' itemPathComponent)* #DescendantPath
+    ;
 
 
 
@@ -65,8 +67,8 @@ matchingRule: '[' prefixedName ']';
 
 
 // Currently value could be string or path
-valueSpecification: literalValue | path;
-
+singleValue: literalValue | path;
+valueSet: '(' SEP* values+=singleValue SEP* (',' SEP* values+=singleValue SEP*)* ')';
 
 
 
@@ -81,7 +83,7 @@ filter: left=filter (SEP+ AND_KEYWORD SEP+ right=filter) #andFilter
 
 subfilterSpec: '(' SEP* filter SEP* ')';
 itemFilter: path (SEP+ negation)? SEP+ filterName (matchingRule)? (SEP+ (subfilterOrValue))?;
-subfilterOrValue : subfilterSpec | valueSpecification;
+subfilterOrValue : subfilterSpec | singleValue | valueSet;
 
 
 
@@ -109,18 +111,12 @@ fragment DQOUTE : '"';
 fragment ESC : '\\';
 //fragment ESC: '\\' ( ["\\/bfnrt] | UNICODE);
 
-
-
 STRING_SINGLEQUOTE: SQOUTE ((ESC SQOUTE) | ~[\n'])* SQOUTE;
 STRING_DOUBLEQUOTE: DQOUTE ((ESC DQOUTE) | ~[\n"])* DQOUTE;
 STRING_MULTILINE_START: '"""' ('\r')? '\n';
 
-
-
 fragment UNICODE: 'u' HEX HEX HEX HEX;
-
 fragment HEX: [0-9a-fA-F];
-
 fragment NONZERO_DIGIT: [1-9];
 fragment DIGIT: [0-9];
 fragment FRACTIONAL_PART: '.' DIGIT+;

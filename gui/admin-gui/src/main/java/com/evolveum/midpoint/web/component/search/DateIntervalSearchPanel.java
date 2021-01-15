@@ -39,8 +39,12 @@ public class DateIntervalSearchPanel extends PopoverSearchPanel {
             @Override
             protected void confirmPerformed(AjaxRequestTarget target) {
                 target.add(DateIntervalSearchPanel.this);
+                searchPerformed(target);
             }
         };
+    }
+
+    public void searchPerformed(AjaxRequestTarget target) {
     }
 
     @Override

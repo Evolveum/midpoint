@@ -326,7 +326,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
         List<ObjectFilter> conditions = new ArrayList<>();
         for (SearchItem item : specialItems){
-            if (item.isEnabled() && item.isApplyFilter()) {
+            if (item.isApplyFilter()) {
                 if (item instanceof SpecialSearchItem) {
                     ObjectFilter filter = ((SpecialSearchItem) item).createFilter(pageBase, variables);
                     if (filter != null) {
