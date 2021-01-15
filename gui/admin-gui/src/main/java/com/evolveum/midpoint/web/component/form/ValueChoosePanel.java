@@ -7,8 +7,14 @@
 package com.evolveum.midpoint.web.component.form;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.SearchItem;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -199,10 +205,18 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
                 ValueChoosePanel.this.choosePerformed(target, object);
             }
 
+            @Override
+            protected Set<Function<Search, SearchItem>> getSpecialSearchItemFunctions() {
+                return ValueChoosePanel.this.getSpecialSearchItemFunctions();
+            }
         };
 
         getPageBase().showMainPopup(objectBrowserPanel, target);
 
+    }
+
+    protected Set<Function<Search, SearchItem>> getSpecialSearchItemFunctions() {
+        return Collections.emptySet();
     }
 
     public List<QName> getSupportedTypes() {
