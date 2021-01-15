@@ -235,4 +235,25 @@ public class Table<T> extends Component<T> {
         Assert.assertFalse(containsLinksTextPartially(linkTextValues), "Table shouldn't contain links text.");
         return this;
     }
+
+    public Table<T> assertCurrentTableContains(String elementValue) {
+        return assertCurrentTableContains("Span", elementValue);
+    }
+
+    public Table<T> assertCurrentTableContains(String elementName, String elementValue) {
+        Assert.assertTrue(currentTableContains(elementName, elementValue), "Table doesn't contain element " + elementName + " with value " +
+                elementValue);
+        return this;
+    }
+
+    public Table<T> assertCurrentTableDoesntContain(String elementValue) {
+        return assertCurrentTableContains("Span", elementValue);
+    }
+
+    public Table<T> assertCurrentTableDoesntContain(String elementName, String elementValue) {
+        Assert.assertFalse(currentTableContains(elementName, elementValue), "Table shouldn't contain element " + elementName + " with value " +
+                elementValue);
+        return this;
+    }
+
 }

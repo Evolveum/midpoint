@@ -93,7 +93,7 @@ public class AccountTests extends AbstractSchrodingerTest {
     public void changeResourceFilePath(){
         ListResourcesPage listResourcesPage = basicPage.listResources();
 
-        Assert.assertTrue(listResourcesPage
+        listResourcesPage
                 .table()
                 .clickByName(CSV_RESOURCE_NAME)
                     .clickEditResourceConfiguration()
@@ -103,8 +103,7 @@ public class AccountTests extends AbstractSchrodingerTest {
                     .and()
                 .and()
                 .clickSaveAndTestConnection()
-                .isTestSuccess()
-        );
+                .assertIsTestSuccess();
         refreshResourceSchema(CSV_RESOURCE_NAME);
     }
 

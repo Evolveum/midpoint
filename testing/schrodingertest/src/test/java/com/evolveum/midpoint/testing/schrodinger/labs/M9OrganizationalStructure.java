@@ -235,10 +235,10 @@ public class M9OrganizationalStructure extends AbstractLabTest{
 
         AccountPage accountPage = showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
         Selenide.screenshot("M9_accountPage");
-        Assert.assertTrue(accountPage
+        accountPage
                         .form()
-                        .compareInputAttributeValues("groups", "Internal Employees",
-                                "Essential Documents", "Teleportation", "Time Travel"));
+                        .assertInputAttributeValuesMatches("groups", "Internal Employees",
+                                "Essential Documents", "Teleportation", "Time Travel");
 
         basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
@@ -264,11 +264,10 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                                     .feedback()
                                         .isSuccess();
 
-        Assert.assertTrue(
-                showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
+        showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
                         .form()
-                        .compareInputAttributeValues("groups", "Internal Employees",
-                                "Essential Documents", "Teleportation", "Time Travel"));
+                        .assertInputAttributeValuesMatches("groups", "Internal Employees",
+                                "Essential Documents", "Teleportation", "Time Travel");
 
         basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
@@ -285,12 +284,10 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                 .feedback()
                     .isInfo();
 
-        Assert.assertTrue(
-                showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
+        showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
                         .form()
-                        .compareInputAttributeValues("groups", "Internal Employees",
-                                "Essential Documents", "Teleportation", "Time Travel", "Lucky Numbers",
-                                "Presidential Candidates Motivation"));
+                        .assertInputAttributeValuesMatches("groups", "Internal Employees", "Essential Documents",
+                                "Teleportation", "Time Travel", "Lucky Numbers", "Presidential Candidates Motivation");
 
         Assert.assertTrue(showUser("kirk").selectTabAssignments()
                 .selectTypeAllDirectIndirect()

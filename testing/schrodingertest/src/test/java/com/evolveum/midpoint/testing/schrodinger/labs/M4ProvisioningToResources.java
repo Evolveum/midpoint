@@ -124,7 +124,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                     .isSuccess();
 
         showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
-        Assert.assertTrue(accountForm.compareSelectAttributeValue("administrativeStatus", "Disabled"));
+        accountForm.assertSelectAttributeValueMatches("administrativeStatus", "Disabled");
         showUserInTable("kirk")
                 .selectAll()
                 .and()
@@ -133,7 +133,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                             .clickYes();
 
         showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
-        Assert.assertTrue(accountForm.compareSelectAttributeValue("administrativeStatus", "Enabled"));
+        accountForm.assertSelectAttributeValueMatches("administrativeStatus", "Enabled");
 
         changeAdministrativeStatusViaProjectionTab("kirk", "jkirk", "Disabled", CSV_1_RESOURCE_NAME);
         changeAdministrativeStatusViaProjectionTab("kirk", "jkirk", "Enabled", CSV_1_RESOURCE_NAME);
@@ -343,7 +343,8 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                 .clickSave()
                     .feedback()
                     .isSuccess();
-        AccountPage shadow = showShadow(resourceName, "Login", accountName);
-        Assert.assertTrue(shadow.form().compareSelectAttributeValue("administrativeStatus", status));
+        showShadow(resourceName, "Login", accountName)
+                .form()
+                    .assertSelectAttributeValueMatches("administrativeStatus", status);
     }
 }

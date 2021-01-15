@@ -92,19 +92,17 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
         addObjectFromFile(TOP_SECRET_I_ROLE_FILE);
 
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Secret Projects I", "Secret Projects II");
-        Assert.assertTrue(
-            showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
+        showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
                 .form()
-                    .compareInputAttributeValues("groups", "Lucky Numbers",
-                            "Teleportation", "Time Travel", "Presidential Candidates Motivation"));
+                    .assertInputAttributeValuesMatches("groups", "Lucky Numbers",
+                            "Teleportation", "Time Travel", "Presidential Candidates Motivation");
 
         Utils.removeAssignments(showUser("kirk").selectTabAssignments(), "Secret Projects I");
 
-        Assert.assertTrue(
-                showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
+        showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
                     .form()
-                        .compareInputAttributeValues("groups", "Lucky Numbers",
-                                "Presidential Candidates Motivation"));
+                        .assertInputAttributeValuesMatches("groups", "Lucky Numbers",
+                                "Presidential Candidates Motivation");
 
         Utils.removeAssignments(showUser("kirk").selectTabAssignments(), "Secret Projects II");
 
@@ -191,10 +189,10 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
 
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Internal Employee");
         showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
-        accountForm.assertSelectAttributeValueMatches("administrativeStatus", "Enabled");
-        Assert.assertTrue(
-                accountForm.compareInputAttributeValues("groups", "Internal Employees",
-                        "Essential Documents"));
+        accountForm
+                .assertSelectAttributeValueMatches("administrativeStatus", "Enabled")
+                .assertInputAttributeValuesMatches("groups", "Internal Employees",
+                        "Essential Documents");
 
         showShadow(CSV_2_RESOURCE_NAME, "Login", "jkirk");
         accountForm.assertSelectAttributeValueMatches("administrativeStatus", "Enabled");
@@ -209,22 +207,20 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
         AccountPage shadow = showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         PrismForm<AccountPage> accountForm = shadow.form();
-        Assert.assertTrue(
-                accountForm.compareInputAttributeValues("groups", "Internal Employees",
+        accountForm.assertInputAttributeValuesMatches("groups", "Internal Employees",
                         "Essential Documents", "Lucky Numbers", "Teleportation",
                         "Time Travel", "Presidential Candidates Motivation",
                         "Area 52 Managers", "Area 52 News Obfuscators", "Abduction Professional Services",
-                        "Immortality Training", "Telekinesis In Practice", "IDDQD"));
-        Assert.assertTrue(
-                accountForm.compareInputAttributeValues("groups", "Lucky Numbers",
-                        "Teleportation", "Time Travel", "Presidential Candidates Motivation"));
+                        "Immortality Training", "Telekinesis In Practice", "IDDQD");
+        accountForm.assertInputAttributeValuesMatches("groups", "Lucky Numbers",
+                        "Teleportation", "Time Travel", "Presidential Candidates Motivation");
 
         Utils.setStatusForAssignment(showUser("kirk").selectTabAssignments(), "Too Many Secrets", "Disabled");
 
         showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
-        accountForm.assertSelectAttributeValueMatches("administrativeStatus", "Enabled");
-        Assert.assertTrue(
-                accountForm.compareInputAttributeValues("groups", "Internal Employees", "Essential Documents"));
+        accountForm
+                .assertSelectAttributeValueMatches("administrativeStatus", "Enabled")
+                .assertInputAttributeValuesMatches("groups", "Internal Employees", "Essential Documents");
 
         showShadow(CSV_2_RESOURCE_NAME, "Login", "jkirk");
         accountForm.assertSelectAttributeValueMatches("administrativeStatus", "Enabled");

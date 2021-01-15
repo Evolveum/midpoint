@@ -150,10 +150,10 @@ public class CaseTests extends AbstractSchrodingerTest {
                 .updateSearch()
                 .and()
                 .clickByPartialName(REQUEST_CASE_NAME + CASE_CREATION_TEST_USER_NAME);
-        Assert.assertTrue(casePage
+        casePage
                         .selectTabChildren()
                         .table()
-                        .currentTableContains("div", "closed"));
+                        .assertCurrentTableContains("div", "closed");
 
         Assert.assertTrue(casePage
                         .selectTabOperationRequest()
@@ -196,10 +196,10 @@ public class CaseTests extends AbstractSchrodingerTest {
                 .and()
                 .clickByPartialName(REQUEST_CASE_NAME + REJECT_WORKITEM_TEST_USER_NAME);
 
-        Assert.assertTrue(casePage
+        casePage
                         .selectTabChildren()
                         .table()
-                        .currentTableContains("div", "closed"));
+                        .assertCurrentTableContains("div", "closed");
         Assert.assertTrue(casePage
                 .selectTabOperationRequest()
                 .changesAreRejected());

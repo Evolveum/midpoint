@@ -94,37 +94,31 @@ public class SynchronizationTests extends AbstractSchrodingerTest {
         Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         ListUsersPage usersPage = basicPage.listUsers();
-        Assert.assertTrue(
-              usersPage
+        usersPage
                 .table()
                     .search()
                         .byName()
                         .inputValue(ScenariosCommons.TEST_USER_DON_NAME)
                     .updateSearch()
                 .and()
-                .currentTableContains(ScenariosCommons.TEST_USER_DON_NAME)
-        );
+                .assertCurrentTableContains(ScenariosCommons.TEST_USER_DON_NAME);
     }
 
     @Test (priority = 2, dependsOnMethods = {NEW_USER_AND_ACCOUNT_CREATED_DEPENDENCY})
     public void protectedAccountAdded(){
 
         ListUsersPage usersPage = basicPage.listUsers();
-        Assert.assertFalse(
-              usersPage
+        usersPage
                 .table()
                     .search()
                         .byName()
                         .inputValue(ScenariosCommons.TEST_USER_PROTECTED_NAME)
                     .updateSearch()
                 .and()
-                .currentTableContains(ScenariosCommons.TEST_USER_PROTECTED_NAME)
-        );
+                .assertCurrentTableDoesntContain(ScenariosCommons.TEST_USER_PROTECTED_NAME);
         ListResourcesPage resourcesPage = basicPage.listResources();
 
-        Assert.assertTrue(
-
-           resourcesPage
+        resourcesPage
                     .table()
                         .search()
                             .byName()
@@ -135,8 +129,7 @@ public class SynchronizationTests extends AbstractSchrodingerTest {
                         .clickAccountsTab()
                         .clickSearchInResource()
                             .table()
-                            .currentTableContains(ScenariosCommons.TEST_USER_PROTECTED_NAME)
-        );
+                            .assertCurrentTableContains(ScenariosCommons.TEST_USER_PROTECTED_NAME);
 
     }
 
@@ -219,23 +212,20 @@ public class SynchronizationTests extends AbstractSchrodingerTest {
         Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         ListUsersPage usersPage = basicPage.listUsers();
-        Assert.assertFalse(
-                usersPage
+        usersPage
                     .table()
                         .search()
                             .byName()
                             .inputValue(ScenariosCommons.TEST_USER_DON_NAME)
                         .updateSearch()
                     .and()
-                    .currentTableContains(ScenariosCommons.TEST_USER_DON_NAME)
-        );
+                    .assertCurrentTableDoesntContain(ScenariosCommons.TEST_USER_DON_NAME);
     }
 
     @Test (priority = 6, dependsOnMethods = {RESOURCE_AND_SYNC_TASK_SETUP_DEPENDENCY})
     public void resourceAccountDeleted(){
 
         ListUsersPage usersPage = basicPage.listUsers();
-        Assert.assertFalse(
         usersPage
                 .table()
                         .search()
@@ -246,12 +236,10 @@ public class SynchronizationTests extends AbstractSchrodingerTest {
                         .clickByName("raphael")
                             .selectTabProjections()
                                 .table()
-                                .currentTableContains(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
-        );
+                                .assertCurrentTableDoesntContain(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME);
 
         ListResourcesPage resourcesPage = basicPage.listResources();
-        Assert.assertFalse(
-           resourcesPage
+        resourcesPage
                     .table()
                         .search()
                             .byName()
@@ -268,12 +256,10 @@ public class SynchronizationTests extends AbstractSchrodingerTest {
                         .and()
                         .clickSearchInResource()
                             .table()
-                            .currentTableContains("raphael")
-        );
+                            .assertCurrentTableDoesntContain("raphael");
 
         usersPage = basicPage.listUsers();
-        Assert.assertFalse(
-                         usersPage
+        usersPage
                     .table()
                         .search()
                             .byName()
@@ -283,8 +269,7 @@ public class SynchronizationTests extends AbstractSchrodingerTest {
                         .clickByName("raphael")
                             .selectTabProjections()
                                 .table()
-                                .currentTableContains(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
-        );
+                                .assertCurrentTableDoesntContain(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME);
     }
 
     @Test(priority = 7, dependsOnMethods = {LINKED_USER_ACCOUNT_DELETED})
@@ -297,16 +282,14 @@ public class SynchronizationTests extends AbstractSchrodingerTest {
         Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         ListUsersPage usersPage = basicPage.listUsers();
-        Assert.assertFalse(
-                usersPage
+        usersPage
                     .table()
                         .search()
                             .byName()
                             .inputValue(ScenariosCommons.TEST_USER_DON_NAME)
                         .updateSearch()
                     .and()
-                    .currentTableContains(ScenariosCommons.TEST_USER_DON_NAME)
-        );
+                    .assertCurrentTableDoesntContain(ScenariosCommons.TEST_USER_DON_NAME);
 
     changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csvTargetFile.getAbsolutePath(), true);
 
@@ -326,16 +309,14 @@ public class SynchronizationTests extends AbstractSchrodingerTest {
         Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         usersPage = basicPage.listUsers();
-        Assert.assertTrue(
-                usersPage
+        usersPage
                     .table()
                         .search()
                             .byName()
                             .inputValue(ScenariosCommons.TEST_USER_DON_NAME)
                         .updateSearch()
                     .and()
-                    .currentTableContains(ScenariosCommons.TEST_USER_DON_NAME)
-        );
+                    .assertCurrentTableContains(ScenariosCommons.TEST_USER_DON_NAME);
     }
 
     @Test (priority = 8, dependsOnMethods = {RESOURCE_ACCOUNT_CREATED_WHEN_UNREACHABLE})
@@ -387,8 +368,7 @@ public class SynchronizationTests extends AbstractSchrodingerTest {
         Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         listUsersPage = basicPage.listUsers();
-        Assert.assertTrue(
-                listUsersPage
+        listUsersPage
                     .table()
                         .search()
                             .byName()
@@ -398,7 +378,6 @@ public class SynchronizationTests extends AbstractSchrodingerTest {
                     .clickByName(ScenariosCommons.TEST_USER_RAPHAEL_NAME)
                             .selectTabProjections()
                                 .table()
-                        .currentTableContains(ScenariosCommons.TEST_USER_RAPHAEL_NAME)
-        );
+                        .assertCurrentTableContains(ScenariosCommons.TEST_USER_RAPHAEL_NAME);
     }
 }

@@ -58,7 +58,7 @@ public class UserTest extends AbstractSchrodingerTest {
             .clickSave();
 
         ListUsersPage usersPage = basicPage.listUsers();
-        PrismForm<AssignmentHolderBasicTab<UserPage>> userForm = usersPage
+        usersPage
                 .table()
                 .search()
                 .byName()
@@ -67,10 +67,10 @@ public class UserTest extends AbstractSchrodingerTest {
                 .and()
                 .clickByName("jdoe222323")
                 .selectTabBasic()
-                .form();
-        userForm.assertInputAttributeValueMatches("name", "jdoe222323");
-        userForm.assertInputAttributeValueMatches("givenName", "john");
-        userForm.assertInputAttributeValueMatches("familyName", "doe");
+                .form()
+                .assertInputAttributeValueMatches("name", "jdoe222323")
+                .assertInputAttributeValueMatches("givenName", "john")
+                .assertInputAttributeValueMatches("familyName", "doe");
 
     }
 
@@ -154,10 +154,9 @@ public class UserTest extends AbstractSchrodingerTest {
     @Test
     public void test0040delegateAssignmentPrivileges() {
         basicPage.loggedUser().logout();
-        Assert.assertTrue(midPoint.formLogin().login("DelegateEndUserRoleToUser", "password")
+        midPoint.formLogin().login("DelegateEndUserRoleToUser", "password")
                         .feedback()
-                        .isError(),
-                "User shouldn't login, doesn't has rights yet");
+                        .assertError();
         midPoint.formLogin().login(username, password);
 
         showUser("DelegateEndUserRoleFromUser")

@@ -61,27 +61,23 @@ public class PolyStringTests extends AbstractSchrodingerTest {
     public void searchForUserWithDiacritic(){
 
         ListUsersPage usersPage = basicPage.listUsers();
-        Assert.assertTrue(
-               usersPage
+        usersPage
                        .table()
                             .search()
                                 .byName()
                                 .inputValue(TEST_USER_JOZKO_NAME)
                             .updateSearch()
                        .and()
-                       .currentTableContains(TEST_USER_JOZKO_NAME)
-        );
+                       .assertCurrentTableContains(TEST_USER_JOZKO_NAME);
 
-        Assert.assertTrue(
-               usersPage
+        usersPage
                        .table()
                             .search()
                                 .byName()
                                 .inputValue(TEST_USER_JOZKO_NAME_NO_DIAC)
                             .updateSearch()
                        .and()
-                       .currentTableContains(TEST_USER_JOZKO_NAME)
-        );
+                       .assertCurrentTableContains(TEST_USER_JOZKO_NAME);
 
     }
 
@@ -90,27 +86,23 @@ public class PolyStringTests extends AbstractSchrodingerTest {
 
         ListUsersPage usersPage = basicPage.listUsers();
 
-        Assert.assertTrue(
-                usersPage
+        usersPage
                         .table()
                             .search()
                                 .byFullText()
                                 .inputValue(TEST_USER_JOZKO_NAME)
                             .pressEnter()
                         .and()
-                        .currentTableContains(TEST_USER_JOZKO_NAME)
-        );
+                        .assertCurrentTableContains(TEST_USER_JOZKO_NAME);
 
-        Assert.assertTrue(
-                usersPage
+        usersPage
                         .table()
                             .search()
                                 .byFullText()
                                 .inputValue(TEST_USER_JOZKO_NAME_NO_DIAC)
                             .pressEnter()
                         .and()
-                        .currentTableContains(TEST_USER_JOZKO_NAME)
-        );
+                        .assertCurrentTableContains(TEST_USER_JOZKO_NAME);
 
     }
 }

@@ -135,12 +135,6 @@ public class PrismForm<T> extends Component<T> {
 
     }
 
-    public PrismForm<T> assertInputAttributeValueMatches(String attributeName, String expectedValue) {
-        Assert.assertTrue(compareInputAttributeValue(attributeName, expectedValue), "The value of the input attribute " + attributeName
-                    + " doesn't match to expected value '" + expectedValue + "'.");
-        return this;
-    }
-
     //seems that the property fields in new container are wrapped to extra parent, that is why we need one extra parent() call
     //needs to be checked
     public Boolean compareInputAttributeValueInNewContainer(String name, String expectedValue) {
@@ -509,4 +503,17 @@ public class PrismForm<T> extends Component<T> {
         Assert.assertTrue(isPropertyEnabled(propertyName), "Property " + propertyName + " is disabled.");
         return this;
     }
+
+    public PrismForm<T> assertInputAttributeValueMatches(String attributeName, String expectedValue) {
+        Assert.assertTrue(compareInputAttributeValue(attributeName, expectedValue), "The value of the input attribute " + attributeName
+                + " doesn't match to expected value '" + expectedValue + "'.");
+        return this;
+    }
+
+    public PrismForm<T> assertInputAttributeValuesMatches(String attributeName, String... expectedValues) {
+        Assert.assertTrue(compareInputAttributeValues(attributeName, expectedValues), "The values of the input attribute " + attributeName
+                + " doesn't match to expected values.");
+        return this;
+    }
+
 }

@@ -306,17 +306,15 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
             Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
             Selenide.screenshot("afterSixSecondsSleep");
 
-            Assert.assertTrue(resourceConfigurationTab
+            resourceConfigurationTab
                     .form()
                     .changeAttributeValue(attributeName, oldValue, newValue)
                     .and()
                     .and()
                     .clickSaveAndTestConnection()
-                    .isTestSuccess()
-            );
+                    .assertIsTestSuccess();
         } else {
-            Assert.assertTrue(
-                    listResourcesPage
+            listResourcesPage
                             .table()
                             .search()
                             .byName()
@@ -330,8 +328,7 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
                             .and()
                             .and()
                             .clickSaveAndTestConnection()
-                            .isTestFailure()
-            );
+                            .assertIsTestFailure();
         }
 
     }

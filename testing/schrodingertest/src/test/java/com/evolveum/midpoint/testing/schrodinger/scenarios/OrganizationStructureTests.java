@@ -178,7 +178,7 @@ public class OrganizationStructureTests extends AbstractSchrodingerTest {
     public void changeResourceFilePath(){
         ListResourcesPage listResourcesPage = basicPage.listResources();
 
-        Assert.assertTrue(listResourcesPage
+        listResourcesPage
                 .table()
                 .search()
                 .byName()
@@ -193,7 +193,6 @@ public class OrganizationStructureTests extends AbstractSchrodingerTest {
                     .and()
                 .and()
                 .clickSaveAndTestConnection()
-                .isTestSuccess()
-        );
+                .assertIsTestSuccess();
     }
 }

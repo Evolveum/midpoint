@@ -306,8 +306,8 @@ public class M10ObjectTemplate extends AbstractLabTest{
                 .and()
                 .getManagerPanel();
         Selenide.screenshot("managersPanel");
-        Assert.assertTrue(managerPanel
-                .containsManager("John Wicks"));
+        managerPanel
+                .assertContainsManager("John Wicks");
 
         rootTab.getMemberPanel()
                 .selectType("User")

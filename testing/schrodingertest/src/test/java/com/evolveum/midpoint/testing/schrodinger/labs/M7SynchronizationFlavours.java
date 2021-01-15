@@ -143,11 +143,9 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
 
         showTask("CSV-1 Reconciliation", "Reconciliation tasks").clickRunNow();
 
-        Assert.assertTrue(
-                showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
+        showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
                         .form()
-                        .compareInputAttributeValues("groups", "Internal Employees",
-                                "Essential Documents"));
+                        .assertInputAttributeValuesMatches("groups", "Internal Employees", "Essential Documents");
 
     }
 
