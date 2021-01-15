@@ -6,14 +6,9 @@
  */
 package com.evolveum.midpoint.repo.sql.helpers;
 
-import java.sql.SQLException;
 import javax.sql.DataSource;
 
 import com.google.common.base.Strings;
-import com.querydsl.sql.Configuration;
-import com.querydsl.sql.H2Templates;
-import com.querydsl.sql.MySQLTemplates;
-import com.querydsl.sql.PostgreSQLTemplates;
 import org.hibernate.FlushMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -22,15 +17,12 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.repo.sql.*;
-import com.evolveum.midpoint.repo.sql.audit.mapping.QueryModelMappingConfig;
+import com.evolveum.midpoint.repo.sql.RestartOperationRequestedException;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
-import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
 import com.evolveum.midpoint.repo.sqlbase.TransactionIsolation;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.InstantType;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.MidpointOracleTemplates;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.MidpointSQLServerTemplates;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.backoff.BackoffComputer;
 import com.evolveum.midpoint.util.backoff.ExponentialBackoffComputer;
@@ -41,12 +33,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 /**
  * Core functionality needed in all members of SQL service family.
  * Taken out of SqlBaseService in order to be accessible from other components by autowiring.
- * <p>
- * Originally more Hibernate oriented, some pure JDBC parts are added ({@link #newJdbcSession()}
- * and {@link #dataSource} field) which may be basis of pure JDBC repository in the future.
- * It may go away from this class, but for now, hybrid approach is chosen.
- * But while helper methods are used for ORM/Hibernate stuff, after creating {@link JdbcSession}
- * all other methods are called on the returned object.
  */
 @Component
 public class BaseHelper {
@@ -72,11 +58,7 @@ public class BaseHelper {
     @NotNull
     private final SqlRepositoryConfiguration sqlRepositoryConfiguration;
     private final SessionFactory sessionFactory;
-
     private final DataSource dataSource;
-
-    // don't access outside of sqlNewConfiguration() method, always use the method to lazy-init
-    private SqlRepoContext sqlRepoContext;
 
     // used for non-bean creation
     public BaseHelper(
@@ -285,66 +267,5 @@ public class BaseHelper {
 
     public DataSource dataSource() {
         return dataSource;
-    }
-
-    public synchronized SqlRepoContext sqlRepoContext() {
-        if (sqlRepoContext != null) {
-            return sqlRepoContext;
-        }
-
-        SupportedDatabase database =
-                sqlRepositoryConfiguration.getDatabaseType();
-        Configuration querydslConfiguration;
-        switch (database) {
-            case H2:
-                querydslConfiguration =
-                        new Configuration(H2Templates.DEFAULT);
-                break;
-            case MYSQL:
-            case MARIADB:
-                querydslConfiguration =
-                        new Configuration(MySQLTemplates.DEFAULT);
-                break;
-            case POSTGRESQL:
-                querydslConfiguration =
-                        new Configuration(PostgreSQLTemplates.DEFAULT);
-                break;
-            case SQLSERVER:
-                querydslConfiguration =
-                        new Configuration(MidpointSQLServerTemplates.DEFAULT);
-                break;
-            case ORACLE:
-                querydslConfiguration =
-                        new Configuration(MidpointOracleTemplates.DEFAULT);
-                break;
-            default:
-                throw new SystemException(
-                        "Unsupported database type " + database + " for Querydsl config");
-        }
-
-        // See InstantType javadoc for the reasons why we need this to support Instant.
-        querydslConfiguration.register(new InstantType());
-        // Alternatively we may stick to Timestamp and go on with our miserable lives. ;-)
-
-        // TODO: This kinda hard-codes the audit configuration mapping, currently only audit uses it.
-        //  Later this will be parametrized, but it will also probably look differently in midScale repo.
-        sqlRepoContext = new SqlRepoContext(querydslConfiguration, QueryModelMappingConfig.AUDIT_MAPPING);
-        return sqlRepoContext;
-    }
-
-    /**
-     * Creates {@link JdbcSession} that typically represents transactional work on JDBC connection.
-     * All other lifecycle methods are to be called on the returned object.
-     * Object is {@link AutoCloseable} and can be used in try-with-resource blocks.
-     */
-    public JdbcSession newJdbcSession() {
-        try {
-            return new JdbcSession(
-                    dataSource().getConnection(),
-                    sqlRepositoryConfiguration,
-                    sqlRepoContext());
-        } catch (SQLException e) {
-            throw new SystemException("Cannot create JDBC connection", e);
-        }
     }
 }

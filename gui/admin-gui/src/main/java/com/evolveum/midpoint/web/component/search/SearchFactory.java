@@ -223,7 +223,8 @@ public class SearchFactory {
         boolean isFullTextSearchEnabled = isFullTextSearchEnabled(modelServiceLocator, type.getTypeClass());
 
         Search search = new Search(type, availableDefs, isFullTextSearchEnabled,
-                getDefaultSearchType(modelServiceLocator, type.getTypeClass(), collectionViewName, panelType), isOidSearchEnabled);
+                getDefaultSearchType(modelServiceLocator, type.getTypeClass(), collectionViewName, panelType),
+                isOidSearchEnabled);
 
         SchemaRegistry registry = modelServiceLocator.getPrismContext().getSchemaRegistry();
         PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(type.getTypeClass());

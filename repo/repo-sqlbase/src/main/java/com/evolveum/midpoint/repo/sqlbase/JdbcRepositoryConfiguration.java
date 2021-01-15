@@ -31,17 +31,22 @@ public interface JdbcRepositoryConfiguration {
     String PROPERTY_FULL_OBJECT_FORMAT = "fullObjectFormat";
 
     SupportedDatabase getDatabaseType();
-    TransactionIsolation getTransactionIsolation();
     String getDataSource();
     String getDriverClassName();
     String getJdbcUrl();
     String getJdbcUsername();
     boolean isEmbedded();
     String getJdbcPassword();
+
+    TransactionIsolation getTransactionIsolation();
+    String getReadOnlyTransactionStatement();
+    long getInitializationFailTimeout();
+
     int getMinPoolSize();
     int getMaxPoolSize();
     Long getMaxLifetime();
     Long getIdleTimeout();
+
     boolean isUseZip();
     boolean isUseZipAudit();
     boolean isUsing(SupportedDatabase db);
@@ -72,5 +77,9 @@ public interface JdbcRepositoryConfiguration {
     default boolean isUsingSQLServer() {
         return isUsing(SupportedDatabase.SQLSERVER);
     }
-    long getInitializationFailTimeout();
+
+    /**
+     * Returns true if the exception should cause transaction rollback.
+     */
+    boolean shouldRollback(Throwable ex);
 }

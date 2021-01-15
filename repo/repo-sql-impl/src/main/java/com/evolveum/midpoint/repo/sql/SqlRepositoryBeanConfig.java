@@ -155,13 +155,8 @@ public class SqlRepositoryBeanConfig {
     @Bean
     public AuditServiceFactory sqlAuditServiceFactory(
             BaseHelper defaultBaseHelper,
-            PrismContext prismContext,
-            MidPointImplicitNamingStrategy midPointImplicitNamingStrategy,
-            MidPointPhysicalNamingStrategy midPointPhysicalNamingStrategy,
-            EntityStateInterceptor entityStateInterceptor) {
-        return new SqlAuditServiceFactory(
-                defaultBaseHelper, prismContext, midPointImplicitNamingStrategy,
-                midPointPhysicalNamingStrategy, entityStateInterceptor);
+            PrismContext prismContext) {
+        return new SqlAuditServiceFactory(defaultBaseHelper, prismContext);
     }
 
     // TODO it would be better to have dependencies explicit here, but there is cyclic one

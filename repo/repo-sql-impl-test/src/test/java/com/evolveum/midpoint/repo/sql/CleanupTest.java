@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -20,9 +20,9 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
-import com.evolveum.midpoint.repo.sql.audit.mapping.*;
-import com.evolveum.midpoint.repo.sql.helpers.JdbcSession;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditEventRecord;
+import com.evolveum.midpoint.repo.sql.audit.mapping.*;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -73,7 +73,7 @@ public class CleanupTest extends BaseSQLRepoTest {
 
     @AfterMethod
     public void cleanup() {
-        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startTransaction()) {
+        try (JdbcSession jdbcSession = createJdbcSession().startTransaction()) {
             jdbcSession.delete(QAuditDeltaMapping.INSTANCE.defaultAlias()).execute();
             jdbcSession.delete(QAuditItemMapping.INSTANCE.defaultAlias()).execute();
             jdbcSession.delete(QAuditPropertyValueMapping.INSTANCE.defaultAlias()).execute();

@@ -9,18 +9,11 @@
     <form wicket:id="form" class="form-inline pull-right search-form" style="padding-bottom:5px; width:100%">
 
         <div class="form-inline">
-            <div class="form-group pull-right" wicket:id="linksContainer" style="vertical-align: top; margin-top: -5px; display: grid;">
-                <a class="btn btn-sm btn-link" wicket:id="basic" style="display: table-cell; vertical-align: top; padding: 0px;"/>
-                <a class="btn btn-sm btn-link" wicket:id="advanced" style="padding: 0px;"/>
-                <a class="btn btn-sm btn-link" wicket:id="fullText" style="padding: 0px;"/>
-                <a class="btn btn-sm btn-link" wicket:id="oid" style="display: table-cell; vertical-align: top; padding: 0px;"/>
+            <div class="form-group pull-right" style="vertical-align: top; margin-top: -5px; display: grid;">
+                <a class="btn btn-sm btn-link" wicket:id="debug" style="display: table-cell; vertical-align: top; padding: 0px;"/>
             </div>
 
             <div class="form-group pull-right" style="vertical-align: top; padding-right: 5px;" wicket:id="searchContainer">
-                <a wicket:id="searchSimple" class="btn btn-sm btn-primary" about="searchSimple">
-                    <i class="fa fa-search fa-lg"/>
-                </a>
-                <div wicket:id="searchDropdown">
                     <div class="btn-group btn-group-sm">
                         <button type="button" class="btn btn-primary" about="searchSimple" wicket:id="searchButtonBeforeDropdown">
                             <i class="fa fa-search fa-lg"></i>
@@ -36,7 +29,6 @@
                             </li>
                         </ul>
                     </div>
-                </div>
             </div>
 
             <div class="form-group pull-right" wicket:id="moreGroup"  style="padding-right: 5px;">
@@ -53,14 +45,12 @@
                 <i class="fa fa-lg" wicket:id="advancedCheck"/>
             </label>
             <textarea class="form-control input-sm" rows="2" wicket:id="advancedArea"
-                      style="width: 220px; height: 60px; overflow: hidden; float:left;"
-                      wicket:message="placeholder:SearchPanel.insertFilterXml"></textarea>
-            <span class="help-block" wicket:id="advancedError"/>
+                    style="width: 220px; height: 60px; overflow: hidden; float:right;"></textarea>
+            <span class="help-block" wicket:id="advancedError" style="float:right"/>
         </div>
 
         <div class="form-group" wicket:id="fullTextContainer" style="float:right; padding-right: 5px;">
             <input wicket:id="fullTextField" type="text" class="form-control input-sm" style="width: 150px; min-width: 150px;">
-            <!--<div wicket:id="fullTextField" wicket:message="placeholder:SearchPanel.fullTextSearch"></div>-->
         </div>
 
         <wicket:container wicket:id="items">

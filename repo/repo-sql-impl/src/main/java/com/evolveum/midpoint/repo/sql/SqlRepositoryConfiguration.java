@@ -25,6 +25,7 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager;
+import com.evolveum.midpoint.repo.sql.helpers.TransactionSerializationProblemDetector;
 import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
@@ -519,6 +520,12 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
         return jdbcUrl.toString();
     }
 
+    @Override
+    public boolean shouldRollback(Throwable ex) {
+            return new TransactionSerializationProblemDetector(this, LOGGER)
+                    .isExceptionRelatedToSerialization(ex);
+    }
+
     // The methods below are static to highlight their data dependencies and to avoid using properties
     // that were not yet initialized.
     private static String getDefaultDriverClassName(String dataSource, Database database) {
@@ -764,6 +771,7 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
         return lockForUpdateViaSql;
     }
 
+    @Override
     public String getReadOnlyTransactionStatement() {
         return readOnlyTransactionStatement;
     }

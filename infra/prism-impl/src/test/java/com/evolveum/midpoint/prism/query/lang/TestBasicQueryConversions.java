@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.impl.match.MatchingRuleRegistryFactory;
 import com.evolveum.midpoint.prism.impl.query.FullTextFilterImpl;
-import com.evolveum.midpoint.prism.impl.query.lang.PrismQueryLanguageParser;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -33,6 +32,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.FullTextFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.PrismQueryLanguageParser;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -51,7 +51,7 @@ public class TestBasicQueryConversions extends AbstractPrismTest {
     }
 
     private PrismQueryLanguageParser parser() {
-        return PrismQueryLanguageParser.create(PrismTestUtil.getPrismContext());
+        return PrismTestUtil.getPrismContext().createQueryParser();
     }
 
     private ObjectFilter parse(String query) throws SchemaException {

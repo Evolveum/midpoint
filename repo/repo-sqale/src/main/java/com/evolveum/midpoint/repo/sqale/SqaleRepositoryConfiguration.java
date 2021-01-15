@@ -177,9 +177,14 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
         return databaseType == db;
     }
 
-    // TODO
+    // TODO - IMPLEMENT EVERYTHING BELOW
     @Override
     public TransactionIsolation getTransactionIsolation() {
+        return null;
+    }
+
+    @Override
+    public String getReadOnlyTransactionStatement() {
         return null;
     }
 
@@ -206,5 +211,10 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     @Override
     public long getInitializationFailTimeout() {
         return 0;
+    }
+
+    @Override
+    public boolean shouldRollback(Throwable ex) {
+        return false;
     }
 }
