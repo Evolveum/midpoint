@@ -12,7 +12,7 @@
     <parent>
         <artifactId>infra</artifactId>
         <groupId>com.evolveum.midpoint.infra</groupId>
-        <version>4.3-SNAPSHOT</version>
+        <version>4.3-M2</version>
     </parent>
 
     <artifactId>common</artifactId>
@@ -24,7 +24,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
-            <version>4.3-SNAPSHOT</version>
+            <version>4.3-M2</version>
             <exclusions>
                 <exclusion>
                     <groupId>javax.xml.bind</groupId>
@@ -35,7 +35,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-api</artifactId>
-            <version>4.3-SNAPSHOT</version>
+            <version>4.3-M2</version>
             <exclusions>
                 <exclusion>
                     <groupId>javax.xml.bind</groupId>
@@ -46,7 +46,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-impl</artifactId>
-            <version>4.3-SNAPSHOT</version>
+            <version>4.3-M2</version>
             <exclusions>
                 <exclusion>
                     <groupId>javax.xml.bind</groupId>
@@ -57,7 +57,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>schema</artifactId>
-            <version>4.3-SNAPSHOT</version>
+            <version>4.3-M2</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>

@@ -12,7 +12,7 @@
     <parent>
         <artifactId>provisioning</artifactId>
         <groupId>com.evolveum.midpoint.provisioning</groupId>
-        <version>4.3-SNAPSHOT</version>
+        <version>4.3-M2</version>
     </parent>
 
     <artifactId>ucf-impl-builtin</artifactId>
@@ -29,48 +29,48 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
-            <version>4.3-SNAPSHOT</version>
+            <version>4.3-M2</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-api</artifactId>
-            <version>4.3-SNAPSHOT</version>
+            <version>4.3-M2</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-impl</artifactId>
-            <version>4.3-SNAPSHOT</version>
+            <version>4.3-M2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>schema</artifactId>
-            <version>4.3-SNAPSHOT</version>
+            <version>4.3-M2</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-api</artifactId>
-            <version>4.3-SNAPSHOT</version>
+            <version>4.3-M2</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>security-api</artifactId>
-            <version>4.3-SNAPSHOT</version>
+            <version>4.3-M2</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>task-api</artifactId>
-            <version>4.3-SNAPSHOT</version>
+            <version>4.3-M2</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.provisioning</groupId>
             <artifactId>ucf-api</artifactId>
-            <version>4.3-SNAPSHOT</version>
+            <version>4.3-M2</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>common</artifactId>
-            <version>4.3-SNAPSHOT</version>
+            <version>4.3-M2</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -138,13 +138,13 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>audit-log-impl</artifactId>
-            <version>4.3-SNAPSHOT</version>
+            <version>4.3-M2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-sql-impl-test</artifactId>
-            <version>4.3-SNAPSHOT</version>
+            <version>4.3-M2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -155,7 +155,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-sql-impl</artifactId>
-            <version>4.3-SNAPSHOT</version>
+            <version>4.3-M2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -167,13 +167,13 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>task-quartz-impl</artifactId>
-            <version>4.3-SNAPSHOT</version>
+            <version>4.3-M2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>security-impl</artifactId>
-            <version>4.3-SNAPSHOT</version>
+            <version>4.3-M2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -189,7 +189,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-test-util</artifactId>
-            <version>4.3-SNAPSHOT</version>
+            <version>4.3-M2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -205,7 +205,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>system-init</artifactId>
-            <version>4.3-SNAPSHOT</version>
+            <version>4.3-M2</version>
             <scope>test</scope>
         </dependency>
         <dependency> <!-- needed as runtime dependency otherwise spring won't start -->
