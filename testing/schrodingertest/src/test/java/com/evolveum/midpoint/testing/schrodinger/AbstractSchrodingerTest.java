@@ -378,13 +378,22 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
                 .clickByName(itemValue);
     }
 
-    public boolean existShadow(String resourceName, String searchedItem, String itemValue){
-        return existShadow(resourceName, searchedItem, itemValue, null, false);
+    public ResourceShadowTable assertShadowExists(String resourceName, String searchedItem, String itemValue){
+        return assertShadowExists(resourceName, searchedItem, itemValue, null, false);
     }
 
-    public boolean existShadow(String resourceName, String searchedItem, String itemValue, String intent,  boolean useRepository){
+    public ResourceShadowTable assertShadowExists(String resourceName, String searchedItem, String itemValue, String intent,  boolean useRepository){
         ResourceShadowTable table = getShadowTable(resourceName, searchedItem, itemValue, intent, useRepository);
-        return table.containsText(itemValue);
+        return (ResourceShadowTable) table.assertTableContainsText(itemValue);
+    }
+
+    public ResourceShadowTable assertShadowDoesntExist(String resourceName, String searchedItem, String itemValue){
+        return assertShadowDoesntExist(resourceName, searchedItem, itemValue, null, false);
+    }
+
+    public ResourceShadowTable assertShadowDoesntExist(String resourceName, String searchedItem, String itemValue, String intent,  boolean useRepository){
+        ResourceShadowTable table = getShadowTable(resourceName, searchedItem, itemValue, intent, useRepository);
+        return (ResourceShadowTable) table.assertTableDoesntContainText(itemValue);
     }
 
     public ResourceShadowTable getShadowTable(String resourceName, String searchedItem, String itemValue) {

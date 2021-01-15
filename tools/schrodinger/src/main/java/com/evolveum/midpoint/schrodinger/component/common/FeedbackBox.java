@@ -126,4 +126,23 @@ public class FeedbackBox<T> extends Component<T> {
         return this;
     }
 
+    public FeedbackBox<T> assertSuccess(String idOfChild) {
+        Assert.assertTrue(isSuccess(idOfChild), "Feedback panel status is not success.");
+        return this;
+    }
+
+    public FeedbackBox<T> assertError(String idOfChild) {
+        Assert.assertTrue(isError(idOfChild), "Feedback panel status is not error.");
+        return this;
+    }
+
+    public FeedbackBox<T> assertWarning(String idOfChild) {
+        Assert.assertTrue(isWarning(idOfChild), "Feedback panel status is not warning.");
+        return this;
+    }
+
+    public FeedbackBox<T> assertInfo(String idOfChild) {
+        Assert.assertTrue(isInfo(idOfChild), "Feedback panel status is not info.");
+        return this;
+    }
 }

@@ -106,14 +106,14 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
 
         Utils.removeAssignments(showUser("kirk").selectTabAssignments(), "Secret Projects II");
 
-        Assert.assertFalse(existShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk"));
+        assertShadowExists(CSV_1_RESOURCE_NAME, "Login", "jkirk");
 
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Internal Employee");
 
-        Assert.assertTrue(existShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk"));
-        Assert.assertTrue(existShadow(CSV_2_RESOURCE_NAME, "Login", "jkirk"));
-        Assert.assertTrue(existShadow(CSV_3_RESOURCE_NAME, "Distinguished Name",
-                "cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com"));
+        assertShadowExists(CSV_1_RESOURCE_NAME, "Login", "jkirk");
+        assertShadowExists(CSV_2_RESOURCE_NAME, "Login", "jkirk");
+        assertShadowExists(CSV_3_RESOURCE_NAME, "Distinguished Name",
+                "cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com");
 
     }
 
@@ -149,7 +149,7 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
         Utils.addAsignments(tab, "Secret Projects I", "Secret Projects II", "Top Secret Projects I");
 
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Too Many Secrets");
-        Assert.assertTrue(existShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk"));
+        assertShadowExists(CSV_1_RESOURCE_NAME, "Login", "jkirk");
 
         DirectIndirectAssignmentTable<AssignmentsTab<UserPage>> table = showUser("kirk").selectTabAssignments()
                 .selectTypeAllDirectIndirect();

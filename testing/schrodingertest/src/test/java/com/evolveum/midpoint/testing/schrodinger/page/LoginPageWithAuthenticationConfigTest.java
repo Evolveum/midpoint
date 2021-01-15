@@ -44,12 +44,13 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
         login.login("bad_username", "secret");
 
         FeedbackBox feedback = login.feedback();
-        Assert.assertTrue(feedback.isError("0"));
+        feedback.assertError("0");
 
 
         login.login("bad_username", "secret");
-        Assert.assertTrue(feedback.isError("0"));
-        Assert.assertTrue(feedback.isError("1"));
+        feedback
+                .assertError("0")
+                .assertError("1");
     }
 
     @Test
@@ -59,7 +60,7 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
         FormLoginPage login = midPoint.formLogin();
         login.login("administrator", "5ecr3t");
         basicPage.loggedUser().logout();
-        Assert.assertFalse(basicPage.userMenuExists());
+        basicPage.assertUserMenuDoesntExist();
     }
 
     @Test

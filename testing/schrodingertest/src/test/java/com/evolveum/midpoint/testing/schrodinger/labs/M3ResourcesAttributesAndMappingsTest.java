@@ -136,7 +136,7 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
                         .feedback()
                             .isSuccess();
 
-        Assert.assertTrue(existShadow(CSV_1_RESOURCE_NAME, "Login", "kirk"));
+        assertShadowExists(CSV_1_RESOURCE_NAME, "Login", "kirk");
 
         showUser("kirk")
                 .selectTabBasic()
@@ -173,7 +173,7 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
                         .feedback()
                             .isSuccess();
 
-        Assert.assertFalse(existShadow(CSV_1_RESOURCE_NAME, "Login", "kirk"));
+        assertShadowDoesntExist(CSV_1_RESOURCE_NAME, "Login", "kirk");
 
     }
 }

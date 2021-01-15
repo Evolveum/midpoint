@@ -77,9 +77,7 @@ public class UserTest extends AbstractSchrodingerTest {
     @Test //covers MID-5845
     public void test0020isLocalizedPolystringValueDisplayed(){
         UserPage user = basicPage.newUser();
-
-        Assert.assertTrue(
-                user.selectTabBasic()
+        user.selectTabBasic()
                         .form()
                         .addAttributeValue("name", LOCALIZATION_TEST_USER_NAME_ORIG)
                         .setPolyStringLocalizedValue(UserType.F_NAME, LOCALIZATION_VALUE, LOCALIZATION_TEST_USER_NAME_DE)
@@ -87,8 +85,7 @@ public class UserTest extends AbstractSchrodingerTest {
                         .and()
                         .clickSave()
                         .feedback()
-                        .isSuccess()
-        );
+                        .assertSuccess();
 
         basicPage.loggedUser().logout();
         FormLoginPage loginPage = midPoint.formLogin();
@@ -180,9 +177,8 @@ public class UserTest extends AbstractSchrodingerTest {
                 .assertSuccess();
 
         basicPage.loggedUser().logout();
-        Assert.assertTrue(midPoint.formLogin().login("DelegateEndUserRoleToUser", "password")
-                        .userMenuExists(),
-                "User should be logged in, he has delegated end user role");
+        midPoint.formLogin().login("DelegateEndUserRoleToUser", "password")
+                        .assertUserMenuExist();
     }
 
 }

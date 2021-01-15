@@ -44,8 +44,8 @@ public class CredentialsPageTest extends AbstractSchrodingerTest {
                 .assertSuccess();
         basicPage.loggedUser().logout();
         midPoint.formLogin()
-                .loginWithReloadLoginPage("CredentialsPageTestUser", "password1");
-        Assert.assertTrue(basicPage.userMenuExists(), "User should be logged in");
+                .loginWithReloadLoginPage("CredentialsPageTestUser", "password1")
+                .assertUserMenuExist();
     }
 
     @Test(priority = 2, dependsOnMethods = {"test0010changeUserPasswordSuccessfully"})
@@ -67,10 +67,10 @@ public class CredentialsPageTest extends AbstractSchrodingerTest {
         basicPage.loggedUser().logout();
         midPoint.formLogin()
                 .loginWithReloadLoginPage("CredentialsPageTestUser", "passwordNew");
-        Assert.assertFalse(basicPage.userMenuExists(), "User should not be logged in with new password");
+        basicPage.assertUserMenuDoesntExist();
         midPoint.formLogin()
-                .loginWithReloadLoginPage("CredentialsPageTestUser", "password1");
-        Assert.assertTrue(basicPage.userMenuExists(), "User should be logged in with old password");
+                .loginWithReloadLoginPage("CredentialsPageTestUser", "password1")
+                .assertUserMenuExist();
     }
 
     @Test(priority = 3, dependsOnMethods = {"test0010changeUserPasswordSuccessfully"})
@@ -91,11 +91,11 @@ public class CredentialsPageTest extends AbstractSchrodingerTest {
                 .isError());
         basicPage.loggedUser().logout();
         midPoint.formLogin()
-                .loginWithReloadLoginPage("CredentialsPageTestUser", "passwordNew1");
-        Assert.assertFalse(basicPage.userMenuExists(), "User should not be logged in with new password");
+                .loginWithReloadLoginPage("CredentialsPageTestUser", "passwordNew1")
+                .assertUserMenuDoesntExist();
         midPoint.formLogin()
-                .loginWithReloadLoginPage("CredentialsPageTestUser", "password1");
-        Assert.assertTrue(basicPage.userMenuExists(), "User should be logged in with old password");
+                .loginWithReloadLoginPage("CredentialsPageTestUser", "password1")
+                .assertUserMenuExist();
     }
 
 }
