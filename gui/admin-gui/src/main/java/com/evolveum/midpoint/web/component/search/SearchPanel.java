@@ -182,6 +182,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         SearchTypePanel typePanel = new SearchTypePanel(ID_TYPE_PANEL, typeModel){
             @Override
             protected void searchPerformed(AjaxRequestTarget target) {
+                resetMoreDialogModel();
                 SearchPanel.this.searchPerformed(target);
             }
         };

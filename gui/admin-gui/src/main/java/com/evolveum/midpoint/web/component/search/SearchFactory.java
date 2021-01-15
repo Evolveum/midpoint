@@ -48,11 +48,15 @@ public class SearchFactory {
         SEARCHABLE_OBJECTS.put(ObjectType.class, Arrays.asList(
                 ItemPath.create(ObjectType.F_NAME),
                 ItemPath.create(ObjectType.F_LIFECYCLE_STATE),
-                ItemPath.create(ObjectType.F_SUBTYPE)));
+                ItemPath.create(ObjectType.F_SUBTYPE),
+                ItemPath.create(ObjectType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP),
+                ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP)
+        ));
         SEARCHABLE_OBJECTS.put(FocusType.class, Arrays.asList(
                 ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
                 ItemPath.create(FocusType.F_ROLE_MEMBERSHIP_REF),
-                ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS)));
+                ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS)
+        ));
         SEARCHABLE_OBJECTS.put(UserType.class, Arrays.asList(
                 ItemPath.create(UserType.F_TITLE),
                 ItemPath.create(UserType.F_GIVEN_NAME),
@@ -65,11 +69,13 @@ public class SearchFactory {
                 ItemPath.create(UserType.F_EMPLOYEE_NUMBER),
                 ItemPath.create(UserType.F_EMPLOYEE_TYPE),
                 ItemPath.create(UserType.F_ORGANIZATIONAL_UNIT),
-                ItemPath.create(UserType.F_LOCALITY)));
+                ItemPath.create(UserType.F_LOCALITY)
+        ));
         SEARCHABLE_OBJECTS.put(RoleType.class, Arrays.asList(
                 ItemPath.create(RoleType.F_NAME),
                 ItemPath.create(RoleType.F_DISPLAY_NAME),
-                ItemPath.create(RoleType.F_ROLE_TYPE)));
+                ItemPath.create(RoleType.F_ROLE_TYPE)
+        ));
         SEARCHABLE_OBJECTS.put(ServiceType.class, Arrays.asList(
                 ItemPath.create(ServiceType.F_NAME),
                 ItemPath.create(RoleType.F_DISPLAY_NAME),

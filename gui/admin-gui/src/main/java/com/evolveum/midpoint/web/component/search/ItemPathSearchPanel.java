@@ -25,14 +25,6 @@ public class ItemPathSearchPanel extends PopoverSearchPanel<ItemPathType> {
         super(id, itemPathModel);
     }
 
-//    @Override
-//    protected void onInitialize() {
-//        if (getModelObject() == null) {
-//            getModel().setObject(new ItemPathType());
-//        }
-//        super.onInitialize();
-//    }
-
     @Override
     protected PopoverSearchPopupPanel createPopupPopoverPanel(String id) {
         return new ItemPathSearchPopupPanel(id, getModel()) {
@@ -42,8 +34,12 @@ public class ItemPathSearchPanel extends PopoverSearchPanel<ItemPathType> {
             @Override
             protected void confirmPerformed(AjaxRequestTarget target) {
                 target.add(ItemPathSearchPanel.this);
+                searchPerformed(target);
             }
         };
+    }
+
+    public void searchPerformed(AjaxRequestTarget target) {
     }
 
     @Override

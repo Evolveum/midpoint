@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
@@ -84,15 +85,31 @@ public class SearchPropertyPanel<T extends Serializable> extends AbstractSearchI
                     choices = new ListModel(item.getAllowedValues(getPageBase()));
                 }
                 searchItemField = createDropDownChoices(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value"), choices, true);
+                ((InputPanel) searchItemField).getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
+                    @Override
+                    protected void onUpdate(AjaxRequestTarget target) {
+                        searchPerformed(target);
+                    }
+                });
                 break;
             case DATE:
                 searchItemField = new DateIntervalSearchPanel(ID_SEARCH_ITEM_FIELD,
                         new PropertyModel(getModel(), "fromDate"),
-                        new PropertyModel(getModel(), "toDate"));
+                        new PropertyModel(getModel(), "toDate")){
+                    @Override
+                    public void searchPerformed(AjaxRequestTarget target) {
+                        SearchPropertyPanel.this.searchPerformed(target);
+                    }
+                };
                 break;
             case ITEM_PATH:
                 searchItemField = new ItemPathSearchPanel(ID_SEARCH_ITEM_FIELD,
-                        new PropertyModel(getModel(), "value.value"));
+                        new PropertyModel(getModel(), "value.value")){
+                    @Override
+                    public void searchPerformed(AjaxRequestTarget target) {
+                        SearchPropertyPanel.this.searchPerformed(target);
+                    }
+                };
                 break;
             case TEXT:
                 PrismObject<LookupTableType> lookupTable = WebComponentUtil.findLookupTable(item.getDefinition().getDef(), getPageBase());
