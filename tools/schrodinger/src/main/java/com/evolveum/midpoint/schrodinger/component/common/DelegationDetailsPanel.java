@@ -188,7 +188,7 @@ public class DelegationDetailsPanel<T> extends Component<T> {
     }
 
     public DelegationDetailsPanel<T> assertAssignmentPrivilegesNotSelected() {
-        Assert.assertTrue(isAssignmentPrivilegesSelected(),"Assignment privileges checkbox is selected but shouldn't be.");
+        Assert.assertFalse(isAssignmentPrivilegesSelected(),"Assignment privileges checkbox is selected but shouldn't be.");
         return this;
     }
 
