@@ -32,16 +32,6 @@
             factory-bean="keyStoreFactory"
             factory-method="getProtector"/>
 
-    <bean id="repositoryFactory" class="com.evolveum.midpoint.init.RepositoryFactory"/>
-
-    <bean id="repositoryServiceFactory"
-            factory-bean="repositoryFactory"
-            factory-method="createRepositoryServiceFactory"/>
-
-    <bean id="repositoryService"
-            factory-bean="repositoryServiceFactory"
-            factory-method="createRepositoryService"/>
-
     <!-- prism context initialization -->
     <bean id="midPointPrismContextFactory" class="com.evolveum.midpoint.init.ConfigurablePrismContextFactory">
         <property name="configuration" ref="midpointConfiguration"/>

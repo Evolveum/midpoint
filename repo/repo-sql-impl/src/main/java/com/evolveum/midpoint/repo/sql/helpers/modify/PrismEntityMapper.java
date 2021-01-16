@@ -1,36 +1,33 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.helpers.modify;
+
+import java.util.HashMap;
+import java.util.Map;
+import javax.xml.namespace.QName;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.container.*;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.*;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
-import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sql.helpers.mapper.*;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-import javax.xml.namespace.QName;
-import java.util.HashMap;
-import java.util.Map;
-
-/**
- * @Author Viliam Repan (lazyman).
- */
 @Component
 public class PrismEntityMapper {
 
@@ -64,7 +61,7 @@ public class PrismEntityMapper {
     @Autowired private PrismContext prismContext;
     @Autowired private ExtItemDictionary extItemDictionary;
     @Autowired private RelationRegistry relationRegistry;
-    @Autowired private BaseHelper baseHelper;
+    @Autowired private SqlRepositoryConfiguration sqlRepositoryConfiguration;
 
     public boolean supports(Class inputType, Class outputType) {
         Key key = buildKey(inputType, outputType);
@@ -98,8 +95,8 @@ public class PrismEntityMapper {
         if (context == null) {
             context = new MapperContext();
         }
-        context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext, relationRegistry, extItemDictionary,
-                baseHelper.getConfiguration()));
+        context.setRepositoryContext(new RepositoryContext(repositoryService,
+                prismContext, relationRegistry, extItemDictionary, sqlRepositoryConfiguration));
 
         Key key = buildKey(input.getClass(), outputType);
         Mapper<I, O> mapper = MAPPERS.get(key);
@@ -124,12 +121,6 @@ public class PrismEntityMapper {
      * RAssignment                  - implemented
      * RCertWorkItemReference
      * RTrigger                     - implemented
-     *
-     * @param input
-     * @param outputType
-     * @param context
-     * @param <O>
-     * @return
      */
     public <O> O mapPrismValue(PrismValue input, Class<O> outputType, MapperContext context) {
         if (input instanceof PrismPropertyValue) {
@@ -172,8 +163,8 @@ public class PrismEntityMapper {
 
     private static class Key {
 
-        private Class from;
-        private Class to;
+        private final Class from;
+        private final Class to;
 
         Key(Class from, Class to) {
             this.from = from;
@@ -190,12 +181,12 @@ public class PrismEntityMapper {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false; }
 
             Key key = (Key) o;
 
-            if (from != null ? !from.equals(key.from) : key.from != null) return false;
+            if (from != null ? !from.equals(key.from) : key.from != null) { return false; }
             return to != null ? to.equals(key.to) : key.to == null;
         }
 

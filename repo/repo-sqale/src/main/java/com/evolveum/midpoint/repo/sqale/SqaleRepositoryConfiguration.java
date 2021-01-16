@@ -82,7 +82,8 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
             try {
                 jdbcPassword = Files.readString(Path.of(jdbcPasswordFile));
             } catch (IOException e) {
-                throw new SystemException("Couldn't read JDBC password from specified file '" + jdbcPasswordFile + "': " + e.getMessage(), e);
+                throw new SystemException("Couldn't read JDBC password from specified file '"
+                        + jdbcPasswordFile + "': " + e.getMessage(), e);
             }
         } else {
             jdbcPassword = System.getProperty(PROPERTY_JDBC_PASSWORD,

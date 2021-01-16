@@ -19,7 +19,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.repo.sql.RestartOperationRequestedException;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sqlbase.TransactionIsolation;
@@ -60,7 +59,7 @@ public class BaseHelper {
     private final SessionFactory sessionFactory;
     private final DataSource dataSource;
 
-    // used for non-bean creation
+    @Autowired
     public BaseHelper(
             @NotNull SqlRepositoryConfiguration sqlRepositoryConfiguration,
             SessionFactory sessionFactory,
@@ -68,14 +67,6 @@ public class BaseHelper {
         this.sqlRepositoryConfiguration = sqlRepositoryConfiguration;
         this.sessionFactory = sessionFactory;
         this.dataSource = dataSource;
-    }
-
-    @Autowired
-    public BaseHelper(
-            SqlRepositoryFactory repositoryFactory,
-            SessionFactory sessionFactory,
-            DataSource dataSource) {
-        this(repositoryFactory.getConfiguration(), sessionFactory, dataSource);
     }
 
     public SessionFactory getSessionFactory() {

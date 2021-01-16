@@ -16,9 +16,12 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
@@ -319,6 +322,8 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
      *    4. embedded (if true, H2 is used)
      */
     public SqlRepositoryConfiguration(Configuration configuration) {
+        Validate.notNull(configuration, "Repository configuration must not be null.");
+
         dataSource = MiscUtil.nullIfEmpty(configuration.getString(PROPERTY_DATASOURCE));
 
         // guessing the database + setting related basic properties

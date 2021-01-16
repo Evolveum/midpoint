@@ -21,7 +21,9 @@ import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.transaction.TransactionManager;
 
 import com.evolveum.midpoint.audit.api.AuditServiceFactory;
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
@@ -31,6 +33,7 @@ import com.evolveum.midpoint.repo.sql.util.MidPointImplicitNamingStrategy;
 import com.evolveum.midpoint.repo.sql.util.MidPointPhysicalNamingStrategy;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.repo.sqlbase.SystemConfigurationChangeDispatcherImpl;
+import com.evolveum.midpoint.schema.RelationRegistry;
 
 /**
  * SQL repository related configuration from {@link DataSourceFactory} through ORM all the way to
@@ -55,14 +58,29 @@ import com.evolveum.midpoint.repo.sqlbase.SystemConfigurationChangeDispatcherImp
 public class SqlRepositoryBeanConfig {
 
     @Bean
-    public ExtItemDictionary extItemDictionary() {
-        return new ExtItemDictionary();
+    @ConditionalOnMissingBean
+    public SqlRepositoryConfiguration sqlRepositoryConfiguration(
+            MidpointConfiguration midpointConfiguration) throws RepositoryServiceFactoryException {
+        var configuration = midpointConfiguration.getConfiguration(
+                MidpointConfiguration.REPOSITORY_CONFIGURATION);
+        SqlRepositoryConfiguration config = new SqlRepositoryConfiguration(configuration);
+        config.validate();
+        return config;
+    }
+
+    @Bean
+    public SqlEmbeddedRepository sqlEmbeddedRepository(
+            SqlRepositoryConfiguration repositoryConfiguration) {
+        return new SqlEmbeddedRepository(repositoryConfiguration);
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public DataSourceFactory dataSourceFactory(SqlRepositoryFactory sqlRepositoryFactory) {
-        return new DataSourceFactory(sqlRepositoryFactory.getConfiguration());
+    public DataSourceFactory dataSourceFactory(
+            // dependency in case we need to start H2 server
+            @SuppressWarnings("unused") SqlEmbeddedRepository sqlEmbeddedRepository,
+            SqlRepositoryConfiguration repositoryConfiguration) {
+        return new DataSourceFactory(repositoryConfiguration);
     }
 
     @Bean
@@ -88,20 +106,6 @@ public class SqlRepositoryBeanConfig {
     }
 
     @Bean
-    public LocalSessionFactoryBean sessionFactory(
-            DataSource dataSource,
-            SqlRepositoryFactory sqlRepositoryFactory,
-            MidPointImplicitNamingStrategy midPointImplicitNamingStrategy,
-            MidPointPhysicalNamingStrategy midPointPhysicalNamingStrategy,
-            EntityStateInterceptor entityStateInterceptor) {
-
-        SqlRepositoryConfiguration configuration = sqlRepositoryFactory.getConfiguration();
-
-        return sessionFactory(dataSource, configuration, midPointImplicitNamingStrategy,
-                midPointPhysicalNamingStrategy, entityStateInterceptor);
-    }
-
-    // Used by programmatic audit initialization
     @NotNull
     public LocalSessionFactoryBean sessionFactory(
             DataSource dataSource,
@@ -150,6 +154,23 @@ public class SqlRepositoryBeanConfig {
         htm.setSessionFactory(sessionFactory);
 
         return htm;
+    }
+
+    @Bean
+    public SqlRepositoryServiceImpl repositoryService(
+            BaseHelper baseHelper,
+            MatchingRuleRegistry matchingRuleRegistry,
+            PrismContext prismContext,
+            RelationRegistry relationRegistry) {
+        SqlRepositoryServiceImpl repositoryService = new SqlRepositoryServiceImpl(
+                baseHelper, matchingRuleRegistry, prismContext, relationRegistry);
+
+        return repositoryService;
+    }
+
+    @Bean
+    public ExtItemDictionary extItemDictionary() {
+        return new ExtItemDictionary();
     }
 
     @Bean
