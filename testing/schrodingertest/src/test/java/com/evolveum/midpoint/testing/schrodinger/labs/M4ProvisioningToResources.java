@@ -204,7 +204,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                     .feedback()
                         .isSuccess();
 
-        assertShadowExists(CSV_2_RESOURCE_NAME, "Login", "kirk");
+        assertShadowDoesntExist(CSV_2_RESOURCE_NAME, "Login", "kirk");
     }
 
     @Test(dependsOnMethods = {"mod04test01BasicProvisioningToMultipleResources"}, groups={"M4"})

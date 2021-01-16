@@ -106,7 +106,7 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
 
         Utils.removeAssignments(showUser("kirk").selectTabAssignments(), "Secret Projects II");
 
-        assertShadowExists(CSV_1_RESOURCE_NAME, "Login", "jkirk");
+        assertShadowDoesntExist(CSV_1_RESOURCE_NAME, "Login", "jkirk");
 
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Internal Employee");
 

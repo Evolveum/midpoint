@@ -529,7 +529,7 @@ public class BasicPage {
     }
 
     public BasicPage assertUserMenuDoesntExist() {
-        Assert.assertTrue(userMenuExists(), "User should be logged out, user menu shouldn't be visible.");
+        Assert.assertFalse(userMenuExists(), "User should be logged out, user menu shouldn't be visible.");
         return this;
     }
 

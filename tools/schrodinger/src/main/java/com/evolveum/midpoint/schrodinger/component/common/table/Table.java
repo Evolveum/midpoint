@@ -247,7 +247,7 @@ public class Table<T> extends Component<T> {
     }
 
     public Table<T> assertCurrentTableDoesntContain(String elementValue) {
-        return assertCurrentTableContains("Span", elementValue);
+        return assertCurrentTableDoesntContain("Span", elementValue);
     }
 
     public Table<T> assertCurrentTableDoesntContain(String elementName, String elementValue) {
