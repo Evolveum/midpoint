@@ -8,7 +8,6 @@ package com.evolveum.midpoint.testing.schrodinger.page;
 
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -53,7 +52,7 @@ public class CredentialsPageTest extends AbstractSchrodingerTest {
         basicPage.loggedUser().logout();
         midPoint.formLogin()
                 .loginWithReloadLoginPage("CredentialsPageTestUser", "password1");
-        Assert.assertTrue(basicPage.credentials()
+        basicPage.credentials()
                 .passwordTab()
                     .changePasswordPanel()
                         .setOldPasswordValue("wrongPassword")
@@ -63,7 +62,7 @@ public class CredentialsPageTest extends AbstractSchrodingerTest {
                     .and()
                 .save()
                 .feedback()
-                .isError());
+                .assertError();
         basicPage.loggedUser().logout();
         midPoint.formLogin()
                 .loginWithReloadLoginPage("CredentialsPageTestUser", "passwordNew");
@@ -78,7 +77,7 @@ public class CredentialsPageTest extends AbstractSchrodingerTest {
         basicPage.loggedUser().logout();
         midPoint.formLogin()
                 .loginWithReloadLoginPage("CredentialsPageTestUser", "password1");
-        Assert.assertTrue(basicPage.credentials()
+        basicPage.credentials()
                 .passwordTab()
                     .changePasswordPanel()
                         .setOldPasswordValue("password1")
@@ -88,7 +87,7 @@ public class CredentialsPageTest extends AbstractSchrodingerTest {
                     .and()
                 .save()
                 .feedback()
-                .isError());
+                .assertError();
         basicPage.loggedUser().logout();
         midPoint.formLogin()
                 .loginWithReloadLoginPage("CredentialsPageTestUser", "passwordNew1")

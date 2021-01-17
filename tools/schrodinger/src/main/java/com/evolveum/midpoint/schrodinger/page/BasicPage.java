@@ -519,8 +519,9 @@ public class BasicPage {
         return $(".dropdown.user.user-menu").exists();
     }
 
-    public boolean elementWithTextExists(String text) {
-        return $(byText(text)).exists();
+    public BasicPage assertElementWithTextExists(String text) {
+        Assert.assertTrue($(byText(text)).exists(), "Element with text '" + text + "' doesn't exist on the page.");
+        return this;
     }
 
     public BasicPage assertUserMenuExist() {

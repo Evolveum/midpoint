@@ -84,22 +84,6 @@ public class DelegationDetailsPanel<T> extends Component<T> {
         return true;
     }
 
-    public boolean isValidFromPanelDisabled () {
-        getValidFromPanel().findDate().shouldBe(Condition.disabled);
-        if (getValidFromPanel().findDate().isEnabled()) {
-            return false;
-        }
-        getValidFromPanel().findHours().shouldBe(Condition.disabled);
-        if (getValidFromPanel().findHours().isEnabled()) {
-            return false;
-        }
-        getValidFromPanel().findMinutes().shouldBe(Condition.disabled);
-        if (getValidFromPanel().findMinutes().isEnabled()) {
-            return false;
-        }
-        return true;
-    }
-
     public DelegationDetailsPanel<T> setValidFromValue(String date, String hours, String minutes, DateTimePanel.AmOrPmChoice amOrPmChoice) {
         DateTimePanel<DelegationDetailsPanel<T>> validFromPanel = new DateTimePanel<>(this,
                 $(Schrodinger.byDataId("delegationValidFrom")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S));
@@ -199,6 +183,26 @@ public class DelegationDetailsPanel<T> extends Component<T> {
 
     public DelegationDetailsPanel<T> assertCertificationWorkItemsNotSelected() {
         Assert.assertFalse(isCertificationWorkItemsSelected(), "Workflow approvals (for certification work items) checkbox is selected but shouldn't be.");
+        return this;
+    }
+
+    public DelegationDetailsPanel<T> assertDescriptionEnabled() {
+        Assert.assertTrue(isDescriptionEnabled());
+        return this;
+    }
+
+    public DelegationDetailsPanel<T> assertDescriptionDisabled() {
+        Assert.assertFalse(isDescriptionEnabled());
+        return this;
+    }
+
+    public DelegationDetailsPanel<T> assertValidFromPanelEnabled() {
+        Assert.assertTrue(isValidFromPanelEnabled());
+        return this;
+    }
+
+    public DelegationDetailsPanel<T> assertValidFromPanelDisabled() {
+        Assert.assertFalse(isValidFromPanelEnabled());
         return this;
     }
 }

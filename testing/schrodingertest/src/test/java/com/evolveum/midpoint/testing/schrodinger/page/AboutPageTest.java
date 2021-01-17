@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.page;
 
-import com.codeborne.selenide.Selenide;
-
 import com.evolveum.midpoint.schrodinger.page.configuration.AboutPage;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 import org.testng.Assert;

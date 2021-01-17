@@ -102,10 +102,6 @@ public class FeedbackBox<T> extends Component<T> {
         return getParentElement().isDisplayed();
     }
 
-    public Boolean doesMessageExist(String messageText) {
-        return $(By.linkText(messageText)).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).exists();
-    }
-
     public FeedbackBox<T> assertSuccess() {
         Assert.assertTrue(isSuccess(), "Feedback panel status is not success.");
         return this;
@@ -143,6 +139,11 @@ public class FeedbackBox<T> extends Component<T> {
 
     public FeedbackBox<T> assertInfo(String idOfChild) {
         Assert.assertTrue(isInfo(idOfChild), "Feedback panel status is not info.");
+        return this;
+    }
+
+    public FeedbackBox<T> assertMessageExists(String messageText) {
+        Assert.assertTrue($(By.linkText(messageText)).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).exists());
         return this;
     }
 }

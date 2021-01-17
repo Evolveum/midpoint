@@ -15,6 +15,7 @@ import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import org.openqa.selenium.By;
+import org.testng.Assert;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -45,5 +46,10 @@ public class ResourceWizardPage extends BasicPage {
         return $(By.className("wizard"))
                 .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S)
                 .exists();
+    }
+
+    public ResourceWizardPage assertReadonlyMode() {
+        Assert.assertTrue(isReadonlyMode());
+        return this;
     }
 }

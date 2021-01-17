@@ -26,7 +26,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 

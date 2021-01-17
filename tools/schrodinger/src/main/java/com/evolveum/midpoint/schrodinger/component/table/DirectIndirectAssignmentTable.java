@@ -13,6 +13,8 @@ import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.component.common.DropDown;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
+import org.testng.Assert;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -46,4 +48,15 @@ public class DirectIndirectAssignmentTable<T> extends Component<T> {
         }
         return indirectAssignments.containsAll(Arrays.asList(expectedAssignments));
     }
+
+    public DirectIndirectAssignmentTable<T> assertIndirectAssignmentsExist(String... expectedAssignments) {
+        Assert.assertTrue(containsIndirectAssignments(expectedAssignments));
+        return this;
+    }
+
+    public DirectIndirectAssignmentTable<T> assertDirectAssignmentsExist(String... expectedAssignments) {
+        Assert.assertTrue(containsDirectAssignments(expectedAssignments));
+        return this;
+    }
+
 }

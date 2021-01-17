@@ -243,22 +243,21 @@ public class CaseTests extends AbstractSchrodingerTest {
 
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
 
-        allRequestsPage = basicPage.listAllRequests();
-        Assert.assertTrue(allRequestsPage
+        basicPage.listAllRequests()
                 .table()
-                .search()
-                .byName()
-                .inputValue(REQUEST_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME)
-                .updateSearch()
-                .and()
-                .clickByPartialName(REQUEST_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME)
-                .selectTabChildren()
-                .table()
-                .clickByPartialName(ASSIGNING_ROLE_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME)
-                .selectTabWorkitems()
-                .table()
-                .clickByName(ASSIGNING_ROLE_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME)
-                .matchApproverElementValue(FORWARD_WORKITEM_TO_USER_NAME));
+                    .search()
+                        .byName()
+                        .inputValue(REQUEST_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME)
+                        .updateSearch()
+                    .and()
+                    .clickByPartialName(REQUEST_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME)
+                        .selectTabChildren()
+                            .table()
+                            .clickByPartialName(ASSIGNING_ROLE_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME)
+                                .selectTabWorkitems()
+                                    .table()
+                                    .clickByName(ASSIGNING_ROLE_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME)
+                                    .assertApproverElementValueMatches(FORWARD_WORKITEM_TO_USER_NAME);
 
     }
 

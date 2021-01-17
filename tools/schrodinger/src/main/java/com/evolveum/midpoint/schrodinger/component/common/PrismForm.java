@@ -516,4 +516,10 @@ public class PrismForm<T> extends Component<T> {
         return this;
     }
 
+    public PrismForm<T> assertInputAttributeValuesMatches(String attributeName, List<String> expectedValues) {
+        Assert.assertTrue(compareInputAttributeValues(attributeName, expectedValues), "The values of the input attribute " + attributeName
+                + " doesn't match to expected values.");
+        return this;
+    }
+
 }

@@ -12,7 +12,6 @@ import com.evolveum.midpoint.schrodinger.page.configuration.InternalsConfigurati
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 /**

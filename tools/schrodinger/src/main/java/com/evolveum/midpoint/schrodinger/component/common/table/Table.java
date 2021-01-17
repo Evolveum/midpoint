@@ -196,6 +196,11 @@ public class Table<T> extends Component<T> {
         return this;
     }
 
+    public Table<T> assertTableRowExists(String columnLabel, String rowValue) {
+        Assert.assertNotNull(rowByColumnLabel(columnLabel, rowValue), "Row with value " + rowValue + " in " + columnLabel + " column doesn't exist.");
+        return this;
+    }
+
     public Table<T> assertTableObjectsCountEquals(int expectedObjectsCount) {
         Assert.assertEquals(countTableObjects(), expectedObjectsCount,"Table objects count doesn't equal to expected value " + expectedObjectsCount);
         return this;

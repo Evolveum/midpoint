@@ -10,7 +10,6 @@ import com.evolveum.midpoint.schrodinger.page.configuration.QueryPlaygroundPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 /**

@@ -112,8 +112,9 @@ public abstract class AbstractLoginPageTest extends AbstractSchrodingerTest {
         FormLoginPage login = midPoint.formLogin();
         login.login(username, password);
 
-        FeedbackBox feedback = login.feedback();
-        Assert.assertTrue(feedback.isError("0"));
+        login
+                .feedback()
+                .assertError("0");
     }
 
     @Test

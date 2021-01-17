@@ -17,6 +17,7 @@ import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import org.openqa.selenium.By;
+import org.testng.Assert;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -97,5 +98,10 @@ public class FocusPage<F extends FocusPage> extends AssignmentHolderDetailsPage<
         } else {
             return "".equals(summaryPanel.getText());
         }
+    }
+
+    public FocusPage<F> assertActivationStateEquals(String state) {
+        Assert.assertTrue(isActivationState(state), "Activation state doesn't equal to " + state);
+        return this;
     }
 }

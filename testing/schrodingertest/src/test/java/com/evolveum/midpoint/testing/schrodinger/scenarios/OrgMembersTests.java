@@ -23,7 +23,6 @@ import com.evolveum.midpoint.schrodinger.page.role.RolePage;
 
 import com.evolveum.midpoint.schrodinger.page.service.ServicePage;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
 import com.evolveum.midpoint.schrodinger.page.org.OrgPage;
 import com.evolveum.midpoint.schrodinger.page.org.OrgTreePage;
@@ -63,8 +62,8 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
                 .and()
                 .clickSave()
                 .feedback()
-                .isSuccess();
-        Assert.assertTrue(basicPage.orgStructure().doesRootOrgExists(ORG_NAME));
+                .assertSuccess();
+        basicPage.orgStructure().assertRootOrgExists(ORG_NAME);
     }
 
     @Test (dependsOnMethods = {"test00100createOrgWithinMenuItem"}, priority = 2)
@@ -131,8 +130,8 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
                                 .updateSearch()
                             .and();
         Selenide.screenshot("test00300assignExistingUserAsMember_membersPanel");
-        Assert.assertTrue(membersTable
-                    .containsText("UniqueNameUserForMemberTest"));
+        membersTable
+                    .assertTableContainsText("UniqueNameUserForMemberTest");
     }
 
     @Test (priority = 4)
@@ -152,18 +151,17 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
                 .clickSave()
                 .feedback()
                 .isSuccess();
-        MemberTable<MemberPanel<OrgRootTab>> memberTable = basicPage.orgStructure()
+        basicPage.orgStructure()
                 .selectTabWithRootOrg(ORG_WITH_MEMBER_NAME)
-                .getMemberPanel()
-                .table();
-        memberTable
+                    .getMemberPanel()
+                        .table()
                             .search()
                             .byName()
                             .inputValue("NewUserAsOrgMember")
-                .updateSearch()
-                .and()
-                .assertTableObjectsCountEquals(1);
-        Assert.assertTrue(memberTable.containsText("Member"));
+                            .updateSearch()
+                        .and()
+                        .assertTableObjectsCountEquals(1)
+                        .assertTableContainsText("Member");
     }
 
     @Test (priority = 5)
@@ -195,8 +193,8 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
                     .inputValue("NewRoleAsOrgManager")
                     .updateSearch()
                 .and()
-                .assertTableObjectsCountEquals(1);
-        Assert.assertTrue(memberTable.containsText("Manager"));
+                .assertTableObjectsCountEquals(1)
+                .assertTableContainsText("Manager");
     }
 
     @Test (priority = 6)
@@ -228,8 +226,8 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
                             .inputValue("NewOrgAsOrgOwner")
                 .updateSearch()
                 .and()
-                .assertTableObjectsCountEquals(1);
-        Assert.assertTrue(memberTable.containsText("Owner"));
+                .assertTableObjectsCountEquals(1)
+                .assertTableContainsText("Owner");
     }
 
     @Test (priority = 7)
@@ -261,7 +259,7 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
                             .inputValue("NewServiceAsOrgApprover")
                 .updateSearch()
                 .and()
-                .assertTableObjectsCountEquals(1);
-        Assert.assertTrue(memberTable.containsText("Approver"));
+                .assertTableObjectsCountEquals(1)
+                .assertTableContainsText("Approver");
     }
 }

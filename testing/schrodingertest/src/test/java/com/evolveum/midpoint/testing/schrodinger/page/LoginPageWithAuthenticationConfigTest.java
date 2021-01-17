@@ -7,14 +7,12 @@
 
 package com.evolveum.midpoint.testing.schrodinger.page;
 
-import com.codeborne.selenide.Condition;
-
 import com.codeborne.selenide.Selenide;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
 import com.evolveum.midpoint.schrodinger.page.login.*;
-import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -121,8 +119,7 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
         String link = notification.substring(notification.indexOf(linkTag) + linkTag.length(), notification.lastIndexOf("''"));
         open(link);
 
-        RegistrationFinishPage registrationFinishPage = new RegistrationFinishPage();
-        Assert.assertTrue(registrationFinishPage.successPanelExists());
+        new RegistrationFinishPage().assertSuccessPanelExists();
         String actualUrl = basicPage.getCurrentUrl();
         Assert.assertTrue(actualUrl.endsWith("/registration/result"));
     }

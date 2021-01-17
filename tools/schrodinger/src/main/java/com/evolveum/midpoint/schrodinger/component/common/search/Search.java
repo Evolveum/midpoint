@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.interactions.Actions;
+import org.testng.Assert;
 
 import static com.codeborne.selenide.Selectors.byText;
 
@@ -216,6 +217,11 @@ public class Search<T> extends Component<T> {
         TextInputSearchItemPanel searchField = new TextInputSearchItemPanel(this, itemElement);
         searchField.inputValue("");
         updateSearch();
+        return this;
+    }
+
+    public Search<T> assertTextInputPanelByItemNameExist(String itemName, boolean addIfAbsent) {
+        Assert.assertNotNull(textInputPanelByItemName(itemName, addIfAbsent));
         return this;
     }
 }
