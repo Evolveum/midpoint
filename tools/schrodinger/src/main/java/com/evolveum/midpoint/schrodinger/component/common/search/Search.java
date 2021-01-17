@@ -138,7 +138,7 @@ public class Search<T> extends Component<T> {
 
     public Search<T> addSearchItemByNameLinkClick(String name) {
         choiceBasicSearch();
-        getParentElement().$x(".//a[@"+Schrodinger.DATA_S_ID+"='more']").waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        getParentElement().$x(".//a[@"+Schrodinger.DATA_S_ID+"='more']").waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         SelenideElement popover = getDisplayedPopover();
         popover.$(Schrodinger.byElementValue("a", name))

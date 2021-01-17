@@ -69,15 +69,12 @@ public class DelegationDetailsPanel<T> extends Component<T> {
     }
 
     public boolean isValidFromPanelEnabled () {
-        getValidFromPanel().findDate().shouldBe(Condition.enabled);
         if (!getValidFromPanel().findDate().isEnabled()) {
             return false;
         }
-        getValidFromPanel().findHours().shouldBe(Condition.enabled);
         if (!getValidFromPanel().findHours().isEnabled()) {
             return false;
         }
-        getValidFromPanel().findMinutes().shouldBe(Condition.enabled);
         if (!getValidFromPanel().findMinutes().isEnabled()) {
             return false;
         }

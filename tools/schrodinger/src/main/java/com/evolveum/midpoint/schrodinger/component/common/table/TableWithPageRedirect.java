@@ -113,7 +113,12 @@ public abstract class TableWithPageRedirect<T> extends Table<T> {
             getHeaderInlineMenuPanel()
                     .clickInlineMenuButtonByIconClass(iconClass);
         } else {
-            rowByColumnResourceKey(columnTitleKey, rowValue)
+            TableRow tableRow = rowByColumnResourceKey(columnTitleKey, rowValue);
+            if (tableRow == null) {
+                Selenide.screenshot("tableRowIsNull");
+                return;
+            }
+            tableRow
                     .getInlineMenu()
                     .clickInlineMenuButtonByIconClass(iconClass);
         }
