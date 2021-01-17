@@ -7,17 +7,16 @@
 package com.evolveum.midpoint.repo.sqale;
 
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
-import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
-import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryServiceFactory;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-public class SqaleRepositoryServiceFactory implements JdbcRepositoryServiceFactory {
+public class SqaleRepositoryServiceFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqaleRepositoryServiceFactory.class);
 
@@ -26,28 +25,22 @@ public class SqaleRepositoryServiceFactory implements JdbcRepositoryServiceFacto
     private SqlRepoContext sqlRepoContext;
 
     private SqaleRepositoryService repositoryService;
+    private SqaleRepositoryConfiguration repositoryConfiguration; // TODO move to @Configuration
 
-    @Override
     public void init(Configuration configuration) throws RepositoryServiceFactoryException {
-        LOGGER.info("SqaleRepositoryServiceFactory is going to be initialized");
+        Validate.notNull(configuration, "Configuration must not be null.");
+        LOGGER.info("SqaleRepositoryServiceFactory (SQL) is going to be initialized");
+
+        repositoryConfiguration = new SqaleRepositoryConfiguration(configuration);
+        repositoryConfiguration.validate();
+
         // TODO
     }
 
-    @Override
     public RepositoryService createRepositoryService() {
         if (repositoryService == null) {
             repositoryService = new SqaleRepositoryService(sqlRepoContext);
         }
         return repositoryService;
-    }
-
-    @Override
-    public void destroy() throws RepositoryServiceFactoryException {
-        // TODO destroy perf monitor? SqlBaseService.destroy for inspiration
-    }
-
-    @Override
-    public JdbcRepositoryConfiguration getConfiguration() {
-        return null; // TODO
     }
 }

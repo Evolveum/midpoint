@@ -14,12 +14,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
-import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryServiceFactory;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SystemConfigurationChangeDispatcherImpl;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 
 /**
  * New SQL repository related configuration.
@@ -35,10 +36,17 @@ import com.evolveum.midpoint.repo.sqlbase.SystemConfigurationChangeDispatcherImp
 public class SqaleRepositoryBeanConfig {
 
     @Bean
+    public SqaleRepositoryConfiguration sqaleRepositoryConfiguration(
+            MidpointConfiguration midpointConfiguration) {
+        // TODO
+        return null;
+    }
+
+    @Bean
     @ConditionalOnMissingBean
     public DataSourceFactory dataSourceFactory(
-            SqaleRepositoryServiceFactory repositoryServiceFactory) {
-        return new DataSourceFactory(repositoryServiceFactory.getConfiguration());
+            SqaleRepositoryConfiguration repositoryConfiguration) {
+        return new DataSourceFactory(repositoryConfiguration);
     }
 
     @Bean
@@ -50,13 +58,15 @@ public class SqaleRepositoryBeanConfig {
 
     @Bean
     public SqlRepoContext sqlRepoContext(
-            JdbcRepositoryServiceFactory repositoryServiceFactory,
+            SqaleRepositoryConfiguration repositoryConfiguration,
             DataSource dataSource) {
         // TODO add mapping
-        return new SqlRepoContext(repositoryServiceFactory.getConfiguration(), dataSource, null);
+        QueryModelMappingRegistry mapping = null;
+
+        return new SqlRepoContext(repositoryConfiguration, dataSource, mapping);
     }
 
-    // TODO @Bean for AuditServiceFactory
+    // TODO @Bean for AuditServiceFactory later
 
     @Bean
     public SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher() {

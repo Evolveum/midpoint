@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
-import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryServiceFactory;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
@@ -39,7 +38,7 @@ public class JdbcPingTaskHandler implements TaskHandler {
     private TaskManager taskManager;
 
     @Autowired(required = false) // during some tests the repo is not available
-    private JdbcRepositoryServiceFactory jdbcRepositoryServiceFactory;
+    private JdbcRepositoryConfiguration jdbcConfig;
 
     @PostConstruct
     public void initialize() {
@@ -84,12 +83,14 @@ public class JdbcPingTaskHandler implements TaskHandler {
         int interval = get(task, SchemaConstants.JDBC_PING_INTERVAL_QNAME, 10);
         String testQuery = get(task, SchemaConstants.JDBC_PING_TEST_QUERY_QNAME, "select 1");
 
-        JdbcRepositoryConfiguration config = jdbcRepositoryServiceFactory != null
-                ? jdbcRepositoryServiceFactory.getConfiguration() : null;
-        String jdbcDriver = get(task, SchemaConstants.JDBC_PING_DRIVER_CLASS_NAME_QNAME, config != null ? config.getDriverClassName() : "");
-        String jdbcUrl = get(task, SchemaConstants.JDBC_PING_JDBC_URL_QNAME, config != null ? config.getJdbcUrl() : "");
-        String jdbcUsername = get(task, SchemaConstants.JDBC_PING_JDBC_USERNAME_QNAME, config != null ? config.getJdbcUsername() : "");
-        String jdbcPassword = get(task, SchemaConstants.JDBC_PING_JDBC_PASSWORD_QNAME, config != null ? config.getJdbcPassword() : "");
+        String jdbcDriver = get(task, SchemaConstants.JDBC_PING_DRIVER_CLASS_NAME_QNAME,
+                jdbcConfig != null ? jdbcConfig.getDriverClassName() : "");
+        String jdbcUrl = get(task, SchemaConstants.JDBC_PING_JDBC_URL_QNAME,
+                jdbcConfig != null ? jdbcConfig.getJdbcUrl() : "");
+        String jdbcUsername = get(task, SchemaConstants.JDBC_PING_JDBC_USERNAME_QNAME,
+                jdbcConfig != null ? jdbcConfig.getJdbcUsername() : "");
+        String jdbcPassword = get(task, SchemaConstants.JDBC_PING_JDBC_PASSWORD_QNAME,
+                jdbcConfig != null ? jdbcConfig.getJdbcPassword() : "");
         boolean logOnInfoLevel = get(task, SchemaConstants.JDBC_PING_LOG_ON_INFO_LEVEL_QNAME, true);
 
         LOGGER.info("JdbcPingTaskHandler run starting; with progress = {}", task.getProgress());

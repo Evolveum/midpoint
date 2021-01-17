@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql;
 
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
@@ -16,6 +15,8 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.Validate;
@@ -64,39 +65,60 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public class SqlRepositoryServiceImpl extends SqlBaseService implements RepositoryService {
 
+    private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
+
     public static final String PERFORMANCE_LOG_NAME = SqlRepositoryServiceImpl.class.getName() + ".performance";
     public static final String CONTENTION_LOG_NAME = SqlRepositoryServiceImpl.class.getName() + ".contention";
+
     public static final int CONTENTION_LOG_DEBUG_THRESHOLD = 3;
     public static final int MAIN_LOG_WARN_THRESHOLD = 8;
 
     private static final int RESTART_LIMIT = 1000;
 
-    private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
-
-    private static final int MAX_CONFLICT_WATCHERS = 10; // just a safeguard (watchers per thread should be at most 1-2)
+    // just a safeguard (watchers per thread should be at most 1-2)
+    private static final int MAX_CONFLICT_WATCHERS = 10;
     public static final int MAX_CONSTRAINT_NAME_LENGTH = 40;
     private static final String IMPLEMENTATION_SHORT_NAME = "SQL";
-    private static final String IMPLEMENTATION_DESCRIPTION = "Implementation that stores data in generic relational" +
-            " (SQL) databases. It is using ORM (hibernate) on top of JDBC to access the database.";
+    private static final String IMPLEMENTATION_DESCRIPTION =
+            "Implementation that stores data in generic relational (SQL) databases."
+                    + " It is using ORM (hibernate) on top of JDBC to access the database.";
     private static final String DETAILS_TRANSACTION_ISOLATION = "transactionIsolation";
     private static final String DETAILS_CLIENT_INFO = "clientInfo.";
     private static final String DETAILS_DATA_SOURCE = "dataSource";
     private static final String DETAILS_HIBERNATE_DIALECT = "hibernateDialect";
     private static final String DETAILS_HIBERNATE_HBM_2_DDL = "hibernateHbm2ddl";
 
+    private final BaseHelper baseHelper;
+    private final MatchingRuleRegistry matchingRuleRegistry;
+    private final PrismContext prismContext;
+    private final RelationRegistry relationRegistry;
+
+    // autowired because sadly these involve dependency cycles
     @Autowired private SequenceHelper sequenceHelper;
     @Autowired private ObjectRetriever objectRetriever;
     @Autowired private ObjectUpdater objectUpdater;
     @Autowired private OrgClosureManager closureManager;
-    @Autowired private BaseHelper baseHelper;
-    @Autowired private MatchingRuleRegistry matchingRuleRegistry;
-    @Autowired private PrismContext prismContext;
-    @Autowired private RelationRegistry relationRegistry;
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
 
     private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal = new ThreadLocal<>();
 
     private FullTextSearchConfigurationType fullTextSearchConfiguration;
+
+    public SqlRepositoryServiceImpl(
+            BaseHelper baseHelper,
+            MatchingRuleRegistry matchingRuleRegistry,
+            PrismContext prismContext,
+            RelationRegistry relationRegistry) {
+        this.baseHelper = baseHelper;
+        this.matchingRuleRegistry = matchingRuleRegistry;
+        this.prismContext = prismContext;
+        this.relationRegistry = relationRegistry;
+    }
+
+    @PostConstruct
+    public void init() throws RepositoryServiceFactoryException {
+        LOGGER.info("Repository initialization finished.");
+    }
 
     @Override
     public SqlRepositoryConfiguration sqlConfiguration() {
@@ -1302,5 +1324,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         } else {
             return true;
         }
+    }
+
+    @PreDestroy
+    public void destroy() {
+        super.destroy();
+        LOGGER.info("Shutdown complete.");
     }
 }
