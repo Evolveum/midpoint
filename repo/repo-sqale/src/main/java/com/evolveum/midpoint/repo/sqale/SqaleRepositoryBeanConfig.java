@@ -28,18 +28,26 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
  * would happen when combined with alternative configurations (e.g. context XMLs for test).
  * {@link ConditionalOnExpression} class annotation activates this configuration only if midpoint
  * {@code config.xml} specifies the repository factory class from SQL package.
+ * <p>
+ * To choose this "new SQL" repository set {@code repositoryServiceFactoryClass} to a value starting
+ * with (or equal to) {@code com.evolveum.midpoint.repo.sqale.} (including the dot at the end).
+ * Alternatively simple {@code sqale} or {@code scale} will work too.
+ * All values are case-insensitive.
  */
 @Configuration
-@ConditionalOnExpression("#{midpointConfiguration.getConfiguration('midpoint.repository')"
-        + ".getString('repositoryServiceFactoryClass').startsWith('com.evolveum.midpoint.repo.sqale.')}")
+@ConditionalOnExpression("#{midpointConfiguration.keyMatches("
+        + "'midpoint.repository.repositoryServiceFactoryClass',"
+        + " '(?i)com\\.evolveum\\.midpoint\\.repo\\.sqale\\..*', '(?i)s[qc]ale')}")
 @ComponentScan
 public class SqaleRepositoryBeanConfig {
 
     @Bean
     public SqaleRepositoryConfiguration sqaleRepositoryConfiguration(
-            MidpointConfiguration midpointConfiguration) {
-        // TODO
-        return null;
+            MidpointConfiguration midpointConfiguration) throws RepositoryServiceFactoryException {
+        return new SqaleRepositoryConfiguration(
+                midpointConfiguration.getConfiguration(
+                        MidpointConfiguration.REPOSITORY_CONFIGURATION))
+                .validate();
     }
 
     @Bean
@@ -66,8 +74,14 @@ public class SqaleRepositoryBeanConfig {
         return new SqlRepoContext(repositoryConfiguration, dataSource, mapping);
     }
 
+    @Bean
+    public SqaleRepositoryService repositoryService(SqlRepoContext sqlRepoContext) {
+        return new SqaleRepositoryService(sqlRepoContext);
+    }
+
     // TODO @Bean for AuditServiceFactory later
 
+    // TODO rethink?
     @Bean
     public SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher() {
         return new SystemConfigurationChangeDispatcherImpl();
