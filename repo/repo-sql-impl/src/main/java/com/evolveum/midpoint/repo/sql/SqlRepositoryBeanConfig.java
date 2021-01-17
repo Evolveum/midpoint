@@ -36,24 +36,23 @@ import com.evolveum.midpoint.repo.sqlbase.SystemConfigurationChangeDispatcherImp
 import com.evolveum.midpoint.schema.RelationRegistry;
 
 /**
- * SQL repository related configuration from {@link DataSourceFactory} through ORM all the way to
- * {@link TransactionManager}.
+ * SQL repository related configuration from {@link DataSourceFactory} through ORM with
+ * {@link TransactionManager} all the way to to {@link SqlRepositoryServiceImpl}.
  * {@link ConditionalOnMissingBean} annotations are used to avoid duplicate bean acquirement that
  * would happen when combined with alternative configurations (e.g. context XMLs for test).
  * {@link ConditionalOnExpression} class annotation activates this configuration only if midpoint
  * {@code config.xml} specifies the repository factory class from SQL package.
  * <p>
- * Spring configuration note - ConditionalOnExpression is ugly, but the following does NOT work:
- * <ul>
- * <li>{@code @ConditionalOnBean(SqlRepositoryFactory.class)} - with {@code RepositoryServiceFactory}
- * it does, but that does not help.</li>
- * <li>{@code @ConditionalOnExpression("#{repositoryFactory...} - because {@code RepositoryFactory}
- * is not initialized yet and all injected stuff is still {@code null}.</li>
- * </ul>
+ * With current initialization not relying on system-init directly anymore, there is in fact
+ * no "repository service factory" class and value of {@code com.evolveum.midpoint.repo.sql.}
+ * for it is enough to initialize this SQL repository implementation.
+ * Alternatively just value "sql" can be used.
+ * Both values are now case-insensitive.
  */
 @Configuration
-@ConditionalOnExpression("#{midpointConfiguration.getConfiguration('midpoint.repository')"
-        + ".getString('repositoryServiceFactoryClass').startsWith('com.evolveum.midpoint.repo.sql.')}")
+@ConditionalOnExpression("#{midpointConfiguration.keyMatches("
+        + "'midpoint.repository.repositoryServiceFactoryClass',"
+        + " '(?i)com\\.evolveum\\.midpoint\\.repo\\.sql\\..*', '(?i)sql')}")
 @ComponentScan
 public class SqlRepositoryBeanConfig {
 
@@ -61,11 +60,10 @@ public class SqlRepositoryBeanConfig {
     @ConditionalOnMissingBean
     public SqlRepositoryConfiguration sqlRepositoryConfiguration(
             MidpointConfiguration midpointConfiguration) throws RepositoryServiceFactoryException {
-        var configuration = midpointConfiguration.getConfiguration(
-                MidpointConfiguration.REPOSITORY_CONFIGURATION);
-        SqlRepositoryConfiguration config = new SqlRepositoryConfiguration(configuration);
-        config.validate();
-        return config;
+        return new SqlRepositoryConfiguration(
+                midpointConfiguration.getConfiguration(
+                        MidpointConfiguration.REPOSITORY_CONFIGURATION))
+                .validate();
     }
 
     @Bean
