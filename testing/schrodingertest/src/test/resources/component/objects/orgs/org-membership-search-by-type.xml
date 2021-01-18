@@ -6,8 +6,13 @@
 ~ and European Union Public License. See LICENSE file for details.
 -->
 
-<org oid="33f5585e-kk21-43g2-94sd-18gsrw6ed4aa"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<org oid="33f5585e-kk21-43g2-94sd-18gsrw6ed4aa" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
     <name>orgMembershipByTypeSearch</name>
+    <assignment>
+        <targetRef oid="33f5585e-kk21-43g2-94sd-18gsrw6ed4fg" relation="org:default" type="c:OrgType"/>
+    </assignment>
+    <roleMembershipRef oid="33f5585e-kk21-43g2-94sd-18gsrw6ed4fg" relation="org:default" type="c:OrgType"/>
+    <parentOrgRef oid="33f5585e-kk21-43g2-94sd-18gsrw6ed4fg" relation="org:default" type="c:OrgType"/>
 </org>
 

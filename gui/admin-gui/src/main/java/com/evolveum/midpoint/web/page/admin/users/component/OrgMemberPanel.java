@@ -49,7 +49,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
         } else {
             String oid = getModelObject().getOid();
 
-            ObjectReferenceType ref = MemberOperationsHelper.createReference(getModelObject(), getSelectedRelation());
+            ObjectReferenceType ref = MemberOperationsHelper.createReference(getModelObject(), getSupportedRelations().getDefaultRelation());
             ObjectQuery query = getPageBase().getPrismContext().queryFor(getSearchTypeClass())
                     .type(getSearchTypeClass())
                     .isChildOf(ref.asReferenceValue()).build();
