@@ -33,7 +33,7 @@ import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
-import com.evolveum.midpoint.model.impl.importer.ImportAccountsFromResourceTaskHandler;
+import com.evolveum.midpoint.model.impl.sync.tasks.imp.ImportFromResourceTaskHandler;
 import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
@@ -126,7 +126,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     @Autowired private PrismContext prismContext;
     @Autowired private ProvisioningService provisioning;
     @Autowired private ModelObjectResolver objectResolver;
-    @Autowired private ImportAccountsFromResourceTaskHandler importAccountsFromResourceTaskHandler;
+    @Autowired private ImportFromResourceTaskHandler importFromResourceTaskHandler;
     @Autowired private ObjectImporter objectImporter;
     @Autowired private HookRegistry hookRegistry;
     @Autowired private TaskManager taskManager;
@@ -1396,7 +1396,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
             result.recordStatus(OperationResultStatus.IN_PROGRESS, "Task running in background");
 
-            importAccountsFromResourceTaskHandler.launch(resource, objectClass, task, result);
+            importFromResourceTaskHandler.launch(resource, objectClass, task, result);
 
             // The launch should switch task to asynchronous. It is in/out, so no
             // other action is needed
@@ -1431,7 +1431,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         // TODO: add context to the result
 
         try {
-            boolean wasOk = importAccountsFromResourceTaskHandler.importSingleShadow(shadowOid, task, result);
+            boolean wasOk = importFromResourceTaskHandler.importSingleShadow(shadowOid, task, result);
 
             if (wasOk) {
                 result.recordSuccess();

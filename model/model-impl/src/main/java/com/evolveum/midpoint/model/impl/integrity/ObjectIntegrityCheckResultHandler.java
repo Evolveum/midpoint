@@ -7,60 +7,44 @@
 
 package com.evolveum.midpoint.model.impl.integrity;
 
-import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.prism.PrismContext;
+import java.util.Map;
+
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import java.util.Map;
-
 /**
- * @author mederly
+ *
  */
-public class ObjectIntegrityCheckResultHandler extends AbstractSearchIterativeResultHandler<ObjectType> {
+public class ObjectIntegrityCheckResultHandler
+        extends AbstractSearchIterativeResultHandler
+        <ObjectType,
+                ObjectIntegrityCheckTaskHandler,
+                ObjectIntegrityCheckTaskHandler.TaskExecution,
+                ObjectIntegrityCheckTaskPartExecution, ObjectIntegrityCheckResultHandler> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectIntegrityCheckResultHandler.class);
 
     private static final String CLASS_DOT = ObjectIntegrityCheckResultHandler.class.getName() + ".";
     private static final int HISTOGRAM_COLUMNS = 80;
 
-    private PrismContext prismContext;
-    private RepositoryService repositoryService;
-    private SystemObjectCache systemObjectCache;
+    private final ObjectStatistics statistics = new ObjectStatistics();
 
-    private ObjectStatistics statistics = new ObjectStatistics();
-
-    public ObjectIntegrityCheckResultHandler(RunningTask coordinatorTask, String taskOperationPrefix, String processShortName,
-            String contextDesc, TaskManager taskManager, PrismContext prismContext, RepositoryService repositoryService,
-            SystemObjectCache systemObjectCache, OperationResult result) {
-        super(coordinatorTask, taskOperationPrefix, processShortName, contextDesc, taskManager);
-        this.prismContext = prismContext;
-        this.repositoryService = repositoryService;
-        this.systemObjectCache = systemObjectCache;
-        setStopOnError(false);
+    ObjectIntegrityCheckResultHandler(ObjectIntegrityCheckTaskPartExecution taskExecution) {
+        super(taskExecution);
         setLogErrors(false);            // we do log errors ourselves
 
-        Integer tasks = getWorkerThreadsCount(coordinatorTask);
-        if (tasks != null && tasks != 0) {
-            throw new UnsupportedOperationException("Unsupported number of worker threads: " + tasks + ". This task cannot be run with worker threads. Please remove workerThreads extension property or set its value to 0.");
-        }
+        ensureNoWorkerThreads();
 
-        logConfiguration("Object integrity check is starting");
-    }
-
-    private void logConfiguration(String state) {
-        LOGGER.info("{}", state);
+        LOGGER.info("Object integrity check is starting");
     }
 
     @Override
@@ -87,7 +71,7 @@ public class ObjectIntegrityCheckResultHandler extends AbstractSearchIterativeRe
     @Override
     public void completeProcessing(Task task, OperationResult result) {
         super.completeProcessing(task, result);
-        logConfiguration("Object integrity check finished.");
+        LOGGER.info("Object integrity check finished.");
         dumpStatistics();
     }
 
@@ -105,5 +89,4 @@ public class ObjectIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         }
         LOGGER.info("Objects processed with errors: {}", statistics.getErrors());
     }
-
 }

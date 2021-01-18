@@ -92,7 +92,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
         } else {
             restartTask(propagationTaskOid);
         }
-        Task finishedTask = waitForTaskFinish(propagationTaskOid, true);
+        Task finishedTask = waitForTaskFinish(propagationTaskOid, false, DEFAULT_TASK_WAIT_TIMEOUT, true);
         assertFinishedPropagationTask(finishedTask, expectedStatus);
     }
 

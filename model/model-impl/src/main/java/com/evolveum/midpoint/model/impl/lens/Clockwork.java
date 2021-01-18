@@ -41,7 +41,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChe
 import com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor.PolicyRuleScriptExecutor;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleSuspendTaskExecutor;
 import com.evolveum.midpoint.model.impl.migrator.Migrator;
-import com.evolveum.midpoint.model.impl.sync.RecomputeTaskHandler;
+import com.evolveum.midpoint.model.impl.tasks.RecomputeTaskHandlerOld;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -620,7 +620,7 @@ public class Clockwork {
         reconTask.setName("Recomputing users after changing role " + role.asObjectable().getName());
         reconTask.setBinding(TaskBinding.LOOSE);
         reconTask.setInitialExecutionStatus(TaskExecutionStatus.RUNNABLE);
-        reconTask.setHandlerUri(RecomputeTaskHandler.HANDLER_URI);
+        reconTask.setHandlerUri(RecomputeTaskHandlerOld.HANDLER_URI); // FIXME
         reconTask.setCategory(TaskCategory.RECOMPUTATION);
         reconTask.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value());
         taskManager.switchToBackground(reconTask, result);

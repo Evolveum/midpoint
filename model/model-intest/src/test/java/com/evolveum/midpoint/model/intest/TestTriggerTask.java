@@ -86,7 +86,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         importObjectFromFile(TASK_TRIGGER_SCANNER_FILE);
 
         waitForTaskStart(TASK_TRIGGER_SCANNER_OID, false);
-        waitForTaskFinish(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskFinish(TASK_TRIGGER_SCANNER_OID, false);
 
         // THEN
         then();
@@ -109,7 +109,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
         /// WHEN
         when();
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
 
         // THEN
         then();
@@ -134,7 +134,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
         /// WHEN
         when();
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
 
         // THEN
         then();
@@ -161,7 +161,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
         /// WHEN
         when();
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
 
         // THEN
         then();
@@ -188,7 +188,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
         /// WHEN
         when();
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
 
         // THEN
         then();
@@ -215,7 +215,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
         /// WHEN
         when();
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
 
         // THEN
         then();
@@ -240,7 +240,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
         /// WHEN
         when();
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
 
         // THEN
         then();
@@ -269,7 +269,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
         /// WHEN
         when();
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
 
         // THEN
         then();
@@ -298,7 +298,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
             /// WHEN
             when();
-            waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+            waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
 
             // THEN
             then();
@@ -324,7 +324,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
         /// WHEN
         when();
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
 
         // THEN
         then();
@@ -354,7 +354,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         testTriggerHandler.setFailOnNextInvocation(true);
 
         when();
-        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 10000);
+        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, false, 10000);
 
         then();
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
@@ -377,7 +377,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         repositoryService.modifyObject(TaskType.class, TASK_TRIGGER_SCANNER_OID, modifications, result);
 
         testTriggerHandler.reset();
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
 
         // THEN
         then();
@@ -402,7 +402,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 
         /// WHEN
         when();
-        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, false);
 
         // THEN
         then();

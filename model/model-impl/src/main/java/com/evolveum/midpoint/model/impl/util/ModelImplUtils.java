@@ -24,7 +24,7 @@ import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.model.impl.sync.SynchronizationObjectsFilter;
+import com.evolveum.midpoint.model.impl.sync.tasks.SynchronizationObjectsFilterImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -474,12 +474,12 @@ public class ModelImplUtils {
         return false;
     }
 
-    public static SynchronizationObjectsFilter determineSynchronizationObjectsFilter(
+    public static SynchronizationObjectsFilterImpl determineSynchronizationObjectsFilter(
             @NotNull ObjectClassComplexTypeDefinition objectclassDef, Task task) {
         ShadowKindType kind = getTaskExtensionPropertyValue(task, ModelConstants.KIND_PROPERTY_NAME);
         String intent = getTaskExtensionPropertyValue(task, ModelConstants.INTENT_PROPERTY_NAME);
 
-        return new SynchronizationObjectsFilter(objectclassDef, kind, intent);
+        return new SynchronizationObjectsFilterImpl(objectclassDef, kind, intent);
     }
 
     public static ObjectClassComplexTypeDefinition determineObjectClass(RefinedResourceSchema refinedSchema, Task task)

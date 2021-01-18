@@ -6,36 +6,42 @@
  */
 package com.evolveum.midpoint.model.impl.scripting;
 
+import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.model.api.ScriptExecutionException;
+import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.model.api.ScriptingService;
-import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeModelTaskHandler;
+import com.evolveum.midpoint.model.impl.tasks.simple.Processing;
+import com.evolveum.midpoint.model.impl.tasks.simple.SimpleIterativeTaskHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ValueListType;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 
 @Component
-public class IterativeScriptExecutionTaskHandler extends AbstractSearchIterativeModelTaskHandler<ObjectType, AbstractSearchIterativeResultHandler<ObjectType>> {
+public class IterativeScriptExecutionTaskHandler
+        extends SimpleIterativeTaskHandler
+        <ObjectType,
+                IterativeScriptExecutionTaskHandler.MyExecutionContext,
+                IterativeScriptExecutionTaskHandler.MyProcessing> {
 
     @Autowired private TaskManager taskManager;
     @Autowired private ScriptingService scriptingService;
@@ -45,7 +51,6 @@ public class IterativeScriptExecutionTaskHandler extends AbstractSearchIterative
     public IterativeScriptExecutionTaskHandler() {
         super("Execute script", OperationConstants.EXECUTE_SCRIPT);
         setPreserveStatistics(false);
-        setLogFinishInfo(true); // todo
     }
 
     @PostConstruct
@@ -53,43 +58,47 @@ public class IterativeScriptExecutionTaskHandler extends AbstractSearchIterative
         taskManager.registerHandler(ModelPublicConstants.ITERATIVE_SCRIPT_EXECUTION_TASK_HANDLER_URI, this);
     }
 
-    protected Class<? extends ObjectType> getType(Task task) {
-        return getTypeFromTask(task, ObjectType.class);
+    @Override
+    protected MyExecutionContext createExecutionContext() {
+        return new MyExecutionContext();
     }
 
-    @NotNull
     @Override
-    protected AbstractSearchIterativeResultHandler<ObjectType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final RunningTask coordinatorTask,
-            OperationResult opResult) {
+    protected MyProcessing createProcessing(MyExecutionContext ctx) {
+        return new MyProcessing(ctx);
+    }
 
-        ExecuteScriptType executeScriptRequestTemplate = getExecuteScriptRequest(coordinatorTask);
+    public static class MyExecutionContext extends com.evolveum.midpoint.model.impl.tasks.simple.ExecutionContext {
 
-        if (executeScriptRequestTemplate.getInput() != null && !executeScriptRequestTemplate.getInput().getValue().isEmpty()) {
-            LOGGER.warn("Ignoring input values in executeScript data in task {}", coordinatorTask);
+        private ExecuteScriptType executeScriptRequestTemplate;
+
+        @Override
+        protected void initialize(OperationResult opResult) {
+            RunningTask localCoordinatorTask = getLocalCoordinationTask();
+            executeScriptRequestTemplate = getExecuteScriptRequest(localCoordinatorTask);
+            if (executeScriptRequestTemplate.getInput() != null && !executeScriptRequestTemplate.getInput().getValue().isEmpty()) {
+                LOGGER.warn("Ignoring input values in executeScript data in task {}", localCoordinatorTask);
+            }
+        }
+    }
+
+    public class MyProcessing extends Processing<ObjectType, MyExecutionContext> {
+
+        private MyProcessing(MyExecutionContext ctx) {
+            super(ctx);
         }
 
-        AbstractSearchIterativeResultHandler<ObjectType> handler = new AbstractSearchIterativeResultHandler<ObjectType>(
-                coordinatorTask, IterativeScriptExecutionTaskHandler.class.getName(), "execute", "execute task", taskManager) {
-            @Override
-            protected boolean handleObject(PrismObject<ObjectType> object, RunningTask workerTask, OperationResult result) {
-                try {
-                    ExecuteScriptType executeScriptRequest = executeScriptRequestTemplate.clone();
-                    executeScriptRequest.setInput(new ValueListType().value(object.asObjectable()));
-                    ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptRequest, VariablesMap.emptyMap(),
-                            false, workerTask, result);
-                    LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
-                    LOGGER.debug("Execution result:\n{}", executionResult.getConsoleOutput());
-                    result.computeStatus();
-                } catch (ScriptExecutionException | SecurityViolationException | SchemaException | ObjectNotFoundException |
-                        ExpressionEvaluationException | CommunicationException | ConfigurationException e) {
-                    result.recordFatalError("Couldn't execute script: " + e.getMessage(), e);
-                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute script", e);
-                }
-                return true;
-            }
-        };
-        handler.setStopOnError(false);
-        return handler;
+        @Override
+        protected void handleObject(PrismObject<ObjectType> object, RunningTask workerTask, OperationResult result)
+                throws CommonException, PreconditionViolationException, ScriptExecutionException {
+            ExecuteScriptType executeScriptRequest = ctx.executeScriptRequestTemplate.clone();
+            executeScriptRequest.setInput(new ValueListType().value(object.asObjectable()));
+            ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptRequest,
+                    VariablesMap.emptyMap(), false, workerTask, result);
+            LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
+            LOGGER.debug("Execution result:\n{}", executionResult.getConsoleOutput());
+            result.computeStatus();
+        }
     }
 
     static ExecuteScriptType getExecuteScriptRequest(RunningTask coordinatorTask) {

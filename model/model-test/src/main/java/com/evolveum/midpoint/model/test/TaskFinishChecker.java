@@ -86,7 +86,7 @@ public class TaskFinishChecker implements Checker {
             return resultDone && executionStatusIsDone();
         }
     }
-    
+
     private boolean executionStatusIsDone() {
         return !shouldCheckAlsoExecutionStatus() ||
                 freshTask.getExecutionStatus() == TaskExecutionStatus.CLOSED ||

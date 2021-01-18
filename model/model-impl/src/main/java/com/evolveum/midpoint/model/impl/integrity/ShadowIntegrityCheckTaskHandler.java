@@ -10,19 +10,21 @@ package com.evolveum.midpoint.model.impl.integrity;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
-import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeModelTaskHandler;
+import com.evolveum.midpoint.model.impl.tasks.AbstractSearchIterativeModelTaskHandler;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskExecution;
+import com.evolveum.midpoint.repo.common.task.PartExecutionClass;
+import com.evolveum.midpoint.repo.common.task.TaskExecutionClass;
 import com.evolveum.midpoint.schema.result.OperationConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskRunResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.task.api.TaskWorkBucketProcessingResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -42,12 +44,13 @@ import javax.annotation.PostConstruct;
  *
  * The reason is that if the data in the repository would be stored in non-normalized form, the would be
  * effectively hidden for any search on that particular attribute.
-
- *
- * @author Pavol Mederly
  */
 @Component
-public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeModelTaskHandler<ShadowType, ShadowIntegrityCheckResultHandler> {
+@TaskExecutionClass(ShadowIntegrityCheckTaskHandler.TaskExecution.class)
+@PartExecutionClass(ShadowIntegrityCheckTaskPartExecution.class)
+public class ShadowIntegrityCheckTaskHandler
+        extends AbstractSearchIterativeModelTaskHandler
+        <ShadowIntegrityCheckTaskHandler, ShadowIntegrityCheckTaskHandler.TaskExecution> {
 
     public static final String HANDLER_URI = ModelPublicConstants.SHADOW_INTEGRITY_CHECK_TASK_HANDLER_URI;
 
@@ -68,25 +71,6 @@ public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeMode
     }
 
     @Override
-    protected ShadowIntegrityCheckResultHandler createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult,
-            RunningTask coordinatorTask, OperationResult opResult) {
-        return new ShadowIntegrityCheckResultHandler(coordinatorTask, ShadowIntegrityCheckTaskHandler.class.getName(),
-                "check shadow integrity", "check shadow integrity", taskManager, prismContext, provisioningService,
-                matchingRuleRegistry, repositoryService, synchronizationService, systemObjectCache);
-    }
-
-    @Override
-    protected Class<? extends ObjectType> getType(Task task) {
-        return ShadowType.class;
-    }
-
-    @Override
-    protected boolean requiresDirectRepositoryAccess(ShadowIntegrityCheckResultHandler resultHandler, TaskRunResult runResult,
-            Task coordinatorTask, OperationResult opResult) {
-        return true;
-    }
-
-    @Override
     public String getCategoryName(Task task) {
         return TaskCategory.UTIL;
     }
@@ -95,4 +79,17 @@ public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeMode
     public String getArchetypeOid() {
         return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
     }
+
+    /** Just to make Java compiler happy. */
+    public static class TaskExecution
+            extends AbstractSearchIterativeTaskExecution<ShadowIntegrityCheckTaskHandler, ShadowIntegrityCheckTaskHandler.TaskExecution> {
+
+        public TaskExecution(ShadowIntegrityCheckTaskHandler taskHandler,
+                RunningTask localCoordinatorTask, WorkBucketType workBucket,
+                TaskPartitionDefinitionType partDefinition,
+                TaskWorkBucketProcessingResult previousRunResult) {
+            super(taskHandler, localCoordinatorTask, workBucket, partDefinition, previousRunResult);
+        }
+    }
+
 }

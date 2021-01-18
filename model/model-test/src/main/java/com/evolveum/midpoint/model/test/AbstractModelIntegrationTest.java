@@ -3622,9 +3622,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     private static OperationResult getSubresult(OperationResult result, boolean checkSubresult) {
-        if (checkSubresult) {
-            return result != null ? result.getLastSubresult() : null;
-        }
+        // FIXME
+//        if (checkSubresult) {
+//            return result != null ? result.getLastSubresult() : null;
+//        }
         return result;
     }
 

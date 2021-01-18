@@ -940,7 +940,14 @@ public class OperationResult
     public Stream<OperationResult> getResultStream() {
         return Stream.concat(Stream.of(this),
                 getSubresults().stream()
-                        .flatMap(subresult -> subresult.getResultStream()));
+                        .flatMap(OperationResult::getResultStream));
+    }
+
+    public OperationResult findSubResultStrictly(String operation) {
+        return emptyIfNull(subresults).stream()
+                .filter(r -> operation.equals(r.getOperation()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Subresult '" + operation + "' not found"));
     }
 
     public static final class PreviewResult {

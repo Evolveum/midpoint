@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.util.logging.LevelOverrideTurboFilter;
 import com.evolveum.midpoint.util.logging.TracingAppender;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -43,23 +44,38 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
 /**
- * @author semancik
+ * TODO description
  *
+ * TODO clean up the code
+ *
+ * @author semancik
  */
-public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType> implements ResultHandler<O> {
+public abstract class AbstractSearchIterativeResultHandler<
+        O extends ObjectType,
+        TH extends AbstractSearchIterativeTaskHandler<TH, TE>,
+        TE extends AbstractSearchIterativeTaskExecution<TH, TE>,
+        PE extends AbstractSearchIterativeTaskPartExecution<O, TH, TE, PE, RH>,
+        RH extends AbstractSearchIterativeResultHandler<O, TH, TE, PE, RH>>
+        implements ResultHandler<O> {
 
     private static final int WORKER_THREAD_WAIT_FOR_REQUEST = 500;
     private static final long REQUEST_QUEUE_OFFER_TIMEOUT = 1000L;
 
+    protected final TE taskExecution;
+    protected final PE partExecution;
+    protected final TH taskHandler;
+
+    private TaskReportingOptions reportingOptions;
+
     private final TaskManager taskManager;
-    private final RunningTask coordinatorTask;
+    protected final RunningTask coordinatorTask;
     private final String taskOperationPrefix;
     private final String processShortName;
     private String contextDesc;
-    private AtomicInteger objectsProcessed = new AtomicInteger();
-    private long initialProgress;
-    private AtomicLong totalTimeProcessing = new AtomicLong();
-    private AtomicInteger errors = new AtomicInteger();
+    private final AtomicInteger objectsProcessed = new AtomicInteger();
+    private final long initialProgress;
+    private final AtomicLong totalTimeProcessing = new AtomicLong();
+    private final AtomicInteger errors = new AtomicInteger();
     private boolean stopOnError;
     private boolean logObjectProgress;
     private boolean logErrors = true;
@@ -68,7 +84,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
     private boolean enableSynchronizationStatistics = false;        // whether we want to collect sync statistics
     private boolean enableActionsExecutedStatistics = false;        // whether we want to collect repo objects statistics
     private BlockingQueue<ProcessingRequest> requestQueue;
-    private AtomicBoolean stopRequestedByAnyWorker = new AtomicBoolean(false);
+    private final AtomicBoolean stopRequestedByAnyWorker = new AtomicBoolean(false);
     private volatile Throwable exceptionEncountered;
     private final long startTime;
 
@@ -77,25 +93,29 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
     private List<OperationResult> workerSpecificResults;
 
-    private TaskPartitionDefinitionType stageType;
+    private final TaskPartitionDefinitionType partDefinition;
 
-    public AbstractSearchIterativeResultHandler(RunningTask coordinatorTask, String taskOperationPrefix, String processShortName,
-            String contextDesc, TaskManager taskManager) {
-        this(coordinatorTask, taskOperationPrefix, processShortName, contextDesc, null, taskManager);
+    public AbstractSearchIterativeResultHandler(PE partExecution) {
+        this(partExecution, null);
     }
 
-    public AbstractSearchIterativeResultHandler(RunningTask coordinatorTask, String taskOperationPrefix, String processShortName,
-            String contextDesc, TaskPartitionDefinitionType taskStageType, TaskManager taskManager) {
-        super();
-        this.coordinatorTask = coordinatorTask;
-        this.taskOperationPrefix = taskOperationPrefix;
+    public AbstractSearchIterativeResultHandler(PE partExecution, String contextDesc) {
+        this(partExecution, partExecution.getTaskHandler().getTaskTypeName(), contextDesc);
+    }
+
+    public AbstractSearchIterativeResultHandler(PE partExecution, String processShortName, String contextDesc) {
+        this.taskExecution = partExecution.getTaskExecution();
+        this.partExecution = partExecution;
+        this.taskHandler = partExecution.getTaskHandler();
+
+        this.coordinatorTask = partExecution.localCoordinatorTask;
+        this.taskOperationPrefix = taskHandler.taskOperationPrefix;
         this.processShortName = processShortName;
         this.contextDesc = contextDesc;
-        this.taskManager = taskManager;
+        this.taskManager = taskHandler.taskManager;
 
-        this.stageType = taskStageType;
+        this.partDefinition = partExecution.partDefinition;
 
-        stopOnError = true;
         startTime = System.currentTimeMillis();
         initialProgress = coordinatorTask.getProgress();
     }
@@ -138,10 +158,6 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
     private boolean isEnableIterationStatistics() {
         return enableIterationStatistics;
-    }
-
-    void setEnableIterationStatistics(boolean enableIterationStatistics) {
-        this.enableIterationStatistics = enableIterationStatistics;
     }
 
     private boolean isEnableSynchronizationStatistics() {
@@ -257,6 +273,10 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
         return null;
     }
 
+    public void setReportingOptions(TaskReportingOptions reportingOptions) {
+        // TODO
+    }
+
     class WorkerHandler implements LightweightTaskHandler {
         private OperationResult workerSpecificResult;
 
@@ -336,6 +356,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
             // The meat
             cont = handleObject(object, workerTask, result);
+            cont = cont && workerTask.canRun();
 
             // We do not want to override the result set by handler. This is just a fallback case
             if (result.isUnknown() || result.isInProgress()) {
@@ -462,11 +483,11 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
     }
 
     private boolean canContinue(Task task, Throwable ex, OperationResult result) {
-        if (stageType == null) {
+        if (partDefinition == null) {
             return !stopOnError;
         }
 
-        CriticalityType criticality = ExceptionUtil.getCriticality(stageType.getErrorCriticality(), ex, CriticalityType.PARTIAL);
+        CriticalityType criticality = ExceptionUtil.getCriticality(partDefinition.getErrorCriticality(), ex, CriticalityType.PARTIAL);
         try {
             RepoCommonUtils.processErrorCriticality(task, criticality, ex, result);
         } catch (Throwable e) {
@@ -480,8 +501,8 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
     /**
      * @return the stageType
      */
-    protected TaskPartitionDefinitionType getStageType() {
-        return stageType;
+    protected TaskPartitionDefinitionType getPartDefinition() {
+        return partDefinition;
     }
 
     public long heartbeat() {
@@ -506,7 +527,8 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
         this.logErrors = logErrors;
     }
 
-    protected abstract boolean handleObject(PrismObject<O> object, RunningTask workerTask, OperationResult result) throws CommonException, PreconditionViolationException;
+    protected abstract boolean handleObject(PrismObject<O> object, RunningTask workerTask, OperationResult result)
+            throws CommonException, PreconditionViolationException, ScriptExecutionException;
 
     public class ProcessingRequest {
         public PrismObject<O> object;
@@ -556,6 +578,10 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
         }
     }
 
+    protected Integer getWorkerThreadsCount() {
+        return getWorkerThreadsCount(partExecution.localCoordinatorTask);
+    }
+
     protected Integer getWorkerThreadsCount(Task task) {
         PrismProperty<Integer> workerThreadsPrismProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
         if (workerThreadsPrismProperty != null && workerThreadsPrismProperty.getRealValue() != null) {
@@ -565,4 +591,14 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
         }
     }
 
+    protected void ensureNoWorkerThreads() {
+        Integer tasks = getWorkerThreadsCount();
+        if (tasks != null && tasks != 0) {
+            throw new UnsupportedOperationException("Unsupported number of worker threads: " + tasks + ". This task cannot be run with worker threads. Please remove workerThreads extension property or set its value to 0.");
+        }
+    }
+
+    protected TH getTaskHandler() {
+        return taskHandler;
+    }
 }
