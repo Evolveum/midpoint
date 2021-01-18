@@ -13,6 +13,8 @@ import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.component.common.summarytagbox.SummaryBox;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
+import org.testng.Assert;
+
 import static com.codeborne.selenide.Selenide.$;
 
 /**
@@ -35,6 +37,11 @@ public class SummaryPanel<T> extends Component<T> {
 
         return new SummaryBox<>(this, summaryBox);
 
+    }
+
+    public SummaryPanel<T> assertDisplayNameEquals(String expectedValue) {
+        Assert.assertEquals(expectedValue, fetchDisplayName(), "Display name on Summary panel doesn't match");
+        return this;
     }
 
 }

@@ -12,6 +12,7 @@ import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
 import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 
 import org.openqa.selenium.By;
+import org.testng.Assert;
 
 /**
  * @author lskublik
@@ -23,5 +24,10 @@ public class TaskBasicTab extends AssignmentHolderBasicTab<TaskPage> {
 
     public String utility() {
         return form().findProperty("category").$(By.tagName("input")).getValue();
+    }
+
+    public TaskBasicTab assertUtilityValueEquals(String expectedValue) {
+        Assert.assertEquals(expectedValue, form().findProperty("category").$(By.tagName("input")).getValue(), "Utility value doesn't match");
+        return this;
     }
 }
