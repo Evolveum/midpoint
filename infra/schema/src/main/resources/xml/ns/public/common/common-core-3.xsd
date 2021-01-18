@@ -25630,7 +25630,7 @@
                                scope selection at all.
                            </xsd:documentation>
                            <xsd:appinfo>
-                               <a:displayName>SearchBoxConfigurationType.objectTypeConfiguration</a:displayName>
+                               <a:displayName>SearchBoxConfigurationType.relationConfiguration</a:displayName>
                                <a:since>4.3</a:since>
                            </xsd:appinfo>
                        </xsd:annotation>
@@ -25643,7 +25643,7 @@
                                scope selection at all.
                            </xsd:documentation>
                            <xsd:appinfo>
-                               <a:displayName>SearchBoxConfigurationType.objectTypeConfiguration</a:displayName>
+                               <a:displayName>SearchBoxConfigurationType.indirectConfiguration</a:displayName>
                                <a:since>4.3</a:since>
                            </xsd:appinfo>
                        </xsd:annotation>
@@ -25654,7 +25654,7 @@
                                Configuration for the project/org search item. Project/Org is applicable only to role members table.
                            </xsd:documentation>
                            <xsd:appinfo>
-                               <a:displayName>SearchBoxConfigurationType.objectTypeConfiguration</a:displayName>
+                               <a:displayName>SearchBoxConfigurationType.projectConfiguration</a:displayName>
                                <a:since>4.3</a:since>
                            </xsd:appinfo>
                        </xsd:annotation>
@@ -25665,7 +25665,7 @@
                                Configuration for the tenant search item. Tenant is applicable only to role members table.
                            </xsd:documentation>
                            <xsd:appinfo>
-                               <a:displayName>SearchBoxConfigurationType.objectTypeConfiguration</a:displayName>
+                               <a:displayName>SearchBoxConfigurationType.tenantConfiguration</a:displayName>
                                <a:since>4.3</a:since>
                            </xsd:appinfo>
                        </xsd:annotation>
@@ -25756,7 +25756,7 @@
                                 Define allowed values for search item panel. Default allowed values are different by the page.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>ObjectTypeSearchItemConfigurationType.defaultValue</a:displayName>
+                                <a:displayName>ObjectTypeSearchItemConfigurationType.supportedTypes</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

@@ -16,8 +16,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
-import javax.annotation.PostConstruct;
-
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -527,8 +525,8 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
 
     @Override
     public boolean shouldRollback(Throwable ex) {
-            return new TransactionSerializationProblemDetector(this, LOGGER)
-                    .isExceptionRelatedToSerialization(ex);
+        return new TransactionSerializationProblemDetector(this, LOGGER)
+                .isExceptionRelatedToSerialization(ex);
     }
 
     // The methods below are static to highlight their data dependencies and to avoid using properties
@@ -633,7 +631,7 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
      *
      * @throws RepositoryServiceFactoryException if configuration is invalid.
      */
-    public void validate() throws RepositoryServiceFactoryException {
+    public SqlRepositoryConfiguration validate() throws RepositoryServiceFactoryException {
         if (dataSource == null) {
             notEmpty(jdbcUrl, "JDBC Url is empty or not defined.");
             // We don't check username and password, they can be null (MID-5342)
@@ -664,6 +662,8 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
         if (minPoolSize > maxPoolSize) {
             throw new RepositoryServiceFactoryException("Max. pool size must be greater than min. pool size.");
         }
+
+        return this;
     }
 
     private void notEmpty(String value, String message) throws RepositoryServiceFactoryException {

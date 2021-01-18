@@ -119,8 +119,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     private UserInterfaceFeatureType defaultProjectConfiguration = null;
     private PageBase pageBase;
 
-    protected static final String ID_SEARCH_BY_RELATION = "searchByRelation";
-
     private static final Map<QName, Map<String, String>> AUTHORIZATIONS = new HashMap<>();
     private static final Map<QName, UserProfileStorage.TableId> TABLES_ID = new HashMap<>();
 
@@ -410,11 +408,16 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             protected ObjectQuery getCustomizeContentQuery() {
                 if (!CompiledGuiProfile.isVisible(defaultRelationConfiguration.getVisibility(), null)
                         && !CompiledGuiProfile.isVisible(defaultIndirectConfiguration.getVisibility(), null)
-                        && !CompiledGuiProfile.isVisible(defaultScopeConfiguration.getVisibility(), null)
-                        && !CompiledGuiProfile.isVisible(defaultTenantConfiguration.getVisibility(), null)
-                        && !CompiledGuiProfile.isVisible(defaultProjectConfiguration.getVisibility(), null)){
+                        && (!(AbstractRoleMemberPanel.this.getModelObject() instanceof OrgType) || !CompiledGuiProfile.isVisible(defaultScopeConfiguration.getVisibility(), null))
+                        && (!(AbstractRoleMemberPanel.this.getModelObject() instanceof RoleType) || !CompiledGuiProfile.isVisible(defaultTenantConfiguration.getVisibility(), null))
+                        && (!(AbstractRoleMemberPanel.this.getModelObject() instanceof RoleType) || !CompiledGuiProfile.isVisible(defaultProjectConfiguration.getVisibility(), null))){
                     PrismContext prismContext = getPageBase().getPrismContext();
-                    List relations = getSupportedRelations().getAvailableRelationList();
+                    List relations = new ArrayList();
+                    if (QNameUtil.match(PrismConstants.Q_ANY, getSupportedRelations().getDefaultRelation())) {
+                        relations.addAll(getSupportedRelations().getAvailableRelationList());
+                    } else {
+                        relations.add(getSupportedRelations().getDefaultRelation());
+                    }
 
                     R object = AbstractRoleMemberPanel.this.getModelObject();
                     Class type = getSearchModel().getObject().getTypeClass();
@@ -503,7 +506,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             public boolean isApplyFilter() {
-                return !SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope());
+                return !CompiledGuiProfile.isVisible(defaultScopeConfiguration.getVisibility(), null)
+                        || !SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope());
             }
 
             @Override
@@ -586,7 +590,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                     return null;
                 }
                 Class type = search.getTypeClass();
-                ObjectReferenceType ref = MemberOperationsHelper.createReference(object, getSelectedRelation());
+                ObjectReferenceType ref = MemberOperationsHelper.createReference(object, getSupportedRelations().getDefaultRelation());
                 return pageBase.getPrismContext().queryFor(type).isChildOf(ref.asReferenceValue()).buildFilter();
             }
 
@@ -635,7 +639,12 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 if (object == null) {
                     return null;
                 }
-                List relations = getSupportedRelations().getAvailableRelationList();
+                List relations = new ArrayList();
+                if (QNameUtil.match(PrismConstants.Q_ANY, getSupportedRelations().getDefaultRelation())) {
+                    relations.addAll(getSupportedRelations().getAvailableRelationList());
+                } else {
+                    relations.add(getSupportedRelations().getDefaultRelation());
+                }
 
                 ObjectFilter filter;
                 PrismContext prismContext = pageBase.getPrismContext();
@@ -656,7 +665,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             public boolean isApplyFilter() {
-                return !SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope());
+                return !CompiledGuiProfile.isVisible(defaultScopeConfiguration.getVisibility(), null)
+                        || !SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope());
             }
 
             @Override
@@ -715,9 +725,10 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             public boolean isApplyFilter() {
-                return !SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope())
+                return !CompiledGuiProfile.isVisible(defaultScopeConfiguration.getVisibility(), null)
+                        || (!SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope())
                         && !CompiledGuiProfile.isVisible(defaultRelationConfiguration.getVisibility(), null)
-                        && !Boolean.TRUE.equals(getMemberPanelStorage().getIndirect());
+                        && !Boolean.TRUE.equals(getMemberPanelStorage().getIndirect()));
             }
 
             @Override
@@ -727,7 +738,12 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                     return null;
                 }
                 PrismContext prismContext = pageBase.getPrismContext();
-                List relations = getSupportedRelations().getAvailableRelationList();
+                List relations = new ArrayList();
+                if (QNameUtil.match(PrismConstants.Q_ANY, getSupportedRelations().getDefaultRelation())) {
+                    relations.addAll(getSupportedRelations().getAvailableRelationList());
+                } else {
+                    relations.add(getSupportedRelations().getDefaultRelation());
+                }
 
                 ObjectFilter filter;
                 Class type = search.getTypeClass();
@@ -812,10 +828,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             public boolean isApplyFilter() {
-                return !SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope())
+                return !CompiledGuiProfile.isVisible(defaultScopeConfiguration.getVisibility(), null)
+                        || (!SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope())
                         && !CompiledGuiProfile.isVisible(defaultRelationConfiguration.getVisibility(), null)
                         && !CompiledGuiProfile.isVisible(defaultTenantConfiguration.getVisibility(), null)
-                        && !Boolean.TRUE.equals(getMemberPanelStorage().getIndirect());
+                        && !Boolean.TRUE.equals(getMemberPanelStorage().getIndirect()));
             }
 
             @Override
@@ -825,7 +842,12 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                     return null;
                 }
                 PrismContext prismContext = pageBase.getPrismContext();
-                List relations = getSupportedRelations().getAvailableRelationList();
+                List relations = new ArrayList();
+                if (QNameUtil.match(PrismConstants.Q_ANY, getSupportedRelations().getDefaultRelation())) {
+                    relations.addAll(getSupportedRelations().getAvailableRelationList());
+                } else {
+                    relations.add(getSupportedRelations().getDefaultRelation());
+                }
 
                 ObjectFilter filter;
                 Class type = search.getTypeClass();
@@ -1449,15 +1471,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
         };
         ((PageBase) getPage()).showMainPopup(dialog, target);
-    }
-
-    protected QName getSelectedRelation() {
-        MemberPanelStorage storage = getMemberPanelStorage();
-        if (storage != null) {
-            return storage.getRelation();
-        }
-        RelationDropDownChoicePanel relationDropDown = (RelationDropDownChoicePanel) get(createComponentPath(ID_FORM, ID_SEARCH_BY_RELATION));
-        return relationDropDown.getRelationValue();
     }
 
     protected QName getSearchType(){
