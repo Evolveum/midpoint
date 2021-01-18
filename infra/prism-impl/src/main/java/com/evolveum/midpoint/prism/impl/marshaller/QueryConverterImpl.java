@@ -49,6 +49,8 @@ public class QueryConverterImpl implements QueryConverter {
     private static final QName CLAUSE_ALL = new QName(NS_QUERY, "all");
     private static final QName CLAUSE_NONE = new QName(NS_QUERY, "none");
     private static final QName CLAUSE_UNDEFINED = new QName(NS_QUERY, "undefined");
+    private static final QName CLAUSE_TEXT = new QName(NS_QUERY, "text");
+
 
     private static final QName CLAUSE_EQUAL = new QName(NS_QUERY, "equal");
     private static final QName CLAUSE_GREATER = new QName(NS_QUERY, "greater");
@@ -117,6 +119,7 @@ public class QueryConverterImpl implements QueryConverter {
         return parseFilterInternal((MapXNodeImpl) xmap, def, false, null);
     }
 
+    @Override
     public ObjectFilter parseFilter(@NotNull SearchFilterType filter, @NotNull Class<? extends Containerable> clazz) throws SchemaException {
         PrismContainerDefinition<? extends Containerable> def = prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(clazz);
         if (def == null) {
@@ -125,9 +128,20 @@ public class QueryConverterImpl implements QueryConverter {
         return parseFilter(filter, def);
     }
 
+    @Override
     public ObjectFilter parseFilter(@NotNull SearchFilterType filter, @NotNull PrismContainerDefinition<?> def) throws SchemaException {
+        if(filter.getText() != null) {
+            return parseTextFilter(filter.getText(), def);
+        }
+
         return parseFilter(filter.getFilterClauseXNode(), def);
     }
+
+    private ObjectFilter parseTextFilter(@NotNull String filter, @NotNull PrismContainerDefinition<?> def) throws SchemaException {
+        return prismContext.createQueryParser().parseQuery(def, filter);
+    }
+
+
 
     private <C extends Containerable> ObjectFilter parseFilterInternal(
             @NotNull MapXNodeImpl filterXMap,
@@ -144,6 +158,10 @@ public class QueryConverterImpl implements QueryConverter {
             PrismContainerDefinition<C> pcd, boolean preliminaryParsingOnly, ParsingContext pc) throws SchemaException {
 
         // trivial filters
+        if(QNameUtil.match(clauseQName, CLAUSE_TEXT)) {
+            return parseTextFilter(clauseContent, pcd,preliminaryParsingOnly);
+        }
+
         if (QNameUtil.match(clauseQName, CLAUSE_ALL)) {
             return AllFilterImpl.createAll();
         } else if (QNameUtil.match(clauseQName, CLAUSE_NONE)) {
@@ -192,6 +210,20 @@ public class QueryConverterImpl implements QueryConverter {
 
         throw new UnsupportedOperationException("Unsupported query filter " + clauseQName);
 
+    }
+
+    private ObjectFilter parseTextFilter(XNodeImpl clauseContent, PrismContainerDefinition<?> pcd, boolean preliminaryParsingOnly) throws SchemaException {
+        if(clauseContent instanceof PrimitiveXNode<?>) {
+            String filter = ((PrimitiveXNode<?>) clauseContent).getParsedValue(DOMUtil.XSD_STRING, String.class);
+            if(filter != null) {
+                if(preliminaryParsingOnly) {
+                    // FIXME: Run syntax validation
+                    return null;
+                }
+                return parseTextFilter(filter, pcd);
+            }
+        }
+        throw new SchemaException("Element text must contain textual filter");
     }
 
     private <C extends Containerable> AndFilter parseAndFilter(MapXNodeImpl clauseXMap, PrismContainerDefinition<C> pcd,
@@ -667,6 +699,7 @@ public class QueryConverterImpl implements QueryConverter {
         }
     }
 
+    @Override
     public MapXNodeImpl serializeFilter(ObjectFilter filter) throws SchemaException{
         return serializeFilter(filter, prismContext.xnodeSerializer());
     }
@@ -944,6 +977,7 @@ public class QueryConverterImpl implements QueryConverter {
         parseFilterInternal((MapXNodeImpl) xFilter, null, true, pc);
     }
 
+    @Override
     public <C extends Containerable> ObjectQuery createObjectQuery(Class<C> clazz, QueryType queryType)
             throws SchemaException {
         if (queryType == null) {
@@ -952,17 +986,20 @@ public class QueryConverterImpl implements QueryConverter {
         return createObjectQueryInternal(clazz, queryType.getFilter(), queryType.getPaging());
     }
 
+    @Override
     public <C extends Containerable> ObjectQuery createObjectQuery(Class<C> clazz, SearchFilterType filterType)
             throws SchemaException {
         return createObjectQueryInternal(clazz, filterType, null);
     }
 
+    @Override
     public <C extends Containerable> ObjectFilter createObjectFilter(Class<C> clazz, SearchFilterType filterType)
             throws SchemaException {
         ObjectQuery query = createObjectQueryInternal(clazz, filterType, null);
         return query.getFilter();
     }
 
+    @Override
     public <C extends Containerable> ObjectFilter createObjectFilter(PrismContainerDefinition<C> containerDefinition,
             SearchFilterType filterType)
             throws SchemaException {
@@ -1007,6 +1044,7 @@ public class QueryConverterImpl implements QueryConverter {
 
     }
 
+    @Override
     public QueryType createQueryType(ObjectQuery query) throws SchemaException {
         if (query == null) {
             return null;
@@ -1020,6 +1058,7 @@ public class QueryConverterImpl implements QueryConverter {
         return queryType;
     }
 
+    @Override
     public SearchFilterType createSearchFilterType(ObjectFilter filter) throws SchemaException {
         if (filter == null) {
             return null;
