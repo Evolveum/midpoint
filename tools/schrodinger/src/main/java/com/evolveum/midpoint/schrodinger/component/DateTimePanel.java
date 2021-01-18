@@ -12,6 +12,7 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
+import org.testng.Assert;
 
 /**
  * Created by honchar
@@ -79,5 +80,22 @@ public class DateTimePanel<T> extends Component<T> {
 
     public SelenideElement findAmOrPmChoice() {
         return getParentElement().$(Schrodinger.byDataId("amOrPmChoice")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+    }
+
+    public DateTimePanel<T> assertDateValueEquals(String expectedValue) {
+        Assert.assertEquals(expectedValue, date(), "Date value doesn't match.");
+        return this;
+    }
+    public DateTimePanel<T> assertHoursValueEquals(String expectedValue) {
+        Assert.assertEquals(expectedValue, hours(), "Hours value doesn't match.");
+        return this;
+    }
+    public DateTimePanel<T> assertMinutesValueEquals(String expectedValue) {
+        Assert.assertEquals(expectedValue, minutes(), "Minutes value doesn't match.");
+        return this;
+    }
+    public DateTimePanel<T> assertAmPmValueEquals(String expectedValue) {
+        Assert.assertEquals(expectedValue, amOrPmChoice(), "Am/Pm value doesn't match.");
+        return this;
     }
 }

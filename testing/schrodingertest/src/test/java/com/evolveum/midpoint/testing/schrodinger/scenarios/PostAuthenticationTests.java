@@ -14,7 +14,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.codeborne.selenide.Selenide;
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;

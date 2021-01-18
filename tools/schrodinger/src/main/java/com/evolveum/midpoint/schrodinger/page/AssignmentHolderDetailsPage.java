@@ -22,6 +22,8 @@ import com.evolveum.midpoint.schrodinger.component.modal.ObjectBrowserModal;
 import com.evolveum.midpoint.schrodinger.page.user.ProgressPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
+import org.testng.Assert;
+
 /**
  * Created by honchar
  */
@@ -47,8 +49,9 @@ public abstract class AssignmentHolderDetailsPage<P extends AssignmentHolderDeta
         return new PreviewPage();
     }
 
-    public boolean isPreviewButtonVisible() {
-        return getPreviewButton().exists();
+    public AssignmentHolderDetailsPage assertPreviewButtonIsNotVisible() {
+        Assert.assertFalse(getPreviewButton().is(Condition.visible), "Preview button shouldn't be visible.");
+        return this;
     }
 
     private SelenideElement getPreviewButton() {
