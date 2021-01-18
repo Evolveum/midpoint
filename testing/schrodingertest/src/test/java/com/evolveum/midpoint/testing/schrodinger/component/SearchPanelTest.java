@@ -18,7 +18,6 @@ import com.evolveum.midpoint.schrodinger.component.org.MemberPanel;
 import com.evolveum.midpoint.schrodinger.component.org.MemberTable;
 import com.evolveum.midpoint.schrodinger.component.org.OrgRootTab;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schrodinger.component.common.search.Search;
@@ -115,16 +114,17 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
     public void test0020addSearchAttributeByAddButtonClick() {
         RolesPageTable table = basicPage.listRoles().table();
         Search<RolesPageTable> search = (Search<RolesPageTable>) table.search();
-        search.addSearchItemByAddButtonClick(REQUESTABLE_ATTRIBUTE);
-        Assert.assertNotNull(search.textInputPanelByItemName(REQUESTABLE_ATTRIBUTE, false));
+        search.addSearchItemByAddButtonClick(REQUESTABLE_ATTRIBUTE)
+                .assertExistSearchItem(REQUESTABLE_ATTRIBUTE);
     }
 
     @Test
     public void test0030addSearchAttributeByNameLinkClick() {
         ServicesPageTable table = basicPage.listServices().table();
         Search<ServicesPageTable> search = (Search<ServicesPageTable>) table.search();
-        search.addSearchItemByNameLinkClick(ROLE_MEMBERSHIP_ATTRIBUTE);
-        Assert.assertNotNull(search.textInputPanelByItemName(ROLE_MEMBERSHIP_ATTRIBUTE, false));
+        search
+                .addSearchItemByNameLinkClick(ROLE_MEMBERSHIP_ATTRIBUTE)
+                .assertExistSearchItem(ROLE_MEMBERSHIP_ATTRIBUTE);
     }
 
     @Test
@@ -172,7 +172,7 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
         search.referencePanelByItemName(ROLE_MEMBERSHIP_ATTRIBUTE)
                 .inputRefType("Organization")
                 .updateSearch();
-        table.assertTableObjectsCountEquals(1);
+        table.assertTableObjectsCountEquals(2);
         table.assertTableContainsLinkTextPartially("testUserWithRoleMembershipSearchByType");
     }
 
@@ -196,9 +196,11 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
         search.referencePanelByItemName(ROLE_MEMBERSHIP_ATTRIBUTE)
                 .inputRefName("roleMembershipByName", "roleMembershipByNameSearch")
                 .updateSearch();
-        table.assertTableObjectsCountEquals(1);
-        table.assertTableContainsLinkTextPartially("testUserWithRoleMembershipSearchByName");
-        Assert.assertTrue(search.referencePanelByItemName(ROLE_MEMBERSHIP_ATTRIBUTE).matchRefSearchFieldValue(REF_SEARCH_FIELD_VALUE));
+        table
+                .assertTableObjectsCountEquals(1)
+                .assertTableContainsLinkTextPartially("testUserWithRoleMembershipSearchByName");
+        search.referencePanelByItemName(ROLE_MEMBERSHIP_ATTRIBUTE)
+                .assertRefSearchFieldValueMatch(REF_SEARCH_FIELD_VALUE);
     }
 
     @Test

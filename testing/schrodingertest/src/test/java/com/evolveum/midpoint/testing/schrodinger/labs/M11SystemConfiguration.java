@@ -10,25 +10,15 @@ import com.codeborne.selenide.Selenide;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
 
-import com.evolveum.midpoint.schrodinger.page.configuration.AboutPage;
 import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 
-import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
-
-import org.apache.commons.io.FileUtils;
-import org.assertj.core.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.Assert;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 /**
  * @author skublik
@@ -58,8 +48,8 @@ public class M11SystemConfiguration extends AbstractLabTest {
         FormLoginPage loginPage = midPoint.formLogin();
         loginPage.loginWithReloadLoginPage(getUsername(), getPassword());
 
-        Assert.assertTrue(basicPage.mainHeaderPanelStyleMatch("rgba(48, 174, 48, 1)"));
-        Assert.assertTrue(basicPage.pageTitleStartsWith("DEV:"));
+        basicPage.assertMainHeaderPanelStyleMatch("rgba(48, 174, 48, 1)")
+                .assertPageTitleStartsWith("DEV:");
 
         basicPage.deploymentInformation()
                 .form()
@@ -68,19 +58,19 @@ public class M11SystemConfiguration extends AbstractLabTest {
                 .and()
             .clickSave()
                 .feedback()
-                    .isSuccess();
-
-        Assert.assertTrue(basicPage.mainHeaderPanelStyleMatch("rgba(173, 216, 230, 1)"));
-
-        basicPage.deploymentInformation()
+                    .assertSuccess()
+                    .and()
+                .assertMainHeaderPanelStyleMatch("rgba(173, 216, 230, 1)")
+                .deploymentInformation()
                 .form()
                     .addAttributeValue("headerColor", "#30ae30")
                     .and()
                 .and()
             .clickSave()
                 .feedback()
-                    .isSuccess();
-        Assert.assertTrue(basicPage.mainHeaderPanelStyleMatch("rgba(48, 174, 48, 1)"));
+                    .assertSuccess()
+                .and()
+                .assertMainHeaderPanelStyleMatch("rgba(48, 174, 48, 1)");
     }
 
     @Test

@@ -9,6 +9,8 @@ package com.evolveum.midpoint.schrodinger.page.login;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
+import org.testng.Assert;
+
 import static com.codeborne.selenide.Selenide.$;
 
 /**
@@ -16,8 +18,9 @@ import static com.codeborne.selenide.Selenide.$;
  */
 public class RegistrationConfirmationPage extends BasicPage {
 
-    public boolean successPanelExists() {
-        return $(Schrodinger.byDataId("successPanel")).exists();
+    public RegistrationConfirmationPage assertSuccessPanelExists() {
+        Assert.assertTrue($(Schrodinger.byDataId("successPanel")).exists());
+        return this;
     }
 
 }

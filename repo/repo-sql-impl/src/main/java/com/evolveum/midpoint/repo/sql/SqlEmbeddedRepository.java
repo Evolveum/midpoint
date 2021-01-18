@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql;
 
 import java.io.File;
@@ -13,78 +12,63 @@ import java.net.BindException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 
 import com.google.common.base.Strings;
-import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
 import org.h2.tools.Server;
 
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
-import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryServiceFactory;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * Factory for {@link SqlRepositoryServiceImpl} implementing {@link RepositoryService}.
+ * Component managing embedded H2, starting server if necessary.
+ * Doing nothing for non-H2 databases.
  */
-public class SqlRepositoryFactory implements JdbcRepositoryServiceFactory {
+public class SqlEmbeddedRepository {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryFactory.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SqlEmbeddedRepository.class);
+
+    private static final String H2_IMPLICIT_RELATIVE_PATH = "h2.implicitRelativePath";
 
     private static final long POOL_CLOSE_WAIT = 500L;
     private static final long H2_CLOSE_WAIT = 2000L;
 
-    private static final String H2_IMPLICIT_RELATIVE_PATH = "h2.implicitRelativePath";
-
-    private SqlRepositoryConfiguration sqlConfiguration;
+    private final SqlRepositoryConfiguration sqlConfiguration;
     private Server server;
-    private SqlRepositoryServiceImpl sqlRepositoryService;
 
-    /**
-     * Initialization called by central repository factory from system-init.
-     * This IS called as a part of Spring bean initialization and for this reason
-     * the {@link #sqlRepositoryService} is initialized lazily in {@link #createRepositoryService()},
-     * so it can use other autowired components (some depending on this factory).
-     * <p>
-     * NOTE: It's kind of circular dependency, {@link SqlRepositoryBeanConfig} depends on this
-     * when in fact it can only depend on {@link SqlRepositoryConfiguration}, but that is not
-     * a managed component (Spring bean).
-     */
-    @Override
-    public synchronized void init(Configuration configuration) throws RepositoryServiceFactoryException {
-        Validate.notNull(configuration, "Configuration must not be null.");
+    public SqlEmbeddedRepository(SqlRepositoryConfiguration sqlConfiguration) {
+        this.sqlConfiguration = sqlConfiguration;
+    }
 
-        LOGGER.info("Initializing SQL repository factory");
-        SqlRepositoryConfiguration config = new SqlRepositoryConfiguration(configuration);
-        config.validate();
-        sqlConfiguration = config;
-
-        if (config.isUsingH2()) {
-            if (System.getProperty(H2_IMPLICIT_RELATIVE_PATH) == null) {
-                // Allows implicitly relative paths to H2 database file.
-                // Our paths were changed to ./midpoint in Dec 2020, so it's here only for users.
-                // TODO: consider removal, if someone wants it, let them comply with H2 1.4.
-                System.setProperty(H2_IMPLICIT_RELATIVE_PATH, "true");
-            }
+    @PostConstruct
+    public void init() throws RepositoryServiceFactoryException {
+        if (!sqlConfiguration.isUsingH2()) {
+            return;
         }
 
-        if (config.isEmbedded()) {
-            dropDatabaseIfExists(config);
-            if (config.isAsServer()) {
+        if (System.getProperty(H2_IMPLICIT_RELATIVE_PATH) == null) {
+            // Allows implicitly relative paths to H2 database file.
+            // Our paths were changed to ./midpoint in Dec 2020, so it's here only for users.
+            // TODO: consider removal, if someone wants it, let them comply with H2 1.4.
+            System.setProperty(H2_IMPLICIT_RELATIVE_PATH, "true");
+        }
+
+        if (sqlConfiguration.isEmbedded()) {
+            dropDatabaseIfExists(sqlConfiguration);
+            if (sqlConfiguration.isAsServer()) {
                 LOGGER.info("Starting h2 in server mode.");
                 startServer();
             } else {
                 LOGGER.info("H2 prepared to run in local mode (from file).");
             }
-            LOGGER.info("H2 files are in '{}'.", new File(config.getBaseDir()).getAbsolutePath());
+            LOGGER.info("H2 files are in '{}'.", new File(sqlConfiguration.getBaseDir()).getAbsolutePath());
         } else {
             LOGGER.info("Repository is not running in embedded mode.");
         }
-
-        LOGGER.info("Repository initialization finished.");
     }
 
     private void dropDatabaseIfExists(SqlRepositoryConfiguration config) throws RepositoryServiceFactoryException {
@@ -135,11 +119,10 @@ public class SqlRepositoryFactory implements JdbcRepositoryServiceFactory {
     }
 
     private void startServer() throws RepositoryServiceFactoryException {
-        SqlRepositoryConfiguration config = getConfiguration();
-        checkPort(config.getPort());
+        checkPort(sqlConfiguration.getPort());
 
         try {
-            String[] serverArguments = createArguments(config);
+            String[] serverArguments = createArguments(sqlConfiguration);
             if (LOGGER.isTraceEnabled()) {
                 String stringArgs = StringUtils.join(serverArguments, " ");
                 LOGGER.trace("Starting H2 server with arguments: {}", stringArgs);
@@ -229,28 +212,9 @@ public class SqlRepositoryFactory implements JdbcRepositoryServiceFactory {
         return path;
     }
 
-    @Override
-    public synchronized RepositoryService createRepositoryService() {
-        if (sqlRepositoryService == null) {
-            sqlRepositoryService = new SqlRepositoryServiceImpl();
-        }
-        return sqlRepositoryService;
-    }
-
-    @Override
-    public SqlRepositoryConfiguration getConfiguration() {
-        Validate.notNull(sqlConfiguration, "SQL repository configuration not available (null).");
-        return sqlConfiguration;
-    }
-
-    @Override
-    public synchronized void destroy() {
-        if (sqlRepositoryService != null) {
-            sqlRepositoryService.destroy();
-        }
-
-        if (!getConfiguration().isEmbedded()) {
-            LOGGER.info("Repository is not running in embedded mode, shutdown complete.");
+    @PreDestroy
+    public void destroy() {
+        if (!sqlConfiguration.isUsingH2()) {
             return;
         }
 
@@ -261,7 +225,7 @@ public class SqlRepositoryFactory implements JdbcRepositoryServiceFactory {
             // just ignore
         }
 
-        if (getConfiguration().isAsServer()) {
+        if (sqlConfiguration.isAsServer()) {
             LOGGER.info("Shutting down embedded H2");
             if (server != null && server.isRunning(true)) {
                 server.stop();
@@ -275,6 +239,6 @@ public class SqlRepositoryFactory implements JdbcRepositoryServiceFactory {
             }
         }
 
-        LOGGER.info("Shutdown complete.");
+        LOGGER.info("H2 database shutdown complete.");
     }
 }

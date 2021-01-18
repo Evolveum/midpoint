@@ -17,6 +17,7 @@ import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
+import org.testng.Assert;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -59,6 +60,11 @@ public abstract class AssignmentHolderObjectListPage<T extends AssignmentHolderO
         $(Schrodinger.byElementAttributeValue("div", "title", title))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         return getObjectDetailsPage();
+    }
+
+    public AssignmentHolderObjectListPage<T, D> assertObjectsCountEquals(int expectedCount) {
+        Assert.assertEquals(getCountOfObjects(), expectedCount, "Objects count doesn't equal to " + expectedCount);
+        return this;
     }
 
 }

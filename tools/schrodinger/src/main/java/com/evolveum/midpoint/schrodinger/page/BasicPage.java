@@ -56,6 +56,8 @@ import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.ConstantsUtil;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
+import org.testng.Assert;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -487,8 +489,10 @@ public class BasicPage {
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
     }
 
-    public boolean mainHeaderPanelStyleMatch(String styleToCompare) {
-        return getMainHeaderPanelElement().getCssValue("background-color").equals(styleToCompare);
+    public BasicPage assertMainHeaderPanelStyleMatch(String styleToCompare) {
+        Assert.assertTrue(getMainHeaderPanelElement().getCssValue("background-color").equals(styleToCompare),
+                "Main header panel background color doesn't match to " + styleToCompare);
+        return this;
     }
 
     public SelenideElement getPageTitleElement() {
@@ -496,8 +500,9 @@ public class BasicPage {
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
     }
 
-    public boolean pageTitleStartsWith(String titleStartText) {
-        return getPageTitleElement().getText().startsWith(titleStartText);
+    public BasicPage assertPageTitleStartsWith(String titleStartText) {
+        Assert.assertTrue(getPageTitleElement().getText().startsWith(titleStartText), "Page title doesn't start with " + titleStartText);
+        return this;
     }
 
     public UserMenuPanel clickUserMenu() {
@@ -514,7 +519,32 @@ public class BasicPage {
         return $(".dropdown.user.user-menu").exists();
     }
 
-    public boolean elementWithTextExists(String text) {
-        return $(byText(text)).exists();
+    public BasicPage assertElementWithTextExists(String text) {
+        Assert.assertTrue($(byText(text)).exists(), "Element with text '" + text + "' doesn't exist on the page.");
+        return this;
     }
+
+    public BasicPage assertUserMenuExist() {
+        Assert.assertTrue(userMenuExists(), "User should be logged in, user menu should be visible.");
+        return this;
+    }
+
+    public BasicPage assertUserMenuDoesntExist() {
+        Assert.assertFalse(userMenuExists(), "User should be logged out, user menu shouldn't be visible.");
+        return this;
+    }
+
+    public BasicPage assertMenuItemActive(SelenideElement menuItemElement) {
+        SelenideElement menuItemLi = menuItemElement.parent().parent();
+        Assert.assertTrue(menuItemLi.has(Condition.cssClass("active")), "Menu item should be active");
+        return this;
+    }
+
+    public BasicPage assertMenuItemDoesntActive(SelenideElement menuItemElement) {
+        SelenideElement menuItemLi = menuItemElement.parent().parent();
+        Assert.assertFalse(menuItemLi.has(Condition.cssClass("active")), "Menu item shouldn't be active");
+        return this;
+    }
+
+
 }

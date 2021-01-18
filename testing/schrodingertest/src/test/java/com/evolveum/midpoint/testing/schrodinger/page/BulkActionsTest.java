@@ -8,7 +8,6 @@ package com.evolveum.midpoint.testing.schrodinger.page;
 
 import com.evolveum.midpoint.schrodinger.page.configuration.BulkActionsPage;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 /**
@@ -21,16 +20,13 @@ public class BulkActionsTest extends AbstractSchrodingerTest {
     @Test
     public void wrongBulkActionXmlExecution(){
         BulkActionsPage bulkActionsPage = basicPage.bulkActions();
-        Assert.assertTrue(bulkActionsPage
+        bulkActionsPage
                 .insertOneLineTextIntoEditor("<objects></objects>")
                 .startButtonClick()
                 .feedback()
-                .isError());
+                .assertError()
+                .assertMessageExists(PARSING_ERROR_MESSAGE);
 
-        Assert.assertTrue(bulkActionsPage
-                            .feedback()
-                            .doesMessageExist(PARSING_ERROR_MESSAGE));
-
-        Assert.assertTrue(bulkActionsPage.isAceEditorVisible());
+        bulkActionsPage.assertAceEditorVisible();
     }
 }

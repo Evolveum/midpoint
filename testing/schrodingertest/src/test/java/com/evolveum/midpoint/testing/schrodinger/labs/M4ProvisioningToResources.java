@@ -26,7 +26,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -95,7 +94,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                         .feedback()
                             .isSuccess();
 
-        Assert.assertTrue(existShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk"));
+        assertShadowExists(CSV_1_RESOURCE_NAME, "Login", "jkirk");
 
         showUser("kirk")
                 .selectTabBasic()
@@ -165,9 +164,9 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                     .feedback()
                         .isSuccess();
 
-        Assert.assertTrue(existShadow(CSV_2_RESOURCE_NAME, "Login", "kirk"));
+        assertShadowExists(CSV_2_RESOURCE_NAME, "Login", "kirk");
 
-        Assert.assertTrue(basicPage.listResources()
+        basicPage.listResources()
                 .table()
                     .search()
                         .byName()
@@ -183,7 +182,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                                             .inputValue("cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com")
                                         .updateSearch()
                                         .and()
-                                    .containsText("cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com"));
+                                    .assertTableContainsText("cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com");
 
         showUser("kirk")
                 .selectTabProjections()
@@ -204,7 +203,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                     .feedback()
                         .isSuccess();
 
-        Assert.assertFalse(existShadow(CSV_2_RESOURCE_NAME, "Login", "kirk"));
+        assertShadowDoesntExist(CSV_2_RESOURCE_NAME, "Login", "kirk");
     }
 
     @Test(dependsOnMethods = {"mod04test01BasicProvisioningToMultipleResources"}, groups={"M4"})

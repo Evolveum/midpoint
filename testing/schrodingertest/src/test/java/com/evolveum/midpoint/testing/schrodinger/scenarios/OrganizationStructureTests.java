@@ -162,17 +162,17 @@ public class OrganizationStructureTests extends AbstractSchrodingerTest {
     @Test (dependsOnMethods ={IMPORT_ORG_STRUCT_DEPENDENCY})
     public void expandCollapseAllTests(){
         OrgTreePage orgPage = basicPage.orgStructure();
-        Assert.assertTrue(orgPage.selectTabWithRootOrg("Governor Office")
+        orgPage.selectTabWithRootOrg("Governor Office")
                 .getOrgHierarchyPanel()
                     .showTreeNodeDropDownMenu("Ministry of Offense")
                         .expandAll()
-                    .containsChildOrg("Swashbuckler Section", "Ministry of Health"));
+                        .assertChildOrgExists("Swashbuckler Section", "Ministry of Health");
 
-        Assert.assertFalse(orgPage.selectTabWithRootOrg("Governor Office")
+        orgPage.selectTabWithRootOrg("Governor Office")
                 .getOrgHierarchyPanel()
                     .showTreeNodeDropDownMenu("Ministry of Offense")
                         .collapseAll()
-                    .containsChildOrg("Swashbuckler Section", false, "Ministry of Health"));
+                        .assertChildOrgDoesntExist("Swashbuckler Section", false, "Ministry of Health");
     }
 
     public void changeResourceFilePath(){

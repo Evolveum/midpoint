@@ -263,9 +263,10 @@ public class M10ObjectTemplate extends AbstractLabTest{
                 .selectTabBasic()
                     .form();
 
-        form.showEmptyAttributes("Properties");
-        form.addAttributeValue("empStatus", "O");
-        form.addAttributeValue("familyName", "kirk2");
+        form
+                .showEmptyAttributes("Properties")
+                    .addAttributeValue("empStatus", "O")
+                    .addAttributeValue("familyName", "kirk2");
         boolean existFeedback = false;
         try { existFeedback = form.and().and().feedback().isError(); } catch (ElementNotFound e) { }
         Assert.assertFalse(existFeedback);

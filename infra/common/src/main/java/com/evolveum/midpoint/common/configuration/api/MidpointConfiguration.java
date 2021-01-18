@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -26,7 +26,6 @@ public interface MidpointConfiguration {
 
     // Other commonly-used configuration properties
     String MIDPOINT_NODE_ID_PROPERTY = "midpoint.nodeId";
-    String MIDPOINT_NODE_ID_EXPRESSION_PROPERTY = "midpoint.nodeIdExpression";
     String MIDPOINT_NODE_ID_SOURCE_PROPERTY = "midpoint.nodeIdSource";
     @Deprecated // Remove in 4.4
     String MIDPOINT_JMX_HOST_NAME_PROPERTY = "midpoint.jmxHostName";
@@ -64,16 +63,14 @@ public interface MidpointConfiguration {
     /**
      * Get configuration for symbolic name of the component from configuration subsystem.
      *
-     * @param component
-     *            name of the component
-     *            Samples of names:
-     *            <li>
-     *              <ul>repository -> midpoint.repository</ul>
-     *              <ul>provisioning -> midpoint.provisioning</ul>
-     *            </li>
-     *
+     * @param component name of the component
+     * Samples of names:
+     * <li>
+     *   <ul>repository -> midpoint.repository</ul>
+     *   <ul>provisioning -> midpoint.provisioning</ul>
+     * </li>
      * @return Configuration object
-     *         Sample how to get config value: {@code config.getInt("port", 1234);}
+     * Sample how to get config value: {@code config.getInt("port", 1234);}
      */
     Configuration getConfiguration(String component);
 
@@ -91,7 +88,8 @@ public interface MidpointConfiguration {
     /**
      * @return True if the profiling interceptor should be loaded.
      */
-    @SuppressWarnings("unused")     // It is actually used from ctx-interceptor.xml
+    @SuppressWarnings("unused")
+    // It is actually used from ctx-interceptor.xml
     boolean isProfilingEnabled();
 
     /**
@@ -105,4 +103,24 @@ public interface MidpointConfiguration {
      */
     @NotNull
     SystemConfigurationSection getSystemSection();
+
+    /**
+     * Returns true if the configuration key matches any of provided regular expression patterns.
+     * Provided pattern must match the whole value, see {@link String#matches(java.lang.String)}.
+     * Some examples:
+     * <ul>
+     * <li>{@code x\.y.*} - value starts with {@code x.y} (dot must be escaped, in Java String
+     * syntax double backslash must be used!)</li>
+     * <li>{@code (?i)sql} - value is exactly SQL, ignoring casing</li>
+     * </ul>
+     *
+     * @param key key from configuration, starting at {@code configuration} element (root),
+     * can be complex, e.g. @code midpoint.repository.repositoryServiceFactoryClass.
+     * @param regexPatterns regular expression patterns that must match the whole value.
+     * It is possible to match {@code null} too, if no regex pattern is used, or if the first
+     * pattern itself is null.
+     */
+    @SuppressWarnings("unused")
+    // used in SpEL expressions
+    boolean keyMatches(String key, String... regexPatterns);
 }

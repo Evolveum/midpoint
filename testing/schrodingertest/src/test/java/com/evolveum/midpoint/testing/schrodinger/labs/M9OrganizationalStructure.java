@@ -14,10 +14,8 @@ import com.evolveum.midpoint.schrodinger.page.org.OrgTreePage;
 
 import com.evolveum.midpoint.schrodinger.page.resource.AccountPage;
 import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 import org.apache.commons.io.FileUtils;
-import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -58,23 +56,23 @@ public class M9OrganizationalStructure extends AbstractLabTest{
         importObject(ORG_EXAMPLE_FILE, true);
 
         OrgTreePage orgTree = basicPage.orgStructure();
-        Assert.assertTrue(orgTree.selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
+        orgTree.selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                 .getOrgHierarchyPanel()
                     .showTreeNodeDropDownMenu("ExAmPLE, Inc. - Functional Structure")
                         .expandAll()
                     .expandOrg("Software Department")
-                    .containsChildOrg("ExAmPLE, Inc. - Functional Structure", "Executive Division", "Sales Department",
-                                "Human Resources", "Technology Division", "IT Administration Department", "Software Department", "Java Development"));
-        Assert.assertTrue(orgTree.selectTabWithRootOrg("Groups")
+                    .assertChildOrgExists("ExAmPLE, Inc. - Functional Structure", "Executive Division", "Sales Department",
+                                "Human Resources", "Technology Division", "IT Administration Department", "Software Department", "Java Development");
+        orgTree.selectTabWithRootOrg("Groups")
                 .getOrgHierarchyPanel()
-                    .containsChildOrg("Groups", "Active Employees", "Administrators", "Contractors", "Former Employees",
-                        "Inactive Employees", "Security"));
+                    .assertChildOrgExists("Groups", "Active Employees", "Administrators", "Contractors", "Former Employees",
+                        "Inactive Employees", "Security");
 
         importObject(ORG_SECRET_OPS_FILE, true);
-        Assert.assertTrue(basicPage.orgStructure()
+        basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                     .getOrgHierarchyPanel()
-                        .containsChildOrg("Secret Operations", "Transportation and Logistics Department"));
+                        .assertChildOrgExists("Secret Operations", "Transportation and Logistics Department");
     }
 
     @Test(dependsOnMethods = {"mod09test01ImportStaticOrgStructure"})
@@ -289,9 +287,9 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                         .assertInputAttributeValuesMatches("groups", "Internal Employees", "Essential Documents",
                                 "Teleportation", "Time Travel", "Lucky Numbers", "Presidential Candidates Motivation");
 
-        Assert.assertTrue(showUser("kirk").selectTabAssignments()
+        showUser("kirk").selectTabAssignments()
                 .selectTypeAllDirectIndirect()
-                    .containsIndirectAssignments("Secret Projects II"));
+                    .assertIndirectAssignmentsExist("Secret Projects II");
     }
 
 }

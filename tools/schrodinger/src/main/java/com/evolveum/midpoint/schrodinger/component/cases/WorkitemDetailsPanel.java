@@ -18,6 +18,7 @@ import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import com.evolveum.midpoint.schrodinger.util.Utils;
 
 import org.openqa.selenium.By;
+import org.testng.Assert;
 
 import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.$;
@@ -65,12 +66,13 @@ public class WorkitemDetailsPanel<P extends BasicPage> extends Component<P> {
                 .click();
     }
 
-    public boolean matchApproverElementValue(String approver){
-        return getParentElement()
+    public WorkitemDetailsPanel<P> assertApproverElementValueMatches(String approver){
+        Assert.assertTrue(getParentElement()
                 .$(Schrodinger.byDataId("approver"))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
                 .$(byText(approver))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
-                .is(Condition.visible);
+                .is(Condition.visible));
+        return this;
     }
 }

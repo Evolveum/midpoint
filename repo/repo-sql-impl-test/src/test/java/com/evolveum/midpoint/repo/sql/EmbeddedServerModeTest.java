@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -20,7 +20,7 @@ import org.testng.annotations.Test;
 public class EmbeddedServerModeTest extends BaseSQLRepoTest {
 
     @Autowired
-    private SqlRepositoryFactory sqlFactory;
+    private SqlRepositoryConfiguration repositoryConfiguration;
 
     @Test
     public void testServerMode() throws Exception {
@@ -28,7 +28,7 @@ public class EmbeddedServerModeTest extends BaseSQLRepoTest {
 
         Connection connection = null;
         try {
-            SqlRepositoryConfiguration config = sqlFactory.getConfiguration();
+            SqlRepositoryConfiguration config = repositoryConfiguration;
 
             Class.forName(config.getDriverClassName());
             connection = DriverManager.getConnection(config.getJdbcUrl(),

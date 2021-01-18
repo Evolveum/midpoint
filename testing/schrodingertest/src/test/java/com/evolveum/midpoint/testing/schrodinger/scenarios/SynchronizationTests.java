@@ -177,12 +177,9 @@ public class SynchronizationTests extends AbstractSchrodingerTest {
                 .clickByName(ScenariosCommons.TEST_USER_DON_NAME)
                       .selectTabProjections();
         Selenide.screenshot("SynchronizationTests_projectionTab");
-        boolean accountExists = projectionsTab
+        projectionsTab
                         .table()
-                        .containsText(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME);
-
-        Assert.assertTrue(accountExists);
-
+                        .assertTableContainsText(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME);
     }
 
     @Test (priority = 4, dependsOnMethods = {NEW_USER_ACCOUNT_CREATED_LINKED_DEPENDENCY})
