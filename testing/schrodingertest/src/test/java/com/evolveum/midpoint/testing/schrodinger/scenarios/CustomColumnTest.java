@@ -11,7 +11,6 @@ import com.evolveum.midpoint.schrodinger.component.modal.ExportPopupPanel;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.File;

@@ -14,6 +14,7 @@ import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import org.openqa.selenium.By;
+import org.testng.Assert;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,10 +27,11 @@ public class ScenePanel<T> extends Component<T> {
         super(parent, parentElement);
     }
 
-    public boolean isExpanded() {
+    public ScenePanel<T> assertExpanded() {
         SelenideElement minimizeButton = $(Schrodinger.byDataId("minimizeButton"));
         SelenideElement icon = minimizeButton.$(By.tagName("i"));
-        return icon.has(Condition.cssClass("fa-chevron-down"));
+        Assert.assertTrue(icon.has(Condition.cssClass("fa-chevron-down")), "Primary deltas should be expanded.");
+        return this;
     }
 
     public List<ScenePanel> objectDeltas() {
@@ -44,6 +46,10 @@ public class ScenePanel<T> extends Component<T> {
         return new PartialSceneHeader(this, element);
     }
 
+    public ScenePanel<T> assertDeltasSizeEquals(int expectedSize) {
+        Assert.assertEquals(expectedSize, objectDeltas().size());
+        return this;
+    }
 
 
 }

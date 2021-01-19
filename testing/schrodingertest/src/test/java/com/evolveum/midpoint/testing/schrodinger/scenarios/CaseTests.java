@@ -18,7 +18,6 @@ import com.evolveum.midpoint.schrodinger.component.cases.WorkitemDetailsPanel;
 import com.evolveum.midpoint.schrodinger.component.common.search.Search;
 import com.evolveum.midpoint.schrodinger.component.common.search.TextInputSearchItemPanel;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;

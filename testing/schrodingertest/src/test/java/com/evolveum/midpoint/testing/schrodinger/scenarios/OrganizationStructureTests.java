@@ -13,10 +13,8 @@ import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.ConstantsUtil;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 
 import org.apache.commons.io.FileUtils;
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.File;

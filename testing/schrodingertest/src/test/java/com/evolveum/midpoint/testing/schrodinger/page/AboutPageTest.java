@@ -8,7 +8,6 @@ package com.evolveum.midpoint.testing.schrodinger.page;
 
 import com.evolveum.midpoint.schrodinger.page.configuration.AboutPage;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
-import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -34,29 +33,27 @@ public class AboutPageTest extends AbstractSchrodingerTest {
 
     @Test
     public void checkMidpointVersion() {
-        Assert.assertEquals(aboutPage.version(), VERSION_EXPECTED);
+        aboutPage.assertVersionValueEquals(VERSION_EXPECTED);
     }
 
     @Test
     public void checkGitDescribeValue() {
-        Assert.assertFalse(
-                aboutPage.gitDescribe().isEmpty());
+        aboutPage.assertGitDescribeValueIsNotEmpty();
     }
 
     @Test
     public void checkBuildAt() {
-        Assert.assertFalse(
-                aboutPage.buildAt().isEmpty());
+        aboutPage.assertBuildAtValueIsNotEmpty();
     }
 
     @Test // TODO fix select the right element
     public void checkHibernateDialect() {
-        Assert.assertEquals(aboutPage.hibernateDialect(), HIBERNATE_DIALECT_EXPECTED);
+        aboutPage.assertHibernateDialectValueEquals(HIBERNATE_DIALECT_EXPECTED);
     }
 
     @Test
     public void checkConnIdVersion() {
-        Assert.assertEquals(aboutPage.connIdFrameworkVersion(), CONNID_VERSION_EXPECTED);
+        aboutPage.assertConnIdVersionValueEquals(CONNID_VERSION_EXPECTED);
     }
 
     @Test
@@ -79,43 +76,37 @@ public class AboutPageTest extends AbstractSchrodingerTest {
 
     @Test
     public void checkReindexRepositoryObjectsCategory() {
-
-        Assert.assertEquals(aboutPage
-                        .reindexRepositoryObjects()
-                        .feedback()
+        aboutPage
+                .reindexRepositoryObjects()
+                    .feedback()
                         .clickShowTask()
-                        .utility()
-                , REINDEX_REPO_TASK_CATEGORY_EXPECTED);
+                        .assertUtilityValueEquals(REINDEX_REPO_TASK_CATEGORY_EXPECTED);
     }
 
     @Test
     public void checkReindexRepositoryObjectsDisplayName() {
         // @formatter:off
-        Assert.assertEquals(aboutPage
+        aboutPage
                         .reindexRepositoryObjects()
                             .feedback()
                                 .clickShowTask()
                                     .and()
                                         .summary()
-                                        .fetchDisplayName()
-                , REINDEX_REPO_TASK_DISPLAY_NAME_EXPECTED);
+                                        .assertDisplayNameEquals(REINDEX_REPO_TASK_DISPLAY_NAME_EXPECTED);
         // @formatter:on
     }
 
     @Test (enabled = false)
     public void checkJVMPropertiesMidpointHome(){
-        Assert.assertFalse(
-                aboutPage.getJVMproperty(AbstractSchrodingerTest.PROPERTY_NAME_MIDPOINT_HOME).isEmpty());
+        aboutPage.assertJVMPropertyValueIsNotEmpty(AbstractSchrodingerTest.PROPERTY_NAME_MIDPOINT_HOME);
     }
 
     @Test
     public void checkJVMPropertiesXmx(){
-        Assert.assertFalse(
-                aboutPage.getJVMproperty(PROPERTY_JVM_NAME_XMX).isEmpty());
+        aboutPage.assertJVMPropertyValueIsNotEmpty(PROPERTY_JVM_NAME_XMX);
     }
     @Test
     public void checkSystemProperty(){
-        Assert.assertFalse(
-                aboutPage.getSystemProperty(AbstractSchrodingerTest.PROPERTY_NAME_USER_HOME).isEmpty());
+        aboutPage.assertSystemPropertyValueIsNotEmpty(AbstractSchrodingerTest.PROPERTY_NAME_USER_HOME);
     }
 }
