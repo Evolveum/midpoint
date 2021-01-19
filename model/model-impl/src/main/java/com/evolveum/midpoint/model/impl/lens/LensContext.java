@@ -124,9 +124,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     private MetadataType requestMetadata;
 
     /**
-     * Executed deltas from rotten contexts.
+     * Executed deltas from rotten projection contexts.
      */
-    private final List<LensObjectDeltaOperation<?>> rottenExecutedDeltas = new ArrayList<>();
+    @NotNull private final List<LensObjectDeltaOperation<?>> rottenExecutedDeltas = new ArrayList<>();
 
     private transient ObjectTemplateType focusTemplate;
     private boolean focusTemplateExternallySet;       // todo serialize this
@@ -803,7 +803,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
     }
 
-    public List<LensObjectDeltaOperation<?>> getRottenExecutedDeltas() {
+    public @NotNull List<LensObjectDeltaOperation<?>> getRottenExecutedDeltas() {
         return rottenExecutedDeltas;
     }
 

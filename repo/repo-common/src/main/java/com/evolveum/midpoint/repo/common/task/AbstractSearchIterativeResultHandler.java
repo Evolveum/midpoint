@@ -6,35 +6,6 @@
  */
 package com.evolveum.midpoint.repo.common.task;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.repo.cache.RepositoryCache;
-import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
-import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResultBuilder;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
-import com.evolveum.midpoint.schema.util.ExceptionUtil;
-import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.util.logging.LevelOverrideTurboFilter;
-import com.evolveum.midpoint.util.logging.TracingAppender;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
-
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
-import org.apache.commons.lang3.ObjectUtils;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -44,6 +15,35 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultBuilder;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
+import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.logging.LevelOverrideTurboFilter;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.util.logging.TracingAppender;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * <p>Processes individual objects found by the iterative search.</p>
@@ -57,7 +57,8 @@ import java.util.function.Function;
  * </ol>
  *
  * TODO Finish cleaning up the code
- * TODO Should we really enter/exit repository cache here? Maybe yes, but reconsider that.
+ * TODO Factor out multithreading support (like ChangeProcessor vs. ChangeProcessingCoordinator in provisioning)
+ * TODO Should we really enter/exit repository cache here? And the other responsibilities?
  *
  * @author semancik
  */
@@ -105,7 +106,7 @@ public abstract class AbstractSearchIterativeResultHandler<
     /**
      * TODO
      */
-    protected final String contextDesc;
+    @NotNull protected final String contextDesc;
 
     // Information to be reported: progress, statistics, errors, and so on.
 
@@ -291,6 +292,7 @@ public abstract class AbstractSearchIterativeResultHandler<
 
         String objectName = PolyString.getOrig(object.getName());
         String objectDisplayName = getDisplayName(object);
+        QName objectType = object.getDefinition().getTypeName();
 
         // just in case an exception occurs between this place and the moment where real result is created
         OperationResult result = new OperationResult("dummy");
@@ -308,12 +310,9 @@ public abstract class AbstractSearchIterativeResultHandler<
                 workerTask.startDynamicProfilingIfNeeded(coordinatorTask, objectsSeen);
                 workerTask.requestTracingIfNeeded(coordinatorTask, objectsSeen, TracingRootType.ITERATIVE_TASK_OBJECT_PROCESSING);
             }
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("{} starting for {} {}", getProcessShortNameCapitalized(), object, contextDesc);
-            }
 
-            workerTask.recordIterativeOperationStart(objectName, objectDisplayName,
-                    null /* TODO */, object.getOid());
+            LOGGER.trace("{} starting for {} {}", getProcessShortNameCapitalized(), object, contextDesc);
+            workerTask.recordIterativeOperationStart(objectName, objectDisplayName, objectType, object.getOid());
 
             OperationResultBuilder builder = parentResult.subresult(getTaskOperationPrefix() + ".handle")
                     .addParam("object", object);
@@ -332,21 +331,29 @@ public abstract class AbstractSearchIterativeResultHandler<
                 result.computeStatus();
             }
 
+            Throwable resultException;
             if (result.isError()) {
-                // Alternative way how to indicate an error.
-                workerTask.recordIterativeOperationEnd(objectName, objectDisplayName,
-                        null /* TODO */, object.getOid(), startTime, RepoCommonUtils.getResultException(result));
+                // An error without visible top-level exception
+                resultException = RepoCommonUtils.getResultException(result);
 
-                cont = processError(object, workerTask, RepoCommonUtils.getResultException(result), result);
+                workerTask.recordIterativeOperationEnd(objectName, objectDisplayName, objectType,
+                        object.getOid(), startTime, resultException);
+                cont = processError(object, workerTask, resultException, result);
+
             } else {
+                // Success
+                resultException = null;
                 workerTask.recordIterativeOperationEnd(objectName, objectDisplayName,
-                        null /* TODO */, object.getOid(), startTime, null);
+                        objectType, object.getOid(), startTime, null);
             }
+            writeOperationExecutionRecord(object, resultException, result);
 
         } catch (CommonException | PreconditionViolationException | Error | RuntimeException e) {
+            // An error with top-level exception
             workerTask.recordIterativeOperationEnd(objectName, objectDisplayName,
-                    null /* TODO */, object.getOid(), startTime, e);
+                    objectType, object.getOid(), startTime, e);
             cont = processError(object, workerTask, e, result);
+            writeOperationExecutionRecord(object, e, result);
 
         } finally {
             RepositoryCache.exitLocalCaches();
@@ -382,8 +389,8 @@ public abstract class AbstractSearchIterativeResultHandler<
 
             if (tracingRequested) {
                 getTracer().storeTrace(workerTask, result, parentResult);
-                TracingAppender.terminateCollecting();  // todo reconsider
-                LevelOverrideTurboFilter.cancelLoggingOverride();   // todo reconsider
+                TracingAppender.terminateCollecting(); // todo reconsider
+                LevelOverrideTurboFilter.cancelLoggingOverride(); // todo reconsider
             }
             if (result.isSuccess() && !tracingRequested && !result.isTraced()) {
                 // FIXME: hack. Hardcoded ugly summarization of successes. something like
@@ -398,6 +405,11 @@ public abstract class AbstractSearchIterativeResultHandler<
         if (!cont) {
             stopRequestedByAnyWorker.set(true);
         }
+    }
+
+    private void writeOperationExecutionRecord(PrismObject<O> object, Throwable resultException, OperationResult result) {
+        taskHandler.getOperationExecutionRecorder().recordOperationExecution(object, resultException,
+                taskExecution.localCoordinatorTask, result);
     }
 
     private boolean isNonScavengingWorker() {
@@ -550,5 +562,4 @@ public abstract class AbstractSearchIterativeResultHandler<
     private String getTaskOperationPrefix() {
         return taskHandler.taskOperationPrefix;
     }
-
 }

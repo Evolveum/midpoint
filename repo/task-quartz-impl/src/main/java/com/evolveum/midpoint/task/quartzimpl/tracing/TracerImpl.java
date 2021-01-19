@@ -292,9 +292,8 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
     }
 
     @Override
-    public boolean update(@Nullable SystemConfigurationType value) {
+    public void update(@Nullable SystemConfigurationType value) {
         systemConfiguration = value;
-        return true;
     }
 
     @Override

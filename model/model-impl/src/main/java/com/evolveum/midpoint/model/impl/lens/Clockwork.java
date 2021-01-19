@@ -102,7 +102,7 @@ public class Clockwork {
     @Autowired private ClockworkAuthorizationHelper clockworkAuthorizationHelper;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
     @Autowired private SecurityEnforcer securityEnforcer;
-    @Autowired private OperationExecutionRecorder operationExecutionRecorder;
+    @Autowired private OperationExecutionRecorderForClockwork operationExecutionRecorder;
     @Autowired private ClockworkAuditHelper clockworkAuditHelper;
     @Autowired private ClockworkHookHelper clockworkHookHelper;
     @Autowired private ClockworkConflictResolver clockworkConflictResolver;
@@ -173,6 +173,7 @@ public class Clockwork {
                     clockworkConflictResolver.checkFocusConflicts(context, conflictResolutionContext, result);
                 }
             } finally {
+                operationExecutionRecorder.recordOperationExecutions(context, task, result);
                 clockworkConflictResolver.unregisterConflictWatcher(context);
                 FocusConstraintsChecker.exitCache();
                 //exitDefaultSearchExpressionEvaluatorCache();
@@ -566,7 +567,6 @@ public class Clockwork {
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException {
         clockworkAuditHelper.auditFinalExecution(context, task, result, overallResult);
         logFinalReadable(context);
-        operationExecutionRecorder.recordOperationExecution(context, null, task, result);
         migrator.executeAfterOperationMigration(context, result);
 
         HookOperationMode opmode = personaProcessor.processPersonaChanges(context, task, result);
@@ -657,7 +657,6 @@ public class Clockwork {
         LOGGER.trace("Processing clockwork exception {}", e.toString());
         result.recordFatalErrorNotFinish(e);
         clockworkAuditHelper.auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result, overallResult);
-        operationExecutionRecorder.recordOperationExecution(context, e, task, result);
 
         reclaimSequencesIfPossible(context, task, result);
         result.recordEnd();

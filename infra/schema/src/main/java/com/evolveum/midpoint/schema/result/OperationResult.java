@@ -1439,7 +1439,7 @@ public class OperationResult
     }
 
     /**
-     * If the operation is an error then it will switch the status to EXPECTED_ERROR.
+     * If the operation is an error then it will switch the status to HANDLED_ERROR.
      * This is used if the error is expected and properly handled.
      */
     public void muteError() {

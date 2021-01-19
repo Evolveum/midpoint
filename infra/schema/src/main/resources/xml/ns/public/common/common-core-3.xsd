@@ -28542,17 +28542,17 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="get">
+            <xsd:enumeration value="simple">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="GET"/>
+                        <jaxb:typesafeEnumMember name="SIMPLE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="post">
+            <xsd:enumeration value="complex">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="POST"/>
+                        <jaxb:typesafeEnumMember name="COMPLEX"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

@@ -10,6 +10,7 @@ import java.lang.reflect.Constructor;
 import java.util.*;
 
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks;
 import com.evolveum.midpoint.schema.SchemaHelper;
 
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -118,6 +119,7 @@ public abstract class AbstractSearchIterativeTaskHandler<
     @Autowired protected PrismContext prismContext;
     @Autowired protected SchemaHelper schemaHelper;
     @Autowired protected MatchingRuleRegistry matchingRuleRegistry;
+    @Autowired protected OperationExecutionRecorderForTasks operationExecutionRecorder;
 
     protected AbstractSearchIterativeTaskHandler(@NotNull String taskTypeName, @NotNull String taskOperationPrefix) {
         this.taskTypeName = taskTypeName;
@@ -230,4 +232,7 @@ public abstract class AbstractSearchIterativeTaskHandler<
         return matchingRuleRegistry;
     }
 
+    public OperationExecutionRecorderForTasks getOperationExecutionRecorder() {
+        return operationExecutionRecorder;
+    }
 }

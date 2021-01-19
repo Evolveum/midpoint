@@ -606,10 +606,8 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         }
 
         @Override
-        public boolean update(@Nullable SystemConfigurationType value) {
+        public void update(@Nullable SystemConfigurationType value) {
             application.deploymentInfo = value != null ? value.getDeploymentInformation() : null;
-
-            return true;
         }
     }
 

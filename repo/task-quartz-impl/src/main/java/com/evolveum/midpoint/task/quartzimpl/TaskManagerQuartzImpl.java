@@ -24,6 +24,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.util.Holder;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -113,6 +114,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     private static final String DOT_IMPL_CLASS = TaskManagerQuartzImpl.class.getName() + ".";
     private static final String CLEANUP_TASKS = DOT_INTERFACE + "cleanupTasks";
     private static final String CLEANUP_NODES = DOT_INTERFACE + "cleanupNodes";
+    private static final String OP_GET_ROOT_TASK_OID = DOT_IMPL_CLASS + "getRootTaskOid";
     public static final String CONTENTION_LOG_NAME = TaskManagerQuartzImpl.class.getName() + ".contention";
 
     @Autowired private TaskManagerConfiguration configuration;
@@ -2504,6 +2506,41 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
         return executionManager.getTaskThread(oid);
     }
 
+    /**
+     * Looks for OID of the root of the task tree of the specified task.
+     * PRE: task is either persistent or is a RunningTask
+     */
+    public String getRootTaskOid(TaskQuartzImpl task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+        if (task instanceof RunningTask) {
+            return ((RunningTask) task).getRootTaskOid();
+        }
+
+        OperationResult result = parentResult.subresult(OP_GET_ROOT_TASK_OID)
+                .setMinor()
+                .build();
+        try {
+            return getRootTaskOidInternal(task, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    private String getRootTaskOidInternal(TaskQuartzImpl task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        if (task.getParent() == null) {
+            // The task itself is the root
+            if (task.getOid() == null) {
+                throw new IllegalStateException("Called getRootTaskOid for non-persistent task");
+            }
+            return task.getOid();
+        } else {
+            TaskQuartzImpl parent = (TaskQuartzImpl) task.getParentTask(result);
+            return getRootTaskOidInternal(parent, result);
+        }
+    }
+
     public static class NextStartTimes {
         private final Long nextScheduledRun;
         private final Long nextRetry;
@@ -2657,9 +2694,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     }
 
     @Override
-    public boolean update(@Nullable SystemConfigurationType value) {
+    public void update(@Nullable SystemConfigurationType value) {
         infrastructureConfiguration = value != null ? value.getInfrastructure() : null;
-        return true;
     }
 
     @Override
@@ -2688,19 +2724,20 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
      * Creates a running task from a regular one.
      * Should be used ONLY when creating running task instance for handler (standard or lightweight) run.
      */
-    public RunningTaskQuartzImpl createRunningTask(Task task) {
+    public RunningTaskQuartzImpl createRunningTask(@NotNull Task task, @NotNull String rootTaskOid) {
         if (task instanceof RunningTask) {
             LOGGER.warn("Task {} is already a RunningTask", task);
             return ((RunningTaskQuartzImpl) task);
         } else {
             PrismObject<TaskType> taskPrismObject = task.getUpdatedTaskObject();
-            return new RunningTaskQuartzImpl(this, taskPrismObject);
+            return new RunningTaskQuartzImpl(this, taskPrismObject, rootTaskOid);
         }
     }
 
+    @VisibleForTesting
     @Override
-    public RunningTaskQuartzImpl createFakeRunningTask(Task task) {
-        RunningTaskQuartzImpl runningTask = createRunningTask(task);
+    public RunningTaskQuartzImpl createFakeRunningTask(Task task, String rootTaskOid) {
+        RunningTaskQuartzImpl runningTask = createRunningTask(task, rootTaskOid);
         runningTask.setExecutingThread(Thread.currentThread());
         return runningTask;
     }
