@@ -25611,8 +25611,7 @@
                        <xsd:annotation>
                            <xsd:documentation>
                                Configuration for default type of object for search boxes that support object type selection.
-                               E.g. UserType or RoleType. Setting it to ObjectType should display all objects.
-                               Type selection may not be applicable to all types of lists/views.
+                               E.g. UserType or RoleType. Type selection may not be applicable to all types of lists/views.
                                E.g. it does not make sense for lists that only contain objects of a single type.
                                Therefore some views may not even display object type selection at all.
                            </xsd:documentation>
@@ -25627,7 +25626,7 @@
                            <xsd:documentation>
                                Configuration for the relation of the search box. Relation may not be applicable to all types of lists/views.
                                E.g. it does not make sense for flat searches. Therefore some views may not even display
-                               scope selection at all.
+                               relation selection at all.
                            </xsd:documentation>
                            <xsd:appinfo>
                                <a:displayName>SearchBoxConfigurationType.relationConfiguration</a:displayName>
@@ -25638,9 +25637,9 @@
                    <xsd:element name="indirectConfiguration" type="tns:IndirectSearchItemConfigurationType" minOccurs="0" maxOccurs="1">
                        <xsd:annotation>
                            <xsd:documentation>
-                               Configuration for the relation of the search box. Relation may not be applicable to all types of lists/views.
+                               Configuration for the indirect of the search box. Relation may not be applicable to all types of lists/views.
                                E.g. it does not make sense for flat searches. Therefore some views may not even display
-                               scope selection at all.
+                               indirect selection at all.
                            </xsd:documentation>
                            <xsd:appinfo>
                                <a:displayName>SearchBoxConfigurationType.indirectConfiguration</a:displayName>

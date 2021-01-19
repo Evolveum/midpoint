@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -20,10 +20,6 @@ import com.evolveum.midpoint.repo.sql.util.MidPointOracleDialect;
 import com.evolveum.midpoint.repo.sql.util.MidPointPostgreSQLDialect;
 import com.evolveum.midpoint.repo.sql.util.UnicodeSQLServer2008Dialect;
 
-// TODO: this will stay in repo-impl, but new enum for supported DBs that can be used
-//  in SqlRepositoryConfiguration (which will likely move to repo-sqlbase) is needed.
-//  It may still contain driver references, but not Hibernate dialects anymore.
-// The name will probably change too, perhaps it will not be enum anymore either.
 @SuppressWarnings("deprecation")
 public enum Database {
 

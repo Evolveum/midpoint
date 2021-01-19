@@ -1,11 +1,20 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.prism.impl.query;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.regex.Pattern;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.MatchingRule;
@@ -13,17 +22,12 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.regex.Pattern;
+public final class SubstringFilterImpl<T> extends PropertyValueFilterImpl<T>
+        implements SubstringFilter<T> {
 
-public final class SubstringFilterImpl<T> extends PropertyValueFilterImpl<T> implements SubstringFilter<T> {
-
-    private boolean anchorStart;
-    private boolean anchorEnd;
+    private final boolean anchorStart;
+    private final boolean anchorEnd;
 
     private SubstringFilterImpl(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> definition,
             @Nullable QName matchingRule,
@@ -40,16 +44,18 @@ public final class SubstringFilterImpl<T> extends PropertyValueFilterImpl<T> imp
      * @param itemDefinition TODO about nullability
      * @param anyValue real value or prism property value; TODO about nullability
      */
-    public static <T> SubstringFilter<T> createSubstring(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> itemDefinition,
-                                                         @NotNull PrismContext prismContext,
-                                                         @Nullable QName matchingRule, Object anyValue, boolean anchorStart, boolean anchorEnd) {
+    public static <T> SubstringFilter<T> createSubstring(
+            @NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> itemDefinition,
+            @NotNull PrismContext prismContext, @Nullable QName matchingRule, Object anyValue,
+            boolean anchorStart, boolean anchorEnd) {
         List<PrismPropertyValue<T>> values = anyValueToPropertyValueList(prismContext, anyValue);
         return new SubstringFilterImpl<>(path, itemDefinition, matchingRule, values, null, anchorStart, anchorEnd);
     }
 
-    public static <T> SubstringFilter<T> createSubstring(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> itemDefinition,
-             @NotNull PrismContext prismContext,
-             @Nullable QName matchingRule, ExpressionWrapper expressionWrapper, boolean anchorStart, boolean anchorEnd) {
+    public static <T> SubstringFilter<T> createSubstring(
+            @NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> itemDefinition,
+            @Nullable QName matchingRule, ExpressionWrapper expressionWrapper,
+            boolean anchorStart, boolean anchorEnd) {
         return new SubstringFilterImpl<>(path, itemDefinition, matchingRule, null, expressionWrapper, anchorStart, anchorEnd);
     }
 
@@ -80,7 +86,7 @@ public final class SubstringFilterImpl<T> extends PropertyValueFilterImpl<T> imp
     public boolean match(PrismContainerValue containerValue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
         Collection<PrismValue> objectItemValues = getObjectItemValues(containerValue);
 
-        MatchingRule matching = getMatchingRuleFromRegistry(matchingRuleRegistry);
+        MatchingRule<Object> matching = getMatchingRuleFromRegistry(matchingRuleRegistry);
 
         for (Object val : objectItemValues) {
             if (val instanceof PrismPropertyValue) {
@@ -112,23 +118,28 @@ public final class SubstringFilterImpl<T> extends PropertyValueFilterImpl<T> imp
     }
 
     private Set<T> toRealValues() {
-         return PrismValueCollectionsUtil.getRealValuesOfCollection(getValues());
+        return PrismValueCollectionsUtil.getRealValuesOfCollection(getValues());
     }
 
     @Override
     public boolean equals(Object o, boolean exact) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o, exact)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
         SubstringFilterImpl<?> that = (SubstringFilterImpl<?>) o;
-        return anchorStart == that.anchorStart &&
-                anchorEnd == that.anchorEnd;
+        return super.equals(o, exact)
+                && anchorStart == that.anchorStart
+                && anchorEnd == that.anchorEnd;
     }
 
-    // Just to make checkstyle happy
+    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
     @Override
     public boolean equals(Object o) {
-        return super.equals(o);
+        return equals(o, true);
     }
 
     @Override

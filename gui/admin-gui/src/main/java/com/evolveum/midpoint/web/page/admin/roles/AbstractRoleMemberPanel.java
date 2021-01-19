@@ -401,6 +401,10 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                     }
                 }
 
+                GuiObjectListPanelConfigurationType additionalPanel = getAdditionalPanelConfig();
+                if (additionalPanel != null && additionalPanel.getSearchBoxConfiguration() != null){
+                    search.setCanConfigure(!Boolean.FALSE.equals(additionalPanel.getSearchBoxConfiguration().isAllowToConfigureSearchItems()));
+                }
                 return search;
             }
 
