@@ -27,6 +27,7 @@ import java.io.IOException;
 public class M11SystemConfiguration extends AbstractLabTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(M11SystemConfiguration.class);
+    protected static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M11/";
 
     private static final File SYSTEM_CONFIGURATION_FILE_11_2 = new File(LAB_OBJECTS_DIRECTORY + "systemConfiguration/system-configuration-11-2.xml");
     private static final File SYSTEM_CONFIGURATION_FILE_11_3 = new File(LAB_OBJECTS_DIRECTORY + "systemConfiguration/system-configuration-11-3.xml");

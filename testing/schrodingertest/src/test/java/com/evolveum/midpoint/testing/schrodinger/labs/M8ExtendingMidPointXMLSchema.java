@@ -33,6 +33,7 @@ import java.util.List;
 
 public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
 
+    protected static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M8/";
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override

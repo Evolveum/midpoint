@@ -37,6 +37,7 @@ import java.util.List;
 
 public class M7SynchronizationFlavours extends AbstractLabTest{
 
+    protected static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M7/";
     private static final Logger LOG = LoggerFactory.getLogger(M7SynchronizationFlavours.class);
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
