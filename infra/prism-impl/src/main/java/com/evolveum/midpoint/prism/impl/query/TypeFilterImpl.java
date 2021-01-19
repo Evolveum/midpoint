@@ -37,16 +37,20 @@ public class TypeFilterImpl extends ObjectFilterImpl implements TypeFilter {
         this.filter = filter;
     }
 
+    @Override
     @NotNull
     public QName getType() {
         return type;
     }
 
+    @Override
     public ObjectFilter getFilter() {
         return filter;
     }
 
+    @Override
     public void setFilter(ObjectFilter filter) {
+        checkMutable();
         if (filter == this) {
             throw new IllegalArgumentException("Type filte has itself as a subfilter");
         }
@@ -64,6 +68,7 @@ public class TypeFilterImpl extends ObjectFilterImpl implements TypeFilter {
         return new TypeFilterImpl(type, f);
     }
 
+    @Override
     public TypeFilter cloneEmpty() {
         return new TypeFilterImpl(type, null);
     }
@@ -97,6 +102,11 @@ public class TypeFilterImpl extends ObjectFilterImpl implements TypeFilter {
         } else {
             return filter.match(value, matchingRuleRegistry);
         }
+    }
+
+    @Override
+    protected void performFreeze() {
+        freeze(filter);
     }
 
     @Override

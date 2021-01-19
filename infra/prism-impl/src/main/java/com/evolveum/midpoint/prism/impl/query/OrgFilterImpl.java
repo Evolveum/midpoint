@@ -17,16 +17,22 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 public final class OrgFilterImpl extends ObjectFilterImpl implements OrgFilter {
 
-    private PrismReferenceValue baseOrgRef;
-    private Scope scope;
-    private boolean root;
+    // FIXME: Root could be singleton
+
+    private final PrismReferenceValue baseOrgRef;
+    private final Scope scope;
+    private final boolean root;
 
     private OrgFilterImpl(PrismReferenceValue baseOrgRef, Scope scope) {
         this.baseOrgRef = baseOrgRef;
         this.scope = scope != null ? scope : Scope.SUBTREE;
+        this.root = false;
     }
 
-    private OrgFilterImpl() {
+    private OrgFilterImpl(boolean root) {
+        this.baseOrgRef = null;
+        this.scope = null;
+        this.root = root;
     }
 
     public static OrgFilter createOrg(PrismReferenceValue baseOrgRef, Scope scope) {
@@ -38,23 +44,21 @@ public final class OrgFilterImpl extends ObjectFilterImpl implements OrgFilter {
     }
 
     public static OrgFilterImpl createRootOrg() {
-        OrgFilterImpl filter = new OrgFilterImpl();
-        filter.setRoot(true);
+        OrgFilterImpl filter = new OrgFilterImpl(true);
         return filter;
     }
 
+    @Override
     public PrismReferenceValue getOrgRef() {
         return baseOrgRef;
     }
 
+    @Override
     public Scope getScope() {
         return scope;
     }
 
-    private void setRoot(boolean root) {
-        this.root = root;
-    }
-
+    @Override
     public boolean isRoot() {
         return root;
     }
@@ -68,11 +72,14 @@ public final class OrgFilterImpl extends ObjectFilterImpl implements OrgFilter {
         }
     }
 
-
+    @Override
+    protected void performFreeze() {
+        freeze(baseOrgRef);
+    }
 
     @Override
     public void checkConsistence(boolean requireDefinitions) {
-        if (baseOrgRef == null) {
+        if (!root && baseOrgRef == null) {
             throw new IllegalArgumentException("Null baseOrgRef in "+this);
         }
     }

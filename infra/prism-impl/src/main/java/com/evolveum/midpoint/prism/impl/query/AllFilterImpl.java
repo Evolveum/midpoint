@@ -36,6 +36,11 @@ public class AllFilterImpl extends ObjectFilterImpl implements AllFilter {
     }
 
     @Override
+    public void performFreeze() {
+        // NOOP
+    }
+
+    @Override
     public void checkConsistence(boolean requireDefinitions) {
         // nothing to do
     }
