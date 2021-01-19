@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.init;
 
 import static org.testng.Assert.*;
@@ -23,10 +22,11 @@ public class TestConfigurationLoad extends AbstractUnitTest {
 
     @Test
     public void test010SimpleConfigTest() {
-        System.clearProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
+        // Originally null was used to default to midpoint under homedir, but this is not good.
+        // Test fails if developer has something else already there (different repo factory).
+        // It also can't be cleaned properly - you don't want to delete it if it existed.
+        System.setProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY, "target/midPointHomeSimple/");
         logger.info("midpoint.home => {}", System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY));
-
-        assertNull(System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY), "midpoint.home");
 
         StartupConfiguration sc = new StartupConfiguration();
         sc.init();
