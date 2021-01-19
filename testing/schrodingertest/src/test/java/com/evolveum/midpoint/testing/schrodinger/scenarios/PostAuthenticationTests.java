@@ -14,7 +14,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.codeborne.selenide.Selenide;
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
@@ -51,10 +50,7 @@ public class PostAuthenticationTests extends AbstractSchrodingerTest {
     @Test (groups = TEST_GROUP_BEFORE_POST_AUTH_FLOW)
     public void forcedActivationStatusProposedEnabled(){
 
-    ListUsersPage usersPage = basicPage.listUsers();
-    Assert.assertTrue
-            (
-            usersPage
+    basicPage.listUsers()
                 .table()
                     .search()
                         .byName()
@@ -62,17 +58,13 @@ public class PostAuthenticationTests extends AbstractSchrodingerTest {
                     .updateSearch()
                 .and()
                     .clickByName(TEST_USER_TITIAN_NAME)
-                      .isActivationState(ACTIVATION_STATE_ENABLED_VALUE)
-            );
+                      .assertActivationStateEquals(ACTIVATION_STATE_ENABLED_VALUE);
     }
 
     @Test (groups = TEST_GROUP_BEFORE_POST_AUTH_FLOW)
     public void forcedActivationStatusProposedArchived(){
 
-    ListUsersPage usersPage = basicPage.listUsers();
-    Assert.assertTrue
-            (
-            usersPage
+    basicPage.listUsers()
                 .table()
                     .search()
                         .byName()
@@ -90,8 +82,7 @@ public class PostAuthenticationTests extends AbstractSchrodingerTest {
                     .updateSearch()
                 .and()
                     .clickByName(TEST_USER_BOTTICELLI_NAME)
-                        .isActivationState(ACTIVATION_STATE_ARCHIVAED_VALUE)
-            );
+                        .assertActivationStateEquals(ACTIVATION_STATE_ARCHIVAED_VALUE);
     }
 
 //TODO issue listed in Jira under MID-4996

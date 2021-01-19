@@ -37,7 +37,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -50,6 +49,7 @@ import javax.xml.namespace.QName;
 public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(M5AccountsAssignmentsAndRoles.class);
+    protected static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M5/";
 
     private static final File TOP_SECRET_I_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-top-secret-i.xml");
     private static final File CSV_1_RESOURCE_FILE_5_5 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-5-5.xml");
@@ -106,14 +106,14 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
 
         Utils.removeAssignments(showUser("kirk").selectTabAssignments(), "Secret Projects II");
 
-        Assert.assertFalse(existShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk"));
+        assertShadowDoesntExist(CSV_1_RESOURCE_NAME, "Login", "jkirk");
 
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Internal Employee");
 
-        Assert.assertTrue(existShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk"));
-        Assert.assertTrue(existShadow(CSV_2_RESOURCE_NAME, "Login", "jkirk"));
-        Assert.assertTrue(existShadow(CSV_3_RESOURCE_NAME, "Distinguished Name",
-                "cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com"));
+        assertShadowExists(CSV_1_RESOURCE_NAME, "Login", "jkirk");
+        assertShadowExists(CSV_2_RESOURCE_NAME, "Login", "jkirk");
+        assertShadowExists(CSV_3_RESOURCE_NAME, "Distinguished Name",
+                "cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com");
 
     }
 
@@ -149,14 +149,14 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
         Utils.addAsignments(tab, "Secret Projects I", "Secret Projects II", "Top Secret Projects I");
 
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Too Many Secrets");
-        Assert.assertTrue(existShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk"));
+        assertShadowExists(CSV_1_RESOURCE_NAME, "Login", "jkirk");
 
         DirectIndirectAssignmentTable<AssignmentsTab<UserPage>> table = showUser("kirk").selectTabAssignments()
                 .selectTypeAllDirectIndirect();
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
-        Assert.assertTrue(table.containsIndirectAssignments("Secret Projects I",
+        table.assertIndirectAssignmentsExist("Secret Projects I",
                 "Secret Projects II", "Top Secret Projects I", CSV_1_RESOURCE_NAME, CSV_2_RESOURCE_NAME,
-                CSV_3_RESOURCE_NAME));
+                CSV_3_RESOURCE_NAME);
 
         Utils.removeAssignments(showUser("kirk").selectTabAssignments(), "Too Many Secrets");
     }
@@ -177,9 +177,10 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
         AccountPage shadow = showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
         Selenide.sleep(2000);
         PrismForm<AccountPage> accountForm = shadow.form();
-        accountForm.assertSelectAttributeValueMatches("administrativeStatus", "Disabled");
-        Assert.assertTrue(accountForm.showEmptyAttributes("Attributes")
-                .compareInputAttributeValues("groups", new ArrayList<String>()));
+        accountForm
+                .assertSelectAttributeValueMatches("administrativeStatus", "Disabled")
+                .showEmptyAttributes("Attributes")
+                .assertInputAttributeValuesMatches("groups", new ArrayList<String>());
 
         showShadow(CSV_2_RESOURCE_NAME, "Login", "jkirk");
         accountForm.assertSelectAttributeValueMatches("administrativeStatus", "Disabled");
@@ -231,9 +232,10 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
         Utils.setStatusForAssignment(showUser("kirk").selectTabAssignments(), "Internal Employee", "Disabled");
 
         showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
-        accountForm.assertSelectAttributeValueMatches("administrativeStatus", "Disabled");
-        Assert.assertTrue(accountForm.showEmptyAttributes("Attributes")
-                .compareInputAttributeValues("groups", new ArrayList<String>()));
+        accountForm
+                .assertSelectAttributeValueMatches("administrativeStatus", "Disabled")
+                .showEmptyAttributes("Attributes")
+                .assertInputAttributeValuesMatches("groups", new ArrayList<String>());
 
         showShadow(CSV_2_RESOURCE_NAME, "Login", "jkirk");
         accountForm.assertSelectAttributeValueMatches("administrativeStatus", "Disabled");
@@ -284,7 +286,9 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
 
         AssignmentsTab<UserPage> assigmentsTab = showUser("janeway")
                 .selectTabAssignments();
-        Assert.assertFalse(assigmentsTab.table().containsText(ARCHETYPE_EMPLOYEE_NAME));
+        assigmentsTab
+                .table()
+                .assertTableContainsText(ARCHETYPE_EMPLOYEE_NAME);
         Utils.addAsignments(assigmentsTab, "Secret Projects I");
     }
 }

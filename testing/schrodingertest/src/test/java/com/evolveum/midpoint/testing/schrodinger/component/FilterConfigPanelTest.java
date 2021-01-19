@@ -8,7 +8,6 @@ package com.evolveum.midpoint.testing.schrodinger.component;
 
 import com.evolveum.midpoint.schrodinger.component.user.UsersPageTable;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;

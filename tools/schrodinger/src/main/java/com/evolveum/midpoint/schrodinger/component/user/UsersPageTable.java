@@ -12,11 +12,14 @@ import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
+import com.evolveum.midpoint.schrodinger.component.common.table.Table;
 import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
 import com.evolveum.midpoint.schrodinger.component.table.TableHeaderDropDownMenu;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+
+import org.testng.Assert;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -95,4 +98,8 @@ public class UsersPageTable extends AssignmentHolderObjectListTable<ListUsersPag
         return new UserPage();
     }
 
+    public UsersPageTable assertButtonToolBarExists() {
+        Assert.assertTrue($(Schrodinger.byDataId("buttonToolbar")).exists(), "Button toolbar is absent");
+        return this;
+    }
 }

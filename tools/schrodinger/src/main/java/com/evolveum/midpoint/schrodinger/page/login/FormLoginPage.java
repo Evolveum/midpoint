@@ -15,6 +15,9 @@ import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
+import org.testng.Assert;
+
+import java.util.Objects;
 
 import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.*;
@@ -85,12 +88,10 @@ public class FormLoginPage extends LoginPage {
         return "/login";
     }
 
-    public Boolean signInButtonTitleMatch(String title) {
-        if (title == null) {
-            return false;
-        }
-        return title.equals($(By.cssSelector(".btn.btn-primary"))
+    public FormLoginPage assertSignInButtonTitleMatch(String title) {
+        Assert.assertTrue(Objects.equals(title, $(By.cssSelector(".btn.btn-primary"))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
-                .getValue());
+                .getValue()), "Sign in button title doesn't equal to " + title);
+        return this;
     }
 }

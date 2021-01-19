@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -18,38 +18,47 @@ import java.util.Properties;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang.StringUtils;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.Database;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * This repository factory should be used for testing purposes only.
- * It behaves like {@link com.evolveum.midpoint.repo.sql.SqlRepositoryFactory}, but during
- * configuration initialization it checks system properties and overrides loaded configuration
- * ({@link SqlRepositoryConfiguration}).
- *
- * @author lazyman
+ * This {@link SqlRepositoryConfiguration} factory should be used for testing purposes only.
+ * During configuration initialization it checks system properties and overrides loaded
+ * in {@link com.evolveum.midpoint.common.configuration.api.MidpointConfiguration} before
+ * {@link SqlRepositoryConfiguration} used it.
  */
-public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
+public class TestSqlRepositoryConfigurationFactory {
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestSqlRepositoryFactory.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestSqlRepositoryConfigurationFactory.class);
 
     public static final String PROPERTY_CONFIG = "config";
 
-    @Override
-    public synchronized void init(Configuration configuration) throws RepositoryServiceFactoryException {
+    private final MidpointConfiguration midpointConfiguration;
+
+    public TestSqlRepositoryConfigurationFactory(MidpointConfiguration midpointConfiguration) {
+        this.midpointConfiguration = midpointConfiguration;
+    }
+
+    public SqlRepositoryConfiguration createSqlRepositoryConfiguration()
+            throws RepositoryServiceFactoryException {
+        Configuration rawRepoConfig = midpointConfiguration.getConfiguration(
+                MidpointConfiguration.REPOSITORY_CONFIGURATION);
+
         String configFile = System.getProperty(PROPERTY_CONFIG);
         if (StringUtils.isNotEmpty(configFile)) {
             LOGGER.info("Overriding loaded configuration with values from '{}'", configFile);
-            updateConfigurationFromFile(configuration, configFile);
+            updateConfigurationFromFile(rawRepoConfig, configFile);
         }
 
-        updateConfigurationFromProperties(configuration, null);
+        updateConfigurationFromProperties(rawRepoConfig, null);
 
-        super.init(configuration);
+        SqlRepositoryConfiguration config = new SqlRepositoryConfiguration(rawRepoConfig);
+        config.validate();
+        return config;
     }
 
     private void updateConfigurationFromFile(Configuration configuration, String filePath)

@@ -19,7 +19,6 @@ import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
 
 import org.apache.commons.io.FileUtils;
-import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -34,6 +33,7 @@ import java.util.List;
 
 public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
 
+    protected static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M8/";
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override
@@ -159,6 +159,6 @@ public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
         showShadow(CSV_2_RESOURCE_NAME, "Login", "jsmith");
         accountForm.assertInputAttributeValueMatches("department", "Human Resources");
 
-        Assert.assertTrue(existShadow(CSV_3_RESOURCE_NAME, "Distinguished Name", "cn=John Smith,ou=0300,ou=ExAmPLE,dc=example,dc=com"));
+        assertShadowExists(CSV_3_RESOURCE_NAME, "Distinguished Name", "cn=John Smith,ou=0300,ou=ExAmPLE,dc=example,dc=com");
     }
 }

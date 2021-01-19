@@ -167,10 +167,6 @@ public class Table<T> extends Component<T> {
         return true;
     }
 
-    public boolean buttonToolBarExists() {
-        return $(Schrodinger.byDataId("buttonToolbar")).exists();
-    }
-
     public SelenideElement getButtonToolbar() {
         return $(Schrodinger.byDataId("buttonToolbar"));
     }
@@ -193,6 +189,11 @@ public class Table<T> extends Component<T> {
 
     public Table<T> assertColumnIndexMatches(String columnLabel, int expectedIndex) {
         Assert.assertEquals(findColumnByLabel(columnLabel), expectedIndex, "'" + columnLabel + "' column index doesn't match to " + expectedIndex);
+        return this;
+    }
+
+    public Table<T> assertTableRowExists(String columnLabel, String rowValue) {
+        Assert.assertNotNull(rowByColumnLabel(columnLabel, rowValue), "Row with value " + rowValue + " in " + columnLabel + " column doesn't exist.");
         return this;
     }
 
@@ -247,12 +248,17 @@ public class Table<T> extends Component<T> {
     }
 
     public Table<T> assertCurrentTableDoesntContain(String elementValue) {
-        return assertCurrentTableContains("Span", elementValue);
+        return assertCurrentTableDoesntContain("Span", elementValue);
     }
 
     public Table<T> assertCurrentTableDoesntContain(String elementName, String elementValue) {
         Assert.assertFalse(currentTableContains(elementName, elementValue), "Table shouldn't contain element " + elementName + " with value " +
                 elementValue);
+        return this;
+    }
+
+    public Table<T> assertButtonToolBarExists() {
+        Assert.assertTrue($(Schrodinger.byDataId("buttonToolbar")).exists(), "Button toolbar is absent");
         return this;
     }
 

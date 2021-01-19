@@ -6,8 +6,14 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.SearchItem;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -27,6 +33,7 @@ public class PrismReferenceWrapperImpl<R extends Referencable>
         implements PrismReferenceWrapper<R> {
 
     private ObjectFilter filter;
+    private Set<Function<Search, SearchItem>> specialItemFunctions = Collections.emptySet();
 
     public PrismReferenceWrapperImpl(PrismContainerValueWrapper<?> parent, PrismReference item, ItemStatus status) {
         super(parent, item, status);
@@ -79,6 +86,16 @@ public class PrismReferenceWrapperImpl<R extends Referencable>
     @Override
     public List<QName> getTargetTypes() {
         return WebComponentUtil.createSupportedTargetTypeList(getTargetTypeName());
+    }
+
+    @Override
+    public Set<Function<Search, SearchItem>> getSpecialSearchItemFunctions() {
+        return specialItemFunctions;
+    }
+
+    @Override
+    public void setSpecialSearchItemFunctions(Set<Function<Search, SearchItem>> functions) {
+        this.specialItemFunctions = functions;
     }
 
     @Override

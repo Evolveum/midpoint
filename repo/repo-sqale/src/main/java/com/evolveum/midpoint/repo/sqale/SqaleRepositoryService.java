@@ -271,4 +271,8 @@ public class SqaleRepositoryService implements RepositoryService {
         return null;
         // TODO
     }
+
+    public void destroy() {
+        // TODO current monitoring is repo-sql-impl related, see SqlBaseService#destroy
+    }
 }

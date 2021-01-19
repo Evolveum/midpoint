@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.interactions.Actions;
+import org.testng.Assert;
 
 import static com.codeborne.selenide.Selectors.byText;
 
@@ -137,7 +138,7 @@ public class Search<T> extends Component<T> {
 
     public Search<T> addSearchItemByNameLinkClick(String name) {
         choiceBasicSearch();
-        getParentElement().$x(".//a[@"+Schrodinger.DATA_S_ID+"='more']").waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        getParentElement().$x(".//a[@"+Schrodinger.DATA_S_ID+"='more']").waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         SelenideElement popover = getDisplayedPopover();
         popover.$(Schrodinger.byElementValue("a", name))
@@ -216,6 +217,29 @@ public class Search<T> extends Component<T> {
         TextInputSearchItemPanel searchField = new TextInputSearchItemPanel(this, itemElement);
         searchField.inputValue("");
         updateSearch();
+        return this;
+    }
+
+    public Search<T> assertExistSearchItem(String name) {
+        Assert.assertNotNull(getItemByName(name), "Search item with name '" + name + "' don't exists.");
+        return this;
+    }
+
+    public Search<T> assertDoesntExistSearchItem(String name) {
+        Assert.assertNull(getItemByName(name), "Search item with name '" + name + "' exists.");
+        return this;
+    }
+
+    public Search<T> assertHelpTextOfSearchItem(String name, String expectedHelpText) {
+        Assert.assertTrue(getItemByName(name).$x("./i[@"+ Schrodinger.DATA_S_ID +"='help']")
+                        .has(Condition.attribute("data-original-title", expectedHelpText)),
+                "Search item with name '" + name + "' don't contains help text '" + expectedHelpText + "'");
+        return this;
+    }
+
+    public Search<T> assertActualOptionOfSelectSearchItem(String name, String expectedOption) {
+        Assert.assertTrue(getItemByName(name).$x("./div[@" + Schrodinger.DATA_S_ID + "='searchItemField']").$x("./select[@" + Schrodinger.DATA_S_ID + "='input']")
+                .$x("./option[@selected='selected']").has(Condition.text(expectedOption)), "Search item with name '" + name + "' don't contains option '" + expectedOption + "'");
         return this;
     }
 }

@@ -13,7 +13,6 @@ import com.evolveum.midpoint.schrodinger.component.common.Paging;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.File;

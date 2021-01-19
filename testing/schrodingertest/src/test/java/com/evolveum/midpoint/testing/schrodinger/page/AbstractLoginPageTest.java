@@ -15,7 +15,6 @@ import com.evolveum.midpoint.schrodinger.page.configuration.SystemPage;
 import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.page.report.AuditLogViewerPage;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
-import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -112,8 +111,9 @@ public abstract class AbstractLoginPageTest extends AbstractSchrodingerTest {
         FormLoginPage login = midPoint.formLogin();
         login.login(username, password);
 
-        FeedbackBox feedback = login.feedback();
-        Assert.assertTrue(feedback.isError("0"));
+        login
+                .feedback()
+                .assertError("0");
     }
 
     @Test

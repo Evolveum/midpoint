@@ -11,6 +11,7 @@ import com.codeborne.selenide.Selenide;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.ProjectionsTab;
 import com.evolveum.midpoint.schrodinger.component.common.table.AbstractTableWithPrismView;
+import com.evolveum.midpoint.schrodinger.component.common.table.Table;
 import com.evolveum.midpoint.schrodinger.component.resource.ResourceAccountsTab;
 import com.evolveum.midpoint.schrodinger.page.resource.ViewResourcePage;
 import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
@@ -22,7 +23,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -37,6 +37,7 @@ import java.util.List;
 
 public class M7SynchronizationFlavours extends AbstractLabTest{
 
+    protected static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M7/";
     private static final Logger LOG = LoggerFactory.getLogger(M7SynchronizationFlavours.class);
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
@@ -98,7 +99,7 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
         showTask("Initial import from HR")
                 .selectTabOperationStatistics()
                     .assertSuccessfullyProcessedCountMatch(14);
-        Assert.assertEquals(basicPage.listUsers(ARCHETYPE_EMPLOYEE_PLURAL_LABEL).getCountOfObjects(), 14);
+        basicPage.listUsers(ARCHETYPE_EMPLOYEE_PLURAL_LABEL).assertObjectsCountEquals(14);
     }
 
     @Test(dependsOnMethods = {"mod07test01RunningImportFromResource"}, groups={"M7"})
@@ -122,19 +123,19 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
         Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
         deselectDryRun("CSV-1 Reconciliation");
         Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
-        Assert.assertTrue(containsProjection("X001212", CSV_1_RESOURCE_OID, "jsmith"));
+        assertContainsProjection("X001212", CSV_1_RESOURCE_OID, "jsmith");
 
         createReconTask("CSV-2 Reconciliation", CSV_2_RESOURCE_NAME);
         Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
         deselectDryRun("CSV-2 Reconciliation");
         Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
-        Assert.assertTrue(containsProjection("X001212", CSV_2_RESOURCE_OID, "jsmith"));
+        assertContainsProjection("X001212", CSV_2_RESOURCE_OID, "jsmith");
 
         createReconTask("CSV-3 Reconciliation", CSV_3_RESOURCE_NAME);
         Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
         deselectDryRun("CSV-3 Reconciliation");
         Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
-        Assert.assertTrue(containsProjection("X001212", CSV_3_RESOURCE_OID, "cn=John Smith,ou=ExAmPLE,dc=example,dc=com"));
+        assertContainsProjection("X001212", CSV_3_RESOURCE_OID, "cn=John Smith,ou=ExAmPLE,dc=example,dc=com");
     }
 
     @Test(dependsOnMethods = {"mod07test02RunningAccountReconciliation"}, groups={"M7"})
@@ -219,7 +220,7 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
 
     }
 
-    private boolean containsProjection(String user, String resourceOid, String accountName) {
+    private Table<ProjectionsTab<UserPage>> assertContainsProjection(String user, String resourceOid, String accountName) {
        AbstractTableWithPrismView<ProjectionsTab<UserPage>> table = showUser(user).selectTabProjections().table();
        Selenide.screenshot(user + "_" + resourceOid + "_" + accountName);
        return table
@@ -228,7 +229,7 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
                             .inputRefOid(resourceOid)
                             .updateSearch()
                         .and()
-                    .containsText(accountName);
+                    .assertTableContainsText(accountName);
     }
 
     private void createReconTask(String reconTaskName, String resource){

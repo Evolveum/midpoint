@@ -11,6 +11,7 @@ import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
+import org.testng.Assert;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -37,5 +38,10 @@ public class BulkActionsPage extends BasicPage {
 
     public boolean isAceEditorVisible(){
         return $(By.className("aceEditor")).exists();
+    }
+
+    public BulkActionsPage assertAceEditorVisible() {
+        Assert.assertTrue(isAceEditorVisible(), "Ace editor should be visible.");
+        return this;
     }
 }

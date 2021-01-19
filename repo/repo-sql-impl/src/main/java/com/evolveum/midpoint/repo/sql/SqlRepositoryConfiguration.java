@@ -19,6 +19,7 @@ import java.util.Objects;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
@@ -319,6 +320,8 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
      *    4. embedded (if true, H2 is used)
      */
     public SqlRepositoryConfiguration(Configuration configuration) {
+        Validate.notNull(configuration, "Repository configuration must not be null.");
+
         dataSource = MiscUtil.nullIfEmpty(configuration.getString(PROPERTY_DATASOURCE));
 
         // guessing the database + setting related basic properties
@@ -522,8 +525,8 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
 
     @Override
     public boolean shouldRollback(Throwable ex) {
-            return new TransactionSerializationProblemDetector(this, LOGGER)
-                    .isExceptionRelatedToSerialization(ex);
+        return new TransactionSerializationProblemDetector(this, LOGGER)
+                .isExceptionRelatedToSerialization(ex);
     }
 
     // The methods below are static to highlight their data dependencies and to avoid using properties
@@ -628,7 +631,7 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
      *
      * @throws RepositoryServiceFactoryException if configuration is invalid.
      */
-    public void validate() throws RepositoryServiceFactoryException {
+    public SqlRepositoryConfiguration validate() throws RepositoryServiceFactoryException {
         if (dataSource == null) {
             notEmpty(jdbcUrl, "JDBC Url is empty or not defined.");
             // We don't check username and password, they can be null (MID-5342)
@@ -659,6 +662,8 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
         if (minPoolSize > maxPoolSize) {
             throw new RepositoryServiceFactoryException("Max. pool size must be greater than min. pool size.");
         }
+
+        return this;
     }
 
     private void notEmpty(String value, String message) throws RepositoryServiceFactoryException {

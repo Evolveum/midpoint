@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -27,31 +27,29 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefinition> extends ObjectFilterImpl implements
-        ValueFilter<V, D> {
+public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefinition>
+        extends ObjectFilterImpl implements ValueFilter<V, D> {
     private static final long serialVersionUID = 1L;
 
     @NotNull private final ItemPath fullPath;
-    // This is a definition of the item pointed to by "fullPath"
-    // (not marked as @NotNull, because it can be filled-in after creation of the filter - e.g. in provisioning)
+
+    /**
+     * This is a definition of the item pointed to by "fullPath".
+     * Not marked as @NotNull, because it can be filled-in after creation of the filter - e.g. in provisioning.
+     */
     @Nullable private D definition;
     @Nullable private QName matchingRule;
     @Nullable private List<V> values;
     @Nullable private ExpressionWrapper expression;
-    @Nullable private ItemPath rightHandSidePath;                            // alternative to values/expression; can be provided later
-    @Nullable private ItemDefinition rightHandSideDefinition;                // optional (needed only if path points to dynamically defined item)
+
+    /** Alternative to values/expression; can be provided later. */
+    @Nullable private ItemPath rightHandSidePath;
+
+    /** Optional (needed only if path points to dynamically defined item). */
+    @Nullable private ItemDefinition rightHandSideDefinition;
 
     // At most one of values, expression, rightHandSidePath can be non-null.
     // It is a responsibility of the client to ensure it.
-
-    /**
-     * TODO decide whether to make these fields final. It makes the code simpler, but maybe not that much
-     * that it is worth the discomfort of the clients (they cannot change they if the would wish).
-     * Some of them like definition, matchingRule, and right-hand things are filled-in later in some cases (provisioning, query builder).
-     */
-    protected ValueFilterImpl(@NotNull ItemPath fullPath, @Nullable D definition) {
-        this(fullPath, definition, null, null, null, null, null);
-    }
 
     protected ValueFilterImpl(@NotNull ItemPath fullPath, @Nullable D definition, @Nullable QName matchingRule,
             @Nullable List<V> values, @Nullable ExpressionWrapper expression,
@@ -86,7 +84,8 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
     @NotNull
     public ItemName getElementName() {
         if (definition != null) {
-            return definition.getItemName();        // this is more precise, as the name in path can be unqualified
+            // this is more precise, as the name in path can be unqualified
+            return definition.getItemName();
         }
         if (fullPath.isEmpty()) {
             throw new IllegalStateException("Empty full path in filter " + this);
@@ -119,7 +118,7 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
     }
 
     @NotNull
-    MatchingRule getMatchingRuleFromRegistry(MatchingRuleRegistry matchingRuleRegistry) {
+    MatchingRule<Object> getMatchingRuleFromRegistry(MatchingRuleRegistry matchingRuleRegistry) {
         if (definition == null) {
             throw new IllegalArgumentException("No definition in item " + fullPath);
         }
@@ -251,7 +250,7 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
     }
 
     @Override
-    public abstract ValueFilterImpl clone();
+    public abstract ValueFilterImpl<V, D> clone();
 
     @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
     @Override

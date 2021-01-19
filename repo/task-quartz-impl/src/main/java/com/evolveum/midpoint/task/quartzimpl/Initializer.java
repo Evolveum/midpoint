@@ -9,9 +9,7 @@ package com.evolveum.midpoint.task.quartzimpl;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
-import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryServiceFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
 import com.evolveum.midpoint.task.quartzimpl.execution.JobExecutor;
@@ -49,19 +47,17 @@ public class Initializer {
 
         LOGGER.info("Task Manager: Quartz Job Store: "
                 + (configuration.isJdbcJobStore() ? "JDBC" : "in-memory") + ", "
-                + (configuration.isClustered() ? "" : "NOT ") + "clustered. Threads: " + configuration.getThreads());
+                + (configuration.isClustered() ? "" : "NOT ") + "clustered. Threads: "
+                + configuration.getThreads());
 
         if (configuration.isJdbcJobStore()) {
             // Let's find Quartz JDBC setup fallback (which will be used very likely)
             JdbcRepositoryConfiguration jdbcConfig = null;
             try {
-                RepositoryServiceFactory repositoryServiceFactory =
-                        taskManager.getBeanFactory().getBean(RepositoryServiceFactory.class);
-                if (repositoryServiceFactory instanceof JdbcRepositoryServiceFactory) {
-                    jdbcConfig = ((JdbcRepositoryServiceFactory) repositoryServiceFactory).getConfiguration();
-                }
+                jdbcConfig = taskManager.getBeanFactory().getBean(JdbcRepositoryConfiguration.class);
             } catch (NoSuchBeanDefinitionException e) {
-                LOGGER.info("SqlRepositoryFactory is not available, JDBC Job Store configuration will be taken from taskManager section only.");
+                LOGGER.info("JdbcRepositoryConfiguration is not available, JDBC Job Store"
+                        + " configuration will be taken from taskManager section only.");
                 LOGGER.trace("Reason is", e);
             }
 

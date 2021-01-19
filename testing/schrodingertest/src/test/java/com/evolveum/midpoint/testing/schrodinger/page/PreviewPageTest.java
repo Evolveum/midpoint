@@ -8,13 +8,10 @@
 package com.evolveum.midpoint.testing.schrodinger.page;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import com.codeborne.selenide.Selenide;
-
-import com.evolveum.midpoint.schrodinger.component.prism.show.PartialSceneHeader;
 
 import com.evolveum.midpoint.schrodinger.page.user.ProgressPage;
 import com.evolveum.midpoint.schrodinger.util.ConstantsUtil;
@@ -29,8 +26,6 @@ import com.evolveum.midpoint.schrodinger.page.PreviewPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import static org.testng.Assert.*;
 
 public class PreviewPageTest  extends AbstractSchrodingerTest {
 
@@ -64,17 +59,17 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
         //@formatter:on
 
         ScenePanel<PreviewChangesTab> primaryDeltaScene = previewPage.selectPanelByName("jack").primaryDeltas();
-        assertTrue(primaryDeltaScene.isExpanded(), "Primary deltas should be expanded");
+        primaryDeltaScene
+                .assertExpanded()
+                .assertDeltasSizeEquals(3);
 
         List<ScenePanel> deltas = primaryDeltaScene.objectDeltas();
-        assertEquals(3, deltas.size(), "Unexpected number of primary deltas");
-
         ScenePanel<ScenePanel> primaryDelta = deltas.get(0);
 
-        PartialSceneHeader header = primaryDelta.header();
-        assertEquals(header.getChangeType(), "Add", "Unexpected change type");
-        assertEquals(header.getChangedObjectName(), "jack", "Unexpected object name");
-        assertTrue(!header.isLink(), "Link not expected for new user");
+        primaryDelta.header()
+                .assertChangeTypeEquals("Add")
+                .assertChangedObjectNameEquals("jack")
+                .assertIsNotLink();
 
         ProgressPage progressPage = previewPage.clickSave();
         Selenide.sleep(3000);
@@ -97,17 +92,17 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
         //@formatter:on
 
         ScenePanel<PreviewChangesTab> primaryDeltaScene = previewPage.selectPanelByName("jack").primaryDeltas();
-        assertTrue(primaryDeltaScene.isExpanded(), "Primary deltas should be expanded");
+        primaryDeltaScene
+                .assertExpanded()
+                .assertDeltasSizeEquals(1);
 
         List< ScenePanel> deltas = primaryDeltaScene.objectDeltas();
-        assertEquals(1, deltas.size(), "Unexpected number of primary deltas");
-
         ScenePanel<ScenePanel> primaryDelta = deltas.get(0);
 
-        PartialSceneHeader header = primaryDelta.header();
-        assertEquals(header.getChangeType(), "Modify", "Unexpected change type");
-        assertEquals(header.getChangedObjectName(), "jack", "Unexpected object name");
-        assertTrue(header.isLink(), "Link expected for modify user with authorizations");
+        primaryDelta.header()
+                .assertChangeTypeEquals("Modify")
+                .assertChangedObjectNameEquals("jack")
+                .assertIsLink();
 
         ProgressPage progressPage = previewPage.clickSave();
         Selenide.sleep(1000);
@@ -155,18 +150,19 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
                 .and()
                 .clickPreview();
 
-        ScenePanel<PreviewChangesTab> primaryDeltaScene = previewPage.selectPanelByName("jack").primaryDeltas();
-        assertTrue(primaryDeltaScene.isExpanded(), "Primary deltas should be expanded");
+        ScenePanel<PreviewChangesTab> primaryDeltaScene = previewPage
+                .selectPanelByName("jack")
+                    .primaryDeltas();
+        primaryDeltaScene
+                .assertExpanded()
+                .assertDeltasSizeEquals(1);
 
-        List<ScenePanel> deltas = primaryDeltaScene.objectDeltas();
-        assertEquals(1, deltas.size(), "Unexpected number of primary deltas");
+        ScenePanel<ScenePanel> primaryDelta = primaryDeltaScene.objectDeltas().get(0);
 
-        ScenePanel<ScenePanel> primaryDelta = deltas.get(0);
-
-        PartialSceneHeader header = primaryDelta.header();
-        assertEquals(header.getChangeType(), "Modify", "Unexpected change type");
-        assertEquals(header.getChangedObjectName(), "jack", "Unexpected object name");
-        assertTrue(!header.isLink(), "Link expected for modify user with authorizations");
+        primaryDelta.header()
+                .assertChangeTypeEquals("Modify")
+                .assertChangedObjectNameEquals("jack")
+                .assertIsNotLink();
 
         midPoint.logout();
         basicPage = midPoint.formLogin().login("administrator", "5ecr3t");
@@ -233,7 +229,7 @@ public class PreviewPageTest  extends AbstractSchrodingerTest {
                 .and();
 
         Selenide.screenshot("previewVisible");
-        assertFalse(userPage.isPreviewButtonVisible(), "Preview button should not be visible");
+        userPage.assertPreviewButtonIsNotVisible();
         midPoint.logout();
     }
 

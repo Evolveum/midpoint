@@ -220,4 +220,10 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         copySetupTo(asserter);
         return asserter;
     }
+
+    public ObjectReferenceAsserter<UserType, RA> owner() {
+        ObjectReferenceAsserter<UserType, RA> ownerAsserter = new ObjectReferenceAsserter<>(getTaskBean().getOwnerRef().asReferenceValue(), UserType.class);
+        copySetupTo(ownerAsserter);
+        return ownerAsserter;
+    }
 }

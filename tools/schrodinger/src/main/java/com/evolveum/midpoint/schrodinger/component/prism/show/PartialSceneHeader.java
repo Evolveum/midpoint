@@ -11,6 +11,8 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
+import org.testng.Assert;
+
 import static com.codeborne.selenide.Selenide.$;
 
 public class PartialSceneHeader extends Component<ScenePanel> {
@@ -19,24 +21,36 @@ public class PartialSceneHeader extends Component<ScenePanel> {
         super(parent, parentElement);
     }
 
-    public String getChangeType() {
+    public PartialSceneHeader assertChangeTypeEquals(String expectedValue) {
         SelenideElement element = $(Schrodinger.byDataId("changeType"));
-        return element.getText();
+        Assert.assertEquals(expectedValue, element.getText(), "Unexpected change type");
+        return this;
     }
 
-    public String getChangedObjectName() {
+    public PartialSceneHeader assertChangedObjectNameEquals(String expectedValue) {
         SelenideElement element;
         if (isLink()) {
             element = getNameLink();
         } else {
             element = getNameLabel();
         }
-        return element.getText();
+        Assert.assertEquals(expectedValue, element.getText(), "Unexpected object name.");
+        return this;
     }
 
     public boolean isLink() {
         SelenideElement element = getNameLink();
         return element.exists();
+    }
+
+    public PartialSceneHeader assertIsLink() {
+        Assert.assertTrue(isLink(), "Link is expected.");
+        return this;
+    }
+
+    public PartialSceneHeader assertIsNotLink() {
+        Assert.assertFalse(isLink(), "Link is not expected.");
+        return this;
     }
 
     private SelenideElement getNameLabel() {

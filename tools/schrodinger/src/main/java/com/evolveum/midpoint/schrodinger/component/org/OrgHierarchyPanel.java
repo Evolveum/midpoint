@@ -17,6 +17,7 @@ import com.evolveum.midpoint.schrodinger.page.org.OrgPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import org.openqa.selenium.By;
+import org.testng.Assert;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -103,5 +104,23 @@ public class OrgHierarchyPanel<T> extends Component<T> {
         SelenideElement menu = menuButton.$x(".//ul[@" + Schrodinger.DATA_S_ID + "='dropDownMenu']").waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new OrgTreeNodeDropDown<OrgHierarchyPanel>(this, menu);
+    }
+
+    public OrgHierarchyPanel<T> assertChildOrgExists(String parentOrg, String... expectedChild){
+        return assertChildOrgExists(parentOrg, true, expectedChild);
+    }
+
+    public OrgHierarchyPanel<T> assertChildOrgExists(String parentOrg, Boolean expandParent, String... expectedChild){
+        Assert.assertTrue(containsChildOrg(parentOrg,expandParent, expectedChild), "Organization " + parentOrg + " doesn't contain expected children orgs.");
+        return this;
+    }
+
+    public OrgHierarchyPanel<T> assertChildOrgDoesntExist(String parentOrg, String... expectedChild){
+        return assertChildOrgDoesntExist(parentOrg, true, expectedChild);
+    }
+
+    public OrgHierarchyPanel<T> assertChildOrgDoesntExist(String parentOrg, Boolean expandParent, String... expectedChild){
+        Assert.assertFalse(containsChildOrg(parentOrg, expectedChild), "Organization " + parentOrg + " doesn't contain expected children orgs.");
+        return this;
     }
 }

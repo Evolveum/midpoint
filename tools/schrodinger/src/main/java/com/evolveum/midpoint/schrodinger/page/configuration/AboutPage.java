@@ -17,7 +17,9 @@ import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import com.evolveum.midpoint.schrodinger.util.Utils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
+import org.testng.Assert;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -143,5 +145,61 @@ public class AboutPage extends BasicPage {
         ReadOnlyTable readOnlyTable = new ReadOnlyTable(this,propertiesTable);
         return readOnlyTable.getParameterValue(propertyNameUserHome);
     }
+
+    public AboutPage assertVersionValueEquals(String expectedVersionValue) {
+        Assert.assertEquals(expectedVersionValue, version(), "Version value doesn't match");
+        return this;
+    }
+
+    public AboutPage assertGitDescribeValueEquals(String expectedGitDescribeValue) {
+        Assert.assertEquals(expectedGitDescribeValue, gitDescribe(), "Git describe value doesn't match");
+        return this;
+    }
+
+    public AboutPage assertGitDescribeValueIsNotEmpty() {
+        Assert.assertFalse(StringUtils.isNotEmpty(gitDescribe()), "Git describe value shouldn't be empty");
+        return this;
+    }
+
+    public AboutPage assertBuildAtValueEquals(String expectedBuildAtValue) {
+        Assert.assertEquals(expectedBuildAtValue, buildAt(), "Build at value doesn't match");
+        return this;
+    }
+
+    public AboutPage assertBuildAtValueIsNotEmpty() {
+        Assert.assertFalse(StringUtils.isNotEmpty(buildAt()), "Build at value shouldn't be empty");
+        return this;
+    }
+
+    public AboutPage assertHibernateDialectValueEquals(String expectedHibernateDialectValue) {
+        Assert.assertEquals(expectedHibernateDialectValue, hibernateDialect(), "Hibernate dialect value doesn't match");
+        return this;
+    }
+
+    public AboutPage assertConnIdVersionValueEquals(String expectedValue) {
+        Assert.assertEquals(expectedValue, connIdFrameworkVersion(), "Connid version value doesn't match");
+        return this;
+    }
+
+    public AboutPage assertJVMPropertyValueEquals(String propertyName, String expectedValue) {
+        Assert.assertEquals(expectedValue, getJVMproperty(propertyName), "JVM property " + propertyName + " value doesn't match");
+        return this;
+    }
+
+    public AboutPage assertJVMPropertyValueIsNotEmpty(String propertyName) {
+        Assert.assertFalse(StringUtils.isNotEmpty(getJVMproperty(propertyName)), "JVM property " + propertyName + " shouldn't be empty");
+        return this;
+    }
+
+    public AboutPage assertSystemPropertyValueEquals(String propertyName, String expectedValue) {
+        Assert.assertEquals(expectedValue, getSystemProperty(propertyName), "System property " + propertyName + " value doesn't match");
+        return this;
+    }
+
+    public AboutPage assertSystemPropertyValueIsNotEmpty(String propertyName) {
+        Assert.assertFalse(StringUtils.isNotEmpty(getSystemProperty(propertyName)), "System property " + propertyName + " shouldn't be empty");
+        return this;
+    }
+
 }
 

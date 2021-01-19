@@ -13,10 +13,8 @@ import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.ConstantsUtil;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 
 import org.apache.commons.io.FileUtils;
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -162,17 +160,17 @@ public class OrganizationStructureTests extends AbstractSchrodingerTest {
     @Test (dependsOnMethods ={IMPORT_ORG_STRUCT_DEPENDENCY})
     public void expandCollapseAllTests(){
         OrgTreePage orgPage = basicPage.orgStructure();
-        Assert.assertTrue(orgPage.selectTabWithRootOrg("Governor Office")
+        orgPage.selectTabWithRootOrg("Governor Office")
                 .getOrgHierarchyPanel()
                     .showTreeNodeDropDownMenu("Ministry of Offense")
                         .expandAll()
-                    .containsChildOrg("Swashbuckler Section", "Ministry of Health"));
+                        .assertChildOrgExists("Swashbuckler Section", "Ministry of Health");
 
-        Assert.assertFalse(orgPage.selectTabWithRootOrg("Governor Office")
+        orgPage.selectTabWithRootOrg("Governor Office")
                 .getOrgHierarchyPanel()
                     .showTreeNodeDropDownMenu("Ministry of Offense")
                         .collapseAll()
-                    .containsChildOrg("Swashbuckler Section", false, "Ministry of Health"));
+                        .assertChildOrgDoesntExist("Swashbuckler Section", false, "Ministry of Health");
     }
 
     public void changeResourceFilePath(){

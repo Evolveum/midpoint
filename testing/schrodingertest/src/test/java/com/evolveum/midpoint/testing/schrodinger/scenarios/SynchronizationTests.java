@@ -16,7 +16,6 @@ import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.Assert;
 import org.testng.annotations.Test;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 
@@ -177,12 +176,9 @@ public class SynchronizationTests extends AbstractSchrodingerTest {
                 .clickByName(ScenariosCommons.TEST_USER_DON_NAME)
                       .selectTabProjections();
         Selenide.screenshot("SynchronizationTests_projectionTab");
-        boolean accountExists = projectionsTab
+        projectionsTab
                         .table()
-                        .containsText(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME);
-
-        Assert.assertTrue(accountExists);
-
+                        .assertTableContainsText(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME);
     }
 
     @Test (priority = 4, dependsOnMethods = {NEW_USER_ACCOUNT_CREATED_LINKED_DEPENDENCY})

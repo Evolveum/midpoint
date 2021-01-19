@@ -14,12 +14,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
-import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryServiceFactory;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SystemConfigurationChangeDispatcherImpl;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 
 /**
  * New SQL repository related configuration.
@@ -27,18 +28,33 @@ import com.evolveum.midpoint.repo.sqlbase.SystemConfigurationChangeDispatcherImp
  * would happen when combined with alternative configurations (e.g. context XMLs for test).
  * {@link ConditionalOnExpression} class annotation activates this configuration only if midpoint
  * {@code config.xml} specifies the repository factory class from SQL package.
+ * <p>
+ * To choose this "new SQL" repository set {@code repositoryServiceFactoryClass} to a value starting
+ * with (or equal to) {@code com.evolveum.midpoint.repo.sqale.} (including the dot at the end).
+ * Alternatively simple {@code sqale} or {@code scale} will work too.
+ * All values are case-insensitive.
  */
 @Configuration
-@ConditionalOnExpression("#{midpointConfiguration.getConfiguration('midpoint.repository')"
-        + ".getString('repositoryServiceFactoryClass').startsWith('com.evolveum.midpoint.repo.sqale.')}")
+@ConditionalOnExpression("#{midpointConfiguration.keyMatches("
+        + "'midpoint.repository.repositoryServiceFactoryClass',"
+        + " '(?i)com\\.evolveum\\.midpoint\\.repo\\.sqale\\..*', '(?i)s[qc]ale')}")
 @ComponentScan
 public class SqaleRepositoryBeanConfig {
 
     @Bean
+    public SqaleRepositoryConfiguration sqaleRepositoryConfiguration(
+            MidpointConfiguration midpointConfiguration) throws RepositoryServiceFactoryException {
+        return new SqaleRepositoryConfiguration(
+                midpointConfiguration.getConfiguration(
+                        MidpointConfiguration.REPOSITORY_CONFIGURATION))
+                .validate();
+    }
+
+    @Bean
     @ConditionalOnMissingBean
     public DataSourceFactory dataSourceFactory(
-            SqaleRepositoryServiceFactory repositoryServiceFactory) {
-        return new DataSourceFactory(repositoryServiceFactory.getConfiguration());
+            SqaleRepositoryConfiguration repositoryConfiguration) {
+        return new DataSourceFactory(repositoryConfiguration);
     }
 
     @Bean
@@ -50,14 +66,22 @@ public class SqaleRepositoryBeanConfig {
 
     @Bean
     public SqlRepoContext sqlRepoContext(
-            JdbcRepositoryServiceFactory repositoryServiceFactory,
+            SqaleRepositoryConfiguration repositoryConfiguration,
             DataSource dataSource) {
         // TODO add mapping
-        return new SqlRepoContext(repositoryServiceFactory.getConfiguration(), dataSource, null);
+        QueryModelMappingRegistry mapping = null;
+
+        return new SqlRepoContext(repositoryConfiguration, dataSource, mapping);
     }
 
-    // TODO @Bean for AuditServiceFactory
+    @Bean
+    public SqaleRepositoryService repositoryService(SqlRepoContext sqlRepoContext) {
+        return new SqaleRepositoryService(sqlRepoContext);
+    }
 
+    // TODO @Bean for AuditServiceFactory later
+
+    // TODO rethink?
     @Bean
     public SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher() {
         return new SystemConfigurationChangeDispatcherImpl();

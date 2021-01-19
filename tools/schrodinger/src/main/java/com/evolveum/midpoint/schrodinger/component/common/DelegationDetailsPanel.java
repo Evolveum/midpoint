@@ -69,32 +69,13 @@ public class DelegationDetailsPanel<T> extends Component<T> {
     }
 
     public boolean isValidFromPanelEnabled () {
-        getValidFromPanel().findDate().shouldBe(Condition.enabled);
         if (!getValidFromPanel().findDate().isEnabled()) {
             return false;
         }
-        getValidFromPanel().findHours().shouldBe(Condition.enabled);
         if (!getValidFromPanel().findHours().isEnabled()) {
             return false;
         }
-        getValidFromPanel().findMinutes().shouldBe(Condition.enabled);
         if (!getValidFromPanel().findMinutes().isEnabled()) {
-            return false;
-        }
-        return true;
-    }
-
-    public boolean isValidFromPanelDisabled () {
-        getValidFromPanel().findDate().shouldBe(Condition.disabled);
-        if (getValidFromPanel().findDate().isEnabled()) {
-            return false;
-        }
-        getValidFromPanel().findHours().shouldBe(Condition.disabled);
-        if (getValidFromPanel().findHours().isEnabled()) {
-            return false;
-        }
-        getValidFromPanel().findMinutes().shouldBe(Condition.disabled);
-        if (getValidFromPanel().findMinutes().isEnabled()) {
             return false;
         }
         return true;
@@ -178,7 +159,7 @@ public class DelegationDetailsPanel<T> extends Component<T> {
     }
 
     public DelegationDetailsPanel<T> assertAssignmentLimitationsNotSelected() {
-        Assert.assertTrue(isAssignmentLimitationsSelected(), "Assignment limitations checkbox is selected but shouldn't be.");
+        Assert.assertFalse(isAssignmentLimitationsSelected(), "Assignment limitations checkbox is selected but shouldn't be.");
         return this;
     }
 
@@ -188,7 +169,7 @@ public class DelegationDetailsPanel<T> extends Component<T> {
     }
 
     public DelegationDetailsPanel<T> assertAssignmentPrivilegesNotSelected() {
-        Assert.assertTrue(isAssignmentPrivilegesSelected(),"Assignment privileges checkbox is selected but shouldn't be.");
+        Assert.assertFalse(isAssignmentPrivilegesSelected(),"Assignment privileges checkbox is selected but shouldn't be.");
         return this;
     }
 
@@ -199,6 +180,26 @@ public class DelegationDetailsPanel<T> extends Component<T> {
 
     public DelegationDetailsPanel<T> assertCertificationWorkItemsNotSelected() {
         Assert.assertFalse(isCertificationWorkItemsSelected(), "Workflow approvals (for certification work items) checkbox is selected but shouldn't be.");
+        return this;
+    }
+
+    public DelegationDetailsPanel<T> assertDescriptionEnabled() {
+        Assert.assertTrue(isDescriptionEnabled());
+        return this;
+    }
+
+    public DelegationDetailsPanel<T> assertDescriptionDisabled() {
+        Assert.assertFalse(isDescriptionEnabled());
+        return this;
+    }
+
+    public DelegationDetailsPanel<T> assertValidFromPanelEnabled() {
+        Assert.assertTrue(isValidFromPanelEnabled());
+        return this;
+    }
+
+    public DelegationDetailsPanel<T> assertValidFromPanelDisabled() {
+        Assert.assertFalse(isValidFromPanelEnabled());
         return this;
     }
 }

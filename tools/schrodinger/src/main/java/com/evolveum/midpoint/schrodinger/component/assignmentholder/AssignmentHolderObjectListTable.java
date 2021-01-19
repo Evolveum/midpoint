@@ -25,6 +25,8 @@ import com.evolveum.midpoint.schrodinger.component.common.table.TableWithPageRed
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
+import org.testng.Assert;
+
 /**
  * Created by honchar
  */
@@ -142,6 +144,12 @@ public abstract class AssignmentHolderObjectListTable<P, PD extends AssignmentHo
 
     protected String getNameColumnLabel() {
         return "Name";
+    }
+
+    public AssignmentHolderObjectListTable<P, PD> assertNewObjectDropdownButtonsCountEquals(String mainButtonIconCssClass, int expectedButtonsCount) {
+        Assert.assertEquals(expectedButtonsCount, countDropdownButtonChildrenButtons(mainButtonIconCssClass), "The number of the dropdown buttons "
+                + "for the button with '" + mainButtonIconCssClass + "' css class doesn't match to " + expectedButtonsCount);
+        return this;
     }
 
 }

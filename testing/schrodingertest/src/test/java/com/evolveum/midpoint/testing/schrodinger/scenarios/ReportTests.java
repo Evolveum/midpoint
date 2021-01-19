@@ -9,7 +9,6 @@ package com.evolveum.midpoint.testing.schrodinger.scenarios;
 import com.evolveum.midpoint.schrodinger.component.report.ReportTable;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 /**
