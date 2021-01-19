@@ -75,6 +75,25 @@
                     </target>
                 </inbound>
             </attribute>
+            <attribute>
+                <ref>ri:failureMode</ref>
+                <inbound>
+                    <expression>
+                        <script>
+                            <code>import com.evolveum.midpoint.model.intest.reporting.TestTaskReporting
+
+                            if (TestTaskReporting.failuresEnabled &amp;&amp; input == TestTaskReporting.PROJECTOR_FATAL_ERROR) {
+                                throw new IllegalStateException("Projector fatal error encountered")
+                            }
+
+                            "failure mode: $input"</code>
+                        </script>
+                    </expression>
+                    <target>
+                        <path>description</path>
+                    </target>
+                </inbound>
+            </attribute>
         </objectType>
     </schemaHandling>
 

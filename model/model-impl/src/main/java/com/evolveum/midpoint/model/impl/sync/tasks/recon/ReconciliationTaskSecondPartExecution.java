@@ -8,11 +8,14 @@
 package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 
 import java.util.Collection;
+import java.util.function.Function;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
 import com.evolveum.midpoint.model.impl.sync.tasks.Synchronizer;
 import com.evolveum.midpoint.model.impl.tasks.AbstractSearchIterativeModelTaskPartExecution;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
@@ -75,6 +78,11 @@ class ReconciliationTaskSecondPartExecution
         return taskHandler.schemaHelper.getOperationOptionsBuilder()
                 .errorReportingMethod(FetchErrorReportingMethodType.FETCH_RESULT)
                 .build();
+    }
+
+    @Override
+    protected Function<ItemPath, ItemDefinition<?>> createItemDefinitionProvider() {
+        return createItemDefinitionProviderForAttributes(taskExecution.getTargetInfo().getObjectClassDefinition());
     }
 
     @Override

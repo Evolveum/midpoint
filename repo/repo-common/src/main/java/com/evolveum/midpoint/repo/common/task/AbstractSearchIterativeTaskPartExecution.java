@@ -11,7 +11,13 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 
 import java.util.Collection;
+import java.util.function.Function;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
+
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -140,7 +146,7 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
         Long expectedTotal = computeExpectedTotalIfApplicable(opResult);
         setExpectedTotal(expectedTotal, opResult);
 
-        resultHandler.createWorkerThreads(localCoordinatorTask);
+        resultHandler.createWorkerThreads();
         try {
             searchIterative(opResult);
         } finally {
@@ -219,11 +225,7 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
 
     private RH setupHandler(OperationResult opResult) throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        RH resultHandler = createHandler(opResult);
-        resultHandler.setReportingOptions(taskHandler.getReportingOptions());
-        // FIXME TEMPORARY HACK
-        resultHandler.setEnableSynchronizationStatistics(taskHandler.getReportingOptions().isEnableSynchronizationStatistics());
-        return resultHandler;
+        return createHandler(opResult);
     }
 
     private boolean prepareUseRepositoryFlag(OperationResult opResult) throws CommunicationException, ObjectNotFoundException,
@@ -294,7 +296,7 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
                     DebugUtil.debugDumpLazily(queryFromHandler));
 
             ObjectQuery bucketNarrowedQuery = getTaskManager().narrowQueryForWorkBucket(queryFromHandler, objectType,
-                    resultHandler.getIdentifierDefinitionProvider(), localCoordinatorTask,
+                    createItemDefinitionProvider(), localCoordinatorTask,
                     workBucket, opResult);
 
             LOGGER.trace("{}: using a query (after applying work bucket, before evaluating expressions):\n{}", getTaskTypeName(),
@@ -306,6 +308,25 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
             // Most probably we have nothing more to do here.
             throw new TaskException("Couldn't create object query", FATAL_ERROR, PERMANENT_ERROR, t);
         }
+    }
+
+    /**
+     * Returns a provider of definitions for runtime items (e.g. attributes) that are needed in bucket filters.
+     * To be implemented in subclasses that work with resource objects.
+     */
+    protected Function<ItemPath, ItemDefinition<?>> createItemDefinitionProvider() {
+        return null;
+    }
+
+    public static Function<ItemPath, ItemDefinition<?>> createItemDefinitionProviderForAttributes(
+            ObjectClassComplexTypeDefinition objectClass) {
+        return itemPath -> {
+            if (itemPath.startsWithName(ShadowType.F_ATTRIBUTES)) {
+                return objectClass.findAttributeDefinition(itemPath.rest().asSingleName());
+            } else {
+                return null;
+            }
+        };
     }
 
     private RepositoryService getRepositoryService() {
@@ -320,7 +341,7 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
         return countObjectsInRepository(opResult);
     }
 
-    protected int countObjectsInRepository(OperationResult opResult) throws SchemaException {
+    protected final int countObjectsInRepository(OperationResult opResult) throws SchemaException {
         return getRepositoryService().countObjects(objectType, query, searchOptions, opResult);
     }
 
@@ -332,7 +353,7 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
         searchIterativeInRepository(opResult);
     }
 
-    protected void searchIterativeInRepository(OperationResult opResult) throws SchemaException {
+    protected final void searchIterativeInRepository(OperationResult opResult) throws SchemaException {
         getRepositoryService().searchObjectsIterative(objectType, query, resultHandler, searchOptions, true, opResult);
     }
 
@@ -446,7 +467,7 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
         return getTaskPropertyRealValue(SchemaConstants.MODEL_EXTENSION_USE_REPOSITORY_DIRECTLY);
     }
 
-    protected ObjectQuery createQueryFromTaskIfExists() throws SchemaException {
+    protected final ObjectQuery createQueryFromTaskIfExists() throws SchemaException {
         Class<? extends ObjectType> objectType = determineObjectType();
         LOGGER.trace("Object type = {}", objectType);
 
@@ -483,7 +504,7 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
         return queryType;
     }
 
-    protected Class<O> getTypeFromTask() {
+    protected final Class<O> getTypeFromTask() {
         QName typeName = getTaskPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
         //noinspection unchecked
         return typeName != null
@@ -522,7 +543,7 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
         return taskHandler.taskManager;
     }
 
-    public TH getTaskHandler() {
+    public @NotNull TH getTaskHandler() {
         return taskHandler;
     }
 

@@ -56,6 +56,7 @@ public class ObjectIntegrityCheckTaskHandler
         super("Object integrity check", OperationConstants.CHECK_OBJECT_INTEGRITY);
         setLogFinishInfo(true);
         setPreserveStatistics(false);
+        reportingOptions.setLogErrors(false); // we do log errors ourselves
     }
 
     @PostConstruct

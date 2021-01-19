@@ -40,7 +40,6 @@ public class ObjectIntegrityCheckResultHandler
 
     ObjectIntegrityCheckResultHandler(ObjectIntegrityCheckTaskPartExecution taskExecution) {
         super(taskExecution);
-        setLogErrors(false);            // we do log errors ourselves
 
         ensureNoWorkerThreads();
 

@@ -26,8 +26,6 @@ import java.io.File;
 
 /**
  * Tests reporting of task state, progress, and errors.
- *
- * UNFINISHED. DO NOT RUN (YET).
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -35,8 +33,22 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
 
     private static final File TEST_DIR = new File("src/test/resources/reporting");
 
+    private static final String ACCOUNT_NAME_PATTERN = "u-%06d";
+
     private static final String ATTR_NUMBER = "number";
-    private static final String ATTR_NAME = "name";
+    private static final String ATTR_FAILURE_MODE = "failureMode";
+
+    public static boolean failuresEnabled;
+
+    private static final String SHADOW_CREATION_FAILURE = "shadow-creation-failure";
+    public static final String PROJECTOR_FATAL_ERROR = "projector-fatal-error";
+
+    // Numbers of accounts with various kinds of errors
+    private static final int IDX_GOOD_ACCOUNT = 0;
+    private static final int IDX_MALFORMED_SHADOW = 1;
+    private static final int IDX_PROJECTOR_FATAL_ERROR = 2;
+
+    private static final String MALFORMED_SHADOW_NAME = formatAccountName(IDX_MALFORMED_SHADOW);
 
     private static final DummyTestResource RESOURCE_DUMMY_SOURCE = new DummyTestResource(TEST_DIR,
             "resource-source.xml", "a1c7dcb8-07f8-4626-bea7-f10d9df7ec9f", "source",
@@ -44,6 +56,8 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                 // This is extra secondary identifier. We use it to induce schema exceptions during shadow pre-processing.
                 controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
                         ATTR_NUMBER, Integer.class, false, false);
+                controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                        ATTR_FAILURE_MODE, String.class, false, false);
                 controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
                         DummyAccount.ATTR_FULLNAME_NAME, String.class, true, false);
             });
@@ -68,10 +82,29 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
         assertSuccess(modelService.testResource(RESOURCE_DUMMY_TARGET.oid, initTask));
 
         for (int i = 0; i < USERS; i++) {
-            String name = String.format("u-%06d", i);
+            String name = formatAccountName(i);
             DummyAccount account = RESOURCE_DUMMY_SOURCE.controller.addAccount(name);
             account.addAttributeValue(ATTR_NUMBER, i);
+            account.addAttributeValue(ATTR_FAILURE_MODE, getFailureMode(i));
        }
+    }
+
+    private static String formatAccountName(int i) {
+        return String.format(ACCOUNT_NAME_PATTERN, i);
+    }
+
+    @SuppressWarnings("DuplicateBranchesInSwitch")
+    private String getFailureMode(int index) {
+        switch (index) {
+            case IDX_GOOD_ACCOUNT:
+                return null;
+            case IDX_MALFORMED_SHADOW:
+                return SHADOW_CREATION_FAILURE;
+            case IDX_PROJECTOR_FATAL_ERROR:
+                return PROJECTOR_FATAL_ERROR;
+            default:
+                return null;
+        }
     }
 
     /**
@@ -85,8 +118,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        String originalName = "u-000003";
-        DummyAccount account = RESOURCE_DUMMY_SOURCE.controller.getDummyResource().getAccountByUsername(originalName);
+        DummyAccount account = RESOURCE_DUMMY_SOURCE.controller.getDummyResource().getAccountByUsername(MALFORMED_SHADOW_NAME);
         account.setName(null); // This causes a failure during query execution (not even in the results handler).
         try {
 
@@ -101,7 +133,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .assertClosed();
 
         } finally {
-            account.setName(originalName);
+            account.setName(MALFORMED_SHADOW_NAME);
         }
     }
 
@@ -120,16 +152,22 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
         assertTask(importTask, "import task after")
                 .display()
                 .assertSuccess();
+
+        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
+                .display();
     }
 
     @Test
-    public void test110ImportWithBrokenAccount() throws Exception {
+    public void test110ImportWithSingleMalformedAccount() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        DummyAccount account = RESOURCE_DUMMY_SOURCE.controller.getDummyResource().getAccountByUsername("u-000003");
-        account.replaceAttributeValue(ATTR_NUMBER, "WRONG"); // Will cause problem when updating shadow
+        // This will cause problem when updating shadow
+        DummyAccount account = RESOURCE_DUMMY_SOURCE.controller.getDummyResource().getAccountByUsername(MALFORMED_SHADOW_NAME);
+        account.replaceAttributeValue(ATTR_NUMBER, "WRONG");
+
+        // Other kinds of failures are still disabled, to check last failed object name in case of malformed accounts
 
         when();
         rerunTaskErrorsOk(TASK_IMPORT.oid, result);
@@ -143,11 +181,47 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                 .assertProgress(10)
                 .iterativeTaskInformation()
                     .display()
+                    .assertSuccessCount(9)
+                    .assertFailureCount(1)
+                    .assertLastFailureObjectName(null) // TODO it should be reported in a better way
                     .end();
+        // TODO the error should be somehow reported in the task (currently it is not)
     }
 
     @Test
-    public void test120ReconciliationWithBrokenAccount() throws Exception {
+    public void test120ImportWithAllFailuresEnabled() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // This enables other kinds of failures (e.g. those in mappings)
+        failuresEnabled = true;
+
+        when();
+        rerunTaskErrorsOk(TASK_IMPORT.oid, result);
+
+        then();
+        stabilize();
+        assertTask(TASK_IMPORT.oid, "import task after")
+                .display()
+                .assertPartialError()
+                .assertClosed()
+                .assertProgress(10)
+                .iterativeTaskInformation()
+                    .display()
+                    .assertSuccessCount(8)
+                    .assertFailureCount(2)
+                    .end();
+        // TODO the error should be somehow reported in the task (currently it is not)
+
+        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
+                .display();
+        assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.getResource())
+                .display();
+    }
+
+    @Test
+    public void test130ReconciliationWithAllFailuresEnabled() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -163,11 +237,18 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
         assertTask(TASK_RECONCILIATION.oid, "reconciliation task after")
                 .display()
                 .displayOperationResult()
-                //.assertPartialError()
+                .assertPartialError()
                 .assertClosed()
-                .assertProgress(11)
+                .assertProgress(11) // may change in the future
                 .iterativeTaskInformation()
                     .display()
+                    .assertSuccessCount(8)
+                    .assertFailureCount(3) // u-000003 failed once in 2nd part, and once in 3rd part
+                    .assertLastFailureObjectName(MALFORMED_SHADOW_NAME)
                     .end();
+        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
+                .display();
+        assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.getResource())
+                .display();
     }
 }

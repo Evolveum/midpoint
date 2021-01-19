@@ -8,11 +8,14 @@
 package com.evolveum.midpoint.model.impl.sync.tasks.imp;
 
 import java.util.Collection;
+import java.util.function.Function;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
 import com.evolveum.midpoint.model.impl.sync.tasks.Synchronizer;
 import com.evolveum.midpoint.model.impl.tasks.AbstractSearchIterativeModelTaskPartExecution;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
@@ -100,6 +103,11 @@ public class ImportFromResourceTaskPartExecution
             return ObjectQueryUtil.createResourceAndObjectClassQuery(taskExecution.getResourceOid(),
                     taskExecution.getObjectClassName(), getPrismContext());
         }
+    }
+
+    @Override
+    protected Function<ItemPath, ItemDefinition<?>> createItemDefinitionProvider() {
+        return createItemDefinitionProviderForAttributes(taskExecution.getTargetInfo().getObjectClassDefinition());
     }
 
     public class Handler

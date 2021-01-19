@@ -99,7 +99,6 @@ public class ShadowIntegrityCheckResultHandler
         super(taskExecution);
 
         this.prismContext = taskExecution.getPrismContext();
-        setLogErrors(false);            // we do log errors ourselves
 
         ensureNoWorkerThreads();
 

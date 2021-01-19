@@ -8,9 +8,12 @@
 package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 
 import java.util.Collection;
+import java.util.function.Function;
 
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
@@ -90,6 +93,11 @@ class ReconciliationTaskThirdPartExecution
         return taskHandler.schemaHelper.getOperationOptionsBuilder()
                 .errorReportingMethod(FetchErrorReportingMethodType.FETCH_RESULT)
                 .build();
+    }
+
+    @Override
+    protected Function<ItemPath, ItemDefinition<?>> createItemDefinitionProvider() {
+        return createItemDefinitionProviderForAttributes(taskExecution.getTargetInfo().getObjectClassDefinition());
     }
 
     @Override

@@ -23,6 +23,7 @@ public class TaskReportingOptions {
     private boolean enableIterationStatistics = true;   // beware, this controls whether task stores these statistics; see also recordIterationStatistics in AbstractSearchIterativeResultHandler
     private boolean enableSynchronizationStatistics = false;
     private boolean enableActionsExecutedStatistics = true;
+    private boolean logErrors = true;
 
     public boolean isLogFinishInfo() {
         return logFinishInfo;
@@ -70,6 +71,14 @@ public class TaskReportingOptions {
 
     public void setEnableActionsExecutedStatistics(boolean enableActionsExecutedStatistics) {
         this.enableActionsExecutedStatistics = enableActionsExecutedStatistics;
+    }
+
+    public boolean isLogErrors() {
+        return logErrors;
+    }
+
+    public void setLogErrors(boolean logErrors) {
+        this.logErrors = logErrors;
     }
 
     public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {

@@ -63,6 +63,7 @@ public class ShadowIntegrityCheckTaskHandler
         super("Shadow integrity check", OperationConstants.CHECK_SHADOW_INTEGRITY);
         setLogFinishInfo(true);
         setPreserveStatistics(false);
+        reportingOptions.setLogErrors(false); // we do log errors ourselves
     }
 
     @PostConstruct
