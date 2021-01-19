@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -330,7 +330,7 @@ public class QueryConverterImpl implements QueryConverter {
                         //noinspection unchecked
                         return EqualFilterImpl.createEqual(itemPath, (PrismPropertyDefinition<T>) itemDefinition, matchingRule, expressionWrapper);
                     } else if (isSubstring) {
-                        return SubstringFilterImpl.createSubstring(itemPath, (PrismPropertyDefinition<?>) itemDefinition, prismContext, matchingRule, expressionWrapper, getAnchorStart(clauseXMap), getAnchorEnd(clauseXMap));
+                        return SubstringFilterImpl.createSubstring(itemPath, (PrismPropertyDefinition<?>) itemDefinition, matchingRule, expressionWrapper, getAnchorStart(clauseXMap), getAnchorEnd(clauseXMap));
                     } else if (isGt || isGtEq) {
                         //noinspection unchecked
                         return GreaterFilterImpl.createGreater(itemPath, (PrismPropertyDefinition<T>) itemDefinition, matchingRule, expressionWrapper, isGtEq);
@@ -348,7 +348,7 @@ public class QueryConverterImpl implements QueryConverter {
                 } else {
 
                     if (isSubstring) {
-                        return SubstringFilterImpl.createSubstring(itemPath, (PrismPropertyDefinition<?>) itemDefinition, prismContext, matchingRule, null, getAnchorStart(clauseXMap), getAnchorEnd(clauseXMap));
+                        return SubstringFilterImpl.createSubstring(itemPath, (PrismPropertyDefinition<?>) itemDefinition, matchingRule, null, getAnchorStart(clauseXMap), getAnchorEnd(clauseXMap));
                     } else {
                         //noinspection unchecked
                         return EqualFilterImpl.createEqual(itemPath, (PrismPropertyDefinition<T>) itemDefinition, matchingRule);
@@ -594,13 +594,6 @@ public class QueryConverterImpl implements QueryConverter {
         }
     }
 
-//    private PrimitiveXNode toPrimitive(XNode xnode, XNode context) throws SchemaException {
-//        if (!(xnode instanceof PrimitiveXNode)) {
-//            throw new SchemaException("Cannot parse filter from "+context+ ": This should be a primitive: "+xnode);
-//        }
-//        return (PrimitiveXNode)xnode;
-//    }
-
     private ItemPath getPath(MapXNodeImpl clauseXMap) throws SchemaException {
         return getPath(clauseXMap, ELEMENT_PATH);
     }
@@ -646,7 +639,7 @@ public class QueryConverterImpl implements QueryConverter {
     }
 
     private <C extends Containerable> ItemDefinition<?> locateItemDefinition(XNodeImpl valueXnode, ItemPath itemPath,
-            PrismContainerDefinition<C> pcd) throws SchemaException{
+            PrismContainerDefinition<C> pcd) {
         if (pcd != null) {
             ItemDefinition<?> itemDefinition = pcd.findItemDefinition(itemPath);
             if (itemDefinition == null) {
@@ -916,17 +909,6 @@ public class QueryConverterImpl implements QueryConverter {
         }
         map.put(ELEMENT_PATH, createPrimitiveXNode(new ItemPathType(path), ItemPathType.COMPLEX_TYPE));
     }
-
-//    private <T> XNode serializePropertyValue(PrismPropertyValue<T> value, PrismPropertyDefinition<T> definition, BeanMarshaller beanConverter) throws SchemaException {
-//            QName typeQName = definition.getTypeName();
-//            T realValue = value.getValue();
-//            if (beanConverter.canProcess(typeQName)) {
-//                return beanConverter.marshall(realValue);
-//            } else {
-//                // primitive value
-//                return createPrimitiveXNode(realValue, typeQName);
-//            }
-//        }
 
     private <T> PrimitiveXNodeImpl<T> createPrimitiveXNode(T val, QName type) {
         PrimitiveXNodeImpl<T> xprim = new PrimitiveXNodeImpl<>();
