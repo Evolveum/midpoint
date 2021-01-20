@@ -34,6 +34,12 @@ import java.util.List;
 public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
 
     protected static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M8/";
+    private static final File INTERNAL_EMPLOYEE_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-internal-employee.xml");
+    private static final File NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE = new File(LAB_OBJECTS_DIRECTORY + "valuePolicies/numeric-pin-first-nonzero-policy.xml");
+    private static final File HR_RESOURCE_FILE_8_1 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-hr.xml");
+    private static final File CSV_1_RESOURCE_FILE_8 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-8.ml");
+    private static final File CSV_2_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-2-canteen-8.xml");
+    private static final File CSV_3_RESOURCE_FILE_8 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-8.xml");
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override
@@ -95,13 +101,13 @@ public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
         importObject(HR_RESOURCE_FILE_8_1, true);
         changeResourceAttribute(HR_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, hrTargetFile.getAbsolutePath(), true);
 
-        importObject(CSV_1_RESOURCE_FILE, true);
+        importObject(CSV_1_RESOURCE_FILE_8, true);
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
 
         importObject(CSV_2_RESOURCE_FILE, true);
         changeResourceAttribute(CSV_2_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv2TargetFile.getAbsolutePath(), true);
 
-        importObject(CSV_3_RESOURCE_FILE_8_1, true);
+        importObject(CSV_3_RESOURCE_FILE_8, true);
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         ResourceAccountsTab<ViewResourcePage> accountTab = basicPage.listResources()

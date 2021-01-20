@@ -39,6 +39,13 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
 
     protected static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M7/";
     private static final Logger LOG = LoggerFactory.getLogger(M7SynchronizationFlavours.class);
+    private static final File ARCHETYPE_EMPLOYEE_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-employee.xml");
+    private static final File SYSTEM_CONFIGURATION_FILE_7 = new File(LAB_OBJECTS_DIRECTORY + "systemConfiguration/system-configuration-5-7.xml");
+    private static final File NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE = new File(LAB_OBJECTS_DIRECTORY + "valuePolicies/numeric-pin-first-nonzero-policy.xml");
+    private static final File HR_NO_EXTENSION_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-hr-noextension.xml");
+    private static final File CSV_1_RESOURCE_FILE_7 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-7.xml");
+    private static final File CSV_2_RESOURCE_FILE_7 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-2-canteen-7.xml");
+    private static final File CSV_3_RESOURCE_FILE_7 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-7.xml");
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override
@@ -48,7 +55,7 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
 
     @Override
     protected List<File> getObjectListToImport(){
-        return Arrays.asList(ARCHETYPE_EMPLOYEE_FILE, SYSTEM_CONFIGURATION_FILE_5_7);
+        return Arrays.asList(ARCHETYPE_EMPLOYEE_FILE, SYSTEM_CONFIGURATION_FILE_7);
     }
 
     @Test(groups={"M7"})
@@ -111,11 +118,11 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
         csv3TargetFile = new File(getTestTargetDir(), CSV_3_FILE_SOURCE_NAME);
         FileUtils.copyFile(CSV_3_SOURCE_FILE, csv3TargetFile);
 
-        importObject(CSV_1_RESOURCE_FILE, true);
+        importObject(CSV_1_RESOURCE_FILE_7, true);
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
-        importObject(CSV_2_RESOURCE_FILE_5_5, true);
+        importObject(CSV_2_RESOURCE_FILE_7, true);
         changeResourceAttribute(CSV_2_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv2TargetFile.getAbsolutePath(), true);
-        importObject(CSV_3_RESOURCE_FILE, true);
+        importObject(CSV_3_RESOURCE_FILE_7, true);
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
 
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
