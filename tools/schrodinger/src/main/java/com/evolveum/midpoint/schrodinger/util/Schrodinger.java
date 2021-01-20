@@ -293,7 +293,7 @@ public class Schrodinger {
             elementName = "*";
         }
 
-        return By.xpath("//" + elementName + "[text()='" + value + "']");
+        return By.xpath(".//" + elementName + "[text()='" + value + "']");
     }
 
     /**

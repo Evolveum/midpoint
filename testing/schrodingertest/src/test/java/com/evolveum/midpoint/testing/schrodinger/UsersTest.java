@@ -55,14 +55,15 @@ public class UsersTest extends AbstractSchrodingerTest {
 
         screenshot("paging");
 
-        paging.next();
-        paging.last();
-        paging.previous();
-        paging.first();
-        paging.actualPagePlusOne();
-        paging.actualPagePlusTwo();
-        paging.actualPageMinusTwo();
-        paging.actualPageMinusOne();
+        paging
+                .next()
+                .last()
+                .previous()
+                .first()
+                .actualPagePlusOne()
+                .actualPagePlusTwo()
+                .actualPageMinusTwo()
+                .actualPageMinusOne();
     }
 
     @Test

@@ -103,7 +103,7 @@ public class AbstractLabTest extends AbstractSchrodingerTest {
 
     protected File getTestTargetDir() throws IOException {
         if (testTargetDir == null) {
-            initTestDirectory(DIRECTORY_CURRENT_TEST, true);
+            initTestDirectory(DIRECTORY_CURRENT_TEST, false);
         }
         return testTargetDir;
     }
