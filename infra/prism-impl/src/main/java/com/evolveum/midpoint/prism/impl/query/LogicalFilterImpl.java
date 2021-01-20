@@ -14,11 +14,13 @@ import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.google.common.collect.ImmutableList;
 
 public abstract class LogicalFilterImpl extends ObjectFilterImpl implements LogicalFilter {
 
     protected List<ObjectFilter> conditions;
 
+    @Override
     public List<ObjectFilter> getConditions() {
         if (conditions == null){
             conditions = new ArrayList<>();
@@ -26,21 +28,35 @@ public abstract class LogicalFilterImpl extends ObjectFilterImpl implements Logi
         return conditions;
     }
 
+    @Override
     public void setConditions(List<ObjectFilter> condition) {
+        checkMutable();
         this.conditions = condition;
     }
 
+    @Override
     public void addCondition(ObjectFilter condition) {
+        checkMutable();
         if (this.conditions == null) {
             conditions = new ArrayList<>();
         }
         this.conditions.add(condition);
     }
 
+    @Override
     public boolean contains(ObjectFilter condition) {
         return this.conditions.contains(condition);
     }
 
+    @Override
+    protected void performFreeze() {
+        conditions = ImmutableList.copyOf(getConditions());
+        for (ObjectFilter objectFilter : conditions) {
+            freeze(objectFilter);
+        }
+    }
+
+    @Override
     abstract public LogicalFilter cloneEmpty();
 
     protected List<ObjectFilter> getClonedConditions() {
@@ -54,6 +70,7 @@ public abstract class LogicalFilterImpl extends ObjectFilterImpl implements Logi
         return clonedConditions;
     }
 
+    @Override
     public boolean isEmpty() {
         return conditions == null || conditions.isEmpty();
     }

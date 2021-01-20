@@ -18,6 +18,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  *
  * @author Radovan Semancik
  */
+// FIXME: This could be singleton
 public class NoneFilterImpl extends ObjectFilterImpl implements NoneFilter {
 
     public NoneFilterImpl() {
@@ -31,6 +32,11 @@ public class NoneFilterImpl extends ObjectFilterImpl implements NoneFilter {
     @Override
     public NoneFilterImpl clone() {
         return new NoneFilterImpl();
+    }
+
+    @Override
+    protected void performFreeze() {
+        // NOOP
     }
 
     @Override

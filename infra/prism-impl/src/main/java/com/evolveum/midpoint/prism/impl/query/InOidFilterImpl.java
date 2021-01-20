@@ -60,24 +60,37 @@ public final class InOidFilterImpl extends ObjectFilterImpl implements InOidFilt
         return new InOidFilterImpl(considerOwner, expression);
     }
 
+    @Override
     public Collection<String> getOids() {
         return oids;
     }
 
+    @Override
     public void setOids(Collection<String> oids) {
+        checkMutable();
         this.oids = oids != null ? new ArrayList<>(oids) : null;
     }
 
+    @Override
     public boolean isConsiderOwner() {
         return considerOwner;
     }
 
+    @Override
     public ExpressionWrapper getExpression() {
         return expression;
     }
 
+    @Override
     public void setExpression(ExpressionWrapper expression) {
+        checkMutable();
         this.expression = expression;
+    }
+
+    @Override
+    protected void performFreeze() {
+        oids = freezeNullableList(oids);
+        freeze(expression);
     }
 
     @Override
@@ -163,7 +176,7 @@ public final class InOidFilterImpl extends ObjectFilterImpl implements InOidFilt
             if (!(container.getParent() instanceof PrismContainerValue)) {
                 return false;
             }
-            pcvToConsider = (PrismContainerValue) container.getParent();
+            pcvToConsider = container.getParent();
         } else {
             pcvToConsider = value;
         }

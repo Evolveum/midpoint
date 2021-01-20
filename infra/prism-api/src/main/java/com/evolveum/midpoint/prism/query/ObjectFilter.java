@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.prism.query;
 
+import com.evolveum.midpoint.prism.Freezable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismContextSensitive;
@@ -17,7 +18,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 import java.io.Serializable;
 
-public interface ObjectFilter extends DebugDumpable, Serializable, Revivable, PrismContextSensitive {
+public interface ObjectFilter extends DebugDumpable, Serializable, Revivable, Freezable, PrismContextSensitive {
 
     /**
      * Does a SHALLOW clone.

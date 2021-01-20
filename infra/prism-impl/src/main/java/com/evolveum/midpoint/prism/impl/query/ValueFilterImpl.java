@@ -76,11 +76,13 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
         return fullPath;
     }
 
+    @Override
     @NotNull
     public ItemPath getParentPath() {
         return fullPath.allExceptLast();
     }
 
+    @Override
     @NotNull
     public ItemName getElementName() {
         if (definition != null) {
@@ -98,21 +100,25 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
         }
     }
 
+    @Override
     @Nullable
     public D getDefinition() {
         return definition;
     }
 
+    @Override
     public void setDefinition(@Nullable D definition) {
         this.definition = definition;
         checkConsistence(false);
     }
 
+    @Override
     @Nullable
     public QName getMatchingRule() {
         return matchingRule;
     }
 
+    @Override
     public void setMatchingRule(@Nullable QName matchingRule) {
         this.matchingRule = matchingRule;
     }
@@ -129,6 +135,7 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
         }
     }
 
+    @Override
     @Nullable
     public List<V> getValues() {
         return values;
@@ -161,6 +168,7 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
         }
     }
 
+    @Override
     @Nullable
     public V getSingleValue() {
         if (values == null || values.isEmpty()) {
@@ -175,7 +183,9 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
     /**
      * @param value value, has to be parent-less
      */
+    @Override
     public void setValue(V value) {
+        checkMutable();
         this.values = new ArrayList<>();
         if (value != null) {
             value.setParent(this);
@@ -183,29 +193,37 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
         }
     }
 
+    @Override
     @Nullable
     public ExpressionWrapper getExpression() {
         return expression;
     }
 
+    @Override
     public void setExpression(@Nullable ExpressionWrapper expression) {
+        checkMutable();
         this.expression = expression;
     }
 
+    @Override
     @Nullable
     public ItemPath getRightHandSidePath() {
         return rightHandSidePath;
     }
 
+    @Override
     public void setRightHandSidePath(@Nullable ItemPath rightHandSidePath) {
+        checkMutable();
         this.rightHandSidePath = rightHandSidePath;
     }
 
+    @Override
     @Nullable
     public ItemDefinition getRightHandSideDefinition() {
         return rightHandSideDefinition;
     }
 
+    @Override
     public void setRightHandSideDefinition(@Nullable ItemDefinition rightHandSideDefinition) {
         this.rightHandSideDefinition = rightHandSideDefinition;
     }
@@ -230,6 +248,7 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
         return getFullPath();
     }
 
+    @Override
     public boolean isRaw() {
         if (values != null) {
             for (V value : values) {
@@ -379,6 +398,15 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
             sb.append(getRightHandSidePath());
         }
         return sb.toString();
+    }
+
+    @Override
+    protected void performFreeze() {
+        values = freezeNullableList(values);
+        freezeAll(values);
+        freeze(definition);
+        freeze(rightHandSideDefinition);
+        freeze(expression);
     }
 
     @Override

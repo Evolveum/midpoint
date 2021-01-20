@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 public final class ExistsFilterImpl extends ObjectFilterImpl implements ExistsFilter {
 
     @NotNull private final ItemPath fullPath;
-    private ItemDefinition definition;
+    private final ItemDefinition definition;
     private ObjectFilter filter;
 
     private ExistsFilterImpl(@NotNull ItemPath fullPath, ItemDefinition definition, ObjectFilter filter) {
@@ -43,16 +43,25 @@ public final class ExistsFilterImpl extends ObjectFilterImpl implements ExistsFi
         return fullPath;
     }
 
+    @Override
     public ItemDefinition getDefinition() {
         return definition;
     }
 
+    @Override
     public ObjectFilter getFilter() {
         return filter;
     }
 
+    @Override
     public void setFilter(ObjectFilter filter) {
+        checkMutable();
         this.filter = filter;
+    }
+
+    @Override
+    protected void performFreeze() {
+        freeze(filter);
     }
 
     public static <C extends Containerable> ExistsFilter createExists(ItemPath itemPath, PrismContainerDefinition<C> containerDef,
@@ -74,6 +83,7 @@ public final class ExistsFilterImpl extends ObjectFilterImpl implements ExistsFi
         return new ExistsFilterImpl(fullPath, definition, f);
     }
 
+    @Override
     public ExistsFilter cloneEmpty() {
         return new ExistsFilterImpl(fullPath, definition, null);
     }

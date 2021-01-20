@@ -54,6 +54,7 @@ public abstract class ComparativeFilterImpl<T> extends PropertyValueFilterImpl<T
     }
 
     public void setEquals(boolean equals) {
+        checkMutable();
         this.equals = equals;
     }
 
