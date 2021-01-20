@@ -156,6 +156,13 @@ public class QueryConverterImpl implements QueryConverter {
 
     private <C extends Containerable> ObjectFilter parseFilterInternal(XNodeImpl clauseContent, QName clauseQName,
             PrismContainerDefinition<C> pcd, boolean preliminaryParsingOnly, ParsingContext pc) throws SchemaException {
+        ObjectFilter filter = parseFilterInternalUnfrozen(clauseContent, clauseQName, pcd, preliminaryParsingOnly, pc);
+        Freezable.freezeNullable(filter);
+        return filter;
+    }
+
+    private <C extends Containerable> ObjectFilter parseFilterInternalUnfrozen(XNodeImpl clauseContent, QName clauseQName,
+            PrismContainerDefinition<C> pcd, boolean preliminaryParsingOnly, ParsingContext pc) throws SchemaException {
 
         // trivial filters
         if(QNameUtil.match(clauseQName, CLAUSE_TEXT)) {

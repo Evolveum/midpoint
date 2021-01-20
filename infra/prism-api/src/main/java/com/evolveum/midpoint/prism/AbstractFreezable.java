@@ -19,8 +19,10 @@ public abstract class AbstractFreezable implements Freezable {
     }
 
     protected void freezeAll(Iterable<? extends Freezable> children) {
-        for (Freezable freezable : children) {
-            freeze(freezable);
+        if (children != null) {
+            for (Freezable freezable : children) {
+                freeze(freezable);
+            }
         }
     }
 
