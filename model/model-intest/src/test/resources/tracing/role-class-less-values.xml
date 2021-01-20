@@ -18,9 +18,8 @@
                 <expression>
                     <script>
                         <code>
-                            raw = hacking.execute("createContainerValue", [name: name]).getValue().get(0)
-                            pcv = raw.getParsedValue(null, null) // brutal hack
-                            log.info('value = {}', pcv)
+                            pcv = hacking.execute("createContainerValue", [name: name]).getValue().get(0)
+                            log.info('value = {}', pcv.debugDump())
                             pcv
                         </code>
                     </script>

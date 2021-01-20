@@ -17,11 +17,12 @@
             <name>name</name>
             <type>xsd:string</type>
         </parameter>
-        <returnType>t:ItemDeltaType</returnType>
+        <returnType>t:ItemType</returnType>
         <script>
             <code>
                 import com.evolveum.midpoint.model.intest.misc.TestTracing
                 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType
+                import com.evolveum.prism.xml.ns._public.types_3.ItemType
                 import com.evolveum.prism.xml.ns._public.types_3.RawType
 
                 import static com.evolveum.midpoint.model.intest.misc.TestTracing.NAME_EMBEDDED
@@ -47,10 +48,9 @@
                 log.info('created PCV:\n{}', rootPcv.debugDump())
                 rootPcv
 
-                idt = new ItemDeltaType()
-                idt.value.add(new RawType(rootPcv, TYPE_MY_CONTAINER, midpoint.prismContext))
-//                idt.value.add(rootPcv)
-                idt
+                item = new ItemType()
+                item.value.add(rootPcv)
+                item
             </code>
         </script>
     </function>
