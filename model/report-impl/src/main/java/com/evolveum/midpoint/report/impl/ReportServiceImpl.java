@@ -36,6 +36,7 @@ import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEval
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptEvaluator;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.TypeFilter;
@@ -128,9 +129,11 @@ public class ReportServiceImpl implements ReportService {
 
             q = ExpressionUtil.evaluateQueryExpressions(q, variables, expressionProfile, expressionFactory, prismContext,
                     "parsing expression values for report", task, result);
-            ((TypeFilter) filter).setFilter(q.getFilter());
-            ObjectQueryUtil.simplify(filter, prismContext);
-            parsedQuery = prismContext.queryFactory().createQuery(filter);
+
+            TypeFilter typeFilter = ((TypeFilter) filter).cloneEmpty();
+            typeFilter.setFilter(q.getFilter());
+            ObjectFilter simplifiedFilter = ObjectQueryUtil.simplify(typeFilter, prismContext);
+            parsedQuery = prismContext.queryFactory().createQuery(simplifiedFilter);
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("report query (parsed):\n{}", parsedQuery.debugDump(1));
@@ -152,6 +155,10 @@ public class ReportServiceImpl implements ReportService {
         // List<PrismObject<? extends ObjectType>> results = new ArrayList<>();
 
         // GetOperationOptions options = GetOperationOptions.createRaw();
+
+        if(query.getFilter() instanceof NoneFilter) {
+            return Collections.emptyList();
+        }
 
         if (!(query.getFilter() instanceof TypeFilter)) {
             throw new IllegalArgumentException("Query must contain type filter.");
