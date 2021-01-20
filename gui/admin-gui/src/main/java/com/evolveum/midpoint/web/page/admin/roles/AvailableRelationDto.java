@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.page.admin.roles;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationSearchItemConfigurationType;
 
 import org.apache.cxf.common.util.CollectionUtils;
@@ -55,6 +56,10 @@ public class AvailableRelationDto implements Serializable {
     }
 
     public QName getDefaultRelation() {
+        return getDefaultRelation(false);
+    }
+
+    private QName getDefaultRelation(boolean allowAny) {
         List<QName>  availableRelationList = getAvailableRelationList();
         if (availableRelationList != null && availableRelationList.size() == 1) {
             return availableRelationList.get(0);
@@ -66,9 +71,16 @@ public class AvailableRelationDto implements Serializable {
             }
             defaultRelation = this.defaultRelation;
         }
+        if (allowAny && QNameUtil.match(defaultRelation, PrismConstants.Q_ANY)){
+            return defaultRelation;
+        }
         if (availableRelationList != null && availableRelationList.contains(defaultRelation)) {
             return defaultRelation;
         }
         return null;
+    }
+
+    public QName getDefaultRelationAllowAny() {
+        return getDefaultRelation(true);
     }
 }

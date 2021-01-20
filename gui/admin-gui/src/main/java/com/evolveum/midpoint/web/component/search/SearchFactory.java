@@ -35,6 +35,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
+
 public class SearchFactory {
 
     private static final String DOT_CLASS = SearchFactory.class.getName() + ".";
@@ -175,14 +177,15 @@ public class SearchFactory {
     }
 
     public static <C extends Containerable> Search createContainerSearch(ContainerTypeSearchItem<C> type, ModelServiceLocator modelServiceLocator) {
-        return createContainerSearch(type, null, modelServiceLocator);
+        return createContainerSearch(type, null, modelServiceLocator, false);
     }
 
-    public static <C extends Containerable> Search createContainerSearch(ContainerTypeSearchItem<C> type, ItemPath defaultSearchItem, ModelServiceLocator modelServiceLocator) {
-        return createContainerSearch(type, defaultSearchItem, null, modelServiceLocator);
+    public static <C extends Containerable> Search createContainerSearch(ContainerTypeSearchItem<C> type, ItemPath defaultSearchItem,
+            ModelServiceLocator modelServiceLocator, boolean useObjectCollection) {
+        return createContainerSearch(type, defaultSearchItem, null, modelServiceLocator, useObjectCollection);
     }
     public static <C extends Containerable> Search createContainerSearch(ContainerTypeSearchItem<C> type, ItemPath defaultSearchItem, List<SearchItemDefinition> defaultAvailableDefs,
-            ModelServiceLocator modelServiceLocator) {
+            ModelServiceLocator modelServiceLocator, boolean useObjectCollection) {
 
         PrismContainerDefinition<C> containerDef = modelServiceLocator.getPrismContext().getSchemaRegistry()
                 .findContainerDefinitionByCompileTimeClass(type.getTypeClass());
@@ -192,7 +195,14 @@ public class SearchFactory {
         }
 
         Search search = new Search(type, availableDefs);
-        if (defaultSearchItem != null) {
+
+        List<SearchItemDefinition> configuredSearchItemDefs = null;
+        if (useObjectCollection) {
+            configuredSearchItemDefs = getConfiguredSearchItemDefinitions(availableDefs, modelServiceLocator, containerDef.getTypeName(), null, Search.PanelType.DEFAULT);
+        }
+        if (!CollectionUtils.isEmpty(configuredSearchItemDefs)) {
+            processSearchItemDefFromCompiledView(configuredSearchItemDefs, search, containerDef);
+        } else if (defaultSearchItem != null) {
             ItemDefinition defaultItemDef = containerDef.findItemDefinition(defaultSearchItem);
             if (defaultItemDef != null) {
                 search.addItem(defaultItemDef);
@@ -228,8 +238,9 @@ public class SearchFactory {
         List<SearchItemDefinition> availableDefs = getAvailableDefinitions(objectDef, availableItemPath, useDefsFromSuperclass);
         boolean isFullTextSearchEnabled = isFullTextSearchEnabled(modelServiceLocator, type.getTypeClass());
 
+        QName qNametype = WebComponentUtil.classToQName(modelServiceLocator.getPrismContext(), type.getTypeClass());
         Search search = new Search(type, availableDefs, isFullTextSearchEnabled,
-                getDefaultSearchType(modelServiceLocator, type.getTypeClass(), collectionViewName, panelType),
+                getDefaultSearchType(modelServiceLocator, qNametype, collectionViewName, panelType),
                 isOidSearchEnabled);
 
         SchemaRegistry registry = modelServiceLocator.getPrismContext().getSchemaRegistry();
@@ -237,7 +248,7 @@ public class SearchFactory {
 
         List<SearchItemDefinition> configuredSearchItemDefs = null;
         if (useObjectCollection) {
-            configuredSearchItemDefs = getConfiguredSearchItemDefinitions(availableDefs, modelServiceLocator, type.getTypeClass(), collectionViewName, panelType);
+            configuredSearchItemDefs = getConfiguredSearchItemDefinitions(availableDefs, modelServiceLocator, qNametype, collectionViewName, panelType);
         }
         if (useObjectCollection && !CollectionUtils.isEmpty(configuredSearchItemDefs)) {
             processSearchItemDefFromCompiledView(configuredSearchItemDefs, search, objDef);
@@ -254,17 +265,17 @@ public class SearchFactory {
                 }
             });
         }
-        search.setCanConfigure(isAllowToConfigureSearchItems(modelServiceLocator, type.getTypeClass(), collectionViewName, panelType));
+        search.setCanConfigure(isAllowToConfigureSearchItems(modelServiceLocator, qNametype, collectionViewName, panelType));
         return search;
     }
 
-    public static void processSearchItemDefFromCompiledView(List<SearchItemDefinition> configuredSearchItemDefs, Search search, PrismObjectDefinition objDef) {
+    public static void processSearchItemDefFromCompiledView(List<SearchItemDefinition> configuredSearchItemDefs, Search search, PrismContainerDefinition containerDef) {
         configuredSearchItemDefs.forEach(searchItemDef -> {
             search.addItemToAllDefinitions(searchItemDef);
             if (searchItemDef.isVisibleByDefault()) {
                 SearchItem item = null;
                 if (searchItemDef.getPath() != null) {
-                    ItemDefinition def = objDef.findItemDefinition(searchItemDef.getPath());
+                    ItemDefinition def = containerDef.findItemDefinition(searchItemDef.getPath());
                     item = search.addItem(def);
                     ((PropertySearchItem) item).setDisplayName(searchItemDef.getDisplayName());
                 } else if (searchItemDef.getPredefinedFilter() != null) {
@@ -304,8 +315,8 @@ public class SearchFactory {
         }
     }
 
-    public static <T extends ObjectType> List<SearchItemDefinition> getConfiguredSearchItemDefinitions(List<SearchItemDefinition> availableDefinitions,
-            ModelServiceLocator modelServiceLocator, Class<T> type, String collectionViewName, Search.PanelType panelType) {
+    public static <C extends Containerable> List<SearchItemDefinition> getConfiguredSearchItemDefinitions(List<SearchItemDefinition> availableDefinitions,
+            ModelServiceLocator modelServiceLocator, QName type, String collectionViewName, Search.PanelType panelType) {
         SearchBoxConfigurationType searchConfig = getSearchBoxConfiguration(modelServiceLocator, type, collectionViewName, panelType);
         if (searchConfig == null) {
             return null;
@@ -377,7 +388,7 @@ public class SearchFactory {
         }
     }
 
-    private static <T extends ObjectType> SearchBoxModeType getDefaultSearchType(ModelServiceLocator modelServiceLocator, Class<T> type,
+    private static <T extends ObjectType> SearchBoxModeType getDefaultSearchType(ModelServiceLocator modelServiceLocator, QName type,
             String collectionViewName, Search.PanelType panelType) {
         SearchBoxConfigurationType searchConfig = getSearchBoxConfiguration(modelServiceLocator, type, collectionViewName, panelType);
         if (searchConfig == null) {
@@ -386,7 +397,7 @@ public class SearchFactory {
         return searchConfig.getDefaultMode();
     }
 
-    private static <T extends ObjectType> boolean isAllowToConfigureSearchItems(ModelServiceLocator modelServiceLocator, Class<T> type,
+    private static <T extends ObjectType> boolean isAllowToConfigureSearchItems(ModelServiceLocator modelServiceLocator, QName type,
             String collectionViewName, Search.PanelType panelType) {
         SearchBoxConfigurationType searchConfig = getSearchBoxConfiguration(modelServiceLocator, type, collectionViewName, panelType);
         if (searchConfig == null || searchConfig.isAllowToConfigureSearchItems() == null) {
@@ -395,13 +406,12 @@ public class SearchFactory {
         return searchConfig.isAllowToConfigureSearchItems();
     }
 
-    private static <T extends ObjectType> SearchBoxConfigurationType getSearchBoxConfiguration(ModelServiceLocator modelServiceLocator,
-            Class<T> type, String collectionViewName, Search.PanelType panelType) {
+    private static <C extends Containerable> SearchBoxConfigurationType getSearchBoxConfiguration(ModelServiceLocator modelServiceLocator,
+            QName type, String collectionViewName, Search.PanelType panelType) {
         OperationResult result = new OperationResult(LOAD_ADMIN_GUI_CONFIGURATION);
         try {
             CompiledGuiProfile guiConfig = modelServiceLocator.getModelInteractionService().getCompiledGuiProfile(null, result);
-            CompiledObjectCollectionView view = guiConfig.findObjectCollectionView(
-                    WebComponentUtil.classToQName(modelServiceLocator.getPrismContext(), type), collectionViewName);
+            CompiledObjectCollectionView view = guiConfig.findObjectCollectionView(type, collectionViewName);
             if (view != null) {
                 if (Search.PanelType.MEMBER_PANEL.equals(panelType) && view.getAdditionalPanels() != null
                         && view.getAdditionalPanels().getMemberPanel() != null) {
