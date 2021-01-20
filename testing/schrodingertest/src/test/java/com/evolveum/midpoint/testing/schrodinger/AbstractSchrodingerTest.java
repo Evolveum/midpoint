@@ -347,7 +347,7 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
             if (overwrite) {
                 options = RepoAddOptions.createOverwrite();
             }
-            repoAddObjectFromFile(file, options, false, result);
+            repoAddObjectsFromFile(file, null, options, result);
         } catch (SchemaException | ObjectAlreadyExistsException | EncryptionException | IOException ex) {
             LOG.error("Unable to add object, {}", result.getUserFriendlyMessage(), ex);
         }
