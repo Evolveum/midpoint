@@ -68,7 +68,7 @@ public class PrismIdentifierGenerator<O extends ObjectType> implements DebugDump
         return result;
     }
 
-    private List<PrismContainer<?>> listAllPrismContainers(Visitable<?> object) {
+    private <T extends Visitable<T>> List<PrismContainer<?>> listAllPrismContainers(Visitable<T> object) {
         List<PrismContainer<?>> values = new ArrayList<>();
 
         object.accept(visitable -> {

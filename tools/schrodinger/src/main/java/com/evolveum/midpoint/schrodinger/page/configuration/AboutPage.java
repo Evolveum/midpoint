@@ -157,7 +157,7 @@ public class AboutPage extends BasicPage {
     }
 
     public AboutPage assertGitDescribeValueIsNotEmpty() {
-        Assert.assertFalse(StringUtils.isNotEmpty(gitDescribe()), "Git describe value shouldn't be empty");
+        Assert.assertTrue(StringUtils.isNotEmpty(gitDescribe()), "Git describe value shouldn't be empty");
         return this;
     }
 
@@ -167,7 +167,7 @@ public class AboutPage extends BasicPage {
     }
 
     public AboutPage assertBuildAtValueIsNotEmpty() {
-        Assert.assertFalse(StringUtils.isNotEmpty(buildAt()), "Build at value shouldn't be empty");
+        Assert.assertTrue(StringUtils.isNotEmpty(buildAt()), "Build at value shouldn't be empty");
         return this;
     }
 
@@ -187,7 +187,7 @@ public class AboutPage extends BasicPage {
     }
 
     public AboutPage assertJVMPropertyValueIsNotEmpty(String propertyName) {
-        Assert.assertFalse(StringUtils.isNotEmpty(getJVMproperty(propertyName)), "JVM property " + propertyName + " shouldn't be empty");
+        Assert.assertTrue(StringUtils.isNotEmpty(getJVMproperty(propertyName)), "JVM property " + propertyName + " shouldn't be empty");
         return this;
     }
 
@@ -197,7 +197,7 @@ public class AboutPage extends BasicPage {
     }
 
     public AboutPage assertSystemPropertyValueIsNotEmpty(String propertyName) {
-        Assert.assertFalse(StringUtils.isNotEmpty(getSystemProperty(propertyName)), "System property " + propertyName + " shouldn't be empty");
+        Assert.assertTrue(StringUtils.isNotEmpty(getSystemProperty(propertyName)), "System property " + propertyName + " shouldn't be empty");
         return this;
     }
 

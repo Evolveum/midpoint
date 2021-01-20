@@ -30,6 +30,7 @@ import java.util.List;
 
 public class M9OrganizationalStructure extends AbstractLabTest{
 
+    protected static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M9/";
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override

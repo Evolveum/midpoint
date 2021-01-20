@@ -117,15 +117,21 @@ public class RefFilterImpl extends ValueFilterImpl<PrismReferenceValue, PrismRef
         return obj instanceof RefFilter && super.equals(obj, exact);
     }
 
+    @Override
     public void setOidNullAsAny(boolean oidNullAsAny) {
+        checkMutable();
         this.oidNullAsAny = oidNullAsAny;
     }
 
+    @Override
     public void setTargetTypeNullAsAny(boolean targetTypeNullAsAny) {
+        checkMutable();
         this.targetTypeNullAsAny = targetTypeNullAsAny;
     }
 
+    @Override
     public void setRelationNullAsAny(boolean relationNullAsAny) {
+        checkMutable();
         this.relationNullAsAny = relationNullAsAny;
     }
 
