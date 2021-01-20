@@ -58,7 +58,7 @@ public class MultiPropagationTaskHandler
         super("Provisioning propagation (multi)", OperationConstants.PROVISIONING_PROPAGATION);
         reportingOptions.setPreserveStatistics(false);
         reportingOptions.setEnableSynchronizationStatistics(false);
-        reportingOptions.setSkipWritingOperationExecutionRecords(true);
+        reportingOptions.setSkipWritingOperationExecutionRecords(true); // to avoid resource change (invalidates the caches)
     }
 
     @PostConstruct

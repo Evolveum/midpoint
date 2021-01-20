@@ -403,8 +403,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Description of recent operations executed on this object (or related objects, e.g. shadows
-                            in case of a focal object). The number of operations to be kept here is configurable.
+                            Description of recent operations executed on this object (or related objects in special
+                            cases). The number of operations to be kept here is configurable.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>

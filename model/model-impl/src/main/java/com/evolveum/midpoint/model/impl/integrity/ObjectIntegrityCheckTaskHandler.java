@@ -56,7 +56,7 @@ public class ObjectIntegrityCheckTaskHandler
         super("Object integrity check", OperationConstants.CHECK_OBJECT_INTEGRITY);
         reportingOptions.setPreserveStatistics(false);
         reportingOptions.setLogErrors(false); // we do log errors ourselves
-        reportingOptions.setSkipWritingOperationExecutionRecords(true);
+        reportingOptions.setSkipWritingOperationExecutionRecords(true); // because of performance
     }
 
     @PostConstruct

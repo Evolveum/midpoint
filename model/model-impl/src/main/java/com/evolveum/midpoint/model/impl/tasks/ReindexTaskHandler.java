@@ -47,6 +47,7 @@ public class ReindexTaskHandler
     public ReindexTaskHandler() {
         super("Reindex", OperationConstants.REINDEX);
         reportingOptions.setPreserveStatistics(false);
+        reportingOptions.setSkipWritingOperationExecutionRecords(false); // because of performance
     }
 
     @PostConstruct

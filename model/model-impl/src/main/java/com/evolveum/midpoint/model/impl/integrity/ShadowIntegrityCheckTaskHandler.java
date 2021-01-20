@@ -58,7 +58,7 @@ public class ShadowIntegrityCheckTaskHandler
         super("Shadow integrity check", OperationConstants.CHECK_SHADOW_INTEGRITY);
         reportingOptions.setPreserveStatistics(false);
         reportingOptions.setLogErrors(false); // we do log errors ourselves
-        reportingOptions.setSkipWritingOperationExecutionRecords(true);
+        reportingOptions.setSkipWritingOperationExecutionRecords(true); // because of performance
     }
 
     @PostConstruct
