@@ -278,18 +278,18 @@ public class JdbcSession implements AutoCloseable {
             @Nullable OperationResult result) {
         LOGGER.debug("General runtime exception occurred.", ex);
 
-        if (jdbcRepositoryConfiguration.shouldRollback(ex)) {
-            rollbackTransaction(ex, result, false);
-            // this exception will be caught and processed in logOperationAttempt,
-            // so it's safe to pass any RuntimeException here
-            throw ex;
-        } else {
+        if (jdbcRepositoryConfiguration.isFatalException(ex)) {
             rollbackTransaction(ex, result, true);
             if (ex instanceof SystemException) {
                 throw ex;
             } else {
                 throw new SystemException(ex.getMessage(), ex);
             }
+        } else {
+            rollbackTransaction(ex, result, false);
+            // this exception will be caught and processed in logOperationAttempt,
+            // so it's safe to pass any RuntimeException here
+            throw ex;
         }
     }
 
@@ -303,8 +303,7 @@ public class JdbcSession implements AutoCloseable {
             @Nullable OperationResult result) {
         LOGGER.error("General checked exception occurred.", ex);
 
-        boolean fatal = !jdbcRepositoryConfiguration.shouldRollback(ex);
-        rollbackTransaction(ex, result, fatal);
+        rollbackTransaction(ex, result, jdbcRepositoryConfiguration.isFatalException(ex));
         throw new SystemException(ex.getMessage(), ex);
     }
 

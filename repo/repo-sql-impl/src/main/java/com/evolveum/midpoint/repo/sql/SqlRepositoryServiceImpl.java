@@ -364,6 +364,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
+    @NotNull
     public <T extends ObjectType> String addObject(
             PrismObject<T> object, RepoAddOptions options, OperationResult result)
             throws ObjectAlreadyExistsException, SchemaException {

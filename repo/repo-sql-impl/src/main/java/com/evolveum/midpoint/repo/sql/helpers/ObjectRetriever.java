@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.helpers;
 
 import static org.apache.commons.lang3.ArrayUtils.getLength;
@@ -40,11 +39,11 @@ import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.QueryEngine;
-import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
 import com.evolveum.midpoint.repo.sql.query.RQueryImpl;
 import com.evolveum.midpoint.repo.sql.query.hqm.QueryParameterValue;
 import com.evolveum.midpoint.repo.sql.util.*;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -256,42 +255,6 @@ public class ObjectRetriever {
         return owner;
     }
 
-    public PrismObject<UserType> listAccountShadowOwnerAttempt(String accountOid, OperationResult result) {
-        LOGGER_PERFORMANCE.debug("> list account shadow owner oid={}", accountOid);
-        PrismObject<UserType> userType = null;
-        Session session = null;
-        try {
-            session = baseHelper.beginReadOnlyTransaction();
-            Query query = session.getNamedQuery("listAccountShadowOwner.getUser");
-            query.setParameter("oid", accountOid);
-            query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
-
-            @SuppressWarnings({ "unchecked", "raw" })
-            List<GetObjectResult> users = query.list();
-            LOGGER.trace("Found {} users, transforming data to JAXB types.", users != null ? users.size() : 0);
-
-            if (users == null || users.isEmpty()) {
-                // account shadow owner was not found
-                return null;
-            }
-
-            if (users.size() > 1) {
-                LOGGER.warn("Found {} users for account oid {}, returning first user. [interface change needed]", users.size(), accountOid);
-            }
-
-            GetObjectResult user = users.get(0);
-            userType = updateLoadedObject(user, UserType.class, null, null, null, session);
-
-            session.getTransaction().commit();
-        } catch (SchemaException | RuntimeException ex) {
-            baseHelper.handleGeneralException(ex, session, result);
-        } finally {
-            baseHelper.cleanupSessionAndResult(session, result);
-        }
-
-        return userType;
-    }
-
     public <T extends ObjectType> int countObjectsAttempt(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
         LOGGER_PERFORMANCE.debug("> count objects {}", type.getSimpleName());
@@ -406,7 +369,8 @@ public class ObjectRetriever {
     }
 
     @NotNull
-    private <T extends ObjectType> List<PrismObject<T>> queryResultToPrismObjects(List<GetObjectResult> objects, Class<T> type,
+    private <T extends ObjectType> List<PrismObject<T>> queryResultToPrismObjects(
+            List<GetObjectResult> objects, Class<T> type,
             Collection<SelectorOptions<GetOperationOptions>> options,
             Session session, OperationResult result) throws SchemaException {
         List<PrismObject<T>> rv = new ArrayList<>();

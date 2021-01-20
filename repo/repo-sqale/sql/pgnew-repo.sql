@@ -12,6 +12,7 @@
 -- Names are generally lowercase (despite prefix/suffixes above in uppercase ;-)).
 
 -- just in case PUBLIC schema was dropped (fastest way to remove all midpoint objects)
+-- drop schema public cascade;
 CREATE SCHEMA IF NOT EXISTS public;
 
 -- To support gen_random_uuid() pgcrypto extension must be enabled for the database (not for PG 13).
@@ -78,7 +79,9 @@ BEGIN
 END
 $$;
 
--- catalog of used Q-names
+-- Catalog of used Q-names.
+-- Never update values of "uri" manually to change URI for some objects
+-- (unless you really want to migrate old URI to a new one).
 CREATE TABLE m_qname (
     id SERIAL,
 --     alias VARCHAR(32), -- TODO how to fill it? Perhaps not needed here.
@@ -101,26 +104,26 @@ CREATE TABLE m_object (
     -- Default OID value is covered by INSERT triggers. No PK defined on abstract tables.
     oid UUID NOT NULL,
     -- objectTypeClass will be overridden with GENERATED value in concrete table
-    objectTypeClass INTEGER DEFAULT 3,
+    objectTypeClass INTEGER NOT NULL DEFAULT 3,
     name_norm VARCHAR(255) NOT NULL,
     name_orig VARCHAR(255) NOT NULL,
     fullObject BYTEA,
-    createChannel INTEGER REFERENCES m_qname(id),
-    createTimestamp TIMESTAMPTZ,
     creatorRef_relation VARCHAR(157),
     creatorRef_targetOid VARCHAR(36),
     creatorRef_targetType INTEGER,
-    lifecycleState VARCHAR(255),
+    createChannel_id INTEGER REFERENCES m_qname(id),
+    createTimestamp TIMESTAMPTZ NOT NULL,
     modifierRef_relation VARCHAR(157),
     modifierRef_targetOid VARCHAR(36),
     modifierRef_targetType INTEGER,
-    modifyChannel INTEGER REFERENCES m_qname(id),
-    modifyTimestamp TIMESTAMPTZ,
+    modifyChannel_id INTEGER REFERENCES m_qname(id),
+    modifyTimestamp TIMESTAMPTZ NOT NULL,
+    lifecycleState VARCHAR(255), -- TODO what is this? how many distinct values?
     tenantRef_relation VARCHAR(157),
     tenantRef_targetOid VARCHAR(36),
     tenantRef_targetType INTEGER,
     version INTEGER NOT NULL DEFAULT 1,
-    -- add GIN index for concrete tables where more than thousands of entries are expected (see m_user)
+    -- add GIN index for concrete tables where more than hundreds of entries are expected (see m_user)
     ext JSONB,
 
     -- prevents inserts to this table, but not to inherited ones; this makes it "abstract" table
@@ -152,7 +155,7 @@ ALTER TABLE m_resource ADD CONSTRAINT m_resource_name_norm_key UNIQUE (name_norm
 -- extending m_object, but still abstract, hence DEFAULT for objectTypeClass and CHECK (false)
 CREATE TABLE m_focus (
     -- will be overridden with GENERATED value in concrete table
-    objectTypeClass INTEGER DEFAULT 17,
+    objectTypeClass INTEGER NOT NULL DEFAULT 17,
     administrativeStatus INTEGER,
     archiveTimestamp TIMESTAMPTZ,
     disableReason VARCHAR(255),
@@ -373,6 +376,7 @@ CREATE TABLE m_acc_cert_case (
 
 CREATE TABLE m_acc_cert_definition (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectTypeClass INTEGER GENERATED ALWAYS AS (21) STORED,
     handlerUri VARCHAR(255),
     lastCampaignClosedTimestamp TIMESTAMPTZ,
     lastCampaignStartedTimestamp TIMESTAMPTZ,
@@ -421,6 +425,13 @@ CREATE TABLE m_acc_cert_wi_reference (
 
     PRIMARY KEY (owner_owner_owner_oid, owner_owner_id, owner_id, relation, targetOid)
 );
+
+CREATE TABLE m_node (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectTypeClass INTEGER GENERATED ALWAYS AS (14) STORED,
+    nodeIdentifier VARCHAR(255)
+)
+    INHERITS (m_object);
 
 -- TODO: catalog unused at the moment
 CREATE TABLE m_ext_item (
@@ -659,29 +670,6 @@ CREATE TABLE m_ext_item (
 CREATE TABLE m_object_policy_situation (
   object_oid      VARCHAR(36) NOT NULL,
   policySituation VARCHAR(255)
-);
-CREATE TABLE m_object (
-  oid                       VARCHAR(36) NOT NULL,
-  createChannel             VARCHAR(255),
-  createTimestamp           TIMESTAMP,
-  creatorRef_relation       VARCHAR(157),
-  creatorRef_targetOid      VARCHAR(36),
-  creatorRef_targetType     INTEGER,
-  fullObject                BYTEA,
-  lifecycleState            VARCHAR(255),
-  modifierRef_relation      VARCHAR(157),
-  modifierRef_targetOid     VARCHAR(36),
-  modifierRef_targetType    INTEGER,
-  modifyChannel             VARCHAR(255),
-  modifyTimestamp           TIMESTAMP,
-  name_norm                 VARCHAR(255),
-  name_orig                 VARCHAR(255),
-  objectTypeClass           INTEGER,
-  tenantRef_relation        VARCHAR(157),
-  tenantRef_targetOid       VARCHAR(36),
-  tenantRef_targetType      INTEGER,
-  version                   INTEGER        NOT NULL,
-  PRIMARY KEY (oid)
 );
 CREATE TABLE m_object_ext_boolean (
   item_id      INTEGER        NOT NULL,
@@ -978,13 +966,6 @@ CREATE TABLE m_lookup_table_row (
   lastChangeTimestamp TIMESTAMP,
   row_value           VARCHAR(255),
   PRIMARY KEY (owner_oid, id)
-);
-CREATE TABLE m_node (
-  name_norm      VARCHAR(255),
-  name_orig      VARCHAR(255),
-  nodeIdentifier VARCHAR(255),
-  oid            VARCHAR(36) NOT NULL,
-  PRIMARY KEY (oid)
 );
 CREATE TABLE m_object_collection (
   name_norm VARCHAR(255),
