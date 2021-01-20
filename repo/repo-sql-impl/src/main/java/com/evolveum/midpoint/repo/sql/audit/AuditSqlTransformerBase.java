@@ -1,10 +1,12 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql.audit;
+
+import java.util.Collection;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.sql.ColumnMetadata;
@@ -13,36 +15,34 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
-// TODO probably can be moved to sqlbase (now abstracted as interface).
-//  We need to get rid of RObjectType for that if possible, part can be solved by interface,
-//  but then there are static reverse conversions from ordinal number to instance.
-//  Probably the whole RObjectType should be replaced by more dynamic registry.
-public abstract class SqlTransformerBase<S, Q extends FlexibleRelationalPathBase<R>, R>
+public abstract class AuditSqlTransformerBase<S, Q extends FlexibleRelationalPathBase<R>, R>
         implements SqlTransformer<S, Q, R> {
 
     protected final PrismContext prismContext;
     protected final QueryModelMapping<S, Q, R> mapping;
     protected final SqlRepoContext sqlRepoContext;
 
-    protected SqlTransformerBase(PrismContext prismContext,
+    protected AuditSqlTransformerBase(PrismContext prismContext,
             QueryModelMapping<S, Q, R> mapping, SqlRepoContext sqlRepoContext) {
         this.prismContext = prismContext;
         this.mapping = mapping;
         this.sqlRepoContext = sqlRepoContext;
     }
 
-    /**
-     * Transforms row Tuple containing {@link R} under entity path and extension columns.
-     */
-    public S toSchemaObject(Tuple tuple, Q entityPath) throws SchemaException {
+    @Override
+    public S toSchemaObject(
+            Tuple tuple, Q entityPath, Collection<SelectorOptions<GetOperationOptions>> options)
+            throws SchemaException {
         S schemaObject = toSchemaObject(tuple.get(entityPath));
         processExtensionColumns(schemaObject, tuple, entityPath);
         return schemaObject;
@@ -50,27 +50,6 @@ public abstract class SqlTransformerBase<S, Q extends FlexibleRelationalPathBase
 
     protected void processExtensionColumns(S schemaObject, Tuple tuple, Q entityPath) {
         // empty by default, can be overridden
-    }
-
-    /**
-     * Version of {@link #toSchemaObject(Object)} rethrowing checked exceptions as unchecked
-     * {@link SqlTransformationException} - this is useful for lambda/method references usages.
-     */
-    public S toSchemaObjectSafe(R row) {
-        try {
-            return toSchemaObject(row);
-        } catch (SchemaException e) {
-            throw new SqlTransformationException(e);
-        }
-    }
-
-    @Override
-    public S toSchemaObjectSafe(Tuple row, Q entityPath) {
-        try {
-            return toSchemaObject(row, entityPath);
-        } catch (SchemaException e) {
-            throw new SqlTransformationException(e);
-        }
     }
 
     /**
@@ -131,6 +110,6 @@ public abstract class SqlTransformerBase<S, Q extends FlexibleRelationalPathBase
             throw new IllegalArgumentException(
                     "trimString with column metadata without specified size: " + columnMetadata);
         }
-        return RUtil.trimString(value, columnMetadata.getSize());
+        return MiscUtil.trimString(value, columnMetadata.getSize());
     }
 }

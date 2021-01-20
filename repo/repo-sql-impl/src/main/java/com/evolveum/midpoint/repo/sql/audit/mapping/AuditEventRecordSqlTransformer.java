@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -19,7 +19,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.sql.audit.SqlTransformerBase;
+import com.evolveum.midpoint.repo.sql.audit.AuditSqlTransformerBase;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditDelta;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditRefValue;
@@ -43,7 +43,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * Transformation of audit event records between repo and Prism world.
  */
 public class AuditEventRecordSqlTransformer
-        extends SqlTransformerBase<AuditEventRecordType, QAuditEventRecord, MAuditEventRecord> {
+        extends AuditSqlTransformerBase<AuditEventRecordType, QAuditEventRecord, MAuditEventRecord> {
 
     public AuditEventRecordSqlTransformer(PrismContext prismContext,
             QAuditEventRecordMapping mapping, SqlRepoContext sqlRepoContext) {

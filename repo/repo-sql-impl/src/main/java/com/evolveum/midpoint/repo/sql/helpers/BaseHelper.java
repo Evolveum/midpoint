@@ -160,18 +160,18 @@ public class BaseHelper {
             RuntimeException ex, Session session, OperationResult result) {
         LOGGER.debug("General runtime exception occurred.", ex);
 
-        if (isExceptionRelatedToSerialization(ex)) {
-            rollbackTransaction(session, ex, result, false);
-            // this exception will be caught and processed in logOperationAttempt,
-            // so it's safe to pass any RuntimeException here
-            throw ex;
-        } else {
+        if (sqlRepositoryConfiguration.isFatalException(ex)) {
             rollbackTransaction(session, ex, result, true);
             if (ex instanceof SystemException) {
                 throw ex;
             } else {
                 throw new SystemException(ex.getMessage(), ex);
             }
+        } else {
+            rollbackTransaction(session, ex, result, false);
+            // this exception will be caught and processed in logOperationAttempt,
+            // so it's safe to pass any RuntimeException here
+            throw ex;
         }
     }
 
@@ -190,11 +190,11 @@ public class BaseHelper {
             // This is a special case: we would like to restart
         }
 
-        boolean serializationException = isExceptionRelatedToSerialization(ex);
-
-        if (!serializationException) {
+        if (!isExceptionRelatedToSerialization(ex)) {
             // to be sure that we won't miss anything related to deadlocks, here is an ugly hack that checks it (with some probability...)
-            boolean serializationTextFound = ex.getMessage() != null && (exceptionContainsText(ex, "deadlock") || exceptionContainsText(ex, "could not serialize access"));
+            boolean serializationTextFound = ex.getMessage() != null && (
+                    exceptionContainsText(ex, "deadlock")
+                            || exceptionContainsText(ex, "could not serialize access"));
             if (serializationTextFound) {
                 LOGGER.error("Transaction serialization-related problem (e.g. deadlock) was probably not caught correctly!", ex);
             }

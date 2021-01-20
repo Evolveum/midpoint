@@ -73,6 +73,9 @@ public class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
 
     private final SQLQuery<?> sqlQuery;
 
+    // options stored to modify select clause and also to affect transformation
+    private Collection<SelectorOptions<GetOperationOptions>> options;
+
     public static <S, Q extends FlexibleRelationalPathBase<R>, R> SqlQueryContext<S, Q, R> from(
             Class<S> schemaType, PrismContext prismContext, SqlRepoContext sqlRepoContext) {
 
@@ -181,7 +184,7 @@ public class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         // SQL logging is on DEBUG level of: com.querydsl.sql
         Q entity = root();
         List<Tuple> data = query
-                .select(mapping().selectExpressionsWithCustomColumns(entity))
+                .select(mapping().selectExpressions(entity, options))
                 .fetch();
 
         // TODO: run fetchers selectively based on options?
@@ -244,6 +247,7 @@ public class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
     }
 
     public void processOptions(Collection<SelectorOptions<GetOperationOptions>> options) {
+        this.options = options;
         if (options == null || options.isEmpty()) {
             return;
         }
@@ -262,7 +266,7 @@ public class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         try {
             SqlTransformer<S, Q, R> transformer = mapping()
                     .createTransformer(prismContext(), sqlConfiguration());
-            return result.map(row -> transformer.toSchemaObjectSafe(row, root()));
+            return result.map(row -> transformer.toSchemaObjectSafe(row, root(), options));
         } catch (SqlTransformer.SqlTransformationException e) {
             Throwable cause = e.getCause();
             if (cause instanceof SchemaException) {

@@ -391,8 +391,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         long opHandle = pm.registerOperationStart(operation, AuditEventRecord.class);
         int attempt = 1;
 
-        OperationResult result = parentResult.createSubresult(OP_LIST_RECORDS);
-        result.addParam("query", query);
+        OperationResult result = parentResult.subresult(OP_LIST_RECORDS)
+                .addParam("query", query)
+                .build();
 
         while (true) {
             OperationResult attemptResult = result.createMinorSubresult(OP_LIST_RECORDS_ATTEMPT);
@@ -518,6 +519,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                     //do not throw an error. rather audit record without delta than fatal error.
                 }
             }
+        } catch (Throwable t) {
+            deltaResult.recordFatalError(t);
+            throw t;
         } finally {
             deltaResult.computeStatus();
         }
@@ -898,7 +902,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
      */
     private int batchDeletionAttempt(
             BiFunction<JdbcSession, String, Integer> recordsSelector,
-            Holder<Integer> totalCountHolder, long batchStart, OperationResult subResult) {
+            Holder<Integer> totalCountHolder, long batchStart, OperationResult parentResult) {
+
+        OperationResult result = parentResult.createSubresult("batchDeletionAttempt");
 
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             try {
@@ -947,17 +953,19 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 totalCountHolder.setValue(totalCount);
                 LOGGER.debug("Audit cleanup batch finishing successfully in {} milliseconds; total count = {}",
                         System.currentTimeMillis() - batchStart, totalCount);
+
                 return count;
             } catch (RuntimeException ex) {
                 LOGGER.debug("Audit cleanup batch finishing with exception in {} milliseconds; exception = {}",
                         System.currentTimeMillis() - batchStart, ex.getMessage());
-                jdbcSession.handleGeneralRuntimeException(ex, subResult);
+                jdbcSession.handleGeneralRuntimeException(ex, result);
                 throw new AssertionError("We shouldn't get here.");
             }
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
         } finally {
-            if (subResult != null && subResult.isUnknown()) {
-                subResult.computeStatus();
-            }
+            result.computeStatusIfUnknown();
         }
     }
 
@@ -1119,6 +1127,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         } catch (QueryException | RuntimeException e) {
             baseHelper.handleGeneralException(e, operationResult);
             throw new SystemException(e);
+        } catch (Throwable t) {
+            operationResult.recordFatalError(t);
+            throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
         }
@@ -1143,10 +1154,11 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         } catch (QueryException | RuntimeException e) {
             baseHelper.handleGeneralException(e, operationResult);
             throw new SystemException(e);
+        } catch (Throwable t) {
+            operationResult.recordFatalError(t);
+            throw t;
         } finally {
-            if (operationResult != null && operationResult.isUnknown()) {
-                operationResult.computeStatus();
-            }
+            operationResult.computeStatusIfUnknown();
         }
     }
 

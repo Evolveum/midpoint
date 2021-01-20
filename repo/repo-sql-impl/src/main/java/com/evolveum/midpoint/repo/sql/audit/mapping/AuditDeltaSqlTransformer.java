@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,7 +10,7 @@ import com.querydsl.sql.SQLServerTemplates;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.sql.audit.SqlTransformerBase;
+import com.evolveum.midpoint.repo.sql.audit.AuditSqlTransformerBase;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditDelta;
 import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditDelta;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -25,7 +25,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * Simple class with methods for audit event transformation between repo and Prism world.
  */
 public class AuditDeltaSqlTransformer
-        extends SqlTransformerBase<ObjectDeltaOperationType, QAuditDelta, MAuditDelta> {
+        extends AuditSqlTransformerBase<ObjectDeltaOperationType, QAuditDelta, MAuditDelta> {
 
     public AuditDeltaSqlTransformer(PrismContext prismContext,
             QAuditDeltaMapping mapping, SqlRepoContext sqlRepoContext) {
