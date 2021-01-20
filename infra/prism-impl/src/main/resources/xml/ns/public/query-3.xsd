@@ -152,7 +152,8 @@
     <xsd:complexType name="SearchFilterType">
         <xsd:sequence>
             <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-            <xsd:element ref="tns:filterClause" minOccurs="1" maxOccurs="1">
+            <xsd:element name="text" type="xsd:string" minOccurs="0" maxOccurs="1" />
+            <xsd:element ref="tns:filterClause" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:dom/>                 <!-- this is necessary for the model-client -->
