@@ -25,6 +25,16 @@ public class TaskReportingOptions {
     private boolean enableActionsExecutedStatistics = true;
     private boolean logErrors = true;
 
+    /**
+     * If true, operation execution records are NOT written.
+     *
+     * This is useful e.g. for multi-propagation tasks that iterate over resources
+     * (because there is a questionable value of writing such records to ResourceType objects).
+     *
+     * And also for other tasks.
+     */
+    private boolean skipWritingOperationExecutionRecords;
+
     public boolean isLogFinishInfo() {
         return logFinishInfo;
     }
@@ -79,6 +89,14 @@ public class TaskReportingOptions {
 
     public void setLogErrors(boolean logErrors) {
         this.logErrors = logErrors;
+    }
+
+    public boolean isSkipWritingOperationExecutionRecords() {
+        return skipWritingOperationExecutionRecords;
+    }
+
+    public void setSkipWritingOperationExecutionRecords(boolean skipWritingOperationExecutionRecords) {
+        this.skipWritingOperationExecutionRecords = skipWritingOperationExecutionRecords;
     }
 
     public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {

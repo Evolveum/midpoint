@@ -54,16 +54,11 @@ public class ShadowIntegrityCheckTaskHandler
 
     public static final String HANDLER_URI = ModelPublicConstants.SHADOW_INTEGRITY_CHECK_TASK_HANDLER_URI;
 
-    @Autowired private ProvisioningService provisioningService;
-    @Autowired private MatchingRuleRegistry matchingRuleRegistry;
-    @Autowired private SynchronizationService synchronizationService;
-    @Autowired private SystemObjectCache systemObjectCache;
-
     public ShadowIntegrityCheckTaskHandler() {
         super("Shadow integrity check", OperationConstants.CHECK_SHADOW_INTEGRITY);
-        setLogFinishInfo(true);
-        setPreserveStatistics(false);
+        reportingOptions.setPreserveStatistics(false);
         reportingOptions.setLogErrors(false); // we do log errors ourselves
+        reportingOptions.setSkipWritingOperationExecutionRecords(true);
     }
 
     @PostConstruct
@@ -92,5 +87,4 @@ public class ShadowIntegrityCheckTaskHandler
             super(taskHandler, localCoordinatorTask, workBucket, partDefinition, previousRunResult);
         }
     }
-
 }

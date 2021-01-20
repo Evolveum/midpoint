@@ -67,8 +67,7 @@ public class RecomputeTaskHandlerOld
 
     public RecomputeTaskHandlerOld() {
         super("Recompute", OperationConstants.RECOMPUTE);
-        setLogFinishInfo(true);
-        setPreserveStatistics(false);
+        reportingOptions.setPreserveStatistics(false);
     }
 
     @PostConstruct

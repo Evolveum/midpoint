@@ -127,21 +127,6 @@ public abstract class AbstractSearchIterativeTaskHandler<
         this.reportingOptions = new TaskReportingOptions();
     }
 
-    // TODO move
-    public void setEnableSynchronizationStatistics(boolean enableSynchronizationStatistics) {
-        reportingOptions.setEnableSynchronizationStatistics(enableSynchronizationStatistics);
-    }
-
-    // TODO move
-    public void setPreserveStatistics(boolean preserveStatistics) {
-        reportingOptions.setPreserveStatistics(preserveStatistics);
-    }
-
-    // TODO move
-    public void setLogFinishInfo(boolean logFinishInfo) {
-        reportingOptions.setLogFinishInfo(logFinishInfo);
-    }
-
     protected @NotNull String getTaskTypeName() {
         return taskTypeName;
     }

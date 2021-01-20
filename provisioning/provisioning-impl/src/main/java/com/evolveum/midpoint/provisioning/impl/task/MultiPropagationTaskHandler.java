@@ -56,9 +56,9 @@ public class MultiPropagationTaskHandler
 
     public MultiPropagationTaskHandler() {
         super("Provisioning propagation (multi)", OperationConstants.PROVISIONING_PROPAGATION);
-        setLogFinishInfo(true);
-        setPreserveStatistics(false);
-        setEnableSynchronizationStatistics(false);
+        reportingOptions.setPreserveStatistics(false);
+        reportingOptions.setEnableSynchronizationStatistics(false);
+        reportingOptions.setSkipWritingOperationExecutionRecords(true);
     }
 
     @PostConstruct

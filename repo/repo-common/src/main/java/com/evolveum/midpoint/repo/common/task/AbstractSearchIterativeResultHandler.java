@@ -408,8 +408,10 @@ public abstract class AbstractSearchIterativeResultHandler<
     }
 
     private void writeOperationExecutionRecord(PrismObject<O> object, Throwable resultException, OperationResult result) {
-        taskHandler.getOperationExecutionRecorder().recordOperationExecution(object, resultException,
-                taskExecution.localCoordinatorTask, result);
+        if (!reportingOptions.isSkipWritingOperationExecutionRecords()) {
+            taskHandler.getOperationExecutionRecorder().recordOperationExecution(object, resultException,
+                    taskExecution.localCoordinatorTask, result);
+        }
     }
 
     private boolean isNonScavengingWorker() {

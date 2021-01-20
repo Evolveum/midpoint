@@ -62,8 +62,7 @@ public class DeleteNotUpdatedShadowTaskHandlerOld
 
     public DeleteNotUpdatedShadowTaskHandlerOld() {
         super("DeleteNotUpdatedShadow", OperationConstants.DELETE_NOT_UPDATED_SHADOWS);
-        setLogFinishInfo(true);
-        setPreserveStatistics(false);
+        reportingOptions.setPreserveStatistics(false);
     }
 
     @PostConstruct

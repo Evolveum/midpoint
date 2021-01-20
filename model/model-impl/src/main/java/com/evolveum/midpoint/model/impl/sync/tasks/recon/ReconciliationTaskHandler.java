@@ -83,7 +83,7 @@ public class ReconciliationTaskHandler
 
     protected ReconciliationTaskHandler() {
         super("Reconciliation", OperationConstants.RECONCILIATION);
-        setEnableSynchronizationStatistics(true);
+        reportingOptions.setEnableSynchronizationStatistics(true);
     }
 
     public ReconciliationTaskResultListener getReconciliationTaskResultListener() {

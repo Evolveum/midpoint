@@ -55,7 +55,6 @@ public class ExecuteChangesTaskHandler
 
     public ExecuteChangesTaskHandler() {
         super("Execute", OperationConstants.EXECUTE);
-        setLogFinishInfo(true);
     }
 
     @PostConstruct

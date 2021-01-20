@@ -262,6 +262,10 @@ public class TestUtil {
             if (subResult.getOperation() == null) {
                 fail(message + ": null subresult operation under operation " + result.getOperation());
             }
+            if (subResult.getStatus() == OperationResultStatusType.HANDLED_ERROR) {
+                // HANDLED_ERROR means there might be an error (partial/fatal) inside.
+                continue;
+            }
             assertSuccess(message, subResult, currentLevel+1, stopLevel);
         }
     }

@@ -46,8 +46,7 @@ public class ReindexTaskHandler
 
     public ReindexTaskHandler() {
         super("Reindex", OperationConstants.REINDEX);
-        setLogFinishInfo(true);
-        setPreserveStatistics(false);
+        reportingOptions.setPreserveStatistics(false);
     }
 
     @PostConstruct

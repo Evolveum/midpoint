@@ -59,6 +59,8 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
 
     private static final int DEFAULT_NUMBER_OF_RESULTS_TO_KEEP = 5;
 
+    private static final String OP_WRITE = OperationExecutionWriter.class.getName() + ".write";
+
     private volatile OperationExecutionRecordingStrategyType recordingStrategy;
 
     private volatile CleanupPolicyType cleanupPolicy;
@@ -79,38 +81,49 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
      */
     public <O extends ObjectType> void write(@NotNull Class<O> objectType, @NotNull String oid,
             @NotNull OperationExecutionType executionToAdd, @Nullable Collection<OperationExecutionType> existingExecutions,
-            boolean deletedOk, OperationResult result)
+            boolean deletedOk, OperationResult parentResult)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 
-        CleaningSpecification cleaningSpec = CleaningSpecification.createFrom(cleanupPolicy);
-        if (cleaningSpec.isKeepNone()) {
-            // Unlike in 4.2 and before, we do not delete old records if we are not going to write anything.
-            LOGGER.trace("Skipping operation execution recording because it's turned off (recordsToKeep is set to 0).");
-            return;
-        }
-
-        if (shouldSkipOperationExecutionRecording()) {
-            LOGGER.trace("Skipping operation execution recording because it's turned off.");
-            return;
-        }
-
-        if (shouldSkipOperationExecutionRecordingWhenSuccess() &&
-                executionToAdd.getStatus() == OperationResultStatusType.SUCCESS) {
-            LOGGER.trace("Skipping operation execution recording because it's turned off for successful processing.");
-            return;
-        }
-
+        OperationResult result = parentResult.subresult(OP_WRITE)
+                .setMinor()
+                .build();
         try {
-            List<OperationExecutionType> executionsToDelete = getExecutionsToDelete(objectType, oid,
-                    existingExecutions, cleaningSpec, result);
-            executeChanges(objectType, oid, executionToAdd, executionsToDelete, result);
-        } catch (ObjectNotFoundException e) {
-            if (!deletedOk) {
-                throw e;
-            } else {
-                LOGGER.trace("Object {} deleted but this was expected.", oid);
-                result.muteLastSubresultError();
+            CleaningSpecification cleaningSpec = CleaningSpecification.createFrom(cleanupPolicy);
+            if (cleaningSpec.isKeepNone()) {
+                // Unlike in 4.2 and before, we do not delete old records if we are not going to write anything.
+                LOGGER.trace("Skipping operation execution recording because it's turned off (recordsToKeep is set to 0).");
+                return;
             }
+
+            if (shouldSkipOperationExecutionRecording()) {
+                LOGGER.trace("Skipping operation execution recording because it's turned off.");
+                return;
+            }
+
+            if (shouldSkipOperationExecutionRecordingWhenSuccess() &&
+                    executionToAdd.getStatus() == OperationResultStatusType.SUCCESS) {
+                LOGGER.trace("Skipping operation execution recording because it's turned off for successful processing.");
+                return;
+            }
+
+            try {
+                List<OperationExecutionType> executionsToDelete = getExecutionsToDelete(objectType, oid,
+                        existingExecutions, cleaningSpec, result);
+                executeChanges(objectType, oid, executionToAdd, executionsToDelete, result);
+            } catch (ObjectNotFoundException e) {
+                if (!deletedOk) {
+                    throw e;
+                } else {
+                    LOGGER.trace("Object {} deleted but this was expected.", oid);
+                    result.muteLastSubresultError();
+                }
+            }
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+            result.switchHandledErrorToSuccess(); // Error while deleting is expected and should not be propagated upwards.
         }
     }
 
