@@ -47,7 +47,6 @@ public interface RunningTask extends Task {
      */
     RunningTask createSubtask(LightweightTaskHandler handler);
 
-
     /**
      * Returns the in-memory version of the parent task. Applicable only to lightweight subtasks.
      * EXPERIMENTAL (use with care)
@@ -122,4 +121,10 @@ public interface RunningTask extends Task {
      * EXPERIMENTAL
      */
     void stopTracing();
+
+    /**
+     * TODO
+     * EXPERIMENTAL
+     */
+    @NotNull String getRootTaskOid();
 }

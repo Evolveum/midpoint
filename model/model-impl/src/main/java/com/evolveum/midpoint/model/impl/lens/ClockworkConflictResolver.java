@@ -140,10 +140,6 @@ public class ClockworkConflictResolver {
             return HookOperationMode.FOREGROUND;
         }
         Class<F> focusClass = context.getFocusContext().getObjectTypeClass();
-        if (focusClass == null) {
-            LOGGER.warn("Focus class not known, not possible to resolve conflict by focus recomputation");       // should really never occur
-            return HookOperationMode.FOREGROUND;
-        }
         if (TaskType.class.isAssignableFrom(focusClass)) {
             return HookOperationMode.FOREGROUND;        // this is actually quite expected, so don't bother anyone with that
         }

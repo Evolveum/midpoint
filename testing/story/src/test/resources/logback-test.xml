@@ -30,9 +30,9 @@
     <logger name="com.evolveum.midpoint.schema" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model" level="DEBUG" />
     <logger name="com.evolveum.midpoint.notifications" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.model.impl.sync.LiveSyncTaskHandler" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.model.impl.sync.SynchronizeAccountResultHandler" level="TRACE" />
+    <logger name="com.evolveum.midpoint.model.impl.sync.tasks.LiveSyncTaskHandler" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.sync.tasks.recon" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.sync.tasks.Synchronizer" level="TRACE" />
     <logger name="com.evolveum.midpoint.provisioning.impl.ChangeNotificationDispatcherImpl" level="DEBUG" />
     <logger name="com.evolveum.midpoint.schema.internals.InternalMonitor" level="INFO" />
 
@@ -67,7 +67,6 @@
     <logger name="com.evolveum.midpoint.model.impl.util" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.security" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.sync" level="TRACE" />
-    <logger name="com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.sync.CorrelationConfirmationEvaluator" level="DEBUG" />
     <logger name="com.evolveum.midpoint.common.SynchronizationUtils" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning" level="DEBUG" />

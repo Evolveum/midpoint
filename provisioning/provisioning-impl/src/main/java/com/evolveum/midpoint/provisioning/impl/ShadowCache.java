@@ -2070,22 +2070,24 @@ public class ShadowCache {
             LOGGER.trace("Found resource object\n{}", resourceObject.debugDumpLazily(1));
             PrismObject<ShadowType> resultShadow;
 
-            if (!ShadowUtil.hasFetchError(resourceObject)) {
+            if (!ObjectTypeUtil.hasFetchError(resourceObject)) {
                 try {
                     resultShadow = treatObjectFound(ctx, readFromRepository, isDoDiscovery, resourceObject, objResult);
-                } catch (SchemaException | ConfigurationException | ObjectNotFoundException | CommunicationException
-                        | SecurityViolationException | GenericConnectorException | ExpressionEvaluationException | EncryptionException e) {
-                    objResult.recordFatalError(e.getMessage(), e);
+                } catch (Throwable t) {
+                    objResult.recordFatalError(t.getMessage(), t);
                     if (errorReportingMethod == EXCEPTION) {
-                        throw new TunnelException(e);
+                        // No need to log the exception. It will be dumped when caught and processed in upper layers.
+                        throw new TunnelException(t);
                     } else if (errorReportingMethod == FETCH_RESULT) {
                         resultShadow = resourceObject;
-                        ShadowUtil.recordFetchError(resultShadow, objResult);
+                        LOGGER.error("An error occurred while processing resource object {}. Recording it into object fetch result: {}",
+                                resourceObject, t.getMessage(), t);
+                        ObjectTypeUtil.recordFetchError(resultShadow, objResult);
                     } else {
                         // This is the default (4.2 and before) behavior: we silently skip the problematic object and stop.
                         // TODO This is not very correct behavior. We should probably change it.
                         LOGGER.error("An error occurred while processing resource object {}. Silently skipping it and stopping the search. Reason: {}",
-                                resourceObject, e.getMessage(), e);
+                                resourceObject, t.getMessage(), t);
                         return false;
                     }
                 }
@@ -2095,9 +2097,9 @@ public class ShadowCache {
 
             try {
                 return handler.handle(resultShadow, objResult);
-            } catch (RuntimeException | Error e) {
-                objResult.recordFatalError(e);
-                throw e;
+            } catch (Throwable t) {
+                objResult.recordFatalError(t);
+                throw t;
             } finally {
                 objResult.computeStatusIfUnknown();
             }

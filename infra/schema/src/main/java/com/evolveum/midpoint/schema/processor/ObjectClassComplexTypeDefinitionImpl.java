@@ -212,11 +212,11 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
     }
 
     @Override
-    public boolean matches(ShadowType shadowType) {
-        if (shadowType == null) {
+    public boolean matches(ShadowType shadow) {
+        if (shadow == null) {
             return false;
         }
-        if (!QNameUtil.match(getTypeName(), shadowType.getObjectClass())) {
+        if (!QNameUtil.match(getTypeName(), shadow.getObjectClass())) {
             return false;
         }
         return true;

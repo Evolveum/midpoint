@@ -390,40 +390,23 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
     }
 
     @Override
-    public boolean matches(ShadowType shadowType) {
-        if (!matchesWithoutIntent(shadowType)) {
-            return false;
-        }
-        if (shadowType.getIntent() != null) {
-            //            if (isDefault) {
-            //                return true;
-            //            } else {
-            //                return false;
-            //            }
-            //        } else {
-            return MiscUtil.equals(intent, shadowType.getIntent());
-        }
-        return true;
+    public boolean matches(ShadowType shadow) {
+        return matchesIgnoringIntent(shadow) &&
+                (shadow.getIntent() == null || MiscUtil.equals(intent, shadow.getIntent()));
     }
 
-    @Override
-    public boolean matchesWithoutIntent(ShadowType shadowType) {
-        if (shadowType == null) {
+    private boolean matchesIgnoringIntent(ShadowType shadow) {
+        if (shadow == null) {
             return false;
         }
-        if (!QNameUtil.match(getObjectClassDefinition().getTypeName(), shadowType.getObjectClass())) {
+        if (!QNameUtil.match(getObjectClassDefinition().getTypeName(), shadow.getObjectClass())) {
             return false;
         }
-        if (shadowType.getKind() == null) {
-            if (kind != ShadowKindType.ACCOUNT) {
-                return false;
-            }
+        if (shadow.getKind() == null) {
+            return kind == ShadowKindType.ACCOUNT;
         } else {
-            if (!MiscUtil.equals(kind, shadowType.getKind())) {
-                return false;
-            }
+            return MiscUtil.equals(kind, shadow.getKind());
         }
-        return true;
     }
 
     @Override

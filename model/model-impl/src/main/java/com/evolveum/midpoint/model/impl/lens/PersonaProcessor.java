@@ -119,37 +119,37 @@ public class PersonaProcessor {
         DeltaSetTriple<PersonaKey> activePersonaKeyTriple = context.getPrismContext().deltaFactory().createDeltaSetTriple();
 
         ComplexConstructionConsumer<PersonaKey, EvaluatedPersonaConstructionImpl<F>> consumer =
-                new ComplexConstructionConsumer<PersonaKey,EvaluatedPersonaConstructionImpl<F>>() {
+                new ComplexConstructionConsumer<>() {
 
-            @Override
-            public boolean before(PersonaKey key) {
-                return true;
-            }
+                    @Override
+                    public boolean before(PersonaKey key) {
+                        return true;
+                    }
 
-            @Override
-            public void onAssigned(PersonaKey key, String desc) {
-                activePersonaKeyTriple.addToPlusSet(key);
-            }
+                    @Override
+                    public void onAssigned(PersonaKey key, String desc) {
+                        activePersonaKeyTriple.addToPlusSet(key);
+                    }
 
-            @Override
-            public void onUnchangedValid(PersonaKey key, String desc) {
-                activePersonaKeyTriple.addToZeroSet(key);
-            }
+                    @Override
+                    public void onUnchangedValid(PersonaKey key, String desc) {
+                        activePersonaKeyTriple.addToZeroSet(key);
+                    }
 
-            @Override
-            public void onUnchangedInvalid(PersonaKey key, String desc) {
-            }
+                    @Override
+                    public void onUnchangedInvalid(PersonaKey key, String desc) {
+                    }
 
-            @Override
-            public void onUnassigned(PersonaKey key, String desc) {
-                activePersonaKeyTriple.addToMinusSet(key);
-            }
+                    @Override
+                    public void onUnassigned(PersonaKey key, String desc) {
+                        activePersonaKeyTriple.addToMinusSet(key);
+                    }
 
-            @Override
-            public void after(PersonaKey key, String desc,
-                    DeltaMapTriple<PersonaKey, EvaluatedConstructionPack<EvaluatedPersonaConstructionImpl<F>>> constructionMapTriple) {
-            }
-        };
+                    @Override
+                    public void after(PersonaKey key, String desc,
+                            DeltaMapTriple<PersonaKey, EvaluatedConstructionPack<EvaluatedPersonaConstructionImpl<F>>> constructionMapTriple) {
+                    }
+                };
 
         DeltaMapTriple<PersonaKey, EvaluatedConstructionPack<EvaluatedPersonaConstructionImpl<F>>> constructionMapTriple =
             constructionProcessor.distributeConstructions(evaluatedAssignmentTriple,

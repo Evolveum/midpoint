@@ -26,7 +26,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
+import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationTaskHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;

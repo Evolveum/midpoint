@@ -391,10 +391,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
         }
 
         LOGGER.debug("Creating object on demand from {}: {}", contextDescription, newObject);
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Creating object on demand:\n{}", newObject.debugDump(1));
-        }
+        LOGGER.trace("Creating object on demand:\n{}", newObject.debugDumpLazily(1));
 
         ObjectDelta<O> addDelta = newObject.createAddDelta();
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(addDelta);

@@ -26,8 +26,8 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
-import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
-import com.evolveum.midpoint.model.impl.util.DebugReconciliationTaskResultListener;
+import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationTaskHandler;
+import com.evolveum.midpoint.model.impl.sync.tasks.recon.DebugReconciliationTaskResultListener;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -990,7 +990,7 @@ public class TestOrgSync extends AbstractStoryTest {
         // THEN
         then();
 
-        reconciliationTaskResultListener.assertResult(RESOURCE_OPENDJ_OID, 0, 17, 0, 0);
+        reconciliationTaskResultListener.assertResult(RESOURCE_OPENDJ_OID, 0, 17, 0, 1);
 
         assertUsers(18);
 

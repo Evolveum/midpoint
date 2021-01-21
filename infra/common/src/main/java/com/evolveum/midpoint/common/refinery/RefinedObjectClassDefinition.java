@@ -136,9 +136,7 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
     ResourceShadowDiscriminator getShadowDiscriminator();
 
     @Override
-    boolean matches(ShadowType shadowType);
-
-    boolean matchesWithoutIntent(ShadowType shadowType);
+    boolean matches(ShadowType shadow);
     //endregion
 
     //region Accessing parts of schema handling ========================================================

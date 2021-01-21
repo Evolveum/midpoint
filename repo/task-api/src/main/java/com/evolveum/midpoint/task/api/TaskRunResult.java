@@ -81,7 +81,7 @@ public class TaskRunResult implements Serializable {
         IS_WAITING
     }
 
-    protected Long progress;          // null means "do not update, take whatever is in the task"
+    protected Long progress; // null means "do not update, take whatever is in the task"
     protected TaskRunResultStatus runResultStatus;
     protected OperationResult operationResult;
 

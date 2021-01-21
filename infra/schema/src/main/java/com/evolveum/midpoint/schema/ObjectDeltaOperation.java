@@ -298,4 +298,8 @@ public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable
         OperationResultStatus status = getStatus();
         return status != null && status != OperationResultStatus.FATAL_ERROR && status != OperationResultStatus.NOT_APPLICABLE;
     }
+
+    public String getOid() {
+        return objectDelta != null ? objectDelta.getOid() : null;
+    }
 }

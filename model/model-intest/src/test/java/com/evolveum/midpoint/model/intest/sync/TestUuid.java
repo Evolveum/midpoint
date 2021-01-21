@@ -24,8 +24,8 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
-import com.evolveum.midpoint.model.impl.util.DebugReconciliationTaskResultListener;
+import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationTaskHandler;
+import com.evolveum.midpoint.model.impl.sync.tasks.recon.DebugReconciliationTaskResultListener;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -277,7 +277,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECONCILE_DUMMY_UUID_OID);
         OperationResultType reconTaskResult = reconTaskAfter.asObjectable().getResult();
         display("Recon task result", reconTaskResult);
-        TestUtil.assertSuccess(reconTaskResult);
+        TestUtil.assertSuccess(reconTaskResult.getOperation(), reconTaskResult, 4); // there is an error deep inside (that is expected)
 
         augustusShadowOid = assertUserAfterByUsername(USER_AUGUSTUS_NAME)
                 .links()
@@ -364,7 +364,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECONCILE_DUMMY_UUID_OID);
         OperationResultType reconTaskResult = reconTaskAfter.asObjectable().getResult();
         display("Recon task result", reconTaskResult);
-        TestUtil.assertSuccess(reconTaskResult);
+        TestUtil.assertSuccess(reconTaskResult.getOperation(), reconTaskResult, 4); // there is an error deep inside (that is expected)
 
         assertUserAfterByUsername(USER_AUGUSTUS_NAME)
                 .displayWithProjections()

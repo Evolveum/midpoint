@@ -89,5 +89,4 @@ public class LensObjectDeltaOperation<T extends ObjectType> extends ObjectDeltaO
     protected void copyToClone(LensObjectDeltaOperation<T> clone) {
         clone.audited = this.audited;
     }
-
 }

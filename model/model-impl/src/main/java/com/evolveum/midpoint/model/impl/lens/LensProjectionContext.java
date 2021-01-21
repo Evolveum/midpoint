@@ -399,13 +399,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     public boolean isDelete() {
-        if (synchronizationPolicyDecision == SynchronizationPolicyDecision.DELETE) {
-            return true;
-        } else if (synchronizationPolicyDecision != null) {
-            return false;
-        } else {
-            return ObjectDelta.isDelete(syncDelta) || ObjectDelta.isDelete(primaryDelta);
-        }
+        // Note that there are situations where decision is UNLINK with primary delta being DELETE. (Why?)
+        return synchronizationPolicyDecision == SynchronizationPolicyDecision.DELETE ||
+                ObjectDelta.isDelete(syncDelta) || ObjectDelta.isDelete(primaryDelta);
     }
 
     @Override

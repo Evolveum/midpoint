@@ -12,8 +12,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Central point of dispatching notifications about changes to the system configuration object.
- *
- * @author mederly
  */
 public interface SystemConfigurationChangeDispatcher {
 
