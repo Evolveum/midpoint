@@ -146,6 +146,10 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     public PageTasks(String searchText, PageParameters parameters) {
         if (parameters != null) {
             getPageParameters().overwriteWith(parameters);
+        } else {
+            //reset task search storage. we want to use searchText instead
+            TasksStorage storage = getSessionStorage().getTasks();
+            storage.setTasksSearch(null);
         }
 
         this.searchText = searchText;

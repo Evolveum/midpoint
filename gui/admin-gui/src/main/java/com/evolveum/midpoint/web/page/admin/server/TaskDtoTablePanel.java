@@ -156,6 +156,7 @@ public class TaskDtoTablePanel extends BasePanel {
 
     public TaskDtoTablePanel(String id, String searchText) {
         super(id);
+        this.searchText = searchText;
         searchModel = LoadableModel.create(this::loadTasksSearchDto, false);
     }
 

@@ -14,6 +14,7 @@ import org.apache.poi.ss.formula.functions.T;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -93,11 +94,6 @@ public class DashboardSearchPanel extends BasePanel<T> {
         final AjaxSubmitLink searchButton = new AjaxSubmitLink(ID_SEARCH_BUTTON) {
 
             private static final long serialVersionUID = 1L;
-
-            public IModel<?> getBody() {
-                return searchTypes.get(selectedSearchType);
-            };
-
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
                 performSearch(getSearchText());
@@ -105,6 +101,15 @@ public class DashboardSearchPanel extends BasePanel<T> {
         };
         searchButton.setOutputMarkupId(true);
         searchButton.setOutputMarkupPlaceholderTag(true);
+
+        Label label = new Label("buttonLabel", new IModel<String>() {
+            @Override
+            public String getObject() {
+                return searchTypes.get(selectedSearchType).getObject();
+            }
+        });
+        label.setOutputMarkupId(true);
+        searchButton.add(label);
         searchForm.add(searchButton);
         searchForm.setDefaultButton(searchButton);
 
