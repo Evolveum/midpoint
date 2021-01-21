@@ -68,6 +68,7 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
     private static final File ARCHETYPE_EXTERNAL_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-external.xml");
     private static final File SECRET_I_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-secret-i.xml");
     private static final File SECRET_II_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-secret-ii.xml");
+    protected static final File KIRK_USER_TIBERIUS_FILE = new File("./src/test/resources/labs/objects/users/kirk-tiberius-user.xml");
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override
