@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.task.api;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -15,10 +17,11 @@ import org.jetbrains.annotations.NotNull;
  * Necessary for creation of separate methods for parts of task handler that need to return something
  * but also exit handler immediately if there's any issue.
  *
- * Experimental.
+ * Experimental. Maybe we can remove it.
  *
  * @author mederly
  */
+@Experimental
 public class ExitWorkBucketHandlerException extends Exception {
 
     @NotNull private final TaskWorkBucketProcessingResult runResult;

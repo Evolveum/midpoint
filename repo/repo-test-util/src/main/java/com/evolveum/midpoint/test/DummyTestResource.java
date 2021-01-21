@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.test;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.FailableProcessor;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -31,5 +32,9 @@ public class DummyTestResource extends TestResource<ResourceType> {
         super(dir, fileName, oid);
         this.name = name;
         this.controllerInitLambda = controllerInitLambda;
+    }
+
+    public PrismObject<ResourceType> getResource() {
+        return controller.getResource();
     }
 }

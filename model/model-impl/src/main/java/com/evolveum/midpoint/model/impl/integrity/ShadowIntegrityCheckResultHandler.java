@@ -7,22 +7,24 @@
 
 package com.evolveum.midpoint.model.impl.integrity;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
-import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.match.MatchingRule;
-import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -31,7 +33,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -40,14 +41,13 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import javax.xml.namespace.QName;
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
-
-/**
- *
- */
-public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeResultHandler<ShadowType> {
+public class ShadowIntegrityCheckResultHandler
+        extends AbstractSearchIterativeResultHandler
+        <ShadowType,
+                ShadowIntegrityCheckTaskHandler,
+                ShadowIntegrityCheckTaskHandler.TaskExecution,
+                ShadowIntegrityCheckTaskPartExecution,
+                ShadowIntegrityCheckResultHandler> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowIntegrityCheckResultHandler.class);
 
@@ -56,29 +56,24 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
     static final String KEY_EXISTS_ON_RESOURCE = CLASS_DOT + "existsOnResource";
     static final String KEY_OWNERS = CLASS_DOT + "owners";
 
-    private PrismContext prismContext;
-    private ProvisioningService provisioningService;
-    private MatchingRuleRegistry matchingRuleRegistry;
-    private RepositoryService repositoryService;
-    private SynchronizationService synchronizationService;
-    private SystemObjectCache systemObjectCache;
+    private final PrismContext prismContext;
 
     // derived from task extension diagnose/fix values at instantiation
     private boolean checkIntents;
     private boolean checkUniqueness;
     private boolean checkNormalization;
-    private boolean checkFetch;
-    private boolean checkOwners;
+    private final boolean checkFetch;
+    private final boolean checkOwners;
     private boolean checkExtraData;
-    private boolean fixIntents;
-    private boolean fixUniqueness;
-    private boolean fixNormalization;
-    private boolean fixExtraData;
-    private boolean fixResourceRef;
+    private final boolean fixIntents;
+    private final boolean fixUniqueness;
+    private final boolean fixNormalization;
+    private final boolean fixExtraData;
+    private final boolean fixResourceRef;
 
     private boolean checkDuplicatesOnPrimaryIdentifiersOnly = false;
 
-    private boolean dryRun;
+    private final boolean dryRun;
 
     private static final String INTENTS = "intents";
     private static final String UNIQUENESS = "uniqueness";
@@ -90,35 +85,22 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
     private static final List<String> KNOWN_KEYS =
             Arrays.asList(INTENTS, UNIQUENESS, NORMALIZATION, OWNERS, FETCH, EXTRA_DATA, RESOURCE_REF);
 
-    private Map<ContextMapKey, ObjectTypeContext> contextMap = new HashMap<>();
+    private final Map<ContextMapKey, ObjectTypeContext> contextMap = new HashMap<>();
 
-    private Map<String,PrismObject<ResourceType>> resources = new HashMap<>();
+    private final Map<String,PrismObject<ResourceType>> resources = new HashMap<>();
 
-    private ShadowStatistics statistics = new ShadowStatistics();
+    private final ShadowStatistics statistics = new ShadowStatistics();
 
     private DuplicateShadowsResolver duplicateShadowsResolver;
-    private Set<String> duplicateShadowsDetected = new HashSet<>();
-    private Set<String> duplicateShadowsDeleted = new HashSet<>();
+    private final Set<String> duplicateShadowsDetected = new HashSet<>();
+    private final Set<String> duplicateShadowsDeleted = new HashSet<>();
 
-    ShadowIntegrityCheckResultHandler(RunningTask coordinatorTask, String taskOperationPrefix, String processShortName,
-            String contextDesc, TaskManager taskManager, PrismContext prismContext,
-            ProvisioningService provisioningService, MatchingRuleRegistry matchingRuleRegistry,
-            RepositoryService repositoryService, SynchronizationService synchronizationService,
-            SystemObjectCache systemObjectCache) {
-        super(coordinatorTask, taskOperationPrefix, processShortName, contextDesc, taskManager);
-        this.prismContext = prismContext;
-        this.provisioningService = provisioningService;
-        this.matchingRuleRegistry = matchingRuleRegistry;
-        this.repositoryService = repositoryService;
-        this.synchronizationService = synchronizationService;
-        this.systemObjectCache = systemObjectCache;
-        setStopOnError(false);
-        setLogErrors(false);            // we do log errors ourselves
+    public ShadowIntegrityCheckResultHandler(ShadowIntegrityCheckTaskPartExecution taskExecution) {
+        super(taskExecution);
 
-        Integer tasks = getWorkerThreadsCount(coordinatorTask);
-        if (tasks != null && tasks != 0) {
-            throw new UnsupportedOperationException("Unsupported number of worker threads: " + tasks + ". This task cannot be run with worker threads. Please remove workerThreads extension property or set its value to 0.");
-        }
+        this.prismContext = taskExecution.getPrismContext();
+
+        ensureNoWorkerThreads();
 
         PrismProperty<String> diagnosePrismProperty = coordinatorTask.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_DIAGNOSE);
         if (diagnosePrismProperty == null || diagnosePrismProperty.isEmpty()) {
@@ -296,7 +278,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         if (resource == null) {
             statistics.incrementResources();
             try {
-                resource = provisioningService.getObject(ResourceType.class, resourceOid, null, workerTask, result);
+                resource = taskHandler.getProvisioningService().getObject(ResourceType.class, resourceOid, null, workerTask, result);
             } catch (ObjectNotFoundException e) {
                 checkResult.recordError(
                         ShadowStatistics.NO_RESOURCE, new ObjectNotFoundException("Resource object does not exist: " + e.getMessage(), e));
@@ -393,7 +375,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         }
 
         try {
-            provisioningService.applyDefinition(shadow, workerTask, result);
+            taskHandler.getProvisioningService().applyDefinition(shadow, workerTask, result);
         } catch (SchemaException|ObjectNotFoundException|CommunicationException|ConfigurationException|ExpressionEvaluationException e) {
             checkResult.recordError(
                     ShadowStatistics.OTHER_FAILURE, new SystemException("Couldn't apply definition to shadow from repo", e));
@@ -425,7 +407,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
                 continue;
             }
             // size == 1
-            String value = (String) property.getValue().getValue();
+            String value = property.getValue().getValue();
             if (value == null) {
                 checkResult.recordWarning(ShadowStatistics.OTHER_FAILURE, "Null value for identifier " + identifier.getItemName());
                 continue;
@@ -466,7 +448,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
             ObjectQuery ownerQuery = prismContext.queryFor(FocusType.class)
                     .item(FocusType.F_LINK_REF).ref(shadow.getOid())
                     .build();
-            List<PrismObject<FocusType>> owners = repositoryService.searchObjects(FocusType.class, ownerQuery, null, result);
+            List<PrismObject<FocusType>> owners = taskHandler.getRepositoryService().searchObjects(FocusType.class, ownerQuery, null, result);
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Owners for {}: {}", ObjectTypeUtil.toShortString(shadow), owners);
             }
@@ -480,7 +462,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
     private PrismObject<ShadowType> fetchShadow(ShadowCheckResult checkResult, PrismObject<ShadowType> shadow,
             Task task, OperationResult result) {
         try {
-            return provisioningService.getObject(ShadowType.class, shadow.getOid(),
+            return taskHandler.getProvisioningService().getObject(ShadowType.class, shadow.getOid(),
                     SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()),
                     task, result);
         } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error e) {
@@ -504,7 +486,9 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
 
         SynchronizationContext<? extends FocusType> syncCtx;
         try {
-            syncCtx = synchronizationService.loadSynchronizationContext(fullShadow, fullShadow, null, resource, task.getChannel(), systemObjectCache.getSystemConfiguration(result), task, result);
+            syncCtx = taskHandler.getSynchronizationService()
+                    .loadSynchronizationContext(fullShadow, fullShadow, null, resource, task.getChannel(),
+                            taskHandler.getSystemObjectsCache().getSystemConfiguration(result), task, result);
         } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException | SecurityViolationException e) {
             checkResult.recordError(ShadowStatistics.CANNOT_APPLY_FIX, new SystemException("Couldn't prepare fix for missing intent, because the synchronization policy couldn't be determined", e));
             return;
@@ -533,9 +517,9 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         if (!dryRun) {
             try {
                 if (checkResult.isFixByRemovingShadow()) {
-                    repositoryService.deleteObject(ShadowType.class, shadow.getOid(), result);
+                    taskHandler.getRepositoryService().deleteObject(ShadowType.class, shadow.getOid(), result);
                 } else {
-                    repositoryService.modifyObject(ShadowType.class, shadow.getOid(), checkResult.getFixDeltas(), result);
+                    taskHandler.getRepositoryService().modifyObject(ShadowType.class, shadow.getOid(), checkResult.getFixDeltas(), result);
                 }
                 workerTask.recordObjectActionExecuted(shadow, ChangeType.MODIFY, null);
             } catch (Throwable t) {
@@ -561,7 +545,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
 
         MatchingRule<Object> matchingRule;
         try {
-            matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, identifier.getTypeName());
+            matchingRule = taskHandler.getMatchingRuleRegistry().getMatchingRule(matchingRuleQName, identifier.getTypeName());
         } catch (SchemaException e) {
             checkResult.recordError(
                     ShadowStatistics.OTHER_FAILURE, new SchemaException("Couldn't retrieve matching rule for identifier " +
@@ -649,7 +633,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
                     for (String shadowOid : shadowsOids) {
                         PrismObject<ShadowType> shadow = null;
                         try {
-                            shadow = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
+                            shadow = taskHandler.getRepositoryService().getObject(ShadowType.class, shadowOid, null, result);
                         } catch (ObjectNotFoundException e) {
                             LOGGER.debug("Couldn't fetch shadow with OID {}, it was probably already deleted", shadowOid, e);
                         } catch (SchemaException e) {
@@ -719,7 +703,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
 
             if (!dryRun) {
                 try {
-                    repositoryService.deleteObject(ShadowType.class, oid, result);
+                    taskHandler.getRepositoryService().deleteObject(ShadowType.class, oid, result);
                     task.recordObjectActionExecuted(shadowToDelete, ChangeType.DELETE, null);
                     duplicateShadowsDeleted.add(oid);
                 } catch (ObjectNotFoundException e) {
@@ -751,7 +735,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
                 LOGGER.info("Executing modify delta{} for owner {}:\n{}", skippedForDryRun(), ObjectTypeUtil.toShortString(owner), DebugUtil.debugDump(modifications));
                 if (!dryRun) {
                     try {
-                        repositoryService.modifyObject(owner.getCompileTimeClass(), owner.getOid(), modifications, result);
+                        taskHandler.getRepositoryService().modifyObject(owner.getCompileTimeClass(), owner.getOid(), modifications, result);
                         task.recordObjectActionExecuted(owner, ChangeType.MODIFY, null);
                     } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException | RuntimeException e) {
                         task.recordObjectActionExecuted(owner, ChangeType.MODIFY, e);

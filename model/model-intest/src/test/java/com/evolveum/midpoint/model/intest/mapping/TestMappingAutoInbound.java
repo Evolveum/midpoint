@@ -272,7 +272,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
-        waitForTaskFinish(task, true, 70000);
+        waitForTaskFinish(task, false, 70000);
 
         // THEN
         then();

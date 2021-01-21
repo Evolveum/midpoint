@@ -1,25 +1,17 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (c) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.query.restriction;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.GreaterFilter;
-import com.evolveum.midpoint.prism.query.LessFilter;
-import com.evolveum.midpoint.prism.query.PropertyValueFilter;
-import com.evolveum.midpoint.prism.query.SubstringFilter;
-import com.evolveum.midpoint.prism.query.ValueFilter;
-import com.evolveum.midpoint.repo.sqlbase.QueryException;
-import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
-import com.evolveum.midpoint.repo.sql.query.resolution.HqlDataInstance;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sql.query.InterpretationContext;
+import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.AndCondition;
@@ -27,12 +19,14 @@ import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.IsNotNullCondition;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.IsNullCondition;
 import com.evolveum.midpoint.repo.sql.query.matcher.Matcher;
+import com.evolveum.midpoint.repo.sql.query.resolution.HqlDataInstance;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 
 /**
  * Abstract superclass for all value-related filters. There are two major problems solved:
  * 1) mapping from ItemPath to HQL property paths
  * 2) adding joined entities to the query, along with necessary conditions
- *
+ * <p>
  * After the necessary entity is available, the fine work (creating one or more conditions
  * to execute the filtering) is done by subclasses of this path in the interpretInternal(..) method.
  *
@@ -70,7 +64,8 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
 
         // TODO treat null for multivalued properties (at least throw an exception!)
         //noinspection unchecked
-        return matcher.match(context.getHibernateQuery(), operation, hqlPropertyPath, value, matchingRule);
+        return matcher.
+                match(context.getHibernateQuery(), operation, hqlPropertyPath, value, matchingRule);
     }
 
     ItemRestrictionOperation findOperationForFilter(ValueFilter filter) throws QueryException {
@@ -112,11 +107,11 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
 
     /**
      * Filter of type NOT(PROPERTY=VALUE) causes problems when there are entities with PROPERTY set to NULL.
-     *
+     * <p>
      * Such a filter has to be treated like
-     *
-     *      NOT (PROPERTY=VALUE & PROPERTY IS NOT NULL)
-     *
+     * <p>
+     * NOT (PROPERTY=VALUE & PROPERTY IS NOT NULL)
+     * <p>
      * TODO implement for restrictions other than PropertyRestriction.
      */
     Condition addIsNotNullIfNecessary(Condition condition, String propertyPath) {
@@ -132,5 +127,4 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
         conjunction.add(hibernateQuery.createIsNotNull(propertyPath));
         return conjunction;
     }
-
 }

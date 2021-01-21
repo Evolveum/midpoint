@@ -228,7 +228,18 @@ public class TestUtil {
     }
 
     public static void assertSuccess(String message, OperationResultType result) {
+        assertSuccess(message, result, 0, -1);
+    }
+
+    public static void assertSuccess(String message, OperationResultType result, int stopLevel) {
+        assertSuccess(message, result, 0, stopLevel);
+    }
+
+    private static void assertSuccess(String message, OperationResultType result, int currentLevel, int stopLevel) {
         if (!checkResults) {
+            return;
+        }
+        if (stopLevel >= 0 && currentLevel > stopLevel) {
             return;
         }
         assertNotNull(message + ": null result", result);
@@ -251,7 +262,11 @@ public class TestUtil {
             if (subResult.getOperation() == null) {
                 fail(message + ": null subresult operation under operation " + result.getOperation());
             }
-            assertSuccess(message, subResult);
+            if (subResult.getStatus() == OperationResultStatusType.HANDLED_ERROR) {
+                // HANDLED_ERROR means there might be an error (partial/fatal) inside.
+                continue;
+            }
+            assertSuccess(message, subResult, currentLevel+1, stopLevel);
         }
     }
 
@@ -343,6 +358,12 @@ public class TestUtil {
     public static void assertPartialError(OperationResult result) {
         assertTrue("Expected that operation " + result.getOperation() + " fails partially, but the result was " + result.getStatus(), result.getStatus() == OperationResultStatus.PARTIAL_ERROR);
         assertNoUnknown(result);
+    }
+
+    public static void assertFatalError(OperationResultType result) {
+        assertTrue("Expected that operation " + result.getOperation() +
+                        " fails fatally, but the result was " + result.getStatus(),
+                result.getStatus() == OperationResultStatusType.FATAL_ERROR);
     }
 
     public static void assertResultStatus(OperationResult result, OperationResultStatus expectedStatus) {

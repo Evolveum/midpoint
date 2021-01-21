@@ -403,8 +403,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Description of recent operations executed on this object (or related objects, e.g. shadows
-                            in case of a focal object). The number of operations to be kept here is configurable.
+                            Description of recent operations executed on this object (or related objects in special
+                            cases). The number of operations to be kept here is configurable.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -28453,7 +28453,18 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0" maxOccurs="1">
+            <xsd:element name="recordType" type="tns:OperationExecutionRecordTypeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of the operation execution record: either simple (recording modification or modifications
+                        of a given object) or complex (recording the whole process of e.g. reconciliation of a given object).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         When was this information recorded. It is expected that it was when
@@ -28464,50 +28475,88 @@
             <xsd:element name="operation" type="tns:ObjectDeltaOperationType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The elementary operation(s) that were part of the execution and their results.
-                        However, the content would be reduced e.g. by deletion of modification items and operation
-                        result children. The level of reduction could be configurable in the future.
+                        The elementary modification operations that were part of the (complex or simple) operation execution
+                        and their results. However, the content would be reduced e.g. by deletion of modification items
+                        and operation result children. The level of reduction could be configurable in the future.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="status" type="tns:OperationResultStatusType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="status" type="tns:OperationResultStatusType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Overall result status of the whole operation.
+                        Result status of the whole operation (complex or simple).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="initiatorRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="initiatorRef" type="tns:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         User that initiated the operation. (TODO)
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                        <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="taskRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="taskRef" type="tns:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The task that was used to initiate the operation (if any). Only the latest result for a given
-                        non-zero task OID will be kept for any object.
+                        The task that was used to initiate the operation (if any). Only the latest result(s)
+                        for a given non-zero task OID will be kept for any object.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="channel" type="xsd:string" minOccurs="0" maxOccurs="1">
+            <xsd:element name="channel" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Channel through which the operation was initiated.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="requestIdentifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Request identifier related to this (complex or simple) operation.
+                        Generally, each complex operation has its own request identifier, and it is used for all
+                        enclosed simple operations. However, there might be complex operations without request identifier
+                        (if model-level processing is not present).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+
+    <xsd:simpleType name="OperationExecutionRecordTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Type of an operation execution record.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.3</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="simple">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SIMPLE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="complex">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="COMPLEX"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="LocalizableMessageType" abstract="true">
         <xsd:annotation>

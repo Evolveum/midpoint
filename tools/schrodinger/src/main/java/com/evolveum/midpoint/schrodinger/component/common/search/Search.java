@@ -171,16 +171,7 @@ public class Search<T> extends Component<T> {
     }
 
     private SelenideElement getDisplayedPopover() {
-        ElementsCollection popoverElements = getParentElement().$$(Schrodinger.byDataId("popover"));
-        SelenideElement popover = null;
-        for (SelenideElement popoverElement : popoverElements) {
-            if (popoverElement.isDisplayed()) {
-                popover = popoverElement;
-                break;
-            }
-            popover = popoverElement;
-        }
-        return popover;
+        return getParentElement().$x(".//div[@data-s-id='popover']").waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
     }
 
 

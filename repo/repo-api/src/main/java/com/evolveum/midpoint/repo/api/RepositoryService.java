@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -209,6 +209,7 @@ public interface RepositoryService {
      * @throws SchemaException error dealing with storage schema, e.g. schema violation
      * @throws IllegalArgumentException wrong OID format, etc.
      */
+    @NotNull
     <T extends ObjectType> String addObject(PrismObject<T> object, RepoAddOptions options, OperationResult parentResult)
             throws ObjectAlreadyExistsException, SchemaException;
 
@@ -402,7 +403,7 @@ public interface RepositoryService {
      * <p>
      * This method should not die even if the specified shadow does not exist.
      * Even if the shadow is gone, it still may be used in some linkRefs. This
-     * method should be able to find objects with such linkeRefs otherwise we
+     * method should be able to find objects with such linkRefs otherwise we
      * will not be able to do proper cleanup.
      * </p>
      *

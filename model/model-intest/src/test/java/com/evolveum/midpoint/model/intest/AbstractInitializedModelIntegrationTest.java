@@ -15,7 +15,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import com.evolveum.midpoint.model.impl.importer.ImportAccountsFromResourceTaskHandler;
+import com.evolveum.midpoint.model.impl.sync.tasks.imp.ImportFromResourceTaskHandler;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.tools.testng.UnusedTestElement;
@@ -60,7 +60,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
     @Autowired protected MappingFactory mappingFactory;
     @Autowired protected Clockwork clockwork;
     @Autowired protected ClockworkMedic clockworkMedic;
-    @Autowired protected ImportAccountsFromResourceTaskHandler importAccountsFromResourceTaskHandler;
+    @Autowired protected ImportFromResourceTaskHandler importFromResourceTaskHandler;
 
     protected ProfilingModelInspectorManager profilingModelInspectorManager;
     protected CheckingProgressListener checkingProgressListener;

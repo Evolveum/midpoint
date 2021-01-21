@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -409,7 +410,7 @@ class ConnIdToMidPointConversion {
      */
     @NotNull PrismObject<ShadowType> reportErrorInFetchResult(OperationResult result) {
         // TODO consider treatment of an empty resource object (e.g. by creating a fake name containing identifier values)
-        ShadowUtil.recordFetchError(resourceObject, result);
+        ObjectTypeUtil.recordFetchError(resourceObject, result);
         return resourceObject;
     }
 }

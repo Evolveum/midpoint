@@ -36,7 +36,8 @@ public class PolicyRuleSuspendTaskExecutor {
 
     @Autowired private CounterManager counterManager;
 
-    public <O extends ObjectType> void execute(@NotNull ModelContext<O> context, Task task, OperationResult result) throws ThresholdPolicyViolationException, ObjectNotFoundException, SchemaException {
+    public <O extends ObjectType> void execute(@NotNull ModelContext<O> context, Task task, OperationResult result)
+            throws ThresholdPolicyViolationException, ObjectNotFoundException, SchemaException {
         ModelElementContext<O> focusCtx = context.getFocusContext();
 
         if (focusCtx == null) {

@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -946,6 +947,17 @@ public class ObjectTypeUtil {
         // note that here we create empty extension if there's none
         //noinspection unchecked
         return ((PrismContainerValue<ExtensionType>) extensionContainer.getValue());
+    }
+
+    public static boolean hasFetchError(@NotNull PrismObject<? extends ObjectType> object) {
+        OperationResultType fetchResult = object.asObjectable().getFetchResult();
+        return fetchResult != null && OperationResultUtil.isError(fetchResult.getStatus());
+    }
+
+    public static void recordFetchError(PrismObject<? extends ObjectType> object, OperationResult result) {
+        OperationResultType resultBean = result.createOperationResultType();
+        assert OperationResultUtil.isError(resultBean.getStatus());
+        object.asObjectable().setFetchResult(resultBean);
     }
 
     @FunctionalInterface

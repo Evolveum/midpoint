@@ -8,44 +8,39 @@ package com.evolveum.midpoint.provisioning.impl.task;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.provisioning.impl.ShadowCache;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
+ * Object handler for the propagation task.
+ *
  * @author semancik
  */
-public class PropagationResultHandler extends AbstractSearchIterativeResultHandler<ShadowType> {
+public class PropagationResultHandler
+        extends AbstractSearchIterativeResultHandler
+        <ShadowType,
+                PropagationTaskHandler,
+                PropagationTaskHandler.TaskExecution,
+                PropagationTaskPartExecution,
+                PropagationResultHandler> {
 
-    private final ShadowCache shadowCache;
-    private final PrismObject<ResourceType> resource;
-
-    public PropagationResultHandler(RunningTask coordinatorTask, String taskOperationPrefix, TaskManager taskManager, ShadowCache shadowCache, PrismObject<ResourceType> resource) {
-        super(coordinatorTask, taskOperationPrefix, "propagation", "to "+resource, null, taskManager);
-        this.shadowCache = shadowCache;
-        this.resource = resource;
-    }
-
-    protected PrismObject<ResourceType> getResource() {
-        return resource;
+    public PropagationResultHandler(PropagationTaskPartExecution taskExecution) {
+        super(taskExecution, "propagation", "to " + taskExecution.getResource());
     }
 
     @Override
     protected boolean handleObject(PrismObject<ShadowType> shadow, RunningTask workerTask, OperationResult result)
             throws CommonException {
         try {
-            shadowCache.propagateOperations(resource, shadow, workerTask, result);
+            taskHandler.getShadowCache().propagateOperations(partExecution.getResource(), shadow, workerTask, result);
+            return true;
         } catch (GenericFrameworkException | EncryptionException e) {
             throw new SystemException("Generic provisioning framework error: " + e.getMessage(), e);
         }
-        return true;
     }
-
 }

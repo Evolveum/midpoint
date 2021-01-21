@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.statistics.Statistics;
 import com.evolveum.midpoint.task.quartzimpl.statistics.WorkBucketStatisticsCollector;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -49,12 +50,20 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     private Long lastOperationStatsUpdateTimestamp;
 
     /**
+     * OID of the root of this task hierarchy.
+     * (Note that each running task must have a persistent root.)
+     */
+    @Experimental
+    @NotNull private final String rootTaskOid;
+
+    /**
      * Lightweight asynchronous subtasks.
      * Each task here is a LAT, i.e. transient and with assigned lightweight handler.
      * Access to this structure should be synchronized because of deleteLightweightAsynchronousSubtasks method.
      * (This means we could replace ConcurrentHashMap with plain HashMap but let's keep that just for certainty.)
      */
     private final Map<String, RunningTaskQuartzImpl> lightweightAsynchronousSubtasks = new ConcurrentHashMap<>();
+
     private RunningTaskQuartzImpl parentForLightweightAsynchronousTask;            // EXPERIMENTAL
 
     /**
@@ -89,12 +98,14 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     /**
      * How many objects were seen by this task. This is to determine whether interval-based profiling is to be started.
      */
-    private AtomicInteger objectsSeen = new AtomicInteger(0);
+    private final AtomicInteger objectsSeen = new AtomicInteger(0);
 
     private Level originalProfilingLevel;
 
-    RunningTaskQuartzImpl(@NotNull TaskManagerQuartzImpl taskManager, PrismObject<TaskType> taskPrism) {
+    RunningTaskQuartzImpl(@NotNull TaskManagerQuartzImpl taskManager, @NotNull PrismObject<TaskType> taskPrism,
+            @NotNull String rootTaskOid) {
         super(taskManager, taskPrism);
+        this.rootTaskOid = rootTaskOid;
     }
 
     @Override
@@ -122,7 +133,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 
     @Override
     public RunningTask createSubtask(LightweightTaskHandler handler) {
-        RunningTaskQuartzImpl sub = taskManager.createRunningTask(createSubtask());
+        RunningTaskQuartzImpl sub = taskManager.createRunningTask(createSubtask(), rootTaskOid);
         sub.setLightweightTaskHandler(handler);
         assert sub.getTaskIdentifier() != null;
         synchronized (lightweightAsynchronousSubtasks) {
@@ -397,5 +408,10 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     public void stopTracing() {
         removeTracingRequests();
         setTracingProfile(null);
+    }
+
+    @Override
+    public @NotNull String getRootTaskOid() {
+        return rootTaskOid;
     }
 }

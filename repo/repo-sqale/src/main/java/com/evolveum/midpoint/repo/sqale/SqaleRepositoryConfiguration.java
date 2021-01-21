@@ -12,6 +12,7 @@ import java.nio.file.Path;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -33,11 +34,12 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     private static final int DEFAULT_MIN_POOL_SIZE = 8;
     private static final int DEFAULT_MAX_POOL_SIZE = 20;
 
-    public static final String PROPERTY_DATABASE = "database";
-
     public static final String PROPERTY_DATASOURCE = "dataSource";
 
+    // ignored - we assume PostrgreSQL and use default values above
+    public static final String PROPERTY_DATABASE = "database";
     public static final String PROPERTY_DRIVER_CLASS_NAME = "driverClassName";
+
     public static final String PROPERTY_JDBC_PASSWORD = "jdbcPassword";
     public static final String PROPERTY_JDBC_PASSWORD_FILE = "jdbcPasswordFile";
     public static final String PROPERTY_JDBC_USERNAME = "jdbcUsername";
@@ -58,7 +60,7 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     /**
      * Database kind - either explicitly configured or derived from other options .
      */
-//    @NotNull // TODO we want this not null eventually, see guessDatabaseType()
+    @NotNull
     private final SupportedDatabase databaseType;
 
     // either dataSource or JDBC URL must be set
@@ -114,13 +116,6 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     }
 
     protected String defaultJdbcUrl() {
-        return null;
-    }
-
-    // TODO: we want this not null eventually, but if it is not null in this base class,
-    //  how can subclass add any information (e.g. using Hibernate dialect)?
-    protected SupportedDatabase guessDatabaseType(Configuration configuration) {
-        // TODO
         return null;
     }
 
@@ -236,7 +231,7 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     }
 
     @Override
-    public boolean shouldRollback(Throwable ex) {
+    public boolean isFatalException(Throwable ex) {
         return false;
     }
 }

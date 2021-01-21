@@ -523,9 +523,12 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
         return jdbcUrl.toString();
     }
 
+    /**
+     * If exception is related to serialization it is not considered "fatal" and can be retried.
+     */
     @Override
-    public boolean shouldRollback(Throwable ex) {
-        return new TransactionSerializationProblemDetector(this, LOGGER)
+    public boolean isFatalException(Throwable ex) {
+        return !new TransactionSerializationProblemDetector(this, LOGGER)
                 .isExceptionRelatedToSerialization(ex);
     }
 

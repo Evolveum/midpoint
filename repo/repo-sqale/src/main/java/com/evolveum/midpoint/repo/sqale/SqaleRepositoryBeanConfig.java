@@ -15,12 +15,15 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
+import com.evolveum.midpoint.repo.sqale.qmapping.QNodeMapping;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SystemConfigurationChangeDispatcherImpl;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
 /**
  * New SQL repository related configuration.
@@ -68,15 +71,18 @@ public class SqaleRepositoryBeanConfig {
     public SqlRepoContext sqlRepoContext(
             SqaleRepositoryConfiguration repositoryConfiguration,
             DataSource dataSource) {
-        // TODO add mapping
-        QueryModelMappingRegistry mapping = null;
+        QueryModelMappingRegistry mapping = new QueryModelMappingRegistry()
+                .register(NodeType.COMPLEX_TYPE, QNodeMapping.INSTANCE)
+                .seal();
 
         return new SqlRepoContext(repositoryConfiguration, dataSource, mapping);
     }
 
     @Bean
-    public SqaleRepositoryService repositoryService(SqlRepoContext sqlRepoContext) {
-        return new SqaleRepositoryService(sqlRepoContext);
+    public SqaleRepositoryService repositoryService(
+            SqlRepoContext sqlRepoContext,
+            PrismContext prismContext) {
+        return new SqaleRepositoryService(sqlRepoContext, prismContext);
     }
 
     // TODO @Bean for AuditServiceFactory later

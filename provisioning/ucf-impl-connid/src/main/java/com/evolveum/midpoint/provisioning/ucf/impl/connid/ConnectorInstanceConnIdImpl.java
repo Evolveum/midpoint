@@ -1831,49 +1831,34 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         ResultsHandler connIdHandler = new ResultsHandler() {
             @Override
             public boolean handle(ConnectorObject connectorObject) {
-                // Convert ConnId-specific connector object to a generic ResourceObject
-                recordIcfOperationSuspend(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
-                int count = countHolder.getValue();
-                countHolder.setValue(count+1);
-                if (!useConnectorPaging) {
-                    // TODO allow offset or maxSize be null
-                    if (query != null && query.getPaging() != null && query.getPaging().getOffset() != null
-                            && query.getPaging().getMaxSize() != null) {
-                        if (count < query.getPaging().getOffset()) {
-                            recordResume();
-                            return true;
-                        }
+                Validate.notNull(connectorObject, "null connector object"); // todo apply error reporting method?
 
-                        if (count == (query.getPaging().getOffset() + query.getPaging().getMaxSize())) {
-                            recordResume();
-                            return false;
+                recordIcfOperationSuspend(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
+                try {
+                    int count = countHolder.getValue();
+                    countHolder.setValue(count + 1);
+                    if (!useConnectorPaging) {
+                        // TODO allow offset or maxSize be null
+                        if (query != null && query.getPaging() != null && query.getPaging().getOffset() != null
+                                && query.getPaging().getMaxSize() != null) {
+                            if (count < query.getPaging().getOffset()) {
+                                return true;
+                            }
+                            if (count == (query.getPaging().getOffset() + query.getPaging().getMaxSize())) {
+                                return false;
+                            }
                         }
                     }
-                }
-                PrismObject<ShadowType> resourceObject;
-                Validate.notNull(connectorObject, "null connector object"); // todo apply error reporting method?
-                try {
-                    resourceObject = connIdConvertor.convertToResourceObject(connectorObject, objectDefinition, false,
-                            caseIgnoreAttributeNames, legacySchema, errorReportingMethod, result);
+
+                    PrismObject<ShadowType> resourceObject = connIdConvertor.convertToResourceObject(connectorObject,
+                            objectDefinition, false, caseIgnoreAttributeNames, legacySchema, errorReportingMethod, result);
+                    return handler.handle(resourceObject);
+
                 } catch (SchemaException e) {
-                    recordResume();
                     throw new IntermediateException(e);
+                } finally {
+                    recordIcfOperationResume(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
                 }
-
-                // .. and pass it to the handler
-                boolean cont = handler.handle(resourceObject);
-                /*
-                 * When iterative search on resource was stopped, we used to record WARNING into OperationResult (originally
-                 * there was even PARTIAL_ERROR). But this is not quite correct. The operation as such is successful.
-                 * (Maybe we should provide OperationResult to handler so that it can put something to it.)
-                 * This would also help when displaying operation result structure.
-                 */
-                recordResume();
-                return cont;
-            }
-
-            private void recordResume() {
-                recordIcfOperationResume(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
             }
 
             @Override

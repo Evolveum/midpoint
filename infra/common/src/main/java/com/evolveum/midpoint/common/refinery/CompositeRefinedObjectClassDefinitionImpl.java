@@ -360,13 +360,8 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
     }
 
     @Override
-    public boolean matches(ShadowType shadowType) {
-        return structuralObjectClassDefinition.matches(shadowType);
-    }
-
-    @Override
-    public boolean matchesWithoutIntent(ShadowType shadowType) {
-        return structuralObjectClassDefinition.matchesWithoutIntent(shadowType);
+    public boolean matches(ShadowType shadow) {
+        return structuralObjectClassDefinition.matches(shadow);
     }
 
     @Override

@@ -22,16 +22,18 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlPathContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.QNameUtil;
 
 /**
  * Common supertype for mapping items/attributes between schema (prism) classes and query types.
- * See {@link #addItemMapping(ItemName, ItemSqlMapper)} for details about mapping mechanism.
+ * See {@link #addItemMapping(QName, ItemSqlMapper)} for details about mapping mechanism.
  * See {@link #addDetailFetchMapper(ItemName, SqlDetailFetchMapper)} for more about mapping
  * related to-many detail tables.
  * <p>
@@ -104,7 +106,7 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
      * @param itemMapper mapper wrapping the information about column mappings working also
      * as a factory for {@link FilterProcessor}
      */
-    public final void addItemMapping(ItemName itemName, ItemSqlMapper itemMapper) {
+    public final void addItemMapping(QName itemName, ItemSqlMapper itemMapper) {
         itemFilterProcessorMapping.put(itemName, itemMapper);
     }
 
@@ -251,6 +253,16 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
 
     public Map<String, ColumnMetadata> getExtensionColumns() {
         return Collections.unmodifiableMap(extensionColumns);
+    }
+
+    /**
+     * By default uses {@link #selectExpressionsWithCustomColumns} and does not use options.
+     * Can be overridden to fulfil other needs, e.g. to select just full object..
+     */
+    public @NotNull Path<?>[] selectExpressions(
+            Q entity,
+            @SuppressWarnings("unused") Collection<SelectorOptions<GetOperationOptions>> options) {
+        return selectExpressionsWithCustomColumns(entity);
     }
 
     public @NotNull Path<?>[] selectExpressionsWithCustomColumns(Q entity) {

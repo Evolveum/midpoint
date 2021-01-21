@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqlbase;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -56,7 +57,7 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
     @Autowired private MidpointConfiguration midpointConfiguration;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
 
-    private final Collection<SystemConfigurationChangeListener> listeners = new HashSet<>();
+    private final Collection<SystemConfigurationChangeListener> listeners = ConcurrentHashMap.newKeySet();
 
     private String lastVersionApplied = null;
 
@@ -120,8 +121,7 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
             try {
                 listener.update(configuration);
             } catch (Throwable t) {
-                LoggingUtils.logUnexpectedException(LOGGER,
-                        "Couldn't update system configuration listener {}", t, listener);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't update system configuration listener {}", t, listener);
                 lastVersionApplied = null;
             }
         }
@@ -239,19 +239,15 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
     }
 
     @Override
-    public synchronized void registerListener(SystemConfigurationChangeListener listener) {
-        if (!listeners.contains(listener)) {
-            listeners.add(listener);
-        } else {
+    public void registerListener(SystemConfigurationChangeListener listener) {
+        if (!listeners.add(listener)) {
             LOGGER.warn("Attempt to register already-registered listener: {}", listener);
         }
     }
 
     @Override
-    public synchronized void unregisterListener(SystemConfigurationChangeListener listener) {
-        if (listeners.contains(listener)) {
-            listeners.remove(listener);
-        } else {
+    public void unregisterListener(SystemConfigurationChangeListener listener) {
+        if (!listeners.remove(listener)) {
             LOGGER.warn("Attempt to unregister a listener that was not registered: {}", listener);
         }
     }

@@ -6,14 +6,17 @@
  */
 package com.evolveum.midpoint.repo.common.util;
 
+import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
-
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
 /**
  * @author katka
@@ -85,13 +88,20 @@ public class RepoCommonUtils {
         }
     }
 
-    public static Throwable getResultException(OperationResult result) {
+    // TODO preserve full stack traces somehow (maybe using user data)
+    @NotNull
+    public static Throwable getResultException(@NotNull OperationResultType result) {
+        return getResultException(OperationResult.createOperationResult(result));
+    }
+
+    @NotNull
+    public static Throwable getResultException(@NotNull OperationResult result) {
         Throwable t = getResultExceptionIfExists(result);
         if (t != null) {
             return t;
         } else {
             LOGGER.debug("No exception found in operation result - but there should be some. Using an artificial one:\n{}",
-                    result.debugDump(1));
+                    result.debugDumpLazily(1));
             return new SystemException(result.getMessage());
         }
     }

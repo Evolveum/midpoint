@@ -81,5 +81,5 @@ public interface JdbcRepositoryConfiguration {
     /**
      * Returns true if the exception should cause transaction rollback.
      */
-    boolean shouldRollback(Throwable ex);
+    boolean isFatalException(Throwable ex);
 }
