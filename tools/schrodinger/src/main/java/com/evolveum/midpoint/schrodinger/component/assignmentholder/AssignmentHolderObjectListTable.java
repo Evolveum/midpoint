@@ -17,6 +17,7 @@ import com.evolveum.midpoint.schrodinger.component.modal.ExportPopupPanel;
 
 import com.evolveum.midpoint.schrodinger.util.Utils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
@@ -114,12 +115,14 @@ public abstract class AssignmentHolderObjectListTable<P, PD extends AssignmentHo
         SelenideElement mainButtonElement = getToolbarButton(mainButtonIconCssClass)
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
         mainButtonElement.click();
-        if (mainButtonElement.exists()) {
+        Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
+        if (StringUtils.isNotEmpty(objCollectionButtonIconCssClass)
+                && mainButtonElement.parent().parent().$x(".//div[@data-s-id='additionalButton']").exists()) {
             mainButtonElement.parent().parent()
-                    .$(By.cssSelector(".dropdown-menu.auto-width"))
-                    .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                    .$x(".//div[@data-s-id='additionalButton']")
+                    .waitUntil(Condition.visible, MidPoint.TIMEOUT_SHORT_4_S)
                     .$(By.cssSelector(objCollectionButtonIconCssClass))
-                    .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                    .waitUntil(Condition.visible, MidPoint.TIMEOUT_SHORT_4_S)
                     .click();
             Selenide.sleep(2000);
         }
