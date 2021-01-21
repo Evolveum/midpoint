@@ -6,8 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.trigger;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Component;
 
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class TriggerHandlerRegistry {
 
-    private Map<String, TriggerHandler> triggerHandlerMap = new HashMap<>();
+    private final Map<String, TriggerHandler> triggerHandlerMap = new ConcurrentHashMap<>();
 
     public void register(String uri, TriggerHandler handler) {
         triggerHandlerMap.put(uri, handler);

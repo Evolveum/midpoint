@@ -15,7 +15,7 @@ import com.evolveum.midpoint.util.exception.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
- * @author mederly
+ * TODO
  */
 public class TestValidityRecomputeTaskPartitioned extends TestValidityRecomputeTask {
 

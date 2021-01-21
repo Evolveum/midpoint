@@ -53,6 +53,11 @@ public class IterativeTaskInfoAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
+    public IterativeTaskInfoAsserter<RA> assertLastFailureObjectName(String expected) {
+        assertEquals("Wrong 'last failure' object name", expected, information.getLastFailureObjectName());
+        return this;
+    }
+
     private void assertBetween(int actual, int min, int max, String label) {
         if (actual < min) {
             fail(label + " (" + actual + ") is less than minimum expected (" + min + ")");

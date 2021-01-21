@@ -1231,9 +1231,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     }
 
     @Override
-    public boolean update(@Nullable SystemConfigurationType value) {
+    public void update(@Nullable SystemConfigurationType value) {
         systemConfiguration = value;
-        return true;
     }
 
     @Override

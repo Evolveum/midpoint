@@ -28,6 +28,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -381,24 +382,15 @@ public class ShadowUtil {
         if (shadow == null) {
             return null;
         }
-        String intent = shadow.getIntent();
-        if (intent != null) {
-            return intent;
-        }
-        return null;
+        return shadow.getIntent();
     }
 
     public static ShadowKindType getKind(ShadowType shadow) {
         if (shadow == null) {
             return null;
         }
-        ShadowKindType kind = shadow.getKind();
-        if (kind != null) {
-            return kind;
-        }
-        return ShadowKindType.ACCOUNT;
+        return ObjectUtils.defaultIfNull(shadow.getKind(), ShadowKindType.ACCOUNT);
     }
-
 
     public static <T> Collection<T> getAttributeValues(ShadowType shadow, QName attributeQname, Class<T> type) {
         ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
@@ -855,16 +847,5 @@ public class ShadowUtil {
                 sb.append(";");
             }
         }
-    }
-
-    public static boolean hasFetchError(@NotNull PrismObject<ShadowType> shadow) {
-        OperationResultType fetchResult = shadow.asObjectable().getFetchResult();
-        return fetchResult != null && OperationResultUtil.isError(fetchResult.getStatus());
-    }
-
-    public static void recordFetchError(PrismObject<ShadowType> shadow, OperationResult result) {
-        OperationResultType resultBean = result.createOperationResultType();
-        assert OperationResultUtil.isError(resultBean.getStatus());
-        shadow.asObjectable().setFetchResult(resultBean);
     }
 }

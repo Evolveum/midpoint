@@ -11,9 +11,12 @@ import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import com.google.common.annotations.VisibleForTesting;
+
 /**
- * @author mederly
+ * To be used in those tests where repo module is not available.
  */
+@VisibleForTesting
 public class DummySystemConfigurationChangeDispatcherImpl implements SystemConfigurationChangeDispatcher {
 
     @Override

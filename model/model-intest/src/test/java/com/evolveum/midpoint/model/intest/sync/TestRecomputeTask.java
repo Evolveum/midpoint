@@ -63,8 +63,8 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
     private static final String TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID = "91919191-76e0-59e2-86d6-3d4f02d3aadd";
 
     // TODO move to common dir and apply to all tests
-    private static final TestResource ARCHETYPE_TASK_RECOMPUTATION =
-            new TestResource(TEST_DIR, "archetype-task-recomputation.xml", "77615e4c-b82e-4b3a-b265-5487a6ac016b");
+    private static final TestResource<ArchetypeType> ARCHETYPE_TASK_RECOMPUTATION =
+            new TestResource<>(TEST_DIR, "archetype-task-recomputation.xml", "77615e4c-b82e-4b3a-b265-5487a6ac016b");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -166,7 +166,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
 
-        waitForTaskFinish(TASK_USER_RECOMPUTE_OID, true, 40000);
+        waitForTaskFinish(TASK_USER_RECOMPUTE_OID, false, 40000);
 
         // THEN
         then();

@@ -20,9 +20,6 @@ public interface SystemConfigurationChangeListener {
      * @param value Current value of the system configuration object. It is 'null' if the object does not exist.
      *              Usually listeners keep their current state in such cases, but if needed, it will have the information
      *              about missing sysconfig object, so it could act accordingly.
-     *
-     * @return false if the update was not successful, so it needs to be repeated. The same effect is when
-     * a runtime exception is thrown.
      */
-    boolean update(@Nullable SystemConfigurationType value);
+    void update(@Nullable SystemConfigurationType value);
 }
