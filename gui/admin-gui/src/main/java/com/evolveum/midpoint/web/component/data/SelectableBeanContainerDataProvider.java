@@ -72,7 +72,6 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
     public SelectableBeanContainerDataProvider(Component component, @NotNull IModel<Search<C>> search, Set<? extends C> selected, boolean useDefaultSortingField) {
         super(component, search, false, useDefaultSortingField);
 
-        Validate.notNull(search.getObject().getTypeClass());
         if (selected != null) {
             this.selected = selected;
         }
