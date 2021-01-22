@@ -75,7 +75,8 @@ public class GetObjectOpHandler extends CachedOpHandler {
                 exec.reportGlobalNotAvailable();
                 PrismObject<T> object = executeAndCache(exec);
                 return exec.prepareReturnValueAsIs(object);
-            } else if (!exec.global.supports) {
+            }
+            if (!exec.global.supports) {
                 exec.reportGlobalPass();
                 PrismObject<T> object = executeAndCache(exec);
                 return exec.prepareReturnValueAsIs(object);
@@ -86,26 +87,24 @@ public class GetObjectOpHandler extends CachedOpHandler {
                 exec.reportGlobalMiss();
                 PrismObject<T> object = executeAndCache(exec);
                 return exec.prepareReturnValueAsIs(object);
-            } else {
-                PrismObject<T> cachedObject = cachedValue.getObject();
-                if (!cachedValue.shouldCheckVersion()) {
-                    exec.reportGlobalHit();
-                    cacheUpdater.storeImmutableObjectToAllLocal(cachedObject, exec.caches);
-                    return exec.prepareReturnValueWhenImmutable(cachedObject);
-                } else {
-                    if (hasVersionChanged(type, oid, cachedValue, exec.result)) {
-                        exec.reportGlobalVersionChangedMiss();
-                        PrismObject<T> object = executeAndCache(exec);
-                        return exec.prepareReturnValueAsIs(object);
-                    } else { // version matches, renew ttl
-                        exec.reportGlobalWeakHit();
-                        cacheUpdater.storeImmutableObjectToAllLocal(cachedObject, exec.caches);
-                        long newTimeToVersionCheck = exec.global.getCache().getNextVersionCheckTime(exec.type);
-                        cachedValue.setCheckVersionTime(newTimeToVersionCheck);
-                        return exec.prepareReturnValueWhenImmutable(cachedObject);
-                    }
-                }
             }
+            PrismObject<T> cachedObject = cachedValue.getObject();
+            if (!cachedValue.shouldCheckVersion()) {
+                exec.reportGlobalHit();
+                cacheUpdater.storeImmutableObjectToAllLocal(cachedObject, exec.caches);
+                return exec.prepareReturnValueWhenImmutable(cachedObject);
+            }
+            if (hasVersionChanged(type, oid, cachedValue, exec.result)) {
+                exec.reportGlobalVersionChangedMiss();
+                PrismObject<T> object = executeAndCache(exec);
+                return exec.prepareReturnValueAsIs(object);
+            }
+            // version matches, renew ttl
+            exec.reportGlobalWeakHit();
+            cacheUpdater.storeImmutableObjectToAllLocal(cachedObject, exec.caches);
+            long newTimeToVersionCheck = exec.global.getCache().getNextVersionCheckTime(exec.type);
+            cachedValue.setCheckVersionTime(newTimeToVersionCheck);
+            return exec.prepareReturnValueWhenImmutable(cachedObject);
         } catch (ObjectNotFoundException e) {
             if (isAllowNotFound(findRootOptions(options))) {
                 exec.result.computeStatus();
