@@ -19,6 +19,10 @@ import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.ex.ElementNotFound;
 import com.codeborne.selenide.testng.BrowserPerClass;
 
+import com.codeborne.selenide.testng.TextReport;
+
+import com.codeborne.selenide.testng.annotations.Report;
+
 import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
 import com.evolveum.midpoint.schrodinger.component.resource.ResourceAccountsTab;
 import com.evolveum.midpoint.schrodinger.component.resource.ResourceShadowTable;
@@ -66,7 +70,8 @@ import com.evolveum.midpoint.web.boot.MidPointSpringApplication;
 @ActiveProfiles("default")
 @SpringBootTest(classes = MidPointSpringApplication.class, webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @TestPropertySource(properties = { "server.port=8180", "midpoint.schrodinger=true" })
-@Listeners({ BrowserPerClass.class })
+@Listeners({ BrowserPerClass.class, TextReport.class })
+@Report
 public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
 
     public static final String PROPERTY_NAME_MIDPOINT_HOME = "-Dmidpoint.home";
