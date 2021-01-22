@@ -112,19 +112,24 @@ public abstract class AssignmentHolderObjectListTable<P, PD extends AssignmentHo
     }
 
     public PD newObjectCollectionButtonClickPerformed(String mainButtonIconCssClass, String objCollectionButtonIconCssClass){
-        SelenideElement mainButtonElement = getToolbarButton(mainButtonIconCssClass)
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
-        mainButtonElement.click();
-        Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
+        SelenideElement mainButtonElement = getButtonToolbar()
+                .$(Schrodinger.bySelfOrDescendantElementAttributeValue("button", "data-s-id", "mainButton",
+                        "class", mainButtonIconCssClass))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_SHORT_4_S);
+        if (!mainButtonElement.parent().$x(".//div[@data-s-id='additionalButton']").exists() ||
+                "false".equals(mainButtonElement.getAttribute("aria-expanded"))) {
+            mainButtonElement.click();
+            Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
+            mainButtonElement
+                    .waitUntil(Condition.attribute("aria-expanded", "true"), MidPoint.TIMEOUT_SHORT_4_S);
+        }
         if (StringUtils.isNotEmpty(objCollectionButtonIconCssClass)
                 && mainButtonElement.parent().parent().$x(".//div[@data-s-id='additionalButton']").exists()) {
-            mainButtonElement.parent().parent()
-                    .$x(".//div[@data-s-id='additionalButton']")
-                    .waitUntil(Condition.visible, MidPoint.TIMEOUT_SHORT_4_S)
+            mainButtonElement.parent()
                     .$(By.cssSelector(objCollectionButtonIconCssClass))
                     .waitUntil(Condition.visible, MidPoint.TIMEOUT_SHORT_4_S)
                     .click();
-            Selenide.sleep(2000);
+            Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
         }
         return getObjectDetailsPage();
     }
