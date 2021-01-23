@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sqale;
 
 import java.util.Collection;
+import javax.xml.namespace.QName;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.sql.ColumnMetadata;
@@ -15,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
@@ -23,6 +24,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -31,13 +33,13 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
-    protected final PrismContext prismContext;
+    protected final SqlTransformerContext transformerContext;
     protected final QueryModelMapping<S, Q, R> mapping;
     protected final SqlRepoContext sqlRepoContext;
 
-    protected SqaleTransformerBase(PrismContext prismContext,
+    protected SqaleTransformerBase(SqlTransformerContext transformerContext,
             QueryModelMapping<S, Q, R> mapping, SqlRepoContext sqlRepoContext) {
-        this.prismContext = prismContext;
+        this.transformerContext = transformerContext;
         this.mapping = mapping;
         this.sqlRepoContext = sqlRepoContext;
     }
@@ -54,6 +56,7 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
         return schemaObject;
     }
 
+    @SuppressWarnings("unused")
     protected void processExtensionColumns(S schemaObject, Tuple tuple, Q entityPath) {
         // empty by default, can be overridden
     }
@@ -77,8 +80,7 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
 
         return new ObjectReferenceType()
                 .oid(oid)
-                .type(prismContext.getSchemaRegistry()
-                        .determineTypeForClass(repoObjectType.getSchemaType()))
+                .type(transformerContext.schemaClassToQName(repoObjectType.getSchemaType()))
                 .description(targetName)
                 .targetName(targetName);
     }
@@ -117,5 +119,16 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
                     "trimString with column metadata without specified size: " + columnMetadata);
         }
         return MiscUtil.trimString(value, columnMetadata.getSize());
+    }
+
+    protected Integer qNameToId(QName qName) {
+        return qName != null
+                ? qNameToId(QNameUtil.qNameToUri(transformerContext.normalizeRelation(qName)))
+                : null;
+    }
+
+    protected Integer qNameToId(String qName) {
+        // TODO add some kind of QName registry processing here - but how to smuggle the component here?
+        return null;
     }
 }

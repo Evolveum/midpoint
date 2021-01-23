@@ -108,20 +108,20 @@ CREATE TABLE m_object (
     name_norm VARCHAR(255) NOT NULL,
     name_orig VARCHAR(255) NOT NULL,
     fullObject BYTEA,
-    creatorRef_relation VARCHAR(157),
+    creatorRef_relation_id INTEGER REFERENCES m_qname(id),
     creatorRef_targetOid VARCHAR(36),
     creatorRef_targetType INTEGER,
     createChannel_id INTEGER REFERENCES m_qname(id),
-    createTimestamp TIMESTAMPTZ NOT NULL,
-    modifierRef_relation VARCHAR(157),
+    createTimestamp TIMESTAMPTZ,
+    modifierRef_relation_id INTEGER REFERENCES m_qname(id),
     modifierRef_targetOid VARCHAR(36),
     modifierRef_targetType INTEGER,
     modifyChannel_id INTEGER REFERENCES m_qname(id),
-    modifyTimestamp TIMESTAMPTZ NOT NULL,
-    lifecycleState VARCHAR(255), -- TODO what is this? how many distinct values?
-    tenantRef_relation VARCHAR(157),
+    modifyTimestamp TIMESTAMPTZ,
+    tenantRef_relation_id INTEGER REFERENCES m_qname(id),
     tenantRef_targetOid VARCHAR(36),
     tenantRef_targetType INTEGER,
+    lifecycleState VARCHAR(255), -- TODO what is this? how many distinct values?
     version INTEGER NOT NULL DEFAULT 1,
     -- add GIN index for concrete tables where more than hundreds of entries are expected (see m_user)
     ext JSONB,
@@ -130,12 +130,15 @@ CREATE TABLE m_object (
     CHECK (FALSE) NO INHERIT
 );
 
+-- TODO do we want to index channels and relations? what is the variability of these values?
+--  In any case, indexes must be created for each sub-table (unless very small).
+
 -- "concrete" table, allows insert and defines "final" objectTypeClass with GENERATED
 CREATE TABLE m_resource (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectTypeClass INTEGER GENERATED ALWAYS AS (5) STORED,
     administrativeState INTEGER,
-    connectorRef_relation VARCHAR(157),
+    connectorRef_relation_id INTEGER REFERENCES m_qname(id),
     connectorRef_targetOid VARCHAR(36),
     connectorRef_targetType INTEGER,
     o16_lastAvailabilityStatus INTEGER
@@ -222,7 +225,7 @@ CREATE TABLE m_shadow (
     objectClass VARCHAR(157) NOT NULL,
     resourceRef_targetOid VARCHAR(36),
     resourceRef_targetType INTEGER,
-    resourceRef_relation VARCHAR(157),
+    resourceRef_relation_id INTEGER REFERENCES m_qname(id),
     intent VARCHAR(255),
     kind INTEGER,
     attemptNumber INTEGER,
@@ -256,8 +259,8 @@ CREATE INDEX m_shadow_ext_idx ON m_shadow USING gin (ext);
 --1	45 (inducements)
 --0	48756229
 CREATE TABLE m_assignment (
-    id INTEGER NOT NULL,
-    owner_oid UUID NOT NULL,
+    id INTEGER NOT NULL, -- TODO serial? how if partitioned?
+    owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
     -- new column may avoid join to object for some queries
     owner_type INTEGER NOT NULL,
     administrativeStatus INTEGER,
@@ -273,35 +276,34 @@ CREATE TABLE m_assignment (
     assignmentOwner INTEGER,
     createChannel VARCHAR(255),
     createTimestamp TIMESTAMPTZ,
-    creatorRef_relation VARCHAR(157),
+    creatorRef_relation_id INTEGER REFERENCES m_qname(id),
     creatorRef_targetOid VARCHAR(36),
     creatorRef_targetType INTEGER,
     lifecycleState VARCHAR(255),
-    modifierRef_relation VARCHAR(157),
+    modifierRef_relation_id INTEGER REFERENCES m_qname(id),
     modifierRef_targetOid VARCHAR(36),
     modifierRef_targetType INTEGER,
     modifyChannel VARCHAR(255),
     modifyTimestamp TIMESTAMPTZ,
     orderValue INTEGER,
-    orgRef_relation VARCHAR(157),
+    orgRef_relation_id INTEGER REFERENCES m_qname(id),
     orgRef_targetOid VARCHAR(36),
     orgRef_targetType INTEGER,
-    resourceRef_relation VARCHAR(157),
+    resourceRef_relation_id INTEGER REFERENCES m_qname(id),
     resourceRef_targetOid VARCHAR(36),
     resourceRef_targetType INTEGER,
-    targetRef_relation VARCHAR(157),
+    targetRef_relation_id INTEGER REFERENCES m_qname(id),
     targetRef_targetOid VARCHAR(36),
     targetRef_targetType INTEGER,
-    tenantRef_relation VARCHAR(157),
+    tenantRef_relation_id INTEGER REFERENCES m_qname(id),
     tenantRef_targetOid VARCHAR(36),
     tenantRef_targetType INTEGER,
     extId INTEGER,
     extOid VARCHAR(36),
     ext JSONB,
 
-    CONSTRAINT m_assignment_pk PRIMARY KEY (owner_oid, id),
+    CONSTRAINT m_assignment_pk PRIMARY KEY (owner_oid, id)
     -- no need to index owner_oid, it's part of the PK index
-    CONSTRAINT m_assignment_owner_oid_fk FOREIGN KEY (owner_oid) REFERENCES m_object_oid(oid)
 );
 
 CREATE INDEX m_assignment_ext_idx ON m_assignment USING gin (ext);
@@ -309,7 +311,7 @@ CREATE INDEX m_assignment_ext_idx ON m_assignment USING gin (ext);
 CREATE TABLE m_acc_cert_campaign (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectTypeClass INTEGER GENERATED ALWAYS AS (22) STORED,
-    definitionRef_relation VARCHAR(157),
+    definitionRef_relation_id INTEGER REFERENCES m_qname(id),
     definitionRef_targetOid VARCHAR(36),
     definitionRef_targetType INTEGER,
     endTimestamp TIMESTAMPTZ,
@@ -317,7 +319,7 @@ CREATE TABLE m_acc_cert_campaign (
     iteration INTEGER NOT NULL,
     name_norm VARCHAR(255),
     name_orig VARCHAR(255),
-    ownerRef_relation VARCHAR(157),
+    ownerRef_relation_id INTEGER REFERENCES m_qname(id),
     ownerRef_targetOid VARCHAR(36),
     ownerRef_targetType INTEGER,
     stageNumber INTEGER,
@@ -353,10 +355,10 @@ CREATE TABLE m_acc_cert_case (
     currentStageOutcome VARCHAR(255),
     fullObject BYTEA,
     iteration INTEGER NOT NULL,
-    objectRef_relation VARCHAR(157),
+    objectRef_relation_id INTEGER REFERENCES m_qname(id),
     objectRef_targetOid VARCHAR(36),
     objectRef_targetType INTEGER,
-    orgRef_relation VARCHAR(157),
+    orgRef_relation_id INTEGER REFERENCES m_qname(id),
     orgRef_targetOid VARCHAR(36),
     orgRef_targetType INTEGER,
     outcome VARCHAR(255),
@@ -364,10 +366,10 @@ CREATE TABLE m_acc_cert_case (
     reviewDeadline TIMESTAMPTZ,
     reviewRequestedTimestamp TIMESTAMPTZ,
     stageNumber INTEGER,
-    targetRef_relation VARCHAR(157),
+    targetRef_relation_id INTEGER REFERENCES m_qname(id),
     targetRef_targetOid VARCHAR(36),
     targetRef_targetType INTEGER,
-    tenantRef_relation VARCHAR(157),
+    tenantRef_relation_id INTEGER REFERENCES m_qname(id),
     tenantRef_targetOid VARCHAR(36),
     tenantRef_targetType INTEGER,
 
@@ -382,7 +384,7 @@ CREATE TABLE m_acc_cert_definition (
     lastCampaignStartedTimestamp TIMESTAMPTZ,
     name_norm VARCHAR(255),
     name_orig VARCHAR(255),
-    ownerRef_relation VARCHAR(157),
+    ownerRef_relation_id INTEGER REFERENCES m_qname(id),
     ownerRef_targetOid VARCHAR(36),
     ownerRef_targetType INTEGER
 )
@@ -407,7 +409,7 @@ CREATE TABLE m_acc_cert_wi (
     iteration INTEGER NOT NULL,
     outcome VARCHAR(255),
     outputChangeTimestamp TIMESTAMPTZ,
-    performerRef_relation VARCHAR(157),
+    performerRef_relation_id INTEGER REFERENCES m_qname(id),
     performerRef_targetOid UUID,
     performerRef_targetType INTEGER,
     stageNumber INTEGER,
@@ -419,11 +421,11 @@ CREATE TABLE m_acc_cert_wi_reference (
     owner_id INTEGER NOT NULL,
     owner_owner_id INTEGER NOT NULL,
     owner_owner_owner_oid UUID NOT NULL,
-    relation VARCHAR(157) NOT NULL,
+    relation_id INTEGER NOT NULL REFERENCES m_qname(id),
     targetOid UUID NOT NULL,
     targetType INTEGER,
 
-    PRIMARY KEY (owner_owner_owner_oid, owner_owner_id, owner_id, relation, targetOid)
+    PRIMARY KEY (owner_owner_owner_oid, owner_owner_id, owner_id, relation_id, targetOid)
 );
 
 CREATE TABLE m_node (
@@ -432,6 +434,17 @@ CREATE TABLE m_node (
     nodeIdentifier VARCHAR(255)
 )
     INHERITS (m_object);
+
+CREATE TRIGGER m_node_oid_insert_tr BEFORE INSERT ON m_node
+    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+CREATE TRIGGER m_node_oid_update_tr BEFORE UPDATE ON m_node
+    FOR EACH ROW EXECUTE PROCEDURE update_object_oid();
+CREATE TRIGGER m_node_oid_delete_tr AFTER DELETE ON m_node
+    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+
+CREATE INDEX m_node_name_orig_idx ON m_node (name_orig);
+ALTER TABLE m_node ADD CONSTRAINT m_node_name_norm_key UNIQUE (name_norm);
+-- not interested in ext index for this one, this table will be small
 
 -- TODO: catalog unused at the moment
 CREATE TABLE m_ext_item (
@@ -474,10 +487,10 @@ CREATE TABLE m_object_ext_poly (
 CREATE TABLE m_object_ext_reference (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
     ext_item_id VARCHAR(32) NOT NULL,
-    targetoid UUID NOT NULL,
-    relation VARCHAR(157),
+    target_oid UUID NOT NULL,
+    relation_id INTEGER REFERENCES m_qname(id),
     targetType INTEGER,
-    PRIMARY KEY (owner_oid, ext_item_id, targetoid)
+    PRIMARY KEY (owner_oid, ext_item_id, target_oid)
 );
 CREATE TABLE m_object_ext_string (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),

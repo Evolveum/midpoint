@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.repo.sqlbase.SqlPathContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 
 public class ItemSqlMapper {
@@ -28,17 +28,17 @@ public class ItemSqlMapper {
      */
     @Nullable private final Function<EntityPath<?>, Path<?>> primaryItemMapping;
 
-    @NotNull private final Function<SqlPathContext<?, ?, ?>, FilterProcessor<?>> filterProcessorFactory;
+    @NotNull private final Function<SqlQueryContext<?, ?, ?>, FilterProcessor<?>> filterProcessorFactory;
 
     public ItemSqlMapper(
-            @NotNull Function<SqlPathContext<?, ?, ?>, FilterProcessor<?>> filterProcessorFactory,
+            @NotNull Function<SqlQueryContext<?, ?, ?>, FilterProcessor<?>> filterProcessorFactory,
             @Nullable Function<EntityPath<?>, Path<?>> primaryItemMapping) {
         this.filterProcessorFactory = Objects.requireNonNull(filterProcessorFactory);
         this.primaryItemMapping = primaryItemMapping;
     }
 
     public ItemSqlMapper(
-            @NotNull Function<SqlPathContext<?, ?, ?>, FilterProcessor<?>> filterProcessorFactory) {
+            @NotNull Function<SqlQueryContext<?, ?, ?>, FilterProcessor<?>> filterProcessorFactory) {
         this(filterProcessorFactory, null);
     }
 
@@ -47,7 +47,7 @@ public class ItemSqlMapper {
     }
 
     public <T extends ObjectFilter> FilterProcessor<T> createFilterProcessor(
-            SqlPathContext<?, ?, ?> pathContext) {
+            SqlQueryContext<?, ?, ?> pathContext) {
         //noinspection unchecked
         return (FilterProcessor<T>) filterProcessorFactory.apply(pathContext);
     }
