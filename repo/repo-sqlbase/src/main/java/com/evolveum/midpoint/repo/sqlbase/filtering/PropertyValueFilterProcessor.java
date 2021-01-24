@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -12,13 +12,13 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
-import com.evolveum.midpoint.repo.sqlbase.SqlPathContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 
 public class PropertyValueFilterProcessor implements FilterProcessor<PropertyValueFilter<?>> {
 
-    private final SqlPathContext<?, ?, ?> context;
+    private final SqlQueryContext<?, ?, ?> context;
 
-    public PropertyValueFilterProcessor(SqlPathContext<?, ?, ?> context) {
+    public PropertyValueFilterProcessor(SqlQueryContext<?, ?, ?> context) {
         this.context = context;
     }
 

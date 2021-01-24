@@ -330,7 +330,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest
             QueryModelMapping<S, Q, R> mapping, Predicate... conditions) {
         try (JdbcSession jdbcSession = createJdbcSession().startReadOnlyTransaction()) {
             Q alias = mapping.defaultAlias();
-            SQLQuery<R> query = jdbcSession.query()
+            SQLQuery<R> query = jdbcSession.newQuery()
                     .select(alias)
                     .from(alias)
                     .where(conditions);
@@ -351,7 +351,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest
             QueryModelMapping<S, Q, R> mapping, Predicate... conditions) {
         try (JdbcSession jdbcSession = createJdbcSession().startReadOnlyTransaction()) {
             Q alias = mapping.defaultAlias();
-            return jdbcSession.query()
+            return jdbcSession.newQuery()
                     .select(alias)
                     .from(alias)
                     .where(conditions)

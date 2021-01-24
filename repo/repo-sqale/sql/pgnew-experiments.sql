@@ -17,6 +17,9 @@ select * from pg_available_extensions order by name;
 INSERT INTO m_user (oid, name_norm, name_orig, version)
 VALUES (gen_random_uuid(), md5(random()::TEXT), md5(random()::TEXT), 1);
 
+INSERT INTO m_user (name_norm, name_orig, createtimestamp, modifytimestamp, version)
+VALUES (md5(random()::TEXT), md5(random()::TEXT), current_timestamp, current_timestamp, 1);
+
 select * from m_resource;
 -- creates new row with generated UUID, repeated run must fail on unique name_norm
 insert into m_resource (name_norm, name_orig, version) VALUES ('resource0', 'resource0', 1) RETURNING OID;

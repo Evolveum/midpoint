@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqale;
 
 import javax.sql.DataSource;
 
+import ch.qos.logback.classic.Level;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -23,6 +25,7 @@ import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SystemConfigurationChangeDispatcherImpl;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
 /**
@@ -47,6 +50,9 @@ public class SqaleRepositoryBeanConfig {
     @Bean
     public SqaleRepositoryConfiguration sqaleRepositoryConfiguration(
             MidpointConfiguration midpointConfiguration) throws RepositoryServiceFactoryException {
+        // TODO remove logging change, when better way to do it for initial start is found
+        ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger("com.querydsl.sql")).setLevel(Level.DEBUG);
+
         return new SqaleRepositoryConfiguration(
                 midpointConfiguration.getConfiguration(
                         MidpointConfiguration.REPOSITORY_CONFIGURATION))
@@ -71,18 +77,19 @@ public class SqaleRepositoryBeanConfig {
     public SqlRepoContext sqlRepoContext(
             SqaleRepositoryConfiguration repositoryConfiguration,
             DataSource dataSource) {
-        QueryModelMappingRegistry mapping = new QueryModelMappingRegistry()
+        QueryModelMappingRegistry mappingRegistry = new QueryModelMappingRegistry()
                 .register(NodeType.COMPLEX_TYPE, QNodeMapping.INSTANCE)
                 .seal();
 
-        return new SqlRepoContext(repositoryConfiguration, dataSource, mapping);
+        return new SqlRepoContext(repositoryConfiguration, dataSource, mappingRegistry);
     }
 
     @Bean
     public SqaleRepositoryService repositoryService(
             SqlRepoContext sqlRepoContext,
-            PrismContext prismContext) {
-        return new SqaleRepositoryService(sqlRepoContext, prismContext);
+            PrismContext prismContext,
+            RelationRegistry relationRegistry) {
+        return new SqaleRepositoryService(sqlRepoContext, prismContext, relationRegistry);
     }
 
     // TODO @Bean for AuditServiceFactory later

@@ -9,11 +9,13 @@ package com.evolveum.midpoint.repo.sqale;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.QNode;
 import com.evolveum.midpoint.repo.sqale.qmodel.QObject;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public enum MObjectTypeMapping {
@@ -67,17 +69,32 @@ public enum MObjectTypeMapping {
 
     // DB code -> enum conversion
     public static final Map<Integer, MObjectTypeMapping> CODE_TO_ENUM = new HashMap<>();
+    // schema type QName -> enum conversion
+    public static final Map<Class<? extends ObjectType>, MObjectTypeMapping> SCHEMA_TYPE_TO_ENUM =
+            new HashMap<>();
 
     static {
         for (MObjectTypeMapping value : values()) {
             CODE_TO_ENUM.put(value.code, value);
+            SCHEMA_TYPE_TO_ENUM.put(value.schemaType, value);
         }
     }
 
     @NotNull
     public static MObjectTypeMapping fromCode(int code) {
         return Objects.requireNonNull(CODE_TO_ENUM.get(code),
-                "No value found for object type code " + code);
+                "No MObjectTypeMapping found for object type code " + code);
+    }
+
+    @NotNull
+    public static MObjectTypeMapping fromTypeQName(QName typeQName) {
+        return fromSchemaType(ObjectTypes.getObjectTypeClass(typeQName));
+    }
+
+    @NotNull
+    public static MObjectTypeMapping fromSchemaType(Class<? extends ObjectType> objectTypeClass) {
+        return Objects.requireNonNull(SCHEMA_TYPE_TO_ENUM.get(objectTypeClass),
+                "No MObjectTypeMapping found for object type " + objectTypeClass);
     }
 
     public int code() {

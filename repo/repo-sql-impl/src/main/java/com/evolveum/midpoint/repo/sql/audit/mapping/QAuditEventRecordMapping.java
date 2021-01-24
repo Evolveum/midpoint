@@ -13,7 +13,6 @@ import java.util.function.Function;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.audit.querymodel.*;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
@@ -21,6 +20,7 @@ import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlDetailFetchMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.*;
@@ -128,11 +128,11 @@ public class QAuditEventRecordMapping
 
     @Override
     public AuditEventRecordSqlTransformer createTransformer(
-            PrismContext prismContext, SqlRepoContext sqlRepoContext) {
-        return new AuditEventRecordSqlTransformer(prismContext, this, sqlRepoContext);
+            SqlTransformerContext transformerContext, SqlRepoContext sqlRepoContext) {
+        return new AuditEventRecordSqlTransformer(transformerContext, this, sqlRepoContext);
     }
 
-    private Function<Class<ObjectType>, Integer> typeConversion() {
+    private Function<Class<? extends ObjectType>, Integer> typeConversion() {
         return t -> {
             @NotNull RObjectType rObjectType = RObjectType.getByJaxbType(t);
             return rObjectType.ordinal();
