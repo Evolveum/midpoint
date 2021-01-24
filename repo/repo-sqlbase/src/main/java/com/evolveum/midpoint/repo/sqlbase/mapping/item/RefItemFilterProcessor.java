@@ -13,7 +13,7 @@ import com.querydsl.core.types.*;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.repo.sqlbase.SqlPathContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -31,20 +31,20 @@ public class RefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
     public static ItemSqlMapper mapper(
             Function<EntityPath<?>, Path<?>> rootOidToQueryItem,
             Function<EntityPath<?>, Path<?>> rootTypeToQueryItem,
-            Function<Class<ObjectType>, Integer> typeConversionFunction) {
+            Function<Class<? extends ObjectType>, Integer> typeConversionFunction) {
         return new ItemSqlMapper(ctx -> new RefItemFilterProcessor(
                 ctx, rootOidToQueryItem, rootTypeToQueryItem, typeConversionFunction));
     }
 
     private final Path<?> oidPath;
     private final Path<?> typePath;
-    private final Function<Class<ObjectType>, Integer> typeConversionFunction;
+    private final Function<Class<? extends ObjectType>, Integer> typeConversionFunction;
 
     private RefItemFilterProcessor(
-            SqlPathContext<?, ?, ?> context,
+            SqlQueryContext<?, ?, ?> context,
             Function<EntityPath<?>, Path<?>> rootOidToQueryItem,
             Function<EntityPath<?>, Path<?>> rootTypeToQueryItem,
-            Function<Class<ObjectType>, Integer> typeConversionFunction) {
+            Function<Class<? extends ObjectType>, Integer> typeConversionFunction) {
         super(context);
         this.oidPath = rootOidToQueryItem.apply(context.path());
         this.typePath = rootTypeToQueryItem != null ? rootTypeToQueryItem.apply(context.path()) : null;
@@ -59,8 +59,9 @@ public class RefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
             if (ref.getOid() != null) {
                 return ExpressionUtils.predicate(Ops.EQ, oidPath, ConstantImpl.create(ref.getOid()));
             } else if (ref.getType() != null && typePath != null && typeConversionFunction != null) {
-                Class<ObjectType> type = context.prismContext().getSchemaRegistry().getCompileTimeClass(ref.getType());
-                return ExpressionUtils.predicate(Ops.EQ, typePath, ConstantImpl.create(typeConversionFunction.apply(type)));
+                Class<? extends ObjectType> type = context.qNameToSchemaClass(ref.getType());
+                return ExpressionUtils.predicate(Ops.EQ, typePath,
+                        ConstantImpl.create(typeConversionFunction.apply(type)));
             }
         }
         return ExpressionUtils.predicate(Ops.IS_NULL, oidPath);

@@ -19,7 +19,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
-import com.evolveum.midpoint.repo.sqlbase.SqlPathContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
 
 /**
@@ -55,7 +55,7 @@ public class PolyStringItemFilterProcessor
     }
 
     private PolyStringItemFilterProcessor(
-            SqlPathContext<?, ?, ?> context,
+            SqlQueryContext<?, ?, ?> context,
             Function<EntityPath<?>, Path<?>> origMapping,
             Function<EntityPath<?>, Path<?>> normMapping) {
         super(context);

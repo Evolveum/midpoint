@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sqale;
 
 import java.util.Collection;
+import java.util.UUID;
 import javax.annotation.PreDestroy;
 
 import com.google.common.base.Strings;
@@ -25,12 +26,10 @@ import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.repo.sqale.qbean.MObject;
+import com.evolveum.midpoint.repo.sqale.qmapping.ObjectSqlTransformer;
+import com.evolveum.midpoint.repo.sqale.qmapping.SqaleModelMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.QObject;
-import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.QueryException;
-import com.evolveum.midpoint.repo.sqlbase.SqlQueryExecutor;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
+import com.evolveum.midpoint.repo.sqlbase.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -54,14 +53,15 @@ public class SqaleRepositoryService implements RepositoryService {
 
     private final SqlRepoContext sqlRepoContext;
     private final SqlQueryExecutor sqlQueryExecutor;
-    private final PrismContext prismContext;
+    private final SqlTransformerContext transformerContext;
 
     public SqaleRepositoryService(
             SqlRepoContext sqlRepoContext,
-            PrismContext prismContext) {
+            PrismContext prismContext,
+            RelationRegistry relationRegistry) {
         this.sqlRepoContext = sqlRepoContext;
-        this.sqlQueryExecutor = new SqlQueryExecutor(sqlRepoContext, prismContext);
-        this.prismContext = prismContext;
+        this.sqlQueryExecutor = new SqlQueryExecutor(sqlRepoContext);
+        this.transformerContext = new SqlTransformerContext(prismContext, relationRegistry);
     }
 
     @Override
@@ -118,7 +118,8 @@ public class SqaleRepositoryService implements RepositoryService {
 
 //        context.processOptions(options); TODO how to process option, is setting of select expressions enough?
 
-        QueryModelMapping<S, Q, R> rootMapping = sqlRepoContext.getMappingBySchemaType(schemaType);
+        SqaleModelMapping<S, Q, R> rootMapping =
+                sqlRepoContext.getMappingBySchemaType(schemaType);
         final Q root = rootMapping.defaultAlias();
 
         Tuple result;
@@ -126,11 +127,11 @@ public class SqaleRepositoryService implements RepositoryService {
             result = sqlRepoContext.newQuery(jdbcSession.connection())
                     .from(root)
                     .select(rootMapping.selectExpressions(root, options))
-                    .where(root.oid.eq(oid))
+                    .where(root.oid.eq(UUID.fromString(oid)))
                     .fetchOne();
         }
 
-        return rootMapping.createTransformer(prismContext, sqlRepoContext)
+        return rootMapping.createTransformer(transformerContext, sqlRepoContext)
                 .toSchemaObject(result, root, options);
     }
 
@@ -151,7 +152,6 @@ public class SqaleRepositoryService implements RepositoryService {
             throws ObjectAlreadyExistsException, SchemaException {
         Validate.notNull(object, "Object must not be null.");
         PolyString name = object.getName();
-        // TODO investigate how norm works, it should not be stored as null
         if (name == null || Strings.isNullOrEmpty(name.getOrig())) {
             throw new SchemaException("Attempt to add object without name.");
         }
@@ -190,7 +190,8 @@ public class SqaleRepositoryService implements RepositoryService {
             // TODO use executeAttempts
             final String operation = "adding";
 
-            return null;
+            String oid = addObjectAttempt(object, options, operationResult);
+            return oid;
             /*
             String proposedOid = object.getOid();
             while (true) {
@@ -222,6 +223,37 @@ public class SqaleRepositoryService implements RepositoryService {
         } finally {
             operationResult.computeStatusIfUnknown();
         }
+    }
+
+    private <S extends ObjectType, Q extends QObject<R>, R extends MObject> String addObjectAttempt(
+            PrismObject<S> object, RepoAddOptions options, OperationResult result)
+            throws SchemaException {
+        SqaleModelMapping<S, Q, R> rootMapping =
+                sqlRepoContext.getMappingBySchemaType(object.getCompileTimeClass());
+        Q root = rootMapping.defaultAlias();
+
+        UUID oid;
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+            ObjectSqlTransformer<S, Q, R> transformer = (ObjectSqlTransformer<S, Q, R>)
+                    rootMapping.createTransformer(transformerContext, sqlRepoContext);
+
+            // first insert without full object, because we don't know the OID yet
+            R row = transformer.toRowObjectWithoutFullObject(object.asObjectable());
+            oid = jdbcSession.newInsert(root)
+                    .populate(row)
+                    .executeWithKey(root.oid);
+            object.setOid(oid.toString());
+
+            // now to update full object with known OID
+            transformer.setFullObject(row, object.asObjectable());
+            jdbcSession.newUpdate(root)
+                    .set(root.fullObject, row.fullObject)
+                    .where(root.oid.eq(oid))
+                    .execute();
+        }
+
+        //noinspection ConstantConditions
+        return oid.toString();
     }
 
     @Override
@@ -279,7 +311,6 @@ public class SqaleRepositoryService implements RepositoryService {
             Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException {
-        // Q{EQUAL: name,PPV(PolyString:DefaultNode),null paging
         OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + "searchObjects")
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type.getName())
@@ -287,8 +318,9 @@ public class SqaleRepositoryService implements RepositoryService {
                 .build();
 
         try {
+            var queryContext = SqaleQueryContext.from(type, transformerContext, sqlRepoContext);
             SearchResultList<T> result =
-                    sqlQueryExecutor.list(type, query, options);
+                    sqlQueryExecutor.list(queryContext, query, options);
             //noinspection unchecked
             return result.map(
                     o -> (PrismObject<T>) o.asPrismObject());

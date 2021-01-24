@@ -17,6 +17,7 @@ import com.querydsl.sql.RelationalPath;
 import com.querydsl.sql.SQLQuery;
 import com.querydsl.sql.dml.SQLDeleteClause;
 import com.querydsl.sql.dml.SQLInsertClause;
+import com.querydsl.sql.dml.SQLUpdateClause;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -205,7 +206,7 @@ public class JdbcSession implements AutoCloseable {
     /**
      * Creates Querydsl query based on current Querydsl configuration and session's connection.
      */
-    public SQLQuery<?> query() {
+    public SQLQuery<?> newQuery() {
         return sqlRepoContext.newQuery(connection);
     }
 
@@ -214,11 +215,15 @@ public class JdbcSession implements AutoCloseable {
      * Check <a href="http://www.querydsl.com/static/querydsl/4.1.3/reference/html_single/#d0e1316">Querydsl docs on insert</a>
      * for more about various ways how to use it.
      */
-    public SQLInsertClause insert(RelationalPath<?> entity) {
+    public SQLInsertClause newInsert(RelationalPath<?> entity) {
         return sqlRepoContext.newInsert(connection, entity);
     }
 
-    public SQLDeleteClause delete(RelationalPath<?> entity) {
+    public SQLUpdateClause newUpdate(RelationalPath<?> entity) {
+        return sqlRepoContext.newUpdate(connection, entity);
+    }
+
+    public SQLDeleteClause newDelete(RelationalPath<?> entity) {
         return sqlRepoContext.newDelete(connection, entity);
     }
 
