@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.prism.impl.match;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.regex.Pattern;
 
 import javax.xml.namespace.QName;
@@ -43,6 +45,9 @@ public class DefaultMatchingRule<T> implements MatchingRule<T> {
         }
         if (a instanceof Matchable && b instanceof Matchable) {
             return ((Matchable)a).match((Matchable)b);
+        }
+        if (a instanceof byte[] && b instanceof byte[]) {
+            return Arrays.equals((byte[]) a, (byte[]) b);
         }
         // Just use plain java equals() method
         return a.equals(b);
