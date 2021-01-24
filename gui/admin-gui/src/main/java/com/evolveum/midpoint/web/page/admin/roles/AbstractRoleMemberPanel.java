@@ -347,11 +347,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(storageKey);
                 if (storage == null) {
                     storage = getSession().getSessionStorage().initPageStorage(storageKey);
-                    if (storage instanceof MemberPanelStorage) {
-                        ((MemberPanelStorage) storage).setIndirect(defaultIndirectConfiguration.isIndirect());
-                        ((MemberPanelStorage) storage).setRelation(getSupportedRelations().getDefaultRelationAllowAny());
-                        ((MemberPanelStorage) storage).setOrgSearchScope(defaultScopeConfiguration.getDefaultValue());
-                    }
+                }
+                if (storage instanceof MemberPanelStorage) {
+                    ((MemberPanelStorage) storage).setIndirect(defaultIndirectConfiguration.isIndirect());
+                    ((MemberPanelStorage) storage).setRelation(getSupportedRelations().getDefaultRelationAllowAny());
+                    ((MemberPanelStorage) storage).setOrgSearchScope(defaultScopeConfiguration.getDefaultValue());
                 }
                 return storage;
             }
