@@ -265,6 +265,11 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
         return this;
     }
 
+    public UserAsserter<RA> assertJpegPhoto(byte[] expected) {
+        assertEquals("Wrong jpegPhoto in "+desc(), expected, getObject().asObjectable().getJpegPhoto());
+        return this;
+    }
+
     @Override
     public UserAsserter<RA> assertLocality(String expected) {
         super.assertLocality(expected);
