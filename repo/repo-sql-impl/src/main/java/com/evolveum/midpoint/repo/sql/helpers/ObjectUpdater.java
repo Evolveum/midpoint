@@ -374,7 +374,7 @@ public class ObjectUpdater {
 
             ModifyObjectResult<T> rv;
 
-            boolean reindex = RepoModifyOptions.isExecuteIfNoChanges(modifyOptions);
+            boolean reindex = RepoModifyOptions.isForceReindex(modifyOptions);
             if (!modifications.isEmpty() || reindex) {
 
                 // JpegPhoto (RFocusPhoto) is a special kind of entity. First of all, it is lazily loaded, because photos are really big.

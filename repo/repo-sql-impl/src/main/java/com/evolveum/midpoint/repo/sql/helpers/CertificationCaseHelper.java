@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.helpers;
 
 import java.util.*;
@@ -36,9 +35,9 @@ import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertification
 import com.evolveum.midpoint.repo.sql.data.common.container.RCertWorkItemReference;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.query.QueryEngine;
-import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
 import com.evolveum.midpoint.repo.sql.util.*;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -60,8 +59,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * It is quite a temporary solution in order to ease SqlRepositoryServiceImpl
  * from tons of type-specific code. Serious solution would be to implement
  * subobject-level operations more generically.
- *
- * @author mederly
  */
 @Component
 public class CertificationCaseHelper {
@@ -166,7 +163,7 @@ public class CertificationCaseHelper {
 
     <T extends ObjectType> void updateCampaignCases(Session session, String campaignOid,
             Collection<? extends ItemDelta> modifications, RepoModifyOptions modifyOptions) throws SchemaException, ObjectNotFoundException, DtoTranslationException {
-        if (modifications.isEmpty() && !RepoModifyOptions.isExecuteIfNoChanges(modifyOptions)) {
+        if (modifications.isEmpty() && !RepoModifyOptions.isForceReindex(modifyOptions)) {
             return;
         }
 
@@ -273,7 +270,7 @@ public class CertificationCaseHelper {
         }
 
         // refresh campaign cases, if requested
-        if (RepoModifyOptions.isExecuteIfNoChanges(modifyOptions)) {
+        if (RepoModifyOptions.isForceReindex(modifyOptions)) {
             Query query = session.getNamedQuery("get.campaignCases");
             query.setString("ownerOid", campaignOid);
             @SuppressWarnings({ "raw", "unchecked" })

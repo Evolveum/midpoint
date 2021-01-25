@@ -551,7 +551,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 .addArbitraryObjectCollectionAsParam("modifications", modifications)
                 .build();
 
-        if (modifications.isEmpty() && !RepoModifyOptions.isExecuteIfNoChanges(options)) {
+        if (modifications.isEmpty() && !RepoModifyOptions.isForceReindex(options)) {
             LOGGER.debug("Modification list is empty, nothing was modified.");
             subResult.recordStatus(OperationResultStatus.SUCCESS, "Modification list is empty, nothing was modified.");
             return new ModifyObjectResult<>(modifications);
