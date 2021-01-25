@@ -451,14 +451,8 @@ public final class RUtil {
     }
 
     public static void executeStatement(Connection connection, String sql) throws SQLException {
-        Statement stmt = null;
-        try {
-            stmt = connection.createStatement();
+        try (Statement stmt = connection.createStatement()) {
             stmt.execute(sql);
-        } finally {
-            if (stmt != null && !stmt.isClosed()) {
-                stmt.close();
-            }
         }
     }
 }
