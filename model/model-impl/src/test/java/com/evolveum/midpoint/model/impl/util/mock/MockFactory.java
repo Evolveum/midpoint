@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -32,7 +32,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-@SuppressWarnings("ConstantConditions")
+@SuppressWarnings({ "ConstantConditions", "NullableProblems" })
 public class MockFactory {
 
     public static ProvisioningService createProvisioningService() {
@@ -194,13 +194,13 @@ public class MockFactory {
             }
 
             @Override
-            public <T extends ObjectType> String addObject(PrismObject<T> object, RepoAddOptions options, OperationResult parentResult) {
+            public <T extends ObjectType> @NotNull String addObject(@NotNull PrismObject<T> object, RepoAddOptions options, @NotNull OperationResult parentResult) {
                 return null;
             }
 
             @NotNull
             @Override
-            public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
+            public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(@NotNull Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, @NotNull OperationResult parentResult) {
                 return new SearchResultList<>(new ArrayList<>(0));
             }
 
@@ -236,19 +236,28 @@ public class MockFactory {
 
             @NotNull
             @Override
-            public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta<?, ?>> modifications, OperationResult parentResult) {
+            public <T extends ObjectType> ModifyObjectResult<T> modifyObject(
+                    @NotNull Class<T> type, @NotNull String oid, @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+                    @NotNull OperationResult parentResult) {
                 return null;
             }
 
             @NotNull
             @Override
-            public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta<?, ?>> modifications, RepoModifyOptions options, OperationResult parentResult) {
+            public <T extends ObjectType> ModifyObjectResult<T> modifyObject(
+                    @NotNull Class<T> type, @NotNull String oid,
+                    @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+                    RepoModifyOptions options, @NotNull OperationResult parentResult) {
                 return null;
             }
 
             @NotNull
             @Override
-            public <T extends ObjectType> ModifyObjectResult<T> modifyObject(@NotNull Class<T> type, @NotNull String oid, @NotNull Collection<? extends ItemDelta<?, ?>> modifications, ModificationPrecondition<T> precondition, RepoModifyOptions options, OperationResult parentResult) {
+            public <T extends ObjectType> ModifyObjectResult<T> modifyObject(
+                    @NotNull Class<T> type, @NotNull String oid,
+                    @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+                    ModificationPrecondition<T> precondition, RepoModifyOptions options,
+                    @NotNull OperationResult parentResult) {
                 return null;
             }
 

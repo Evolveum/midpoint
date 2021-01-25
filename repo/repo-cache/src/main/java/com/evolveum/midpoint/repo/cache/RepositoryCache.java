@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -107,8 +107,8 @@ public class RepositoryCache implements RepositoryService, Cache {
 
     @NotNull
     @Override
-    public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
+    public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(@NotNull Class<T> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, @NotNull OperationResult parentResult) throws SchemaException {
         return searchOpHandler.searchObjects(type, query, options, parentResult);
     }
 
@@ -148,21 +148,26 @@ public class RepositoryCache implements RepositoryService, Cache {
     //region --- ADD, MODIFY, DELETE and other modifications -------------------------------------------------------
 
     @Override
-    public <T extends ObjectType> @NotNull String addObject(PrismObject<T> object, RepoAddOptions options, OperationResult parentResult)
+    public <T extends ObjectType> @NotNull String addObject(@NotNull PrismObject<T> object, RepoAddOptions options, @NotNull OperationResult parentResult)
             throws ObjectAlreadyExistsException, SchemaException {
         return modificationOpHandler.addObject(object, options, parentResult);
     }
 
     @NotNull
-    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta<?, ?>> modifications,
-            OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(
+            @NotNull Class<T> type, @NotNull String oid, @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            @NotNull OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         return modifyObject(type, oid, modifications, null, parentResult);
     }
 
     @NotNull
     @Override
-    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta<?, ?>> modifications,
-            RepoModifyOptions options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(
+            @NotNull Class<T> type, @NotNull String oid,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            RepoModifyOptions options, @NotNull OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         try {
             return modifyObject(type, oid, modifications, null, options, parentResult);
         } catch (PreconditionViolationException e) {
@@ -172,9 +177,11 @@ public class RepositoryCache implements RepositoryService, Cache {
 
     @NotNull
     @Override
-    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(@NotNull Class<T> type, @NotNull String oid,
-            @NotNull Collection<? extends ItemDelta<?, ?>> modifications, ModificationPrecondition<T> precondition,
-            RepoModifyOptions options, OperationResult parentResult)
+    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(
+            @NotNull Class<T> type, @NotNull String oid,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            ModificationPrecondition<T> precondition,
+            RepoModifyOptions options, @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException {
         return modificationOpHandler.modifyObject(type, oid, modifications, precondition, options, parentResult);
     }
