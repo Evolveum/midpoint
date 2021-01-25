@@ -8,6 +8,10 @@ package com.evolveum.midpoint.gui;
 
 import java.io.File;
 
+import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.javasimon.Split;
 import org.javasimon.Stopwatch;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -102,6 +106,10 @@ public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest imple
     }
 
     private void runTestFor(Class pageToRender, String stopwatchName, String stopwatchDescription) {
+        runTestFor(pageToRender, null, stopwatchName, stopwatchDescription);
+    }
+
+    private void runTestFor(Class pageToRender, PageParameters params, String stopwatchName, String stopwatchDescription) {
         Stopwatch stopwatch = stopwatch(stopwatchName, stopwatchDescription);
         for (int i = 0; i < 1; i++) {
             try (Split ignored = stopwatch.start()) {
@@ -138,6 +146,20 @@ public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest imple
     public void test310orgTree() throws Exception {
         logger.info(getTestName());
         runTestFor(PageOrgTree.class, "orgTree", "Organization tree");
+    }
+
+    @Test
+    public void test410allTasks() {
+        logger.info(getTestName());
+        runTestFor(PageTasks.class, "tasks", "All tasks");
+    }
+
+    @Test
+    public void test510systemConfigurationAdminGuiConfig() {
+        logger.info(getTestName());
+        PageParameters params = new PageParameters();
+        params.add(PageSystemConfiguration.SELECTED_TAB_INDEX, PageSystemConfiguration.CONFIGURATION_TAB_ADMIN_GUI);
+        runTestFor(PageSystemConfiguration.class, params,"tasks", "All tasks");
     }
 
     @Test(enabled = false) // doesn't work because of getPageBase usages
