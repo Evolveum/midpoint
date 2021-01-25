@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql;
 
 import static org.testng.AssertJUnit.*;
@@ -187,7 +186,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
                 .item(F_ROW, 2, F_KEY).replace("key 2")
                 .asItemDeltas();
 
-        executeAndCheckModification(modifications, result, 1, Arrays.asList("key 2"));
+        executeAndCheckModification(modifications, result, 1, List.of("key 2"));
     }
 
     @Test
@@ -420,6 +419,7 @@ public class LookupTableTest extends BaseSQLRepoTest {
         if (keysWithNewGeneratedTimestamps != null) {
             for (String key : keysWithNewGeneratedTimestamps) {
                 LookupTableRowType row = findRow(actualObject, key, true);
+                assert row != null;
                 checkCurrentTimestamp(row);
                 row.setLastChangeTimestamp(null);
                 LookupTableRowType rowExp = findRow(expectedObject, key, false);
@@ -459,6 +459,6 @@ public class LookupTableTest extends BaseSQLRepoTest {
             throws ObjectNotFoundException, SchemaException {
         SelectorOptions<GetOperationOptions> retrieve = SelectorOptions.create(
                 prismContext.toUniformPath(F_ROW), GetOperationOptions.createRetrieve(INCLUDE));
-        return repositoryService.getObject(LookupTableType.class, oid, Arrays.asList(retrieve), result);
+        return repositoryService.getObject(LookupTableType.class, oid, List.of(retrieve), result);
     }
 }

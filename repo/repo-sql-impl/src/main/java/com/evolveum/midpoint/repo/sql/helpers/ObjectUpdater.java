@@ -56,10 +56,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-/**
- * @author lazyman, mederly
- */
-
 @Component
 public class ObjectUpdater {
 
@@ -81,12 +77,15 @@ public class ObjectUpdater {
     @Autowired private RelationRegistry relationRegistry;
     @Autowired private ExtItemDictionary extItemDictionary;
 
-    public <T extends ObjectType> String addObjectAttempt(PrismObject<T> object, RepoAddOptions options,
-            boolean noFetchExtensionValueInsertionForbidden, OperationResult result) throws ObjectAlreadyExistsException,
-            SchemaException {
+    public <T extends ObjectType> String addObjectAttempt(
+            PrismObject<T> object, RepoAddOptions options, OperationResult result)
+            throws ObjectAlreadyExistsException, SchemaException {
 
-        String classSimpleName = object.getCompileTimeClass() != null ? object.getCompileTimeClass().getSimpleName() : "(unknown class)";
-        LOGGER_PERFORMANCE.debug("> add object {}, oid={}, overwrite={}", classSimpleName, object.getOid(), options.isOverwrite());
+        String classSimpleName = object.getCompileTimeClass() != null
+                ? object.getCompileTimeClass().getSimpleName()
+                : "(unknown class)";
+        LOGGER_PERFORMANCE.debug("> add object {}, oid={}, overwrite={}",
+                classSimpleName, object.getOid(), options.isOverwrite());
 
         String oid = null;
         Session session = null;
@@ -170,7 +169,7 @@ public class ObjectUpdater {
         PrismObject<T> oldObject = null;
 
         //check if object already exists, find differences and increment version if necessary
-        Collection<? extends ItemDelta> modifications = null;
+        Collection<? extends ItemDelta<?, ?>> modifications = null;
         if (originalOid != null) {
             try {
                 oldObject = objectRetriever.getObjectInternal(session, object.getCompileTimeClass(), originalOid, null, true);
@@ -216,7 +215,7 @@ public class ObjectUpdater {
             return new ArrayList<>();
         }
 
-        PrismObjectDefinition def = object.getDefinition();
+        PrismObjectDefinition<?> def = object.getDefinition();
         ReferenceDelta delta = prismContext.deltaFactory().reference().createModificationAdd(ObjectType.F_PARENT_ORG_REF,
                 def, parentOrgRef.getClonedValues());
 
@@ -266,13 +265,14 @@ public class ObjectUpdater {
         if (StringUtils.isNotEmpty(originalOid)) {
             LOGGER.trace("Checking oid uniqueness.");
             // TODO improve this table name nonsense
-            Class hqlType = ClassMapper.getHQLTypeClass(object.getCompileTimeClass());
-            NativeQuery query = session.createNativeQuery("select count(*) from "
+            Class<?> hqlType = ClassMapper.getHQLTypeClass(object.getCompileTimeClass());
+            NativeQuery<?> query = session.createNativeQuery("select count(*) from "
                     + RUtil.getTableName(hqlType, session) + " where oid=:oid");
             query.setParameter("oid", object.getOid());
 
             Number count = (Number) query.uniqueResult();
             if (count != null && count.longValue() > 0) {
+                //noinspection ConstantConditions
                 throw new ObjectAlreadyExistsException("Object '" + object.getCompileTimeClass().getSimpleName()
                         + "' with oid '" + object.getOid() + "' already exists.");
             }
@@ -340,20 +340,20 @@ public class ObjectUpdater {
         }
     }
 
-    public <T extends ObjectType> ModifyObjectResult<T> modifyObjectAttempt(Class<T> type, String oid,
-            Collection<? extends ItemDelta> originalModifications, ModificationPrecondition<T> precondition,
-            RepoModifyOptions originalModifyOptions, int attempt, OperationResult result,
-            SqlRepositoryServiceImpl sqlRepositoryService, boolean noFetchExtensionValueInsertionForbidden)
-            throws ObjectNotFoundException,
-            SchemaException, ObjectAlreadyExistsException, SerializationRelatedException, PreconditionViolationException {
+    public <T extends ObjectType> ModifyObjectResult<T> modifyObjectAttempt(
+            Class<T> type, String oid, Collection<? extends ItemDelta<?, ?>> originalModifications,
+            ModificationPrecondition<T> precondition, RepoModifyOptions originalModifyOptions,
+            int attempt, OperationResult result, SqlRepositoryServiceImpl sqlRepositoryService,
+            boolean noFetchExtensionValueInsertionForbidden)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
+            SerializationRelatedException, PreconditionViolationException {
 
         RepoModifyOptions modifyOptions = adjustExtensionValuesHandling(originalModifyOptions, noFetchExtensionValueInsertionForbidden);
         AttemptContext attemptContext = new AttemptContext();
 
         // clone - because some certification and lookup table related methods manipulate this collection and even their constituent deltas
         // TODO clone elements only if necessary
-        //noinspection unchecked
-        Collection<? extends ItemDelta<?, ?>> modifications = (Collection<? extends ItemDelta<?, ?>>)
+        Collection<? extends ItemDelta<?, ?>> modifications =
                 CloneUtil.cloneCollectionMembers(originalModifications);
         //modifications = new ArrayList<>(modifications);
 
@@ -369,8 +369,8 @@ public class ObjectUpdater {
 
             closureContext = closureManager.onBeginTransactionModify(session, type, oid, modifications);
 
-            Collection<? extends ItemDelta> lookupTableModifications = lookupTableHelper.filterLookupTableModifications(type, modifications);
-            Collection<? extends ItemDelta> campaignCaseModifications = caseHelper.filterCampaignCaseModifications(type, modifications);
+            Collection<? extends ItemDelta<?, ?>> lookupTableModifications = lookupTableHelper.filterLookupTableModifications(type, modifications);
+            Collection<? extends ItemDelta<?, ?>> campaignCaseModifications = caseHelper.filterCampaignCaseModifications(type, modifications);
 
             ModifyObjectResult<T> rv;
 
@@ -468,7 +468,7 @@ public class ObjectUpdater {
                 // JpegPhoto cleanup: As said before, if a focus has to have no photo (after modifications are applied),
                 // we have to remove the photo manually.
                 if (shouldPhotoBeRemoved) {
-                    Query query = session.createQuery("delete RFocusPhoto where ownerOid = :oid");
+                    Query<?> query = session.createQuery("delete RFocusPhoto where ownerOid = :oid");
                     query.setParameter("oid", prismObject.getOid());
                     query.executeUpdate();
                     LOGGER.trace("Focus photo for {} was deleted", prismObject.getOid());
@@ -531,8 +531,8 @@ public class ObjectUpdater {
         return rv;
     }
 
-    private boolean containsPhotoModification(Collection<? extends ItemDelta> modifications) {
-        for (ItemDelta delta : modifications) {
+    private boolean containsPhotoModification(Collection<? extends ItemDelta<?, ?>> modifications) {
+        for (ItemDelta<?, ?> delta : modifications) {
             ItemPath path = delta.getPath();
             if (path.isEmpty()) {
                 throw new UnsupportedOperationException("Focus cannot be modified via empty-path modification");
@@ -565,7 +565,8 @@ public class ObjectUpdater {
         }
     }
 
-    private boolean isNoFetchExtensionValueInsertionException(ConstraintViolationException ex) {
+    private boolean isNoFetchExtensionValueInsertionException(
+            @SuppressWarnings("unused") ConstraintViolationException ex) {
         return true; // keep things safe
     }
 

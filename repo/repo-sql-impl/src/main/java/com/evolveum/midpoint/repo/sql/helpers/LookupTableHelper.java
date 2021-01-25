@@ -1,11 +1,24 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.helpers;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import javax.persistence.criteria.*;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Session;
+import org.hibernate.query.Query;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -13,7 +26,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
@@ -30,30 +43,17 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Session;
-import org.hibernate.query.Query;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.persistence.criteria.*;
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Contains methods specific to handle LookupTable rows.
  * (As these rows are stored outside main LookupTable object.)
- *
+ * <p>
  * It is quite a temporary solution in order to ease SqlRepositoryServiceImpl
  * from tons of type-specific code. Serious solution would be to implement
  * subobject-level operations more generically.
- *
- * @author lazyman, mederly
  */
 @Component
 public class LookupTableHelper {
@@ -79,8 +79,10 @@ public class LookupTableHelper {
         }
     }
 
-    private void addLookupTableRows(Session session, String tableOid, Collection<PrismContainerValue> values, int currentId, boolean deleteBeforeAdd) throws SchemaException {
-        for (PrismContainerValue value : values) {
+    private void addLookupTableRows(Session session, String tableOid,
+            Collection<PrismContainerValue<?>> values, int currentId, boolean deleteBeforeAdd)
+            throws SchemaException {
+        for (PrismContainerValue<?> value : values) {
             LookupTableRowType rowType = new LookupTableRowType();
             rowType.setupContainerValue(value);
             if (deleteBeforeAdd) {
@@ -95,17 +97,16 @@ public class LookupTableHelper {
 
     /**
      * This method removes all lookup table rows for object defined by oid
-     * @param session
-     * @param oid
      */
     public void deleteLookupTableRows(Session session, String oid) {
-        Query query = session.getNamedQuery("delete.lookupTableData");
+        Query<?> query = session.getNamedQuery("delete.lookupTableData");
         query.setParameter("oid", oid);
 
         query.executeUpdate();
     }
 
-    public void updateLookupTableData(Session session, String tableOid, Collection<? extends ItemDelta> modifications)
+    public void updateLookupTableData(
+            Session session, String tableOid, Collection<? extends ItemDelta<?, ?>> modifications)
             throws SchemaException {
         if (modifications.isEmpty()) {
             return;
@@ -122,7 +123,9 @@ public class LookupTableHelper {
 
                 if (containerDelta.getValuesToDelete() != null) {
                     // todo do 'bulk' delete like delete from ... where oid=? and id in (...)
-                    for (PrismContainerValue<LookupTableRowType> value : (Collection<PrismContainerValue>) containerDelta.getValuesToDelete()) {
+                    //noinspection unchecked
+                    for (PrismContainerValue<LookupTableRowType> value :
+                            (Collection<PrismContainerValue<LookupTableRowType>>) containerDelta.getValuesToDelete()) {
                         if (value.getId() != null) {
                             deleteRowById(session, tableOid, value.getId());
                         } else if (value.asContainerable().getKey() != null) {
@@ -233,7 +236,7 @@ public class LookupTableHelper {
 
     private Query setupLookupTableRowsQuery(Session session, RelationalValueSearchQuery queryDef, String oid) throws SchemaException {
         CriteriaBuilder cb = session.getCriteriaBuilder();
-        CriteriaQuery cq = cb.createQuery(RLookupTableRow.class);
+        CriteriaQuery<?> cq = cb.createQuery(RLookupTableRow.class);
 
         Root<RLookupTableRow> root = cq.from(RLookupTableRow.class);
 
@@ -250,7 +253,7 @@ public class LookupTableHelper {
                 && queryDef.getSearchType() != null
                 && StringUtils.isNotEmpty(queryDef.getSearchValue())) {
 
-            Path param;
+            Path<String> param;
             String value = queryDef.getSearchValue();
             if (LookupTableRowType.F_LABEL.equals(queryDef.getColumn())) {
                 param = root.get("label").get("norm");
@@ -299,7 +302,8 @@ public class LookupTableHelper {
                 case DESCENDING:
                     order = Arrays.stream(orderByPaths).map(item -> cb.desc(item)).toArray(Order[]::new);
                     break;
-                default: throw new AssertionError(direction);
+                default:
+                    throw new AssertionError(direction);
             }
             cq.orderBy(order);
         }
@@ -309,28 +313,28 @@ public class LookupTableHelper {
 
     private Path[] buildOrderByPaths(String orderBy, Root<RLookupTableRow> root) {
         if (!LookupTableRowType.F_LABEL.getLocalPart().equals(orderBy)) {
-            return new Path[]{root.get(orderBy)};
+            return new Path[] { root.get(orderBy) };
         }
 
         Path label = root.get(orderBy);
-        return new Path[]{label.get("norm"), label.get("orig")};
+        return new Path[] { label.get("norm"), label.get("orig") };
     }
 
-    private void appendWhereClause(CriteriaQuery cq, List<Predicate> where, CriteriaBuilder cb) {
+    private void appendWhereClause(CriteriaQuery<?> cq, List<Predicate> where, CriteriaBuilder cb) {
         Predicate wherePredicate = where.get(0);
         if (where.size() > 1) {
-            wherePredicate = cb.and(where.toArray(new Predicate[where.size()]));
+            wherePredicate = cb.and(where.toArray(new Predicate[0]));
         }
         cq.where(wherePredicate);
     }
 
-    public <T extends ObjectType> Collection<? extends ItemDelta> filterLookupTableModifications(Class<T> type,
-            Collection<? extends ItemDelta> modifications) {
-        Collection<ItemDelta> tableDelta = new ArrayList<>();
+    public <T extends ObjectType> Collection<? extends ItemDelta<?, ?>> filterLookupTableModifications(
+            Class<T> type, Collection<? extends ItemDelta<?, ?>> modifications) {
+        Collection<ItemDelta<?, ?>> tableDelta = new ArrayList<>();
         if (!LookupTableType.class.equals(type)) {
             return tableDelta;
         }
-        for (ItemDelta delta : modifications) {
+        for (ItemDelta<?, ?> delta : modifications) {
             ItemPath path = delta.getPath();
             if (path.isEmpty()) {
                 throw new UnsupportedOperationException("Lookup table cannot be modified via empty-path modification");
@@ -347,6 +351,7 @@ public class LookupTableHelper {
             }
         }
 
+        //noinspection SuspiciousMethodCalls
         modifications.removeAll(tableDelta);
 
         return tableDelta;

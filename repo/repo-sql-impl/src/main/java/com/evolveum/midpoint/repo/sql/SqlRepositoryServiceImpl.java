@@ -408,7 +408,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         long opHandle = pm.registerOperationStart(OP_ADD_OBJECT, object.getCompileTimeClass());
         int attempt = 1;
         int restarts = 0;
-        boolean noFetchExtensionValueInsertionForbidden = false;
         try {
             // TODO use executeAttempts
             final String operation = "adding";
@@ -416,7 +415,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             String proposedOid = object.getOid();
             while (true) {
                 try {
-                    String createdOid = objectUpdater.addObjectAttempt(object, options, noFetchExtensionValueInsertionForbidden, subResult);
+                    String createdOid = objectUpdater.addObjectAttempt(object, options, subResult);
                     invokeConflictWatchers((w) -> w.afterAddObject(createdOid, object));
                     return createdOid;
                 } catch (RestartOperationRequestedException ex) {
@@ -430,7 +429,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     attempt = baseHelper.logOperationAttempt(proposedOid, operation, attempt, ex, subResult);
                     pm.registerOperationNewAttempt(opHandle, attempt);
                 }
-                noFetchExtensionValueInsertionForbidden = true; // todo This is a temporary measure; needs better handling.
             }
         } finally {
             pm.registerOperationFinish(opHandle, attempt);
