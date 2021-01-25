@@ -401,21 +401,19 @@ public class RAnyConverter {
      */
     public static Object getAggregatedRepoObject(Object object) {
         //check float/double to string
-        if (object instanceof Float) {
-            object = object.toString();
-        } else if (object instanceof Double) {
-            object = object.toString();
-        } else if (object instanceof BigInteger) {
-            object = object.toString();
-        } else if (object instanceof BigDecimal) {
-            object = object.toString();
+        if (object instanceof Float
+                || object instanceof Double
+                || object instanceof BigInteger
+                || object instanceof BigDecimal) {
+            return object.toString();
         }
 
         //check short/integer to long
         if (object instanceof Short) {
-            object = ((Short) object).longValue();
-        } else if (object instanceof Integer) {
-            object = ((Integer) object).longValue();
+            return ((Short) object).longValue();
+        }
+        if (object instanceof Integer) {
+            return ((Integer) object).longValue();
         }
 
         //check gregorian calendar, xmlgregorian calendar to date
@@ -426,17 +424,17 @@ public class RAnyConverter {
         }
 
         if (object instanceof Date) {
-            object = new Timestamp(((Date) object).getTime());
+            return new Timestamp(((Date) object).getTime());
         }
 
         //if object instance of boolean, nothing to do
 
         if (object instanceof Enum<?>) {
-            object = getEnumStringValue((Enum<?>) object);
+            return getEnumStringValue((Enum<?>) object);
         }
 
         if (object instanceof byte[]) {
-            object = new String((byte[]) object);
+            return new String((byte[]) object);
         }
 
         return object;
