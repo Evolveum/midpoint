@@ -32,6 +32,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+@SuppressWarnings("ConstantConditions")
 public class MockFactory {
 
     public static ProvisioningService createProvisioningService() {
@@ -83,7 +84,7 @@ public class MockFactory {
             }
 
             @Override
-            public <T extends ObjectType> Object executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult parentResult) {
+            public Object executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult parentResult) {
                 return null;
             }
 

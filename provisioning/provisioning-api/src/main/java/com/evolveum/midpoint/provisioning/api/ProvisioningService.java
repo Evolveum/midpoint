@@ -374,7 +374,7 @@ public interface ProvisioningService {
      * @throws ObjectAlreadyExistsException
      *             if resulting object would have name which already exists in another object of the same type
      */
-    <T extends ObjectType> Object executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
+    Object executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
 
     /**
