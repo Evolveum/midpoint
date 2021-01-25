@@ -104,15 +104,12 @@ public class M10ObjectTemplate extends AbstractLabTest{
 
     @Override
     protected List<File> getObjectListToImport(){
-        return Arrays.asList(ARCHETYPE_EMPLOYEE_FILE, ARCHETYPE_ORG_FUNCTIONAL_FILE, ARCHETYPE_ORG_COMPANY_FILE, ARCHETYPE_ORG_GROUP_FILE,
+        return Arrays.asList(OBJECT_TEMPLATE_USER_SIMPLE_FILE, ARCHETYPE_EMPLOYEE_FILE, ARCHETYPE_ORG_FUNCTIONAL_FILE, ARCHETYPE_ORG_COMPANY_FILE, ARCHETYPE_ORG_GROUP_FILE,
                 ARCHETYPE_ORG_GROUP_LIST_FILE, KIRK_USER_TIBERIUS_FILE, INTERNAL_EMPLOYEE_ROLE_FILE);
     }
 
     @Test
     public void mod10test01SimpleObjectTemplate() throws IOException {
-        importObject(OBJECT_TEMPLATE_USER_SIMPLE_FILE, true);
-        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
-
         importObject(ORG_EXAMPLE_FILE, true);
         importObject(ORG_SECRET_OPS_FILE, true);
         importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE, true);
