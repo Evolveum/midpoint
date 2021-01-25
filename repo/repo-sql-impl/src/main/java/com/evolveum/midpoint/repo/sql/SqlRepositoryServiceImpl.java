@@ -26,6 +26,7 @@ import org.hibernate.dialect.Dialect;
 import org.hibernate.internal.SessionFactoryImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
@@ -100,7 +101,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @Autowired private OrgClosureManager closureManager;
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
 
-    private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal = new ThreadLocal<>();
+    private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal = ThreadLocal.withInitial(() -> new ArrayList<>());
 
     private FullTextSearchConfigurationType fullTextSearchConfiguration;
 
@@ -126,6 +127,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     // public because of testing
+    @TestOnly
     public OrgClosureManager getClosureManager() {
         return closureManager;
     }
@@ -478,6 +480,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
+    @Override
     public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
         Validate.notNull(type, "Object type must not be null.");
@@ -1193,9 +1196,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @Override
     public ConflictWatcher createAndRegisterConflictWatcher(@NotNull String oid) {
         List<ConflictWatcherImpl> watchers = conflictWatchersThreadLocal.get();
-        if (watchers == null) {
-            conflictWatchersThreadLocal.set(watchers = new ArrayList<>());
-        }
         if (watchers.size() >= MAX_CONFLICT_WATCHERS) {
             throw new IllegalStateException("Conflicts watchers leaking: reached limit of "
                     + MAX_CONFLICT_WATCHERS + ": " + watchers);
@@ -1327,6 +1327,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
+    @Override
     @PreDestroy
     public void destroy() {
         super.destroy();
