@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -209,7 +209,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         // THEN
         then();
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         assertUncreatedMorgan(1);
 
@@ -237,7 +237,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         assertSuccess(result);
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         assertUncreatedMorgan(1);
 
@@ -273,7 +273,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         assertFailure(result);
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         assertUncreatedMorgan(1);
 
@@ -464,7 +464,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         assertSuccess(result);
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         assertMorganDead();
     }
@@ -528,7 +528,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         assertSuccess(result);
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         assertUncreatedMorgan(1);
 
@@ -625,7 +625,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         assertSuccess(result);
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         assertUnmodifiedMorgan(1, 2, ACCOUNT_MORGAN_FULLNAME_HM);
 
@@ -731,7 +731,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         assertSuccess(result);
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         assertMorganModifyFailed();
     }
@@ -792,7 +792,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         assertPartialError(result);
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         assertUnmodifiedMorgan(1, 3, ACCOUNT_MORGAN_FULLNAME_CHM);
 
@@ -833,7 +833,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         assertFailure(result);
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         assertUnmodifiedMorgan(1, 3, ACCOUNT_MORGAN_FULLNAME_CHM);
 
@@ -965,7 +965,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         assertSuccess(result);
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         assertUndeletedMorgan(1, 4);
 
@@ -1070,7 +1070,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         assertSuccess(result);
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         assertMorganDeleteFailed();
     }
@@ -1177,7 +1177,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         assertSuccess(result);
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         // @formatter:off
         assertRepoShadow(ACCOUNT_MORGAN_OID)
@@ -1261,7 +1261,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         assertSuccess(result);
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         // @formatter:off
         assertRepoShadow(shadowMorganOid)
@@ -1411,7 +1411,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         PrismObject<ShadowType> conflictingShadowRepo = findAccountShadowByUsername(ACCOUNT_MORGAN_NAME, getResource(), result);
         assertNotNull("Shadow for conflicting object was not created in the repository", conflictingShadowRepo);
         // @formatter:off
-        ShadowAsserter.forShadow(conflictingShadowRepo,"confligting repo shadow")
+        ShadowAsserter.forShadow(conflictingShadowRepo,"conflicting repo shadow")
             .display()
             .assertBasicRepoProperties()
             .assertOidDifferentThan(shadowMorganOid)
@@ -2205,7 +2205,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
     }
 
     private void assertUnmodifiedMorgan(
-            int expectedAttemptNumber, int expectenNumberOfPendingOperations, String expectedFullName)
+            int expectedAttemptNumber, int expectedNumberOfPendingOperations, String expectedFullName)
             throws Exception {
 
         PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
@@ -2216,7 +2216,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         shadowAsserter
             .display()
             .pendingOperations()
-                .assertOperations(expectenNumberOfPendingOperations)
+                .assertOperations(expectedNumberOfPendingOperations)
                 .by()
                     .executionStatus(PendingOperationExecutionStatusType.EXECUTING)
                 .find()
@@ -2245,7 +2245,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         shadowAsserter
             .display()
             .pendingOperations()
-                .assertOperations(expectenNumberOfPendingOperations)
+                .assertOperations(expectedNumberOfPendingOperations)
                 .by()
                     .executionStatus(PendingOperationExecutionStatusType.EXECUTING)
                 .find()
@@ -2314,7 +2314,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
     }
 
     private void assertModifiedMorgan(
-            int expectedAttemptNumber, int expectenNumberOfPendingOperations, String expectedFullName)
+            int expectedAttemptNumber, int expectedNumberOfPendingOperations, String expectedFullName)
             throws Exception {
 
         PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
@@ -2325,7 +2325,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         shadowAsserter
             .display()
             .pendingOperations()
-                .assertOperations(expectenNumberOfPendingOperations)
+                .assertOperations(expectedNumberOfPendingOperations)
                 .by()
                     .executionStatus(PendingOperationExecutionStatusType.COMPLETED)
                     .resultStatus(OperationResultStatusType.SUCCESS)
@@ -2356,7 +2356,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         shadowAsserter
             .display()
             .pendingOperations()
-                .assertOperations(expectenNumberOfPendingOperations)
+                .assertOperations(expectedNumberOfPendingOperations)
                 .by()
                     .executionStatus(PendingOperationExecutionStatusType.COMPLETED)
                     .resultStatus(OperationResultStatusType.SUCCESS)
@@ -2523,7 +2523,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertPassword(ACCOUNT_MORGAN_PASSWORD);
     }
 
-    private void assertUndeletedMorgan(int expectedAttemptNumber, int expectenNumberOfPendingOperations) throws Exception {
+    private void assertUndeletedMorgan(int expectedAttemptNumber, int expectedNumberOfPendingOperations) throws Exception {
 
         PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
         assertNotNull("Shadow was not created in the repository", repoShadow);
@@ -2533,7 +2533,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         shadowAsserter
             .display()
             .pendingOperations()
-                .assertOperations(expectenNumberOfPendingOperations)
+                .assertOperations(expectedNumberOfPendingOperations)
                 .by()
                     .executionStatus(PendingOperationExecutionStatusType.EXECUTING)
                 .find()
@@ -2562,7 +2562,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         shadowAsserter
             .display()
             .pendingOperations()
-                .assertOperations(expectenNumberOfPendingOperations)
+                .assertOperations(expectedNumberOfPendingOperations)
                 .by()
                     .executionStatus(PendingOperationExecutionStatusType.EXECUTING)
                 .find()
