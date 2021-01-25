@@ -32,7 +32,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-@SuppressWarnings({ "ConstantConditions", "NullableProblems" })
+@SuppressWarnings({ "ConstantConditions" })
 public class MockFactory {
 
     public static ProvisioningService createProvisioningService() {
@@ -387,7 +387,7 @@ public class MockFactory {
             }
 
             @Override
-            public <F extends FocusType> void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult) {
+            public void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult) {
 
             }
 
