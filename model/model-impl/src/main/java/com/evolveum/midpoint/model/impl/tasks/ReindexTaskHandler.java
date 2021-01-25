@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.model.impl.tasks;
 
 import static java.util.Collections.emptyList;
@@ -32,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 /**
  * Task handler for "reindex" task.
  * It simply executes empty modification delta on each repository object.
- *
+ * <p>
  * TODO implement also for sub-objects, namely certification cases.
  */
 @Component
@@ -86,7 +85,7 @@ public class ReindexTaskHandler
                 throws CommonException, PreconditionViolationException {
 
             repositoryService.modifyObject(object.asObjectable().getClass(), object.getOid(), emptyList(),
-                    RepoModifyOptions.createExecuteIfNoChanges(), result);
+                    RepoModifyOptions.createForceReindex(), result);
         }
     }
 

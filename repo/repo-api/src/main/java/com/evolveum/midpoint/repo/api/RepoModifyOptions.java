@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -12,13 +12,17 @@ import com.evolveum.midpoint.schema.AbstractOptions;
 import com.evolveum.midpoint.util.ShortDumpable;
 
 /**
- *
+ * Options for {@link RepositoryService#modifyObject} operation.
  */
-public class RepoModifyOptions extends AbstractOptions implements Serializable, ShortDumpable, Cloneable {
+public class RepoModifyOptions extends AbstractOptions
+        implements Serializable, ShortDumpable, Cloneable {
+
     /**
-     * Execute MODIFY operation even if the list of changes is empty.
+     * Forces "reindex" during modify operation - that is refresh of all column values.
+     * Reindex is typically used with empty list of changes.
+     * If used with some modifications, reindex is executed after applying the modifications.
      */
-    private boolean executeIfNoChanges;
+    private boolean forceReindex;
 
     /**
      * Whether to allow inserting extension values without fetching them first.
@@ -26,7 +30,7 @@ public class RepoModifyOptions extends AbstractOptions implements Serializable, 
      * either because we are adding duplicate values for index-only items, or because we are adding
      * duplicate values for indexed items that were (for strange reason) not filtered out by delta narrowing.
      * The resolution is simply to retry operation with this value set to false.
-     *
+     * <p>
      * Value of null means it is up to repository service to decide.
      * The repository service can override any value e.g. if constraint violation occurs or if this feature is explicitly disabled.
      */
@@ -36,40 +40,41 @@ public class RepoModifyOptions extends AbstractOptions implements Serializable, 
      * Whether to allow deleting extension values without fetching all existing values first.
      * When true, values are deleted "manually" using HQL, one by one. When using false, the deletion is
      * done by Hibernate: fetching all values first, and then issuing batched DELETE against those that need it.
-     *
+     * <p>
      * The "no fetch" approach can be applied any time (although currently supported only for ROExtString items), but in
      * some scenarios it could be slower than the regular approach: Namely, if there are many values to delete, but
      * not too many values overall. The overhead of repeated deletion can overweight single SELECT + batched deletion.
-     *
+     * <p>
      * Value of null means it is up to repository service to decide.
      * The repository service can override any value e.g. if this feature is explicitly disabled.
-     *
+     * <p>
      * Note although these two flags are named similarly their meaning/effect is not that similar:
-     * 1) if useNoFetchExtensionValuesInsertion is false, there is a SINGLE SELECT FOR EACH VALUE being inserted
-     * 2) if useNoFetchExtensionValuesDeletion is false, there is a SINGLE (COMMON) SELECT FOR ALL EXTENSION VALUES of given
-     *    type, basically falling back to the original Hibernate-driven behavior
-     *
+     * <ol>
+     * <li>If useNoFetchExtensionValuesInsertion is false, there is a SINGLE SELECT FOR EACH VALUE being inserted.</li>
+     * <li>If useNoFetchExtensionValuesDeletion is false, there is a SINGLE (COMMON) SELECT FOR ALL EXTENSION VALUES of given
+     * type, basically falling back to the original Hibernate-driven behavior.</li>
+     * </ol>
      * The effect of useNoFetchExtensionValuesInsertion=false may change in the future. (But most probably it will not.)
      */
     private Boolean useNoFetchExtensionValuesDeletion;
 
     @SuppressWarnings("WeakerAccess")
-    public boolean isExecuteIfNoChanges() {
-        return executeIfNoChanges;
+    public boolean isForceReindex() {
+        return forceReindex;
     }
 
     @SuppressWarnings("WeakerAccess")
-    public void setExecuteIfNoChanges(boolean executeIfNoChanges) {
-        this.executeIfNoChanges = executeIfNoChanges;
+    public void setForceReindex(boolean forceReindex) {
+        this.forceReindex = forceReindex;
     }
 
-    public static boolean isExecuteIfNoChanges(RepoModifyOptions options) {
-        return options != null && options.isExecuteIfNoChanges();
+    public static boolean isForceReindex(RepoModifyOptions options) {
+        return options != null && options.isForceReindex();
     }
 
-    public static RepoModifyOptions createExecuteIfNoChanges() {
+    public static RepoModifyOptions createForceReindex() {
         RepoModifyOptions opts = new RepoModifyOptions();
-        opts.setExecuteIfNoChanges(true);
+        opts.setForceReindex(true);
         return opts;
     }
 
@@ -121,7 +126,7 @@ public class RepoModifyOptions extends AbstractOptions implements Serializable, 
 
     @Override
     public void shortDump(StringBuilder sb) {
-        appendFlag(sb, "executeIfNoChanges", executeIfNoChanges);
+        appendFlag(sb, "forceReindex", forceReindex);
         appendFlag(sb, "useNoFetchExtensionValuesInsertion", useNoFetchExtensionValuesInsertion);
         appendFlag(sb, "useNoFetchExtensionValuesDeletion", useNoFetchExtensionValuesDeletion);
         removeLastComma(sb);
