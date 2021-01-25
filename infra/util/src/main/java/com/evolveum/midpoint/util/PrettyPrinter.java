@@ -27,7 +27,7 @@ public class PrettyPrinter {
 
     private static final int BYTE_ARRAY_MAX_LEN = 64;
 
-    private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyy-mm-dd hh:mm:ss");
+    private static ThreadLocal<SimpleDateFormat> dateFormat = ThreadLocal.withInitial(() ->new SimpleDateFormat("yyyyy-mm-dd hh:mm:ss"));
 
     private static String defaultNamespacePrefix = null;
 
@@ -225,7 +225,7 @@ public class PrettyPrinter {
         if (date == null) {
             return "null";
         }
-        return dateFormat.format(date);
+        return dateFormat.get().format(date);
     }
 
     public static String prettyPrint(Object[] value) {
