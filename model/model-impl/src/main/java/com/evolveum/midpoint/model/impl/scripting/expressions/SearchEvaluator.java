@@ -1,14 +1,25 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.model.impl.scripting.expressions;
 
+import static com.evolveum.midpoint.model.impl.scripting.VariablesUtil.cloneIfNecessary;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import javax.xml.bind.JAXBElement;
+
+import org.apache.commons.lang.Validate;
+import org.apache.commons.lang.mutable.MutableBoolean;
+import org.apache.commons.lang3.BooleanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.api.PipelineItem;
-import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.helpers.ExpressionHelper;
@@ -33,18 +44,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SearchExpressionType;
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.mutable.MutableBoolean;
-import org.apache.commons.lang3.BooleanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.xml.bind.JAXBElement;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import static com.evolveum.midpoint.model.impl.scripting.VariablesUtil.cloneIfNecessary;
 
 /**
  * Evaluates "search" scripting expression.
@@ -84,8 +83,9 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
             // TODO operation result handling (global vs local)
             boolean noFetch = expressionHelper.getArgumentAsBoolean(searchExpression.getParameter(), PARAM_NO_FETCH, input, context, false, "search", globalResult);
 
-            @SuppressWarnings({ "unchecked", "raw" })
-            Class<T> objectClass = (Class<T>) ObjectTypes.getObjectTypeFromTypeQName(searchExpression.getType()).getClassDefinition();
+            Class<T> objectClass =
+                    ObjectTypes.getObjectTypeFromTypeQName(searchExpression.getType())
+                            .getClassDefinition();
 
             ObjectQuery unresolvedObjectQuery = null;
             if (searchExpression.getQuery() != null) {
@@ -106,6 +106,7 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
             ObjectQuery objectQuery;
             if (unresolvedObjectQuery != null) {
                 ExpressionVariables variables = new ExpressionVariables();
+                //noinspection unchecked
                 item.getVariables().forEach((name, value) -> variables.put(name, cloneIfNecessary(name, value)));
                 try {
                     objectQuery = ExpressionUtil

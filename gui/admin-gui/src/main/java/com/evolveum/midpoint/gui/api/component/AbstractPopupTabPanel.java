@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -60,17 +60,17 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
         add(parametersPanelFragment);
     }
 
-    protected Component initObjectListPanel(){
-        PopupObjectListPanel<O> listPanel = new PopupObjectListPanel<O>(ID_OBJECT_LIST_PANEL, (Class)getObjectType().getClassDefinition(),
-                true) {
+    protected Component initObjectListPanel() {
+        PopupObjectListPanel<O> listPanel = new PopupObjectListPanel<>
+                (ID_OBJECT_LIST_PANEL, getObjectType().getClassDefinition(), true) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             protected List<IColumn<SelectableBean<O>, String>> createDefaultColumns() {
-                if (AbstractRoleType.class.isAssignableFrom(getType())){
+                if (AbstractRoleType.class.isAssignableFrom(getType())) {
                     List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<>();
-                    columns.addAll((Collection)ColumnUtils.getDefaultAbstractRoleColumns(false));
+                    columns.addAll((Collection) ColumnUtils.getDefaultAbstractRoleColumns(false));
                     return columns;
                 } else {
                     return super.createDefaultColumns();

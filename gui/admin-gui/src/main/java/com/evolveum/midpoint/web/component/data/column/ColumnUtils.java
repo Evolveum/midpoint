@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,16 +11,6 @@ import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObje
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.util.*;
-import com.evolveum.midpoint.util.QNameUtil;
-
-import com.evolveum.midpoint.web.page.admin.cases.ChildCasesTabPanel;
-import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
-import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -50,21 +40,25 @@ import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
+import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
 
 public class ColumnUtils {
     private static final Trace LOGGER = TraceManager.getTrace(ColumnUtils.class);
@@ -172,7 +166,7 @@ public class ColumnUtils {
     }
 
     public static <T extends ObjectType> String getIconColumnValue(T object, OperationResult result) {
-        Class<T> type = (Class<T>) object.getClass();
+        Class<?> type = object.getClass();
         if (type.equals(ObjectType.class)) {
             return WebComponentUtil.createDefaultIcon(object.asPrismObject());
         } else if (type.equals(UserType.class)) {
@@ -183,7 +177,7 @@ public class ColumnUtils {
             return WebComponentUtil.createOrgIcon();
         } else if (ServiceType.class.equals(type)) {
             return WebComponentUtil.createServiceIcon();
-        } else if (ShadowType.class.equals(type)) {
+        } else if (ShadowType.class.equals(type)) { // TODO: duplicated lower, this one is used
             if (object == null) {
                 return WebComponentUtil.createErrorIcon(result);
             } else {
@@ -199,7 +193,7 @@ public class ColumnUtils {
             return GuiStyleConstants.EVO_CASE_OBJECT_ICON;
         } else if (type.equals(CaseWorkItemType.class)) {
             return GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON;
-        } else if (ShadowType.class.equals(type)) {
+        } else if (ShadowType.class.equals(type)) { // TODO ignored, see above
             return GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON;
         }
 
@@ -805,7 +799,7 @@ public class ColumnUtils {
             protected Map<DisplayType, Integer> getIconDisplayType(IModel<SelectableBean<CaseType>> rowModel) {
                 Map<DisplayType, Integer> map = new HashMap<>();
                 CaseType caseType = rowModel.getObject().getValue();
-                if(ObjectTypeUtil.hasArchetype(caseType, SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value())){
+                if (ObjectTypeUtil.hasArchetype(caseType, SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value())) {
                     ObjectQuery queryFilter = pageBase.getPrismContext().queryFor(CaseType.class)
                             .item(CaseType.F_PARENT_REF)
                             .ref(caseType.getOid())
@@ -879,14 +873,14 @@ public class ColumnUtils {
     }
 
     private static void processCaseOutcome(CaseType caseType, Map<DisplayType, Integer> map, boolean useNullAsOne) {
-        if (caseType == null){
+        if (caseType == null) {
             return;
         }
         Integer one = null;
         if (!useNullAsOne) {
             one = 1;
         }
-        if(CaseTypeUtil.isApprovalCase(caseType)){
+        if (CaseTypeUtil.isApprovalCase(caseType)) {
             Boolean result = ApprovalUtils.approvalBooleanValueFromUri(caseType.getOutcome());
             if (result == null) {
                 if (caseType.getCloseTimestamp() != null) {
@@ -894,13 +888,14 @@ public class ColumnUtils {
                 } else {
                     putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(ApprovalOutcomeIcon.IN_PROGRESS));
                 }
-            } else if (result){
+            } else if (result) {
                 putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(ApprovalOutcomeIcon.APPROVED));
             } else {
                 putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(ApprovalOutcomeIcon.REJECTED));
             }
             return;
-        } if(CaseTypeUtil.isManualProvisioningCase(caseType)) {
+        }
+        if (CaseTypeUtil.isManualProvisioningCase(caseType)) {
 
             if (StringUtils.isEmpty(caseType.getOutcome())) {
                 if (caseType.getCloseTimestamp() != null) {
@@ -922,7 +917,7 @@ public class ColumnUtils {
         }
     }
 
-    private static void putDisplayTypeToMapWithCount(Map<DisplayType, Integer> map, Integer one, DisplayType caseDisplayType){
+    private static void putDisplayTypeToMapWithCount(Map<DisplayType, Integer> map, Integer one, DisplayType caseDisplayType) {
         if (map.containsKey(caseDisplayType)) {
             map.merge(caseDisplayType, 1, Integer::sum);
         } else {

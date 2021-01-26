@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -81,11 +81,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-/**
- *
- * @author lazyman
- *
- */
 public class ModelImplUtils {
 
     private static final String OPERATION_RESOLVE_REFERENCE = ObjectImporter.class.getName() + ".resolveReference";
@@ -158,9 +153,8 @@ public class ModelImplUtils {
         List<ObjectPolicyConfigurationType> typeWithSubtype = new ArrayList<>();
         List<ObjectPolicyConfigurationType> noTypeNoSubtype = new ArrayList<>();
         List<ObjectPolicyConfigurationType> noTypeWithSubtype = new ArrayList<>();
-        List<ObjectPolicyConfigurationType> all = new ArrayList<>();
-
-        all.addAll(systemConfigurationType.getDefaultObjectPolicyConfiguration());
+        List<ObjectPolicyConfigurationType> all = new ArrayList<>(
+                systemConfigurationType.getDefaultObjectPolicyConfiguration());
 
         for (ObjectPolicyConfigurationType aPolicyConfigurationType: all) {
             QName typeQName = aPolicyConfigurationType.getType();
@@ -363,6 +357,7 @@ public class ModelImplUtils {
             }
             if (object != null && refVal.getOriginType() != null) {
                 // Check if declared and actual type matches
+                //noinspection EqualsBetweenInconvertibleTypes - both are Class, false alarm
                 if (!object.getClass().equals(type)) {
                     result.recordWarning("Type mismatch on property " + refName + ": declared:"
                             + refVal.getOriginType() + ", actual: " + object.getClass());
@@ -715,7 +710,7 @@ public class ModelImplUtils {
             expressionVariables.put(ExpressionConstants.VAR_THIS_ASSIGNMENT, assignmentPathVariables.getThisAssignment(), assignmentDef);
             expressionVariables.put(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentPathVariables.getFocusAssignment(), assignmentDef);
             PrismObjectDefinition<AbstractRoleType> abstractRoleDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AbstractRoleType.class);
-            expressionVariables.put(ExpressionConstants.VAR_IMMEDIATE_ROLE, (PrismObject) assignmentPathVariables.getImmediateRole(), abstractRoleDefinition);
+            expressionVariables.put(ExpressionConstants.VAR_IMMEDIATE_ROLE, assignmentPathVariables.getImmediateRole(), abstractRoleDefinition);
         } else {
             // to avoid "no such variable" exceptions in boundary cases
             // for null/empty paths we might consider creating empty AssignmentPathVariables objects to keep null/empty path distinction
