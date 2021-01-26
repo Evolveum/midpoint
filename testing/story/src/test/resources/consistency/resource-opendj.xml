@@ -612,6 +612,104 @@
         </objectType>
 
         <objectType>
+            <kind>account</kind>
+            <intent>student</intent>
+            <displayName>Account</displayName>
+            <objectClass>ri:inetOrgPerson</objectClass>
+            <attribute>
+                <c:ref>ri:dn</c:ref>
+                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:distinguishedName</matchingRule>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>$focus/name</c:path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                basic.composeDnWithSuffix('uid', name, 'ou=People,dc=example,dc=com')
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:cn</c:ref>
+                <limitations>
+                    <minOccurs>0</minOccurs>
+                    <maxOccurs>1</maxOccurs>
+                </limitations>
+                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>nickName</c:path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:sn</c:ref>
+                <limitations>
+                    <minOccurs>0</minOccurs>
+                    <maxOccurs>1</maxOccurs>
+                </limitations>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>familyName</c:path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:givenName</c:ref>
+                <limitations>
+                    <minOccurs>0</minOccurs>
+                    <maxOccurs>1</maxOccurs>
+                </limitations>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>givenName</c:path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:uid</c:ref>
+                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <c:path>name</c:path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:mail</c:ref>
+                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
+                <limitations>
+                    <minOccurs>0</minOccurs>
+                    <maxOccurs>1</maxOccurs>
+                </limitations>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>emailAddress</c:path>
+                    </source>
+                </outbound>
+            </attribute>
+            <iteration>
+                <maxIterations>5</maxIterations>
+            </iteration>
+            <activation>
+                <administrativeStatus>
+                    <outbound>
+                        <strength>strong</strength>
+                    </outbound>
+                </administrativeStatus>
+            </activation>
+        </objectType>
+
+        <objectType>
             <kind>entitlement</kind>
             <intent>ldapGroup</intent>
             <displayName>LDAP Group</displayName>
