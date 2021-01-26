@@ -1457,6 +1457,11 @@
                 <artifactId>swagger-ui</artifactId>
                 <version>2.2.5</version>
             </dependency>
+            <dependency>
+                <groupId>com.evolveum.webjars</groupId>
+                <artifactId>password-score</artifactId>
+                <version>689ddae</version>
+            </dependency>
 
             <dependency>
                 <groupId>com.beust</groupId>

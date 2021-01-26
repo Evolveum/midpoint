@@ -283,3 +283,16 @@ jQuery(function ($) {
         }
     });
 });
+
+function showPassword(iconElement) {
+    var parent = iconElement.closest(".password-parent");
+	var input = parent.querySelector("input");
+
+    	if (input.type === "password") {
+    		input.type = "text";
+    		iconElement.className = 'fa fa-eye-slash';
+  		} else {
+    		input.type = "password";
+    		iconElement.className = 'fa fa-eye';
+  		}
+}
