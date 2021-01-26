@@ -99,7 +99,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     private final BaseHelper baseHelper; // only for logging/exception handling
     private final SqlRepoContext sqlRepoContext;
-    private final PrismContext prismContext;
+    private final SchemaHelper schemaService;
 
     private final SqlQueryExecutor sqlQueryExecutor;
     private final SqlTransformerContext sqlTransformerContext;
@@ -109,13 +109,12 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     public SqlAuditServiceImpl(
             BaseHelper baseHelper,
             SqlRepoContext sqlRepoContext,
-            PrismContext prismContext) {
+            SchemaHelper schemaService) {
         this.baseHelper = baseHelper;
         this.sqlRepoContext = sqlRepoContext;
-        this.prismContext = prismContext;
+        this.schemaService = schemaService;
         this.sqlQueryExecutor = new SqlQueryExecutor(sqlRepoContext);
-        // null is safe here, audit transformations don't use RelationRegistry
-        this.sqlTransformerContext = new SqlTransformerContext(prismContext, null);
+        this.sqlTransformerContext = new SqlTransformerContext(schemaService);
     }
 
     public SqlRepoContext getSqlRepoContext() {
@@ -249,7 +248,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 if (jaxb != null) {
                     mAuditDelta.status = MiscUtil.enumOrdinal(
                             RUtil.getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
-                    String full = prismContext.xmlSerializer()
+                    String full = schemaService.createStringSerializer(PrismContext.LANG_XML)
                             .options(SerializationOptions.createEscapeInvalidCharacters())
                             .serializeRealValue(jaxb, SchemaConstantsGenerated.C_OPERATION_RESULT);
                     mAuditDelta.fullResult = RUtil.getBytesFromSerializedForm(
@@ -278,12 +277,13 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         for (MAuditDelta delta : deltas) {
             try {
                 ObjectDeltaType deltaBean =
-                        prismContext.parserFor(delta.serializedDelta)
+                        schemaService.parserFor(delta.serializedDelta)
                                 .parseRealValue(ObjectDeltaType.class);
                 for (ItemDeltaType itemDelta : deltaBean.getItemDelta()) {
                     ItemPath path = itemDelta.getPath().getItemPath();
-                    CanonicalItemPath canonical = prismContext.createCanonicalItemPath(
-                            path, deltaBean.getObjectType());
+                    CanonicalItemPath canonical =
+                            schemaService.createCanonicalItemPath(
+                                    path, deltaBean.getObjectType());
                     for (int i = 0; i < canonical.size(); i++) {
                         changedItemPaths.add(canonical.allUpToIncluding(i).asString());
                     }
@@ -637,15 +637,15 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 byte[] data = resultSet.getBytes(QAuditDelta.DELTA.getName());
                 String serializedDelta = RUtil.getSerializedFormFromBytes(data, sqlConfiguration().isUsingSQLServer());
 
-                ObjectDeltaType delta = prismContext.parserFor(serializedDelta)
+                ObjectDeltaType delta = schemaService.parserFor(serializedDelta)
                         .parseRealValue(ObjectDeltaType.class);
-                odo.setObjectDelta(DeltaConvertor.createObjectDelta(delta, prismContext));
+                odo.setObjectDelta(DeltaConvertor.createObjectDelta(delta, schemaService.getPrismContext()));
             }
             if (resultSet.getBytes(QAuditDelta.FULL_RESULT.getName()) != null) {
                 byte[] data = resultSet.getBytes(QAuditDelta.FULL_RESULT.getName());
                 String serializedResult = RUtil.getSerializedFormFromBytes(data, sqlConfiguration().isUsingSQLServer());
 
-                OperationResultType resultType = prismContext.parserFor(serializedResult)
+                OperationResultType resultType = schemaService.parserFor(serializedResult)
                         .parseRealValue(OperationResultType.class);
                 odo.setExecutionResult(OperationResult.createOperationResult(resultType));
             }
@@ -739,9 +739,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             return null;
         }
 
-        PrismReferenceValue prv = prismContext.itemFactory().createReferenceValue(oid,
-                prismContext.getSchemaRegistry().determineTypeForClass(
-                        repoObjectType.getJaxbClass()));
+        PrismReferenceValue prv = schemaService.createReferenceValue(oid, repoObjectType.getJaxbClass());
         prv.setDescription(description);
         if (targetName != null) {
             prv.setTargetName(new PolyString(targetName));
@@ -1180,8 +1178,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     @SuppressWarnings("SameParameterValue")
     private <C extends Containerable> void addContainerDefinition(
             Class<C> containerableType, List<C> containerableValues) throws SchemaException {
-        PrismContainerDefinition<C> containerDefinition = prismContext.getSchemaRegistry()
-                .findContainerDefinitionByCompileTimeClass(containerableType);
+        PrismContainerDefinition<C> containerDefinition =
+                schemaService.findContainerDefinitionByCompileTimeClass(containerableType);
         PrismContainer<C> container = containerDefinition.instantiate();
         for (C containerValue : containerableValues) {
             //noinspection unchecked

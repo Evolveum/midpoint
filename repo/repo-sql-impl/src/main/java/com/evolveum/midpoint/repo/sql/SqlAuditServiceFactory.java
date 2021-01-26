@@ -23,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.audit.api.AuditServiceFactory;
 import com.evolveum.midpoint.audit.api.AuditServiceFactoryException;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.audit.mapping.*;
 import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditEventRecord;
@@ -33,6 +32,7 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTableMetadata;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
+import com.evolveum.midpoint.schema.SchemaHelper;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -54,15 +54,15 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
     private static final String CONF_AUDIT_SERVICE_EVENT_RECORD_PROPERTY_NAME = "eventRecordPropertyName";
 
     private final BaseHelper defaultBaseHelper;
-    private final PrismContext prismContext;
+    private final SchemaHelper schemaService;
 
     private SqlAuditServiceImpl auditService;
 
     public SqlAuditServiceFactory(
             BaseHelper defaultBaseHelper,
-            PrismContext prismContext) {
+            SchemaHelper schemaService) {
         this.defaultBaseHelper = defaultBaseHelper;
-        this.prismContext = prismContext;
+        this.schemaService = schemaService;
     }
 
     @Override
@@ -71,7 +71,7 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
         try {
             SqlRepoContext sqlRepoContext = createSqlRepoContext(configuration);
             // base helper is only used for logging/exception handling, so the default one is OK
-            auditService = new SqlAuditServiceImpl(defaultBaseHelper, sqlRepoContext, prismContext);
+            auditService = new SqlAuditServiceImpl(defaultBaseHelper, sqlRepoContext, schemaService);
             initCustomColumns(configuration, sqlRepoContext);
         } catch (RepositoryServiceFactoryException ex) {
             throw new AuditServiceFactoryException(ex.getMessage(), ex);
