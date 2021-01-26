@@ -201,10 +201,7 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
 
             @Override
             public boolean isEnabled(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                if (rowModel.getObject() == null || rowModel.getObject().getRealValue() == null) {
-                    return false;
-                }
-                return true;
+                return rowModel.getObject() != null && rowModel.getObject().getRealValue() != null;
             }
 
             @Override
