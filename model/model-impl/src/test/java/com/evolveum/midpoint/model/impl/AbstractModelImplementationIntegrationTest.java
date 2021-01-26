@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -15,8 +15,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.delta.*;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
@@ -29,6 +27,9 @@ import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValueCollectionsUtil;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -254,7 +255,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         QName attrQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), attributeLocalName);
         ItemPath attrPath = ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName);
         RefinedObjectClassDefinition refinedAccountDefinition = accCtx.getCompositeObjectClassDefinition();
-        RefinedAttributeDefinition attrDef = refinedAccountDefinition.findAttributeDefinition(attrQName);
+        RefinedAttributeDefinition<T> attrDef = refinedAccountDefinition.findAttributeDefinition(attrQName);
         assertNotNull("No definition of attribute " + attrQName + " in account def " + refinedAccountDefinition, attrDef);
         ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountOid);
@@ -299,7 +300,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
     @NotNull
     protected LensContext<UserType> createContextForRoleAssignment(String userOid, String roleOid,
             QName relation, Consumer<AssignmentType> modificationBlock, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException {
         return createContextForAssignment(UserType.class, userOid, RoleType.class, roleOid, relation, modificationBlock, result);
     }
 
@@ -308,7 +309,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
             String userOid, String roleOid,
             QName relation, Consumer<AssignmentType> modificationBlock,
             Consumer<ObjectDelta<F>> deltaModifier, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException {
         return createContextForAssignment(focusClass, userOid, RoleType.class, roleOid, relation, modificationBlock,
                 deltaModifier, result);
     }
@@ -317,7 +318,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
     protected <F extends FocusType> LensContext<F> createContextForAssignment(Class<F> focusClass,
             String focusOid, Class<? extends FocusType> targetClass, String targetOid,
             QName relation, Consumer<AssignmentType> modificationBlock, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException {
         return createContextForAssignment(focusClass, focusOid, targetClass, targetOid, relation, modificationBlock, null, result);
     }
 
@@ -326,7 +327,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
             String focusOid, Class<? extends FocusType> targetClass, String targetOid,
             QName relation, Consumer<AssignmentType> modificationBlock,
             Consumer<ObjectDelta<F>> deltaModifier, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException {
         LensContext<F> context = createLensContext(focusClass);
         fillContextWithFocus(context, focusClass, focusOid, result);
         QName targetType = prismContext.getSchemaRegistry().determineTypeForClass(targetClass);

@@ -1,10 +1,21 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.delta;
+
+import static com.evolveum.midpoint.prism.PrismValueCollectionsUtil.getRealValuesOfCollectionPreservingNull;
+
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
@@ -15,22 +26,25 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Foreachable;
 import com.evolveum.midpoint.util.Processor;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-
-import static com.evolveum.midpoint.prism.PrismValueCollectionsUtil.getRealValuesOfCollectionPreservingNull;
 
 /**
- * @author Radovan Semancik
- *
+ * Item Delta describes a change of an item which is a property, container or a reference.
+ * It describes only a very small change - a change of a <i>single item</i>.
+ * Therefore complex changes can only be described by using several item deltas together.
+ * <p>
+ * A group of item deltas is called <i>modifications</i> because they describe how an object
+ * is modified (they cannot apply to add or delete object delta).
+ * Item delta describes <i>values</i> that are being added, removed or replaced with respect to an item.
+ * Therefore the item delta may also be of several types:
+ * <ul>
+ * <li><b>add</b> of new values. The values in item delta are added to the existing values. Existing values are left as they are.</li>
+ * <li><b>delete</b> of existing values. The values in item delta are removed from the set of existing values. Other existing values are left as they are.</li>
+ * <li><b>replace</b> of the values. All existing values are removed and all the values in item delta are added.</li>
+ * </ul>
+ * See <a href="https://docs.evolveum.com/midpoint/prism/deltas/">this document</a> for more.
  */
-public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extends Itemable, DebugDumpable, Visitable, PathVisitable, Foreachable<V>, Serializable, Freezable, PrismContextSensitive {
+public interface ItemDelta<V extends PrismValue, D extends ItemDefinition>
+        extends Itemable, DebugDumpable, Visitable, PathVisitable, Foreachable<V>, Serializable, Freezable, PrismContextSensitive {
 
     ItemName getElementName();
 
@@ -171,7 +185,7 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
      * between the value is read and the delta is applied. This is property
      * is optional and even if provided it is only for for informational
      * purposes.
-     *
+     * <p>
      * If this method returns null then it should be interpreted as "I do not know".
      * In that case the delta has no information about the old values.
      * If this method returns empty collection then it should be interpreted that
@@ -204,18 +218,18 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
      *
      * @param plusComparator Comparator we want to use when determining skippability of values being added.
      * @param minusComparator Comparator we want to use when determining skippability of values being deleted.
-     *
+     * <p>
      * We can skip deletion of vDel if there is no vEx ~ vDel (under minusComparator).
-     *
+     * <p>
      * We can skip addition of vAdd if there is existing vEx ~ vAdd (under plusComparator). But if we do that we must be sure
      * to skip deletion of all vDel ~ vAdd (under minusComparator). Otherwise we would delete vDel but fail to add equivalent vAdd.
-     *
+     * <p>
      * We can skip replacing of a set of values if and only if existing item has equivalent values under plusComparator.
-     *
+     * <p>
      * This reasoning is bound to the actual application algorithm in ItemDeltaImpl.
      * But we should be aware that there are deltas that are applied by other code, e.g. those than are applied on a resource.
      */
-    ItemDelta<V,D> narrow(PrismObject<? extends Objectable> object,
+    ItemDelta<V, D> narrow(PrismObject<? extends Objectable> object,
             @NotNull Comparator<V> plusComparator, @NotNull Comparator<V> minusComparator, boolean assumeMissingItems);
 
     /**
@@ -249,7 +263,7 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
     /**
      * Merge specified delta to this delta. This delta is assumed to be
      * chronologically earlier, delta provided in the parameter is chronologically later.
-     *
+     * <p>
      * TODO do we expect that the paths of "this" delta and deltaToMerge are the same?
      * From the code it seems so.
      */
@@ -273,7 +287,7 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
      */
     void applyToMatchingPath(Item item) throws SchemaException;
 
-    ItemDelta<?,?> getSubDelta(ItemPath path);
+    ItemDelta<?, ?> getSubDelta(ItemPath path);
 
     boolean isApplicableTo(Item item);
 
@@ -281,15 +295,15 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
      * Returns the "new" state of the property - the state that would be after
      * the delta is applied.
      */
-    Item<V,D> getItemNew() throws SchemaException;
+    Item<V, D> getItemNew() throws SchemaException;
 
     /**
      * Returns the "new" state of the property - the state that would be after
      * the delta is applied.
      */
-    Item<V,D> getItemNew(Item<V, D> itemOld) throws SchemaException;
+    Item<V, D> getItemNew(Item<V, D> itemOld) throws SchemaException;
 
-    Item<V,D> getItemNewMatchingPath(Item<V, D> itemOld) throws SchemaException;
+    Item<V, D> getItemNewMatchingPath(Item<V, D> itemOld) throws SchemaException;
 
     /**
      * Returns true if the other delta is a complete subset of this delta.
@@ -311,9 +325,9 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
 
     void filterYields(BiFunction<V, PrismContainerValue, Boolean> function);
 
-    ItemDelta<V,D> clone();
+    ItemDelta<V, D> clone();
 
-    ItemDelta<V,D> cloneWithChangedParentPath(ItemPath newParentPath);
+    ItemDelta<V, D> cloneWithChangedParentPath(ItemPath newParentPath);
 
     PrismValueDeltaSetTriple<V> toDeltaSetTriple(Item<V, D> itemOld) throws SchemaException;
 
@@ -345,7 +359,7 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
 
     void addToReplaceDelta();
 
-    ItemDelta<V,D> createReverseDelta();
+    ItemDelta<V, D> createReverseDelta();
 
     V findValueToAddOrReplace(V value);
 

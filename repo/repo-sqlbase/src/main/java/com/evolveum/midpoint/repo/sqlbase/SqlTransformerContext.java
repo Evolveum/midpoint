@@ -11,7 +11,7 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SchemaHelper;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -21,35 +21,33 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public class SqlTransformerContext {
 
-    private final PrismContext prismContext;
-    private final RelationRegistry relationRegistry;
+    private final SchemaHelper schemaService;
 
-    public SqlTransformerContext(PrismContext prismContext,
-            RelationRegistry relationRegistry) {
-        this.prismContext = prismContext;
-        this.relationRegistry = relationRegistry;
+    public SqlTransformerContext(SchemaHelper schemaService) {
+        this.schemaService = schemaService;
     }
 
     public <T> Class<? extends T> qNameToSchemaClass(QName qName) {
-        return prismContext.getSchemaRegistry().determineClassForTypeRequired(qName);
+        return schemaService.typeQNameToSchemaClass(qName);
     }
 
     public QName schemaClassToQName(Class<?> schemaClass) {
-        return prismContext.getSchemaRegistry().determineTypeForClassRequired(schemaClass);
+        return schemaService.schemaClassToTypeQName(schemaClass);
     }
 
     public QName normalizeRelation(QName qName) {
-        return relationRegistry.normalizeRelation(qName);
+        return schemaService.normalizeRelation(qName);
     }
 
     @NotNull
     public PrismSerializer<String> serializer(SqlRepoContext sqlRepoContext) {
-        return prismContext.serializerFor(
+        return schemaService.createStringSerializer(
                 sqlRepoContext.getJdbcRepositoryConfiguration().getFullObjectFormat());
     }
 
     public <T extends Objectable> ParseResult<T> parsePrismObject(String serializedForm)
             throws SchemaException {
+        PrismContext prismContext = schemaService.getPrismContext();
         // "Postel mode": be tolerant what you read. We need this to tolerate (custom) schema changes
         ParsingContext parsingContext = prismContext.createParsingContextForCompatibilityMode();
         PrismObject<T> prismObject = prismContext.parserFor(serializedForm)
@@ -58,7 +56,7 @@ public class SqlTransformerContext {
     }
 
     public <T> T parseRealValue(String serializedResult, Class<T> clazz) throws SchemaException {
-        return prismContext.parserFor(serializedResult).parseRealValue(clazz);
+        return schemaService.parserFor(serializedResult).parseRealValue(clazz);
     }
 
     /**
@@ -66,7 +64,7 @@ public class SqlTransformerContext {
      * with definitions (parameter to constructor).
      */
     public PrismContext prismContext() {
-        return prismContext;
+        return schemaService.getPrismContext();
     }
 
     public static class ParseResult<T extends Objectable> {
