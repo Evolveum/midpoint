@@ -45,7 +45,6 @@ import java.util.List;
 public class M10ObjectTemplate extends AbstractLabTest{
 
     protected static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M10/";
-    private static final File OBJECT_TEMPLATE_USER_SIMPLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "objectTemplate/object-template-example-user-simple.xml");
     private static final File OBJECT_TEMPLATE_USER_FILE_10_3 = new File(LAB_OBJECTS_DIRECTORY + "objectTemplate/object-template-example-user-10-3.xml");
     private static final File LOOKUP_EMP_STATUS_FILE = new File(LAB_OBJECTS_DIRECTORY + "lookupTables/lookup-emp-status.xml");
     private static final File CSV_3_RESOURCE_FILE_10_4 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-10-4.xml");
@@ -105,7 +104,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
 
     @Override
     protected List<File> getObjectListToImport(){
-        return Arrays.asList(OBJECT_TEMPLATE_USER_SIMPLE_FILE, ARCHETYPE_EMPLOYEE_FILE, ARCHETYPE_ORG_FUNCTIONAL_FILE, ARCHETYPE_ORG_COMPANY_FILE, ARCHETYPE_ORG_GROUP_FILE,
+        return Arrays.asList(OBJECT_TEMPLATE_USER_FILE, ARCHETYPE_EMPLOYEE_FILE, ARCHETYPE_ORG_FUNCTIONAL_FILE, ARCHETYPE_ORG_COMPANY_FILE, ARCHETYPE_ORG_GROUP_FILE,
                 ARCHETYPE_ORG_GROUP_LIST_FILE, KIRK_USER_TIBERIUS_FILE, INTERNAL_EMPLOYEE_ROLE_FILE);
     }
 
@@ -193,7 +192,6 @@ public class M10ObjectTemplate extends AbstractLabTest{
 
     @Test(dependsOnMethods = {"mod10test01SimpleObjectTemplate"})
     public void mod10test02AutomaticAssignments() throws IOException {
-        addObjectFromFile(OBJECT_TEMPLATE_USER_FILE);
         importObject(ORG_EXAMPLE_FILE, true);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
 
