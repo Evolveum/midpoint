@@ -159,7 +159,7 @@ public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest imple
         logger.info(getTestName());
         PageParameters params = new PageParameters();
         params.add(PageSystemConfiguration.SELECTED_TAB_INDEX, PageSystemConfiguration.CONFIGURATION_TAB_ADMIN_GUI);
-        runTestFor(PageSystemConfiguration.class, params,"tasks", "All tasks");
+        runTestFor(PageSystemConfiguration.class, params,"adminGuiConfig", "Admin Gui Config");
     }
 
     @Test(enabled = false) // doesn't work because of getPageBase usages
