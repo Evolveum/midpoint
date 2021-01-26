@@ -7,14 +7,16 @@
 package com.evolveum.midpoint.repo.sqale;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.UUID;
 import javax.annotation.PreDestroy;
 
 import com.google.common.base.Strings;
 import com.querydsl.core.Tuple;
-import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -34,6 +36,7 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -69,9 +72,9 @@ public class SqaleRepositoryService implements RepositoryService {
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException {
 
-        Validate.notNull(type, "Object type must not be null.");
-        Validate.notEmpty(oid, "Oid must not be null or empty.");
-        Validate.notNull(parentResult, "Operation result must not be null.");
+        Objects.requireNonNull(type, "Object type must not be null.");
+        checkOid(oid);
+        Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
         LOGGER.debug("Getting object '{}' with oid '{}': {}",
                 type.getSimpleName(), oid, parentResult.getOperation());
@@ -108,6 +111,16 @@ public class SqaleRepositoryService implements RepositoryService {
         }
 
         return object;
+    }
+
+    private void checkOid(String oid) {
+        Objects.requireNonNull(oid, "Oid must not be null");
+        try {
+            //noinspection ResultOfMethodCallIgnored
+            UUID.fromString(oid);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("OID " + oid + " is invalid", e);
+        }
     }
 
     public <S extends ObjectType, Q extends QObject<R>, R extends MObject> S readByOid(
@@ -148,26 +161,30 @@ public class SqaleRepositoryService implements RepositoryService {
     @Override
     @NotNull
     public <T extends ObjectType> String addObject(
-            PrismObject<T> object, RepoAddOptions options, OperationResult parentResult)
+            @NotNull PrismObject<T> object,
+            @Nullable RepoAddOptions options,
+            @NotNull OperationResult parentResult)
             throws ObjectAlreadyExistsException, SchemaException {
-        Validate.notNull(object, "Object must not be null.");
+
+        Objects.requireNonNull(object, "Object must not be null.");
         PolyString name = object.getName();
         if (name == null || Strings.isNullOrEmpty(name.getOrig())) {
             throw new SchemaException("Attempt to add object without name.");
         }
-        Validate.notNull(parentResult, "Operation result must not be null.");
+        Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
         if (options == null) {
             options = new RepoAddOptions();
         }
 
+        //noinspection ConstantConditions
         LOGGER.debug(
                 "Adding object type '{}', overwrite={}, allowUnencryptedValues={}, name={} - {}",
                 object.getCompileTimeClass().getSimpleName(), options.isOverwrite(),
                 options.isAllowUnencryptedValues(), name.getOrig(), name.getNorm());
-//        if (InternalsConfig.encryptionChecks && !RepoAddOptions.isAllowUnencryptedValues(options)) {
-//            CryptoUtil.checkEncrypted(object);
-//        }
+        if (InternalsConfig.encryptionChecks && !RepoAddOptions.isAllowUnencryptedValues(options)) {
+            CryptoUtil.checkEncrypted(object);
+        }
 
         if (InternalsConfig.consistencyChecks) {
             object.checkConsistence(ConsistencyCheckScope.THOROUGH);
@@ -232,17 +249,19 @@ public class SqaleRepositoryService implements RepositoryService {
                 sqlRepoContext.getMappingBySchemaType(object.getCompileTimeClass());
         Q root = rootMapping.defaultAlias();
 
-        UUID oid;
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             ObjectSqlTransformer<S, Q, R> transformer = (ObjectSqlTransformer<S, Q, R>)
                     rootMapping.createTransformer(transformerContext, sqlRepoContext);
 
             // first insert without full object, because we don't know the OID yet
             R row = transformer.toRowObjectWithoutFullObject(object.asObjectable());
-            oid = jdbcSession.newInsert(root)
+            UUID oid = jdbcSession.newInsert(root)
                     .populate(row)
                     .executeWithKey(root.oid);
-            object.setOid(oid.toString());
+            String oidString =
+                    Objects.requireNonNull(oid, "OID of inserted object can't be null")
+                            .toString();
+            object.setOid(oidString);
 
             // now to update full object with known OID
             transformer.setFullObject(row, object.asObjectable());
@@ -250,39 +269,66 @@ public class SqaleRepositoryService implements RepositoryService {
                     .set(root.fullObject, row.fullObject)
                     .where(root.oid.eq(oid))
                     .execute();
+
+            return oidString;
         }
-
-        //noinspection ConstantConditions
-        return oid.toString();
     }
 
     @Override
-    public @NotNull <T extends ObjectType> ModifyObjectResult<T> modifyObject(
-            Class<T> type, String oid,
-            Collection<? extends ItemDelta<?, ?>> modifications, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        return null;
-        // TODO
-    }
-
-    @Override
-    public @NotNull <T extends ObjectType> ModifyObjectResult<T> modifyObject(
-            Class<T> type, String oid, Collection<? extends ItemDelta<?, ?>> modifications,
-            RepoModifyOptions options, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        return null;
-        // TODO
-    }
-
-    @Override
-    public @NotNull <T extends ObjectType> ModifyObjectResult<T> modifyObject(
+    @NotNull
+    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(
             @NotNull Class<T> type,
             @NotNull String oid,
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
-            ModificationPrecondition<T> precondition,
-            RepoModifyOptions options,
-            OperationResult parentResult)
+            @NotNull OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        return modifyObject(type, oid, modifications, null, parentResult);
+    }
+
+    @Override
+    @NotNull
+    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(
+            @NotNull Class<T> type,
+            @NotNull String oid,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            @Nullable RepoModifyOptions options,
+            @NotNull OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        try {
+            return modifyObject(type, oid, modifications, null, options, parentResult);
+        } catch (PreconditionViolationException e) {
+            throw new AssertionError(e); // with null precondition we couldn't get this exception
+        }
+    }
+
+    @Override
+    @NotNull
+    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(
+            @NotNull Class<T> type,
+            @NotNull String oid,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            @Nullable ModificationPrecondition<T> precondition,
+            @Nullable RepoModifyOptions options,
+            @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException {
+
+        Objects.requireNonNull(modifications, "Modifications must not be null.");
+        Objects.requireNonNull(type, "Object class in delta must not be null.");
+        checkOid(oid);
+        Objects.requireNonNull(parentResult, "Operation result must not be null.");
+
+        OperationResult subResult = parentResult.subresult(MODIFY_OBJECT)
+                .addQualifier(type.getSimpleName())
+                .addParam("type", type.getName())
+                .addParam("oid", oid)
+                .addArbitraryObjectCollectionAsParam("modifications", modifications)
+                .build();
+
+        if (modifications.isEmpty() && !RepoModifyOptions.isForceReindex(options)) {
+            LOGGER.debug("Modification list is empty, nothing was modified.");
+            subResult.recordStatus(OperationResultStatus.SUCCESS, "Modification list is empty, nothing was modified.");
+            return new ModifyObjectResult<>(modifications);
+        }
 
         return null;
         // TODO
@@ -308,9 +354,13 @@ public class SqaleRepositoryService implements RepositoryService {
 
     @Override
     public @NotNull <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(
-            Class<T> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+            @NotNull Class<T> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult)
             throws SchemaException {
+        Objects.requireNonNull(type, "Object type must not be null.");
+        Objects.requireNonNull(parentResult, "Operation result must not be null.");
+
         OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + "searchObjects")
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type.getName())

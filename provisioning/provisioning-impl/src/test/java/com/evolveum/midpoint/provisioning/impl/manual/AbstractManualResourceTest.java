@@ -1,15 +1,12 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.provisioning.impl.manual;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -247,7 +244,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         // THEN
         // The returned type should have the schema pre-parsed
-        assertNotNull(RefinedResourceSchemaImpl.hasParsedSchema(resourceType));
+        assertTrue(RefinedResourceSchemaImpl.hasParsedSchema(resourceType));
 
         // Also test if the utility method returns the same thing
         ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
@@ -257,7 +254,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         // Check whether it is reusing the existing schema and not parsing it all over again
         // Not equals() but == ... we want to really know if exactly the same
         // object instance is returned
-        assertTrue("Broken caching", resourceSchema == RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext));
+        assertSame("Broken caching", resourceSchema, RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext));
 
         ObjectClassComplexTypeDefinition accountDef = resourceSchema.findObjectClassDefinition(RESOURCE_ACCOUNT_OBJECTCLASS);
         assertNotNull("Account definition is missing", accountDef);
@@ -455,7 +452,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertShadowExists(shadowRepo, false);
 
         syncServiceMock.assertNoNotifyChange();
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID, null, task, result);
@@ -706,7 +703,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 
         syncServiceMock.assertNoNotifyChange();
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
     }
 
     /**
@@ -757,7 +754,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 
         syncServiceMock.assertNoNotifyChange();
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
     }
 
     /**
@@ -799,7 +796,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 
         syncServiceMock.assertNoNotifyChange();
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
     }
 
     @Test
@@ -920,7 +917,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
 
         syncServiceMock.assertNoNotifyChange();
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
         ShadowAsserter.forShadow(shadowProvisioning, "provisioning")
@@ -1082,7 +1079,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
                 accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
 
         syncServiceMock.assertNoNotifyChange();
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID, null, task, result);
@@ -1149,7 +1146,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
                 accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
 
         syncServiceMock.assertNoNotifyChange();
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID, null, task, result);
@@ -1507,7 +1504,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 
         syncServiceMock.assertNoNotifyChange();
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID, null, task, result);
@@ -1577,7 +1574,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertPendingOperationDeltas(shadowRepo, 3);
 
         syncServiceMock.assertNoNotifyChange();
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID, null, task, result);
@@ -1757,7 +1754,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 
         syncServiceMock.assertNoNotifyChange();
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
         ShadowAsserter.forShadow(shadowProvisioning,"provisioning")
@@ -1854,7 +1851,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 
         syncServiceMock.assertNoNotifyChange();
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
         ShadowAsserter.forShadow(shadowProvisioning,"provisioning")
@@ -1930,7 +1927,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertPendingOperationDeltas(shadowRepo, 2);
 
         syncServiceMock.assertNoNotifyChange();
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID, null, task, result);
@@ -2012,7 +2009,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 
         syncServiceMock.assertNoNotifyChange();
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID, null, task, result);
@@ -2085,7 +2082,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 
         syncServiceMock.assertNoNotifyChange();
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID, null, task, result);
@@ -2336,7 +2333,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertShadowDead(shadowRepo);
 
         syncServiceMock.assertNoNotifyChange();
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID, null, task, result);

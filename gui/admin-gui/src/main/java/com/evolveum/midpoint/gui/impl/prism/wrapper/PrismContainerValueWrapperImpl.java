@@ -433,12 +433,16 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
 
     @Override
     public String debugDump(int indent) {
-        StringBuilder sb = new StringBuilder(super.debugDump(indent));
-        sb.append("Items:\n");
-        for (ItemWrapper<?, ?> item : items) {
-            sb.append(item.debugDump(indent + 1)).append("\n");
+        StringBuilder sb = new StringBuilder();
+        if (items.isEmpty()) {
+            DebugUtil.indentDebugDump(sb, indent);
+            sb.append("NO ITEMS");
+        } else {
+            for (ItemWrapper<?, ?> item : items) {
+//            DebugUtil.indentDebugDump(sb, indent);
+                sb.append(item.debugDump(indent + 1));
+            }
         }
-
         return sb.toString();
     }
 
