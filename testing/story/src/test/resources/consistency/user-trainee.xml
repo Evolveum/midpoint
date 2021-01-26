@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2021 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<i:user oid="c0c010c0-0000-b33f-f00d-111112226666"
+   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+   xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+   xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+   >
+    <c:name>trainee</c:name>
+    <i:fullName>Student Trainee</i:fullName>
+    <i:givenName>Student</i:givenName>
+    <i:familyName>Trainee</i:familyName>
+    <i:nickName>tstudent</i:nickName>
+
+   <i:credentials>
+        <i:password>
+            <i:value>
+                <i:clearValue>piranhaDogs</i:clearValue>
+            </i:value>
+        </i:password>
+    </i:credentials>
+
+    <assignment>
+        <construction>
+            <resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
+            <kind>account</kind>
+            <intent>student</intent>
+        </construction>
+    </assignment>
+</i:user>

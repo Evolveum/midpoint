@@ -197,6 +197,9 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     private static final String USER_DISCOVERY_FILENAME = TEST_DIR + "user-discovery.xml";
     private static final String USER_DISCOVERY_OID = "c0c010c0-d34d-b33f-f00d-111112226666";
 
+    private static final String USER_TRAINEE_FILENAME = TEST_DIR + "user-trainee.xml";
+    private static final String USER_TRAINEE_OID = "c0c010c0-0000-b33f-f00d-111112226666";
+
     private static final String USER_ABOMBA_FILENAME = TEST_DIR + "user-abomba.xml";
     private static final String USER_ABOMBA_OID = "c0c010c0-d34d-b33f-f00d-016016111111";
 
@@ -2280,7 +2283,50 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         //TODO: check on user if it was processed successfully (add this check also to previous (30) test..
     }
 
+    @Test
+    public void test300addAccountTrainee() throws Exception {
+        given();
+        openDJController.assumeRunning();
 
+        when();
+        addObject(new File(USER_TRAINEE_FILENAME));
+
+        then();
+        PrismObject<UserType> userAfter = getUser(USER_TRAINEE_OID);
+        assertUser(userAfter, " After ").assertName("trainee").assertLinks(1);
+
+    }
+
+    //MID-6742
+    @Test
+    public void test310modifyAccountTraineeCommunicationProblem() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        openDJController.assumeStopped();
+
+        when();
+        modifyObjectReplaceProperty(UserType.class, USER_TRAINEE_OID, UserType.F_NAME, ModelExecuteOptions.create(prismContext).reconcile(), task, result, createPolyString("trainee01"));
+
+        then();
+//        assertResultStatus(result, OperationResultStatus.IN_PROGRESS);
+        PrismObject<UserType> userAfter = getUser(USER_TRAINEE_OID);
+        assertUser(userAfter, " After ").assertName("trainee01");
+
+        String accountOid = assertOneAccountRef(userAfter);
+
+        assertRepoShadow(accountOid)
+                .hasUnfinishedPendingOperations()
+                .pendingOperations()
+                .assertOperations(1)
+                .modifyOperation()
+                .display()
+                .assertAttemptNumber(1)
+                .delta()
+                .assertModify()
+                .assertHasModification(ItemPath.create(ShadowType.F_ATTRIBUTES, LDAP_ATTRIBUTE_DN));
+    }
 
     //TODO: enable after notify failure will be implemented..
     @Test(enabled = false)
