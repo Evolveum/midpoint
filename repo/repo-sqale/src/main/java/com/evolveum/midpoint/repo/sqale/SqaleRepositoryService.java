@@ -19,9 +19,11 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.*;
@@ -60,11 +62,10 @@ public class SqaleRepositoryService implements RepositoryService {
 
     public SqaleRepositoryService(
             SqlRepoContext sqlRepoContext,
-            PrismContext prismContext,
-            RelationRegistry relationRegistry) {
+            SchemaHelper schemaService) {
         this.sqlRepoContext = sqlRepoContext;
         this.sqlQueryExecutor = new SqlQueryExecutor(sqlRepoContext);
-        this.transformerContext = new SqlTransformerContext(prismContext, relationRegistry);
+        this.transformerContext = new SqlTransformerContext(schemaService);
     }
 
     @Override
@@ -73,7 +74,7 @@ public class SqaleRepositoryService implements RepositoryService {
             throws ObjectNotFoundException, SchemaException {
 
         Objects.requireNonNull(type, "Object type must not be null.");
-        checkOid(oid);
+        UUID oidUuid = checkOid(oid);
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
         LOGGER.debug("Getting object '{}' with oid '{}': {}",
@@ -90,7 +91,7 @@ public class SqaleRepositoryService implements RepositoryService {
         PrismObject<T> object;
         try {
             //noinspection unchecked
-            object = (PrismObject<T>) readByOid(type, oid, options).asPrismObject();
+            object = (PrismObject<T>) readByOid(type, oidUuid, options).asPrismObject();
 
             // TODO what's with all the conflict watchers?
             // "objectLocal" is here just to provide effectively final variable for the lambda below
@@ -113,19 +114,22 @@ public class SqaleRepositoryService implements RepositoryService {
         return object;
     }
 
-    private void checkOid(String oid) {
+    private UUID checkOid(String oid) {
         Objects.requireNonNull(oid, "Oid must not be null");
         try {
-            //noinspection ResultOfMethodCallIgnored
-            UUID.fromString(oid);
+            return UUID.fromString(oid);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("OID " + oid + " is invalid", e);
         }
     }
 
-    public <S extends ObjectType, Q extends QObject<R>, R extends MObject> S readByOid(
+    /**
+     * Read object with shortest possible read-only transaction.
+     * Not intended as part of more complex transactional scenarios, only for {@link #getObject}.
+     */
+    private <S extends ObjectType, Q extends QObject<R>, R extends MObject> S readByOid(
             @NotNull Class<S> schemaType,
-            String oid,
+            @NotNull UUID oid,
             Collection<SelectorOptions<GetOperationOptions>> options)
             throws SchemaException {
 
@@ -140,9 +144,33 @@ public class SqaleRepositoryService implements RepositoryService {
             result = sqlRepoContext.newQuery(jdbcSession.connection())
                     .from(root)
                     .select(rootMapping.selectExpressions(root, options))
-                    .where(root.oid.eq(UUID.fromString(oid)))
+                    .where(root.oid.eq(oid))
                     .fetchOne();
         }
+
+        return rootMapping.createTransformer(transformerContext, sqlRepoContext)
+                .toSchemaObject(result, root, options);
+    }
+
+    /** Read object using provided {@link JdbcSession} as a part of already running transaction. */
+    private <S extends ObjectType, Q extends QObject<R>, R extends MObject> S readByOid(
+            @NotNull JdbcSession jdbcSession,
+            @NotNull Class<S> schemaType,
+            @NotNull UUID oid,
+            Collection<SelectorOptions<GetOperationOptions>> options)
+            throws SchemaException {
+
+//        context.processOptions(options); TODO how to process option, is setting of select expressions enough?
+
+        SqaleModelMapping<S, Q, R> rootMapping =
+                sqlRepoContext.getMappingBySchemaType(schemaType);
+        final Q root = rootMapping.defaultAlias();
+
+        Tuple result = sqlRepoContext.newQuery(jdbcSession.connection())
+                .from(root)
+                .select(rootMapping.selectExpressions(root, options))
+                .where(root.oid.eq(oid))
+                .fetchOne();
 
         return rootMapping.createTransformer(transformerContext, sqlRepoContext)
                 .toSchemaObject(result, root, options);
@@ -245,6 +273,7 @@ public class SqaleRepositoryService implements RepositoryService {
     private <S extends ObjectType, Q extends QObject<R>, R extends MObject> String addObjectAttempt(
             PrismObject<S> object, RepoAddOptions options, OperationResult result)
             throws SchemaException {
+        // TODO utilize options and result
         SqaleModelMapping<S, Q, R> rootMapping =
                 sqlRepoContext.getMappingBySchemaType(object.getCompileTimeClass());
         Q root = rootMapping.defaultAlias();
@@ -314,7 +343,7 @@ public class SqaleRepositoryService implements RepositoryService {
 
         Objects.requireNonNull(modifications, "Modifications must not be null.");
         Objects.requireNonNull(type, "Object class in delta must not be null.");
-        checkOid(oid);
+        UUID oidUuid = checkOid(oid);
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
         OperationResult subResult = parentResult.subresult(MODIFY_OBJECT)
@@ -330,8 +359,40 @@ public class SqaleRepositoryService implements RepositoryService {
             return new ModifyObjectResult<>(modifications);
         }
 
+        if (InternalsConfig.encryptionChecks) {
+            CryptoUtil.checkEncrypted(modifications);
+        }
+
+        if (InternalsConfig.consistencyChecks) {
+            ItemDeltaCollectionsUtil.checkConsistence(modifications, ConsistencyCheckScope.THOROUGH);
+        } else {
+            ItemDeltaCollectionsUtil.checkConsistence(modifications, ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
+        }
+
+        logTraceModifications(modifications);
+
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+            T object = readByOid(jdbcSession, type, oidUuid, null);
+        }
         return null;
         // TODO
+    }
+
+    private void logTraceModifications(@NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
+        if (LOGGER.isTraceEnabled()) {
+            for (ItemDelta<?, ?> modification : modifications) {
+                if (modification instanceof PropertyDelta<?>) {
+                    PropertyDelta<?> propDelta = (PropertyDelta<?>) modification;
+                    if (propDelta.getPath().equivalent(ObjectType.F_NAME)) {
+                        Collection<PrismPropertyValue<PolyString>> values = propDelta.getValues(PolyString.class);
+                        for (PrismPropertyValue<PolyString> pval : values) {
+                            PolyString value = pval.getValue();
+                            LOGGER.trace("NAME delta: {} - {}", value.getOrig(), value.getNorm());
+                        }
+                    }
+                }
+            }
+        }
     }
 
     @Override

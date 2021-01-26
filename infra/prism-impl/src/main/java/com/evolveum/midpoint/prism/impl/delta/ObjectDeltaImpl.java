@@ -1,10 +1,23 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.impl.delta;
+
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+
+import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
+
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
+import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
@@ -19,33 +32,9 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.collections4.MultiValuedMap;
-import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
-import org.apache.commons.lang.Validate;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
-import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 /**
- * Relative difference (delta) of the object.
- * <p>
- * This class describes how the object changes. It can describe either object addition, modification of deletion.
- * <p>
- * Addition described complete new (absolute) state of the object.
- * <p>
- * Modification contains a set property deltas that describe relative changes to individual properties
- * <p>
- * Deletion does not contain anything. It only marks object for deletion.
- * <p>
- * The OID is mandatory for modification and deletion.
- *
- * @author Radovan Semancik
- * @see PropertyDelta
+ * @see ObjectDelta
  */
 public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable implements ObjectDelta<O> {
 
@@ -68,7 +57,7 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
     /**
      * Set of relative property deltas. Valid only if changeType==MODIFY
      */
-    @NotNull private final Collection<? extends ItemDelta<?,?>> modifications;
+    @NotNull private final Collection<? extends ItemDelta<?, ?>> modifications;
 
     /**
      * Class of the object that we describe.
@@ -78,8 +67,8 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
     private transient PrismContext prismContext;
 
     public ObjectDeltaImpl(Class<O> objectTypeClass, ChangeType changeType, PrismContext prismContext) {
-        Validate.notNull(objectTypeClass,"No objectTypeClass");
-        Validate.notNull(changeType,"No changeType");
+        Validate.notNull(objectTypeClass, "No objectTypeClass");
+        Validate.notNull(changeType, "No changeType");
         //Validate.notNull(prismContext, "No prismContext");
 
         this.changeType = changeType;
@@ -106,7 +95,7 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
         if (isAdd()) {
             objectToAdd.accept(visitor);
         } else if (isModify()) {
-            for (ItemDelta<?,?> delta : getModifications()){
+            for (ItemDelta<?, ?> delta : getModifications()) {
                 delta.accept(visitor, includeOldValues);
             }
         }
@@ -182,7 +171,7 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
     public void setObjectToAdd(PrismObject<O> objectToAdd) {
         checkMutable();
         if (getChangeType() != ChangeType.ADD) {
-            throw new IllegalStateException("Cannot set object to "+getChangeType()+" delta");
+            throw new IllegalStateException("Cannot set object to " + getChangeType() + " delta");
         }
         this.objectToAdd = objectToAdd;
         if (objectToAdd != null) {
@@ -190,16 +179,18 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
         }
     }
 
+    @Override
     @NotNull
-    public Collection<? extends ItemDelta<?,?>> getModifications() {
+    public Collection<? extends ItemDelta<?, ?>> getModifications() {
         return modifications;
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public <D extends ItemDelta> D addModification(D itemDelta) {
         checkMutable();
         if (getChangeType() != ChangeType.MODIFY) {
-            throw new IllegalStateException("Cannot add modifications to "+getChangeType()+" delta");
+            throw new IllegalStateException("Cannot add modifications to " + getChangeType() + " delta");
         }
         ItemPath itemPath = itemDelta.getPath();
         // We use 'strict' finding mode because of MID-4690 (TODO)
@@ -208,13 +199,13 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
             existingModification.merge(itemDelta);
             return existingModification;
         } else {
-            ((Collection)modifications).add(itemDelta);
+            ((Collection) modifications).add(itemDelta);
             return itemDelta;
         }
     }
 
     public boolean containsModification(ItemDelta itemDelta, EquivalenceStrategy strategy) {
-        for (ItemDelta<?,?> modification: modifications) {
+        for (ItemDelta<?, ?> modification : modifications) {
             if (modification.contains(itemDelta, strategy)) {
                 return true;
             }
@@ -223,8 +214,8 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
     }
 
     @Override
-    public boolean containsAllModifications(Collection<? extends ItemDelta<?,?>> itemDeltas, EquivalenceStrategy strategy) {
-        for (ItemDelta<?,?> itemDelta : itemDeltas) {
+    public boolean containsAllModifications(Collection<? extends ItemDelta<?, ?>> itemDeltas, EquivalenceStrategy strategy) {
+        for (ItemDelta<?, ?> itemDelta : itemDeltas) {
             if (!containsModification(itemDelta, strategy)) {
                 return false;
             }
@@ -233,36 +224,36 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
     }
 
     public void addModifications(Collection<? extends ItemDelta> itemDeltas) {
-        for (ItemDelta<?,?> modDelta: itemDeltas) {
+        for (ItemDelta<?, ?> modDelta : itemDeltas) {
             addModification(modDelta);
         }
     }
 
-    public void addModifications(ItemDelta<?,?>... itemDeltas) {
-        for (ItemDelta<?,?> modDelta: itemDeltas) {
+    public void addModifications(ItemDelta<?, ?>... itemDeltas) {
+        for (ItemDelta<?, ?> modDelta : itemDeltas) {
             addModification(modDelta);
         }
     }
 
-    public <IV extends PrismValue,ID extends ItemDefinition> ItemDelta<IV,ID> findItemDelta(ItemPath itemPath) {
+    public <IV extends PrismValue, ID extends ItemDefinition> ItemDelta<IV, ID> findItemDelta(ItemPath itemPath) {
         //noinspection unchecked
         return findItemDelta(itemPath, ItemDelta.class, Item.class, false);
     }
 
     @Override
-    public <IV extends PrismValue,ID extends ItemDefinition> ItemDelta<IV,ID> findItemDelta(ItemPath itemPath, boolean strict) {
+    public <IV extends PrismValue, ID extends ItemDefinition> ItemDelta<IV, ID> findItemDelta(ItemPath itemPath, boolean strict) {
         //noinspection unchecked
         return findItemDelta(itemPath, ItemDelta.class, Item.class, strict);
     }
 
-    public <IV extends PrismValue,ID extends ItemDefinition, I extends Item<IV,ID>,DD extends ItemDelta<IV,ID>>
-            DD findItemDelta(ItemPath propertyPath, Class<DD> deltaType, Class<I> itemType, boolean strict) {
+    public <IV extends PrismValue, ID extends ItemDefinition, I extends Item<IV, ID>, DD extends ItemDelta<IV, ID>>
+    DD findItemDelta(ItemPath propertyPath, Class<DD> deltaType, Class<I> itemType, boolean strict) {
         if (changeType == ChangeType.ADD) {
             I item = objectToAdd.findItem(propertyPath, itemType);
             if (item == null) {
                 return null;
             }
-            DD itemDelta = createEmptyDelta(propertyPath, item.getDefinition(), deltaType, item.getClass());
+            DD itemDelta = createEmptyDelta(propertyPath, item.getDefinition(), item.getClass());
             itemDelta.addValuesToAdd(item.getClonedValues());
             return itemDelta;
         } else if (changeType == ChangeType.MODIFY) {
@@ -272,22 +263,22 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
         }
     }
 
-    public <IV extends PrismValue,ID extends ItemDefinition> Collection<PartiallyResolvedDelta<IV,ID>> findPartial(
+    public <IV extends PrismValue, ID extends ItemDefinition> Collection<PartiallyResolvedDelta<IV, ID>> findPartial(
             ItemPath propertyPath) {
         if (changeType == ChangeType.ADD) {
-            PartiallyResolvedItem<IV,ID> partialValue = objectToAdd.findPartial(propertyPath);
+            PartiallyResolvedItem<IV, ID> partialValue = objectToAdd.findPartial(propertyPath);
             if (partialValue == null || partialValue.getItem() == null) {
                 return new ArrayList<>(0);
             }
-            Item<IV,ID> item = partialValue.getItem();
-            ItemDelta<IV,ID> itemDelta = item.createDelta();
+            Item<IV, ID> item = partialValue.getItem();
+            ItemDelta<IV, ID> itemDelta = item.createDelta();
             itemDelta.addValuesToAdd(item.getClonedValues());
-            Collection<PartiallyResolvedDelta<IV,ID>> deltas = new ArrayList<>(1);
+            Collection<PartiallyResolvedDelta<IV, ID>> deltas = new ArrayList<>(1);
             deltas.add(new PartiallyResolvedDelta<>(itemDelta, partialValue.getResidualPath()));
             return deltas;
         } else if (changeType == ChangeType.MODIFY) {
-            Collection<PartiallyResolvedDelta<IV,ID>> deltas = new ArrayList<>();
-            for (ItemDelta<?,?> modification: modifications) {
+            Collection<PartiallyResolvedDelta<IV, ID>> deltas = new ArrayList<>();
+            for (ItemDelta<?, ?> modification : modifications) {
                 CompareResult compareComplex = modification.getPath().compareComplex(propertyPath);
                 if (compareComplex == CompareResult.EQUIVALENT) {
                     deltas.add(new PartiallyResolvedDelta<>((ItemDelta<IV, ID>) modification, null));
@@ -295,7 +286,7 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
                     deltas.add(new PartiallyResolvedDelta<>((ItemDelta<IV, ID>) modification, null));
                 } else if (compareComplex == CompareResult.SUPERPATH) { // path in modification is longer than propertyPath
                     deltas.add(new PartiallyResolvedDelta<>((ItemDelta<IV, ID>) modification,
-                        modification.getPath().remainder(propertyPath)));
+                            modification.getPath().remainder(propertyPath)));
                 }
             }
             return deltas;
@@ -322,7 +313,7 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
             Item item = objectToAdd.findItem(propertyPath, Item.class);
             return item != null;
         } else if (changeType == ChangeType.MODIFY) {
-            for (ItemDelta<?,?> delta : getModifications()) {
+            for (ItemDelta<?, ?> delta : getModifications()) {
                 CompareResult compare = delta.getPath().compareComplex(propertyPath);
                 if (compare == CompareResult.EQUIVALENT || compare == CompareResult.SUBPATH) {
                     return true;
@@ -336,7 +327,7 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
         if (isAdd()) {
             return getObjectToAdd().hasCompleteDefinition();
         } else if (isModify()) {
-            for (ItemDelta modification: getModifications()) {
+            for (ItemDelta modification : getModifications()) {
                 if (!modification.hasCompleteDefinition()) {
                     return false;
                 }
@@ -349,17 +340,17 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
         throw new IllegalStateException("Strange things happen");
     }
 
-    private <D extends ItemDelta, I extends Item> D createEmptyDelta(ItemPath propertyPath, ItemDefinition itemDef,
-            Class<D> deltaType, Class<I> itemType) {
+    private <D extends ItemDelta, I extends Item> D createEmptyDelta(
+            ItemPath propertyPath, ItemDefinition itemDef, Class<I> itemType) {
 
         if (PrismProperty.class.isAssignableFrom(itemType)) {
-            return (D) new PropertyDeltaImpl<>(propertyPath, (PrismPropertyDefinition)itemDef, prismContext);
+            return (D) new PropertyDeltaImpl<>(propertyPath, (PrismPropertyDefinition) itemDef, prismContext);
         } else if (PrismContainer.class.isAssignableFrom(itemType)) {
-            return (D) new ContainerDeltaImpl<>(propertyPath, (PrismContainerDefinition)itemDef, prismContext);
+            return (D) new ContainerDeltaImpl<>(propertyPath, (PrismContainerDefinition) itemDef, prismContext);
         } else if (PrismReference.class.isAssignableFrom(itemType)) {
-            return (D) new ReferenceDeltaImpl(propertyPath, (PrismReferenceDefinition)itemDef, prismContext);
+            return (D) new ReferenceDeltaImpl(propertyPath, (PrismReferenceDefinition) itemDef, prismContext);
         } else {
-            throw new IllegalArgumentException("Unknown item type "+itemType);
+            throw new IllegalArgumentException("Unknown item type " + itemType);
         }
     }
 
@@ -421,10 +412,9 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
     /**
      * Returns all item deltas at or below a specified path.
      */
-    public Collection<? extends ItemDelta<?,?>> findItemDeltasSubPath(ItemPath itemPath) {
+    public Collection<? extends ItemDelta<?, ?>> findItemDeltasSubPath(ItemPath itemPath) {
         return ItemDeltaCollectionsUtil.findItemDeltasSubPath(modifications, itemPath);
     }
-
 
     private <D extends ItemDelta> void removeModification(ItemPath propertyPath, Class<D> deltaType) {
         checkMutable();
@@ -432,7 +422,7 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
     }
 
     @Override
-    public <D extends ItemDelta> void removeModification(ItemDelta<?, ?> itemDelta) {
+    public void removeModification(ItemDelta<?, ?> itemDelta) {
         checkMutable();
         ItemDeltaCollectionsUtil.removeItemDelta(modifications, itemDelta);
     }
@@ -460,7 +450,7 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
         if (modifications.isEmpty()) {
             return true;
         }
-        for (ItemDelta<?,?> mod: modifications) {
+        for (ItemDelta<?, ?> mod : modifications) {
             if (!mod.isEmpty()) {
                 return false;
             }
@@ -475,7 +465,7 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
         }
         Iterator<? extends ItemDelta> iterator = modifications.iterator();
         while (iterator.hasNext()) {
-            ItemDelta<?,?> modification = iterator.next();
+            ItemDelta<?, ?> modification = iterator.next();
             modification.normalize();
             if (modification.isEmpty()) {
                 iterator.remove();
@@ -491,7 +481,7 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
         }
         ObjectDeltaImpl<O> narrowedDelta = new ObjectDeltaImpl<>(this.objectTypeClass, this.changeType, this.prismContext);
         narrowedDelta.oid = this.oid;
-        for (ItemDelta<?, ?> modification: modifications) {
+        for (ItemDelta<?, ?> modification : modifications) {
             ItemDelta<?, ?> narrowedModification = modification.narrow(existingObject, plusStrategy.prismValueComparator(),
                     minusStrategy.prismValueComparator(), assumeMissingItems);
             if (narrowedModification != null && !narrowedModification.isEmpty()) {
@@ -520,8 +510,8 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
 
     protected void copyValues(ObjectDeltaImpl<O> clone) {
         clone.oid = this.oid;
-        for (ItemDelta<?,?> thisModification: this.modifications) {
-            ((Collection)clone.modifications).add(thisModification.clone());
+        for (ItemDelta<?, ?> thisModification : this.modifications) {
+            ((Collection) clone.modifications).add(thisModification.clone());
         }
         if (this.objectToAdd == null) {
             clone.objectToAdd = null;
@@ -574,22 +564,22 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
     }
 
     public void mergeModifications(Collection<? extends ItemDelta> modificationsToMerge) throws SchemaException {
-        for (ItemDelta<?,?> propDelta : modificationsToMerge) {
+        for (ItemDelta<?, ?> propDelta : modificationsToMerge) {
             mergeModification(propDelta);
         }
     }
 
-    public void mergeModification(ItemDelta<?,?> modificationToMerge) throws SchemaException {
+    public void mergeModification(ItemDelta<?, ?> modificationToMerge) throws SchemaException {
         swallow(modificationToMerge);
     }
 
     /**
      * Incorporates the property delta into the existing property deltas
      * (regardless of the change type).
-     *
+     * <p>
      * TODO incorporate equivalence strategy
      */
-    public void swallow(ItemDelta<?,?> newItemDelta) throws SchemaException {
+    public void swallow(ItemDelta<?, ?> newItemDelta) throws SchemaException {
         checkMutable();
         if (changeType == ChangeType.ADD) {
             newItemDelta.applyTo(objectToAdd);
@@ -658,7 +648,7 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
         }
     }
 
-    private Collection<? extends ItemDelta<?,?>> createEmptyModifications() {
+    private Collection<? extends ItemDelta<?, ?>> createEmptyModifications() {
         // Lists are easier to debug
         return new ArrayList<>();
     }
@@ -760,7 +750,6 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
         return createReferenceModification(refPath, refDef);
     }
 
-
     public static <O extends Objectable> ObjectDeltaImpl<O> createEmptyModifyDelta(Class<O> type, String oid, PrismContext prismContext) {
         return createEmptyDelta(type, oid, prismContext, ChangeType.MODIFY);
     }
@@ -797,7 +786,7 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
             throw new SchemaException("Cannot reverse delete delta");
         }
         ObjectDeltaImpl<O> reverseDelta = createEmptyModifyDelta(getObjectTypeClass(), getOid(), getPrismContext());
-        for (ItemDelta<?,?> modification: getModifications()) {
+        for (ItemDelta<?, ?> modification : getModifications()) {
             reverseDelta.addModification(modification.createReverseDelta());
         }
         return reverseDelta;
@@ -817,48 +806,48 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
 
     public void checkConsistence(boolean requireOid, boolean requireDefinition, boolean prohibitRaw, ConsistencyCheckScope scope) {
         if (scope.isThorough() && prismContext == null) {
-            throw new IllegalStateException("No prism context in "+this);
+            throw new IllegalStateException("No prism context in " + this);
         }
         if (getChangeType() == ChangeType.ADD) {
             if (scope.isThorough() && !getModifications().isEmpty()) {
-                throw new IllegalStateException("Modifications present in ADD delta "+this);
+                throw new IllegalStateException("Modifications present in ADD delta " + this);
             }
             if (getObjectToAdd() != null) {
                 getObjectToAdd().checkConsistence(requireDefinition, prohibitRaw, scope);
             } else {
-                throw new IllegalStateException("User primary delta is ADD, but there is not object to add in "+this);
+                throw new IllegalStateException("User primary delta is ADD, but there is not object to add in " + this);
             }
         } else if (getChangeType() == ChangeType.MODIFY) {
             if (scope.isThorough()) {
                 checkIdentifierConsistence(requireOid);
                 if (getObjectToAdd() != null) {
-                    throw new IllegalStateException("Object to add present in MODIFY delta "+this);
+                    throw new IllegalStateException("Object to add present in MODIFY delta " + this);
                 }
                 if (getModifications() == null) {
-                    throw new IllegalStateException("Null modification in MODIFY delta "+this);
+                    throw new IllegalStateException("Null modification in MODIFY delta " + this);
                 }
             }
             ItemDeltaCollectionsUtil.checkConsistence(getModifications(), requireDefinition, prohibitRaw, scope);
         } else if (getChangeType() == ChangeType.DELETE) {
             if (scope.isThorough()) {
                 if (requireOid && getOid() == null) {
-                    throw new IllegalStateException("Null oid in delta "+this);
+                    throw new IllegalStateException("Null oid in delta " + this);
                 }
                 if (getObjectToAdd() != null) {
-                    throw new IllegalStateException("Object to add present in DELETE delta "+this);
+                    throw new IllegalStateException("Object to add present in DELETE delta " + this);
                 }
                 if (!getModifications().isEmpty()) {
-                    throw new IllegalStateException("Modifications present in DELETE delta "+this);
+                    throw new IllegalStateException("Modifications present in DELETE delta " + this);
                 }
             }
         } else {
-            throw new IllegalStateException("Unknown change type "+getChangeType()+" in delta "+this);
+            throw new IllegalStateException("Unknown change type " + getChangeType() + " in delta " + this);
         }
     }
 
     protected void checkIdentifierConsistence(boolean requireOid) {
         if (requireOid && getOid() == null) {
-            throw new IllegalStateException("Null oid in delta "+this);
+            throw new IllegalStateException("Null oid in delta " + this);
         }
     }
 
@@ -879,11 +868,11 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
      */
     public void assertDefinitions(boolean tolerateRawElements, String sourceDescription) throws SchemaException {
         if (changeType == ChangeType.ADD) {
-            objectToAdd.assertDefinitions("add delta in "+sourceDescription);
+            objectToAdd.assertDefinitions("add delta in " + sourceDescription);
         }
         if (changeType == ChangeType.MODIFY) {
-            for (ItemDelta<?,?> mod: modifications) {
-                mod.assertDefinitions(tolerateRawElements, "modify delta for "+getOid()+" in "+sourceDescription);
+            for (ItemDelta<?, ?> mod : modifications) {
+                mod.assertDefinitions(tolerateRawElements, "modify delta for " + getOid() + " in " + sourceDescription);
             }
         }
     }
@@ -892,7 +881,7 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
         if (objectToAdd != null) {
             objectToAdd.revive(prismContext);
         }
-        for (ItemDelta<?,?> modification: modifications) {
+        for (ItemDelta<?, ?> modification : modifications) {
             modification.revive(prismContext);
         }
         // todo is this correct? [pm]
@@ -905,7 +894,7 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
         if (objectToAdd != null) {
             objectToAdd.applyDefinition(objectDefinition, force);
         }
-        for (ItemDelta modification: modifications) {
+        for (ItemDelta modification : modifications) {
             ItemPath path = modification.getPath();
             ItemDefinition itemDefinition = objectDefinition.findItemDefinition(path);
             modification.applyDefinition(itemDefinition, force);
@@ -929,13 +918,13 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
     @Override
     public boolean equivalent(ObjectDelta o) {
         ObjectDeltaImpl other = (ObjectDeltaImpl) o;
-        if (changeType != other.changeType) return false;
+        if (changeType != other.changeType) { return false; }
         if (objectToAdd == null) {
-            if (other.objectToAdd != null) return false;
+            if (other.objectToAdd != null) { return false; }
         } else if (!objectToAdd.equivalent(other.objectToAdd)) {
             return false;
         }
-        if (!MiscUtil.unorderedCollectionEquals(this.modifications, other.modifications, (o1, o2) -> o1.equivalent((ItemDelta)o2))) {
+        if (!MiscUtil.unorderedCollectionEquals(this.modifications, other.modifications, (o1, o2) -> o1.equivalent((ItemDelta) o2))) {
             return false;
         }
         return Objects.equals(objectTypeClass, other.objectTypeClass) && Objects.equals(oid, other.oid);
@@ -943,27 +932,27 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
+        if (this == obj) { return true; }
+        if (obj == null) { return false; }
+        if (getClass() != obj.getClass()) { return false; }
         ObjectDeltaImpl<?> other = (ObjectDeltaImpl<?>) obj;
-        if (changeType != other.changeType) return false;
+        if (changeType != other.changeType) { return false; }
         //noinspection RedundantCast,unchecked
         if (!MiscUtil.unorderedCollectionEquals((Collection) this.modifications, (Collection) other.modifications)) {
             return false;
         }
         if (objectToAdd == null) {
-            if (other.objectToAdd != null) return false;
+            if (other.objectToAdd != null) { return false; }
         } else if (!objectToAdd.equals(other.objectToAdd)) {
             return false;
         }
         if (objectTypeClass == null) {
-            if (other.objectTypeClass != null) return false;
+            if (other.objectTypeClass != null) { return false; }
         } else if (!objectTypeClass.equals(other.objectTypeClass)) {
             return false;
         }
         if (oid == null) {
-            if (other.oid != null) return false;
+            if (other.oid != null) { return false; }
         } else if (!oid.equals(other.oid)) {
             return false;
         }
@@ -1001,7 +990,7 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
     }
 
     protected String debugIdentifiers() {
-        return toDebugType()+":" + getOid();
+        return toDebugType() + ":" + getOid();
     }
 
     /**
@@ -1097,7 +1086,7 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
     /**
      * Works if we are looking e.g. for modification to inducement item,
      * and delta contains e.g. REPLACE(inducement[1]/validTo, "...").
-     *
+     * <p>
      * Does NOT work the way around: if we are looking for modification to inducement/validTo and
      * delta contains e.g. ADD(inducement, ...). In such a case we would need to do more complex processing,
      * involving splitting value-to-be-added into remainder and offspring delta. It's probably doable,
@@ -1149,7 +1138,7 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
     /**
      * Works if we are looking e.g. for modification to inducement item,
      * and delta contains e.g. REPLACE(inducement[1]/validTo, "...").
-     *
+     * <p>
      * Does NOT work the way around: if we are looking for modification to inducement/validTo and
      * delta contains e.g. ADD(inducement, ...). In such a case we would need to do more complex processing,
      * involving splitting value-to-be-added into remainder and offspring delta. It's probably doable,
@@ -1235,7 +1224,7 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
 
     /**
      * Checks if the delta tries to add (or set) a 'value' for the item identified by 'itemPath'. If yes, it removes it.
-     *
+     * <p>
      * TODO consider changing return value to 'incremental delta' (or null)
      *
      * @param dryRun only testing if value could be subtracted; not changing anything

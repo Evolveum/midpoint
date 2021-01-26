@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -13,7 +13,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
-
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +31,6 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.impl.crypto.KeyStoreBasedProtectorImpl;
 import com.evolveum.midpoint.prism.impl.delta.DeltaFactoryImpl;
 import com.evolveum.midpoint.prism.impl.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
 import com.evolveum.midpoint.prism.impl.lex.LexicalProcessorRegistry;
 import com.evolveum.midpoint.prism.impl.lex.dom.DomLexicalProcessor;
 import com.evolveum.midpoint.prism.impl.marshaller.*;
@@ -45,7 +43,6 @@ import com.evolveum.midpoint.prism.impl.query.lang.PrismQueryLanguageParserImpl;
 import com.evolveum.midpoint.prism.impl.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.impl.schema.SchemaFactoryImpl;
 import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
-import com.evolveum.midpoint.prism.impl.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.XNodeFactoryImpl;
 import com.evolveum.midpoint.prism.marshaller.JaxbDomHack;
 import com.evolveum.midpoint.prism.marshaller.ParsingMigrator;
@@ -286,18 +283,6 @@ public final class PrismContextImpl implements PrismContext {
     @Override
     public PolyStringNormalizer getDefaultPolyStringNormalizer() {
         return defaultPolyStringNormalizer;
-    }
-
-    private LexicalProcessor getParser(String language) {
-        return lexicalProcessorRegistry.processorFor(language);
-    }
-
-    private LexicalProcessor getParserNotNull(String language) {
-        LexicalProcessor lexicalProcessor = getParser(language);
-        if (lexicalProcessor == null) {
-            throw new SystemException("No parser for language '" + language + "'");
-        }
-        return lexicalProcessor;
     }
 
     @Override

@@ -1,10 +1,18 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.delta;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
@@ -13,31 +21,24 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Relative difference (delta) of the object.
- * <p>
  * This class describes how the object changes. It can describe either object addition, modification of deletion.
- * <p>
- * Addition described complete new (absolute) state of the object.
- * <p>
- * Modification contains a set property deltas that describe relative changes to individual properties
- * <p>
- * Deletion does not contain anything. It only marks object for deletion.
- * <p>
+ * <ul>
+ * <li>Addition describes complete new (absolute) state of the object.</li>
+ * <li>Modification contains a set property deltas that describe relative changes to individual properties</li>
+ * <li>Deletion does not contain anything. It only marks object for deletion.</li>
+ * </ul>
  * The OID is mandatory for modification and deletion.
+ * <p>
+ * See <a href="https://docs.evolveum.com/midpoint/prism/deltas/">this document</a> for more.
  *
  * @author Radovan Semancik
  * @see PropertyDelta
  */
-public interface ObjectDelta<O extends Objectable> extends DebugDumpable, PrismContextSensitive, Visitable, PathVisitable, Serializable, Freezable {
+public interface ObjectDelta<O extends Objectable>
+        extends DebugDumpable, PrismContextSensitive, Visitable, PathVisitable, Serializable, Freezable {
 
     void accept(Visitor visitor, boolean includeOldValues);
 
@@ -77,7 +78,7 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, PrismC
     void setObjectToAdd(PrismObject<O> objectToAdd);
 
     @NotNull
-    Collection<? extends ItemDelta<?,?>> getModifications();
+    Collection<? extends ItemDelta<?, ?>> getModifications();
 
     /**
      * Adds modification (itemDelta) and returns the modification that was added.
@@ -97,32 +98,32 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, PrismC
 
     /**
      * TODO specify this method!
-     *
+     * <p>
      * An attempt:
-     *
+     * <p>
      * Given this ADD or MODIFY object delta OD, finds an item delta ID such that "ID has the same effect on an item specified
      * by itemPath as OD" (simply said).
-     *
+     * <p>
      * More precisely,
      * - if OD is ADD delta: ID is ADD delta that adds values of the item present in the object being added
      * - if OD is MODIFY delta: ID is such delta that:
-     *      1. Given ANY object O, let O' be O after application of OD.
-     *      2. Let I be O(itemPath), I' be O'(itemPath).
-     *      3. Then I' is the same as I after application of ID.
-     *   ID is null if no such item delta exists - or cannot be found easily.
-     *
+     * 1. Given ANY object O, let O' be O after application of OD.
+     * 2. Let I be O(itemPath), I' be O'(itemPath).
+     * 3. Then I' is the same as I after application of ID.
+     * ID is null if no such item delta exists - or cannot be found easily.
+     * <p>
      * Problem:
      * - If OD contains more than one modification that affects itemPath the results from findItemDelta can be differ
-     *   from the above definition.
+     * from the above definition.
      */
-    <IV extends PrismValue,ID extends ItemDefinition> ItemDelta<IV,ID> findItemDelta(ItemPath itemPath);
+    <IV extends PrismValue, ID extends ItemDefinition> ItemDelta<IV, ID> findItemDelta(ItemPath itemPath);
 
-    <IV extends PrismValue,ID extends ItemDefinition> ItemDelta<IV,ID> findItemDelta(ItemPath itemPath, boolean strict);
+    <IV extends PrismValue, ID extends ItemDefinition> ItemDelta<IV, ID> findItemDelta(ItemPath itemPath, boolean strict);
 
-    <IV extends PrismValue,ID extends ItemDefinition, I extends Item<IV,ID>,DD extends ItemDelta<IV,ID>>
-            DD findItemDelta(ItemPath itemPath, Class<DD> deltaType, Class<I> itemType, boolean strict);
+    <IV extends PrismValue, ID extends ItemDefinition, I extends Item<IV, ID>, DD extends ItemDelta<IV, ID>>
+    DD findItemDelta(ItemPath itemPath, Class<DD> deltaType, Class<I> itemType, boolean strict);
 
-    <IV extends PrismValue,ID extends ItemDefinition> Collection<PartiallyResolvedDelta<IV,ID>> findPartial(
+    <IV extends PrismValue, ID extends ItemDefinition> Collection<PartiallyResolvedDelta<IV, ID>> findPartial(
             ItemPath propertyPath);
 
     boolean hasItemDelta(ItemPath propertyPath);
@@ -149,9 +150,9 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, PrismC
     /**
      * Returns all item deltas at or below a specified path.
      */
-    Collection<? extends ItemDelta<?,?>> findItemDeltasSubPath(ItemPath itemPath);
+    Collection<? extends ItemDelta<?, ?>> findItemDeltasSubPath(ItemPath itemPath);
 
-    <D extends ItemDelta> void removeModification(ItemDelta<?, ?> itemDelta);
+    void removeModification(ItemDelta<?, ?> itemDelta);
 
     void removeReferenceModification(ItemPath itemPath);
 
@@ -276,7 +277,6 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, PrismC
      * suitable for log messages. There is no requirement for the type name to be unique,
      * but it rather has to be compact. E.g. short element names are preferred to long
      * QNames or URIs.
-     * @return
      */
     String toDebugType();
 
@@ -342,12 +342,11 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, PrismC
      */
 
     /**
-     * Checks if the delta tries to add (or set) a 'value' for the item identified by 'itemPath'. If yes, it removes it.
-     *
+     * Checks if the delta tries to add (or set) a 'value' for the item identified by 'itemPath'.
+     * If yes, it removes it.
+     * <p>
      * TODO consider changing return value to 'incremental delta' (or null)
      *
-     * @param itemPath
-     * @param value
      * @param dryRun only testing if value could be subtracted; not changing anything
      * @return true if the delta originally contained an instruction to add (or set) 'itemPath' to 'value'.
      */
@@ -366,7 +365,8 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, PrismC
      * (3) For DELETE item delta for PrismContainers, content of items deleted might not be known
      * (only ID could be provided on PCVs).
      */
-    @SuppressWarnings("unused")            // used from scripts
+    @SuppressWarnings("unused")
+    // used from scripts
     List<PrismValue> getDeletedValuesFor(ItemPath itemPath);
 
     void clear();
