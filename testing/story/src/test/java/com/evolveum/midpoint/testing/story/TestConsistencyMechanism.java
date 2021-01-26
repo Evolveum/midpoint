@@ -2285,13 +2285,15 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
     @Test
     public void test300addAccountTrainee() throws Exception {
-        given();
+       //GIVEN
         openDJController.assumeRunning();
 
-        when();
+        //WHEN
+        displayWhen();
         addObject(new File(USER_TRAINEE_FILENAME));
 
-        then();
+        //THEN
+        displayThen();
         PrismObject<UserType> userAfter = getUser(USER_TRAINEE_OID);
         assertUser(userAfter, " After ").assertName("trainee").assertLinks(1);
 
@@ -2300,16 +2302,18 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     //MID-6742
     @Test
     public void test310modifyAccountTraineeCommunicationProblem() throws Exception {
-        given();
-        Task task = getTestTask();
+        //GIVEN
+        Task task = getTask();
         OperationResult result = task.getResult();
 
         openDJController.assumeStopped();
 
-        when();
-        modifyObjectReplaceProperty(UserType.class, USER_TRAINEE_OID, UserType.F_NAME, ModelExecuteOptions.create(prismContext).reconcile(), task, result, createPolyString("trainee01"));
+        //WHEN
+        displayWhen();
+        modifyObjectReplaceProperty(UserType.class, USER_TRAINEE_OID, UserType.F_NAME, ModelExecuteOptions.createReconcile(), task, result, createPolyString("trainee01"));
 
-        then();
+        //THEN
+        displayThen();
 //        assertResultStatus(result, OperationResultStatus.IN_PROGRESS);
         PrismObject<UserType> userAfter = getUser(USER_TRAINEE_OID);
         assertUser(userAfter, " After ").assertName("trainee01");
