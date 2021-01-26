@@ -31,6 +31,8 @@ import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 
+import com.evolveum.midpoint.testing.schrodinger.reports.SchrodingerTextReport;
+
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,7 +72,7 @@ import com.evolveum.midpoint.web.boot.MidPointSpringApplication;
 @ActiveProfiles("default")
 @SpringBootTest(classes = MidPointSpringApplication.class, webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @TestPropertySource(properties = { "server.port=8180", "midpoint.schrodinger=true" })
-@Listeners({ BrowserPerClass.class, TextReport.class })
+@Listeners({ BrowserPerClass.class, SchrodingerTextReport.class })
 @Report
 public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
 
