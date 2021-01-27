@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.prism.xnode;
 
 import com.evolveum.midpoint.prism.Freezable;
+import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.util.DebugDumpable;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +38,7 @@ public interface XNode extends DebugDumpable, Visitable<XNode>, Cloneable, Seria
         return this instanceof MetadataAware && !((MetadataAware) this).getMetadataNodes().isEmpty();
     }
 
-    default XNodeNamespaceContext namespaceContext() {
-        return XNodeNamespaceContext.EMPTY;
+    default PrismNamespaceContext namespaceContext() {
+        return PrismNamespaceContext.EMPTY;
     }
 }
