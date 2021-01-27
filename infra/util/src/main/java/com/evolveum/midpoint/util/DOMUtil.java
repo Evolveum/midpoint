@@ -759,6 +759,16 @@ public class DOMUtil {
         return nsDeclMap;
     }
 
+    public static Map<String, String> getNamespaceDeclarationsNonNull(Element element) {
+        Map<String, String> mapWithNullKeys = getNamespaceDeclarations(element);
+        String defaultNs = mapWithNullKeys.get(null);
+        if(defaultNs != null) {
+            mapWithNullKeys.remove(null);
+            mapWithNullKeys.put("", defaultNs);
+        }
+        return mapWithNullKeys;
+    }
+
     public static void setNamespaceDeclarations(Element element, Map<String, String> rootNamespaceDeclarations) {
         if (rootNamespaceDeclarations != null) {
             for (Entry<String, String> entry : rootNamespaceDeclarations.entrySet()) {

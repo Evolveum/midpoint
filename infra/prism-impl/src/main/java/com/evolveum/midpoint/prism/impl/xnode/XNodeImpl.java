@@ -13,6 +13,7 @@ import java.util.Map.Entry;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.AbstractFreezable;
+import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -55,6 +56,8 @@ public abstract class XNodeImpl extends AbstractFreezable implements XNode {
     protected boolean immutable = false;
 
     // These are set when parsing a file
+    // FIXME: Consider using SourceLocation
+
     private File originFile;
     private String originDescription;
     private int lineNumber;
@@ -71,6 +74,17 @@ public abstract class XNodeImpl extends AbstractFreezable implements XNode {
      * Custom data to be used during parsing process. TODO reconsider
      */
     private transient Object parserData;
+
+    private final PrismNamespaceContext namespaceContext;
+
+    @Deprecated
+    public XNodeImpl() {
+        this(PrismNamespaceContext.EMPTY);
+    }
+
+    public XNodeImpl(PrismNamespaceContext local) {
+        this.namespaceContext = local;
+    }
 
     public XNodeImpl getParent() {
         return parent;
@@ -117,6 +131,7 @@ public abstract class XNodeImpl extends AbstractFreezable implements XNode {
         this.comment = comment;
     }
 
+    @Override
     public QName getTypeQName() {
         return typeQName;
     }
@@ -135,6 +150,7 @@ public abstract class XNodeImpl extends AbstractFreezable implements XNode {
         this.elementName = elementName;
     }
 
+    @Override
     public Integer getMaxOccurs() {
         return maxOccurs;
     }
@@ -144,8 +160,10 @@ public abstract class XNodeImpl extends AbstractFreezable implements XNode {
         this.maxOccurs = maxOccurs;
     }
 
+    @Override
     public abstract boolean isEmpty();
 
+    @Override
     public boolean isExplicitTypeDeclaration() {
         return explicitTypeDeclaration;
     }
@@ -155,6 +173,7 @@ public abstract class XNodeImpl extends AbstractFreezable implements XNode {
         this.explicitTypeDeclaration = explicitTypeDeclaration;
     }
 
+    @Override
     @NotNull
     public XNodeImpl clone() {
         return cloneTransformKeys(null);
@@ -173,7 +192,7 @@ public abstract class XNodeImpl extends AbstractFreezable implements XNode {
             return (X) ((PrimitiveXNodeImpl) xnode).cloneInternal();
         } else if (xnode instanceof MapXNodeImpl) {
             MapXNodeImpl xmap = (MapXNodeImpl)xnode;
-            xclone = new MapXNodeImpl();
+            xclone = new MapXNodeImpl(xnode.namespaceContext());
             for (Entry<QName, XNodeImpl> entry: xmap.entrySet()) {
                 QName key = entry.getKey();
                 QName newKey = keyTransformer != null ? keyTransformer.transform(key) : key;
@@ -184,13 +203,13 @@ public abstract class XNodeImpl extends AbstractFreezable implements XNode {
                 }
             }
         } else if (xnode instanceof ListXNodeImpl) {
-            xclone = new ListXNodeImpl();
+            xclone = new ListXNodeImpl(xnode.namespaceContext());
             for (XNodeImpl xsubnode: ((ListXNodeImpl)xnode)) {
                 ((ListXNodeImpl) xclone).add(cloneTransformKeys(keyTransformer, xsubnode));
             }
         } else if (xnode instanceof RootXNodeImpl) {
             xclone = new RootXNodeImpl(((RootXNodeImpl) xnode).getRootElementName(),
-                    cloneTransformKeys(keyTransformer, ((RootXNodeImpl) xnode).getSubnode()));
+                    cloneTransformKeys(keyTransformer, ((RootXNodeImpl) xnode).getSubnode()), xnode.namespaceContext());
         } else {
             throw new IllegalArgumentException("Unknown xnode "+xnode);
         }
@@ -224,8 +243,9 @@ public abstract class XNodeImpl extends AbstractFreezable implements XNode {
     }
 
     // overridden in RootXNode
+    @Override
     public RootXNodeImpl toRootXNode() {
-        return new RootXNodeImpl(XNodeImpl.DUMMY_NAME, this);
+        return new RootXNodeImpl(XNodeImpl.DUMMY_NAME, this, namespaceContext());
     }
 
     public boolean isHeterogeneousList() {
@@ -253,5 +273,10 @@ public abstract class XNodeImpl extends AbstractFreezable implements XNode {
 
     boolean metadataEquals(@NotNull List<MapXNode> metadata1, @NotNull List<MapXNode> metadata2) {
         return MiscUtil.unorderedCollectionEquals(metadata1, metadata2);
+    }
+
+    @Override
+    public PrismNamespaceContext namespaceContext() {
+        return namespaceContext;
     }
 }

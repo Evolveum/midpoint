@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.MetadataAware;
@@ -51,14 +52,26 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
 
     @NotNull private List<MapXNode> metadataNodes = new ArrayList<>();
 
+    @Deprecated
+    public MapXNodeImpl() {
+        super();
+    }
+
+    public MapXNodeImpl(PrismNamespaceContext localNsContext) {
+        super(localNsContext);
+    }
+
+    @Override
     public int size() {
         return subnodes.size();
     }
 
+    @Override
     public boolean isEmpty() {
         return subnodes.isEmpty();
     }
 
+    @Override
     @NotNull
     public Set<QName> keySet() {
         return Collections.unmodifiableSet(subnodes.keySet());
@@ -69,6 +82,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
         return Collections.unmodifiableSet(subnodes.entrySet());
     }
 
+    @Override
     public boolean containsKey(QName key) {
         return subnodes.containsKey(key) || unqualifiedSubnodeNames.contains(key.getLocalPart());
     }
@@ -78,6 +92,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
         return getByFullScan(key);
     }
 
+    @Override
     public XNodeImpl get(QName key) {
         // Here we assume that "get" on hash map is quote fast and that we do not mix
         // qualified and unqualified versions very often (so we hit directly if it's there).
@@ -164,7 +179,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
     @Override
     public RootXNode getSingleSubEntryAsRoot(String errorContext) throws SchemaException {
         Map.Entry<QName, XNodeImpl> entry = getSingleSubEntry(errorContext);
-        return entry != null ? new RootXNodeImpl(entry.getKey(), entry.getValue()) : null;
+        return entry != null ? new RootXNodeImpl(entry.getKey(), entry.getValue(), namespaceContext()) : null;
     }
 
     public Map.Entry<QName, XNodeImpl> getSingleEntryThatDoesNotMatch(QName... excludedKeys) throws SchemaException {
@@ -230,7 +245,8 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
             if (previous instanceof ListXNodeImpl) {
                 valueToStore = (ListXNodeImpl) previous;
             } else {
-                valueToStore = new ListXNodeImpl();
+                // FIXME: Is this correct?
+                valueToStore = new ListXNodeImpl(previous.namespaceContext());
                 valueToStore.add(previous);
             }
             if (otherValue instanceof ListXNodeImpl) {
@@ -255,6 +271,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
         MetadataAware.visitMetadata(this, visitor);
     }
 
+    @Override
     public boolean equals(Object o) {
         if (!(o instanceof MapXNodeImpl)) {
             return false;
@@ -264,6 +281,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
                 metadataEquals(this.metadataNodes, other.metadataNodes);
     }
 
+    @Override
     public int hashCode() {
         int result = 0xCAFEBABE;
         for (XNodeImpl node : subnodes.values()) {
@@ -322,9 +340,10 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
         put(key, value);
     }
 
+    @Override
     public RootXNodeImpl getEntryAsRoot(@NotNull QName key) {
         XNodeImpl xnode = get(key);
-        return xnode != null ? new RootXNodeImpl(key, xnode) : null;
+        return xnode != null ? new RootXNodeImpl(key, xnode, namespaceContext()) : null;
     }
 
 //    @NotNull

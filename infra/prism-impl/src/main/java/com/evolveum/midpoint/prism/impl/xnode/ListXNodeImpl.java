@@ -8,6 +8,7 @@ package com.evolveum.midpoint.prism.impl.xnode;
 
 import java.util.*;
 
+import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
@@ -16,6 +17,15 @@ import com.evolveum.midpoint.util.DebugUtil;
 public class ListXNodeImpl extends XNodeImpl implements List<XNodeImpl>, ListXNode {
 
     private final List<XNodeImpl> subnodes = new ArrayList<>();
+
+    @Deprecated
+    public ListXNodeImpl() {
+        super();
+    }
+
+    public ListXNodeImpl(PrismNamespaceContext local) {
+        super(local);
+    }
 
     @Override
     public int size() {

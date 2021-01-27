@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.xnode.SchemaXNode;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -26,9 +27,16 @@ import java.util.List;
  */
 public class SchemaXNodeImpl extends XNodeImpl implements SchemaXNode {
 
+
+
     private Element schemaElement;
 
     @NotNull private List<MapXNode> metadataNodes = new ArrayList<>();
+
+
+    public SchemaXNodeImpl(PrismNamespaceContext local) {
+        super(local);
+    }
 
     public Element getSchemaElement() {
         return schemaElement;
