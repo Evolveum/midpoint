@@ -1,11 +1,10 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
-package com.evolveum.midpoint.repo.sql.perf;
+package com.evolveum.midpoint.repo.sqlbase.perfmon;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -13,9 +12,9 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import com.evolveum.midpoint.repo.api.perf.OperationRecord;
-import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -45,31 +44,22 @@ class OutputFormatter {
 
     static String getFormattedStatistics(List<OperationRecord> finishedOperations, Map<Long, OperationRecord> outstandingOperations) {
         StatEntry all = new StatEntry();
-        StatEntry unfinished = new StatEntry();
-        final int maxAttempts = BaseHelper.LOCKING_MAX_RETRIES + 1;
-        StatEntry[] perAttempts = new StatEntry[maxAttempts];
-
-        for (int i = 0; i < maxAttempts; i++) {
-            perAttempts[i] = new StatEntry();
-        }
+        Map<Integer, StatEntry> attemptStats = new TreeMap<>();
 
         for (OperationRecord operation : finishedOperations) {
             all.process(operation);
-            if (operation.getAttempts() >= 1 && operation.getAttempts() <= maxAttempts) {
-                perAttempts[operation.getAttempts() - 1].process(operation);
-            } else if (operation.getAttempts() < 0) {
-                unfinished.process(operation);
-            }
+            StatEntry statEntry = attemptStats.computeIfAbsent(
+                    operation.getAttempts(),
+                    ix -> new StatEntry());
+            statEntry.process(operation);
         }
 
-        StringBuilder retval = new StringBuilder();
-        retval.append("Overall: ").append(all.dump()).append("\n");
-        for (int i = 0; i < maxAttempts; i++) {
-            retval.append(i + 1).append(" attempt(s): ").append(perAttempts[i].dump()).append("\n");
-        }
-        retval.append("Unfinished: ").append(unfinished.dump()).append("\n");
-        retval.append("Outstanding: ").append(outstandingOperations.toString());
-        return retval.toString();
+        StringBuilder sb = new StringBuilder();
+        sb.append("Overall: ").append(all.dump()).append("\n");
+        attemptStats.forEach((ix, stat) ->
+                sb.append(ix).append(" attempt(s): ").append(stat.dump()).append("\n"));
+        sb.append("Outstanding: ").append(outstandingOperations.toString());
+        return sb.toString();
     }
 
     private static class StatEntry {
