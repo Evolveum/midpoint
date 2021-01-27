@@ -172,7 +172,8 @@ public class SearchFactory {
                 ItemPath.create(AuditEventRecordType.F_HOST_IDENTIFIER),
                 ItemPath.create(AuditEventRecordType.F_REQUEST_IDENTIFIER),
                 ItemPath.create(AuditEventRecordType.F_REFERENCE),
-                ItemPath.create(AuditEventRecordType.F_RESOURCE_OID)
+                ItemPath.create(AuditEventRecordType.F_RESOURCE_OID),
+                ItemPath.create(AuditEventRecordType.F_TASK_IDENTIFIER)
         ));
     }
 
