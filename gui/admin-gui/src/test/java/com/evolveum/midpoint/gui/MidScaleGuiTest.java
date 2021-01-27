@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui;
 
 import java.io.File;
 
+import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 
@@ -111,7 +113,7 @@ public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest imple
 
     private void runTestFor(Class pageToRender, PageParameters params, String stopwatchName, String stopwatchDescription) {
         Stopwatch stopwatch = stopwatch(stopwatchName, stopwatchDescription);
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 10; i++) {
             try (Split ignored = stopwatch.start()) {
                 queryListener.start();
                 tester.startPage(pageToRender);
@@ -140,6 +142,39 @@ public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest imple
         logger.info(getTestName());
         runTestFor(PageUser.class, "newUser", "New user");
 
+    }
+
+    @Test
+    public void test230editUser() {
+        logger.info(getTestName());
+
+        for (int i = 0; i < 10; i++) {
+            tester.startPage(PageUsers.class);
+
+            String idTable = "mainForm:table";
+            tester.assertComponent(idTable, MainObjectListPanel.class);
+
+            tester.debugComponentTrees(":rows:.*:cells:3:cell:link");
+
+            String id = idTable + ":items:itemsTable:box:tableContainer:table:body:rows:3:cells:3:cell:link";
+
+            Stopwatch stopwatch = stopwatch("editUser", "Edit User");
+            try (Split ignored = stopwatch.start()) {
+                queryListener.start();
+                tester.clickLink(id);
+            }
+        }
+
+        queryListener.dumpAndStop();
+        tester.assertRenderedPage(PageUser.class);
+        OperationsPerformanceInformationType performanceInformation =
+                OperationsPerformanceInformationUtil.toOperationsPerformanceInformationType(
+                        OperationsPerformanceMonitor.INSTANCE.getGlobalPerformanceInformation());
+        displayValue("Operation performance (by name)",
+                OperationsPerformanceInformationUtil.format(performanceInformation));
+        displayValue("Operation performance (by time)",
+                OperationsPerformanceInformationUtil.format(performanceInformation,
+                        new AbstractStatisticsPrinter.Options(AbstractStatisticsPrinter.Format.TEXT, AbstractStatisticsPrinter.SortBy.TIME), null, null));
     }
 
     @Test
