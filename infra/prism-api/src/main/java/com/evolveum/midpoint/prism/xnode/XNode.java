@@ -36,4 +36,8 @@ public interface XNode extends DebugDumpable, Visitable<XNode>, Cloneable, Seria
     default boolean hasMetadata() {
         return this instanceof MetadataAware && !((MetadataAware) this).getMetadataNodes().isEmpty();
     }
+
+    default XNodeNamespaceContext namespaceContext() {
+        return XNodeNamespaceContext.EMPTY;
+    }
 }
