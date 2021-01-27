@@ -44,7 +44,7 @@ public class QNodeMapping
     @Override
     public NodeSqlTransformer createTransformer(
             SqlTransformerContext transformerContext, SqlRepoContext sqlRepoContext) {
-        return new NodeSqlTransformer(transformerContext, this, sqlRepoContext);
+        return new NodeSqlTransformer(transformerContext, this);
     }
 
     @Override

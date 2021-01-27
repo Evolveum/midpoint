@@ -8,18 +8,17 @@ package com.evolveum.midpoint.repo.sqale.qmapping;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqale.qbean.MNode;
 import com.evolveum.midpoint.repo.sqale.qmodel.QNode;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
 public class NodeSqlTransformer
         extends ObjectSqlTransformer<NodeType, QNode, MNode> {
 
     public NodeSqlTransformer(
-            SqlTransformerContext transformerContext, QNodeMapping mapping, SqlRepoContext sqlRepoContext) {
-        super(transformerContext, mapping, sqlRepoContext);
+            SqlTransformerContext transformerContext, QNodeMapping mapping) {
+        super(transformerContext, mapping);
     }
 
     @Override

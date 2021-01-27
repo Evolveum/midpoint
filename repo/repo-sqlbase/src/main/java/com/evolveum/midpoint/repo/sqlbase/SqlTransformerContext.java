@@ -22,9 +22,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public class SqlTransformerContext {
 
     private final SchemaHelper schemaService;
+    private final SqlRepoContext sqlRepoContext;
 
-    public SqlTransformerContext(SchemaHelper schemaService) {
+    public SqlTransformerContext(SchemaHelper schemaService, SqlRepoContext sqlRepoContext) {
         this.schemaService = schemaService;
+        this.sqlRepoContext = sqlRepoContext;
     }
 
     public <T> Class<? extends T> qNameToSchemaClass(QName qName) {
@@ -40,7 +42,7 @@ public class SqlTransformerContext {
     }
 
     @NotNull
-    public PrismSerializer<String> serializer(SqlRepoContext sqlRepoContext) {
+    public PrismSerializer<String> serializer() {
         return schemaService.createStringSerializer(
                 sqlRepoContext.getJdbcRepositoryConfiguration().getFullObjectFormat());
     }

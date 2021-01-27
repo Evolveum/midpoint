@@ -51,4 +51,6 @@ public class ItemSqlMapper {
         //noinspection unchecked
         return (FilterProcessor<T>) filterProcessorFactory.apply(pathContext);
     }
+
+    // TODO createDeltaProcessor?
 }

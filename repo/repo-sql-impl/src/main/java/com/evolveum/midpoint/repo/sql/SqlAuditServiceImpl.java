@@ -114,7 +114,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         this.sqlRepoContext = sqlRepoContext;
         this.schemaService = schemaService;
         this.sqlQueryExecutor = new SqlQueryExecutor(sqlRepoContext);
-        this.sqlTransformerContext = new SqlTransformerContext(schemaService);
+        this.sqlTransformerContext = new SqlTransformerContext(schemaService, sqlRepoContext);
     }
 
     public SqlRepoContext getSqlRepoContext() {

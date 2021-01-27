@@ -14,6 +14,8 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 
 /**
  * Mapping superclass with common functions for {@link QObject} and non-objects (e.g. containers).
+ *
+ * @see QueryModelMapping
  */
 // TODO change the type of QObject to something more abstract later (ScaleObject?)
 public abstract class SqaleModelMapping<S, Q extends QObject<R>, R extends MObject>
