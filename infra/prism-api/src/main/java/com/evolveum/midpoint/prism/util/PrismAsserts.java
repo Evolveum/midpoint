@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.QNameUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.match.MatchingRule;
@@ -45,9 +46,11 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  * DO NOT use this in the main code. Although it is placed in "main" for convenience, is should only be used in tests.
  *
+ * FIXME: Move to test-jar
  * @author Radovan Semancik
  *
  */
+@TestOnly
 public class PrismAsserts {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismAsserts.class);

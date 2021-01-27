@@ -34,7 +34,7 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public class AbstractSchemaPerformanceTest extends AbstractUnitTest implements PerformanceTestClassMixin {
+public  abstract class AbstractSchemaPerformanceTest extends AbstractUnitTest implements PerformanceTestClassMixin {
 
     protected static final String LABEL = "new-mapxnode";
 

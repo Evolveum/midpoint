@@ -17,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -35,13 +34,12 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
 
     protected final SqlTransformerContext transformerContext;
     protected final QueryModelMapping<S, Q, R> mapping;
-    protected final SqlRepoContext sqlRepoContext;
 
-    protected SqaleTransformerBase(SqlTransformerContext transformerContext,
-            QueryModelMapping<S, Q, R> mapping, SqlRepoContext sqlRepoContext) {
+    protected SqaleTransformerBase(
+            SqlTransformerContext transformerContext,
+            QueryModelMapping<S, Q, R> mapping) {
         this.transformerContext = transformerContext;
         this.mapping = mapping;
-        this.sqlRepoContext = sqlRepoContext;
     }
 
     /**

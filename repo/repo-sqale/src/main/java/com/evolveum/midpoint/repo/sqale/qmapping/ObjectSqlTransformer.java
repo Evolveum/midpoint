@@ -19,10 +19,10 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.repo.sqale.MObjectTypeMapping;
 import com.evolveum.midpoint.repo.sqale.SqaleTransformerBase;
-import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.qbean.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.QObject;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -36,9 +36,10 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R extends MObject>
         extends SqaleTransformerBase<S, Q, R> {
 
-    public ObjectSqlTransformer(SqlTransformerContext transformerContext,
-            QObjectMapping<S, Q, R> mapping, SqlRepoContext sqlRepoContext) {
-        super(transformerContext, mapping, sqlRepoContext);
+    public ObjectSqlTransformer(
+            SqlTransformerContext transformerContext,
+            QObjectMapping<S, Q, R> mapping) {
+        super(transformerContext, mapping);
     }
 
     @Override
@@ -116,15 +117,7 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         }
 
         row.lifecycleState = schemaObject.getLifecycleState();
-        row.version = 0;
-        try {
-            String version = schemaObject.getVersion();
-            if (version != null) {
-                row.version = Integer.parseInt(version);
-            }
-        } catch (NumberFormatException e) {
-            // ignorable, version will be 0
-        }
+        row.version = SqaleUtils.objectVersionAsInt(schemaObject);
 
         // TODO extensions
 
@@ -135,21 +128,26 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
      * Serializes schema object and sets {@link R#fullObject}.
      */
     public void setFullObject(R row, S schemaObject) throws SchemaException {
+        row.fullObject = createFullObject(schemaObject);
+    }
+
+    public byte[] createFullObject(S schemaObject) throws SchemaException {
         if (schemaObject.getOid() == null) {
             logger.warn("Object {} going to be serialized has no assigned OID.", schemaObject);
         }
 
-        String serializedForm = transformerContext.serializer(sqlRepoContext)
+        return transformerContext.serializer()
                 .itemsToSkip(fullObjectItemsToSkip())
                 .options(SerializationOptions
                         .createSerializeReferenceNamesForNullOids()
                         .skipIndexOnly(true)
                         .skipTransient(true))
-                .serialize(schemaObject.asPrismObject());
-        row.fullObject = serializedForm.getBytes(StandardCharsets.UTF_8);
+                .serialize(schemaObject.asPrismObject())
+                .getBytes(StandardCharsets.UTF_8);
     }
 
     protected Collection<? extends QName> fullObjectItemsToSkip() {
+        // TODO extend later, things like FocusType.F_JPEG_PHOTO, see ObjectUpdater#updateFullObject
         return Collections.emptyList();
     }
 }
