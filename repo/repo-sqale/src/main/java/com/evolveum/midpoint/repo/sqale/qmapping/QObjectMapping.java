@@ -37,6 +37,11 @@ public abstract class QObjectMapping<S extends ObjectType, Q extends QObject<R>,
         addItemMapping(ObjectType.F_NAME,
                 PolyStringItemFilterProcessor.mapper(
                         path(q -> q.nameOrig), path(q -> q.nameNorm)));
+
+        addItemMapping(ObjectType.F_METADATA,
+                // TODO nested-mapping
+                PolyStringItemFilterProcessor.mapper(
+                        path(q -> q.nameOrig), path(q -> q.nameNorm)));
         // TODO mappings
     }
 

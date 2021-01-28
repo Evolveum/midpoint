@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Experimental
 @ThreadSafe
-public class TransientCache<K, V> implements Serializable {
+public final class TransientCache<K, V> implements Serializable {
 
     private transient final Map<K, V> cache = new ConcurrentHashMap<>();
 

@@ -16,7 +16,10 @@ import java.io.File;
 import java.util.Locale;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
+
 import org.apache.wicket.Component;
+import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.behavior.AbstractAjaxBehavior;
 import org.apache.wicket.behavior.Behavior;
@@ -289,5 +292,11 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
                 }
             }
         }
+    }
+
+    protected void clickOnTab(int order, Class<? extends Page> expectedPage) {
+        tester.assertRenderedPage(expectedPage);
+        String tabPath = "mainPanel:mainForm:tabPanel:tabs-container:tabs:" + order + ":link";
+        tester.clickLink(tabPath);
     }
 }

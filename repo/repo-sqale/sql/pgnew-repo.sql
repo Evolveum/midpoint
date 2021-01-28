@@ -62,13 +62,14 @@ END
 $$;
 
 -- BEFORE UPDATE trigger - must be declared on all concrete m_object sub-tables.
--- Checks that OID is not changed.
-CREATE OR REPLACE FUNCTION update_object_oid()
+-- Checks that OID is not changed and updates db_modified column.
+CREATE OR REPLACE FUNCTION before_update_object()
     RETURNS trigger
     LANGUAGE plpgsql
 AS $$
 BEGIN
     IF NEW.oid = OLD.oid THEN
+        NEW.db_modified = current_timestamp;
         -- must return NEW, NULL would skip the update
         RETURN NEW;
     END IF;
@@ -126,6 +127,10 @@ CREATE TABLE m_object (
     -- add GIN index for concrete tables where more than hundreds of entries are expected (see m_user)
     ext JSONB,
 
+    -- these are purely DB-managed metadata, not mapped to in midPoint
+    db_created TIMESTAMPTZ NOT NULL DEFAULT current_timestamp,
+    db_modified TIMESTAMPTZ NOT NULL DEFAULT current_timestamp, -- updated in update trigger
+
     -- prevents inserts to this table, but not to inherited ones; this makes it "abstract" table
     CHECK (FALSE) NO INHERIT
 );
@@ -147,8 +152,8 @@ CREATE TABLE m_resource (
 
 CREATE TRIGGER m_resource_oid_insert_tr BEFORE INSERT ON m_resource
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
-CREATE TRIGGER m_resource_oid_update_tr BEFORE UPDATE ON m_resource
-    FOR EACH ROW EXECUTE PROCEDURE update_object_oid();
+CREATE TRIGGER m_resource_update_tr BEFORE UPDATE ON m_resource
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
 CREATE TRIGGER m_resource_oid_delete_tr AFTER DELETE ON m_resource
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
@@ -210,8 +215,8 @@ CREATE TABLE m_user (
 
 CREATE TRIGGER m_user_oid_insert_tr BEFORE INSERT ON m_user
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
-CREATE TRIGGER m_user_oid_update_tr BEFORE UPDATE ON m_user
-    FOR EACH ROW EXECUTE PROCEDURE update_object_oid();
+CREATE TRIGGER m_user_update_tr BEFORE UPDATE ON m_user
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
 CREATE TRIGGER m_user_oid_delete_tr AFTER DELETE ON m_user
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
@@ -243,8 +248,8 @@ CREATE TABLE m_shadow (
 
 CREATE TRIGGER m_shadow_oid_insert_tr BEFORE INSERT ON m_shadow
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
-CREATE TRIGGER m_shadow_oid_update_tr BEFORE UPDATE ON m_shadow
-    FOR EACH ROW EXECUTE PROCEDURE update_object_oid();
+CREATE TRIGGER m_shadow_update_tr BEFORE UPDATE ON m_shadow
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
 CREATE TRIGGER m_shadow_oid_delete_tr AFTER DELETE ON m_shadow
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
@@ -330,8 +335,8 @@ CREATE TABLE m_acc_cert_campaign (
 
 CREATE TRIGGER m_acc_cert_campaign_oid_insert_tr BEFORE INSERT ON m_acc_cert_campaign
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
-CREATE TRIGGER m_acc_cert_campaign_oid_update_tr BEFORE UPDATE ON m_acc_cert_campaign
-    FOR EACH ROW EXECUTE PROCEDURE update_object_oid();
+CREATE TRIGGER m_acc_cert_campaign_update_tr BEFORE UPDATE ON m_acc_cert_campaign
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
 CREATE TRIGGER m_acc_cert_campaign_oid_delete_tr AFTER DELETE ON m_acc_cert_campaign
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
@@ -392,8 +397,8 @@ CREATE TABLE m_acc_cert_definition (
 
 CREATE TRIGGER m_acc_cert_definition_oid_insert_tr BEFORE INSERT ON m_acc_cert_definition
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
-CREATE TRIGGER m_acc_cert_definition_oid_update_tr BEFORE UPDATE ON m_acc_cert_definition
-    FOR EACH ROW EXECUTE PROCEDURE update_object_oid();
+CREATE TRIGGER m_acc_cert_definition_update_tr BEFORE UPDATE ON m_acc_cert_definition
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
 CREATE TRIGGER m_acc_cert_definition_oid_delete_tr AFTER DELETE ON m_acc_cert_definition
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 
@@ -437,8 +442,8 @@ CREATE TABLE m_node (
 
 CREATE TRIGGER m_node_oid_insert_tr BEFORE INSERT ON m_node
     FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
-CREATE TRIGGER m_node_oid_update_tr BEFORE UPDATE ON m_node
-    FOR EACH ROW EXECUTE PROCEDURE update_object_oid();
+CREATE TRIGGER m_node_update_tr BEFORE UPDATE ON m_node
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
 CREATE TRIGGER m_node_oid_delete_tr AFTER DELETE ON m_node
     FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
 

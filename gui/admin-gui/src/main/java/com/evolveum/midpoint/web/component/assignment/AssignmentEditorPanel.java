@@ -762,8 +762,6 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 LOGGER.trace("Refined definition for {}\n{}", construction, definition.debugDump());
             }
 
-            List<ResourceAttributeDefinitionType> attrConstructions = construction.getAttribute();
-
             Collection<ItemDefinition<?>> definitions = definition.getDefinitions();
             for (ItemDefinition<?> attrDef : definitions) {
                 if (!(attrDef instanceof PrismPropertyDefinition)) {
@@ -776,7 +774,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                     continue;
                 }
                 attributes.add(ACAttributeDto.createACAttributeDto(propertyDef,
-                        findOrCreateValueConstruction(propertyDef, attrConstructions), prismContext));
+                        findOrCreateValueConstruction(propertyDef), prismContext));
             }
             result.recordSuccess();
         } catch (Exception ex) {
@@ -832,14 +830,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     }
 
     private ResourceAttributeDefinitionType findOrCreateValueConstruction(
-            PrismPropertyDefinition<?> attrDef, List<ResourceAttributeDefinitionType> attrConstructions) {
-        for (ResourceAttributeDefinitionType construction : attrConstructions) {
-            // TODO: 'equals' between objects of inconvertible types 'ItemName' and 'ItemPathType'
-            if (attrDef.getItemName().equals(construction.getRef())) {
-                return construction;
-            }
-        }
-
+            PrismPropertyDefinition<?> attrDef) {
         ResourceAttributeDefinitionType construction = new ResourceAttributeDefinitionType();
         construction.setRef(new ItemPathType(ItemPath.create(attrDef.getItemName())));
 
