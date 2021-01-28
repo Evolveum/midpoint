@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.prism.impl.lex.json.writer;
 
 import com.evolveum.midpoint.prism.SerializationOptions;
-import com.evolveum.midpoint.prism.impl.lex.json.Constants;
+import com.evolveum.midpoint.prism.impl.lex.json.JsonInfraItems;
 import com.evolveum.midpoint.prism.impl.xnode.*;
 
 import com.evolveum.midpoint.prism.xnode.MapXNode;
@@ -98,7 +98,7 @@ class DocumentWriter {
         generator.writeStartObject();
         ctx.resetInlineTypeIfPossible();
         writeElementAndTypeIfNeeded(xnode);
-        generator.writeFieldName(Constants.PROP_VALUE);
+        generator.writeFieldName(JsonInfraItems.PROP_VALUE);
         write(xnode, true);
         writeMetadataIfNeeded(xnode);
         generator.writeEndObject();
@@ -150,7 +150,7 @@ class DocumentWriter {
 
     private void writeIncomplete() throws IOException {
         generator.writeStartObject();
-        generator.writeFieldName(Constants.PROP_INCOMPLETE);
+        generator.writeFieldName(JsonInfraItems.PROP_INCOMPLETE);
         generator.writeBoolean(true);
         generator.writeEndObject();
     }
@@ -158,12 +158,12 @@ class DocumentWriter {
     private void writeElementAndTypeIfNeeded(XNodeImpl xnode) throws IOException {
         QName elementName = xnode.getElementName();
         if (elementName != null) {
-            generator.writeObjectField(Constants.PROP_ELEMENT, createElementNameUri(elementName));
+            generator.writeObjectField(JsonInfraItems.PROP_ELEMENT, createElementNameUri(elementName));
         }
         QName typeName = getExplicitType(xnode);
         if (typeName != null) {
             if (!ctx.supportsInlineTypes()) {
-                generator.writeObjectField(Constants.PROP_TYPE, typeName);
+                generator.writeObjectField(JsonInfraItems.PROP_TYPE, typeName);
             }
         }
     }
@@ -172,7 +172,7 @@ class DocumentWriter {
         if (xnode instanceof MetadataAware) {
             List<MapXNode> metadataNodes = ((MetadataAware) xnode).getMetadataNodes();
             if (!metadataNodes.isEmpty()) {
-                generator.writeFieldName(Constants.PROP_METADATA);
+                generator.writeFieldName(JsonInfraItems.PROP_METADATA);
                 if (metadataNodes.size() == 1) {
                     writeMap((MapXNodeImpl) metadataNodes.get(0));
                 } else {
@@ -194,7 +194,7 @@ class DocumentWriter {
         String namespace = determineNewCurrentNamespace(map);
         if (namespace != null && !StringUtils.equals(namespace, currentNamespace)) {
             currentNamespace = namespace;
-            generator.writeFieldName(Constants.PROP_NAMESPACE);
+            generator.writeFieldName(JsonInfraItems.PROP_NAMESPACE);
             generator.writeString(namespace);
         }
     }

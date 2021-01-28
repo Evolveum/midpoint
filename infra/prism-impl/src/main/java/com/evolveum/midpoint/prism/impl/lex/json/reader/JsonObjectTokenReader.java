@@ -25,7 +25,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.impl.lex.json.Constants;
+import com.evolveum.midpoint.prism.impl.lex.json.JsonInfraItems;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -150,6 +150,8 @@ class JsonObjectTokenReader {
         currentFieldValue = readValue();
         if (isNamespaceDeclaration()) {
             processNamespaceDeclaration();
+        } else if (isContextDeclaration()) {
+            processContextDeclaration();
         } else if (isTypeDeclaration()) {
             processTypeDeclaration();
         } else if (isElementDeclaration()) {
@@ -167,8 +169,14 @@ class JsonObjectTokenReader {
         currentFieldValue = null;
     }
 
+
+
     private XNodeImpl readValue() throws IOException, SchemaException {
         return new JsonOtherTokenReader(ctx).readValue();
+    }
+
+    private void processContextDeclaration() {
+        throw new UnsupportedOperationException("Not implemented");
     }
 
     private void processStandardFieldValue() {
@@ -199,7 +207,7 @@ class JsonObjectTokenReader {
 
     private void processWrappedValue() throws SchemaException {
         if (wrappedValue != null) {
-            warnOrThrow("Value ('" + Constants.PROP_VALUE + "') defined more than once");
+            warnOrThrow("Value ('" + JsonInfraItems.PROP_VALUE + "') defined more than once");
         }
         wrappedValue = currentFieldValue;
     }
@@ -249,7 +257,7 @@ class JsonObjectTokenReader {
         int haveIncomplete = Boolean.TRUE.equals(incomplete) ? 1 : 0;
         XNodeImpl rv;
         if (haveRegular + haveWrapped + haveIncomplete > 1) {
-            warnOrThrow("More than one of '" + Constants.PROP_VALUE + "', '" + Constants.PROP_INCOMPLETE
+            warnOrThrow("More than one of '" + JsonInfraItems.PROP_VALUE + "', '" + JsonInfraItems.PROP_INCOMPLETE
                 + "' and regular content present");
             rv = map;
         } else {
@@ -263,7 +271,7 @@ class JsonObjectTokenReader {
         }
         if (typeName != null) {
             if (wrappedValue != null && wrappedValue.getTypeQName() != null && !wrappedValue.getTypeQName().equals(typeName)) {
-                warnOrThrow("Conflicting type names for '" + Constants.PROP_VALUE
+                warnOrThrow("Conflicting type names for '" + JsonInfraItems.PROP_VALUE
                     + "' (" + wrappedValue.getTypeQName() + ") and regular content (" + typeName + ") present");
             }
             rv.setTypeQName(typeName);
@@ -274,7 +282,7 @@ class JsonObjectTokenReader {
                 boolean wrappedValueElementNoNamespace = ctx.noNamespaceElementNames.containsKey(wrappedValue);
                 if (!wrappedValue.getElementName().equals(elementName.name)
                     || wrappedValueElementNoNamespace != elementName.explicitEmptyNamespace) {
-                    warnOrThrow("Conflicting element names for '" + Constants.PROP_VALUE
+                    warnOrThrow("Conflicting element names for '" + JsonInfraItems.PROP_VALUE
                         + "' (" + wrappedValue.getElementName() + "; no NS=" + wrappedValueElementNoNamespace
                         + ") and regular content (" + elementName.name + "; no NS="
                         + elementName.explicitEmptyNamespace + ") present");
@@ -319,28 +327,33 @@ class JsonObjectTokenReader {
         return ctx.prismParsingContext.getEvaluationMode();
     }
 
+    // FIXME: Refactor this to dispatch map for infra values
     private boolean isTypeDeclaration() {
-        return Constants.PROP_TYPE_QNAME.equals(currentFieldName.name);
+        return JsonInfraItems.PROP_TYPE_QNAME.equals(currentFieldName.name);
     }
 
     private boolean isIncompleteDeclaration() {
-        return Constants.PROP_INCOMPLETE_QNAME.equals(currentFieldName.name);
+        return JsonInfraItems.PROP_INCOMPLETE_QNAME.equals(currentFieldName.name);
     }
 
     private boolean isElementDeclaration() {
-        return Constants.PROP_ELEMENT_QNAME.equals(currentFieldName.name);
+        return JsonInfraItems.PROP_ELEMENT_QNAME.equals(currentFieldName.name);
     }
 
     private boolean isNamespaceDeclaration() {
-        return Constants.PROP_NAMESPACE_QNAME.equals(currentFieldName.name);
+        return JsonInfraItems.PROP_NAMESPACE_QNAME.equals(currentFieldName.name);
     }
 
     private boolean isWrappedValue() {
-        return Constants.PROP_VALUE_QNAME.equals(currentFieldName.name);
+        return JsonInfraItems.PROP_VALUE_QNAME.equals(currentFieldName.name);
     }
 
     private boolean isMetadataValue() {
-        return Constants.PROP_METADATA_QNAME.equals(currentFieldName.name);
+        return JsonInfraItems.PROP_METADATA_QNAME.equals(currentFieldName.name);
+    }
+
+    private boolean isContextDeclaration() {
+        return JsonInfraItems.PROP_CONTEXT.equals(currentFieldName.name);
     }
 
     private void warnOrThrow(String message) throws SchemaException {
