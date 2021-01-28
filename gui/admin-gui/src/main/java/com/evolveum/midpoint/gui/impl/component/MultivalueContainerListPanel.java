@@ -87,6 +87,11 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
             private static final long serialVersionUID = 1L;
 
             @Override
+            protected ObjectQuery getCustomizeContentQuery() {
+                return MultivalueContainerListPanel.this.getCustomizeContentQuery();
+            }
+
+            @Override
             protected List<PrismContainerValueWrapper<C>> searchThroughList() {
                 List<PrismContainerValueWrapper<C>> resultList = super.searchThroughList();
                 return postSearch(resultList);
