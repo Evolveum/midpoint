@@ -34,6 +34,10 @@ public class SchemaHelper {
         return prismContext;
     }
 
+    public RelationRegistry relationRegistry() {
+        return relationRegistry;
+    }
+
     public GetOperationOptionsBuilder getOperationOptionsBuilder() {
         return new GetOperationOptionsBuilderImpl(prismContext);
     }
