@@ -1,0 +1,540 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<objectTemplate oid="10000000-0000-0000-0000-000000000222"
+   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+   xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+   xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+    <name>Complex User Template</name>
+
+    <includeRef oid="10000000-0000-0000-0000-000000000223"/>
+
+    <item>
+        <ref>givenName</ref>
+        <emphasized>false</emphasized>
+    </item>
+
+    <item>
+        <ref>additionalName</ref>
+        <displayName>Middle Name</displayName>
+        <help>Just a plain old middle name</help> <!--MID-5736-->
+    </item>
+
+    <item>
+        <ref>description</ref>
+        <displayName>Comment</displayName>
+    </item>
+
+    <item>
+        <ref>costCenter</ref>
+        <displayOrder>123</displayOrder>
+        <emphasized>true</emphasized>
+        <mapping>
+            <name>usertemplate-costcenter-g001-weak-afterAssignemnts</name>
+            <strength>weak</strength>
+            <expression>
+                <value>G001</value>
+            </expression>
+            <evaluationPhase>afterAssignments</evaluationPhase>
+        </mapping>
+        <mapping>
+            <name>usertemplate-costcenter-b666-strong-conditional</name>
+            <authoritative>true</authoritative>
+            <strength>strong</strength>
+            <source>
+                <path>subtype</path>
+            </source>
+            <expression>
+                <value>B666</value>
+            </expression>
+            <condition>
+                <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                    <code>subtype == 'BUCCANEER'</code>
+                </script>
+            </condition>
+        </mapping>
+        <validation>
+            <server>
+                <expression>
+                    <script>
+                        <code>
+                            if (input.size() == 4) {
+                                return null
+                            } else {
+                                result = new com.evolveum.midpoint.schema.result.OperationResult("cost center validation")
+                                result.setStatus(com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR)
+                                result.setMessage("Must be 4 characters");
+                                return result
+                            }
+                        </code>
+                    </script>
+                </expression>
+            </server>
+        </validation>
+    </item>
+
+    <item>
+        <ref>preferredLanguage</ref>
+        <displayName>Language</displayName>
+        <valueEnumerationRef oid="70000000-0000-0000-1111-000000000001" type="LookupTableType"/>
+    </item>
+
+    <!-- Normal-strength mapping with property source and target -->
+    <item>
+        <ref>timezone</ref>
+        <mapping>
+            <name>usertemplate-timezone</name>
+            <authoritative>true</authoritative>
+            <source>
+                <path>locality</path>
+            </source>
+            <expression>
+                <script>
+                    <code>
+                        assert operation != null // MID-3992
+                        'High Seas/' + locality
+                    </code>
+                </script>
+            </expression>
+        </mapping>
+    </item>
+
+    <!-- Weak mapping with property source and target -->
+    <item>
+        <ref>locale</ref>
+        <mapping>
+            <name>usertemplate-locale</name>
+            <strength>weak</strength>
+            <authoritative>true</authoritative>
+            <source>
+                <path>locality</path>
+            </source>
+            <expression>
+                <script>
+                    <code>
+                        if (locality == null) {
+                            return null
+                        } else {
+                            locality.substring(0,2).toUpperCase()
+                        }
+                    </code>
+                </script>
+            </expression>
+        </mapping>
+    </item>
+
+    <item>
+        <ref>employeeType</ref>
+        <deprecated>false</deprecated>
+    </item>
+
+    <item>
+        <ref>extension/badLuck</ref>
+        <tolerant>false</tolerant>
+        <mapping>
+            <strength>strong</strength>
+            <source>
+                <path>givenName</path>
+            </source>
+            <expression>
+                <allowEmptyValues>true</allowEmptyValues>
+                <script>
+                    <relativityMode>absolute</relativityMode>
+                    <code>
+                        if (basic.stringify(givenName) == 'JACKIE') {
+                            [ 123L ]
+                        } else if (basic.stringify(givenName) == 'jackie') {
+                            null
+                        } else {
+                            [ 123L, 456L ]
+                        }
+                    </code>
+                </script>
+            </expression>
+        </mapping>
+    </item>
+
+    <!-- RB-RBAC functionality. The Pirate role is automatically assigned based on the value of subtype property -->
+    <mapping>
+        <name>assignment-from-subtype</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>subtype</path>
+        </source>
+        <expression>
+            <value>
+                <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/>
+            </value>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+        <condition>
+            <script>
+                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                <code>subtype == 'PIRATE'</code>
+            </script>
+        </condition>
+    </mapping>
+
+    <!-- copied the same mapping twice to check that it won't cause problems -->
+    <mapping>
+        <name>assignment-from-subtype-2</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>subtype</path>
+        </source>
+        <expression>
+            <value>
+                <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="c:RoleType"/>
+            </value>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+        <condition>
+            <script>
+                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                <code>subtype == 'PIRATE'</code>
+            </script>
+        </condition>
+    </mapping>
+
+    <!-- similar mapping with assignmentTargetSearch and more sources -->
+    <mapping>
+        <name>assignment-from-subtype-thief</name>
+        <trace>false</trace>
+        <authoritative>true</authoritative>
+        <source>
+            <path>subtype</path>
+        </source>
+        <source>
+            <path>honorificPrefix</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>RoleType</targetType>
+                <filter>
+                    <q:equal>
+                        <q:path>name</q:path>
+                        <q:value>Thief</q:value>
+                    </q:equal>
+                </filter>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+        <condition>
+            <trace>false</trace>
+            <script>
+                <trace>false</trace>
+                <code>subtype == 'THIEF' &amp;&amp; basic.stringify(honorificPrefix) == 'Thf.'</code>
+            </script>
+        </condition>
+    </mapping>
+
+    <!-- This is quite a stupid way how to add the same role for many values of user property.
+         A single mapping with a condition that has an '||' operator internally will be more efficient.
+         But this is using this way to check for situation in which the same value is added and removed at the same time. -->
+    <mapping>
+        <name>assignment-from-subtype-buccaneer</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>subtype</path>
+        </source>
+        <expression>
+            <value>
+                <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/> <!-- pirate -->
+            </value>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+        <condition>
+            <script>
+                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                <code>subtype == 'BUCCANEER'</code>
+            </script>
+        </condition>
+    </mapping>
+
+    <!-- mapping with domain specification -->
+    <mapping>
+        <name>automappic</name>
+        <trace>true</trace>
+        <authoritative>true</authoritative>
+        <source>
+            <path>organization</path>
+            <set>
+                <condition>
+                    <trace>true</trace>
+                    <script>
+                        <code>basic.stringify(organization)?.startsWith("AUTO-")</code>
+                    </script>
+                </condition>
+            </set>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>RoleType</targetType>
+                <filter>
+                    <q:equal>
+                        <q:path>name</q:path>
+                        <expression>
+                            <trace>true</trace>
+                            <script>
+                                <code>'Auto' + organization.substring(5,organization.length())</code>
+                            </script>
+                        </expression>
+                    </q:equal>
+                </filter>
+                <createOnDemand>true</createOnDemand>
+                <populateObject>
+                    <populateItem>
+                        <expression>
+                            <script>
+                                <code>
+                                    'AUTO'+organization
+                                </code>
+                            </script>
+                        </expression>
+                        <target>
+                            <path>name</path>
+                        </target>
+                    </populateItem>
+                </populateObject>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+    </mapping>
+
+    <mapping>
+        <name>Org mapping</name>
+        <description>
+            Look for appropriate Org objects by using the user's organizationalUnit property
+            as the name of the org object. When no such object is found we want to create it on
+            demand. We want to populate new Org object with a name and description derived from
+            the user.
+        </description>
+        <strength>strong</strength>
+        <authoritative>true</authoritative>
+        <source>
+            <path>organizationalUnit</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>OrgType</targetType>
+                <filter>
+                    <q:equal>
+                        <q:path>name</q:path>
+                        <expression>
+                            <path>$organizationalUnit</path>
+                        </expression>
+                    </q:equal>
+                </filter>
+                <createOnDemand>true</createOnDemand>
+                <populateObject>
+                    <populateItem>
+                        <expression>
+                            <path>$organizationalUnit</path>
+                        </expression>
+                        <target>
+                            <path>$focus/name</path>
+                        </target>
+                    </populateItem>
+                    <populateItem>
+                        <expression>
+                            <script>
+                                <code>'Created on demand from user '+user.getName()</code>
+                            </script>
+                        </expression>
+                        <target>
+                            <path>$focus/description</path>
+                        </target>
+                    </populateItem>
+                </populateObject>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+    </mapping>
+
+
+
+    <!-- Negative condition. This is tricky to evaluate. -->
+    <mapping>
+        <name>telephone number negative</name>
+        <authoritative>true</authoritative>
+        <strength>strong</strength>
+        <source>
+            <path>telephoneNumber</path>
+        </source>
+        <expression>
+            <value>Happy Pirate</value>
+        </expression>
+        <target>
+            <path>title</path>
+        </target>
+        <condition>
+            <script>
+                <code>telephoneNumber == null || telephoneNumber.isEmpty()</code>
+            </script>
+        </condition>
+    </mapping>
+
+    <!-- Automatically generate employee number if there is none (note the "weak" strength) -->
+    <mapping>
+        <strength>weak</strength>
+        <expression>
+            <generate>
+
+            </generate>
+        </expression>
+        <target>
+            <path>employeeNumber</path>
+        </target>
+    </mapping>
+
+    <mapping>
+        <strength>weak</strength>
+        <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel>
+        <expression>
+            <value>Imported user</value>
+        </expression>
+        <target>
+            <path>description</path>
+        </target>
+    </mapping>
+
+    <mapping>
+        <name>colors:none</name>
+        <authoritative>true</authoritative>
+        <strength>strong</strength>
+        <expression>
+            <value>none</value>
+        </expression>
+        <target>
+            <path>extension/piracy:colors</path>
+        </target>
+        <condition>
+            <script>
+                <code>midpoint.hasLinkedAccount('10000000-0000-0000-0000-000000000004')</code>
+            </script>
+        </condition>
+        <evaluationPhase>afterAssignments</evaluationPhase>
+    </mapping>
+
+    <mapping>
+        <name>time bomb</name>
+        <timeFrom>
+            <referenceTime>
+                <path>$focus/extension/funeralTimestamp</path>
+            </referenceTime>
+            <offset>P1M</offset>
+        </timeFrom>
+        <expression>
+            <value>Kaboom!</value>
+        </expression>
+        <target>
+            <path>additionalName</path>
+        </target>
+    </mapping>
+
+    <!-- MID-5603, MID-4630 -->
+    <mapping>
+        <name>tales bomb</name>
+        <timeFrom>
+            <expression>
+                <script>
+                    <code>
+                        if (focus?.additionalName?.orig != 'Kaboom!') {
+                            // null means that this mapping is not active. It has no date.
+                            // it will not be processed.
+                            return null
+                        }
+                        javax.xml.datatype.XMLGregorianCalendar funeralTimestamp = basic.getExtensionPropertyValue(focus, 'funeralTimestamp')
+                        if (funeralTimestamp == null) {
+                            // Always process this mapping immediately
+                            return basic.longAgo()
+                        }
+                        def timestamp = basic.addDuration(funeralTimestamp, "P3M")
+                        timestamp = basic.roundDownToMidnight(timestamp)
+                        return timestamp
+                    </code>
+                </script>
+            </expression>
+        </timeFrom>
+        <expression>
+            <value>Once upon a time</value>
+        </expression>
+        <target>
+            <path>extension/tales</path>
+        </target>
+    </mapping>
+
+    <!-- MID-4630, this one is strong and has a condition -->
+    <mapping>
+        <name>loot bomb</name>
+        <strength>strong</strength>
+        <source>
+            <path>givenName</path>
+        </source>
+        <timeFrom>
+            <expression>
+                <script>
+                    <code>
+                        if (!focus?.description?.contains('gone')) {
+                            // Time-constraint is inactive
+                            // We do not want this constraint to be active too soon.
+                            // Otherwise it will set the trigger and that would complicate other tests.
+                            return null
+                        }
+                        javax.xml.datatype.XMLGregorianCalendar funeralTimestamp = basic.getExtensionPropertyValue(focus,'funeralTimestamp')
+                        if (funeralTimestamp == null) {
+                            // Always process this mapping immediately
+                            return basic.longAgo()
+                        }
+                        def timestamp = basic.addDuration(funeralTimestamp, "P1Y")
+                        timestamp = basic.roundDownToMidnight(timestamp)
+                        return timestamp
+                    </code>
+                </script>
+            </expression>
+        </timeFrom>
+        <expression>
+            <value>1000000</value>
+        </expression>
+        <condition>
+            <script>
+                <code>givenName?.norm == 'lootjack'</code>
+            </script>
+        </condition>
+        <target>
+            <path>extension/loot</path>
+        </target>
+    </mapping>
+
+    <!-- MID-3695 -->
+    <mapping>
+      <strength>strong</strength>
+      <source>
+         <c:path>$user/extension/funeralTimestamp</c:path>
+      </source>
+      <target>
+         <c:path>$user/activation/validTo</c:path>
+      </target>
+   </mapping>
+
+</objectTemplate>
