@@ -20,7 +20,7 @@ import java.io.Serializable;
 /**
  * Describes a change of a specific resource object together with definitions of the source and possibly
  * also other information. This is useful to completely describe a change that was detected on the resource.
- * <p/>
+ *
  * This object can describe either relative change or new absolute state. In case of relative change the "objectDelta"
  * property will be provided. In case of description of new absolute state the "currentShadow" value will be provided.
  * It may happen that both of them will be provided if both are known (and efficiently detected). In such a case the
@@ -32,8 +32,18 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
     private static final long serialVersionUID = 1L;
 
     private ObjectDelta<ShadowType> objectDelta;
+
+    /**
+     * Current "shadowized" resource object.
+     */
     private PrismObject<ShadowType> currentShadow;
+
+    /**
+     * Repository shadow as it existed before it was updated (as a result of the detected change).
+     * In general it is useful only when {@link #currentShadow} is null or it has null OID. TODO!!!
+     */
     private PrismObject<ShadowType> oldShadow;
+
     private String sourceChannel;
     private PrismObject<ResourceType> resource;
 
@@ -148,8 +158,8 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
     }
 
     public boolean isProtected() {
-        if ((currentShadow != null && ShadowUtil.isProtected(currentShadow))
-                || (oldShadow != null && ShadowUtil.isProtected(oldShadow))) {
+        if ((ShadowUtil.isProtected(currentShadow))
+                || (ShadowUtil.isProtected(oldShadow))) {
             return true;
         }
         if (objectDelta != null && objectDelta.isAdd() && ShadowUtil.isProtected(objectDelta.getObjectToAdd())) {

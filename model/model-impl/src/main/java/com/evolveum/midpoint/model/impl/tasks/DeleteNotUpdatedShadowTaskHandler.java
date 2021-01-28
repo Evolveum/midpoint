@@ -61,7 +61,7 @@ public class DeleteNotUpdatedShadowTaskHandler
     private static final Trace LOGGER = TraceManager.getTrace(DeleteNotUpdatedShadowTaskHandler.class);
 
     public DeleteNotUpdatedShadowTaskHandler() {
-        super("DeleteNotUpdatedShadow", OperationConstants.DELETE_NOT_UPDATED_SHADOWS);
+        super(LOGGER, "DeleteNotUpdatedShadow", OperationConstants.DELETE_NOT_UPDATED_SHADOWS);
         reportingOptions.setPreserveStatistics(false);
         reportingOptions.setSkipWritingOperationExecutionRecords(true); // because the shadows are deleted anyway
     }
@@ -177,7 +177,7 @@ public class DeleteNotUpdatedShadowTaskHandler
             change.setObjectDelta(shadow.createDeleteDelta());
             change.setResource(ctx.resource);
             change.setOldShadow(shadow);
-            change.setCurrentShadow(shadow);
+            change.setCurrentShadow(shadow); // TODO why?!
             synchronizationService.notifyChange(change, workerTask, result);
         }
     }

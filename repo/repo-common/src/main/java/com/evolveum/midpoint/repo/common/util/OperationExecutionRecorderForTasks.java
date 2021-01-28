@@ -55,6 +55,7 @@ public class OperationExecutionRecorderForTasks {
         }
     }
 
+    // TODO ignoring e?
     private <O extends ObjectType> OperationExecutionType createExecutionRecord(Throwable e, RunningTask task,
             OperationResult result) {
         OperationExecutionType operation = new OperationExecutionType(prismContext);

@@ -23,6 +23,6 @@ import java.lang.annotation.Target;
 @Experimental
 public @interface PartExecutionClass {
 
-    Class<? extends AbstractSearchIterativeTaskPartExecution<?, ?, ?, ?, ?>> value();
+    Class<? extends AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?>> value();
 
 }

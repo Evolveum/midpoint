@@ -8,9 +8,6 @@ package com.evolveum.midpoint.model.impl.sync.tasks;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.sync.tasks.imp.ImportFromResourceTaskHandler;
-import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationTaskHandler;
-
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 
 import org.jetbrains.annotations.NotNull;
@@ -97,7 +94,8 @@ public class Synchronizer {
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it is protected");
             return;
         }
-        if (!isShadowUnknown(shadow) && !objectsFilter.matches(shadow)) {
+        if (!isShadowUnknown(shadow) && !objectsFilter.matches(shadowObject)) {
+            // TODO mark as skipped
             LOGGER.trace("Skipping {} because it does not match objectClass/kind/intent", shadowObject);
             SynchronizationInformation.Record record = SynchronizationInformation.Record.createNotApplicable(); // TODO temporary
             workerTask.recordSynchronizationOperationEnd(shadow, started, null, record, record); // TODO temporary

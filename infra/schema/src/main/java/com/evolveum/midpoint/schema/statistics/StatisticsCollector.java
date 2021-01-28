@@ -52,9 +52,17 @@ public interface StatisticsCollector {
 
     void recordIterativeOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid);
 
+    default void recordIterativeOperationStart(IterationItemInformation info) {
+        recordIterativeOperationStart(info.getObjectName(), info.getObjectDisplayName(), info.getObjectType(), info.getObjectOid());
+    }
+
     void recordIterativeOperationStart(ShadowType shadow);
 
     void recordIterativeOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception);
+
+    default void recordIterativeOperationEnd(IterationItemInformation info, long started, Throwable exception) {
+        recordIterativeOperationEnd(info.getObjectName(), info.getObjectDisplayName(), info.getObjectType(), info.getObjectOid(), started, exception);
+    }
 
     void recordIterativeOperationEnd(ShadowType shadow, long started, Throwable exception);
 
@@ -92,4 +100,5 @@ public interface StatisticsCollector {
     @NotNull
     @Experimental
     List<String> getLastFailures();
+
 }

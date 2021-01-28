@@ -21,7 +21,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * @author mederly
+ * TODO
  */
 public interface SynchronizationService extends ResourceObjectChangeListener {
 

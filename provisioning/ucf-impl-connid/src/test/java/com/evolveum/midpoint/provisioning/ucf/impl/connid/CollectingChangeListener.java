@@ -7,42 +7,39 @@
 
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.provisioning.ucf.api.Change;
-import com.evolveum.midpoint.provisioning.ucf.api.LiveSyncChangeListener;
-import com.evolveum.midpoint.schema.result.OperationResult;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfLiveSyncChange;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfLiveSyncChangeListener;
+import com.evolveum.midpoint.schema.result.OperationResult;
 
 /**
  * A change listener that simply collects changes that arrive.
  */
 @VisibleForTesting
-class CollectingChangeListener implements LiveSyncChangeListener {
-    private final List<Change> changes = new ArrayList<>();
+class CollectingChangeListener implements UcfLiveSyncChangeListener {
+
+    private final List<UcfLiveSyncChange> changes = new ArrayList<>();
 
     @Override
-    public boolean onChange(Change change, OperationResult result) {
+    public boolean onChange(UcfLiveSyncChange change, OperationResult result) {
         changes.add(change);
         return true;
     }
 
     @Override
-    public boolean onChangePreparationError(PrismProperty<?> token, @Nullable Change change,
-            @NotNull Throwable exception, @NotNull OperationResult result) {
+    public boolean onError(int localSequentialNumber, @NotNull Object primaryIdentifierRealValue,
+            @NotNull PrismProperty<?> token, @NotNull Throwable exception, @NotNull OperationResult result) {
+        // Should we test also this path?
         return false;
     }
 
-    @Override
-    public void onAllChangesFetched(PrismProperty<?> finalToken, OperationResult result) {
-    }
-
-    public List<Change> getChanges() {
+    public List<UcfLiveSyncChange> getChanges() {
         return changes;
     }
 }

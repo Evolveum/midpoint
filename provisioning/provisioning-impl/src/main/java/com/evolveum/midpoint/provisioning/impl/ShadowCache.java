@@ -2007,11 +2007,11 @@ public class ShadowCache {
 
     public SearchResultMetadata searchObjectsIterative(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<ShadowType> handler,
-            boolean readFromRepository, Task task, OperationResult parentResult)
+            boolean updateRepository, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         ProvisioningContext ctx = createContextForSearch(query, options, task, parentResult);
-        return searchObjectsIterative(ctx, query, options, handler, readFromRepository, parentResult);
+        return searchObjectsIterative(ctx, query, options, handler, updateRepository, parentResult);
     }
 
     private ProvisioningContext createContextForSearch(ObjectQuery query,
@@ -2037,7 +2037,7 @@ public class ShadowCache {
 
     public SearchResultMetadata searchObjectsIterative(ProvisioningContext ctx, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<ShadowType> handler,
-            boolean readFromRepository, OperationResult parentResult)
+            boolean updateRepository, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         applyDefinition(ctx, query);
@@ -2046,13 +2046,13 @@ public class ShadowCache {
         if (ProvisioningUtil.shouldDoRepoSearch(rootOptions)) {
             return searchObjectsIterativeRepository(ctx, query, options, handler, parentResult);
         } else {
-            return searchObjectIterativeResource(ctx, query, options, handler, readFromRepository, parentResult, rootOptions);
+            return searchObjectIterativeResource(ctx, query, options, handler, updateRepository, parentResult, rootOptions);
         }
     }
 
     private SearchResultMetadata searchObjectIterativeResource(ProvisioningContext ctx, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<ShadowType> handler,
-            boolean readFromRepository, OperationResult parentResult, GetOperationOptions rootOptions)
+            boolean updateRepository, OperationResult parentResult, GetOperationOptions rootOptions)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException {
 
@@ -2072,7 +2072,7 @@ public class ShadowCache {
 
             if (!ObjectTypeUtil.hasFetchError(resourceObject)) {
                 try {
-                    resultShadow = treatObjectFound(ctx, readFromRepository, isDoDiscovery, resourceObject, objResult);
+                    resultShadow = treatObjectFound(ctx, updateRepository, isDoDiscovery, resourceObject, objResult);
                 } catch (Throwable t) {
                     objResult.recordFatalError(t.getMessage(), t);
                     if (errorReportingMethod == EXCEPTION) {

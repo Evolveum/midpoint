@@ -107,7 +107,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 
@@ -141,6 +141,13 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
                 .getOid();
     }
 
+    private void processUpdates(Task task, OperationResult result, ResourceShadowDiscriminator coords)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        throw new UnsupportedOperationException();
+        //provisioningService.processAsynchronousUpdates(coords, task, result);
+    }
+
     /**
      * GROUP_ADD event for ref:affiliation:staff.
      */
@@ -158,7 +165,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 
@@ -212,7 +219,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 
@@ -276,7 +283,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 
@@ -340,7 +347,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 
@@ -371,7 +378,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 
@@ -434,7 +441,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 
@@ -461,7 +468,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 
@@ -524,7 +531,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 
@@ -582,7 +589,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 

@@ -2258,41 +2258,42 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     //endregion
 
     public void notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription, Task task, OperationResult parentResult)
-            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException {
+            throws CommonException {
 
         String oldShadowOid = changeDescription.getOldShadowOid();
-        ResourceEventDescription eventDescription = new ResourceEventDescription();
 
+        PrismObject<ShadowType> resourceObject;
+        ObjectDelta<ShadowType> objectDelta;
         PrismObject<ShadowType> oldShadow;
+
         LOGGER.trace("resolving old object");
         if (!StringUtils.isEmpty(oldShadowOid)) {
             // FIXME we should not get object from resource here: it should be sufficient to retrieve object from the repository
             //  (and even that can be skipped, if identifiers are correctly set) ... MID-5834
             oldShadow = getObject(ShadowType.class, oldShadowOid, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), task, parentResult);
-            eventDescription.setOldRepoShadow(oldShadow);
-            LOGGER.trace("old object resolved to: {}", oldShadow.debugDumpLazily());
+            LOGGER.trace("old shadow resolved to: {}", oldShadow.debugDumpLazily());
         } else {
+            oldShadow = null;
             LOGGER.trace("Old shadow null");
         }
 
-        ShadowType currentResourceObjectBean = changeDescription.getCurrentShadow();
-        if (currentResourceObjectBean != null) {
-            PrismObject<ShadowType> currentResourceObject = currentResourceObjectBean.asPrismObject();
-            prismContext.adopt(currentResourceObject);
-            LOGGER.trace("current resource object:\n{}", currentResourceObject.debugDumpLazily());
-            eventDescription.setCurrentResourceObject(currentResourceObject);
+        ShadowType resourceObjectBean = changeDescription.getCurrentShadow();
+        if (resourceObjectBean != null) {
+            resourceObject = resourceObjectBean.asPrismObject();
+            prismContext.adopt(resourceObject);
+            LOGGER.trace("current resource object:\n{}", resourceObject.debugDumpLazily());
+        } else {
+            resourceObject = null;
         }
 
         ObjectDeltaType deltaType = changeDescription.getObjectDelta();
 
         if (deltaType != null) {
-
             PrismObject<ShadowType> shadowToAdd;
-            ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createEmptyDelta(ShadowType.class, deltaType.getOid(),
+            objectDelta = prismContext.deltaFactory().object().createEmptyDelta(ShadowType.class, deltaType.getOid(),
                     ChangeType.toChangeType(deltaType.getChangeType()));
 
-            if (delta.getChangeType() == ChangeType.ADD) {
+            if (objectDelta.getChangeType() == ChangeType.ADD) {
                 if (deltaType.getObjectToAdd() == null) {
                     LOGGER.trace("No object to add specified. Check your delta. Add delta must contain object to add");
                     throw new IllegalArgumentException("No object to add specified. Check your delta. Add delta must contain object to add");
@@ -2306,16 +2307,18 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
                 shadowToAdd = ((ShadowType) objToAdd).asPrismObject();
                 LOGGER.trace("object to add: {}", shadowToAdd.debugDump());
-                delta.setObjectToAdd(shadowToAdd);
+                objectDelta.setObjectToAdd(shadowToAdd);
             } else {
                 Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(deltaType.getItemDelta(), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class));
-                delta.addModifications(modifications);
+                objectDelta.addModifications(modifications);
             }
-            ModelImplUtils.encrypt(Collections.singletonList(delta), protector, null, parentResult);
-            eventDescription.setDelta(delta);
+            ModelImplUtils.encrypt(Collections.singletonList(objectDelta), protector, null, parentResult);
+        } else {
+            objectDelta = null;
         }
 
-        eventDescription.setSourceChannel(changeDescription.getChannel());
+        ResourceEventDescription eventDescription = new ResourceEventDescription(objectDelta, resourceObject,
+                oldShadow, changeDescription.getChannel());
 
         dispatcher.notifyEvent(eventDescription, task, parentResult);
         parentResult.computeStatus();

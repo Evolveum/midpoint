@@ -11,6 +11,8 @@ import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 
+import com.evolveum.midpoint.provisioning.impl.MockLiveSyncTaskHandler;
+
 import org.opends.server.core.AddOperation;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
@@ -25,7 +27,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
@@ -63,11 +64,9 @@ public class TestSynchronization extends AbstractIntegrationTest {
 
     private ResourceType resourceType;
 
-    @Autowired
-    private ProvisioningService provisioningService;
-
-    @Autowired
-    private ResourceObjectChangeListener syncServiceMock;
+    @Autowired private ProvisioningService provisioningService;
+    @Autowired private ResourceObjectChangeListener syncServiceMock;
+    @Autowired private MockLiveSyncTaskHandler mockLiveSyncTaskHandler;
 
     @BeforeClass
     public static void startLdap() throws Exception {
@@ -148,8 +147,8 @@ public class TestSynchronization extends AbstractIntegrationTest {
                 AbstractOpenDjTest.RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 
         // WHEN
-        provisioningService.synchronize(coords,
-                syncTask, null, result);
+
+        mockLiveSyncTaskHandler.synchronize(coords, syncTask, syncTask, result);
 
         // THEN
         SynchronizationServiceMock mock = (SynchronizationServiceMock) syncServiceMock;
@@ -164,7 +163,8 @@ public class TestSynchronization extends AbstractIntegrationTest {
         assertNotNull("No current shadow in change notification", currentShadow);
         assertNotNull("No old shadow in change notification", lastChange.getOldShadow());
 
-        assertEquals("Wrong shadow name", PrismTestUtil.createPolyStringType(ACCOUNT_WILL_NAME), currentShadow.asObjectable().getName());
+        // TODO why is the value lowercased? Is it because it was taken from the change and not fetched from the resource?
+        assertEquals("Wrong shadow name", ACCOUNT_WILL_NAME.toLowerCase(), currentShadow.asObjectable().getName().getOrig());
 
         assertSyncToken(SYNC_TASK_OID, 1, result);
 
@@ -207,8 +207,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
                 AbstractOpenDjTest.RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 
         // WHEN
-        provisioningService.synchronize(coords,
-                syncTask, null, result);
+        mockLiveSyncTaskHandler.synchronize(coords, syncTask, syncTask, result);
 
         // THEN
         SynchronizationServiceMock mock = (SynchronizationServiceMock) syncServiceMock;

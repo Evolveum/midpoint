@@ -17,7 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.ModelConstants;
-import com.evolveum.midpoint.model.impl.tasks.AbstractSearchIterativeModelTaskHandler;
+import com.evolveum.midpoint.model.impl.tasks.AbstractModelTaskHandler;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
@@ -63,7 +63,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @TaskExecutionClass(ImportFromResourceTaskExecution.class)
 @PartExecutionClass(ImportFromResourceTaskPartExecution.class)
 public class ImportFromResourceTaskHandler
-        extends AbstractSearchIterativeModelTaskHandler
+        extends AbstractModelTaskHandler
         <ImportFromResourceTaskHandler, ImportFromResourceTaskExecution> {
 
     public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/import/handler-3";
@@ -83,7 +83,7 @@ public class ImportFromResourceTaskHandler
     private static final Trace LOGGER = TraceManager.getTrace(ImportFromResourceTaskHandler.class);
 
     public ImportFromResourceTaskHandler() {
-        super("Import from resource", OperationConstants.IMPORT_ACCOUNTS_FROM_RESOURCE);
+        super(LOGGER, "Import", OperationConstants.IMPORT_ACCOUNTS_FROM_RESOURCE);
         reportingOptions.setPreserveStatistics(false);
         reportingOptions.setEnableSynchronizationStatistics(true);
     }

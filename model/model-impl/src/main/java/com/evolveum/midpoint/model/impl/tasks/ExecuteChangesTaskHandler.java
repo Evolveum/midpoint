@@ -54,7 +54,7 @@ public class ExecuteChangesTaskHandler
     private static final Trace LOGGER = TraceManager.getTrace(ExecuteChangesTaskHandler.class);
 
     public ExecuteChangesTaskHandler() {
-        super("Execute", OperationConstants.EXECUTE);
+        super(LOGGER, "Execute", OperationConstants.EXECUTE);
     }
 
     @PostConstruct

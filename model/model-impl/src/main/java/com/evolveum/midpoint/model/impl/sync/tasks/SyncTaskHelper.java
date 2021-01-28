@@ -90,10 +90,14 @@ public class SyncTaskHelper {
         public SynchronizationObjectsFilterImpl getObjectFilter(Task task) {
             return ModelImplUtils.determineSynchronizationObjectsFilter(objectClassDefinition, task);
         }
+
+        public String getContextDescription() {
+            return String.valueOf(resource); // TODO something more human friendly
+        }
     }
 
     @NotNull
-    public TargetInfo getTargetInfo(Trace LOGGER, Task task, OperationResult opResult, String ctx) throws TaskException, MaintenanceException {
+    public TargetInfo getTargetInfo(Trace logger, Task task, OperationResult opResult, String ctx) throws TaskException, MaintenanceException {
         String resourceOid = getResourceOid(task);
         ResourceType resource = getResource(resourceOid, task, opResult);
         RefinedResourceSchema refinedSchema = getRefinedResourceSchema(resource);
@@ -105,12 +109,15 @@ public class SyncTaskHelper {
             throw new TaskException("Schema error", FATAL_ERROR, PERMANENT_ERROR, e);
         }
         if (objectClass == null) {
-            LOGGER.debug("{}: Processing all object classes", ctx);
+            logger.debug("{}: Processing all object classes", ctx);
         }
 
-        return new TargetInfo(
+        TargetInfo targetInfo = new TargetInfo(
                 new ResourceShadowDiscriminator(resourceOid, objectClass == null ? null : objectClass.getTypeName()),
                 resource, refinedSchema, objectClass);
+
+        logger.trace("target info: {}", targetInfo);
+        return targetInfo;
     }
 
     @NotNull

@@ -21,45 +21,44 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 
-import com.evolveum.midpoint.model.impl.tasks.AbstractSearchIterativeModelTaskPartExecution;
+import com.evolveum.midpoint.model.impl.tasks.AbstractIterativeModelTaskPartExecution;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
+import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeItemProcessor;
 import com.evolveum.midpoint.repo.common.task.HandledObjectType;
-import com.evolveum.midpoint.repo.common.task.ResultHandlerClass;
+import com.evolveum.midpoint.repo.common.task.ItemProcessorClass;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
- * Execution of shadow reconciliation (processes shadows that were not processed by the previous stage,
- * e.g. those that have been deleted).
+ * <p>Execution of shadow reconciliation (processes shadows that were not processed by the previous stage,
+ * e.g. those that have been deleted).</p>
  *
  * TODO obtain "real" second stage start time, see getReconciliationStartTimestamp.
  */
-@ResultHandlerClass(ReconciliationTaskThirdPartExecution.Handler.class)
+@ItemProcessorClass(ReconciliationTaskThirdPartExecution.ItemProcessor.class)
 @HandledObjectType(ShadowType.class)
 class ReconciliationTaskThirdPartExecution
-        extends AbstractSearchIterativeModelTaskPartExecution
+        extends AbstractIterativeModelTaskPartExecution
         <ShadowType,
                 ReconciliationTaskHandler,
                 ReconciliationTaskExecution,
                 ReconciliationTaskThirdPartExecution,
-                ReconciliationTaskThirdPartExecution.Handler> {
-
-    private static final Trace LOGGER = TraceManager.getTrace(ReconciliationTaskHandler.class);
+                ReconciliationTaskThirdPartExecution.ItemProcessor> {
 
     ReconciliationTaskThirdPartExecution(ReconciliationTaskExecution taskExecution) {
         super(taskExecution);
+        setProcessShortNameCapitalized("Reconciliation (remaining shadows)");
+        setContextDescription("for " + taskExecution.getTargetInfo().getContextDescription());
+        setRequiresDirectRepositoryAccess();
     }
 
     @Override
@@ -74,11 +73,6 @@ class ReconciliationTaskThirdPartExecution
                 .and().item(ShadowType.F_OBJECT_CLASS).eq(taskExecution.getObjectClassDefinition().getTypeName())
                 .build();
         return taskExecution.createShadowQuery(initialQuery, opResult);
-    }
-
-    @Override
-    protected boolean requiresDirectRepositoryAccess(OperationResult opResult) {
-        return true;
     }
 
     private XMLGregorianCalendar getReconciliationStartTimestamp() {
@@ -102,31 +96,25 @@ class ReconciliationTaskThirdPartExecution
 
     @Override
     protected void finish(OperationResult opResult) throws SchemaException {
-        taskExecution.reconResult.setShadowReconCount(resultHandler.getProgress());
+        super.finish(opResult);
+        taskExecution.reconResult.setShadowReconCount(statistics.getItemsProcessed());
     }
 
-    protected static class Handler
-            extends AbstractSearchIterativeResultHandler
-            <ShadowType,
-                    ReconciliationTaskHandler,
-                    ReconciliationTaskExecution,
-                    ReconciliationTaskThirdPartExecution,
-                    ReconciliationTaskThirdPartExecution.Handler> {
+    protected static class ItemProcessor
+            extends AbstractSearchIterativeItemProcessor
+            <ShadowType, ReconciliationTaskHandler, ReconciliationTaskExecution, ReconciliationTaskThirdPartExecution, ItemProcessor> {
 
-        public Handler(ReconciliationTaskThirdPartExecution partExecution) {
+        public ItemProcessor(ReconciliationTaskThirdPartExecution partExecution) {
             super(partExecution);
         }
 
         @Override
-        protected boolean handleObject(PrismObject<ShadowType> shadow, RunningTask workerTask, OperationResult result)
+        protected boolean processObject(PrismObject<ShadowType> shadow, RunningTask workerTask, OperationResult result)
                 throws CommonException, PreconditionViolationException {
-            ShadowType shadowBean = shadow.asObjectable();
-            if (!taskExecution.objectsFilter.matches(shadowBean)) {
-                return true;
+            if (!taskExecution.objectsFilter.matches(shadow)) {
+                return true; // TODO mark as skipped
             }
 
-            LOGGER.trace("Shadow reconciliation of {}, fullSynchronizationTimestamp={}", shadow,
-                    shadowBean.getFullSynchronizationTimestamp());
             reconcileShadow(shadow, workerTask, result);
             return true;
         }
@@ -134,6 +122,8 @@ class ReconciliationTaskThirdPartExecution
         private void reconcileShadow(PrismObject<ShadowType> shadow, Task task, OperationResult result)
                 throws SchemaException, SecurityViolationException, CommunicationException,
                 ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException {
+            logger.trace("Reconciling shadow {}, fullSynchronizationTimestamp={}", shadow,
+                    shadow.asObjectable().getFullSynchronizationTimestamp());
             try {
                 Collection<SelectorOptions<GetOperationOptions>> options;
                 if (TaskUtil.isDryRun(task)) {
@@ -158,7 +148,7 @@ class ReconciliationTaskThirdPartExecution
             ObjectDelta<ShadowType> shadowDelta = shadow.getPrismContext().deltaFactory().object()
                     .createDeleteDelta(ShadowType.class, shadow.getOid());
             change.setObjectDelta(shadowDelta);
-            change.setCurrentShadow(shadow);
+            change.setCurrentShadow(shadow); // TODO why current shadow?!
             ModelImplUtils.clearRequestee(task);
             taskHandler.changeNotificationDispatcher.notifyChange(change, task, result);
         }

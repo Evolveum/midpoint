@@ -12,6 +12,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.apache.commons.io.IOUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -97,7 +99,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 
@@ -143,7 +145,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 
@@ -187,7 +189,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 
@@ -225,7 +227,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 
@@ -263,7 +265,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 
@@ -301,7 +303,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 
@@ -339,7 +341,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 
@@ -377,7 +379,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 
@@ -417,7 +419,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 
@@ -425,5 +427,12 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         TestUtil.assertSuccess(result);
 
         assertNoObjectByName(OrgType.class, STAFF_NAME, task, result);
+    }
+
+    private void processUpdates(Task task, OperationResult result, ResourceShadowDiscriminator coords)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        throw new UnsupportedOperationException();
+        //provisioningService.processAsynchronousUpdates(coords, task, result);
     }
 }

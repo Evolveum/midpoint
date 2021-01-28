@@ -14,11 +14,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author mederly
+ * TODO
  */
 public class ObjectStatistics {
 
-    private int errors = 0;
+    private int errors = 0; // TODO use standard mechanisms instead
     private final Map<String,ObjectTypeStatistics> statisticsMap = new HashMap<>();        // key is object class full name
 
     public Map<String, ObjectTypeStatistics> getStatisticsMap() {

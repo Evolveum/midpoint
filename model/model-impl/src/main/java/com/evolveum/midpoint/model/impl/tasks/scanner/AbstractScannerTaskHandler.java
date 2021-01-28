@@ -6,9 +6,11 @@
  */
 package com.evolveum.midpoint.model.impl.tasks.scanner;
 
+import com.evolveum.midpoint.util.logging.Trace;
+
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.impl.tasks.AbstractSearchIterativeModelTaskHandler;
+import com.evolveum.midpoint.model.impl.tasks.AbstractModelTaskHandler;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 
@@ -22,10 +24,10 @@ import com.evolveum.midpoint.task.api.TaskCategory;
 public abstract class AbstractScannerTaskHandler
         <TH extends AbstractScannerTaskHandler<TH, TE>,
                 TE extends AbstractScannerTaskExecution<TH, TE>>
-        extends AbstractSearchIterativeModelTaskHandler<TH, TE> {
+        extends AbstractModelTaskHandler<TH, TE> {
 
-    public AbstractScannerTaskHandler(String taskName, String taskOperationPrefix) {
-        super(taskName, taskOperationPrefix);
+    public AbstractScannerTaskHandler(Trace logger, String taskName, String taskOperationPrefix) {
+        super(logger, taskName, taskOperationPrefix);
     }
 
     @Override

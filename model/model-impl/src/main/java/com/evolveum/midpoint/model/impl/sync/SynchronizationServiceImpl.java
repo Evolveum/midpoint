@@ -879,7 +879,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         // Projection context
         ShadowKindType kind = getKind(shadow, syncCtx.getKind());
         String intent = getIntent(shadow, syncCtx.getIntent());
-        boolean tombstone = isThombstone(change);
+        boolean tombstone = isTombstone(change);
         ResourceShadowDiscriminator discriminator = new ResourceShadowDiscriminator(resource.getOid(), kind, intent, shadow.asObjectable().getTag(), tombstone);
         LensProjectionContext projectionContext = context.createProjectionContext(discriminator);
         projectionContext.setResource(resource);
@@ -970,10 +970,10 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         return objectSynchronizationIntent;
     }
 
-    private boolean isThombstone(ResourceObjectShadowChangeDescription change) {
+    private boolean isTombstone(ResourceObjectShadowChangeDescription change) {
         PrismObject<? extends ShadowType> shadow = null;
         if (change.getOldShadow() != null) {
-            shadow = change.getOldShadow();
+            shadow = change.getOldShadow(); // FIXME Why we are checking old shadow first?!
         } else if (change.getCurrentShadow() != null) {
             shadow = change.getCurrentShadow();
         }

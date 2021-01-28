@@ -15,130 +15,106 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-public class ResourceEventDescription implements Serializable, DebugDumpable{
+/**
+ * Externally-provided resource event. Used to inform provisioning module about the fact
+ * that an object on a resource has changed.
+ */
+public class ResourceEventDescription implements Serializable, DebugDumpable {
 
-    private PrismObject<ShadowType> oldRepoShadow;
-    private PrismObject<ShadowType> currentResourceObject;
-    private ObjectDelta<ShadowType> delta;
-    private String sourceChannel;
-//    private PrismObject<ResourceType> resource;
+    /**
+     * The change - if known.
+     */
+    private final ObjectDelta<ShadowType> objectDelta;
 
+    /**
+     * Resource object after the change - if known.
+     */
+    private final PrismObject<ShadowType> resourceObject;
 
-    public PrismObject<ShadowType> getCurrentResourceObject() {
-        return currentResourceObject;
+    /**
+     * Repository shadow connected to the object - if known and if existing.
+      */
+    private final PrismObject<ShadowType> oldRepoShadow;
+
+    /**
+     * Channel through which we learned about the change.
+     */
+    private final String sourceChannel;
+
+    public ResourceEventDescription(ObjectDelta<ShadowType> objectDelta, PrismObject<ShadowType> resourceObject, PrismObject<ShadowType> oldRepoShadow, String sourceChannel) {
+        this.objectDelta = objectDelta;
+        this.resourceObject = resourceObject;
+        this.oldRepoShadow = oldRepoShadow;
+        this.sourceChannel = sourceChannel;
+    }
+
+    public PrismObject<ShadowType> getResourceObject() {
+        return resourceObject;
     }
 
     public PrismObject<ShadowType> getOldRepoShadow() {
         return oldRepoShadow;
     }
 
-    public ObjectDelta<ShadowType> getDelta() {
-        return delta;
+    public ObjectDelta<ShadowType> getObjectDelta() {
+        return objectDelta;
     }
 
     public String getSourceChannel() {
         return sourceChannel;
     }
-//    public PrismObject<ResourceType> getResource() {
-//        return resource;
-//    }
 
-    public void setDelta(ObjectDelta delta) {
-        this.delta = delta;
+    public boolean isProtected() {
+        return ShadowUtil.isProtected(resourceObject) ||
+                ShadowUtil.isProtected(oldRepoShadow) ||
+                objectDelta != null && objectDelta.isAdd() && ShadowUtil.isProtected(objectDelta.getObjectToAdd());
     }
 
-    public void setOldRepoShadow(PrismObject<ShadowType> oldRepoShadow) {
-        this.oldRepoShadow = oldRepoShadow;
+    @Override
+    public String toString() {
+        return "ResourceEventDescription(delta=" + objectDelta + ", currentResourceObject="
+                + SchemaDebugUtil.prettyPrint(resourceObject) + ", oldRepoShadow=" + SchemaDebugUtil.prettyPrint(oldRepoShadow) + ", sourceChannel=" + sourceChannel
+                + ")";
     }
 
-    public void setCurrentResourceObject(PrismObject<ShadowType> currentResourceObject) {
-        this.currentResourceObject = currentResourceObject;
-    }
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        SchemaDebugUtil.indentDebugDump(sb, indent);
+        sb.append("ResourceEventDescription(");
+        sb.append(sourceChannel);
+        sb.append(")\n");
 
-    public void setSourceChannel(String sourceChannel) {
-        this.sourceChannel = sourceChannel;
-    }
+        SchemaDebugUtil.indentDebugDump(sb, indent+1);
 
-     public boolean isProtected() {
-            if ((currentResourceObject != null && ShadowUtil.isProtected(currentResourceObject))
-                    || (oldRepoShadow != null && ShadowUtil.isProtected(oldRepoShadow))) {
-                return true;
-            }
-            if (delta != null && delta.isAdd() && ShadowUtil.isProtected(delta.getObjectToAdd())) {
-                return true;
-            }
-            return false;
-        }
-
-     @Override
-        public String toString() {
-            return "ResourceEventDescription(delta=" + delta + ", currentResourceObject="
-                    + SchemaDebugUtil.prettyPrint(currentResourceObject) + ", oldRepoShadow=" + SchemaDebugUtil.prettyPrint(oldRepoShadow) + ", sourceChannel=" + sourceChannel
-                    + ")";
-        }
-
-        /* (non-Javadoc)
-         * @see com.evolveum.midpoint.util.DebugDumpable#debugDump(int)
-         */
-        @Override
-        public String debugDump(int indent) {
-            StringBuilder sb = new StringBuilder();
-            SchemaDebugUtil.indentDebugDump(sb, indent);
-            sb.append("ResourceEventDescription(");
-            sb.append(sourceChannel);
-            sb.append(")\n");
-
-            SchemaDebugUtil.indentDebugDump(sb, indent+1);
-
-            sb.append("Delta:");
-            if (delta == null) {
-                sb.append(" null");
-            } else {
-                sb.append(delta.debugDump(indent+2));
-            }
-            sb.append("\n");
-            SchemaDebugUtil.indentDebugDump(sb, indent+1);
-
-            sb.append("oldRepoShadow:");
-            if (oldRepoShadow == null) {
-                sb.append(" null");
-            } else {
-                sb.append(oldRepoShadow.debugDump(indent+2));
-            }
-
-            sb.append("\n");
-            SchemaDebugUtil.indentDebugDump(sb, indent+1);
-
-            sb.append("currentResourceObject:");
-            if (currentResourceObject == null) {
-                sb.append(" null\n");
-            } else {
-                sb.append("\n");
-                sb.append(currentResourceObject.debugDump(indent+2));
-            }
-
-            return sb.toString();
-        }
-//    public void setResource(PrismObject<ResourceType> resource) {
-//        this.resource = resource;
-//    }
-//
-//
-
-    public PrismObject<ShadowType> getShadow() {
-        PrismObject<ShadowType> shadow;
-        if (getCurrentResourceObject() != null) {
-            shadow = getCurrentResourceObject();
-        } else if (getOldRepoShadow() != null) {
-            shadow = getOldRepoShadow();
-        } else if (getDelta() != null && getDelta().isAdd()) {
-            if (getDelta().getObjectToAdd() == null) {
-                throw new IllegalStateException("Found ADD delta, but no object to add was specified.");
-            }
-            shadow = getDelta().getObjectToAdd();
+        sb.append("Delta:");
+        if (objectDelta == null) {
+            sb.append(" null");
         } else {
-            throw new IllegalStateException("Resource event description does not contain neither old shadow, nor current shadow, nor shadow in delta");
+            sb.append(objectDelta.debugDump(indent+2));
         }
-        return shadow;
+        sb.append("\n");
+        SchemaDebugUtil.indentDebugDump(sb, indent+1);
+
+        sb.append("oldRepoShadow:");
+        if (oldRepoShadow == null) {
+            sb.append(" null");
+        } else {
+            sb.append(oldRepoShadow.debugDump(indent+2));
+        }
+
+        sb.append("\n");
+        SchemaDebugUtil.indentDebugDump(sb, indent+1);
+
+        sb.append("currentResourceObject:");
+        if (resourceObject == null) {
+            sb.append(" null\n");
+        } else {
+            sb.append("\n");
+            sb.append(resourceObject.debugDump(indent+2));
+        }
+
+        return sb.toString();
     }
+
 }

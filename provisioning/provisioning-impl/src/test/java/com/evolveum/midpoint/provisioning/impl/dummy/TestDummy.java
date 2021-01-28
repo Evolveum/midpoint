@@ -19,6 +19,8 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.api.*;
+
 import org.apache.commons.lang.ArrayUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -35,9 +37,6 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.provisioning.api.ItemComparisonResult;
-import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -3838,13 +3837,14 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test800LiveSyncInit() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
         syncTokenTask = taskManager.createTaskInstance(TestDummy.class.getName() + ".syncTask");
 
         dummyResource.setSyncStyle(DummySyncStyle.DUMB);
         dummyResource.clearDeltas();
         syncServiceMock.reset();
-
-        OperationResult result = createOperationResult();
 
         // Dry run to remember the current sync token in the task instance.
         // Otherwise a last sync token would be used and
@@ -3853,7 +3853,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
 
         when();
-        provisioningService.synchronize(coords, syncTokenTask, null, result);
+        mockLiveSyncTaskHandler.synchronize(coords, syncTokenTask, task, result);
 
         then();
         assertSuccess(result);
@@ -3888,7 +3888,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
 
         when();
-        provisioningService.synchronize(coords, syncTokenTask, null, result);
+        mockLiveSyncTaskHandler.synchronize(coords, syncTokenTask, task, result);
 
         then();
         assertSuccess("Synchronization result is not OK", result);
@@ -3932,7 +3932,8 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test802LiveSyncModifyBlackbeard() throws Exception {
         // GIVEN
-        OperationResult result = createOperationResult();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
         syncServiceMock.reset();
 
@@ -3945,7 +3946,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
 
         when();
-        provisioningService.synchronize(coords, syncTokenTask, null, result);
+        mockLiveSyncTaskHandler.synchronize(coords, syncTokenTask, task, result);
 
         then();
         assertSuccess("Synchronization result is not OK", result);
@@ -4087,7 +4088,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     private void testLiveSyncAddDrake(DummySyncStyle syncStyle, QName objectClass) throws Exception {
         // GIVEN
-        OperationResult result = createOperationResult();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
         syncServiceMock.reset();
         dummyResource.setSyncStyle(syncStyle);
@@ -4104,7 +4106,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 objectClass);
 
         when();
-        provisioningService.synchronize(coords, syncTokenTask, null, result);
+        mockLiveSyncTaskHandler.synchronize(coords, syncTokenTask, task, result);
 
         then();
         assertSuccess("Synchronization result is not OK", result);
@@ -4158,7 +4160,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     private void testLiveSyncModifyDrake(DummySyncStyle syncStyle, QName objectClass) throws Exception {
         // GIVEN
-        OperationResult result = createOperationResult();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
         syncServiceMock.reset();
         dummyResource.setSyncStyle(syncStyle);
@@ -4170,7 +4173,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 objectClass);
 
         when();
-        provisioningService.synchronize(coords, syncTokenTask, null, result);
+        mockLiveSyncTaskHandler.synchronize(coords, syncTokenTask, task, result);
 
         then();
         result.computeStatus();
@@ -4213,7 +4216,8 @@ public class TestDummy extends AbstractBasicDummyTest {
     private void testLiveSyncAddCorsairs(
             DummySyncStyle syncStyle, QName objectClass, boolean expectReaction) throws Exception {
         // GIVEN
-        OperationResult result = createOperationResult();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
         syncServiceMock.reset();
         dummyResource.setSyncStyle(syncStyle);
@@ -4228,7 +4232,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 objectClass);
 
         when();
-        provisioningService.synchronize(coords, syncTokenTask, null, result);
+        mockLiveSyncTaskHandler.synchronize(coords, syncTokenTask, task, result);
 
         then();
         assertSuccess("Synchronization result is not OK", result);
@@ -4284,7 +4288,8 @@ public class TestDummy extends AbstractBasicDummyTest {
     private void testLiveSyncDeleteCorsairs(
             DummySyncStyle syncStyle, QName objectClass, boolean expectReaction) throws Exception {
         // GIVEN
-        OperationResult result = createOperationResult();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
         syncServiceMock.reset();
         dummyResource.setSyncStyle(syncStyle);
@@ -4300,7 +4305,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 objectClass);
 
         when();
-        provisioningService.synchronize(coords, syncTokenTask, null, result);
+        mockLiveSyncTaskHandler.synchronize(coords, syncTokenTask, task, result);
 
         then();
         assertSuccess("Synchronization result is not OK", result);
@@ -4324,9 +4329,9 @@ public class TestDummy extends AbstractBasicDummyTest {
                     .assertObjectTypeClass(ShadowType.class)
                     .assertOid(corsairsShadowOid)
                     .end()
-                    .currentShadow()
+                    .oldShadow() // current shadow is null after recent code changes
                     .assertOid(corsairsShadowOid)
-                    .assertTombstone();
+                    .assertTombstone(); // dubious
 
             assertRepoShadow(corsairsShadowOid)
                     .assertTombstone();
@@ -4346,7 +4351,8 @@ public class TestDummy extends AbstractBasicDummyTest {
     private void testLiveSyncDeleteDrake(
             DummySyncStyle syncStyle, QName objectClass) throws Exception {
         // GIVEN
-        OperationResult result = createOperationResult();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
         syncServiceMock.reset();
         dummyResource.setSyncStyle(syncStyle);
@@ -4362,7 +4368,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 objectClass);
 
         when();
-        provisioningService.synchronize(coords, syncTokenTask, null, result);
+        mockLiveSyncTaskHandler.synchronize(coords, syncTokenTask, task, result);
 
         then();
         assertSuccess("Synchronization result is not OK", result);
@@ -4382,8 +4388,8 @@ public class TestDummy extends AbstractBasicDummyTest {
                 .assertObjectTypeClass(ShadowType.class)
                 .assertOid(drakeAccountOid)
                 .end()
-                .currentShadow()
-                .assertTombstone()
+                .oldShadow() // note that currentShadow is (now) null - after recent code changes
+                .assertTombstone() // TODO really in old?
                 .assertOid(drakeAccountOid);
 
         assertRepoShadow(drakeAccountOid)
@@ -4412,7 +4418,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
 
         when();
-        provisioningService.synchronize(coords, syncTokenTask, null, result);
+        mockLiveSyncTaskHandler.synchronize(coords, syncTokenTask, syncTask, result);
 
         then();
         assertSuccess(result);

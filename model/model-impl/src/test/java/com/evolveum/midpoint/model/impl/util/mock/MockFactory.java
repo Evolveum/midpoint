@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.util.exception.CommonException;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -47,12 +49,13 @@ public class MockFactory {
             }
 
             @Override
-            public int synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, TaskPartitionDefinitionType taskPartition, OperationResult parentResult) {
-                return 0;
+            public @NotNull SynchronizationResult synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, TaskPartitionDefinitionType taskPartition,
+                    LiveSyncEventHandler handler, OperationResult parentResult) {
+                return new SynchronizationResult();
             }
 
             @Override
-            public void processAsynchronousUpdates(ResourceShadowDiscriminator shadowCoordinates, Task task,
+            public void processAsynchronousUpdates(ResourceShadowDiscriminator shadowCoordinates, AsyncUpdateEventHandler handler, Task task,
                     OperationResult parentResult) {
             }
 
@@ -372,7 +375,7 @@ public class MockFactory {
             }
 
             @Override
-            public void notifyEvent(ResourceEventDescription eventDescription, Task task, OperationResult parentResult) throws GenericConnectorException {
+            public void notifyEvent(ResourceEventDescription eventDescription, Task task, OperationResult parentResult) throws CommonException, GenericConnectorException {
 
             }
 

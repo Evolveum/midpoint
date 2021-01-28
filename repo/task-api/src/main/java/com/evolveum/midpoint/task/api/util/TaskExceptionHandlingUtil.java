@@ -105,6 +105,11 @@ public class TaskExceptionHandlingUtil {
         return runResult;
     }
 
+    /**
+     * TODO TODO TODO
+     *
+     * Here we do the error handling.
+     */
     public static <TRR extends TaskRunResult> TRR processException(Throwable t, Trace logger,
             TaskPartitionDefinitionType partition, String ctx, TRR runResult) {
         TaskException taskException = convertException(t, partition);

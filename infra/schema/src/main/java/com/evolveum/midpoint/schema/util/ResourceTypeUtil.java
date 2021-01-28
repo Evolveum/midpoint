@@ -15,6 +15,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.MaintenanceException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -748,6 +749,16 @@ public class ResourceTypeUtil {
             return null;
         }
         return consistency.getConnectorErrorCriticality();
+    }
+
+    public static void checkNotInMaintenance(PrismObject<ResourceType> resource) throws MaintenanceException {
+        if (isInMaintenance(resource)) {
+            throw new MaintenanceException("Resource " + resource + " is in the maintenance");
+        }
+    }
+
+    public static boolean isInMaintenance(PrismObject<ResourceType> resource) {
+        return isInMaintenance(resource.asObjectable());
     }
 
     public static boolean isInMaintenance(ResourceType resource) {

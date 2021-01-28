@@ -14,6 +14,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -94,7 +95,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 
@@ -133,7 +134,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 
@@ -177,7 +178,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 
@@ -215,7 +216,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 
@@ -253,7 +254,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 
@@ -291,7 +292,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 
@@ -329,7 +330,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 
@@ -367,7 +368,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 
@@ -399,7 +400,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        processUpdates(task, result, coords);
 
         // THEN
 
@@ -407,5 +408,12 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
         TestUtil.assertSuccess(result);
 
         assertNoObjectByName(OrgType.class, STAFF_NAME, task, result);
+    }
+
+    private void processUpdates(Task task, OperationResult result, ResourceShadowDiscriminator coords)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        throw new UnsupportedOperationException();
+        //provisioningService.processAsynchronousUpdates(coords, task, result);
     }
 }

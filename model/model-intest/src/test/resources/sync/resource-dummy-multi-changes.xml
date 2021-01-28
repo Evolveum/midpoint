@@ -62,7 +62,7 @@
                         <script>
                             <relativityMode>absolute</relativityMode>
                             <code>import com.evolveum.midpoint.model.intest.sync.SequenceChecker
-                            import com.evolveum.midpoint.provisioning.impl.sync.ChangeProcessor
+                            import com.evolveum.midpoint.provisioning.impl.sync.ChangeProcessingBeans
 
                             // This has currently not a great value, because in live sync
                             // (especially on dummy resource) there are no deltas. Each object
@@ -77,7 +77,7 @@
                             }
 
                             // So let's check instead the change number
-                            seq = ChangeProcessor.CHANGE_BEING_PROCESSED.get()
+                            seq = ChangeProcessingBeans.CHANGE_BEING_PROCESSED.get()
                             println "Change being processed: $seq in ${Thread.currentThread().getId()}:${Thread.currentThread().getName()}"
 
                             SequenceChecker.INSTANCE.checkChange(seq)

@@ -943,4 +943,8 @@ public class MiscUtil {
         }
         return value.substring(0, size - 4) + "...";
     }
+
+    public static String getSimpleClassName(Object o) {
+        return o != null ? o.getClass().getSimpleName() : null;
+    }
 }

@@ -27,7 +27,7 @@ import static java.util.Collections.singleton;
  * An execution of a focus validity scanner task.
  *
  * Deals with creating parts (object/assignment processing).
- * Maintains "OIDs seen" information, and specific fields related to custom item timestamp checking.
+ * Maintains specific fields related to custom item timestamp checking.
  */
 public class FocusValidityScannerTaskExecution
         extends AbstractScannerTaskExecution<FocusValidityScannerTaskHandler, FocusValidityScannerTaskExecution> {
@@ -38,6 +38,7 @@ public class FocusValidityScannerTaskExecution
     /** Do we have notification actions to invoke when validity constraint is met? */
     private final boolean notificationActionsPresent;
 
+    /** TODO move to the gatekeeper */
     private final Set<String> processedOids = ConcurrentHashMap.newKeySet();
 
     public FocusValidityScannerTaskExecution(FocusValidityScannerTaskHandler taskHandler,
@@ -112,6 +113,10 @@ public class FocusValidityScannerTaskExecution
         }
     }
 
+    /**
+     * @return True if the task does not do standard validity checking, but uses custom validity constraint
+     * and notification actions.
+     */
     boolean doCustomValidityCheck() {
         return validityConstraint != null && notificationActionsPresent;
     }

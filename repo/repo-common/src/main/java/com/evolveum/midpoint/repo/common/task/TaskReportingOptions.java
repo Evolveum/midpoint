@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.repo.common.task;
 
 import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
+import com.evolveum.midpoint.util.annotation.Experimental;
 
 /**
  * Options that drive state, progress, and error reporting of a search-iterative task.
@@ -15,6 +16,7 @@ import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
  *
  * TODO finish
  */
+@Experimental
 public class TaskReportingOptions {
 
     private boolean logFinishInfo = true;
