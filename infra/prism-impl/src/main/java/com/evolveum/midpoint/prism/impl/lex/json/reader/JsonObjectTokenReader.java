@@ -139,6 +139,14 @@ class JsonObjectTokenReader {
     private void processFieldValue(QNameInfo name) throws IOException, SchemaException {
         assert name != null;
         XNodeImpl value = readValue();
+        if(isInfraItem(name)) {
+            processInfraItem(name,value);
+        } else {
+            processStandardFieldValue(name, value);
+        }
+    }
+
+    private void processInfraItem(QNameInfo name, XNodeImpl value) throws SchemaException {
         if (isNamespaceDeclaration(name)) {
             processNamespaceDeclaration(name, value);
         } else if (isContextDeclaration(name)) {
@@ -153,12 +161,12 @@ class JsonObjectTokenReader {
             processMetadataValue(name, value);
         } else if (isIncompleteDeclaration(name)) {
             processIncompleteDeclaration(name, value);
-        } else {
-            processStandardFieldValue(name, value);
         }
     }
 
-
+    private boolean isInfraItem(QNameInfo current) {
+        return current.name.getLocalPart().startsWith("@");
+    }
 
     private XNodeImpl readValue() throws IOException, SchemaException {
         return new JsonOtherTokenReader(ctx).readValue();
