@@ -15,7 +15,7 @@
     <parent>
         <artifactId>infra</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>4.0.3-SNAPSHOT</version>
+        <version>4.0.3</version>
     </parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -26,7 +26,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
-            <version>4.0.3-SNAPSHOT</version>
+            <version>4.0.3</version>
         </dependency>
         <!--<dependency>-->
             <!--<groupId>com.sun.xml.bind</groupId>-->

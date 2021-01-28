@@ -12,13 +12,13 @@
     <name>midPoint Tools - schema dist maven plugin</name>
     <groupId>com.evolveum.midpoint.tools</groupId>
     <artifactId>schema-dist-maven-plugin</artifactId>
-    <version>4.0.3-SNAPSHOT</version>
+    <version>4.0.3</version>
     <packaging>maven-plugin</packaging>
     <description>Utility module to compile all of the maven based midPoint projects.</description>
     <parent>
         <artifactId>tools</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>4.0.3-SNAPSHOT</version>
+        <version>4.0.3</version>
     </parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -65,7 +65,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
-            <version>4.0.3-SNAPSHOT</version>
+            <version>4.0.3</version>
         </dependency>
          <dependency>
             <groupId>org.apache.maven.plugin-tools</groupId>
