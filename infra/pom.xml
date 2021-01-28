@@ -13,7 +13,7 @@
     <parent>
         <artifactId>parent</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>4.0.3</version>
+        <version>4.0.4-SNAPSHOT</version>
         <relativePath>../build-system/pom.xml</relativePath>
     </parent>
     <organization>
@@ -68,7 +68,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>4.0.3</version>
+            <version>4.0.4-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

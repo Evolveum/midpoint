@@ -13,14 +13,14 @@
     <parent>
         <artifactId>tools</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>4.0.3</version>
+        <version>4.0.4-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.evolveum.midpoint.tools</groupId>
     <artifactId>schrodinger</artifactId>
-    <version>4.0.3</version>
+    <version>4.0.4-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>schrodinger</name>
@@ -91,7 +91,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>4.0.3</version>
+            <version>4.0.4-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

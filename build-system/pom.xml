@@ -16,7 +16,7 @@
     <parent>
         <groupId>com.evolveum.midpoint</groupId>
         <artifactId>midpoint</artifactId>
-        <version>4.0.3</version>
+        <version>4.0.4-SNAPSHOT</version>
     </parent>
     <pluginRepositories>
         <pluginRepository>
