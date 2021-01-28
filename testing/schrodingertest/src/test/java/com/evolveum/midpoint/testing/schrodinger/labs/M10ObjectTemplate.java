@@ -19,6 +19,7 @@ import com.evolveum.midpoint.schrodinger.component.configuration.ObjectPolicyTab
 import com.evolveum.midpoint.schrodinger.component.org.ManagerPanel;
 import com.evolveum.midpoint.schrodinger.component.org.OrgRootTab;
 import com.evolveum.midpoint.schrodinger.component.resource.ResourceAccountsTab;
+import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ViewResourcePage;
 import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
@@ -89,6 +90,28 @@ public class M10ObjectTemplate extends AbstractLabTest{
     @Override
     public void beforeClass() throws IOException {
         super.beforeClass();
+    }
+
+//    @Override
+//    protected List<File> getObjectListToImport(){
+//        return Arrays.asList(OBJECT_TEMPLATE_USER_FILE, ARCHETYPE_EMPLOYEE_FILE, ARCHETYPE_ORG_FUNCTIONAL_FILE, ARCHETYPE_ORG_COMPANY_FILE, ARCHETYPE_ORG_GROUP_FILE,
+//                ARCHETYPE_ORG_GROUP_LIST_FILE, KIRK_USER_TIBERIUS_FILE, INTERNAL_EMPLOYEE_ROLE_FILE);
+//    }
+
+    @Test
+    public void mod10test01SimpleObjectTemplate() throws IOException {
+        importObject(OBJECT_TEMPLATE_USER_FILE, true);
+        importObject(ARCHETYPE_EMPLOYEE_FILE, true);
+        importObject(ARCHETYPE_ORG_FUNCTIONAL_FILE, true, true);
+        importObject(ARCHETYPE_ORG_COMPANY_FILE, true);
+        importObject(ARCHETYPE_ORG_GROUP_FILE, true);
+        importObject(ARCHETYPE_ORG_GROUP_LIST_FILE, true);
+        importObject(KIRK_USER_TIBERIUS_FILE, true);
+        importObject(INTERNAL_EMPLOYEE_ROLE_FILE, true, true);
+        importObject(ORG_EXAMPLE_FILE, true);
+        importObject(ORG_SECRET_OPS_FILE, true);
+        importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE, true);
+
         hrTargetFile = new File(getTestTargetDir(), HR_FILE_SOURCE_NAME);
         FileUtils.copyFile(HR_SOURCE_FILE_7_4_PART_4, hrTargetFile);
 
@@ -100,19 +123,6 @@ public class M10ObjectTemplate extends AbstractLabTest{
 
         csv2TargetFile = new File(getTestTargetDir(), CSV_2_FILE_SOURCE_NAME);
         FileUtils.copyFile(CSV_2_SOURCE_FILE, csv2TargetFile);
-    }
-
-    @Override
-    protected List<File> getObjectListToImport(){
-        return Arrays.asList(OBJECT_TEMPLATE_USER_FILE, ARCHETYPE_EMPLOYEE_FILE, ARCHETYPE_ORG_FUNCTIONAL_FILE, ARCHETYPE_ORG_COMPANY_FILE, ARCHETYPE_ORG_GROUP_FILE,
-                ARCHETYPE_ORG_GROUP_LIST_FILE, KIRK_USER_TIBERIUS_FILE, INTERNAL_EMPLOYEE_ROLE_FILE);
-    }
-
-    @Test
-    public void mod10test01SimpleObjectTemplate() throws IOException {
-        importObject(ORG_EXAMPLE_FILE, true);
-        importObject(ORG_SECRET_OPS_FILE, true);
-        importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE, true);
 
         importObject(CSV_1_RESOURCE_FILE, true);
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
@@ -150,6 +160,11 @@ public class M10ObjectTemplate extends AbstractLabTest{
                 .clickSave()
                     .feedback()
                         .isSuccess();
+
+        basicPage.loggedUser().logout();
+        FormLoginPage loginPage = midPoint.formLogin();
+        loginPage.login(getUsername(), getPassword());
+
 
         showUser("X001212")
                 .checkReconcile()
