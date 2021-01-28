@@ -8,10 +8,13 @@
 package com.evolveum.midpoint.prism.impl.lex.json.reader;
 
 import static com.evolveum.midpoint.prism.impl.lex.json.reader.RootObjectReader.DEFAULT_NAMESPACE_MARKER;
+import static com.evolveum.midpoint.prism.impl.lex.json.JsonInfraItems.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.impl.xnode.*;
@@ -23,6 +26,8 @@ import com.evolveum.midpoint.prism.xnode.XNode;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
+import com.google.common.collect.ImmutableMap;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.impl.lex.json.JsonInfraItems;
@@ -86,6 +91,19 @@ class JsonObjectTokenReader {
      */
     private String declaredNamespace;
 
+    private static final Map<QName, InfraItemProcessor> INFRA_PROCESSORS = ImmutableMap.<QName, InfraItemProcessor>builder()
+            // Namespace definition processing
+            .put(PROP_NAMESPACE_QNAME, JsonObjectTokenReader::processNamespaceDeclaration)
+            .put(PROP_CONTEXT_QNAME, JsonObjectTokenReader::processContextDeclaration)
+
+            .put(PROP_TYPE_QNAME, JsonObjectTokenReader::processTypeDeclaration)
+            .put(PROP_VALUE_QNAME, JsonObjectTokenReader::processWrappedValue)
+
+            .put(PROP_INCOMPLETE_QNAME, JsonObjectTokenReader::processIncompleteDeclaration)
+            .put(PROP_METADATA_QNAME, JsonObjectTokenReader::processMetadataValue)
+            .put(PROP_ELEMENT_QNAME, JsonObjectTokenReader::processElementNameDeclaration)
+            .build();
+
     JsonObjectTokenReader(@NotNull JsonReadingContext ctx) {
         this.ctx = ctx;
         this.parser = ctx.parser;
@@ -147,20 +165,11 @@ class JsonObjectTokenReader {
     }
 
     private void processInfraItem(QNameInfo name, XNodeImpl value) throws SchemaException {
-        if (isNamespaceDeclaration(name)) {
-            processNamespaceDeclaration(name, value);
-        } else if (isContextDeclaration(name)) {
-            processContextDeclaration(name, value);
-        } else if (isTypeDeclaration(name)) {
-            processTypeDeclaration(name, value);
-        } else if (isElementDeclaration(name)) {
-            processElementNameDeclaration(name, value);
-        } else if (isWrappedValue(name)) {
-            processWrappedValue(name, value);
-        } else if (isMetadataValue(name)) {
-            processMetadataValue(name, value);
-        } else if (isIncompleteDeclaration(name)) {
-            processIncompleteDeclaration(name, value);
+        InfraItemProcessor processor = INFRA_PROCESSORS.get(name.name);
+        if(processor != null) {
+            processor.apply(this, name, value);
+        } else {
+            warnOrThrow("Unknown infra item " + name.name);
         }
     }
 
@@ -324,36 +333,13 @@ class JsonObjectTokenReader {
         return ctx.prismParsingContext.getEvaluationMode();
     }
 
-    // FIXME: Refactor this to dispatch map for infra values
-    private boolean isTypeDeclaration(QNameInfo currentFieldName) {
-        return JsonInfraItems.PROP_TYPE_QNAME.equals(currentFieldName.name);
-    }
-
-    private boolean isIncompleteDeclaration(QNameInfo currentFieldName) {
-        return JsonInfraItems.PROP_INCOMPLETE_QNAME.equals(currentFieldName.name);
-    }
-
-    private boolean isElementDeclaration(QNameInfo currentFieldName) {
-        return JsonInfraItems.PROP_ELEMENT_QNAME.equals(currentFieldName.name);
-    }
-
-    private boolean isNamespaceDeclaration(QNameInfo currentFieldName) {
-        return JsonInfraItems.PROP_NAMESPACE_QNAME.equals(currentFieldName.name);
-    }
-
-    private boolean isWrappedValue(QNameInfo currentFieldName) {
-        return JsonInfraItems.PROP_VALUE_QNAME.equals(currentFieldName.name);
-    }
-
-    private boolean isMetadataValue(QNameInfo currentFieldName) {
-        return JsonInfraItems.PROP_METADATA_QNAME.equals(currentFieldName.name);
-    }
-
-    private boolean isContextDeclaration(QNameInfo currentFieldName) {
-        return JsonInfraItems.PROP_CONTEXT.equals(currentFieldName.name);
-    }
-
     private void warnOrThrow(String message) throws SchemaException {
         ctx.prismParsingContext.warnOrThrow(LOGGER, message + ". At " + ctx.getPositionSuffix());
+    }
+
+    @FunctionalInterface
+    private interface InfraItemProcessor {
+
+        void apply(JsonObjectTokenReader reader, QNameInfo itemName, XNodeImpl value) throws SchemaException;
     }
 }
