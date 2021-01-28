@@ -199,9 +199,6 @@ class DomReader {
     private MapXNodeImpl readElementContentToMap(Element element, PrismNamespaceContext localNsContext) throws SchemaException {
         MapXNodeImpl xmap = new MapXNodeImpl(localNsContext);
 
-        // Namespace context
-        Map<String, String> namespaces = DOMUtil.getNamespaceDeclarations(element);
-
         // Attributes
         for (Attr attr : DOMUtil.listApplicationAttributes(element)) {
             QName attrQName = DOMUtil.getQName(attr);
@@ -327,13 +324,13 @@ class DomReader {
     // @pre element has no children nor application attributes
     private <T> PrimitiveXNodeImpl<T> parsePrimitiveElement(@NotNull Element element, PrismNamespaceContext localNsContext) {
         PrimitiveXNodeImpl<T> xnode = new PrimitiveXNodeImpl<>(localNsContext);
-        xnode.setValueParser(new ElementValueParser<>(element));
+        xnode.setValueParser(new NamespaceAwareValueParser<>(element.getTextContent(), localNsContext));
         return xnode;
     }
 
     private <T> PrimitiveXNodeImpl<T> parseAttributeValue(@NotNull Attr attr, PrismNamespaceContext localNsContext) {
         PrimitiveXNodeImpl<T> xnode = new PrimitiveXNodeImpl<>(localNsContext);
-        xnode.setValueParser(new AttributeValueParser<>(attr));
+        xnode.setValueParser(new NamespaceAwareValueParser<>(attr.getTextContent(), localNsContext));
         xnode.setAttribute(true);
         return xnode;
     }

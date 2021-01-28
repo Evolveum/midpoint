@@ -10,6 +10,7 @@ package com.evolveum.midpoint.prism;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +51,8 @@ public abstract class PrismNamespaceContext {
      * @return mapping of locally defined prefixes to namespaces
      */
     public abstract Map<String, String> localPrefixes();
+
+    public abstract Map<String, String> allPrefixes();
 
     /**
      * Returns true if context is only inherited and not explicitly defined.
@@ -168,7 +171,7 @@ public abstract class PrismNamespaceContext {
 
         @Override
         public PrismNamespaceContext inherited() {
-            return inherited();
+            return inherited;
         }
 
         @Override
@@ -233,7 +236,21 @@ public abstract class PrismNamespaceContext {
                     it.remove();
                 }
             }
-        return result;
+            return result;
+        }
+
+        @Override
+        public Map<String, String> allPrefixes() {
+            Map<String, String> prefixes = new HashMap<>();
+            Impl current = this;
+            while(current != null) {
+                for (Entry<String, String> mapping : current.localPrefixes().entrySet()) {
+                    prefixes.putIfAbsent(mapping.getKey(), mapping.getValue());
+                }
+                current = current.parent;
+
+            }
+            return prefixes;
         }
     }
 
@@ -285,6 +302,10 @@ public abstract class PrismNamespaceContext {
             return parent.prefixFor(nsQuery, pref);
         }
 
+        @Override
+        public Map<String, String> allPrefixes() {
+            return parent.allPrefixes();
+        }
     }
 
     private static class Empty extends PrismNamespaceContext {
@@ -326,8 +347,12 @@ public abstract class PrismNamespaceContext {
 
         @Override
         public PrismNamespaceContext inherited() {
-            // TODO Auto-generated method stub
-            return null;
+            return this;
+        }
+
+        @Override
+        public Map<String, String> allPrefixes() {
+            return Collections.emptyMap();
         }
 
     }

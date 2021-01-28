@@ -34,6 +34,11 @@ public class SchemaXNodeImpl extends XNodeImpl implements SchemaXNode {
     @NotNull private List<MapXNode> metadataNodes = new ArrayList<>();
 
 
+    @Deprecated
+    public SchemaXNodeImpl() {
+        super();
+    }
+
     public SchemaXNodeImpl(PrismNamespaceContext local) {
         super(local);
     }
