@@ -30,6 +30,7 @@ import com.google.common.collect.ImmutableMap;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.impl.lex.json.JsonInfraItems;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -91,18 +92,26 @@ class JsonObjectTokenReader {
      */
     private String declaredNamespace;
 
-    private static final Map<QName, InfraItemProcessor> INFRA_PROCESSORS = ImmutableMap.<QName, InfraItemProcessor>builder()
+
+    private PrismNamespaceContext context;
+
+    private boolean namespaceSensitiveStarted = false;
+
+    private static final Map<QName, ItemProcessor> PROCESSORS = ImmutableMap.<QName, ItemProcessor>builder()
             // Namespace definition processing
             .put(PROP_NAMESPACE_QNAME, JsonObjectTokenReader::processNamespaceDeclaration)
             .put(PROP_CONTEXT_QNAME, JsonObjectTokenReader::processContextDeclaration)
 
-            .put(PROP_TYPE_QNAME, JsonObjectTokenReader::processTypeDeclaration)
-            .put(PROP_VALUE_QNAME, JsonObjectTokenReader::processWrappedValue)
-
             .put(PROP_INCOMPLETE_QNAME, JsonObjectTokenReader::processIncompleteDeclaration)
-            .put(PROP_METADATA_QNAME, JsonObjectTokenReader::processMetadataValue)
-            .put(PROP_ELEMENT_QNAME, JsonObjectTokenReader::processElementNameDeclaration)
+
+            .put(PROP_TYPE_QNAME, JsonObjectTokenReader::processTypeDeclaration)
+            .put(PROP_VALUE_QNAME,namespaceSensitive(JsonObjectTokenReader::processWrappedValue))
+
+            .put(PROP_METADATA_QNAME, namespaceSensitive(JsonObjectTokenReader::processMetadataValue))
+            .put(PROP_ELEMENT_QNAME, namespaceSensitive(JsonObjectTokenReader::processElementNameDeclaration))
             .build();
+
+    private static final ItemProcessor STANDARD_PROCESSOR = namespaceSensitive(JsonObjectTokenReader::processStandardFieldValue);
 
     JsonObjectTokenReader(@NotNull JsonReadingContext ctx) {
         this.ctx = ctx;
@@ -157,24 +166,8 @@ class JsonObjectTokenReader {
     private void processFieldValue(QNameInfo name) throws IOException, SchemaException {
         assert name != null;
         XNodeImpl value = readValue();
-        if(isInfraItem(name)) {
-            processInfraItem(name,value);
-        } else {
-            processStandardFieldValue(name, value);
-        }
-    }
+        PROCESSORS.getOrDefault(name.name, STANDARD_PROCESSOR).apply(this, name, value);
 
-    private void processInfraItem(QNameInfo name, XNodeImpl value) throws SchemaException {
-        InfraItemProcessor processor = INFRA_PROCESSORS.get(name.name);
-        if(processor != null) {
-            processor.apply(this, name, value);
-        } else {
-            warnOrThrow("Unknown infra item " + name.name);
-        }
-    }
-
-    private boolean isInfraItem(QNameInfo current) {
-        return current.name.getLocalPart().startsWith("@");
     }
 
     private XNodeImpl readValue() throws IOException, SchemaException {
@@ -249,10 +242,15 @@ class JsonObjectTokenReader {
     }
 
     private void processNamespaceDeclaration(QNameInfo currentFieldName, XNodeImpl value) throws SchemaException {
+        if(namespaceSensitiveStarted) {
+            warnOrThrow("Namespace declared after other fields: " + ctx.getPositionSuffix());
+        }
         if (declaredNamespace != null) {
             warnOrThrow("Default namespace defined more than once");
         }
-        declaredNamespace = getCurrentFieldStringValue(currentFieldName, value);
+        var ns = getCurrentFieldStringValue(currentFieldName, value);
+        context = PrismNamespaceContext.of(ns);
+        declaredNamespace = ns;
     }
 
     @NotNull
@@ -262,6 +260,7 @@ class JsonObjectTokenReader {
         int haveWrapped = wrappedValue != null ? 1 : 0;
         int haveIncomplete = Boolean.TRUE.equals(incomplete) ? 1 : 0;
         XNodeImpl rv;
+
         if (haveRegular + haveWrapped + haveIncomplete > 1) {
             warnOrThrow("More than one of '" + JsonInfraItems.PROP_VALUE + "', '" + JsonInfraItems.PROP_INCOMPLETE
                 + "' and regular content present");
@@ -337,8 +336,21 @@ class JsonObjectTokenReader {
         ctx.prismParsingContext.warnOrThrow(LOGGER, message + ". At " + ctx.getPositionSuffix());
     }
 
+    private static ItemProcessor namespaceSensitive(ItemProcessor processor) {
+        return (reader, name, value) -> {
+            reader.startNamespaceSensitive();
+            processor.apply(reader, name, value);
+        };
+    }
+
+
+    private void startNamespaceSensitive() {
+        namespaceSensitiveStarted = true;
+    }
+
+
     @FunctionalInterface
-    private interface InfraItemProcessor {
+    private interface ItemProcessor {
 
         void apply(JsonObjectTokenReader reader, QNameInfo itemName, XNodeImpl value) throws SchemaException;
     }

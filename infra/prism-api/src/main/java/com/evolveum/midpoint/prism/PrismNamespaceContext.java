@@ -389,4 +389,8 @@ public abstract class PrismNamespaceContext {
         abstract List<String> apply(Impl context, String namespace);
     }
 
+    public static PrismNamespaceContext of(String ns) {
+        return from(ImmutableMap.of(DEFAULT_PREFIX, ns));
+    }
+
 }
