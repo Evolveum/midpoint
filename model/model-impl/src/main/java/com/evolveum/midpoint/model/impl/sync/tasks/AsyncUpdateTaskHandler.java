@@ -60,9 +60,9 @@ public class AsyncUpdateTaskHandler
 
         private TargetInfo targetInfo;
 
-        public TaskExecution(AsyncUpdateTaskHandler taskHandler, RunningTask localCoordinatorTask, WorkBucketType workBucket,
+        public TaskExecution(RunningTask localCoordinatorTask, WorkBucketType workBucket,
                 TaskPartitionDefinitionType partDefinition, TaskWorkBucketProcessingResult previousRunResult) {
-            super(taskHandler, localCoordinatorTask, workBucket, partDefinition, previousRunResult);
+            super(AsyncUpdateTaskHandler.this, localCoordinatorTask, workBucket, partDefinition, previousRunResult);
         }
 
         @Override
