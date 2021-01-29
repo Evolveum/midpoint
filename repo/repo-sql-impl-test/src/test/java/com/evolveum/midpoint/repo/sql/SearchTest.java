@@ -1,16 +1,15 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql;
 
 import static java.util.Collections.emptySet;
 import static org.testng.AssertJUnit.*;
 
-import static com.evolveum.midpoint.repo.api.RepoModifyOptions.createExecuteIfNoChanges;
+import static com.evolveum.midpoint.repo.api.RepoModifyOptions.createForceReindex;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 
 import java.io.File;
@@ -132,9 +131,9 @@ public class SearchTest extends BaseSQLRepoTest {
     private void iterateGeneral(int offset, int size, int batch, final String... names) throws Exception {
         OperationResult result = new OperationResult("search general");
 
-        final List<PrismObject> objects = new ArrayList<>();
+        final List<PrismObject<?>> objects = new ArrayList<>();
 
-        ResultHandler<UserType> handler = new ResultHandler<UserType>() {
+        ResultHandler<UserType> handler = new ResultHandler<>() {
 
             private int index = 0;
 
@@ -785,7 +784,7 @@ public class SearchTest extends BaseSQLRepoTest {
                         .fullText(DESCRIPTION_TO_FIND)
                         .build(),
                 false, 0);
-        repositoryService.modifyObject(UserType.class, beforeConfigOid, emptySet(), createExecuteIfNoChanges(), result);
+        repositoryService.modifyObject(UserType.class, beforeConfigOid, emptySet(), createForceReindex(), result);
         assertUsersFound(prismContext.queryFor(UserType.class)
                         .fullText(DESCRIPTION_TO_FIND)
                         .build(),

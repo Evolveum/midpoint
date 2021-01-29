@@ -12,12 +12,8 @@ import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sqale.qbean.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.QObject;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
-import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.StringItemFilterProcessor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -28,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * Mapping between {@link QObject} and {@link ObjectType}.
  */
 public abstract class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extends MObject>
-        extends QueryModelMapping<S, Q, R> {
+        extends SqaleModelMapping<S, Q, R> {
 
     protected QObjectMapping(
             @NotNull String tableName,
@@ -41,6 +37,11 @@ public abstract class QObjectMapping<S extends ObjectType, Q extends QObject<R>,
         addItemMapping(ObjectType.F_NAME,
                 PolyStringItemFilterProcessor.mapper(
                         path(q -> q.nameOrig), path(q -> q.nameNorm)));
+
+        addItemMapping(ObjectType.F_METADATA,
+                // TODO nested-mapping
+                PolyStringItemFilterProcessor.mapper(
+                        path(q -> q.nameOrig), path(q -> q.nameNorm)));
         // TODO mappings
     }
 
@@ -48,11 +49,5 @@ public abstract class QObjectMapping<S extends ObjectType, Q extends QObject<R>,
     public @NotNull Path<?>[] selectExpressions(
             Q entity, Collection<SelectorOptions<GetOperationOptions>> options) {
         return new Path[] { entity.oid, entity.fullObject };
-    }
-
-    @Override
-    public SqlTransformer<S, Q, R> createTransformer(
-            PrismContext prismContext, SqlRepoContext sqlRepoContext) {
-        return new ObjectSqlTransformer<>(prismContext, this, sqlRepoContext);
     }
 }

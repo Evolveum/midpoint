@@ -138,4 +138,5 @@ public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainer
     public boolean isExpanded() {
         return super.isExpanded();
     }
+
 }

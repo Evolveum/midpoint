@@ -10,13 +10,13 @@ import com.querydsl.core.types.Predicate;
 
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
-import com.evolveum.midpoint.repo.sqlbase.SqlPathContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 
 public class NotFilterProcessor implements FilterProcessor<NotFilter> {
 
-    private final SqlPathContext<?, ?, ?> context;
+    private final SqlQueryContext<?, ?, ?> context;
 
-    public NotFilterProcessor(SqlPathContext<?, ?, ?> context) {
+    public NotFilterProcessor(SqlQueryContext<?, ?, ?> context) {
         this.context = context;
     }
 

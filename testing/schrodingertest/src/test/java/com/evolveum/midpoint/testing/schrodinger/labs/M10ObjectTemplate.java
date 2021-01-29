@@ -19,6 +19,7 @@ import com.evolveum.midpoint.schrodinger.component.configuration.ObjectPolicyTab
 import com.evolveum.midpoint.schrodinger.component.org.ManagerPanel;
 import com.evolveum.midpoint.schrodinger.component.org.OrgRootTab;
 import com.evolveum.midpoint.schrodinger.component.resource.ResourceAccountsTab;
+import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ViewResourcePage;
 import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
@@ -45,11 +46,26 @@ import java.util.List;
 public class M10ObjectTemplate extends AbstractLabTest{
 
     protected static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M10/";
-    private static final File OBJECT_TEMPLATE_USER_SIMPLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "objectTemplate/object-template-example-user-simple.xml");
     private static final File OBJECT_TEMPLATE_USER_FILE_10_3 = new File(LAB_OBJECTS_DIRECTORY + "objectTemplate/object-template-example-user-10-3.xml");
     private static final File LOOKUP_EMP_STATUS_FILE = new File(LAB_OBJECTS_DIRECTORY + "lookupTables/lookup-emp-status.xml");
     private static final File CSV_3_RESOURCE_FILE_10_4 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-10-4.xml");
-    private static final File SYSTEM_CONFIGURATION_FILE_11_1 = new File(LAB_OBJECTS_DIRECTORY + "systemConfiguration/system-configuration-11-1.xml");
+    private static final File SYSTEM_CONFIGURATION_FILE_10 = new File(LAB_OBJECTS_DIRECTORY + "systemConfiguration/system-configuration-10.xml");
+    private static final File ARCHETYPE_EMPLOYEE_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-employee.xml");
+    private static final File ARCHETYPE_ORG_FUNCTIONAL_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-org-functional.xml");
+    private static final File ARCHETYPE_ORG_COMPANY_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-org-company.xml");
+    private static final File ARCHETYPE_ORG_GROUP_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-org-group.xml");
+    private static final File ARCHETYPE_ORG_GROUP_LIST_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-org-group-list.xml");
+    private static final File KIRK_USER_TIBERIUS_FILE = new File("./src/test/resources/labs/objects/users/kirk-tiberius-user.xml");
+    private static final File INTERNAL_EMPLOYEE_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-internal-employee.xml");
+    private static final File ORG_EXAMPLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "org/org-example.xml");
+    private static final File ORG_SECRET_OPS_FILE = new File(LAB_OBJECTS_DIRECTORY + "org/org-secret-ops.xml");
+    private static final File NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE = new File(LAB_OBJECTS_DIRECTORY + "valuePolicies/numeric-pin-first-nonzero-policy.xml");
+    private static final File CSV_1_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-10.xml");
+    private static final File CSV_3_RESOURCE_FILE_10 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-10.xml");
+    private static final File HR_RESOURCE_FILE_10 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-hr.xml");
+    private static final File HR_SYNCHRONIZATION_TASK_FILE = new File(LAB_OBJECTS_DIRECTORY + "tasks/task-opendj-livesync-full.xml");
+    private static final File OBJECT_TEMPLATE_USER_FILE = new File(LAB_OBJECTS_DIRECTORY + "objectTemplate/object-template-example-user.xml");
+    private static final File CSV_2_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-2-canteen-10.xml");
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextBeforeTestClass" })
     @Override
@@ -74,6 +90,28 @@ public class M10ObjectTemplate extends AbstractLabTest{
     @Override
     public void beforeClass() throws IOException {
         super.beforeClass();
+    }
+
+//    @Override
+//    protected List<File> getObjectListToImport(){
+//        return Arrays.asList(OBJECT_TEMPLATE_USER_FILE, ARCHETYPE_EMPLOYEE_FILE, ARCHETYPE_ORG_FUNCTIONAL_FILE, ARCHETYPE_ORG_COMPANY_FILE, ARCHETYPE_ORG_GROUP_FILE,
+//                ARCHETYPE_ORG_GROUP_LIST_FILE, KIRK_USER_TIBERIUS_FILE, INTERNAL_EMPLOYEE_ROLE_FILE);
+//    }
+
+    @Test
+    public void mod10test01SimpleObjectTemplate() throws IOException {
+        importObject(OBJECT_TEMPLATE_USER_FILE, true);
+        importObject(ARCHETYPE_EMPLOYEE_FILE, true);
+        importObject(ARCHETYPE_ORG_FUNCTIONAL_FILE, true, true);
+        importObject(ARCHETYPE_ORG_COMPANY_FILE, true);
+        importObject(ARCHETYPE_ORG_GROUP_FILE, true);
+        importObject(ARCHETYPE_ORG_GROUP_LIST_FILE, true);
+        importObject(KIRK_USER_TIBERIUS_FILE, true);
+        importObject(INTERNAL_EMPLOYEE_ROLE_FILE, true, true);
+        importObject(ORG_EXAMPLE_FILE, true);
+        importObject(ORG_SECRET_OPS_FILE, true);
+        importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE, true);
+
         hrTargetFile = new File(getTestTargetDir(), HR_FILE_SOURCE_NAME);
         FileUtils.copyFile(HR_SOURCE_FILE_7_4_PART_4, hrTargetFile);
 
@@ -85,37 +123,19 @@ public class M10ObjectTemplate extends AbstractLabTest{
 
         csv2TargetFile = new File(getTestTargetDir(), CSV_2_FILE_SOURCE_NAME);
         FileUtils.copyFile(CSV_2_SOURCE_FILE, csv2TargetFile);
-    }
-
-    @Override
-    protected List<File> getObjectListToImport(){
-        return Arrays.asList(ARCHETYPE_EMPLOYEE_FILE, ARCHETYPE_ORG_FUNCTIONAL_FILE, ARCHETYPE_ORG_COMPANY_FILE, ARCHETYPE_ORG_GROUP_FILE,
-                ARCHETYPE_ORG_GROUP_LIST_FILE, KIRK_USER_TIBERIUS_FILE, INTERNAL_EMPLOYEE_ROLE_FILE);
-    }
-
-    @Test
-    public void mod10test01SimpleObjectTemplate() throws IOException {
-        importObject(OBJECT_TEMPLATE_USER_SIMPLE_FILE, true);
-        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        importObject(ORG_EXAMPLE_FILE, true);
-        importObject(ORG_SECRET_OPS_FILE, true);
-        importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE, true);
-        csv1TargetFile = new File(getTestTargetDir(), CSV_1_FILE_SOURCE_NAME);
-        FileUtils.copyFile(CSV_1_SOURCE_FILE, csv1TargetFile);
 
         importObject(CSV_1_RESOURCE_FILE, true);
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
 
-        csv3TargetFile = new File(getTestTargetDir(), CSV_3_FILE_SOURCE_NAME);
-        FileUtils.copyFile(CSV_3_SOURCE_FILE, csv3TargetFile);
+        importObject(CSV_2_RESOURCE_FILE, true);
+        changeResourceAttribute(CSV_2_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv2TargetFile.getAbsolutePath(), true);
 
-        importObject(CSV_3_RESOURCE_FILE_8_1, true);
+        importObject(CSV_3_RESOURCE_FILE_10, true);
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
 
         hrTargetFile = new File(getTestTargetDir(), HR_FILE_SOURCE_NAME);
         FileUtils.copyFile(HR_SOURCE_FILE_7_4_PART_4, hrTargetFile);
-        importObject(HR_RESOURCE_FILE_8_1, true);
+        importObject(HR_RESOURCE_FILE_10, true);
         changeResourceAttribute(HR_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, hrTargetFile.getAbsolutePath(), true);
 
         addObjectFromFile(HR_SYNCHRONIZATION_TASK_FILE);
@@ -140,6 +160,11 @@ public class M10ObjectTemplate extends AbstractLabTest{
                 .clickSave()
                     .feedback()
                         .isSuccess();
+
+        basicPage.loggedUser().logout();
+        FormLoginPage loginPage = midPoint.formLogin();
+        loginPage.login(getUsername(), getPassword());
+
 
         showUser("X001212")
                 .checkReconcile()
@@ -182,7 +207,6 @@ public class M10ObjectTemplate extends AbstractLabTest{
 
     @Test(dependsOnMethods = {"mod10test01SimpleObjectTemplate"})
     public void mod10test02AutomaticAssignments() throws IOException {
-        addObjectFromFile(OBJECT_TEMPLATE_USER_FILE);
         importObject(ORG_EXAMPLE_FILE, true);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
 
@@ -407,7 +431,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
         notificationFile = new File(getTestTargetDir(), NOTIFICATION_FILE_NAME);
         notificationFile.createNewFile();
 
-        addObjectFromFile(SYSTEM_CONFIGURATION_FILE_11_1);
+        addObjectFromFile(SYSTEM_CONFIGURATION_FILE_10);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
 
         basicPage.notifications()

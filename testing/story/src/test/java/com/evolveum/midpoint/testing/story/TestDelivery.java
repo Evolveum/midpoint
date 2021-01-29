@@ -7,13 +7,21 @@
 
 package com.evolveum.midpoint.testing.story;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.asserter.ShadowAsserter;
+import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
@@ -27,6 +35,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.Arrays;
 
@@ -113,6 +122,22 @@ public class TestDelivery extends AbstractStoryTest {
     private static final File USER_LECHUCK_FILE = new File(USERS_DIR, "lechuck.xml");
     private static String userLechuckOid;
 
+    private static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
+    private static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000000";
+
+    private static final File ROLE_OPENDJ_FILE = new File(ROLES_DIR, "role-opendj.xml");
+    private static final String ROLE_OPENDJ_OID = "34713dae-0000-4717-b184-86d02c9a2361";
+
+    protected ResourceType resourceOpenDjType;
+    protected PrismObject<ResourceType> resourceOpenDj;
+
+    private static final QName ATTR_JPEG_PHOTO = new QName(MidPointConstants.NS_RI, "jpegPhoto");
+
+    @Override
+    protected void startResources() throws Exception {
+        openDJController.startCleanServer();
+    }
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -154,6 +179,13 @@ public class TestDelivery extends AbstractStoryTest {
         userElaineOid = addAndRecomputeUser(USER_ELAINE_FILE, initTask, initResult);
         userGuybrushOid = addAndRecomputeUser(USER_GUYBRUSH_FILE, initTask, initResult);
         userLechuckOid = addAndRecomputeUser(USER_LECHUCK_FILE, initTask, initResult);
+
+        resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE,
+                RESOURCE_OPENDJ_OID, initTask, initResult);
+        resourceOpenDjType = resourceOpenDj.asObjectable();
+        openDJController.setResource(resourceOpenDj);
+
+        repoAddObjectFromFile(ROLE_OPENDJ_FILE, initResult);
 
         DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
 
@@ -305,6 +337,67 @@ public class TestDelivery extends AbstractStoryTest {
         waitForCaseClose(rootCase, 60000);
         assertAssignedRole(userBarkeeperOid, roleIt5Oid, result);
     }
+
+    private String bobShadowOid;
+
+    @Test
+    public void test200assignOpenDJBob() throws Exception {
+        displayTestTitle(getTestName());
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        assignRole(userBobOid, ROLE_OPENDJ_OID);
+
+        PrismObject<UserType> userBobAfter = modelService.getObject(UserType.class, userBobOid, getOperationOptionsBuilder().item(UserType.F_JPEG_PHOTO).retrieve().build(), task, result);
+        assertUser(userBobAfter, "after")
+                .assertLinks(1)
+                .assignments()
+                    .assertRole(ROLE_OPENDJ_OID);
+
+        PrismObject<ShadowType> shadow = findShadowByNameViaModel(ShadowKindType.ACCOUNT, "default", "uid=bob,ou=People,dc=example,dc=com", resourceOpenDj, null, task, result);
+        assertNotNull(shadow);
+        bobShadowOid = shadow.getOid();
+        new ShadowAsserter(shadow).attributes().assertNoAttribute(ATTR_JPEG_PHOTO);
+
+    }
+
+    @Test
+    public void test210addUserPhoto() throws Exception {
+        displayTestTitle(getTestName());
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserAdd(userBobOid, UserType.F_JPEG_PHOTO, task, result, "SGVsbG8=".getBytes());
+        assertResultStatus(result, OperationResultStatus.SUCCESS);
+
+        PrismObject<UserType> userBobAfter = modelService.getObject(UserType.class, userBobOid, getOperationOptionsBuilder().item(UserType.F_JPEG_PHOTO).retrieve().build(), task, result);
+        assertUser(userBobAfter, "after")
+                .assertJpegPhoto("SGVsbG8=".getBytes())
+                .assertLinks(1);
+
+        PrismObject<ShadowType> shadow = findShadowByNameViaModel(ShadowKindType.ACCOUNT, "default", "uid=bob,ou=People,dc=example,dc=com", resourceOpenDj, null, task, result);
+        new ShadowAsserter(shadow)
+                .attributes()
+                    .attribute(ATTR_JPEG_PHOTO)
+                        .assertSize(1);
+
+
+    }
+
+    @Test
+    public void test220previewRecomputeBob() throws Exception {
+        displayTestTitle(getTestName());
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        ModelContext<UserType> previewContext = previewChanges(prismContext.deltaFor(UserType.class).asObjectDelta(userBobOid), ModelExecuteOptions.create(prismContext).reconcile(), task, result);
+        assertPreviewContext(previewContext).projectionContexts().by().shadowOid(bobShadowOid).find().assertNoSecondaryDelta();
+    }
+
+
 
     @NotNull
     public CaseType getRootCase(OperationResult result) throws ObjectNotFoundException, SchemaException {

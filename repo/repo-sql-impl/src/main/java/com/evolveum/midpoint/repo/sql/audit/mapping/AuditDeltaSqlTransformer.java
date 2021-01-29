@@ -8,13 +8,13 @@ package com.evolveum.midpoint.repo.sql.audit.mapping;
 
 import com.querydsl.sql.SQLServerTemplates;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.audit.AuditSqlTransformerBase;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditDelta;
 import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditDelta;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
@@ -27,9 +27,9 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class AuditDeltaSqlTransformer
         extends AuditSqlTransformerBase<ObjectDeltaOperationType, QAuditDelta, MAuditDelta> {
 
-    public AuditDeltaSqlTransformer(PrismContext prismContext,
+    public AuditDeltaSqlTransformer(SqlTransformerContext sqlTransformerContext,
             QAuditDeltaMapping mapping, SqlRepoContext sqlRepoContext) {
-        super(prismContext, mapping, sqlRepoContext);
+        super(sqlTransformerContext, mapping, sqlRepoContext);
     }
 
     public ObjectDeltaOperationType toSchemaObject(MAuditDelta row) throws SchemaException {
@@ -39,16 +39,16 @@ public class AuditDeltaSqlTransformer
             String serializedDelta =
                     RUtil.getSerializedFormFromBytes(row.delta, usingSqlServer);
 
-            ObjectDeltaType delta = prismContext.parserFor(serializedDelta)
-                    .parseRealValue(ObjectDeltaType.class);
+            ObjectDeltaType delta = transformerContext.parseRealValue(
+                    serializedDelta, ObjectDeltaType.class);
             odo.setObjectDelta(delta);
         }
         if (row.fullResult != null) {
             String serializedResult =
                     RUtil.getSerializedFormFromBytes(row.fullResult, usingSqlServer);
 
-            OperationResultType resultType = prismContext.parserFor(serializedResult)
-                    .parseRealValue(OperationResultType.class);
+            OperationResultType resultType = transformerContext.parseRealValue(
+                    serializedResult, OperationResultType.class);
             odo.setExecutionResult(resultType);
         }
         if (row.objectNameOrig != null || row.objectNameNorm != null) {

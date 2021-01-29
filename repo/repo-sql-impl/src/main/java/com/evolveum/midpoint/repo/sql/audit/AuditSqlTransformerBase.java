@@ -13,9 +13,9 @@ import com.querydsl.sql.ColumnMetadata;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -28,13 +28,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 public abstract class AuditSqlTransformerBase<S, Q extends FlexibleRelationalPathBase<R>, R>
         implements SqlTransformer<S, Q, R> {
 
-    protected final PrismContext prismContext;
+    protected final SqlTransformerContext transformerContext;
     protected final QueryModelMapping<S, Q, R> mapping;
     protected final SqlRepoContext sqlRepoContext;
 
-    protected AuditSqlTransformerBase(PrismContext prismContext,
+    protected AuditSqlTransformerBase(SqlTransformerContext transformerContext,
             QueryModelMapping<S, Q, R> mapping, SqlRepoContext sqlRepoContext) {
-        this.prismContext = prismContext;
+        this.transformerContext = transformerContext;
         this.mapping = mapping;
         this.sqlRepoContext = sqlRepoContext;
     }
@@ -71,8 +71,7 @@ public abstract class AuditSqlTransformerBase<S, Q extends FlexibleRelationalPat
 
         return new ObjectReferenceType()
                 .oid(oid)
-                .type(prismContext.getSchemaRegistry().determineTypeForClass(
-                        repoObjectType.getJaxbClass()))
+                .type(transformerContext.schemaClassToQName(repoObjectType.getJaxbClass()))
                 .description(targetName)
                 .targetName(targetName);
     }

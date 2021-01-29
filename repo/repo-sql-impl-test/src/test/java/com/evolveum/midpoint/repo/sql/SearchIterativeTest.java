@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql;
 
 import static org.testng.AssertJUnit.*;
@@ -22,7 +21,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -75,7 +74,7 @@ public class SearchIterativeTest extends BaseSQLRepoTest {
         repositoryService.searchObjectsIterative(UserType.class, null, handler, null, true, result);
         result.recomputeStatus();
 
-        asserter.assertIncrement(COUNT / BATCH + 1);            // extra search is to make sure no other objects are there
+        asserter.assertIncrement(COUNT / BATCH + 1); // extra search is to make sure no other objects are there
 
         assertTrue(result.isSuccess());
         assertObjects(objects, COUNT);
@@ -123,7 +122,7 @@ public class SearchIterativeTest extends BaseSQLRepoTest {
         repositoryService.searchObjectsIterative(UserType.class, query, handler, null, true, result);
         result.recomputeStatus();
 
-        asserter.assertIncrement(2);            // assuming 50 + 20
+        asserter.assertIncrement(2); // assuming 50 + 20
 
         assertTrue(result.isSuccess());
         assertObjects(objects, 70);
@@ -147,7 +146,7 @@ public class SearchIterativeTest extends BaseSQLRepoTest {
         repositoryService.searchObjectsIterative(UserType.class, query, handler, null, true, result);
         result.recomputeStatus();
 
-        countOpAsserter.assertIncrement(1);         // repo had to switch to simple paging
+        countOpAsserter.assertIncrement(1); // repo had to switch to simple paging
         searchOpAsserter.assertIncrement(COUNT / BATCH);
 
         assertTrue(result.isSuccess());

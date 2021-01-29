@@ -1,11 +1,34 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.assignment;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.head.CssHeaderItem;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.resource.PackageResourceReference;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -27,12 +50,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -43,7 +61,6 @@ import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
-import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
@@ -51,32 +68,6 @@ import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.head.CssHeaderItem;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.resource.PackageResourceReference;
-
-import javax.xml.namespace.QName;
-
-import java.util.*;
-
-/**
- * @author lazyman
- */
 public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     private static final long serialVersionUID = 1L;
 
@@ -95,7 +86,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     private static final String ID_TYPE_IMAGE = "typeImage";
     private static final String ID_NAME_LABEL = "nameLabel";
     private static final String ID_NAME = "name";
-//    private static final String ID_ACTIVATION = "activation";
+    //    private static final String ID_ACTIVATION = "activation";
     private static final String ID_ACTIVATION_BLOCK = "activationBlock";
     private static final String ID_EXPAND = "expand";
     private static final String ID_REMOVE_BUTTON = "removeButton";
@@ -121,7 +112,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     private static final String ID_TENANT_CHOOSER = "tenantRefChooser";
     private static final String ID_CONTAINER_ORG_REF = "orgRefContainer";
     private static final String ID_ORG_CHOOSER = "orgRefChooser";
-//    private static final String ID_BUTTON_SHOW_MORE = "errorLink";
+    //    private static final String ID_BUTTON_SHOW_MORE = "errorLink";
 //    private static final String ID_ERROR_ICON = "errorIcon";
     private static final String ID_METADATA_CONTAINER = "metadataContainer";
     private static final String ID_PROPERTY_CONTAINER = "propertyContainer";
@@ -142,13 +133,12 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         this.privilegesListModel = privilegesListModel;
         this.delegatedToMe = delegatedToMe;
 
-
     }
 
     public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model) {
         super(id, model);
 
-        attributesModel = new LoadableModel<List<ACAttributeDto>>(false) {
+        attributesModel = new LoadableModel<>(false) {
             @Override
             protected List<ACAttributeDto> load() {
                 return loadAttributes();
@@ -157,7 +147,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         initDecisionsModel();
         initLayout();
@@ -195,7 +185,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         initBodyLayout(body);
     }
 
-    protected void initHeaderRow(){
+    protected void initHeaderRow() {
         AjaxCheckBox selected = new AjaxCheckBox(ID_SELECTED,
                 new PropertyModel<>(getModel(), AssignmentEditorDto.F_SELECTED)) {
             private static final long serialVersionUID = 1L;
@@ -205,9 +195,9 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 // do we want to update something?
             }
         };
-        selected.add(new VisibleEnableBehaviour(){
+        selected.add(new VisibleEnableBehaviour() {
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return !getModel().getObject().isSimpleView();
             }
         });
@@ -217,18 +207,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         typeImage.add(AttributeModifier.append("class", createImageTypeModel(getModel())));
         headerRow.add(typeImage);
 
-//        Label errorIcon = new Label(ID_ERROR_ICON);
-//        errorIcon.add(new VisibleEnableBehaviour() {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public boolean isVisible() {
-//                return !isTargetValid();
-//            }
-//        });
-//        headerRow.add(errorIcon);
-
-        AjaxLink<Void> name = new AjaxLink<Void>(ID_NAME) {
+        AjaxLink<Void> name = new AjaxLink<>(ID_NAME) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -238,32 +217,11 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         };
         headerRow.add(name);
 
-//        AjaxLink<Void> errorLink = new AjaxLink<Void>(ID_BUTTON_SHOW_MORE) {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                showErrorPerformed(target);
-//            }
-//        };
-//        errorLink.add(new VisibleEnableBehaviour() {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public boolean isVisible() {
-//                return !isTargetValid();
-//            }
-//        });
-//        headerRow.add(errorLink);
-
         Label nameLabel = new Label(ID_NAME_LABEL, createAssignmentNameLabelModel(false));
         nameLabel.setOutputMarkupId(true);
         name.add(nameLabel);
 
-//        Label activation = new Label(ID_ACTIVATION, AssignmentsUtil.createActivationTitleModel(getModel().getObject().getActivation(), "-", getPageBase()));
-//        headerRow.add(activation);
-
-        ToggleIconButton<Void> expandButton = new ToggleIconButton<Void>(ID_EXPAND, GuiStyleConstants.CLASS_ICON_EXPAND,
+        ToggleIconButton<Void> expandButton = new ToggleIconButton<>(ID_EXPAND, GuiStyleConstants.CLASS_ICON_EXPAND,
                 GuiStyleConstants.CLASS_ICON_COLLAPSE) {
             private static final long serialVersionUID = 1L;
 
@@ -294,7 +252,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     }
 
     protected IModel<String> createAssignmentNameLabelModel(final boolean isManager) {
-        return new IModel<String>() {
+        return new IModel<>() {
 
             @Override
             public String getObject() {
@@ -319,19 +277,6 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         };
     }
 
-    private boolean isTargetValid() {
-
-        if (getModel() != null && getModel().getObject() != null) {
-            AssignmentEditorDto dto = getModelObject();
-
-            if (dto.getName() == null && dto.getAltName() == null) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     protected IModel<String> createHeaderClassModel(final IModel<AssignmentEditorDto> model) {
         return AssignmentsUtil.createAssignmentStatusClassModel(model.getObject().getStatus());
     }
@@ -343,18 +288,18 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
         WebMarkupContainer descriptionContainer = new WebMarkupContainer(ID_DESCRIPTION_CONTAINER);
         descriptionContainer.setOutputMarkupId(true);
-        descriptionContainer.add(new VisibleEnableBehaviour(){
+        descriptionContainer.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return isItemAllowed(ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION));
             }
         });
         body.add(descriptionContainer);
 
         TextArea<String> description = new TextArea<>(ID_DESCRIPTION,
-                new PropertyModel<String>(getModel(), AssignmentEditorDto.F_DESCRIPTION));
+                new PropertyModel<>(getModel(), AssignmentEditorDto.F_DESCRIPTION));
         description.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
@@ -373,7 +318,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
             @Override
             public boolean isVisible() {
                 if (!isItemAllowed(ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF,
-                        ObjectReferenceType.F_RELATION))){
+                        ObjectReferenceType.F_RELATION))) {
                     return false;
                 }
                 AssignmentEditorDto dto = getModel().getObject();
@@ -393,11 +338,11 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
         WebMarkupContainer focusTypeContainer = new WebMarkupContainer(ID_FOCUS_TYPE_CONTAINER);
         focusTypeContainer.setOutputMarkupId(true);
-        focusTypeContainer.add(new VisibleEnableBehaviour(){
+        focusTypeContainer.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return isItemAllowed(ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_FOCUS_TYPE));
             }
         });
@@ -437,31 +382,31 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         relationContainer.add(relationLabel);
 
         WebMarkupContainer tenantRefContainer = createTenantContainer();
-        tenantRefContainer.add(new VisibleEnableBehaviour(){
+        tenantRefContainer.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return isItemAllowed(ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_TENANT_REF));
             }
         });
         body.add(tenantRefContainer);
 
         WebMarkupContainer orgRefContainer = createOrgContainer();
-        orgRefContainer.add(new VisibleEnableBehaviour(){
+        orgRefContainer.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return isItemAllowed(ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_ORG_REF));
             }
         });
         body.add(orgRefContainer);
-        propertyContainer.add(new VisibleEnableBehaviour(){
+        propertyContainer.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return isItemAllowed(ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION))
                         || isItemAllowed(ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF,
                         ObjectReferenceType.F_RELATION))
@@ -493,11 +438,11 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 new PropertyModel<ActivationStatusType>(getModel(), AssignmentEditorDto.F_ACTIVATION + "."
                         + ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart()),
                 this);
-        administrativeStatus.add(new VisibleEnableBehaviour(){
+        administrativeStatus.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isEnabled(){
+            public boolean isEnabled() {
                 return getModel().getObject().isEditable();
             }
         });
@@ -519,11 +464,11 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         DateInput validFrom = new DateInput(ID_VALID_FROM,
                 AssignmentsUtil.createDateModel(new PropertyModel<>(getModel(),
                         AssignmentEditorDto.F_ACTIVATION + ".validFrom")));
-        validFrom.add(new VisibleEnableBehaviour(){
+        validFrom.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isEnabled(){
+            public boolean isEnabled() {
                 return getModel().getObject().isEditable();
             }
         });
@@ -545,11 +490,11 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         DateInput validTo = new DateInput(ID_VALID_TO,
                 AssignmentsUtil.createDateModel(new PropertyModel<>(getModel(),
                         AssignmentEditorDto.F_ACTIVATION + ".validTo")));
-        validTo.add(new VisibleEnableBehaviour(){
+        validTo.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isEnabled(){
+            public boolean isEnabled() {
                 return getModel().getObject().isEditable();
             }
         });
@@ -564,14 +509,12 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
             }
         });
 
-
-
         WebMarkupContainer targetContainer = new WebMarkupContainer(ID_TARGET_CONTAINER);
         targetContainer.add(new VisibleEnableBehaviour() {
 
             @Override
             public boolean isVisible() {
-                if (!isItemAllowed(ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))){
+                if (!isItemAllowed(ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))) {
                     return false;
                 }
                 AssignmentEditorDto dto = getModel().getObject();
@@ -594,7 +537,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         });
         body.add(constructionContainer);
 
-        AjaxLink<Void> showEmpty = new AjaxLink<Void>(ID_SHOW_EMPTY) {
+        AjaxLink<Void> showEmpty = new AjaxLink<>(ID_SHOW_EMPTY) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -611,10 +554,10 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
         Component metadataPanel;
         if (UserDtoStatus.ADD.equals(getModel().getObject().getStatus()) ||
-                getModelObject().getOldValue().asContainerable() == null){
+                getModelObject().getOldValue().asContainerable() == null) {
             metadataPanel = new WebMarkupContainer(ID_METADATA_CONTAINER);
         } else {
-            metadataPanel = new MetadataPanel(ID_METADATA_CONTAINER, new IModel<MetadataType>() {
+            metadataPanel = new MetadataPanel(ID_METADATA_CONTAINER, new IModel<>() {
                 @Override
                 public MetadataType getObject() {
                     return getModelObject().getOldValue().getValue().getMetadata();
@@ -622,9 +565,9 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
             }, "", "row");
         }
         metadataPanel.setOutputMarkupId(true);
-        metadataPanel.add(new VisibleEnableBehaviour(){
+        metadataPanel.add(new VisibleEnableBehaviour() {
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return !UserDtoStatus.ADD.equals(getModel().getObject().getStatus());
             }
         });
@@ -633,19 +576,10 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         WebComponentUtil.addAjaxOnUpdateBehavior(body);
     }
 
-    private void updateAssignmentName(AjaxRequestTarget target, Boolean isManager){
-
-        Label nameLabel = new Label(ID_NAME_LABEL, createAssignmentNameLabelModel(isManager));
-        nameLabel.setOutputMarkupId(true);
-        AjaxLink name = (AjaxLink) get(createComponentPath(ID_HEADER_ROW, ID_NAME));
-        name.addOrReplace(nameLabel);
-        target.add(name);
-    }
-
     private WebMarkupContainer createTenantContainer() {
         WebMarkupContainer tenantRefContainer = new WebMarkupContainer(ID_CONTAINER_TENANT_REF);
-        ChooseTypePanel tenantRef = new ChooseTypePanel(ID_TENANT_CHOOSER,
-                new PropertyModel<ObjectViewDto>(getModel(), AssignmentEditorDto.F_TENANT_REF)) {
+        ChooseTypePanel<?> tenantRef = new ChooseTypePanel<>(ID_TENANT_CHOOSER,
+                new PropertyModel<>(getModel(), AssignmentEditorDto.F_TENANT_REF)) {
 
             @Override
             protected ObjectQuery getChooseQuery() {
@@ -685,8 +619,8 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
     private WebMarkupContainer createOrgContainer() {
         WebMarkupContainer tenantRefContainer = new WebMarkupContainer(ID_CONTAINER_ORG_REF);
-        ChooseTypePanel tenantRef = new ChooseTypePanel(ID_ORG_CHOOSER,
-                new PropertyModel<ObjectViewDto>(getModel(), AssignmentEditorDto.F_ORG_REF)) {
+        ChooseTypePanel<?> tenantRef = new ChooseTypePanel<>(ID_ORG_CHOOSER,
+                new PropertyModel<>(getModel(), AssignmentEditorDto.F_ORG_REF)) {
 
             @Override
             protected ObjectQuery getChooseQuery() {
@@ -725,7 +659,6 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         return tenantRefContainer;
     }
 
-
     private void initAttributesLayout(WebMarkupContainer constructionContainer) {
         WebMarkupContainer attributes = new WebMarkupContainer(ID_ATTRIBUTES);
         attributes.setOutputMarkupId(true);
@@ -740,7 +673,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         attributes.setEnabled(getModel().getObject().isEditable());
         constructionContainer.add(attributes);
 
-        ListView<ACAttributeDto> attribute = new ListView<ACAttributeDto>(ID_ATTRIBUTE, attributesModel) {
+        ListView<ACAttributeDto> attribute = new ListView<>(ID_ATTRIBUTE, attributesModel) {
 
             @Override
             protected void populateItem(ListItem<ACAttributeDto> listItem) {
@@ -770,7 +703,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     }
 
     private IModel<String> createShowEmptyLabel() {
-        return new IModel<String>() {
+        return new IModel<>() {
 
             @Override
             public String getObject() {
@@ -829,21 +762,19 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 LOGGER.trace("Refined definition for {}\n{}", construction, definition.debugDump());
             }
 
-            List<ResourceAttributeDefinitionType> attrConstructions = construction.getAttribute();
-
-            Collection<ItemDefinition> definitions = definition.getDefinitions();
-            for (ItemDefinition attrDef : definitions) {
+            Collection<ItemDefinition<?>> definitions = definition.getDefinitions();
+            for (ItemDefinition<?> attrDef : definitions) {
                 if (!(attrDef instanceof PrismPropertyDefinition)) {
                     // log skipping or something...
                     continue;
                 }
 
-                PrismPropertyDefinition propertyDef = (PrismPropertyDefinition) attrDef;
+                PrismPropertyDefinition<?> propertyDef = (PrismPropertyDefinition<?>) attrDef;
                 if (propertyDef.isOperational() || propertyDef.isIgnored()) {
                     continue;
                 }
                 attributes.add(ACAttributeDto.createACAttributeDto(propertyDef,
-                        findOrCreateValueConstruction(propertyDef, attrConstructions), prismContext));
+                        findOrCreateValueConstruction(propertyDef), prismContext));
             }
             result.recordSuccess();
         } catch (Exception ex) {
@@ -853,19 +784,13 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
             result.recomputeStatus();
         }
 
-        Collections.sort(attributes, new Comparator<ACAttributeDto>() {
-
-            @Override
-            public int compare(ACAttributeDto a1, ACAttributeDto a2) {
-                return String.CASE_INSENSITIVE_ORDER.compare(a1.getName(), a2.getName());
-            }
-        });
-
+        attributes.sort((a1, a2) ->
+                String.CASE_INSENSITIVE_ORDER.compare(a1.getName(), a2.getName()));
 
         if (dto.getAttributes() != null && !dto.getAttributes().isEmpty()) {
             for (ACAttributeDto assignmentAttribute : dto.getAttributes()) {
-                for (ACAttributeDto attributeDto : attributes){
-                    if (attributeDto.getName().equals(assignmentAttribute.getName())){
+                for (ACAttributeDto attributeDto : attributes) {
+                    if (attributeDto.getName().equals(assignmentAttribute.getName())) {
                         attributes.set(attributes.indexOf(attributeDto), assignmentAttribute);
                         continue;
                     }
@@ -904,14 +829,8 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         return target;
     }
 
-    private ResourceAttributeDefinitionType findOrCreateValueConstruction(PrismPropertyDefinition attrDef,
-            List<ResourceAttributeDefinitionType> attrConstructions) {
-        for (ResourceAttributeDefinitionType construction : attrConstructions) {
-            if (attrDef.getItemName().equals(construction.getRef())) {
-                return construction;
-            }
-        }
-
+    private ResourceAttributeDefinitionType findOrCreateValueConstruction(
+            PrismPropertyDefinition<?> attrDef) {
         ResourceAttributeDefinitionType construction = new ResourceAttributeDefinitionType();
         construction.setRef(new ItemPathType(ItemPath.create(attrDef.getItemName())));
 
@@ -919,7 +838,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     }
 
     protected IModel<String> createImageTypeModel(final IModel<AssignmentEditorDto> model) {
-        return new IModel<String>() {
+        return new IModel<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -954,7 +873,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     }
 
     protected IModel<String> createTargetModel() {
-        return new LoadableModel<String>(false) {
+        return new LoadableModel<>(false) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -978,28 +897,28 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         };
     }
 
-    private void addRelationDropDown(WebMarkupContainer relationContainer){
+    private void addRelationDropDown(WebMarkupContainer relationContainer) {
         QName assignmentRelation = getModelObject().getTargetRef() != null ? getModelObject().getTargetRef().getRelation() : null;
 
         RelationDropDownChoicePanel relationDropDown = new RelationDropDownChoicePanel(ID_RELATION,
-                assignmentRelation != null ? assignmentRelation : WebComponentUtil.getDefaultRelationOrFail(), getSupportedRelations(), false){
+                assignmentRelation != null ? assignmentRelation : WebComponentUtil.getDefaultRelationOrFail(), getSupportedRelations(), false) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void onValueChanged(AjaxRequestTarget target){
+            protected void onValueChanged(AjaxRequestTarget target) {
                 ObjectReferenceType ref = AssignmentEditorPanel.this.getModelObject().getTargetRef();
-                if (ref != null){
+                if (ref != null) {
                     ref.setRelation(getRelationValue());
                 }
             }
 
             @Override
-            protected IModel<String> getRelationLabelModel(){
+            protected IModel<String> getRelationLabelModel() {
                 return Model.of();
             }
 
             @Override
-            protected boolean isRelationDropDownEnabled(){
+            protected boolean isRelationDropDownEnabled() {
                 return isRelationEditable();
             }
         };
@@ -1016,7 +935,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
     }
 
-    protected boolean isRelationEditable(){
+    protected boolean isRelationEditable() {
         return getModel().getObject().isEditable();
     }
 
@@ -1024,7 +943,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         OperationResult result = new OperationResult("Relations for self service area");
         AssignmentConstraintsType constraints = AssignmentEditorPanel.this.getModelObject().getDefaultAssignmentConstraints();
         if (constraints == null ||
-                constraints.isAllowSameTarget() && constraints.isAllowSameRelation()){
+                constraints.isAllowSameTarget() && constraints.isAllowSameRelation()) {
             return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE, getPageBase());
         } else {
             return getModelObject().getNotAssignedRelationsList();
@@ -1110,12 +1029,12 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         return UserDtoStatus.ADD.equals(getModelObject().getStatus());
     }
 
-    protected boolean ignoreMandatoryAttributes(){
+    protected boolean ignoreMandatoryAttributes() {
         return false;
     }
 
     private void initDecisionsModel() {
-        itemSecurityConstraintsModel = new LoadableDetachableModel<ItemSecurityConstraints>() {
+        itemSecurityConstraintsModel = new LoadableDetachableModel<>() {
             @Override
             protected ItemSecurityConstraints load() {
                 return loadSecurityConstraints();
@@ -1135,14 +1054,14 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
     private ItemSecurityConstraints loadSecurityConstraints() {
         PageBase pageBase = getPageBase();
-        if (pageBase == null || getModelObject().getTargetRef() == null){
+        if (pageBase == null || getModelObject().getTargetRef() == null) {
             return null;
         }
         PrismObject<? extends FocusType> operationObject = null;
         if (pageBase instanceof PageAdminFocus) {
-            operationObject = ((PageAdminFocus)pageBase).getObjectWrapper().getObject();
+            operationObject = ((PageAdminFocus) pageBase).getObjectWrapper().getObject();
         } else if ((pageBase instanceof PageAssignmentDetails || pageBase instanceof PageAssignmentsList) //shopping cart assignment details panels
-                && !pageBase.getSessionStorage().getRoleCatalog().isMultiUserRequest()){
+                && !pageBase.getSessionStorage().getRoleCatalog().isMultiUserRequest()) {
             String targetUserOid = pageBase.getSessionStorage().getRoleCatalog().isSelfRequest() ?
                     pageBase.getPrincipalFocus().getOid() :
                     pageBase.getSessionStorage().getRoleCatalog().getTargetUserOidsList().get(0);
@@ -1166,15 +1085,14 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
             constraints =
                     pageBase.getModelInteractionService().getAllowedRequestAssignmentItems(operationObject, targetRefObject, task, result);
 
-        } catch (SchemaException | SecurityViolationException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException ex){
+        } catch (SchemaException | SecurityViolationException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load security constraints for assignment items.", ex);
         }
         return constraints;
     }
 
-    protected void removeButtonClickPerformed(AssignmentEditorDto assignmentDto, AjaxRequestTarget target){
+    protected void removeButtonClickPerformed(AssignmentEditorDto assignmentDto, AjaxRequestTarget target) {
         //Override if needed
     }
-
 
 }

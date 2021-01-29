@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -14,7 +14,7 @@ import com.querydsl.core.types.Predicate;
 
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
-import com.evolveum.midpoint.repo.sqlbase.SqlPathContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
 
 /**
@@ -33,7 +33,7 @@ public class StringItemFilterProcessor
     }
 
     private StringItemFilterProcessor(
-            SqlPathContext<?, ?, ?> context, Function<EntityPath<?>, Path<?>> rootToQueryItem) {
+            SqlQueryContext<?, ?, ?> context, Function<EntityPath<?>, Path<?>> rootToQueryItem) {
         super(context, rootToQueryItem);
     }
 

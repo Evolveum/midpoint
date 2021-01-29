@@ -8,7 +8,7 @@ package com.evolveum.axiom.concepts;
 
 public class Lazy<T> extends AbstractLazy<T> implements java.util.function.Supplier<T> {
 
-    private static final Lazy NULL = Lazy.instant(null);
+    private static final Lazy<?> NULL = new Lazy<>(null);
 
     private Lazy(Object supplier) {
         super(supplier);
@@ -19,12 +19,15 @@ public class Lazy<T> extends AbstractLazy<T> implements java.util.function.Suppl
     }
 
     public static <T> Lazy<T> instant(T value) {
-        return new Lazy<T>(value);
+        if(value == null) {
+            return nullValue();
+        }
+        return new Lazy<>(value);
     }
 
     @SuppressWarnings("unchecked")
     public static <T> Lazy<T> nullValue() {
-        return NULL;
+        return Lazy.class.cast(NULL);
     }
 
     @Override

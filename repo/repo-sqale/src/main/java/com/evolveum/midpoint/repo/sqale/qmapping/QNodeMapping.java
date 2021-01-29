@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.repo.sqale.qmapping;
 
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqale.qbean.MNode;
 import com.evolveum.midpoint.repo.sqale.qmodel.QNode;
 import com.evolveum.midpoint.repo.sqale.qmodel.QObject;
@@ -43,7 +43,12 @@ public class QNodeMapping
 
     @Override
     public NodeSqlTransformer createTransformer(
-            PrismContext prismContext, SqlRepoContext sqlRepoContext) {
-        return new NodeSqlTransformer(prismContext, this, sqlRepoContext);
+            SqlTransformerContext transformerContext, SqlRepoContext sqlRepoContext) {
+        return new NodeSqlTransformer(transformerContext, this);
+    }
+
+    @Override
+    public MNode newRowObject() {
+        return new MNode();
     }
 }

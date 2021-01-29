@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019 Evolveum and contributors
+ * Copyright (C) 2015-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -31,19 +31,10 @@ import com.evolveum.midpoint.web.page.admin.roles.component.RoleSummaryPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.OrgSummaryPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.ServiceSummaryPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author semancik
- *
  */
 public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSummaryPanel<O> {
     private static final long serialVersionUID = 1L;
@@ -51,16 +42,15 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
     private static final String DOT_CLASS = FocusSummaryPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_PARENT_ORGS = DOT_CLASS + "activationTag";
 
-
     public FocusSummaryPanel(String id, Class<O> type, final IModel<O> model, ModelServiceLocator serviceLocator) {
         super(id, type, model, serviceLocator);
     }
 
     @Override
-    protected List<SummaryTag<O>> getSummaryTagComponentList(){
+    protected List<SummaryTag<O>> getSummaryTagComponentList() {
         List<SummaryTag<O>> summaryTagList = new ArrayList<>();
 
-        SummaryTag<O> tagActivation = new SummaryTag<O>(ID_SUMMARY_TAG, getModel()) {
+        SummaryTag<O> tagActivation = new SummaryTag<>(ID_SUMMARY_TAG, getModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -68,7 +58,7 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
                 ActivationType activation = null;
 //                O object = object.asObjectable();
                 if (object instanceof FocusType) {
-                    activation = ((FocusType)object).getActivation();
+                    activation = ((FocusType) object).getActivation();
                 }
                 if (activation == null) {
                     setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_ACTIVE);
@@ -103,7 +93,7 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
     }
 
     @Override
-    protected IModel<String> getDefaltParentOrgModel() {
+    protected IModel<String> getDefaultParentOrgModel() {
         return new ReadOnlyModel<>(() -> {
             O focusObject = FocusSummaryPanel.this.getModel().getObject();
             List<OrgType> parentOrgs = focusObject != null ? WebComponentUtil.loadReferencedObjectList(focusObject.getParentOrgRef(),
@@ -120,9 +110,9 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
             }
             //search for manager org at first
             for (ObjectReferenceType orgRef : focusObject.getParentOrgRef()) {
-                if (orgRef.getRelation() != null && RelationTypes.MANAGER.equals(orgRef.getRelation())) {
-                    for (OrgType orgType : parentOrgs){
-                        if (orgType.getOid().equals(orgRef.getOid())){
+                if (orgRef.getRelation() != null && RelationTypes.MANAGER.getRelation().equals(orgRef.getRelation())) {
+                    for (OrgType orgType : parentOrgs) {
+                        if (orgType.getOid().equals(orgRef.getOid())) {
                             return WebComponentUtil.getDisplayNameOrName(orgType.asPrismObject());
                         }
                     }
@@ -146,14 +136,14 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
 
     @Override
     protected IModel<AbstractResource> getPhotoModel() {
-        return new IModel<AbstractResource>() {
+        return new IModel<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
             public AbstractResource getObject() {
                 byte[] jpegPhoto = null;
                 O object = getModel().getObject();
-                if (object == null){
+                if (object == null) {
                     return null;
                 }
                 if (object instanceof FocusType) {
@@ -175,16 +165,16 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
     public static void addSummaryPanel(MarkupContainer parentComponent, PrismObject<FocusType> focus, PrismObjectWrapper<FocusType> focusWrapper, String id, ModelServiceLocator serviceLocator) {
         if (focus.getCompileTimeClass().equals(UserType.class)) {
             parentComponent.add(new UserSummaryPanel(id,
-                    Model.of((UserType)focus.asObjectable()), serviceLocator));
+                    Model.of((UserType) focus.asObjectable()), serviceLocator));
         } else if (focus.getCompileTimeClass().equals(RoleType.class)) {
             parentComponent.add(new RoleSummaryPanel(id,
-                    Model.of((RoleType)focus.asObjectable()), serviceLocator));
+                    Model.of((RoleType) focus.asObjectable()), serviceLocator));
         } else if (focus.getCompileTimeClass().equals(OrgType.class)) {
             parentComponent.add(new OrgSummaryPanel(id,
-                    Model.of((OrgType)focus.asObjectable()), serviceLocator));
+                    Model.of((OrgType) focus.asObjectable()), serviceLocator));
         } else if (focus.getCompileTimeClass().equals(ServiceType.class)) {
             parentComponent.add(new ServiceSummaryPanel(id,
-                    Model.of((ServiceType)focus.asObjectable()), serviceLocator));
+                    Model.of((ServiceType) focus.asObjectable()), serviceLocator));
         }
     }
 }

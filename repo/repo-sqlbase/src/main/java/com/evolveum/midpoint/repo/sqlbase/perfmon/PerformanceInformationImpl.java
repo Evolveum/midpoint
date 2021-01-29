@@ -1,11 +1,14 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
+package com.evolveum.midpoint.repo.sqlbase.perfmon;
 
-package com.evolveum.midpoint.repo.sql.perf;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.evolveum.midpoint.repo.api.perf.OperationPerformanceInformation;
 import com.evolveum.midpoint.repo.api.perf.OperationRecord;
@@ -13,13 +16,6 @@ import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositoryPerformanceInformationType;
 
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-/**
- *
- */
 public class PerformanceInformationImpl implements PerformanceInformation {
 
     // operation kind -> performance information
@@ -61,7 +57,7 @@ public class PerformanceInformationImpl implements PerformanceInformation {
         for (String operation : operations) {
             OperationPerformanceInformation info = operationMap.get(operation);
             if (info != null) {
-                DebugUtil.debugDumpWithLabelLn(sb, operation, info.shortDump(), indent+1);
+                DebugUtil.debugDumpWithLabelLn(sb, operation, info.shortDump(), indent + 1);
             }
         }
         return sb.toString();
@@ -98,7 +94,7 @@ public class PerformanceInformationImpl implements PerformanceInformation {
      * Merges an increment to this information.
      * BEWARE: Assumes distinct sets of operation (does not check for overlaps).
      */
-    public void mergeDistinct(PerformanceInformationImpl increment) {
+    public void mergeDistinct(PerformanceInformation increment) {
         if (increment != null) {
             operationMap.putAll(increment.getAllData());
         }

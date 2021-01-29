@@ -10,7 +10,6 @@ import com.codeborne.selenide.Selenide;
 
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schrodinger.MidPoint;
-import com.evolveum.midpoint.schrodinger.page.configuration.AboutPage;
 
 import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 

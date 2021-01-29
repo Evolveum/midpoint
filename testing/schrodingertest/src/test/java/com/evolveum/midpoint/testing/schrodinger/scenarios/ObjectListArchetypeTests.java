@@ -68,7 +68,7 @@ public class ObjectListArchetypeTests extends AbstractSchrodingerTest {
 
     }
 
-    @Test(priority = 3, dependsOnMethods ={"actualizeArchetypeConfiguration"}, groups = OBJECT_LIST_ARCHETYPE_TESTS_GROUP)
+//    @Test(priority = 3, dependsOnMethods ={"actualizeArchetypeConfiguration"}, groups = OBJECT_LIST_ARCHETYPE_TESTS_GROUP)
     public void createNewEmployeeUser(){
         ListUsersPage collectionListPage = basicPage.listUsers(ARCHETYPE_PLURAL_LABEL);
 
@@ -101,7 +101,7 @@ public class ObjectListArchetypeTests extends AbstractSchrodingerTest {
         basicPage.listUsers()
                 .table()
                 .assertNewObjectDropdownButtonsCountEquals(".fa.fa-plus", 2)
-                .newObjectCollectionButtonClickPerformed(".fa.fa-plus", ARCHETYPE_ICON_CSS_STYLE);
+                .newObjectCollectionButtonClickPerformed("fa fa-plus ", ARCHETYPE_ICON_CSS_STYLE);
     }
 
 }

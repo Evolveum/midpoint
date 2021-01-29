@@ -127,7 +127,7 @@ public class AssignmentsTab<P extends AssignmentHolderDetailsPage> extends TabWi
     }
 
     public AssignmentsTab<P> assertAssignmentsWithRelationExist(String relation, String... expectedAssignments) {
-        Assert.assertEquals(containsAssignmentsWithRelation(relation, expectedAssignments), "Assignments doesn't exist.");
+        Assert.assertTrue(containsAssignmentsWithRelation(relation, expectedAssignments), "Assignments doesn't exist.");
         return this;
     }
 }

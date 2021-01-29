@@ -8,6 +8,11 @@ package com.evolveum.midpoint.gui;
 
 import java.io.File;
 
+import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.javasimon.Split;
 import org.javasimon.Stopwatch;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -48,6 +53,8 @@ public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest imple
 
     private static final File FILE_ORG_STRUCT = new File(TEST_DIR, "org-struct.xml");
     private static final File FILE_USERS = new File(TEST_DIR, "users.xml");
+
+    private static final int REPETITION_COUNT = 10;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -102,8 +109,12 @@ public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest imple
     }
 
     private void runTestFor(Class pageToRender, String stopwatchName, String stopwatchDescription) {
+        runTestFor(pageToRender, null, stopwatchName, stopwatchDescription);
+    }
+
+    private void runTestFor(Class pageToRender, PageParameters params, String stopwatchName, String stopwatchDescription) {
         Stopwatch stopwatch = stopwatch(stopwatchName, stopwatchDescription);
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < REPETITION_COUNT; i++) {
             try (Split ignored = stopwatch.start()) {
                 queryListener.start();
                 tester.startPage(pageToRender);
@@ -135,9 +146,126 @@ public class MidScaleGuiTest extends AbstractInitializedGuiIntegrationTest imple
     }
 
     @Test
+    public void test230editUser() {
+        logger.info(getTestName());
+
+        for (int i = 0; i < REPETITION_COUNT; i++) {
+            tester.startPage(PageUsers.class);
+
+            String idTable = "mainForm:table";
+            tester.assertComponent(idTable, MainObjectListPanel.class);
+
+            tester.debugComponentTrees(":rows:.*:cells:3:cell:link");
+
+            String id = idTable + ":items:itemsTable:box:tableContainer:table:body:rows:3:cells:3:cell:link";
+
+            Stopwatch stopwatch = stopwatch("editUser", "Edit User");
+            try (Split ignored = stopwatch.start()) {
+                queryListener.start();
+                tester.clickLink(id);
+            }
+        }
+
+        queryListener.dumpAndStop();
+        tester.assertRenderedPage(PageUser.class);
+        OperationsPerformanceInformationType performanceInformation =
+                OperationsPerformanceInformationUtil.toOperationsPerformanceInformationType(
+                        OperationsPerformanceMonitor.INSTANCE.getGlobalPerformanceInformation());
+        displayValue("Operation performance (by name)",
+                OperationsPerformanceInformationUtil.format(performanceInformation));
+        displayValue("Operation performance (by time)",
+                OperationsPerformanceInformationUtil.format(performanceInformation,
+                        new AbstractStatisticsPrinter.Options(AbstractStatisticsPrinter.Format.TEXT, AbstractStatisticsPrinter.SortBy.TIME), null, null));
+    }
+
+    @Test
+    public void test231editUserTabProjections() {
+        logger.info(getTestName());
+
+        for (int i = 0; i < REPETITION_COUNT; i++) {
+            tester.startPage(PageUsers.class);
+
+            String idTable = "mainForm:table";
+            tester.assertComponent(idTable, MainObjectListPanel.class);
+
+            tester.debugComponentTrees(":rows:.*:cells:3:cell:link");
+
+            String id = idTable + ":items:itemsTable:box:tableContainer:table:body:rows:3:cells:3:cell:link";
+            tester.clickLink(id);
+
+            Stopwatch stopwatch = stopwatch("showProjections", "User's projection tab");
+            try (Split ignored = stopwatch.start()) {
+                clickOnTab(1, PageUser.class);
+                queryListener.start();
+
+            }
+        }
+
+        queryListener.dumpAndStop();
+        tester.assertRenderedPage(PageUser.class);
+        OperationsPerformanceInformationType performanceInformation =
+                OperationsPerformanceInformationUtil.toOperationsPerformanceInformationType(
+                        OperationsPerformanceMonitor.INSTANCE.getGlobalPerformanceInformation());
+        displayValue("Operation performance (by name)",
+                OperationsPerformanceInformationUtil.format(performanceInformation));
+        displayValue("Operation performance (by time)",
+                OperationsPerformanceInformationUtil.format(performanceInformation,
+                        new AbstractStatisticsPrinter.Options(AbstractStatisticsPrinter.Format.TEXT, AbstractStatisticsPrinter.SortBy.TIME), null, null));
+    }
+
+    @Test
+    public void test232editUserTabAssignments() {
+        logger.info(getTestName());
+
+        for (int i = 0; i < REPETITION_COUNT; i++) {
+            tester.startPage(PageUsers.class);
+
+            String idTable = "mainForm:table";
+            tester.assertComponent(idTable, MainObjectListPanel.class);
+
+            tester.debugComponentTrees(":rows:.*:cells:3:cell:link");
+
+            String id = idTable + ":items:itemsTable:box:tableContainer:table:body:rows:3:cells:3:cell:link";
+            tester.clickLink(id);
+
+            Stopwatch stopwatch = stopwatch("showAssignemnts", "User's assignmentTab");
+            try (Split ignored = stopwatch.start()) {
+                clickOnTab(2, PageUser.class);
+                queryListener.start();
+
+            }
+        }
+
+        queryListener.dumpAndStop();
+        tester.assertRenderedPage(PageUser.class);
+        OperationsPerformanceInformationType performanceInformation =
+                OperationsPerformanceInformationUtil.toOperationsPerformanceInformationType(
+                        OperationsPerformanceMonitor.INSTANCE.getGlobalPerformanceInformation());
+        displayValue("Operation performance (by name)",
+                OperationsPerformanceInformationUtil.format(performanceInformation));
+        displayValue("Operation performance (by time)",
+                OperationsPerformanceInformationUtil.format(performanceInformation,
+                        new AbstractStatisticsPrinter.Options(AbstractStatisticsPrinter.Format.TEXT, AbstractStatisticsPrinter.SortBy.TIME), null, null));
+    }
+
+    @Test
     public void test310orgTree() throws Exception {
         logger.info(getTestName());
         runTestFor(PageOrgTree.class, "orgTree", "Organization tree");
+    }
+
+    @Test
+    public void test410allTasks() {
+        logger.info(getTestName());
+        runTestFor(PageTasks.class, "tasks", "All tasks");
+    }
+
+    @Test
+    public void test510systemConfigurationAdminGuiConfig() {
+        logger.info(getTestName());
+        PageParameters params = new PageParameters();
+        params.add(PageSystemConfiguration.SELECTED_TAB_INDEX, PageSystemConfiguration.CONFIGURATION_TAB_ADMIN_GUI);
+        runTestFor(PageSystemConfiguration.class, params,"adminGuiConfig", "Admin Gui Config");
     }
 
     @Test(enabled = false) // doesn't work because of getPageBase usages

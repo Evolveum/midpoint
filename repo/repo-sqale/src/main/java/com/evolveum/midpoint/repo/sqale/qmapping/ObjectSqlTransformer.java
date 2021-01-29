@@ -8,32 +8,42 @@ package com.evolveum.midpoint.repo.sqale.qmapping;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.UUID;
+import javax.xml.namespace.QName;
 
 import com.querydsl.core.Tuple;
+import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.ParsingContext;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.SerializationOptions;
+import com.evolveum.midpoint.repo.sqale.MObjectTypeMapping;
 import com.evolveum.midpoint.repo.sqale.SqaleTransformerBase;
+import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.qbean.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.QObject;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R extends MObject>
         extends SqaleTransformerBase<S, Q, R> {
 
-    public ObjectSqlTransformer(PrismContext prismContext,
-            QObjectMapping<S, Q, R> mapping, SqlRepoContext sqlRepoContext) {
-        super(prismContext, mapping, sqlRepoContext);
+    public ObjectSqlTransformer(
+            SqlTransformerContext transformerContext,
+            QObjectMapping<S, Q, R> mapping) {
+        super(transformerContext, mapping);
     }
 
     @Override
-    public S toSchemaObject(R row) throws SchemaException {
+    public S toSchemaObject(R row) {
         throw new UnsupportedOperationException("Use toSchemaObject(Tuple,...)");
     }
 
@@ -45,13 +55,11 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         PrismObject<S> prismObject;
         String serializedForm = new String(row.get(entityPath.fullObject), StandardCharsets.UTF_8);
         try {
-            // "Postel mode": be tolerant what you read. We need this to tolerate (custom) schema changes
-            ParsingContext parsingContext = prismContext.createParsingContextForCompatibilityMode();
-            prismObject = prismContext.parserFor(serializedForm)
-                    .context(parsingContext).parse();
-            if (parsingContext.hasWarnings()) {
+            SqlTransformerContext.ParseResult<S> result = transformerContext.parsePrismObject(serializedForm);
+            prismObject = result.prismObject;
+            if (result.parsingContext.hasWarnings()) {
                 logger.warn("Object {} parsed with {} warnings",
-                        ObjectTypeUtil.toShortString(prismObject), parsingContext.getWarnings().size());
+                        ObjectTypeUtil.toShortString(prismObject), result.parsingContext.getWarnings().size());
             }
         } catch (SchemaException | RuntimeException | Error e) {
             // This is a serious thing. We have corrupted XML in the repo. This may happen even
@@ -63,5 +71,83 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         }
 
         return prismObject.asObjectable();
+    }
+
+    /**
+     * Override this to fill additional row attributes after calling this super version.
+     */
+    @NotNull
+    public R toRowObjectWithoutFullObject(S schemaObject) {
+        R row = mapping.newRowObject();
+
+        // primitive columns common to ObjectType
+        PolyStringType name = schemaObject.getName();
+        row.nameOrig = name.getOrig();
+        row.nameNorm = name.getNorm();
+
+        MetadataType metadata = schemaObject.getMetadata();
+        if (metadata != null) {
+            ObjectReferenceType creatorRef = metadata.getCreatorRef();
+            if (creatorRef != null) {
+                row.creatorRefRelationId = qNameToId(creatorRef.getRelation());
+                row.creatorRefTargetOid = UUID.fromString(creatorRef.getOid());
+                row.creatorRefTargetType = MObjectTypeMapping.fromSchemaType(
+                        transformerContext.qNameToSchemaClass(creatorRef.getType())).code();
+            }
+            row.createChannelId = qNameToId(metadata.getCreateChannel());
+            row.createTimestamp = MiscUtil.asInstant(metadata.getCreateTimestamp());
+
+            ObjectReferenceType modifierRef = metadata.getModifierRef();
+            if (modifierRef != null) {
+                row.modifierRefRelationId = qNameToId(modifierRef.getRelation());
+                row.modifierRefTargetOid = UUID.fromString(modifierRef.getOid());
+                row.modifierRefTargetType = MObjectTypeMapping.fromSchemaType(
+                        transformerContext.qNameToSchemaClass(modifierRef.getType())).code();
+            }
+            row.modifyChannelId = qNameToId(metadata.getModifyChannel());
+            row.modifyTimestamp = MiscUtil.asInstant(metadata.getModifyTimestamp());
+        }
+
+        ObjectReferenceType tenantRef = schemaObject.getTenantRef();
+        if (tenantRef != null) {
+            row.tenantRefRelationId = qNameToId(tenantRef.getRelation());
+            row.tenantRefTargetOid = UUID.fromString(tenantRef.getOid());
+            row.tenantRefTargetType = MObjectTypeMapping.fromSchemaType(
+                    transformerContext.qNameToSchemaClass(tenantRef.getType())).code();
+        }
+
+        row.lifecycleState = schemaObject.getLifecycleState();
+        row.version = SqaleUtils.objectVersionAsInt(schemaObject);
+
+        // TODO extensions
+
+        return row;
+    }
+
+    /**
+     * Serializes schema object and sets {@link R#fullObject}.
+     */
+    public void setFullObject(R row, S schemaObject) throws SchemaException {
+        row.fullObject = createFullObject(schemaObject);
+    }
+
+    public byte[] createFullObject(S schemaObject) throws SchemaException {
+        if (schemaObject.getOid() == null) {
+            logger.warn("Object {} going to be serialized has no assigned OID.", schemaObject);
+        }
+
+        return transformerContext.serializer()
+                .itemsToSkip(fullObjectItemsToSkip())
+                .options(SerializationOptions
+                        .createSerializeReferenceNamesForNullOids()
+                        .skipIndexOnly(true)
+                        .skipTransient(true))
+                .serialize(schemaObject.asPrismObject())
+                .getBytes(StandardCharsets.UTF_8);
+    }
+
+    protected Collection<? extends QName> fullObjectItemsToSkip() {
+        // TODO extend later, things like FocusType.F_JPEG_PHOTO, see ObjectUpdater#updateFullObject
+        return Collections.emptyList();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -18,12 +18,12 @@ import com.querydsl.sql.ColumnMetadata;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
-import com.evolveum.midpoint.repo.sqlbase.SqlPathContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -37,10 +37,10 @@ import com.evolveum.midpoint.util.QNameUtil;
  * See {@link #addDetailFetchMapper(ItemName, SqlDetailFetchMapper)} for more about mapping
  * related to-many detail tables.
  * <p>
- * <b>Goal:</b> Map object query conditions and ORDER BY to SQL.
- * <p>
- * <b>Non-goal:</b> Map objects from Q-type to prism and back.
- * This is done by code, possibly static method from a DTO "assembler" class.
+ * The main goal of this type is to map object query conditions and ORDER BY to SQL.
+ * Transformation between schema/prism objects and repository objects (row beans or tuples) is
+ * delegated to {@link SqlTransformer}.
+ * Objects of various {@link QueryModelMapping} subclasses are factories for the transformer.
  *
  * @param <S> schema type
  * @param <Q> type of entity path
@@ -157,12 +157,12 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
 
     // we want loose typing for client's sake, there is no other chance to get the right type here
     public final <T extends ObjectFilter> @NotNull FilterProcessor<T> createItemFilterProcessor(
-            ItemName itemName, SqlPathContext<?, ?, ?> context)
+            ItemName itemName, SqlQueryContext<?, ?, ?> context)
             throws QueryException {
         return itemMapping(itemName).createFilterProcessor(context);
     }
 
-    public final @Nullable Path<?> primarySqlPath(ItemName itemName, SqlPathContext<?, ?, ?> context)
+    public final @Nullable Path<?> primarySqlPath(ItemName itemName, SqlQueryContext<?, ?, ?> context)
             throws QueryException {
         return itemMapping(itemName).itemPrimaryPath(context.path());
     }
@@ -223,7 +223,7 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
      * Creates {@link SqlTransformer} of row bean to schema type, override if provided.
      */
     public SqlTransformer<S, Q, R> createTransformer(
-            PrismContext prismContext, SqlRepoContext sqlRepoContext) {
+            SqlTransformerContext sqlTransformerContext, SqlRepoContext sqlRepoContext) {
         throw new UnsupportedOperationException("Bean transformer not supported for " + queryType);
     }
 
@@ -282,5 +282,10 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
                 ", schemaType=" + schemaType +
                 ", queryType=" + queryType +
                 '}';
+    }
+
+    public R newRowObject() {
+        throw new UnsupportedOperationException(
+                "Row bean creation not implemented for query type " + queryType.getName());
     }
 }
