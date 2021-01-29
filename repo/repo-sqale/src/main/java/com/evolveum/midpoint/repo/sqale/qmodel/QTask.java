@@ -25,7 +25,7 @@ import com.evolveum.midpoint.repo.sqale.qbean.MTask;
 @SuppressWarnings("unused")
 public class QTask extends QObject<MTask> {
 
-    private static final long serialVersionUID = 2042159341967925185L;
+    private static final long serialVersionUID = 6249403929032616177L;
 
     public static final String TABLE_NAME = "m_task";
 

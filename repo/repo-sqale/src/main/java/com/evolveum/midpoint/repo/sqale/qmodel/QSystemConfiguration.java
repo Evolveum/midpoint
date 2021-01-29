@@ -16,7 +16,7 @@ import com.evolveum.midpoint.repo.sqale.qbean.MSystemConfiguration;
 @SuppressWarnings("unused")
 public class QSystemConfiguration extends QObject<MSystemConfiguration> {
 
-    private static final long serialVersionUID = 2042159341967925185L;
+    private static final long serialVersionUID = -2157392986065893792L;
 
     public static final String TABLE_NAME = "m_system_configuration";
 
