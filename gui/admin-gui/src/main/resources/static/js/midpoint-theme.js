@@ -296,3 +296,29 @@ function showPassword(iconElement) {
     		iconElement.className = 'fa fa-eye';
   		}
 }
+
+!function($) {
+    $.fn.passwordValidatorPopover = function(inputId, popover, isPopoverVisible) {
+        return this.each(function() {
+
+            var showPopover=function(){
+                $(inputId).each(function() {
+                    var itemH=$(this).innerHeight() + 18;
+                    popover.fadeIn(300).css({top:itemH, left:0}).css("display", "block");
+                });
+            }
+            if (isPopoverVisible) {
+                showPopover();
+            }
+            $(this).on("focus", function(){showPopover();});
+
+            var deletePopover=function(){
+        	    popover.fadeIn(300).css("display", "none");
+            };
+
+            $(this).on("blur", function(){
+        	    deletePopover();
+            });
+        });
+    };
+}(window.jQuery);

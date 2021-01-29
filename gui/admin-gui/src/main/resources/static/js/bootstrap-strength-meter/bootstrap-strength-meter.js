@@ -32,8 +32,6 @@
                 settings.hierarchy = options.hierarchy;
             }
 
-            var template = '<div class="progress"><div class="progress-bar" role="progressbar"></div></div>';
-            var progress;
             var progressBar;
             var passcheckTimeout;
             var core = {
@@ -42,9 +40,7 @@
                  * Initialize the plugin.
                  */
                 init: function() {
-                    progress = settings.container.append($(template));
-                    progressBar = $('.progress-bar', progress);
-
+                    progressBar = settings.container;
                     progressBar.attr('aria-valuemin', 0)
                             .attr('aria-valuemay', 100);
 

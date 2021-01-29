@@ -16089,6 +16089,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="name" type="t:PolyStringType" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="minOccurs" type="xsd:int" default="0" minOccurs="0" maxOccurs="1"/>
@@ -16154,6 +16155,17 @@
                           Message that will be displayed to user when the expression check fails.
                         </p>
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Display properties of the CheckExpressionType objects.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>CheckExpressionType.display</a:displayName>
+                        <a:since>4.3</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <!-- TODO: success message? -->
