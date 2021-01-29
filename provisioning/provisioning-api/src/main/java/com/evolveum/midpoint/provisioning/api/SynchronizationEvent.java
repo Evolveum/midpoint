@@ -50,4 +50,7 @@ public interface SynchronizationEvent extends AcknowledgementSink, DebugDumpable
 
     // TODO!!!
     String getErrorMessage();
+
+    // TODO
+    String getShadowOid();
 }

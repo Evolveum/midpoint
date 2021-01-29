@@ -135,6 +135,11 @@ public class AsyncUpdateTaskHandler
                 return true;
             }
         }
+
+        @Override
+        public boolean getContinueOnError(OperationResultStatus status, ItemProcessingRequest<?> request, OperationResult result) {
+            return false; // TODO error handling
+        }
     }
 
     @Override

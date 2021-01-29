@@ -81,6 +81,7 @@ public class Synchronizer {
         long started = System.currentTimeMillis(); // TODO temporary
         ShadowType shadow = shadowObject.asObjectable();
         if (ObjectTypeUtil.hasFetchError(shadowObject)) {
+            // Not used in iterative tasks. There we filter out these objects before processing.
             OperationResultType fetchResult = shadow.getFetchResult();
             // The following exception will be artificial, without stack trace because
             // of operation result conversions (native -> bean -> native).
@@ -95,7 +96,6 @@ public class Synchronizer {
             return;
         }
         if (!isShadowUnknown(shadow) && !objectsFilter.matches(shadowObject)) {
-            // TODO mark as skipped
             LOGGER.trace("Skipping {} because it does not match objectClass/kind/intent", shadowObject);
             SynchronizationInformation.Record record = SynchronizationInformation.Record.createNotApplicable(); // TODO temporary
             workerTask.recordSynchronizationOperationEnd(shadow, started, null, record, record); // TODO temporary

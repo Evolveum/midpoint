@@ -405,6 +405,15 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements DebugDum
     }
 
     @Override
+    public String toString() {
+        return getClass().getSimpleName() + "{" +
+                "resourceObjectChange=" + resourceObjectChange +
+                ", processingState=" + processingState +
+                ", repoShadow OID " + (repoShadow != null ? repoShadow.getOid() : null) +
+                '}';
+    }
+
+    @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
@@ -415,5 +424,9 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements DebugDum
         DebugUtil.debugDumpWithLabelLn(sb, "processingState", String.valueOf(processingState), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "repoShadow", repoShadow, indent + 1);
         return sb.toString();
+    }
+
+    public String getShadowOid() {
+        return repoShadow != null ? repoShadow.getOid() : null;
     }
 }

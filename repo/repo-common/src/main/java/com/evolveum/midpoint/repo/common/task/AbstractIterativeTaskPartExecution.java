@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.repo.common.task.AnnotationSupportUtil.creat
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -114,6 +115,9 @@ public abstract class AbstractIterativeTaskPartExecution<I,
      * An example: "from [resource]".
      */
     @NotNull private String contextDescription;
+
+    // TODO - this is a hack for now
+    protected final AtomicBoolean suspendRequested = new AtomicBoolean();
 
     protected AbstractIterativeTaskPartExecution(@NotNull TE taskExecution) {
         this.taskHandler = taskExecution.taskHandler;
@@ -369,4 +373,8 @@ public abstract class AbstractIterativeTaskPartExecution<I,
         return statistics.getTotalProgress();
     }
 
+    // FIXME brutal hack - replace by serious error handling code
+    public boolean getContinueOnError(OperationResultStatus status, ItemProcessingRequest<?> request, OperationResult result) {
+        return true;
+    }
 }

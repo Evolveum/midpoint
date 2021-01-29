@@ -112,7 +112,8 @@ class ReconciliationTaskThirdPartExecution
         protected boolean processObject(PrismObject<ShadowType> shadow, RunningTask workerTask, OperationResult result)
                 throws CommonException, PreconditionViolationException {
             if (!taskExecution.objectsFilter.matches(shadow)) {
-                return true; // TODO mark as skipped
+                result.recordNotApplicable();
+                return true;
             }
 
             reconcileShadow(shadow, workerTask, result);

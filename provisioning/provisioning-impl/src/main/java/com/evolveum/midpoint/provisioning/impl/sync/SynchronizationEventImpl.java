@@ -82,4 +82,9 @@ public abstract class SynchronizationEventImpl<AC extends AdoptedChange<?>> impl
         DebugUtil.debugDumpWithLabelLn(sb, "change", change, indent + 1);
         return sb.toString();
     }
+
+    @Override
+    public String getShadowOid() {
+        return change.getShadowOid();
+    }
 }

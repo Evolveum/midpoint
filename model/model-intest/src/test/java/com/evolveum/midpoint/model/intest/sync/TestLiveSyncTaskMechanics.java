@@ -1122,7 +1122,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         then("retrying fatal errors (each 9th)");
         stabilize();
         assertTask(CommonTasks.TASK_TRIGGER_SCANNER_ON_DEMAND.oid, "after")
-                .assertProgress(3) // 9, 18, 27
+                .assertProgress(7+3) // 9, 18, 27
                 .display()
                 .iterativeTaskInformation()
                     .assertSuccessCount(0)
@@ -1155,7 +1155,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         then("retrying everything, errors turned off");
         stabilize();
         assertTask(CommonTasks.TASK_TRIGGER_SCANNER_ON_DEMAND.oid, "after")
-                .assertProgress(10) // each 3rd
+                .assertProgress(7+3+10) // each 3rd
                 .display()
                 .iterativeTaskInformation()
                     .assertSuccessCount(10)

@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.provisioning.impl.sync;
+package com.evolveum.midpoint.repo.common.task;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.provisioning.impl.sync.ErrorHandlingStrategyExecutor.Action.*;
+import static com.evolveum.midpoint.repo.common.task.ErrorHandlingStrategyExecutor.Action.*;
 
 import static org.apache.commons.lang3.BooleanUtils.isNotFalse;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -47,8 +47,10 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
  * Each entry contains a description of SITUATION(s) and appropriate REACTION.
  *
  * The main {@link #determineAction(Throwable, OperationResultStatus, String, OperationResult)} method must be thread safe.
+ *
+ * TODO Generalize to arbitrary tasks
  */
-class ErrorHandlingStrategyExecutor {
+public class ErrorHandlingStrategyExecutor {
 
     private static final Trace LOGGER = TraceManager.getTrace(ErrorHandlingStrategyExecutor.class);
 
@@ -65,11 +67,11 @@ class ErrorHandlingStrategyExecutor {
     @NotNull private final List<StrategyEntryInformation> strategyEntryInformationList;
     @NotNull private final RepositoryService repositoryService;
 
-    enum Action {
+    public enum Action {
         CONTINUE, STOP, SUSPEND
     }
 
-    ErrorHandlingStrategyExecutor(@NotNull Task task, @NotNull PrismContext prismContext,
+    public ErrorHandlingStrategyExecutor(@NotNull Task task, @NotNull PrismContext prismContext,
             @NotNull RepositoryService repositoryService) {
         this.prismContext = prismContext;
         this.strategyEntryInformationList = getErrorHandlingStrategyEntryList(task).stream()

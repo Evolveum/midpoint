@@ -18,6 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -50,6 +51,15 @@ public class LiveSyncTaskHandler
 
     private static final Trace LOGGER = TraceManager.getTrace(LiveSyncTaskHandler.class);
     private static final String CONTEXT = "Live Sync";
+
+    /**
+     * Local sequence number of a change that is being processed in the current thread.
+     * Actually, it is a hack to enable testing: The code in mappings can obtain this
+     * information and do some asserts on it. When the information will be propagated into
+     * e.g. lensContext, we should remove this hack.
+     */
+    @VisibleForTesting
+    public static final ThreadLocal<Integer> CHANGE_BEING_PROCESSED = new ThreadLocal<>();
 
     protected LiveSyncTaskHandler() {
         super(LOGGER, "Live sync", OperationConstants.LIVE_SYNC);
@@ -107,8 +117,12 @@ public class LiveSyncTaskHandler
     public class PartExecution extends AbstractIterativeTaskPartExecution
             <LiveSyncEvent, LiveSyncTaskHandler, TaskExecution, PartExecution, PartExecution.ItemProcessor> {
 
+        private final ErrorHandlingStrategyExecutor errorHandlingStrategyExecutor;
+
         public PartExecution(@NotNull TaskExecution taskExecution) {
             super(taskExecution);
+            errorHandlingStrategyExecutor = new ErrorHandlingStrategyExecutor(taskExecution.localCoordinatorTask,
+                    prismContext, repositoryService);
         }
 
         @Override
@@ -150,16 +164,50 @@ public class LiveSyncTaskHandler
             public boolean process(ItemProcessingRequest<LiveSyncEvent> request, RunningTask workerTask, OperationResult result)
                     throws CommonException, PreconditionViolationException {
                 LiveSyncEvent event = request.getItem();
-                if (event.isComplete()) {
-                    changeNotificationDispatcher.notifyChange(event.getChangeDescription(), workerTask, result);
-                } else if (event.isSkip()) {
-                    result.recordNotApplicable();
-                } else {
-                    // TODO error criticality
-                    assert event.isError();
-                    result.recordFatalError("Item was not pre-processed correctly: " + event.getErrorMessage());
+
+                CHANGE_BEING_PROCESSED.set(event.getSequentialNumber());
+                try {
+                    if (event.isComplete()) {
+                        changeNotificationDispatcher.notifyChange(event.getChangeDescription(), workerTask, result);
+                    } else if (event.isSkip()) {
+                        result.recordNotApplicable();
+                    } else {
+                        // TODO error criticality
+                        assert event.isError();
+                        result.recordFatalError("Item was not pre-processed correctly: " + event.getErrorMessage());
+                    }
+                    return true;
+                } finally {
+                    CHANGE_BEING_PROCESSED.remove();
                 }
-                return true;
+            }
+        }
+
+        @Override
+        public boolean getContinueOnError(OperationResultStatus status, ItemProcessingRequest<?> request, OperationResult result) {
+            // TODO generalize for all tasks
+            // TODO provide the exception
+            String shadowOid = getShadowOid(request);
+            ErrorHandlingStrategyExecutor.Action action = errorHandlingStrategyExecutor.determineAction(null, status, shadowOid, result);
+            switch (action) {
+                case CONTINUE:
+                    return true;
+                case SUSPEND:
+                    suspendRequested.set(true);
+                case STOP:
+                default:
+                    return false;
+            }
+        }
+
+        // FIXME
+        private String getShadowOid(ItemProcessingRequest<?> request) {
+            Object item = request.getItem();
+            if (item instanceof LiveSyncEvent) {
+                LiveSyncEvent event = (LiveSyncEvent) item;
+                return event.getShadowOid();
+            } else {
+                throw new IllegalStateException("Expected LiveSyncEvent, got " + item);
             }
         }
     }

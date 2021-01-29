@@ -38,15 +38,4 @@ public class ChangeProcessingBeans {
     @Autowired
     @Qualifier("cacheRepositoryService")
     public RepositoryService repositoryService;
-
-    /**
-     * FIXME migrate somehow
-     *
-     * Local sequence number of a change that is being processed in the current thread.
-     * Actually, it is a hack to enable testing: The code in mappings can obtain this
-     * information and do some asserts on it. When the information will be propagated into
-     * e.g. lensContext, we should remove this hack.
-     */
-    @VisibleForTesting
-    public static final ThreadLocal<Integer> CHANGE_BEING_PROCESSED = new ThreadLocal<>();
 }

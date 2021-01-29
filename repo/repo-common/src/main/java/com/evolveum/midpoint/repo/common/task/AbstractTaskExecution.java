@@ -15,6 +15,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskException;
+import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskWorkBucketProcessingResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
@@ -115,6 +116,8 @@ public abstract class AbstractTaskExecution
 
             initialize(taskOperationResult);
 
+            boolean suspendRequested = false; // TODO fixme this hack
+
             List<? extends AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?>> partExecutions = createPartExecutions();
             for (int i = 0, partExecutionsSize = partExecutions.size(); i < partExecutionsSize; i++) {
                 AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?> partExecution = partExecutions.get(i);
@@ -128,17 +131,25 @@ public abstract class AbstractTaskExecution
                     throw t;
                 } finally {
                     opResult.computeStatusIfUnknown();
+                    if (partExecution.suspendRequested.get()) {
+                        suspendRequested = true;
+                    }
                 }
 
                 // Note that we continue even in the presence of errors in previous part.
                 // It is OK because this is how it was implemented in the only (in-task) multi-part execution: reconciliation.
                 // But generally, this behaviour should be controlled using a policy.
-                if (!localCoordinatorTask.canRun()) {
+                if (!localCoordinatorTask.canRun() || suspendRequested) {
                     break;
                 }
             }
 
             finish(taskOperationResult, null);
+
+            if (suspendRequested) {
+                // FIXME
+                throw new TaskException("Suspend requested", OperationResultStatus.FATAL_ERROR, TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR);
+            }
             return currentRunResult;
         } catch (Throwable t) {
             finish(currentRunResult.getOperationResult(), t);

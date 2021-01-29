@@ -12,14 +12,17 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Processes individual objects found by the iterative search.
  *
- * Actually, this class only provides backwards-compatible {@link #processObject(PrismObject, RunningTask, OperationResult)}
+ * It provides backwards-compatible {@link #processObject(PrismObject, RunningTask, OperationResult)}
  * to be used instead of more generic {@link #process(ItemProcessingRequest, RunningTask, OperationResult)} method.
  *
- * *TODO consider removing this class altogether (requires migration from processObject to process).*
+ * But also allows separate processing of errored objects by {@link #processError(PrismObject, OperationResultType, RunningTask, OperationResult)}.
  */
 public abstract class AbstractSearchIterativeItemProcessor<
         O extends ObjectType,
@@ -36,9 +39,23 @@ public abstract class AbstractSearchIterativeItemProcessor<
     @Override
     public boolean process(ItemProcessingRequest<PrismObject<O>> request, RunningTask workerTask,
             OperationResult parentResult) throws CommonException, PreconditionViolationException {
-        return processObject(request.getItem(), workerTask, parentResult);
+        PrismObject<O> object = request.getItem();
+        OperationResultType errorFetchResult = object.asObjectable().getFetchResult();
+        if (errorFetchResult == null) {
+            return processObject(object, workerTask, parentResult);
+        } else {
+            return processError(object, errorFetchResult, workerTask, parentResult);
+        }
     }
 
     protected abstract boolean processObject(PrismObject<O> object, RunningTask workerTask, OperationResult result)
             throws CommonException, PreconditionViolationException;
+
+    @SuppressWarnings("WeakerAccess")
+    protected boolean processError(PrismObject<O> object, @NotNull OperationResultType errorFetchResult, RunningTask workerTask,
+            OperationResult result)
+            throws CommonException, PreconditionViolationException {
+        result.recordFatalError("Error in preprocessing: " + errorFetchResult.getMessage());
+        return true; // "Can continue" flag is updated by item processing gatekeeper (unfortunately, the exception is lost)
+    }
 }

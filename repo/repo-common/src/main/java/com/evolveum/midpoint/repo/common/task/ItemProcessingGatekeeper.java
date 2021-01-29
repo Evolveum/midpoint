@@ -259,28 +259,28 @@ class ItemProcessingGatekeeper<I> {
             result.recordFatalError("Failed to process: "+resultException.getMessage(), resultException);
         }
         result.summarize();
-        canContinue = canContinueOnError(result);
+        canContinue = canContinue && canContinueOnError(result);
     }
 
     private boolean canContinueOnError(OperationResult result) {
         assert isError();
 
+        // TODO implement error handling here
+
         TaskPartitionDefinitionType partDef = taskExecution.partDefinition;
         if (partDef == null) {
-            return true;
+            return partExecution.getContinueOnError(result.getStatus(), request, result);
         }
 
         CriticalityType criticality = ExceptionUtil.getCriticality(partDef.getErrorCriticality(), resultException, CriticalityType.PARTIAL);
         try {
             RepoCommonUtils.processErrorCriticality(iterationItemInformation.getObjectName(), criticality, resultException, result);
+            return true; // If we are here, the error is not fatal and we can continue.
         } catch (Throwable e) {
             partExecution.setHardExceptionEncountered(e);
             return false;
         }
-
-        return true;
     }
-
 
     private void recordIterativeOperationEnd() {
         // TODO consider result status of NOT_APPLICABLE (means skipped)
