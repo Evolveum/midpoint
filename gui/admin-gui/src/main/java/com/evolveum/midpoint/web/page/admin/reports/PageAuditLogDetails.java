@@ -133,20 +133,15 @@ public class PageAuditLogDetails extends PageBase {
                     WorkflowConstants.AUDIT_WORK_ITEM_ID,
                     WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID);
 
-    public PageAuditLogDetails() {
-        AuditLogStorage storage = getSessionStorage().getAuditLog();
-        initModel(storage.getAuditRecord());
-    }
-
     public PageAuditLogDetails(PageParameters params) {
         if (params != null) {
             getPageParameters().overwriteWith(params);
         }
-        initAuditModel();
+        initAuditLogModel(getSessionStorage().getAuditLog().getAuditRecord());
     }
 
     public PageAuditLogDetails(AuditEventRecordType record) {
-        initModel(record);
+        initAuditLogModel(record);
     }
 
     @Override
@@ -156,13 +151,11 @@ public class PageAuditLogDetails extends PageBase {
 
     }
 
-    private void initModel(AuditEventRecordType record) {
+    private void initAuditLogModel(AuditEventRecordType record) {
         recordModel = new LoadableModel<AuditEventRecordType>(false) {
 
             @Override
             protected AuditEventRecordType load() {
-                AuditLogStorage storage = getSessionStorage().getAuditLog();
-                storage.setAuditRecord(record);
                 return record;
             }
         };
