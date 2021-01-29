@@ -13,7 +13,7 @@ import com.evolveum.midpoint.provisioning.impl.adoption.AdoptedAsyncChange;
 /**
  * TODO
  */
-class AsyncUpdateEventImpl extends SynchronizationEventImpl<AdoptedAsyncChange> implements AsyncUpdateEvent {
+abstract class AsyncUpdateEventImpl extends SynchronizationEventImpl<AdoptedAsyncChange> implements AsyncUpdateEvent {
 
     AsyncUpdateEventImpl(AdoptedAsyncChange change) {
         super(change);

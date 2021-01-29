@@ -72,6 +72,8 @@ class RequestsBuffer<I> {
      * Offers a request for processing.
      *
      * This method is intentionally NOT synchronized.
+     *
+     * @throws InterruptedException If present, the request was not put into the queue.
      */
     boolean offer(ItemProcessingRequest<I> request) throws InterruptedException {
         return globalQueue.offer(request, REQUEST_QUEUE_OFFER_TIMEOUT, TimeUnit.MILLISECONDS);

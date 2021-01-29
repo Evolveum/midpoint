@@ -404,10 +404,11 @@ public class TestMappingInbound extends AbstractMappingTest {
         assertUserAfterByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME)
                 .assertFullName("Mancomb Seepgood")
                 .links()
-                .single()
-                .resolveTarget()
-                .assertTombstone()
-                .assertSynchronizationSituation(SynchronizationSituationType.DELETED);
+                    .single()
+                    .resolveTarget()
+                        .display()
+                        .assertTombstone()
+                        .assertSynchronizationSituation(SynchronizationSituationType.DELETED);
 
 //        assertUsers(7 + getNumberOfExtraDummyUsers());
 

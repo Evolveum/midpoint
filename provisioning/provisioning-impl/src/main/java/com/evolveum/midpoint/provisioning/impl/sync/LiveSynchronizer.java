@@ -78,32 +78,33 @@ public class LiveSynchronizer {
             return ctx.syncResult;
         }
 
-        EventsAcknowledgeGate acknowledgeGate = new EventsAcknowledgeGate();
+        IndividualEventsAcknowledgeGate<LiveSyncEvent> acknowledgeGate = new IndividualEventsAcknowledgeGate<>();
 
         ResourceObjectLiveSyncChangeListener listener = (resourceObjectChange, lResult) -> {
 
             int sequentialNumber = ctx.oldestTokenWatcher.changeArrived(resourceObjectChange.getToken());
 
-            AdoptedLiveSyncChange change = new AdoptedLiveSyncChange(resourceObjectChange, ctx.simulate, beans) {
+            AdoptedLiveSyncChange change = new AdoptedLiveSyncChange(resourceObjectChange, ctx.simulate, beans);
+            change.preprocess(lResult);
+
+            LiveSyncEvent event = new LiveSyncEventImpl(change) {
                 @Override
                 public void acknowledge(boolean release, OperationResult aResult) {
-                    acknowledgeGate.acknowledgeIssuedEvent();
+                    LOGGER.trace("Acknowledgement (release={}) sent for {}", release, this);
                     if (release) {
                         ctx.oldestTokenWatcher.changeProcessed(sequentialNumber);
                     }
+                    acknowledgeGate.acknowledgeIssuedEvent(this);
                 }
             };
-            change.preprocess(lResult);
 
-            LiveSyncEvent event = new LiveSyncEventImpl(change);
-
-            acknowledgeGate.registerIssuedEvent();
+            acknowledgeGate.registerIssuedEvent(event);
             try {
                 return handler.handle(event, lResult);
             } catch (Throwable t) {
                 // We assume the event was not acknowledged yet. Note that serious handler should never throw an exception!
                 LoggingUtils.logUnexpectedException(LOGGER, "Got unexpected exception while handling a live sync event", t);
-                acknowledgeGate.acknowledgeIssuedEvent();
+                acknowledgeGate.acknowledgeIssuedEvent(event);
                 return false;
             }
         };
@@ -120,7 +121,7 @@ public class LiveSynchronizer {
             ctx.finalToken = fetchChangesResult.getFinalToken();
         }
 
-        acknowledgeGate.waitForIssuedEventsAcknowledge();
+        acknowledgeGate.waitForIssuedEventsAcknowledge(gResult);
 
         updateTokenValue(ctx);
         task.flushPendingModifications(gResult);

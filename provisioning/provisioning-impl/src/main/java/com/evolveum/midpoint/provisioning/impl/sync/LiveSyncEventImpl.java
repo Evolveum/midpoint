@@ -13,7 +13,7 @@ import com.evolveum.midpoint.provisioning.impl.adoption.AdoptedLiveSyncChange;
 /**
  * TODO
  */
-class LiveSyncEventImpl extends SynchronizationEventImpl<AdoptedLiveSyncChange> implements LiveSyncEvent {
+abstract class LiveSyncEventImpl extends SynchronizationEventImpl<AdoptedLiveSyncChange> implements LiveSyncEvent {
 
     LiveSyncEventImpl(AdoptedLiveSyncChange change) {
         super(change);

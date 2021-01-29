@@ -48,7 +48,7 @@ public class ImportFromResourceTaskExecution
     protected void initialize(OperationResult opResult) throws TaskException, CommunicationException, SchemaException,
             ObjectNotFoundException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         super.initialize(opResult);
-        targetInfo = taskHandler.syncTaskHelper.getTargetInfo(LOGGER, localCoordinatorTask,
+        targetInfo = taskHandler.getSyncTaskHelper().getTargetInfo(LOGGER, localCoordinatorTask,
                 opResult, taskHandler.getTaskTypeName());
         objectsFilter = targetInfo.getObjectFilter(localCoordinatorTask);
     }

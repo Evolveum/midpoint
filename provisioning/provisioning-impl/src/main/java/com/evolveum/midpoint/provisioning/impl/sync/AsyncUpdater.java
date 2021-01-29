@@ -55,29 +55,28 @@ public class AsyncUpdater {
         // e.g. to implement MID-5853. TODO fix this hack
         globalContext.setChannelOverride(SchemaConstants.CHANNEL_ASYNC_UPDATE_URI);
 
-        EventsAcknowledgeGate acknowledgeGate = new EventsAcknowledgeGate();
+        IndividualEventsAcknowledgeGate<AsyncUpdateEvent> acknowledgeGate = new IndividualEventsAcknowledgeGate<>();
 
         ResourceObjectAsyncChangeListener listener = (resourceObjectChange, opResult) -> {
 
-            AdoptedAsyncChange change = new AdoptedAsyncChange(resourceObjectChange, changeProcessingBeans) {
-                @Override
-                public void acknowledge(boolean release, OperationResult result) {
-                    super.acknowledge(release, result);
-                    acknowledgeGate.acknowledgeIssuedEvent();
-                }
-            };
+            AdoptedAsyncChange change = new AdoptedAsyncChange(resourceObjectChange, changeProcessingBeans);
             change.preprocess(opResult);
 
-            AsyncUpdateEvent event = new AsyncUpdateEventImpl(change);
+            AsyncUpdateEvent event = new AsyncUpdateEventImpl(change) {
+                @Override
+                public void acknowledge(boolean release, OperationResult result) {
+                    LOGGER.trace("Acknowledgement (release={}) sent for {}", release, this);
+                    change.acknowledge(release, result);
+                    acknowledgeGate.acknowledgeIssuedEvent(this);
+                }
+            };
 
-            acknowledgeGate.registerIssuedEvent();
+            acknowledgeGate.registerIssuedEvent(event);
             try {
                 handler.handle(event, opResult);
             } catch (Throwable t) {
-                // We assume the event was not acknowledged yet.
-                // Serious handler should never throw an exception.
                 LoggingUtils.logUnexpectedException(LOGGER, "Got unexpected exception while handling an async update event", t);
-                acknowledgeGate.acknowledgeIssuedEvent();
+                acknowledgeGate.acknowledgeIssuedEvent(event);
             }
         };
 
@@ -85,6 +84,6 @@ public class AsyncUpdater {
 
         // There may be some events in processing - for example, if the async update task is suspended while
         // receiving a lot of events.
-        acknowledgeGate.waitForIssuedEventsAcknowledge();
+        acknowledgeGate.waitForIssuedEventsAcknowledge(callerResult);
     }
 }

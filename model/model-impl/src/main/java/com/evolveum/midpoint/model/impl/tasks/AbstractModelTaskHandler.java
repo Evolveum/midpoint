@@ -10,7 +10,7 @@ import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
+import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 
@@ -57,7 +57,7 @@ public abstract class AbstractModelTaskHandler
     @Autowired protected Clockwork clockwork;
     @Autowired protected TaskManager taskManager;
     @Autowired protected SyncTaskHelper syncTaskHelper;
-    @Autowired protected ResourceObjectChangeListener resourceObjectChangeListener;
+    @Autowired protected ChangeNotificationDispatcher changeNotificationDispatcher;
 
     protected AbstractModelTaskHandler(Trace logger, String taskName, String taskOperationPrefix) {
         super(logger, taskName, taskOperationPrefix);
@@ -81,5 +81,9 @@ public abstract class AbstractModelTaskHandler
 
     public Clock getClock() {
         return clock;
+    }
+
+    public SyncTaskHelper getSyncTaskHelper() {
+        return syncTaskHelper;
     }
 }

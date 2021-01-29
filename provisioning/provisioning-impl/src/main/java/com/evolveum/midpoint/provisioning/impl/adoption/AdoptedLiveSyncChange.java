@@ -18,9 +18,9 @@ import com.evolveum.midpoint.provisioning.impl.sync.ChangeProcessingBeans;
 /**
  * Adopted Live Sync change. The client should implement the {@link AcknowledgementSink} interface.
  */
-public abstract class AdoptedLiveSyncChange extends AdoptedAcknowledgeableChange<ResourceObjectLiveSyncChange> {
+public class AdoptedLiveSyncChange extends AdoptedChange<ResourceObjectLiveSyncChange> {
 
-    protected AdoptedLiveSyncChange(@NotNull ResourceObjectLiveSyncChange resourceObjectChange, boolean simulate,
+    public AdoptedLiveSyncChange(@NotNull ResourceObjectLiveSyncChange resourceObjectChange, boolean simulate,
             ChangeProcessingBeans beans) {
         super(resourceObjectChange, simulate, beans);
     }

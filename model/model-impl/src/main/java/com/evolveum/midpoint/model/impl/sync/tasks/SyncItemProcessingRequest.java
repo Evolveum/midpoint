@@ -11,7 +11,11 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescript
 import com.evolveum.midpoint.provisioning.api.SynchronizationEvent;
 import com.evolveum.midpoint.repo.common.task.AbstractIterativeItemProcessor;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * TODO
@@ -35,5 +39,20 @@ public class SyncItemProcessingRequest<SE extends SynchronizationEvent> extends 
         } else {
             return null;
         }
+    }
+
+    @Override
+    public @NotNull IterationItemInformation getIterationItemInformation() {
+        ResourceObjectShadowChangeDescription changeDescription = getItem().getChangeDescription();
+        if (changeDescription != null && changeDescription.getCurrentShadow() != null) {
+            return new IterationItemInformation(changeDescription.getCurrentShadow());
+        } else {
+            return new IterationItemInformation(); // TODO
+        }
+    }
+
+    @Override
+    public void acknowledge(boolean release, OperationResult result) {
+        item.acknowledge(release, result);
     }
 }

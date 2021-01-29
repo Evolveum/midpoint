@@ -9,14 +9,13 @@ package com.evolveum.midpoint.provisioning.impl.sync;
 
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.SynchronizationEvent;
-import com.evolveum.midpoint.provisioning.impl.adoption.AdoptedAcknowledgeableChange;
-import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.provisioning.impl.adoption.AdoptedChange;
 import com.evolveum.midpoint.util.DebugUtil;
 
 /**
  * TODO
  */
-public abstract class SynchronizationEventImpl<AC extends AdoptedAcknowledgeableChange<?>> implements SynchronizationEvent {
+public abstract class SynchronizationEventImpl<AC extends AdoptedChange<?>> implements SynchronizationEvent {
 
     protected final AC change;
 
@@ -37,11 +36,6 @@ public abstract class SynchronizationEventImpl<AC extends AdoptedAcknowledgeable
     @Override
     public Object getCorrelationValue() {
         return change.getPrimaryIdentifierValue();
-    }
-
-    @Override
-    public void acknowledge(boolean release, OperationResult result) {
-        change.acknowledge(release, result);
     }
 
     @Override

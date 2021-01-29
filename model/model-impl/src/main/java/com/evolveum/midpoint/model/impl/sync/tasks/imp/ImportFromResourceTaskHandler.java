@@ -9,19 +9,15 @@ package com.evolveum.midpoint.model.impl.sync.tasks.imp;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.sync.tasks.NullSynchronizationObjectFilterImpl;
-import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
-import com.evolveum.midpoint.model.impl.sync.tasks.Synchronizer;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.ModelConstants;
+import com.evolveum.midpoint.model.impl.sync.tasks.NullSynchronizationObjectFilterImpl;
+import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
+import com.evolveum.midpoint.model.impl.sync.tasks.Synchronizer;
 import com.evolveum.midpoint.model.impl.tasks.AbstractModelTaskHandler;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.repo.common.task.PartExecutionClass;
 import com.evolveum.midpoint.repo.common.task.TaskExecutionClass;
@@ -30,7 +26,10 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.task.api.TaskException;
+import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -69,16 +68,6 @@ public class ImportFromResourceTaskHandler
     public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/import/handler-3";
 
     private static final String OP_IMPORT_SINGLE_SHADOW = ImportFromResourceTaskHandler.class.getName() + ".importSingleShadow";
-
-    // WARNING! This task handler is efficiently singleton!
-     // It is a spring bean and it is supposed to handle all search task instances
-     // Therefore it must not have task-specific fields. It can only contain fields specific to
-     // all tasks of a specified type
-
-    @Autowired private TaskManager taskManager;
-    @Autowired private ProvisioningService provisioningService;
-    @Autowired private ChangeNotificationDispatcher changeNotificationDispatcher;
-    @Autowired SyncTaskHelper syncTaskHelper;
 
     private static final Trace LOGGER = TraceManager.getTrace(ImportFromResourceTaskHandler.class);
 

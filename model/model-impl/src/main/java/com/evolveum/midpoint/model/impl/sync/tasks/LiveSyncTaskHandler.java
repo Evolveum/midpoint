@@ -19,7 +19,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.ModelConstants;
@@ -48,11 +47,6 @@ public class LiveSyncTaskHandler
         extends AbstractModelTaskHandler<LiveSyncTaskHandler, LiveSyncTaskHandler.TaskExecution> {
 
     public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/live-sync/handler-3";
-
-    @Autowired private TaskManager taskManager;
-    @Autowired private ProvisioningService provisioningService;
-    @Autowired private ResourceObjectChangeListener resourceObjectChangeListener;
-    @Autowired private SyncTaskHelper helper;
 
     private static final Trace LOGGER = TraceManager.getTrace(LiveSyncTaskHandler.class);
     private static final String CONTEXT = "Live Sync";
@@ -87,9 +81,9 @@ public class LiveSyncTaskHandler
         private TargetInfo targetInfo;
         private SynchronizationResult syncResult;
 
-        public TaskExecution(LiveSyncTaskHandler taskHandler, RunningTask localCoordinatorTask, WorkBucketType workBucket,
+        public TaskExecution(RunningTask localCoordinatorTask, WorkBucketType workBucket,
                 TaskPartitionDefinitionType partDefinition, TaskWorkBucketProcessingResult previousRunResult) {
-            super(taskHandler, localCoordinatorTask, workBucket, partDefinition, previousRunResult);
+            super(LiveSyncTaskHandler.this, localCoordinatorTask, workBucket, partDefinition, previousRunResult);
         }
 
         @Override
@@ -98,8 +92,7 @@ public class LiveSyncTaskHandler
                 SecurityViolationException, ExpressionEvaluationException {
             super.initialize(opResult);
 
-            targetInfo = helper.getTargetInfo(LOGGER, localCoordinatorTask, opResult, CONTEXT);
-            LOGGER.trace("Task target: {}", targetInfo);
+            targetInfo = syncTaskHelper.getTargetInfo(LOGGER, localCoordinatorTask, opResult, CONTEXT);
         }
 
         @Override
@@ -110,10 +103,11 @@ public class LiveSyncTaskHandler
         }
     }
 
+    @ItemProcessorClass(PartExecution.ItemProcessor.class)
     public class PartExecution extends AbstractIterativeTaskPartExecution
-            <LiveSyncEvent, LiveSyncTaskHandler, TaskExecution, PartExecution, ItemProcessor> {
+            <LiveSyncEvent, LiveSyncTaskHandler, TaskExecution, PartExecution, PartExecution.ItemProcessor> {
 
-        PartExecution(@NotNull TaskExecution taskExecution) {
+        public PartExecution(@NotNull TaskExecution taskExecution) {
             super(taskExecution);
         }
 
@@ -144,25 +138,25 @@ public class LiveSyncTaskHandler
         public boolean providesTracingAndDynamicProfiling() {
             return true;
         }
-    }
 
-    public class ItemProcessor extends AbstractIterativeItemProcessor
-            <LiveSyncEvent, LiveSyncTaskHandler, TaskExecution, PartExecution, ItemProcessor> {
+        public class ItemProcessor extends AbstractIterativeItemProcessor
+                <LiveSyncEvent, LiveSyncTaskHandler, TaskExecution, PartExecution, ItemProcessor> {
 
-        protected ItemProcessor(@NotNull PartExecution partExecution) {
-            super(partExecution);
-        }
-
-        @Override
-        public boolean process(ItemProcessingRequest<LiveSyncEvent> request, RunningTask workerTask, OperationResult result)
-                throws CommonException, PreconditionViolationException {
-            if (request.getItem().isComplete()) {
-                resourceObjectChangeListener.notifyChange(request.getItem().getChangeDescription(), workerTask, result);
-            } else {
-                // TODO
-                result.recordFatalError("Item was not pre-processed correctly");
+            public ItemProcessor() {
+                super(PartExecution.this);
             }
-            return true;
+
+            @Override
+            public boolean process(ItemProcessingRequest<LiveSyncEvent> request, RunningTask workerTask, OperationResult result)
+                    throws CommonException, PreconditionViolationException {
+                if (request.getItem().isComplete()) {
+                    changeNotificationDispatcher.notifyChange(request.getItem().getChangeDescription(), workerTask, result);
+                } else {
+                    // TODO
+                    result.recordFatalError("Item was not pre-processed correctly");
+                }
+                return true;
+            }
         }
     }
 }

@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.task;
 
+import com.evolveum.midpoint.schema.AcknowledgementSink;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -20,9 +21,9 @@ import org.jetbrains.annotations.NotNull;
  * <p>Besides the item itself it provides so called <i>correlation value</i> that is used to correctly order requests
  * that relate to the same midPoint or resource object - for example, two async changes related to a given account.</p>
  */
-public abstract class ItemProcessingRequest<I> {
+public abstract class ItemProcessingRequest<I> implements AcknowledgementSink {
 
-    @NotNull private final I item;
+    @NotNull protected final I item;
     @NotNull private final AbstractIterativeItemProcessor<I, ?, ?, ?, ?> itemProcessor;
 
     public ItemProcessingRequest(@NotNull I item, @NotNull AbstractIterativeItemProcessor<I, ?, ?, ?, ?> itemProcessor) {
@@ -51,16 +52,7 @@ public abstract class ItemProcessingRequest<I> {
         // TODO
     }
 
-    public IterationItemInformation getIterationItemInformation() {
-        return null; // TODO
-
-        /*
-                String objectName = PolyString.getOrig(object.getName());
-        String objectDisplayName = getDisplayName(object);
-        QName objectType = object.getDefinition().getTypeName();
-
-         */
-    }
+    public abstract @NotNull IterationItemInformation getIterationItemInformation();
 
     public boolean process(RunningTask workerTask, OperationResult result) {
         ItemProcessingGatekeeper<I> administrator = new ItemProcessingGatekeeper<>(this, itemProcessor, workerTask);

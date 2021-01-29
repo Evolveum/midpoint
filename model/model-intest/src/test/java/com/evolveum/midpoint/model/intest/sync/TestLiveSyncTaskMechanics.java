@@ -501,7 +501,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         // WHEN
         when();
 
-        waitForTaskNextRun(TASK_ERROR.oid, false, 10000, true);
+        waitForTaskNextRun(TASK_ERROR.oid, false, 30000, true);
 
         // THEN
         then();
@@ -562,7 +562,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         when();
 
         try {
-            waitForTaskNextRun(TASK_ERROR_IMPRECISE.oid, false, 10000, true);
+            waitForTaskNextRun(TASK_ERROR_IMPRECISE.oid, false, 30000, true);
         } catch (Throwable t) {
             suspendTask(TASK_ERROR_IMPRECISE.oid, 10000);
             throw t;

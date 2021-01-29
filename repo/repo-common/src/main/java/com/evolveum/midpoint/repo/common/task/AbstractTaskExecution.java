@@ -34,7 +34,7 @@ import static java.util.Collections.singletonList;
  *
  * *TODO: Generalize this class a bit. Consider moving to the task module.*
  */
-public class AbstractTaskExecution
+public abstract class AbstractTaskExecution
         <TH extends AbstractTaskHandler<TH, TE>,
                 TE extends AbstractTaskExecution<TH, TE>> {
 

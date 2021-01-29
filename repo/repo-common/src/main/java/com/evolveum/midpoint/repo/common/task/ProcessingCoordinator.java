@@ -77,6 +77,7 @@ public class ProcessingCoordinator<I> {
     public boolean submit(ItemProcessingRequest<I> request, OperationResult result) {
         if (!canRun()) {
             recordInterrupted(result);
+            request.acknowledge(false, result);
             return false;
         }
 
@@ -85,11 +86,13 @@ public class ProcessingCoordinator<I> {
                 while (!requestsBuffer.offer(request)) {
                     if (!canRun()) {
                         recordInterrupted(result);
+                        request.acknowledge(false, result);
                         return false;
                     }
                 }
             } catch (InterruptedException e) {
                 recordInterrupted(result);
+                request.acknowledge(false, result);
                 return false;
             }
 
@@ -234,7 +237,7 @@ public class ProcessingCoordinator<I> {
     }
 
     public void allItemsSubmitted() {
-        logger.trace("All items were submitted.");
+        logger.trace("All items were submitted; coordinator task canRun = {}", coordinatorTask.canRun());
         allItemsSubmitted.set(true);
     }
 

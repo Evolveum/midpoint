@@ -7,7 +7,12 @@
 
 package com.evolveum.midpoint.repo.common.task;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -20,7 +25,17 @@ public class ObjectProcessingRequest<O extends ObjectType> extends ItemProcessin
     }
 
     @Override
+    public @NotNull IterationItemInformation getIterationItemInformation() {
+        return new IterationItemInformation(item);
+    }
+
+    @Override
     public ObjectType getObjectToReportOperation() {
         return getItem().asObjectable(); // TODO
+    }
+
+    @Override
+    public void acknowledge(boolean release, OperationResult result) {
+        // Nothing to acknowledge here.
     }
 }

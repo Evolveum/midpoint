@@ -46,13 +46,16 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationContext.class);
 
-    private PrismObject<ShadowType> applicableShadow;
+    /** TODO */
+    private final PrismObject<ShadowType> applicableShadow;
+
+    /** TODO */
     private final PrismObject<ShadowType> currentShadow;
 
     /**
      * Original delta that triggered this synchronization. (If known.)
      */
-    private ObjectDelta<ShadowType> resourceObjectDelta;
+    private final ObjectDelta<ShadowType> resourceObjectDelta;
 
     private PrismObject<ResourceType> resource;
     private PrismObject<SystemConfigurationType> systemConfiguration;
@@ -79,8 +82,8 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     private boolean shadowExistsInRepo = true;
     private boolean forceIntentChange;
 
-    private PrismContext prismContext;
-    private ExpressionFactory expressionFactory;
+    private final PrismContext prismContext;
+    private final ExpressionFactory expressionFactory;
 
     public SynchronizationContext(PrismObject<ShadowType> applicableShadow, PrismObject<ShadowType> currentShadow,
             ObjectDelta<ShadowType> resourceObjectDelta, PrismObject<ResourceType> resource, String channel,
@@ -108,33 +111,6 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         ShadowType currentShadowType = applicableShadow.asObjectable();
         return BooleanUtils.isTrue(currentShadowType.isProtectedObject());
     }
-
-//    public boolean isSatisfyTaskConstraints() throws SchemaException {
-//
-//        ShadowKindType kind = getTaskPropertyValue(SchemaConstants.MODEL_EXTENSION_KIND);
-//        String intent = getTaskPropertyValue(SchemaConstants.MODEL_EXTENSION_INTENT);
-//        QName objectClass = getTaskPropertyValue(SchemaConstants.MODEL_EXTENSION_OBJECTCLASS);
-//
-//        LOGGER.trace("checking task constraints: {}", task);
-//
-//        boolean isApplicable = SynchronizationUtils.isPolicyApplicable(objectClass, kind, intent, objectSynchronization, resource, true);
-//        //this mean that kind/intent are null in the task..but this can be a case, so check if at least the objectClass is the same
-//        if (!isApplicable && objectClass != null) {
-//            return QNameUtil.matchAny(objectClass, objectSynchronization.getObjectClass());
-//        }
-//
-//        return isApplicable;
-//    }
-//
-//    //TODO multi-threaded tasks?
-//    private <T> T getTaskPropertyValue(QName propertyName) {
-//        PrismProperty<T> prop = task.getExtensionPropertyOrClone(ItemName.fromQName(propertyName));
-//        if (prop == null || prop.isEmpty()) {
-//            return null;
-//        }
-//
-//        return prop.getRealValue();
-//    }
 
     public ShadowKindType getKind() {
 
@@ -313,12 +289,6 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return null;
     }
 
-    //TODO obejctClass???
-//    public QName getObjectClass() {
-//        if (objectSynchronization.getObjectClass() != )
-//    }
-
-
     public PrismObject<ShadowType> getApplicableShadow() {
         return applicableShadow;
     }
@@ -407,10 +377,6 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         this.channel = channel;
     }
 
-//    public SynchronizationReactionType getReaction() {
-//        return reaction;
-//    }
-
     public ExpressionProfile getExpressionProfile() {
         return expressionProfile;
     }
@@ -459,7 +425,6 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
         return refinedResourceSchema.getRefinedDefinition(getKind(), getIntent());
     }
-
 
     @Override
     public String toString() {

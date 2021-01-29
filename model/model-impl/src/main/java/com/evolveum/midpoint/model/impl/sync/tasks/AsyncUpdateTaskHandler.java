@@ -80,7 +80,7 @@ public class AsyncUpdateTaskHandler
         }
     }
 
-    @ItemProcessorClass(value = PartExecution.ItemProcessor.class)
+    @ItemProcessorClass(PartExecution.ItemProcessor.class)
     public class PartExecution extends AbstractIterativeTaskPartExecution
             <AsyncUpdateEvent, AsyncUpdateTaskHandler, TaskExecution, PartExecution, PartExecution.ItemProcessor> {
 
@@ -115,7 +115,7 @@ public class AsyncUpdateTaskHandler
                         AsyncUpdateTaskHandler.PartExecution,
                         ItemProcessor> {
 
-            protected ItemProcessor() {
+            public ItemProcessor() {
                 super(PartExecution.this);
             }
 
@@ -123,7 +123,7 @@ public class AsyncUpdateTaskHandler
             public boolean process(ItemProcessingRequest<AsyncUpdateEvent> request, RunningTask workerTask,
                     OperationResult result) throws CommonException, PreconditionViolationException {
                 if (request.getItem().isComplete()) {
-                    resourceObjectChangeListener.notifyChange(request.getItem().getChangeDescription(), workerTask, result);
+                    changeNotificationDispatcher.notifyChange(request.getItem().getChangeDescription(), workerTask, result);
                 } else {
                     // TODO
                     result.recordFatalError("Item was not pre-processed correctly");

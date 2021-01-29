@@ -186,10 +186,8 @@ public abstract class AbstractTaskHandler<
     private TE createTaskExecutionFromAnnotation(RunningTask localCoordinatorTask, WorkBucketType workBucket,
             TaskPartitionDefinitionType partition, TaskWorkBucketProcessingResult previousRunResult) {
         try {
-            TaskExecutionClass annotation = this.getClass().getAnnotation(TaskExecutionClass.class);
-            Class<? extends AbstractTaskExecution> executionClass =
-                    annotation != null ? annotation.value() : AbstractTaskExecution.class;
-            Constructor<?> constructor = executionClass.getDeclaredConstructor(this.getClass(), RunningTask.class,
+            TaskExecutionClass annotation = AnnotationSupportUtil.getRequiredAnnotation(this, TaskExecutionClass.class);
+            Constructor<?> constructor = annotation.value().getDeclaredConstructor(this.getClass(), RunningTask.class,
                     WorkBucketType.class, TaskPartitionDefinitionType.class, TaskWorkBucketProcessingResult.class);
             //noinspection unchecked
             return (TE) constructor.newInstance(this, localCoordinatorTask, workBucket, partition, previousRunResult);

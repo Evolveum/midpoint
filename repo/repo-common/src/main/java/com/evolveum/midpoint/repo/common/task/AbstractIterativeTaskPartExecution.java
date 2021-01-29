@@ -14,6 +14,7 @@ import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.P
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
@@ -130,7 +131,7 @@ public abstract class AbstractIterativeTaskPartExecution<I,
             TaskException, ObjectAlreadyExistsException, PolicyViolationException, PreconditionViolationException {
 
         logger.trace("{} run starting: local coordinator task {}, previous run result {}",
-                taskHandler.getTaskTypeName(), localCoordinatorTask, taskExecution.previousRunResult);
+                processShortNameCapitalized, localCoordinatorTask, taskExecution.previousRunResult);
 
         checkTaskPersistence();
 
@@ -179,7 +180,7 @@ public abstract class AbstractIterativeTaskPartExecution<I,
 
         finish(opResult);
 
-        logger.trace("{} run finished (task {}, run result {})", taskHandler.getTaskTypeName(), localCoordinatorTask, runResult);
+        logger.trace("{} run finished (task {}, run result {})", processShortNameCapitalized, localCoordinatorTask, runResult);
         runResult.setBucketComplete(localCoordinatorTask.canRun()); // TODO
         runResult.setShouldContinue(localCoordinatorTask.canRun()); // TODO
         return runResult;
@@ -290,7 +291,7 @@ public abstract class AbstractIterativeTaskPartExecution<I,
     }
 
     private void logFinishInfo(OperationResult opResult) {
-        String finishMessage = "Finished " + taskHandler.getTaskTypeName() + " (" + localCoordinatorTask + "). ";
+        String finishMessage = "Finished " + getProcessShortName() + " (" + localCoordinatorTask + "). ";
         String statMsg =
                 "Processed " + statistics.getItemsProcessed() + " objects in " + statistics.getWallTime() / 1000
                         + " seconds, got " + statistics.getErrors() + " errors.";
@@ -306,7 +307,7 @@ public abstract class AbstractIterativeTaskPartExecution<I,
                 .recordStatus(OperationResultStatus.SUCCESS, statMsg);
         TaskHandlerUtil.appendLastFailuresInformation(getTaskOperationPrefix(), localCoordinatorTask, opResult);
 
-        logger.info("{}", finishMessage + statistics);
+        logger.info("{}", finishMessage + statMsg);
     }
 
     private String getTaskOperationPrefix() {
@@ -324,7 +325,7 @@ public abstract class AbstractIterativeTaskPartExecution<I,
     // TODO fix/remove
     private TaskWorkBucketProcessingResult logErrorAndSetResult(TaskWorkBucketProcessingResult runResult, OperationResult opResult, String message, Throwable e,
             OperationResultStatus opStatus, TaskRunResult.TaskRunResultStatus status) {
-        logger.error("{}: {}: {}", taskHandler.getTaskTypeName(), message, e.getMessage(), e);
+        logger.error("{}: {}: {}", processShortNameCapitalized, message, e.getMessage(), e);
         opResult.recordStatus(opStatus, message + ": " + e.getMessage(), e);
         runResult.setRunResultStatus(status);
         runResult.setProgress(getTotalProgress());
@@ -346,6 +347,10 @@ public abstract class AbstractIterativeTaskPartExecution<I,
 
     public @NotNull String getProcessShortNameCapitalized() {
         return processShortNameCapitalized;
+    }
+
+    public @NotNull String getProcessShortName() {
+        return StringUtils.uncapitalize(processShortNameCapitalized);
     }
 
     public void setProcessShortNameCapitalized(String value) {

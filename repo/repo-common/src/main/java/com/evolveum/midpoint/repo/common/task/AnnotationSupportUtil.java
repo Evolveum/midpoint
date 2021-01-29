@@ -39,13 +39,18 @@ class AnnotationSupportUtil {
     static <T> T instantiate(Class<T> targetClass, Object constructorParameter,
             Object potentialEnclosingObject) throws IllegalAccessException, InvocationTargetException,
             InstantiationException, NoSuchMethodException {
-        if (!targetClass.isMemberClass() || Modifier.isStatic(targetClass.getModifiers())) {
-            Constructor<T> constructor = targetClass.getDeclaredConstructor(constructorParameter.getClass());
+        Constructor<T> constructor;
+        try {
+            constructor = targetClass.getDeclaredConstructor(constructorParameter.getClass());
             return constructor.newInstance(constructorParameter);
-        } else {
-            Constructor<T> constructor = targetClass.getDeclaredConstructor(
-                    potentialEnclosingObject.getClass(), constructorParameter.getClass());
-            return constructor.newInstance(potentialEnclosingObject, constructorParameter);
+        } catch (NoSuchMethodException e) {
+            if (targetClass.isMemberClass() && !Modifier.isStatic(targetClass.getModifiers())) {
+                Constructor<T> altConstructor = targetClass.getDeclaredConstructor(
+                        potentialEnclosingObject.getClass(), constructorParameter.getClass());
+                return altConstructor.newInstance(potentialEnclosingObject, constructorParameter);
+            } else {
+                throw e;
+            }
         }
     }
 }

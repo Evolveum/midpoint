@@ -21,10 +21,10 @@ import com.evolveum.midpoint.provisioning.impl.sync.ChangeProcessingBeans;
  * Adopted "async update" change.
  */
 public class AdoptedAsyncChange
-        extends AdoptedAcknowledgeableChange<ResourceObjectAsyncChange>
+        extends AdoptedChange<ResourceObjectAsyncChange>
         implements AcknowledgementSink {
 
-    protected AdoptedAsyncChange(@NotNull ResourceObjectAsyncChange resourceObjectChange, ChangeProcessingBeans beans) {
+    public AdoptedAsyncChange(@NotNull ResourceObjectAsyncChange resourceObjectChange, ChangeProcessingBeans beans) {
         super(resourceObjectChange, false, beans);
     }
 

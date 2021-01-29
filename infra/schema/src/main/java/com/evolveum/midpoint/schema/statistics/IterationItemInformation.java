@@ -7,6 +7,10 @@
 
 package com.evolveum.midpoint.schema.statistics;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import javax.xml.namespace.QName;
 
 /**
@@ -18,6 +22,16 @@ public class IterationItemInformation {
     private String objectDisplayName;
     private QName objectType;
     private String objectOid;
+
+    public IterationItemInformation() {
+    }
+
+    public IterationItemInformation(PrismObject<? extends ObjectType> object) {
+        this.objectName = PolyString.getOrig(object.getName());
+        this.objectDisplayName = StatisticsUtil.getDisplayName(object);
+        this.objectType = object.getDefinition().getTypeName();
+        this.objectOid = object.getOid();
+    }
 
     public String getObjectName() {
         return objectName;

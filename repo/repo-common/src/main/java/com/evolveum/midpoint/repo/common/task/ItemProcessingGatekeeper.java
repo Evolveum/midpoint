@@ -10,7 +10,6 @@ package com.evolveum.midpoint.repo.common.task;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
-import com.evolveum.midpoint.schema.AcknowledgementSink;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultBuilder;
@@ -195,17 +194,11 @@ class ItemProcessingGatekeeper<I> {
     /** This is just to ensure we will not wait indefinitely for the item to complete. */
     private void acknowledgeItemProcessedAsEmergency() {
         OperationResult dummyResult = new OperationResult("dummy");
-        doAcknowledge(false, dummyResult);
+        request.acknowledge(false, dummyResult);
     }
 
     private void acknowledgeItemProcessed(OperationResult result) {
-        doAcknowledge(shouldReleaseItem(), result);
-    }
-
-    private void doAcknowledge(boolean release, OperationResult result) {
-        if (request.getItem() instanceof AcknowledgementSink) {
-            ((AcknowledgementSink) request.getItem()).acknowledge(release, result);
-        }
+        request.acknowledge(shouldReleaseItem(), result);
     }
 
     private boolean shouldReleaseItem() {
@@ -263,8 +256,7 @@ class ItemProcessingGatekeeper<I> {
         }
         // We do not want to override the result set by handler. This is just a fallback case
         if (result.isUnknown() || result.isInProgress()) {
-            result.recordFatalError("Failed to process: "+resultException.getMessage(),
-                    resultException);
+            result.recordFatalError("Failed to process: "+resultException.getMessage(), resultException);
         }
         result.summarize();
         canContinue = canContinueOnError(result);
