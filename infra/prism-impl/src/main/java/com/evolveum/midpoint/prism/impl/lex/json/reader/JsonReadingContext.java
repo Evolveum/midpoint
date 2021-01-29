@@ -10,11 +10,8 @@ package com.evolveum.midpoint.prism.impl.lex.json.reader;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.impl.ParsingContextImpl;
 import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
-import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
 import com.fasterxml.jackson.core.JsonParser;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.IdentityHashMap;
 
 /**
  * TODO
@@ -28,10 +25,6 @@ class JsonReadingContext {
     @NotNull final PrismContext prismContext;
 
     private boolean aborted;
-
-    // Elements that should be skipped when filling-in default namespaces - those that are explicitly set with no-NS ('#name').
-    // (Values for these entries are not important. Only key presence is relevant.)
-    @NotNull final IdentityHashMap<XNodeImpl, Object> noNamespaceElementNames = new IdentityHashMap<>();
 
     JsonReadingContext(@NotNull JsonParser parser, @NotNull ParsingContextImpl prismParsingContext,
             @NotNull LexicalProcessor.RootXNodeHandler objectHandler, @NotNull AbstractReader.YamlTagResolver yamlTagResolver,

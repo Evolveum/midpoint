@@ -312,19 +312,13 @@ class JsonObjectTokenReader {
     private void addElementNameTo(XNodeImpl rv) throws SchemaException {
         if (elementName != null) {
             if (wrappedValue != null && wrappedValue.getElementName() != null) {
-                boolean wrappedValueElementNoNamespace = ctx.noNamespaceElementNames.containsKey(wrappedValue);
-                if (!wrappedValue.getElementName().equals(elementName.name)
-                    || wrappedValueElementNoNamespace != elementName.explicitEmptyNamespace) {
+                if (!wrappedValue.getElementName().equals(elementName.name)) {
                     warnOrThrow("Conflicting element names for '" + JsonInfraItems.PROP_VALUE
-                        + "' (" + wrappedValue.getElementName() + "; no NS=" + wrappedValueElementNoNamespace
-                        + ") and regular content (" + elementName.name + "; no NS="
-                        + elementName.explicitEmptyNamespace + ") present");
+                        + "' (" + wrappedValue.getElementName()
+                        + ") and regular content (" + elementName.name + "; ) present");
                 }
             }
             rv.setElementName(elementName.name);
-            if (elementName.explicitEmptyNamespace) {
-                ctx.noNamespaceElementNames.put(rv, null);
-            }
         }
 
     }
