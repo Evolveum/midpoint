@@ -121,9 +121,9 @@ public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T
     }
 
     /**
-     * Creates BLOB path for a property and registers column metadata for it.
+     * Creates byte array path for a property and registers column metadata for it.
      */
-    protected ArrayPath<byte[], Byte> createBlob(
+    protected ArrayPath<byte[], Byte> createByteArray(
             String property, ColumnMetadata columnMetadata) {
         return addMetadata(createArray(property, byte[].class), columnMetadata);
     }
