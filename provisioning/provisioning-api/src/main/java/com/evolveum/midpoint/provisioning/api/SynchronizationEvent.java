@@ -34,7 +34,20 @@ public interface SynchronizationEvent extends AcknowledgementSink, DebugDumpable
 
     /**
      * Is the event ready to be processed?
+     *
      * TODO
      */
     boolean isComplete();
+
+    /**
+     * Is the event "empty", and therefore should be skipped?
+     * This means no error has occurred, but simply there is nothing to do.
+     * Like a deletion of already-deleted account.
+     */
+    boolean isSkip();
+
+    boolean isError();
+
+    // TODO!!!
+    String getErrorMessage();
 }

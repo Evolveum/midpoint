@@ -283,6 +283,7 @@ class ItemProcessingGatekeeper<I> {
 
 
     private void recordIterativeOperationEnd() {
+        // TODO consider result status of NOT_APPLICABLE (means skipped)
         // resultException != null iff there was an error (even if not an exception)
         workerTask.recordIterativeOperationEnd(iterationItemInformation, timing.startTimeMillis, resultException);
     }
@@ -347,10 +348,16 @@ class ItemProcessingGatekeeper<I> {
     }
 
     private void writeOperationExecutionRecord(OperationResult result) {
-        if (!getReportingOptions().isSkipWritingOperationExecutionRecords()) {
-            ObjectType objectToReportOperation = request.getObjectToReportOperation();
+        if (getReportingOptions().isSkipWritingOperationExecutionRecords()) {
+            return;
+        }
+
+        ObjectType objectToReportOperation = request.getObjectToReportOperation();
+        if (objectToReportOperation != null) {
             getOperationExecutionRecorder().recordOperationExecution(objectToReportOperation.asPrismObject(), resultException,
                     taskExecution.localCoordinatorTask, result);
+        } else {
+            // TODO record the operation somewhere else (to the task, probably)
         }
     }
 

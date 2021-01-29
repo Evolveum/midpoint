@@ -4318,20 +4318,20 @@ public class TestDummy extends AbstractBasicDummyTest {
                     .lastNotifyChange()
                     .display()
                     .oldShadow()
-                    .assertOid(corsairsShadowOid)
-                    .attributes()
-                    .assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID)
-                    .assertValue(SchemaConstants.ICFS_NAME, GROUP_CORSAIRS_NAME)
-                    .end()
-                    .end()
+                        .assertOid(corsairsShadowOid)
+                        .attributes()
+                            .assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID)
+                            .assertValue(SchemaConstants.ICFS_NAME, GROUP_CORSAIRS_NAME)
+                            .end()
+                        .end()
                     .delta()
-                    .assertChangeType(ChangeType.DELETE)
-                    .assertObjectTypeClass(ShadowType.class)
-                    .assertOid(corsairsShadowOid)
-                    .end()
-                    .oldShadow() // current shadow is null after recent code changes
-                    .assertOid(corsairsShadowOid)
-                    .assertTombstone(); // dubious
+                        .assertChangeType(ChangeType.DELETE)
+                        .assertObjectTypeClass(ShadowType.class)
+                        .assertOid(corsairsShadowOid)
+                        .end()
+                    .currentShadow() // questionable
+                        .assertOid(corsairsShadowOid)
+                        .assertTombstone();
 
             assertRepoShadow(corsairsShadowOid)
                     .assertTombstone();
@@ -4384,13 +4384,16 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock
                 .lastNotifyChange()
                 .delta()
-                .assertChangeType(ChangeType.DELETE)
-                .assertObjectTypeClass(ShadowType.class)
-                .assertOid(drakeAccountOid)
+                    .assertChangeType(ChangeType.DELETE)
+                    .assertObjectTypeClass(ShadowType.class)
+                    .assertOid(drakeAccountOid)
                 .end()
-                .oldShadow() // note that currentShadow is (now) null - after recent code changes
-                .assertTombstone() // TODO really in old?
-                .assertOid(drakeAccountOid);
+                .oldShadow()
+                    .assertOid(drakeAccountOid)
+                    .end()
+                .currentShadow() // questionable
+                    .assertOid(drakeAccountOid)
+                    .assertTombstone();
 
         assertRepoShadow(drakeAccountOid)
                 .assertTombstone();

@@ -73,14 +73,18 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements DebugDum
     // TODO reconsider, probably remove
     private final boolean simulate;
 
-    protected final ProcessingState processingState;
+    @NotNull protected final ProcessingState processingState;
+
     protected final ChangeProcessingBeans beans;
 
     // TODO ???
     protected final ObjectDelta<ShadowType> objectDelta;
 
     /**
-     * TODO
+     * Normally, this is "shadowized" current resource object. (For resources without read capability it is the cached version.)
+     *
+     * For delete deltas, it is the current shadow, with applied definitions.
+     * TODO reconsider this
      */
     protected PrismObject<ShadowType> currentResourceObject;
 
@@ -155,9 +159,10 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements DebugDum
 
         if (isDelete()) {
             markRepoShadowTombstone(result);
+            setDeletedCurrentResourceObject(result);
         }
 
-        shadowChangeDescription = createResourceShadowChangeDescription(result);
+        shadowChangeDescription = createResourceShadowChangeDescription();
     }
 
     public void checkConsistence() {
@@ -299,7 +304,7 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements DebugDum
         }
     }
 
-    private ResourceObjectShadowChangeDescription createResourceShadowChangeDescription(OperationResult result) throws ObjectNotFoundException,
+    private ResourceObjectShadowChangeDescription createResourceShadowChangeDescription() throws ObjectNotFoundException,
             SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         ResourceObjectShadowChangeDescription shadowChangeDescription = new ResourceObjectShadowChangeDescription();
         shadowChangeDescription.setObjectDelta(objectDelta);
@@ -307,24 +312,7 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements DebugDum
         shadowChangeDescription.setOldShadow(repoShadow);
         shadowChangeDescription.setSourceChannel(getChannel());
         shadowChangeDescription.setSimulate(simulate);
-
         shadowChangeDescription.setCurrentShadow(currentResourceObject);
-
-//        if (isDelete()) {
-//            if (repoShadow.getOid() != null) {
-//                try {
-//                    // TODO avoid reading from the repo, use old shadow + deltas instead
-//                    PrismObject<ShadowType> currentShadow = beans.repositoryService.getObject(ShadowType.class, repoShadow.getOid(), null, result);
-//                    shadowChangeDescription.setCurrentShadow(currentShadow);
-//                } catch (ObjectNotFoundException e) {
-//                    // No big deal. We simply skip setting the current shadow.
-//                    LOGGER.debug("Repository shadow no longer exists: {}", repoShadow, e);
-//                }
-//            }
-//        } else {
-//            shadowChangeDescription.setCurrentShadow(currentResourceObject);
-//        }
-
         return shadowChangeDescription;
     }
 
@@ -338,23 +326,6 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements DebugDum
 
     public ObjectDelta<ShadowType> getObjectDelta() {
         return objectDelta;
-    }
-
-    public String getIterationInfo() {
-//        if (change.getCurrentResourceObject() != null && change.getCurrentResourceObject().getName() != null) {
-//            objectName = change.getCurrentResourceObject().getName().getOrig();
-//            objectDisplayName = StatisticsUtil.getDisplayName(change.getCurrentResourceObject().asObjectable());
-//            objectOid = change.getCurrentResourceObject().getOid();     // probably null
-//        } else if (change.getOldRepoShadow() != null && change.getOldRepoShadow().getName() != null) {
-//            objectName = change.getOldRepoShadow().getName().getOrig();
-//            objectDisplayName = StatisticsUtil.getDisplayName(change.getOldRepoShadow().asObjectable());
-//            objectOid = change.getOldRepoShadow().getOid();
-//        } else {
-//            objectName = String.valueOf(change.getPrimaryIdentifierRealValue());
-//            objectDisplayName = null;
-//            objectOid = null;
-//        }
-        return "TODO";
     }
 
     private void updateRepoShadow(OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
@@ -374,6 +345,28 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements DebugDum
         if (!ShadowUtil.isDead(repoShadow) || ShadowUtil.isExists(repoShadow)) {
             beans.shadowManager.markShadowTombstone(repoShadow, result);
         }
+    }
+
+    /**
+     * It looks like the current resource object should be present also for DELETE deltas.
+     * TODO clarify this
+     * TODO try to avoid repository get operation by applying known deltas to existing repo shadow object
+     *
+     * So until clarified, we provide here the shadow object, with properly applied definitions.
+     */
+    private void setDeletedCurrentResourceObject(OperationResult result) throws SchemaException,
+            ExpressionEvaluationException, ConfigurationException, CommunicationException, SkipProcessingException,
+            ObjectNotFoundException {
+        PrismObject<ShadowType> currentShadow;
+        try {
+            currentShadow = beans.repositoryService.getObject(ShadowType.class, this.repoShadow.getOid(), null, result);
+        } catch (ObjectNotFoundException e) {
+            LOGGER.debug("Shadow for delete synchronization event {} disappeared recently."
+                    + "Skipping this event.", this);
+            throw new SkipProcessingException();
+        }
+        context = beans.shadowCaretaker.applyAttributesDefinition(context, currentShadow);
+        currentResourceObject = currentShadow;
     }
 
     public PrismObject<ShadowType> getCurrentResourceObject() {
@@ -405,6 +398,10 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements DebugDum
 
     public int getSequentialNumber() {
         return resourceObjectChange.getLocalSequenceNumber();
+    }
+
+    public @NotNull ProcessingState getProcessingState() {
+        return processingState;
     }
 
     @Override

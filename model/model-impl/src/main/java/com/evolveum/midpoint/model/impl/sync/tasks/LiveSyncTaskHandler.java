@@ -149,11 +149,15 @@ public class LiveSyncTaskHandler
             @Override
             public boolean process(ItemProcessingRequest<LiveSyncEvent> request, RunningTask workerTask, OperationResult result)
                     throws CommonException, PreconditionViolationException {
-                if (request.getItem().isComplete()) {
-                    changeNotificationDispatcher.notifyChange(request.getItem().getChangeDescription(), workerTask, result);
+                LiveSyncEvent event = request.getItem();
+                if (event.isComplete()) {
+                    changeNotificationDispatcher.notifyChange(event.getChangeDescription(), workerTask, result);
+                } else if (event.isSkip()) {
+                    result.recordNotApplicable();
                 } else {
-                    // TODO
-                    result.recordFatalError("Item was not pre-processed correctly");
+                    // TODO error criticality
+                    assert event.isError();
+                    result.recordFatalError("Item was not pre-processed correctly: " + event.getErrorMessage());
                 }
                 return true;
             }

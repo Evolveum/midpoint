@@ -34,6 +34,7 @@ public class ProcessingState {
     public ProcessingState(ProcessingState processingState) {
         this.skipFurtherProcessing = processingState.skipFurtherProcessing;
         this.exceptionEncountered = processingState.exceptionEncountered;
+        this.preprocessed = false;
     }
 
     public void setSkipFurtherProcessing(Throwable t) {
@@ -49,7 +50,6 @@ public class ProcessingState {
         } else {
             exceptionEncountered = t;
         }
-
     }
 
     public boolean isSkipFurtherProcessing() {
@@ -76,6 +76,12 @@ public class ProcessingState {
     }
 
     public void setPreprocessed() {
+        assert !skipFurtherProcessing;
+        assert exceptionEncountered == null;
         this.preprocessed = true;
+    }
+
+    public Throwable getExceptionEncountered() {
+        return exceptionEncountered;
     }
 }

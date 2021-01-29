@@ -10,6 +10,7 @@ package com.evolveum.midpoint.provisioning.impl.sync;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.SynchronizationEvent;
 import com.evolveum.midpoint.provisioning.impl.adoption.AdoptedChange;
+import com.evolveum.midpoint.provisioning.util.ProcessingState;
 import com.evolveum.midpoint.util.DebugUtil;
 
 /**
@@ -41,6 +42,28 @@ public abstract class SynchronizationEventImpl<AC extends AdoptedChange<?>> impl
     @Override
     public boolean isComplete() {
         return change.isPreprocessed();
+    }
+
+    @Override
+    public boolean isSkip() {
+        ProcessingState processingState = change.getProcessingState();
+        return processingState.isSkipFurtherProcessing() && processingState.getExceptionEncountered() == null;
+    }
+
+    @Override
+    public boolean isError() {
+        ProcessingState processingState = change.getProcessingState();
+        return processingState.getExceptionEncountered() != null;
+    }
+
+    @Override
+    public String getErrorMessage() {
+        Throwable e = change.getProcessingState().getExceptionEncountered();
+        if (e != null) {
+            return e.getClass().getSimpleName() + ": " + e.getMessage();
+        } else {
+            return null;
+        }
     }
 
     @Override

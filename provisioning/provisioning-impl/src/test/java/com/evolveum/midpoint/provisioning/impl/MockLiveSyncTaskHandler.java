@@ -45,6 +45,10 @@ public class MockLiveSyncTaskHandler {
                     syncServiceMock.notifyChange(event.getChangeDescription(), task, hResult);
                     event.acknowledge(true, hResult);
                     return true;
+                } else if (event.isSkip()) {
+                    hResult.recordNotApplicable();
+                    event.acknowledge(true, hResult);
+                    return true;
                 } else {
                     // TODO
                     LOGGER.error("Event is not complete:\n{}", event.debugDump());
