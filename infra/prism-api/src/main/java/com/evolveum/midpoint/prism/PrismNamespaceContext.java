@@ -82,6 +82,10 @@ public abstract class PrismNamespaceContext {
      */
     public abstract Optional<String> namespaceFor(String prefix);
 
+    public Optional<String> defaultNamespace() {
+        return namespaceFor(DEFAULT_PREFIX);
+    }
+
     /**
      * Look up suitable prefix for namespace using default prefix search preference-
      *

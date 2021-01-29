@@ -126,7 +126,7 @@ class DomReader {
         } else if (DOMUtil.isMarkedAsIncomplete(element)) {
             // Note that it is of no use to check for "incomplete" on non-leaf elements. In XML the incomplete attribute
             // must be attached to an empty element.
-            node = new IncompleteMarkerXNodeImpl(localNsCtx);
+            node = new IncompleteMarkerXNodeImpl();
         } else {
             node = parsePrimitiveElement(element, localNsCtx);
         }

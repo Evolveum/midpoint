@@ -10,7 +10,6 @@ package com.evolveum.midpoint.prism.impl.lex.json.reader;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.impl.ParsingContextImpl;
 import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
-import com.evolveum.midpoint.prism.impl.xnode.MapXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
 import com.fasterxml.jackson.core.JsonParser;
 import org.jetbrains.annotations.NotNull;
@@ -30,11 +29,6 @@ class JsonReadingContext {
 
     private boolean aborted;
 
-    // TODO consider getting rid of these IdentityHashMaps by support default namespace marking and resolution
-    //  directly in XNode structures (like it was done for Map XNode keys recently).
-
-    // Definitions of namespaces ('@ns') within maps; to be applied after parsing.
-    @NotNull final IdentityHashMap<MapXNodeImpl, String> defaultNamespaces = new IdentityHashMap<>();
     // Elements that should be skipped when filling-in default namespaces - those that are explicitly set with no-NS ('#name').
     // (Values for these entries are not important. Only key presence is relevant.)
     @NotNull final IdentityHashMap<XNodeImpl, Object> noNamespaceElementNames = new IdentityHashMap<>();

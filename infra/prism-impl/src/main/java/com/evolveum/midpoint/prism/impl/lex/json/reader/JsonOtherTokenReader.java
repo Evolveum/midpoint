@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.impl.lex.json.JsonNullValueParser;
 import com.evolveum.midpoint.prism.impl.lex.json.JsonValueParser;
 import com.evolveum.midpoint.prism.impl.xnode.ListXNodeImpl;
@@ -37,9 +38,12 @@ class JsonOtherTokenReader {
     @NotNull private final JsonReadingContext ctx;
     @NotNull private final JsonParser parser;
 
-    JsonOtherTokenReader(JsonReadingContext ctx) {
+    private final PrismNamespaceContext parentContext;
+
+    JsonOtherTokenReader(JsonReadingContext ctx, PrismNamespaceContext context) {
         this.ctx = ctx;
         this.parser = ctx.parser;
+        this.parentContext = context;
     }
 
     @NotNull XNodeImpl readValue() throws IOException, SchemaException {
@@ -47,7 +51,7 @@ class JsonOtherTokenReader {
 
         switch (currentToken) {
             case START_OBJECT:
-                return new JsonObjectTokenReader(ctx).read();
+                return new JsonObjectTokenReader(ctx, parentContext).read();
             case START_ARRAY:
                 return parseToList();
             case VALUE_STRING:
@@ -86,7 +90,7 @@ class JsonOtherTokenReader {
     }
 
     private <T> PrimitiveXNodeImpl<T> parseToPrimitive() throws IOException, SchemaException {
-        PrimitiveXNodeImpl<T> primitive = new PrimitiveXNodeImpl<>();
+        PrimitiveXNodeImpl<T> primitive = new PrimitiveXNodeImpl<>(this.parentContext);
 
         Object tid = parser.getTypeId();
         if (tid != null) {

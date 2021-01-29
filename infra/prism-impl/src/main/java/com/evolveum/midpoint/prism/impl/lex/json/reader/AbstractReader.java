@@ -9,6 +9,7 @@ package com.evolveum.midpoint.prism.impl.lex.json.reader;
 
 import com.evolveum.midpoint.prism.ParserSource;
 import com.evolveum.midpoint.prism.ParsingContext;
+import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.impl.ParsingContextImpl;
 import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
 import com.evolveum.midpoint.prism.impl.xnode.*;
@@ -45,8 +46,11 @@ public abstract class AbstractReader {
 
     @NotNull protected final SchemaRegistry schemaRegistry;
 
+    private final PrismNamespaceContext namespaceContext;
+
     AbstractReader(@NotNull SchemaRegistry schemaRegistry) {
         this.schemaRegistry = schemaRegistry;
+        this.namespaceContext = schemaRegistry.globalNamespaceContext();
     }
 
     @NotNull
@@ -128,9 +132,9 @@ public abstract class AbstractReader {
         try {
             readFirstTokenAndCheckEmptyInput(configuredParser);
             if (supportsMultipleDocuments()) {
-                new MultiDocumentReader(ctx).read(expectingMultipleObjects);
+                new MultiDocumentReader(ctx, globalNamespaceContext()).read(expectingMultipleObjects);
             } else {
-                new DocumentReader(ctx).read(expectingMultipleObjects);
+                new DocumentReader(ctx, globalNamespaceContext()).read(expectingMultipleObjects);
             }
         } catch (SchemaException e) {
             throw e;
@@ -141,6 +145,10 @@ public abstract class AbstractReader {
         } catch (Throwable t) {
             throw new SystemException("Couldn't parse JSON/YAML object: " + t.getMessage() + ctx.getPositionSuffixIfPresent(), t);
         }
+    }
+
+    private PrismNamespaceContext globalNamespaceContext() {
+        return namespaceContext;
     }
 
     abstract boolean supportsMultipleDocuments();

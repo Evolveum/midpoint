@@ -7,13 +7,13 @@
 
 package com.evolveum.midpoint.prism.impl.lex.json.reader;
 
-import static com.evolveum.midpoint.prism.impl.lex.json.reader.RootObjectReader.DEFAULT_NAMESPACE_MARKER;
 import static com.evolveum.midpoint.prism.impl.lex.json.JsonInfraItems.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.xml.namespace.QName;
 
@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.xnode.XNode;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +55,9 @@ class JsonObjectTokenReader {
      * Map corresponding to the current object.
      * It might or might not be used as a return value - depending on circumstances.
      */
-    @NotNull private final MapXNodeImpl map = new MapXNodeImpl();
+    @NotNull private MapXNodeImpl map;
+
+    private final PrismNamespaceContext parentContext;
 
     /**
      * Name of the type of this XNode.
@@ -86,15 +89,6 @@ class JsonObjectTokenReader {
      */
     private Boolean incomplete;
 
-    /**
-     * Namespace (@ns).
-     * Should be set only once.
-     */
-    private String declaredNamespace;
-
-
-    private PrismNamespaceContext context;
-
     private boolean namespaceSensitiveStarted = false;
 
     private static final Map<QName, ItemProcessor> PROCESSORS = ImmutableMap.<QName, ItemProcessor>builder()
@@ -113,9 +107,10 @@ class JsonObjectTokenReader {
 
     private static final ItemProcessor STANDARD_PROCESSOR = namespaceSensitive(JsonObjectTokenReader::processStandardFieldValue);
 
-    JsonObjectTokenReader(@NotNull JsonReadingContext ctx) {
+    JsonObjectTokenReader(@NotNull JsonReadingContext ctx, PrismNamespaceContext parentContext) {
         this.ctx = ctx;
         this.parser = ctx.parser;
+        this.parentContext = parentContext;
     }
 
     /**
@@ -160,7 +155,28 @@ class JsonObjectTokenReader {
         if (currentFieldName != null) {
             warnOrThrow("Two field names in succession: " + currentFieldName + " and " + newFieldName);
         }
-        return QNameUtil.uriToQNameInfo(newFieldName, true);
+        return resolveQNameInfo(newFieldName);
+    }
+
+    private @NotNull QNameInfo resolveQNameInfo(String name) {
+
+        QNameInfo result = QNameUtil.uriToQNameInfo(name, true);
+        if(name.startsWith("@")) {
+            // Infra properties are unqualified
+            return result;
+        }
+        if(name.equals("equal")) {
+            name.toString();
+        }
+        // FIXME: Explicit empty namespace is workaround for cases, where we somehow lost namespace
+        // eg. parsing json with filters without namespaces
+        if(Strings.isNullOrEmpty(result.name.getNamespaceURI()) && !result.explicitEmptyNamespace) {
+            Optional<String> defaultNs = namespaceContext().defaultNamespace();
+            if(defaultNs.isPresent()) {
+                result = QNameUtil.qnameToQnameInfo(new QName(defaultNs.get(), result.name.getLocalPart()));
+            }
+        }
+        return result;
     }
 
     private void processFieldValue(QNameInfo name) throws IOException, SchemaException {
@@ -171,7 +187,14 @@ class JsonObjectTokenReader {
     }
 
     private XNodeImpl readValue() throws IOException, SchemaException {
-        return new JsonOtherTokenReader(ctx).readValue();
+        return new JsonOtherTokenReader(ctx,namespaceContext().inherited()).readValue();
+    }
+
+    private PrismNamespaceContext namespaceContext() {
+        if(map != null) {
+            return map.namespaceContext();
+        }
+        return parentContext.inherited();
     }
 
     private void processContextDeclaration(QNameInfo name, XNodeImpl value) {
@@ -179,15 +202,10 @@ class JsonObjectTokenReader {
     }
 
     private void processStandardFieldValue(QNameInfo currentFieldName, @NotNull XNodeImpl currentFieldValue) {
-        // Beware of potential unqualified value conflict (see MID-5326).
-        // Therefore we use special "default-namespace" marker that is dealt with later.
-        QName key;
-        if (currentFieldName.explicitEmptyNamespace || QNameUtil.isQualified(currentFieldName.name)) {
-            key = currentFieldName.name;
-        } else {
-            key = new QName(DEFAULT_NAMESPACE_MARKER, currentFieldName.name.getLocalPart());
-            map.setHasDefaultNamespaceMarkers();
-        }
+        // MID-5326:
+        //   If namespace is defined, fieldName is always qualified,
+        //   If namespace is undefined, then we can not effectivelly distinguish between
+        QName key = currentFieldName.name;
         map.put(key, currentFieldValue);
     }
 
@@ -231,7 +249,8 @@ class JsonObjectTokenReader {
         if (elementName != null) {
             warnOrThrow("Element name defined more than once");
         }
-        elementName = QNameUtil.uriToQNameInfo(getCurrentFieldStringValue(currentFieldName, value), true);
+        String name = getCurrentFieldStringValue(currentFieldName, value);
+        elementName = resolveQNameInfo(name);
     }
 
     private void processTypeDeclaration(QNameInfo currentFieldName, XNodeImpl value) throws SchemaException {
@@ -245,43 +264,52 @@ class JsonObjectTokenReader {
         if(namespaceSensitiveStarted) {
             warnOrThrow("Namespace declared after other fields: " + ctx.getPositionSuffix());
         }
-        if (declaredNamespace != null) {
-            warnOrThrow("Default namespace defined more than once");
+        if (map != null) {
+            warnOrThrow("Namespace defined more than once");
         }
         var ns = getCurrentFieldStringValue(currentFieldName, value);
-        context = PrismNamespaceContext.of(ns);
-        declaredNamespace = ns;
+        map = new MapXNodeImpl(parentContext.childContext(ImmutableMap.of("", ns)));
     }
 
     @NotNull
     private XNodeImpl postProcess() throws SchemaException {
+        startNamespaceSensitive();
         // Return either map or primitive value (in case of @type/@value) or incomplete xnode
         int haveRegular = !map.isEmpty() ? 1 : 0;
         int haveWrapped = wrappedValue != null ? 1 : 0;
         int haveIncomplete = Boolean.TRUE.equals(incomplete) ? 1 : 0;
-        XNodeImpl rv;
 
+        XNodeImpl ret;
         if (haveRegular + haveWrapped + haveIncomplete > 1) {
-            warnOrThrow("More than one of '" + JsonInfraItems.PROP_VALUE + "', '" + JsonInfraItems.PROP_INCOMPLETE
+            warnOrThrow("More than one of '" + PROP_VALUE + "', '" + PROP_INCOMPLETE
                 + "' and regular content present");
-            rv = map;
+            ret = map;
         } else {
             if (haveIncomplete > 0) {
-                rv = new IncompleteMarkerXNodeImpl();
+                ret = new IncompleteMarkerXNodeImpl();
             } else if (haveWrapped > 0) {
-                rv = wrappedValue;
+                ret = wrappedValue;
             } else {
-                rv = map; // map can be empty here
+                ret = map; // map can be empty here
             }
         }
-        if (typeName != null) {
-            if (wrappedValue != null && wrappedValue.getTypeQName() != null && !wrappedValue.getTypeQName().equals(typeName)) {
-                warnOrThrow("Conflicting type names for '" + JsonInfraItems.PROP_VALUE
-                    + "' (" + wrappedValue.getTypeQName() + ") and regular content (" + typeName + ") present");
+        addTypeNameTo(ret);
+        addElementNameTo(ret);
+        addMetadataTo(ret);
+        return ret;
+    }
+
+    private void addMetadataTo(XNodeImpl rv) throws SchemaException {
+        if (!metadata.isEmpty()) {
+            if (rv instanceof MetadataAware) {
+                ((MetadataAware) rv).setMetadataNodes(metadata);
+            } else {
+                warnOrThrow("Couldn't apply metadata to non-metadata-aware node: " + rv.getClass());
             }
-            rv.setTypeQName(typeName);
-            rv.setExplicitTypeDeclaration(true);
         }
+    }
+
+    private void addElementNameTo(XNodeImpl rv) throws SchemaException {
         if (elementName != null) {
             if (wrappedValue != null && wrappedValue.getElementName() != null) {
                 boolean wrappedValueElementNoNamespace = ctx.noNamespaceElementNames.containsKey(wrappedValue);
@@ -299,24 +327,17 @@ class JsonObjectTokenReader {
             }
         }
 
-        if (declaredNamespace != null) {
-            if (rv instanceof MapXNodeImpl) {
-                ctx.defaultNamespaces.put((MapXNodeImpl) rv, declaredNamespace);
-            }
-            for (MapXNode metadataNode : metadata) {
-                ctx.defaultNamespaces.put((MapXNodeImpl) metadataNode, declaredNamespace);
-            }
-        }
+    }
 
-        if (!metadata.isEmpty()) {
-            if (rv instanceof MetadataAware) {
-                ((MetadataAware) rv).setMetadataNodes(metadata);
-            } else {
-                warnOrThrow("Couldn't apply metadata to non-metadata-aware node: " + rv.getClass());
+    private void addTypeNameTo(XNodeImpl rv) throws SchemaException {
+        if (typeName != null) {
+            if (wrappedValue != null && wrappedValue.getTypeQName() != null && !wrappedValue.getTypeQName().equals(typeName)) {
+                warnOrThrow("Conflicting type names for '" + JsonInfraItems.PROP_VALUE
+                    + "' (" + wrappedValue.getTypeQName() + ") and regular content (" + typeName + ") present");
             }
+            rv.setTypeQName(typeName);
+            rv.setExplicitTypeDeclaration(true);
         }
-
-        return rv;
     }
 
     private String getCurrentFieldStringValue(QNameInfo currentFieldName, XNodeImpl currentFieldValue) throws SchemaException {
@@ -332,7 +353,8 @@ class JsonObjectTokenReader {
         return ctx.prismParsingContext.getEvaluationMode();
     }
 
-    private void warnOrThrow(String message) throws SchemaException {
+    private void warnOrThrow(String format, Object... args) throws SchemaException {
+        String message = Strings.lenientFormat(format, args);
         ctx.prismParsingContext.warnOrThrow(LOGGER, message + ". At " + ctx.getPositionSuffix());
     }
 
@@ -346,6 +368,9 @@ class JsonObjectTokenReader {
 
     private void startNamespaceSensitive() {
         namespaceSensitiveStarted = true;
+        if(map == null) {
+            map = new MapXNodeImpl(parentContext);
+        }
     }
 
 

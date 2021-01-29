@@ -22,6 +22,7 @@ import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.google.common.base.Preconditions;
 
 /**
  * QName &lt;-&gt; URI conversion.
@@ -160,6 +161,11 @@ public class QNameUtil {
             this.name = name;
             this.explicitEmptyNamespace = explicitEmptyNamespace;
         }
+    }
+
+    public static QNameInfo qnameToQnameInfo(QName name) {
+        Preconditions.checkArgument(name.getNamespaceURI() != null, "Namespace must be qualified");
+        return new QNameInfo(name, false);
     }
 
     @NotNull

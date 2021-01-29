@@ -14,6 +14,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.impl.lex.json.JsonValueParser;
 import com.evolveum.midpoint.prism.impl.xnode.*;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
@@ -31,12 +32,15 @@ class RootObjectReader {
 
     @NotNull private final JsonReadingContext ctx;
 
-    RootObjectReader(@NotNull JsonReadingContext ctx) {
+    private final PrismNamespaceContext nsContext;
+
+    RootObjectReader(@NotNull JsonReadingContext ctx, PrismNamespaceContext context) {
         this.ctx = ctx;
+        this.nsContext = context;
     }
 
     void read() throws SchemaException, IOException {
-        XNodeImpl xnode = new JsonOtherTokenReader(ctx).readValue();
+        XNodeImpl xnode = new JsonOtherTokenReader(ctx, nsContext).readValue();
         RootXNodeImpl root = postProcessValueToRoot(xnode, null);
         if (!ctx.objectHandler.handleData(root)) {
             ctx.setAborted();
@@ -64,7 +68,7 @@ class RootObjectReader {
     private void processDefaultNamespaces(XNodeImpl xnode, String parentDefault, JsonReadingContext ctx) {
         if (xnode instanceof MapXNodeImpl) {
             MapXNodeImpl map = (MapXNodeImpl) xnode;
-            String currentDefault = ctx.defaultNamespaces.getOrDefault(map, parentDefault);
+            String currentDefault = xnode.namespaceContext().defaultNamespace().orElse("");
             map.replaceDefaultNamespaceMarkers(DEFAULT_NAMESPACE_MARKER, currentDefault);
             for (Map.Entry<QName, XNodeImpl> entry : map.entrySet()) {
                 processDefaultNamespaces(entry.getValue(), currentDefault, ctx);

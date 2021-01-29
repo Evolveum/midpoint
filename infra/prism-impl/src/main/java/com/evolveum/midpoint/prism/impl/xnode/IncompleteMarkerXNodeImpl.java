@@ -14,17 +14,12 @@ import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugUtil;
 
 /**
- *
+ * FIXME: This could be effective singleton
  */
 public class IncompleteMarkerXNodeImpl extends XNodeImpl implements IncompleteMarkerXNode {
 
-    @Deprecated
     public IncompleteMarkerXNodeImpl() {
-        super();
-    }
-
-    public IncompleteMarkerXNodeImpl(PrismNamespaceContext local) {
-        super(local);
+        super(PrismNamespaceContext.EMPTY);
     }
 
     @Override
