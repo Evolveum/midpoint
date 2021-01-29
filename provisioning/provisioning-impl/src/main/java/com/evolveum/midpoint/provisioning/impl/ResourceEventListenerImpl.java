@@ -15,6 +15,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -41,18 +43,18 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
     @Autowired private ShadowCache shadowCache;
     @Autowired private ChangeProcessingBeans changeProcessingBeans;
     @Autowired private ProvisioningContextFactory provisioningContextFactory;
-    @Autowired private ChangeNotificationDispatcher notificationManager;
+    @Autowired private ChangeNotificationDispatcher changeNotificationDispatcher;
 
     private final AtomicInteger currentSequenceNumber = new AtomicInteger(0);
 
     @PostConstruct
     public void registerForResourceObjectChangeNotifications() {
-        notificationManager.registerNotificationListener(this);
+        changeNotificationDispatcher.registerNotificationListener(this);
     }
 
     @PreDestroy
     public void unregisterForResourceObjectChangeNotifications() {
-        notificationManager.unregisterNotificationListener(this);
+        changeNotificationDispatcher.unregisterNotificationListener(this);
     }
 
     @Override
@@ -61,13 +63,14 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
         return null;
     }
 
+    // TODO clean up this!
     @Override
-    public void notifyEvent(ResourceEventDescription eventDescription, Task task, OperationResult parentResult)
+    public void notifyEvent(ResourceEventDescription eventDescription, Task task, OperationResult result)
             throws CommonException, GenericConnectorException {
 
         Validate.notNull(eventDescription, "Event description must not be null.");
         Validate.notNull(task, "Task must not be null.");
-        Validate.notNull(parentResult, "Operation result must not be null");
+        Validate.notNull(result, "Operation result must not be null");
 
         LOGGER.trace("Received event notification with the description: {}", eventDescription.debugDumpLazily());
 
@@ -75,54 +78,64 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
             throw new IllegalStateException("Neither current shadow, nor delta specified. It is required to have at least one of them specified.");
         }
 
-        applyDefinitions(eventDescription, parentResult);
+        applyDefinitions(eventDescription, result);
 
-        PrismObject<ShadowType> shadow = getShadow(eventDescription);
-        ProvisioningContext ctx = provisioningContextFactory.create(shadow, task, parentResult);
+        PrismObject<ShadowType> anyShadow = getAnyShadow(eventDescription);
+        ProvisioningContext ctx = provisioningContextFactory.create(anyShadow, task, result);
         ctx.assertDefinition();
 
-        Collection<ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
+        Object primaryIdentifierRealValue = getPrimaryIdentifierRealValue(anyShadow, eventDescription);
+        Collection<ResourceAttribute<?>> identifiers = emptyIfNull(ShadowUtil.getAllIdentifiers(anyShadow));
 
-//        // TODO reconsider this... MID-5834 (e.g. is this OK with index-only attributes? probably not)
-//        if (ctx.getCachingStrategy() == CachingStategyType.PASSIVE) {
-//            if (eventDescription.getResourceObject() == null && eventDescription.getOldRepoShadow() != null && eventDescription.getObjectDelta() != null) {
-//                PrismObject<ShadowType> newShadow = eventDescription.getOldRepoShadow().clone();
-//                eventDescription.getObjectDelta().applyTo(newShadow);
-//                eventDescription.setResourceObject(newShadow);
-//            }
-//        }
+        ExternalResourceObjectChange resourceObjectChange = new ExternalResourceObjectChange(
+                currentSequenceNumber.getAndIncrement(),
+                primaryIdentifierRealValue, identifiers,
+                getResourceObject(eventDescription),
+                eventDescription.getObjectDelta());
+        resourceObjectChange.preprocess(ctx);
+
+        AdoptedExternalChange adoptedChange = new AdoptedExternalChange(resourceObjectChange, false, changeProcessingBeans);
+        adoptedChange.preprocess(result);
+
+        if (adoptedChange.isPreprocessed()) {
+            ResourceObjectShadowChangeDescription shadowChangeDescription = adoptedChange.getShadowChangeDescription();
+            changeNotificationDispatcher.notifyChange(shadowChangeDescription, task, result);
+        } else if (adoptedChange.getProcessingState().getExceptionEncountered() != null) {
+            // Currently we do very simple error handling: throw any exception to the client!
+            Throwable t = adoptedChange.getProcessingState().getExceptionEncountered();
+            if (t instanceof CommonException) {
+                throw (CommonException) t;
+            } else if (t instanceof RuntimeException) {
+                throw (RuntimeException) t;
+            } else if (t instanceof Error) {
+                throw (Error) t;
+            } else {
+                throw new SystemException(t);
+            }
+        } else if (adoptedChange.getProcessingState().isSkipFurtherProcessing()) {
+            LOGGER.debug("Change is not applicable:\n{}", adoptedChange.debugDumpLazily());
+            result.recordNotApplicable();
+        } else {
+            throw new AssertionError();
+        }
+    }
+
+    private Object getPrimaryIdentifierRealValue(PrismObject<ShadowType> shadow, ResourceEventDescription context) throws SchemaException {
+        Collection<ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
 
         Collection<Object> primaryIdentifierRealValues = new HashSet<>();
         for (ResourceAttribute<?> primaryIdentifier : emptyIfNull(primaryIdentifiers)) {
             primaryIdentifierRealValues.addAll(primaryIdentifier.getRealValues());
         }
         if (primaryIdentifierRealValues.isEmpty()) {
-            throw new SchemaException("No primary identifier in " + eventDescription);
+            throw new SchemaException("No primary identifier in " + context);
         }
         Object primaryIdentifierRealValue = primaryIdentifierRealValues.iterator().next();
         if (primaryIdentifierRealValues.size() > 1) {
-            LOGGER.warn("More than one primary identifier real value in {}: {}, using the first one: {}", eventDescription,
+            LOGGER.warn("More than one primary identifier real value in {}: {}, using the first one: {}", context,
                     primaryIdentifierRealValues, primaryIdentifierRealValue);
         }
-
-        PrismObject<ShadowType> resourceObject = eventDescription.getResourceObject();
-
-        Collection<ResourceAttribute<?>> identifiers = emptyIfNull(ShadowUtil.getAllIdentifiers(resourceObject));
-        ExternalResourceObjectChange resourceObjectChange = new ExternalResourceObjectChange(
-                currentSequenceNumber.getAndIncrement(),
-                primaryIdentifierRealValue, identifiers,
-                resourceObject, eventDescription.getObjectDelta());
-
-        AdoptedExternalChange adoptedChange = new AdoptedExternalChange(resourceObjectChange, ctx, false,
-                changeProcessingBeans);
-
-        adoptedChange.preprocess(parentResult);
-        ResourceObjectShadowChangeDescription shadowChangeDescription = adoptedChange.getShadowChangeDescription();
-
-        if (eventDescription.getOldRepoShadow() != null) {
-            // TODO!!!
-        }
-        throw new UnsupportedOperationException("Finish this");
+        return primaryIdentifierRealValue;
     }
 
     private void applyDefinitions(ResourceEventDescription eventDescription,
@@ -140,7 +153,8 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
         }
     }
 
-    private PrismObject<ShadowType> getShadow(ResourceEventDescription eventDescription) {
+    // consider moving back into ResourceEventDescription
+    private PrismObject<ShadowType> getAnyShadow(ResourceEventDescription eventDescription) {
         PrismObject<ShadowType> shadow;
         if (eventDescription.getResourceObject() != null) {
             shadow = eventDescription.getResourceObject();
@@ -155,6 +169,17 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
             throw new IllegalStateException("Resource event description does not contain neither old shadow, nor current shadow, nor shadow in delta");
         }
         return shadow;
+    }
+
+    // consider moving into ResourceEventDescription
+    private PrismObject<ShadowType> getResourceObject(ResourceEventDescription eventDescription) {
+        if (eventDescription.getResourceObject() != null) {
+            return eventDescription.getResourceObject();
+        } else if (ObjectDelta.isAdd(eventDescription.getObjectDelta())) {
+            return eventDescription.getObjectDelta().getObjectToAdd();
+        } else {
+            return null;
+        }
     }
 
 }

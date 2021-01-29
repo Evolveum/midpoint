@@ -64,32 +64,28 @@ import org.jetbrains.annotations.NotNull;
 public interface ModelService {
 
     // Constants for OperationResult
-    static final String CLASS_NAME_WITH_DOT = ModelService.class.getName() + ".";
-    static final String GET_OBJECT = CLASS_NAME_WITH_DOT + "getObject";
-    static final String COMPARE_OBJECT = CLASS_NAME_WITH_DOT + "compareObject";
-    static final String SEARCH_OBJECTS = CLASS_NAME_WITH_DOT + "searchObjects";
-    static final String SEARCH_CONTAINERS = CLASS_NAME_WITH_DOT + "searchContainers";
-    static final String COUNT_CONTAINERS = CLASS_NAME_WITH_DOT + "countContainers";
-    static final String COUNT_OBJECTS = CLASS_NAME_WITH_DOT + "countObjects";
-    static final String EXECUTE_CHANGES = CLASS_NAME_WITH_DOT + "executeChanges";
-    static final String EXECUTE_CHANGE = CLASS_NAME_WITH_DOT + "executeChange";
-    static final String RECOMPUTE = CLASS_NAME_WITH_DOT + "recompute";
-    static final String GET_PROPERTY_AVAILABLE_VALUES = CLASS_NAME_WITH_DOT + "getPropertyAvailableValues";
-    static final String LIST_OBJECTS = CLASS_NAME_WITH_DOT + "listObjects";
-    static final String LIST_ACCOUNT_SHADOW_OWNER = CLASS_NAME_WITH_DOT + "listAccountShadowOwner";
-    static final String LIST_RESOURCE_OBJECT_SHADOWS = CLASS_NAME_WITH_DOT + "listResourceObjectShadows";
-    static final String LIST_RESOURCE_OBJECTS = CLASS_NAME_WITH_DOT + "listResourceObjects";
-    static final String TEST_RESOURCE = CLASS_NAME_WITH_DOT + "testResource";
-    static final String IMPORT_ACCOUNTS_FROM_RESOURCE = CLASS_NAME_WITH_DOT + "importAccountsFromResource";
-    static final String IMPORT_OBJECTS_FROM_FILE = CLASS_NAME_WITH_DOT + "importObjectsFromFile";
-    static final String IMPORT_OBJECTS_FROM_STREAM = CLASS_NAME_WITH_DOT + "importObjectsFromStream";
-    static final String POST_INIT = CLASS_NAME_WITH_DOT + "postInit";
-    static final String DISCOVER_CONNECTORS = CLASS_NAME_WITH_DOT + "discoverConnectors";
-    static final String MERGE_OBJECTS = CLASS_NAME_WITH_DOT + "mergeObjects";
+    String CLASS_NAME_WITH_DOT = ModelService.class.getName() + ".";
+    String GET_OBJECT = CLASS_NAME_WITH_DOT + "getObject";
+    String COMPARE_OBJECT = CLASS_NAME_WITH_DOT + "compareObject";
+    String SEARCH_OBJECTS = CLASS_NAME_WITH_DOT + "searchObjects";
+    String SEARCH_CONTAINERS = CLASS_NAME_WITH_DOT + "searchContainers";
+    String COUNT_CONTAINERS = CLASS_NAME_WITH_DOT + "countContainers";
+    String COUNT_OBJECTS = CLASS_NAME_WITH_DOT + "countObjects";
+    String EXECUTE_CHANGES = CLASS_NAME_WITH_DOT + "executeChanges";
+    String EXECUTE_CHANGE = CLASS_NAME_WITH_DOT + "executeChange";
+    String RECOMPUTE = CLASS_NAME_WITH_DOT + "recompute";
+    String LIST_ACCOUNT_SHADOW_OWNER = CLASS_NAME_WITH_DOT + "listAccountShadowOwner";
+    String IMPORT_ACCOUNTS_FROM_RESOURCE = CLASS_NAME_WITH_DOT + "importAccountsFromResource";
+    String IMPORT_OBJECTS_FROM_FILE = CLASS_NAME_WITH_DOT + "importObjectsFromFile";
+    String IMPORT_OBJECTS_FROM_STREAM = CLASS_NAME_WITH_DOT + "importObjectsFromStream";
+    String POST_INIT = CLASS_NAME_WITH_DOT + "postInit";
+    String DISCOVER_CONNECTORS = CLASS_NAME_WITH_DOT + "discoverConnectors";
+    String MERGE_OBJECTS = CLASS_NAME_WITH_DOT + "mergeObjects";
+    String NOTIFY_CHANGE = CLASS_NAME_WITH_DOT + "notifyChange";
 
-    static final String AUTZ_NAMESPACE = AuthorizationConstants.NS_AUTHORIZATION_MODEL;
+    String AUTZ_NAMESPACE = AuthorizationConstants.NS_AUTHORIZATION_MODEL;
 
-    static final String OPERATION_LOGGGER_NAME = "com.evolveum.midpoint.model.api.op";
+    String OPERATION_LOGGER_NAME = "com.evolveum.midpoint.model.api.op";
 
     /**
      * <p>
@@ -257,8 +253,6 @@ public interface ModelService {
      * @return owner of the account or null
      * @throws ObjectNotFoundException
      *             specified account was not found
-     * @throws ExpressionEvaluationException
-     * @throws CommunicationException
      * @throws IllegalArgumentException
      *             wrong OID format, described change is not applicable
      * @throws SystemException
@@ -323,14 +317,6 @@ public interface ModelService {
     /**
      * Search for "sub-object" structures, i.e. containers.
      * Supported types are: AccessCertificationCaseType, CaseWorkItemType.
-     *
-     * @param type
-     * @param query
-     * @param options
-     * @param parentResult
-     * @param <T>
-     * @return
-     * @throws SchemaException
      */
     <T extends Containerable> SearchResultList<T> searchContainers(
             Class<T> type, ObjectQuery query,
@@ -478,9 +464,6 @@ public interface ModelService {
      * Import objects from file.
      *
      * Invocation of this method may be switched to background.
-     *
-     * @param input
-     * @param task
      */
     void importObjectsFromFile(File input, ImportOptionsType options, Task task, OperationResult parentResult) throws FileNotFoundException;
 
@@ -488,9 +471,6 @@ public interface ModelService {
      * Import object.
      *
      * The results will be provided in the task.
-     *
-     * @param object
-     * @param task
      */
     void importObject(PrismObject object, ImportOptionsType options, Task task, OperationResult parentResult);
 
@@ -501,9 +481,6 @@ public interface ModelService {
      * be serialized.
      *
      * The results will be provided in the task.
-     *
-     * @param input
-     * @param task
      */
     void importObjectsFromStream(InputStream input, String language, ImportOptionsType options, Task task, OperationResult parentResult);
 
@@ -541,24 +518,10 @@ public interface ModelService {
     /**
      *  shutdown model and lower system components
      */
-    public void shutdown();
+    void shutdown();
 
     /**
      * TODO
-     *
-     * @param object
-     * @param readOptions
-     * @param compareOptions
-     * @param ignoreItemPaths
-     * @param task
-     * @param result
-     * @param <O>
-     * @return
-     * @throws SchemaException
-     * @throws ObjectNotFoundException
-     * @throws SecurityViolationException
-     * @throws CommunicationException
-     * @throws ConfigurationException
      */
     <O extends ObjectType> CompareResultType compareObject(PrismObject<O> object,
             Collection<SelectorOptions<GetOperationOptions>> readOptions, ModelCompareOptions compareOptions,
@@ -575,9 +538,6 @@ public interface ModelService {
      * @param leftOid left-side object OID
      * @param rightOid  right-side object OID
      * @param mergeConfigurationName name of the merge configuration to use
-     * @param task
-     * @param result
-     * @return
      */
     <O extends ObjectType> Collection<ObjectDeltaOperation<? extends ObjectType>> mergeObjects(Class<O> type, String leftOid, String rightOid,
             String mergeConfigurationName, Task task, OperationResult result)

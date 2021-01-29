@@ -15,9 +15,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.exception.IndestructibilityViolationException;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -120,7 +120,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     private static final Trace LOGGER = TraceManager.getTrace(ModelController.class);
 
-    private static final Trace OP_LOGGER = TraceManager.getTrace(ModelService.OPERATION_LOGGGER_NAME);
+    private static final Trace OP_LOGGER = TraceManager.getTrace(ModelService.OPERATION_LOGGER_NAME);
 
     @Autowired private Clockwork clockwork;
     @Autowired private PrismContext prismContext;
@@ -2260,69 +2260,82 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     public void notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription, Task task, OperationResult parentResult)
             throws CommonException {
 
-        String oldShadowOid = changeDescription.getOldShadowOid();
+        OperationResult result = parentResult.createSubresult(NOTIFY_CHANGE);
+        try {
+            PrismObject<ShadowType> oldRepoShadow = getOldRepoShadow(changeDescription, task, result);
+            PrismObject<ShadowType> resourceObject = getResourceObject(changeDescription);
+            ObjectDelta<ShadowType> objectDelta = getObjectDelta(changeDescription, result);
 
-        PrismObject<ShadowType> resourceObject;
-        ObjectDelta<ShadowType> objectDelta;
-        PrismObject<ShadowType> oldShadow;
+            ResourceEventDescription eventDescription = new ResourceEventDescription(objectDelta, resourceObject,
+                    oldRepoShadow, changeDescription.getChannel());
 
-        LOGGER.trace("resolving old object");
-        if (!StringUtils.isEmpty(oldShadowOid)) {
-            // FIXME we should not get object from resource here: it should be sufficient to retrieve object from the repository
-            //  (and even that can be skipped, if identifiers are correctly set) ... MID-5834
-            oldShadow = getObject(ShadowType.class, oldShadowOid, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), task, parentResult);
-            LOGGER.trace("old shadow resolved to: {}", oldShadow.debugDumpLazily());
-        } else {
-            oldShadow = null;
-            LOGGER.trace("Old shadow null");
+            LOGGER.trace("Created event description:\n{}", eventDescription.debugDumpLazily());
+            dispatcher.notifyEvent(eventDescription, task, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
         }
+    }
 
-        ShadowType resourceObjectBean = changeDescription.getCurrentShadow();
-        if (resourceObjectBean != null) {
-            resourceObject = resourceObjectBean.asPrismObject();
-            prismContext.adopt(resourceObject);
-            LOGGER.trace("current resource object:\n{}", resourceObject.debugDumpLazily());
-        } else {
-            resourceObject = null;
-        }
+    @Nullable
+    private ObjectDelta<ShadowType> getObjectDelta(ResourceObjectShadowChangeDescriptionType changeDescription,
+            OperationResult parentResult) throws SchemaException {
 
-        ObjectDeltaType deltaType = changeDescription.getObjectDelta();
-
-        if (deltaType != null) {
+        ObjectDeltaType deltaBean = changeDescription.getObjectDelta();
+        if (deltaBean != null) {
             PrismObject<ShadowType> shadowToAdd;
-            objectDelta = prismContext.deltaFactory().object().createEmptyDelta(ShadowType.class, deltaType.getOid(),
-                    ChangeType.toChangeType(deltaType.getChangeType()));
+            ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().createEmptyDelta(ShadowType.class, deltaBean.getOid(),
+                    ChangeType.toChangeType(deltaBean.getChangeType()));
 
+            // Couldn't we use simply use delta convertor here?
             if (objectDelta.getChangeType() == ChangeType.ADD) {
-                if (deltaType.getObjectToAdd() == null) {
-                    LOGGER.trace("No object to add specified. Check your delta. Add delta must contain object to add");
+                if (deltaBean.getObjectToAdd() == null) {
                     throw new IllegalArgumentException("No object to add specified. Check your delta. Add delta must contain object to add");
                 }
-                Object objToAdd = deltaType.getObjectToAdd();
+                Object objToAdd = deltaBean.getObjectToAdd();
                 if (!(objToAdd instanceof ShadowType)) {
-                    LOGGER.trace("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
                     throw new IllegalArgumentException("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
                 }
-                prismContext.adopt((ShadowType) objToAdd);
-
+                prismContext.adopt((ShadowType) objToAdd); // really needed?
                 shadowToAdd = ((ShadowType) objToAdd).asPrismObject();
-                LOGGER.trace("object to add: {}", shadowToAdd.debugDump());
                 objectDelta.setObjectToAdd(shadowToAdd);
             } else {
-                Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(deltaType.getItemDelta(), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class));
+                Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(
+                        deltaBean.getItemDelta(),
+                        prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class));
                 objectDelta.addModifications(modifications);
             }
             ModelImplUtils.encrypt(Collections.singletonList(objectDelta), protector, null, parentResult);
+            return objectDelta;
         } else {
-            objectDelta = null;
+            return null;
         }
+    }
 
-        ResourceEventDescription eventDescription = new ResourceEventDescription(objectDelta, resourceObject,
-                oldShadow, changeDescription.getChannel());
+    @Nullable
+    private PrismObject<ShadowType> getResourceObject(ResourceObjectShadowChangeDescriptionType changeDescription) throws SchemaException {
+        ShadowType resourceObjectBean = changeDescription.getCurrentShadow();
+        if (resourceObjectBean != null) {
+            PrismObject<ShadowType> resourceObject = resourceObjectBean.asPrismObject();
+            prismContext.adopt(resourceObject); // really needed?
+            return resourceObject;
+        } else {
+            return null;
+        }
+    }
 
-        dispatcher.notifyEvent(eventDescription, task, parentResult);
-        parentResult.computeStatus();
-        task.setResult(parentResult);
+    private PrismObject<ShadowType> getOldRepoShadow(ResourceObjectShadowChangeDescriptionType change, Task task,
+            OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+        String oid = change.getOldShadowOid();
+        if (oid != null) {
+            return getObject(ShadowType.class, oid, SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
+        } else {
+            return null;
+        }
     }
 
     private void computePolyStrings(Collection<ObjectDelta<? extends ObjectType>> deltas) {

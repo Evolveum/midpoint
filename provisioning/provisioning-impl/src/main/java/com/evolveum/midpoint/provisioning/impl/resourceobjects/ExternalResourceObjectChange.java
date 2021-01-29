@@ -9,6 +9,7 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -36,5 +37,10 @@ public class ExternalResourceObjectChange extends ResourceObjectChange {
 
     @Override
     protected void debugDumpExtra(StringBuilder sb, int indent) {
+    }
+
+    public void preprocess(ProvisioningContext ctx) {
+        this.context = ctx;
+        processingState.setPreprocessed();
     }
 }
