@@ -499,6 +499,12 @@ public class PrismForm<T> extends Component<T> {
         return this;
     }
 
+    public PrismForm<T> assertPropertyWithTitleTextDoesntExist(String propertyName, String text) {
+        Assert.assertFalse(propertyWithTitleTextExists(propertyName, text),
+                "Property " + propertyName + " with title text '" + text + "' shouldn't exist.");
+        return this;
+    }
+
     public PrismForm<T> assertPropertyEnabled(String propertyName) {
         Assert.assertTrue(isPropertyEnabled(propertyName), "Property " + propertyName + " is disabled.");
         return this;
