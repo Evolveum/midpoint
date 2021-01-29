@@ -213,10 +213,10 @@ public class ObjectRetriever {
         return baseHelper.getConfiguration();
     }
 
-    private <T extends ObjectType> PrismObject<T> throwObjectNotFoundException(Class<T> type, String oid)
-            throws ObjectNotFoundException {
-        throw new ObjectNotFoundException("Object of type '" + type.getSimpleName() + "' with oid '" + oid
-                + "' was not found.", null, oid);
+    private <T extends ObjectType> PrismObject<T> throwObjectNotFoundException(
+            Class<T> type, String oid) throws ObjectNotFoundException {
+        throw new ObjectNotFoundException("Object of type '" + type.getSimpleName()
+                + "' with oid '" + oid + "' was not found.", oid);
     }
 
     public <F extends FocusType> PrismObject<F> searchShadowOwnerAttempt(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
@@ -404,8 +404,14 @@ public class ObjectRetriever {
         boolean cases = AccessCertificationCaseType.class.equals(type);
         boolean workItems = AccessCertificationWorkItemType.class.equals(type);
         boolean caseWorkItems = CaseWorkItemType.class.equals(type);
-        if (!cases && !workItems && !caseWorkItems) {
-            throw new UnsupportedOperationException("Only AccessCertificationCaseType or AccessCertificationWorkItemType or CaseWorkItemType is supported here now.");
+        // TODO MID-6799: finish assignment support
+//        boolean assignments = AssignmentType.class.equals(type);
+        if (!cases && !workItems && !caseWorkItems /*&& !assignments*/) {
+            throw new UnsupportedOperationException(
+                    "Only AccessCertificationCaseType or AccessCertificationWorkItemType"
+                            + " or CaseWorkItemType"
+//                            + " or Assignments" // now commented not to give people ideas
+                            + " is supported here now.");
         }
 
         LOGGER_PERFORMANCE.debug("> search containers {}", type.getSimpleName());
@@ -439,6 +445,10 @@ public class ObjectRetriever {
                     C value = (C) caseHelper.updateLoadedCertificationWorkItem(item, casesCache, campaignsCache, options, engine, session, result);
                     list.add(value);
                 }
+//            } else if (assignments) {
+//                List<GetContainerableIdOnlyResult> items = rQuery.list();
+                // TODO MID-6799: resolve what? we probably want better result above with some target OID too
+//                throw new UnsupportedOperationException("Assignment queries not supported yet");
             } else {
                 assert caseWorkItems;
                 @SuppressWarnings({ "unchecked", "raw" })

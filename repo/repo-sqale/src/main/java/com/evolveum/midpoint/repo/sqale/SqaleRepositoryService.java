@@ -137,7 +137,7 @@ public class SqaleRepositoryService implements RepositoryService {
             @NotNull Class<S> schemaType,
             @NotNull UUID oid,
             Collection<SelectorOptions<GetOperationOptions>> options)
-            throws SchemaException {
+            throws SchemaException, ObjectNotFoundException {
 
 //        context.processOptions(options); TODO how to process option, is setting of select expressions enough?
 
@@ -152,6 +152,12 @@ public class SqaleRepositoryService implements RepositoryService {
                     .select(rootMapping.selectExpressions(root, options))
                     .where(root.oid.eq(oid))
                     .fetchOne();
+        }
+        if (result == null || result.get(root.fullObject) == null) {
+            // TODO is there a case when fullObject can be null?
+            String oidString = oid.toString();
+            throw new ObjectNotFoundException("Object of type '" + schemaType.getSimpleName()
+                    + "' with oid '" + oidString + "' was not found.", oidString);
         }
 
         return rootMapping.createTransformer(transformerContext, sqlRepoContext)
