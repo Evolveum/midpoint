@@ -86,6 +86,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(DashboardType.COMPLEX_TYPE, QDashboardMapping.INSTANCE)
                 .register(NodeType.COMPLEX_TYPE, QNodeMapping.INSTANCE)
                 .register(ObjectCollectionType.COMPLEX_TYPE, QObjectCollectionMapping.INSTANCE)
+                .register(RoleType.COMPLEX_TYPE, QRoleMapping.INSTANCE)
                 .register(SecurityPolicyType.COMPLEX_TYPE, QSecurityPolicyMapping.INSTANCE)
                 .register(SystemConfigurationType.COMPLEX_TYPE, QSystemConfigurationMapping.INSTANCE)
                 .register(TaskType.COMPLEX_TYPE, QTaskMapping.INSTANCE)
