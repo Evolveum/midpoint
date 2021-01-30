@@ -24,9 +24,6 @@ public class QUser extends QObject<MUser> {
 
     public static final String TABLE_NAME = "m_user";
 
-    public static final ColumnMetadata User_TYPE =
-            ColumnMetadata.named("UserType").ofType(Types.VARCHAR).withSize(255);
-
     public static final ColumnMetadata ADDITIONAL_NAME_NORM =
             ColumnMetadata.named("additionalName_norm").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata ADDITIONAL_NAME_ORIG =
