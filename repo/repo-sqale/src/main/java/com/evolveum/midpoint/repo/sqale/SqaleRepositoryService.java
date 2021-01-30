@@ -263,6 +263,9 @@ public class SqaleRepositoryService implements RepositoryService {
             // TODO use executeAttempts
             final String operation = "adding";
 
+            if (object.getVersion() == null) {
+                object.setVersion("1");
+            }
             String oid = addObjectAttempt(object, options, operationResult);
             return oid;
             /*

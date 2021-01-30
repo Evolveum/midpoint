@@ -140,7 +140,12 @@ public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T
      */
     @Override
     protected <P extends Path<?>> P addMetadata(P path, ColumnMetadata metadata) {
-        propertyNameToPath.put(path.getMetadata().getName(), path);
+        String pathName = path.getMetadata().getName();
+        Path<?> overridden = propertyNameToPath.put(pathName, path);
+        if (overridden != null) {
+            throw new IllegalArgumentException(
+                    "Trying to override metadata for query path " + pathName);
+        }
         return super.addMetadata(path, metadata);
     }
 
