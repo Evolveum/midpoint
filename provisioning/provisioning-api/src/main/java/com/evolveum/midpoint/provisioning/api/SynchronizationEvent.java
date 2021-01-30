@@ -12,8 +12,10 @@ import com.evolveum.midpoint.util.DebugDumpable;
 
 /**
  * TODO
+ *
+ * It is comparable on the sequential number.
  */
-public interface SynchronizationEvent extends AcknowledgementSink, DebugDumpable {
+public interface SynchronizationEvent extends AcknowledgementSink, DebugDumpable, Comparable<SynchronizationEvent> {
 
     /**
      * BEWARE! Can be null for unfinished changes.

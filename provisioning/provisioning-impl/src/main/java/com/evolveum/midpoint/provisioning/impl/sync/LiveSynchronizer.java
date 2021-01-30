@@ -113,7 +113,7 @@ public class LiveSynchronizer {
         try {
             fetchChangesResult = resourceObjectConverter.fetchChanges(ctx.context, ctx.getInitialToken(), listener, gResult);
         } finally {
-            handler.allEventsSubmitted();
+            handler.allEventsSubmitted(gResult);
         }
 
         if (fetchChangesResult.isAllChangesFetched()) {

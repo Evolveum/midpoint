@@ -240,7 +240,7 @@ public abstract class AbstractIterativeTaskPartExecution<I,
      * Creates the processing coordinator. Usually no customization is needed here.
      */
     private ProcessingCoordinator<I> setupCoordinator() {
-        return new ProcessingCoordinator<>(getLogger(), localCoordinatorTask);
+        return new ProcessingCoordinator<>(taskHandler, localCoordinatorTask);
     }
 
     /**

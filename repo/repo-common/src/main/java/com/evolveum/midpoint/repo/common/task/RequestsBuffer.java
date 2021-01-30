@@ -15,6 +15,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -210,5 +211,22 @@ class RequestsBuffer<I> {
     synchronized int getReservedRequestsCount(String taskIdentifier) {
         Queue<ItemProcessingRequest<I>> reservedRequests = reservedRequestsQueueMap.get(taskIdentifier);
         return reservedRequests != null ? reservedRequests.size() : 0;
+    }
+
+    // should be called when there's no concurrency
+    void nackAllRequests(OperationResult result) {
+        nackAll(globalQueue, result);
+        reservedRequestsQueueMap.values().forEach(queue -> nackAll(queue, result));
+    }
+
+    private void nackAll(Queue<ItemProcessingRequest<I>> queue, OperationResult result) {
+        for (;;) {
+            ItemProcessingRequest<I> request = queue.poll();
+            if (request == null) {
+                break;
+            } else {
+                request.acknowledge(false, result);
+            }
+        }
     }
 }

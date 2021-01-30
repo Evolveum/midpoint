@@ -13,6 +13,8 @@ import com.evolveum.midpoint.provisioning.impl.adoption.AdoptedChange;
 import com.evolveum.midpoint.provisioning.util.ProcessingState;
 import com.evolveum.midpoint.util.DebugUtil;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * TODO
  */
@@ -86,5 +88,10 @@ public abstract class SynchronizationEventImpl<AC extends AdoptedChange<?>> impl
     @Override
     public String getShadowOid() {
         return change.getShadowOid();
+    }
+
+    @Override
+    public int compareTo(@NotNull SynchronizationEvent o) {
+        return Integer.compare(getSequentialNumber(), o.getSequentialNumber());
     }
 }

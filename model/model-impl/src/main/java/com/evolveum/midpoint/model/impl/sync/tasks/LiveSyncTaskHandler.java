@@ -138,8 +138,11 @@ public class LiveSyncTaskHandler
                 }
 
                 @Override
-                public void allEventsSubmitted() {
+                public void allEventsSubmitted(OperationResult result) {
+                    // TODO merge these three?
                     coordinator.allItemsSubmitted();
+                    coordinator.waitForWorkersFinish(result);
+                    coordinator.nackQueuedRequests(result);
                 }
             };
 

@@ -19,8 +19,12 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * TODO
+ *
+ * It is comparable on the sequence number.
  */
-public class SyncItemProcessingRequest<SE extends SynchronizationEvent> extends ItemProcessingRequest<SE> {
+public class SyncItemProcessingRequest<SE extends SynchronizationEvent>
+        extends ItemProcessingRequest<SE>
+        implements Comparable<SyncItemProcessingRequest<SE>> {
 
     SyncItemProcessingRequest(SE item, AbstractIterativeItemProcessor<SE, ?, ?, ?, ?> itemProcessor) {
         super(item, itemProcessor);
@@ -54,5 +58,10 @@ public class SyncItemProcessingRequest<SE extends SynchronizationEvent> extends 
     @Override
     public void acknowledge(boolean release, OperationResult result) {
         item.acknowledge(release, result);
+    }
+
+    @Override
+    public int compareTo(@NotNull SyncItemProcessingRequest<SE> o) {
+        return item.compareTo(o.item);
     }
 }

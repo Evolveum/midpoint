@@ -58,7 +58,7 @@ public class MockLiveSyncTaskHandler {
             }
 
             @Override
-            public void allEventsSubmitted() {
+            public void allEventsSubmitted(OperationResult result) {
             }
         }, result);
     }

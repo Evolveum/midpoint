@@ -23,7 +23,11 @@ public interface LiveSyncEventHandler extends SynchronizationEventHandler<LiveSy
      * Invoked when no more events are to be expected during the current synchronization operation.
      * The typical reasons are: no more livesync changes, or the task was suspended, or the event handler
      * signalled to stop the processing.
+     *
+     * Should do necessary cleanup, e.g. wait for workers to finish.
+     *
+     * TODO should we require this method to ack all pending events?
      */
-    void allEventsSubmitted();
+    void allEventsSubmitted(OperationResult result);
 
 }

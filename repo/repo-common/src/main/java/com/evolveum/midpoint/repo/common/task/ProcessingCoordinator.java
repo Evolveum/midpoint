@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.evolveum.midpoint.task.api.TaskManager;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -43,6 +45,8 @@ public class ProcessingCoordinator<I> {
     private final List<OperationResult> workerSpecificResults;
     private final RequestsBuffer<I> requestsBuffer;
 
+    @NotNull private final TaskManager taskManager;
+
     /**
      * True if any worker requested the processing to be stopped.
      * Currently this is possible only by returning false from the {@link ItemProcessingRequest#process(RunningTask, OperationResult)} method.
@@ -58,9 +62,10 @@ public class ProcessingCoordinator<I> {
      */
     private final AtomicBoolean allItemsSubmitted = new AtomicBoolean(false);
 
-    ProcessingCoordinator(@NotNull Trace logger, @NotNull RunningTask coordinatorTask) {
-        this.logger = logger;
+    ProcessingCoordinator(@NotNull AbstractTaskHandler<?, ?> taskHandler, @NotNull RunningTask coordinatorTask) {
+        this.logger = taskHandler.getLogger();
         this.coordinatorTask = coordinatorTask;
+        this.taskManager = taskHandler.getTaskManager();
 
         threadsCount = getWorkerThreadsCount();
         if (threadsCount > 0) {
@@ -156,6 +161,17 @@ public class ProcessingCoordinator<I> {
 
     public boolean isMultithreaded() {
         return multithreaded;
+    }
+
+    public void waitForWorkersFinish(OperationResult result) {
+        taskManager.waitForTransientChildren(coordinatorTask, result);
+    }
+
+    // TODO combine with wait for worker requests?
+    public void nackQueuedRequests(OperationResult result) {
+        if (multithreaded) {
+            requestsBuffer.nackAllRequests(result);
+        }
     }
 
     private class WorkerHandler implements LightweightTaskHandler {
