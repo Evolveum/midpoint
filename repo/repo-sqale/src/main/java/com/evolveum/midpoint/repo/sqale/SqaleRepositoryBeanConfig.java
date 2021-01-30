@@ -90,6 +90,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(SecurityPolicyType.COMPLEX_TYPE, QSecurityPolicyMapping.INSTANCE)
                 .register(SystemConfigurationType.COMPLEX_TYPE, QSystemConfigurationMapping.INSTANCE)
                 .register(TaskType.COMPLEX_TYPE, QTaskMapping.INSTANCE)
+                .register(UserType.COMPLEX_TYPE, QUserMapping.INSTANCE)
                 .register(ValuePolicyType.COMPLEX_TYPE, QValuePolicyMapping.INSTANCE)
                 .seal();
 
