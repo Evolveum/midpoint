@@ -95,22 +95,26 @@ public class SqaleRepositoryBeanConfig {
     }
 
     @Bean
+    public SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection() {
+        return new SqlPerformanceMonitorsCollectionImpl();
+    }
+
+    @Bean
     public SqaleRepositoryService repositoryService(
             SqlRepoContext sqlRepoContext,
-            SchemaHelper schemaService) {
-        return new SqaleRepositoryService(sqlRepoContext, schemaService);
+            SchemaHelper schemaService,
+            SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
+        return new SqaleRepositoryService(
+                sqlRepoContext,
+                schemaService,
+                sqlPerformanceMonitorsCollection);
     }
 
     // TODO @Bean for AuditServiceFactory later
 
-    // TODO rethink?
+    // TODO rethink? using Spring events
     @Bean
     public SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher() {
         return new SystemConfigurationChangeDispatcherImpl();
-    }
-
-    @Bean
-    public SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection() {
-        return new SqlPerformanceMonitorsCollectionImpl();
     }
 }

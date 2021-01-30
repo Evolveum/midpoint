@@ -36,6 +36,7 @@ import com.evolveum.midpoint.repo.sqale.qmapping.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmapping.SqaleModelMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.QObject;
 import com.evolveum.midpoint.repo.sqlbase.*;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -64,14 +65,25 @@ public class SqaleRepositoryService implements RepositoryService {
     private final SchemaHelper schemaService;
     private final SqlQueryExecutor sqlQueryExecutor;
     private final SqlTransformerContext transformerContext;
+    private final SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
+
+    private SqlPerformanceMonitorImpl performanceMonitor; // set to null in destroy
 
     public SqaleRepositoryService(
             SqlRepoContext sqlRepoContext,
-            SchemaHelper schemaService) {
+            SchemaHelper schemaService,
+            SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
         this.sqlRepoContext = sqlRepoContext;
         this.schemaService = schemaService;
         this.sqlQueryExecutor = new SqlQueryExecutor(sqlRepoContext);
         this.transformerContext = new SqlTransformerContext(schemaService, sqlRepoContext);
+        this.sqlPerformanceMonitorsCollection = sqlPerformanceMonitorsCollection;
+
+        // monitor initialization and registration
+        JdbcRepositoryConfiguration config = sqlRepoContext.getJdbcRepositoryConfiguration();
+        performanceMonitor = new SqlPerformanceMonitorImpl(
+                config.getPerformanceStatisticsLevel(), config.getPerformanceStatisticsFile());
+        sqlPerformanceMonitorsCollection.register(performanceMonitor);
     }
 
     @Override
@@ -706,13 +718,16 @@ public class SqaleRepositoryService implements RepositoryService {
 
     @Override
     public PerformanceMonitor getPerformanceMonitor() {
-        return null;
-        // TODO
+        return performanceMonitor;
     }
 
     @PreDestroy
     public void destroy() {
-        // TODO current monitoring is repo-sql-impl related, see SqlBaseService#destroy
+        if (performanceMonitor != null) {
+            performanceMonitor.shutdown();
+            sqlPerformanceMonitorsCollection.deregister(performanceMonitor);
+            performanceMonitor = null;
+        }
     }
 
     /**
