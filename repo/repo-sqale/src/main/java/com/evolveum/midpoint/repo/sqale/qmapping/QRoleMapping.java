@@ -6,10 +6,13 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmapping;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType.F_ROLE_TYPE;
+
 import com.evolveum.midpoint.repo.sqale.qbean.MRole;
 import com.evolveum.midpoint.repo.sqale.qmodel.QRole;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.mapping.item.StringItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 /**
@@ -26,7 +29,8 @@ public class QRoleMapping
         super(QRole.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 RoleType.class, QRole.class);
 
-        // TODO roleType mapping
+        addItemMapping(F_ROLE_TYPE,
+                StringItemFilterProcessor.mapper(path(q -> q.roleType)));
     }
 
     @Override
