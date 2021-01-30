@@ -16,7 +16,7 @@ import com.evolveum.midpoint.repo.sqale.qbean.MSecurityPolicy;
 @SuppressWarnings("unused")
 public class QSecurityPolicy extends QObject<MSecurityPolicy> {
 
-    private static final long serialVersionUID = 2042159341967925185L;
+    private static final long serialVersionUID = 289603300613404007L;
 
     public static final String TABLE_NAME = "m_security_policy";
 

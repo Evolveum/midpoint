@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmapping;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
@@ -79,6 +80,10 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
     @NotNull
     public R toRowObjectWithoutFullObject(S schemaObject) {
         R row = mapping.newRowObject();
+
+        row.oid = Optional.ofNullable(schemaObject.getOid())
+                .map(UUID::fromString)
+                .orElse(null);
 
         // primitive columns common to ObjectType
         PolyStringType name = schemaObject.getName();

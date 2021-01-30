@@ -561,6 +561,38 @@ CREATE TRIGGER m_object_collection_oid_delete_tr AFTER DELETE ON m_object_collec
 CREATE INDEX m_object_collection_name_orig_idx ON m_object_collection (name_orig);
 ALTER TABLE m_object_collection ADD CONSTRAINT m_object_collection_name_norm_key UNIQUE (name_norm);
 
+CREATE TABLE m_archetype (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectTypeClass INTEGER GENERATED ALWAYS AS (29) STORED
+)
+    INHERITS (m_object);
+
+CREATE TRIGGER m_archetype_oid_insert_tr BEFORE INSERT ON m_archetype
+    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+CREATE TRIGGER m_archetype_update_tr BEFORE UPDATE ON m_archetype
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+CREATE TRIGGER m_archetype_oid_delete_tr AFTER DELETE ON m_archetype
+    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+
+CREATE INDEX m_archetype_name_orig_idx ON m_archetype (name_orig);
+ALTER TABLE m_archetype ADD CONSTRAINT m_archetype_name_norm_key UNIQUE (name_norm);
+
+CREATE TABLE m_dashboard (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectTypeClass INTEGER GENERATED ALWAYS AS (30) STORED
+)
+    INHERITS (m_object);
+
+CREATE TRIGGER m_dashboard_oid_insert_tr BEFORE INSERT ON m_dashboard
+    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+CREATE TRIGGER m_dashboard_update_tr BEFORE UPDATE ON m_dashboard
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+CREATE TRIGGER m_dashboard_oid_delete_tr AFTER DELETE ON m_dashboard
+    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+
+CREATE INDEX m_dashboard_name_orig_idx ON m_dashboard (name_orig);
+ALTER TABLE m_dashboard ADD CONSTRAINT m_dashboard_name_norm_key UNIQUE (name_norm);
+
 CREATE TABLE m_task (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectTypeClass INTEGER GENERATED ALWAYS AS (9) STORED,
@@ -997,12 +1029,6 @@ CREATE TABLE m_abstract_role (
   oid                   VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
-CREATE TABLE m_archetype (
-  name_norm VARCHAR(255),
-  name_orig VARCHAR(255),
-  oid       VARCHAR(36) NOT NULL,
-  PRIMARY KEY (oid)
-);
 CREATE TABLE m_case (
   closeTimestamp            TIMESTAMP,
   name_norm                 VARCHAR(255),
@@ -1043,12 +1069,6 @@ CREATE TABLE m_connector_host (
   port      VARCHAR(255),
   oid       VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
-);
-CREATE TABLE m_dashboard (
-    name_norm VARCHAR(255),
-    name_orig VARCHAR(255),
-    oid       VARCHAR(36) NOT NULL,
-    PRIMARY KEY (oid)
 );
 CREATE TABLE m_focus (
   administrativeStatus    INTEGER,
@@ -1371,9 +1391,6 @@ CREATE INDEX iConnectorHostNameOrig
   ON m_connector_host (name_orig);
 ALTER TABLE IF EXISTS m_connector_host
   ADD CONSTRAINT uc_connector_host_name UNIQUE (name_norm);
-CREATE INDEX iDashboardNameOrig ON m_dashboard(name_orig);
-ALTER TABLE IF EXISTS m_dashboard
-    ADD CONSTRAINT u_dashboard_name UNIQUE (name_norm);
 CREATE INDEX iFocusAdministrative
   ON m_focus (administrativeStatus);
 CREATE INDEX iFocusEffective
@@ -1590,8 +1607,6 @@ ALTER TABLE IF EXISTS m_connector
   ADD CONSTRAINT fk_connector FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_connector_host
   ADD CONSTRAINT fk_connector_host FOREIGN KEY (oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_dashboard
-  ADD CONSTRAINT fk_dashboard FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_focus
   ADD CONSTRAINT fk_focus FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_form
