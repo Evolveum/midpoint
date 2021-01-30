@@ -6,10 +6,10 @@
  */
 package com.evolveum.midpoint.repo.sqale.qbean;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.QDashboard;
+import com.evolveum.midpoint.repo.sqale.qmodel.QValuePolicy;
 
 /**
- * Querydsl "row bean" type related to {@link QDashboard}.
+ * Querydsl "row bean" type related to {@link QValuePolicy}.
  */
-public class MDashboard extends MObject {
+public class MValuePolicy extends MObject {
 }

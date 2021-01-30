@@ -593,6 +593,22 @@ CREATE TRIGGER m_dashboard_oid_delete_tr AFTER DELETE ON m_dashboard
 CREATE INDEX m_dashboard_name_orig_idx ON m_dashboard (name_orig);
 ALTER TABLE m_dashboard ADD CONSTRAINT m_dashboard_name_norm_key UNIQUE (name_norm);
 
+CREATE TABLE m_value_policy (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectTypeClass INTEGER GENERATED ALWAYS AS (4) STORED
+)
+    INHERITS (m_object);
+
+CREATE TRIGGER m_value_policy_oid_insert_tr BEFORE INSERT ON m_value_policy
+    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+CREATE TRIGGER m_value_policy_update_tr BEFORE UPDATE ON m_value_policy
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+CREATE TRIGGER m_value_policy_oid_delete_tr AFTER DELETE ON m_value_policy
+    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+
+CREATE INDEX m_value_policy_name_orig_idx ON m_value_policy (name_orig);
+ALTER TABLE m_value_policy ADD CONSTRAINT m_value_policy_name_norm_key UNIQUE (name_norm);
+
 CREATE TABLE m_task (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectTypeClass INTEGER GENERATED ALWAYS AS (9) STORED,
@@ -1228,12 +1244,6 @@ CREATE TABLE m_user (
   title_norm           VARCHAR(255),
   title_orig           VARCHAR(255),
   oid                  VARCHAR(36) NOT NULL,
-  PRIMARY KEY (oid)
-);
-CREATE TABLE m_value_policy (
-  name_norm VARCHAR(255),
-  name_orig VARCHAR(255),
-  oid       VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
 CREATE INDEX iCertCampaignNameOrig
