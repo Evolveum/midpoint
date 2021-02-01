@@ -795,6 +795,12 @@ public class DOMUtil {
         return retval;
     }
 
+    public static Map<String, String> getAllNonDefaultNamespaceDeclarations(Node node) {
+        Map<String, String> retval = getAllVisibleNamespaceDeclarations(node);
+        retval.remove(null);
+        return retval;
+    }
+
     // returns owner node - works also for attributes
     private static Node getParentNode(Node node) {
         if (node instanceof Attr) {

@@ -271,6 +271,33 @@ public abstract class PrismNamespaceContext {
         public boolean isDefaultNamespaceOnly() {
             return prefixToNs.size() == 1 && prefixToNs.containsKey(DEFAULT_PREFIX);
         }
+
+        @Override
+        public PrismNamespaceContext rebasedOn(PrismNamespaceContext current) {
+            if(isParent(current)) {
+                // We do not need to rebase to self
+                return this;
+            }
+            ImmutableMap.Builder<String,String> prefixesToRebase = ImmutableMap.builder();
+            for(Entry<String, String> prefix : allPrefixes().entrySet()) {
+                Optional<String> other = current.namespaceFor(prefix.getKey());
+                if(other.isEmpty() || !other.get().equals(prefix.getValue()) ) {
+                    prefixesToRebase.put(prefix);
+                }
+            }
+            return current.childContext(prefixesToRebase.build());
+        }
+
+        private boolean isParent(PrismNamespaceContext current) {
+            if(parent == current) {
+                return true;
+            }
+            if(current instanceof Inherited) {
+                return parent == ((Inherited) current).parent;
+            }
+            return false;
+        }
+
     }
 
     private static class Inherited extends PrismNamespaceContext {
@@ -335,6 +362,11 @@ public abstract class PrismNamespaceContext {
         public Map<String, String> allPrefixes() {
             return parent.allPrefixes();
         }
+
+        @Override
+        public PrismNamespaceContext rebasedOn(PrismNamespaceContext current) {
+            return parent.rebasedOn(current);
+        }
     }
 
     private static class Empty extends PrismNamespaceContext {
@@ -394,6 +426,11 @@ public abstract class PrismNamespaceContext {
             return Collections.emptyMap();
         }
 
+        @Override
+        public PrismNamespaceContext rebasedOn(PrismNamespaceContext current) {
+            return current.inherited();
+        }
+
     }
 
     public enum PrefixPreference {
@@ -448,5 +485,7 @@ public abstract class PrismNamespaceContext {
     public PrismNamespaceContext childDefaultNamespace(String namespace) {
         return childContext(ImmutableMap.of(DEFAULT_PREFIX, namespace));
     }
+
+    public abstract PrismNamespaceContext rebasedOn(PrismNamespaceContext current);
 
 }

@@ -233,7 +233,7 @@ class DocumentWriter {
             return current.inherited();
         }
         // Use node local if non empty
-        return nodeLocal;
+        return nodeLocal.rebasedOn(current);
     }
 
     /**

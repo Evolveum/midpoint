@@ -6,10 +6,11 @@
  */
 package com.evolveum.midpoint.prism.impl.lex.dom;
 
+import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.SerializationContext;
 import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.impl.PrismContextImpl;
-import com.evolveum.midpoint.prism.impl.marshaller.ItemPathHolder;
+import com.evolveum.midpoint.prism.impl.marshaller.ItemPathSerialization;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
@@ -19,6 +20,7 @@ import com.evolveum.midpoint.prism.impl.xnode.PrimitiveXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.SchemaXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.xnode.IncompleteMarkerXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
@@ -35,6 +37,7 @@ import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -314,8 +317,14 @@ class DomWriter {
         }
 
         if (itemPathType != null) {
-            Element element = ItemPathHolder.serializeToElement(itemPathType.getItemPath(), elementName, document);
-            parent.appendChild(element);
+            Map<String, String> availableNamespaces = DOMUtil.getAllNonDefaultNamespaceDeclarations(parent);
+            PrismNamespaceContext localNs = PrismNamespaceContext.from(availableNamespaces);
+
+            ItemPathSerialization ctx = ItemPathSerialization.serialize(UniformItemPath.from(itemPathType.getItemPath()), localNs);
+
+            Element element = createAndAppendChild(elementName, parent);
+            DOMUtil.setNamespaceDeclarations(element,ctx.undeclaredPrefixes());
+            element.setTextContent(ctx.getXPathWithoutDeclarations());
             return element;
         } else {
             return null;
