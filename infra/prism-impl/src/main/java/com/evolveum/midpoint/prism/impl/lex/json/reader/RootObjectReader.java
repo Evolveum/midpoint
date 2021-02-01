@@ -50,7 +50,7 @@ class RootObjectReader {
         }
         processSchemaNodes(xnode);
         Map.Entry<QName, XNodeImpl> entry = ((MapXNodeImpl) xnode).entrySet().iterator().next();
-        RootXNodeImpl root = new RootXNodeImpl(entry.getKey(), entry.getValue());
+        RootXNodeImpl root = new RootXNodeImpl(entry.getKey(), entry.getValue(), xnode.namespaceContext());
         if (entry.getValue() != null) {
             root.setTypeQName(entry.getValue().getTypeQName());            // TODO - ok ????
         }

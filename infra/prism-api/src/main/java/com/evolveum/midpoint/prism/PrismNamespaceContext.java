@@ -72,6 +72,10 @@ public abstract class PrismNamespaceContext {
      */
     public abstract boolean isLocalEmpty();
 
+
+
+    public abstract boolean isDefaultNamespaceOnly();
+
     /**
      * Returns namespace for specified prefix.
      *
@@ -256,6 +260,11 @@ public abstract class PrismNamespaceContext {
             }
             return prefixes;
         }
+
+        @Override
+        public boolean isDefaultNamespaceOnly() {
+            return prefixToNs.size() == 1 && prefixToNs.containsKey(DEFAULT_PREFIX);
+        }
     }
 
     private static class Inherited extends PrismNamespaceContext {
@@ -284,6 +293,11 @@ public abstract class PrismNamespaceContext {
         @Override
         public boolean isLocalEmpty() {
             return true;
+        }
+
+        @Override
+        public boolean isDefaultNamespaceOnly() {
+            return false;
         }
 
         @Override
@@ -332,6 +346,11 @@ public abstract class PrismNamespaceContext {
         @Override
         public boolean isLocalEmpty() {
             return true;
+        }
+
+        @Override
+        public boolean isDefaultNamespaceOnly() {
+            return false;
         }
 
         @Override

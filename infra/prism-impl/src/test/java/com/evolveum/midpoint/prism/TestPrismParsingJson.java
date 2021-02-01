@@ -21,6 +21,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.impl.lex.json.reader.JsonReader;
+import com.evolveum.midpoint.prism.impl.lex.json.writer.JsonWriter;
 import com.evolveum.midpoint.prism.impl.xnode.MapXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -67,6 +68,12 @@ public class TestPrismParsingJson extends TestPrismParsing {
         ItemPathType path = pathNode.getParsedValue(ItemPathType.COMPLEX_TYPE, ItemPathType.class);
         assertNotNull(path);
         assertEquals(path.getItemPath().firstName(), UserType.F_NAME);
+
+        JsonWriter serializer = new JsonWriter();
+        @NotNull
+        String output = serializer.write(rootXNode, null);
+        display(output);
+
     }
 
     private static final <E extends T,T extends XNode> E get(Class<T> type, MapXNode root, String... path) {
