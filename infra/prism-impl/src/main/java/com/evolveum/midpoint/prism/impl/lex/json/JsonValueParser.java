@@ -11,10 +11,14 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismNamespaceContext;
+import com.evolveum.midpoint.prism.impl.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.ValueParser;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,31 +33,36 @@ import org.w3c.dom.Element;
  */
 public class JsonValueParser<T> implements ValueParser<T> {
 
-    @NotNull private final JsonParser parser;
+    @NotNull private final ObjectMapper mapper;
     private final JsonNode node;
+    private final PrismNamespaceContext context;
 
-    public JsonValueParser(@NotNull JsonParser parser, JsonNode node) {
-        this.parser = parser;
+    public JsonValueParser(@NotNull JsonParser parser, JsonNode node, PrismNamespaceContext context) {
+        this.mapper = (ObjectMapper) parser.getCodec();
         this.node = node;
-    }
-
-    @NotNull
-    public JsonParser getParser() {
-        return parser;
+        this.context = context;
     }
 
     @Override
     public T parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
-        ObjectMapper mapper = (ObjectMapper) parser.getCodec();
-        Class clazz = XsdTypeMapper.toJavaType(typeName);
-
+        Class<?> clazz = XsdTypeMapper.toJavaType(typeName);
         ObjectReader r = mapper.readerFor(clazz);
+        if(ItemPathType.class.isAssignableFrom(clazz)) {
+            return (T) new ItemPathType(parseItemPath());
+        } else if(ItemPath.class.isAssignableFrom(clazz)) {
+            return (T) parseItemPath();
+        }
+
         try {
             return r.readValue(node);
             // TODO implement COMPAT mode
         } catch (IOException e) {
             throw new SchemaException("Cannot parse value: " + e.getMessage(), e);
         }
+    }
+
+    private ItemPath parseItemPath() {
+        return ItemPathHolder.parseFromString(getStringValue(), context.allPrefixes());
     }
 
     @Override
@@ -90,7 +99,6 @@ public class JsonValueParser<T> implements ValueParser<T> {
     }
 
     public Element asDomElement() throws IOException {
-        ObjectMapper mapper = (ObjectMapper) parser.getCodec();
         ObjectReader r = mapper.readerFor(Document.class);
         return ((Document) r.readValue(node)).getDocumentElement();
     }

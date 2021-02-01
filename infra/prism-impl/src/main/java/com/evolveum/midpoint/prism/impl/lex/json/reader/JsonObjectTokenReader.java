@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 
 import javax.xml.namespace.QName;
@@ -28,6 +29,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -36,6 +38,7 @@ import com.evolveum.midpoint.prism.impl.lex.json.JsonInfraItems;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.QNameUtil.PrefixedName;
 import com.evolveum.midpoint.util.QNameUtil.QNameInfo;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -70,7 +73,7 @@ class JsonObjectTokenReader {
      * Name of the element for this XNode. (From @element declaration.)
      * Should be set only once.
      */
-    private QNameUtil.QNameInfo elementName;
+    private QName elementName;
 
     /**
      * Wrapped value (@value declaration).
@@ -132,7 +135,7 @@ class JsonObjectTokenReader {
     }
 
     private void processFields() throws IOException, SchemaException {
-        QNameInfo currentFieldName = null;
+        QName currentFieldName = null;
         while (!ctx.isAborted()) {
             JsonToken token = parser.nextToken();
             if (token == null) {
@@ -150,39 +153,47 @@ class JsonObjectTokenReader {
         }
     }
 
-    private @NotNull QNameInfo processFieldName(QNameInfo currentFieldName) throws IOException, SchemaException {
+    private @NotNull QName processFieldName(QName currentFieldName) throws IOException, SchemaException {
         String newFieldName = parser.getCurrentName();
         if (currentFieldName != null) {
             warnOrThrow("Two field names in succession: " + currentFieldName + " and " + newFieldName);
         }
-        return resolveQNameInfo(newFieldName);
+        return resolveQName(newFieldName);
     }
 
-    private @NotNull QNameInfo resolveQNameInfo(String name) {
+    private @NotNull QName resolveQName(String name) throws SchemaException {
 
+        if (name.startsWith("@")) {
+            // Infra properties are unqualified for now
+            return new QName(name);
+        }
+        if (!QNameUtil.isUriQName(name)) {
+            PrefixedName prefixed = QNameUtil.parsePrefixedName(name);
+            Optional<String> ns = namespaceContext().namespaceFor(prefixed.prefix());
+            if(ns.isPresent()) {
+                return new QName(ns.get(), prefixed.localName());
+            } else if (!prefixed.prefix().isEmpty()) {
+                warnOrThrow("Undeclared prefix '%s'", prefixed.prefix());
+            } else {
+                return new QName(prefixed.localName());
+            }
+        }
         QNameInfo result = QNameUtil.uriToQNameInfo(name, true);
-        if(name.startsWith("@")) {
-            // Infra properties are unqualified
-            return result;
-        }
-        if(name.equals("equal")) {
-            name.toString();
-        }
         // FIXME: Explicit empty namespace is workaround for cases, where we somehow lost namespace
         // eg. parsing json with filters without namespaces
-        if(Strings.isNullOrEmpty(result.name.getNamespaceURI()) && !result.explicitEmptyNamespace) {
+        if (Strings.isNullOrEmpty(result.name.getNamespaceURI()) && !result.explicitEmptyNamespace) {
             Optional<String> defaultNs = namespaceContext().defaultNamespace();
             if(defaultNs.isPresent()) {
                 result = QNameUtil.qnameToQnameInfo(new QName(defaultNs.get(), result.name.getLocalPart()));
             }
         }
-        return result;
+        return result.name;
     }
 
-    private void processFieldValue(QNameInfo name) throws IOException, SchemaException {
+    private void processFieldValue(QName name) throws IOException, SchemaException {
         assert name != null;
         XNodeImpl value = readValue();
-        PROCESSORS.getOrDefault(name.name, STANDARD_PROCESSOR).apply(this, name, value);
+        PROCESSORS.getOrDefault(name, STANDARD_PROCESSOR).apply(this, name, value);
 
     }
 
@@ -197,19 +208,28 @@ class JsonObjectTokenReader {
         return parentContext.inherited();
     }
 
-    private void processContextDeclaration(QNameInfo name, XNodeImpl value) {
+    private void processContextDeclaration(QName name, XNodeImpl value) throws SchemaException {
+        if(value instanceof MapXNode) {
+            Builder<String, String> nsCtx = ImmutableMap.<String, String>builder();
+            for(Entry<QName, ? extends XNode> entry : ((MapXNode) value).toMap().entrySet()) {
+                String key = entry.getKey().getLocalPart();
+                String ns = getCurrentFieldStringValue(entry.getKey(),entry.getValue());
+                nsCtx.put(key, ns);
+            }
+            this.map = new MapXNodeImpl(parentContext.childContext(nsCtx.build()));
+            return;
+        }
         throw new UnsupportedOperationException("Not implemented");
     }
 
-    private void processStandardFieldValue(QNameInfo currentFieldName, @NotNull XNodeImpl currentFieldValue) {
+    private void processStandardFieldValue(QName name, @NotNull XNodeImpl currentFieldValue) {
         // MID-5326:
         //   If namespace is defined, fieldName is always qualified,
         //   If namespace is undefined, then we can not effectivelly distinguish between
-        QName key = currentFieldName.name;
-        map.put(key, currentFieldValue);
+        map.put(name, currentFieldValue);
     }
 
-    private void processIncompleteDeclaration(QNameInfo fieldName, XNodeImpl currentFieldValue) throws SchemaException {
+    private void processIncompleteDeclaration(QName name, XNodeImpl currentFieldValue) throws SchemaException {
         if (incomplete != null) {
             warnOrThrow("Duplicate @incomplete marker found with the value: " + currentFieldValue);
         } else if (currentFieldValue instanceof PrimitiveXNodeImpl) {
@@ -222,14 +242,14 @@ class JsonObjectTokenReader {
         }
     }
 
-    private void processWrappedValue(QNameInfo currentFieldName, XNodeImpl currentFieldValue) throws SchemaException {
+    private void processWrappedValue(QName name, XNodeImpl currentFieldValue) throws SchemaException {
         if (wrappedValue != null) {
             warnOrThrow("Value ('" + JsonInfraItems.PROP_VALUE + "') defined more than once");
         }
         wrappedValue = currentFieldValue;
     }
 
-    private void processMetadataValue(QNameInfo currentFieldName, XNodeImpl currentFieldValue) throws SchemaException {
+    private void processMetadataValue(QName name, XNodeImpl currentFieldValue) throws SchemaException {
         if (currentFieldValue instanceof MapXNode) {
             metadata.add((MapXNode) currentFieldValue);
         } else if (currentFieldValue instanceof ListXNodeImpl) {
@@ -245,29 +265,29 @@ class JsonObjectTokenReader {
         }
     }
 
-    private void processElementNameDeclaration(QNameInfo currentFieldName, XNodeImpl value) throws SchemaException {
+    private void processElementNameDeclaration(QName name, XNodeImpl value) throws SchemaException {
         if (elementName != null) {
             warnOrThrow("Element name defined more than once");
         }
-        String name = getCurrentFieldStringValue(currentFieldName, value);
-        elementName = resolveQNameInfo(name);
+        String nsName = getCurrentFieldStringValue(name, value);
+        elementName = resolveQName(nsName);
     }
 
-    private void processTypeDeclaration(QNameInfo currentFieldName, XNodeImpl value) throws SchemaException {
+    private void processTypeDeclaration(QName name, XNodeImpl value) throws SchemaException {
         if (typeName != null) {
             warnOrThrow("Value type defined more than once");
         }
-        typeName = QNameUtil.uriToQName(getCurrentFieldStringValue(currentFieldName, value), true);
+        typeName = QNameUtil.uriToQName(getCurrentFieldStringValue(name, value), true);
     }
 
-    private void processNamespaceDeclaration(QNameInfo currentFieldName, XNodeImpl value) throws SchemaException {
+    private void processNamespaceDeclaration(QName name, XNodeImpl value) throws SchemaException {
         if(namespaceSensitiveStarted) {
             warnOrThrow("Namespace declared after other fields: " + ctx.getPositionSuffix());
         }
         if (map != null) {
             warnOrThrow("Namespace defined more than once");
         }
-        var ns = getCurrentFieldStringValue(currentFieldName, value);
+        var ns = getCurrentFieldStringValue(name, value);
         map = new MapXNodeImpl(parentContext.childContext(ImmutableMap.of("", ns)));
     }
 
@@ -312,13 +332,13 @@ class JsonObjectTokenReader {
     private void addElementNameTo(XNodeImpl rv) throws SchemaException {
         if (elementName != null) {
             if (wrappedValue != null && wrappedValue.getElementName() != null) {
-                if (!wrappedValue.getElementName().equals(elementName.name)) {
+                if (!wrappedValue.getElementName().equals(elementName)) {
                     warnOrThrow("Conflicting element names for '" + JsonInfraItems.PROP_VALUE
                         + "' (" + wrappedValue.getElementName()
-                        + ") and regular content (" + elementName.name + "; ) present");
+                        + ") and regular content (" + elementName + "; ) present");
                 }
             }
-            rv.setElementName(elementName.name);
+            rv.setElementName(elementName);
         }
 
     }
@@ -334,11 +354,11 @@ class JsonObjectTokenReader {
         }
     }
 
-    private String getCurrentFieldStringValue(QNameInfo currentFieldName, XNodeImpl currentFieldValue) throws SchemaException {
+    private String getCurrentFieldStringValue(QName name, XNode currentFieldValue) throws SchemaException {
         if (currentFieldValue instanceof PrimitiveXNodeImpl) {
             return ((PrimitiveXNodeImpl<?>) currentFieldValue).getStringValue();
         } else {
-            warnOrThrow("Value of '" + currentFieldName + "' attribute must be a primitive one. It is " + currentFieldValue + " instead");
+            warnOrThrow("Value of '" + name + "' attribute must be a primitive one. It is " + currentFieldValue + " instead");
             return "";
         }
     }
@@ -371,6 +391,6 @@ class JsonObjectTokenReader {
     @FunctionalInterface
     private interface ItemProcessor {
 
-        void apply(JsonObjectTokenReader reader, QNameInfo itemName, XNodeImpl value) throws SchemaException;
+        void apply(JsonObjectTokenReader reader, QName itemName, XNodeImpl value) throws SchemaException;
     }
 }
