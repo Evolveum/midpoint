@@ -19,7 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
  * Mapping between {@link QRole} and {@link RoleType}.
  */
 public class QRoleMapping
-        extends QObjectMapping<RoleType, QRole, MRole> {
+        extends QAbstractRoleMapping<RoleType, QRole, MRole> {
 
     public static final String DEFAULT_ALIAS_NAME = "r";
 

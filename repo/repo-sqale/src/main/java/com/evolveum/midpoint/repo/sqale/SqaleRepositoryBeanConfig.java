@@ -82,6 +82,7 @@ public class SqaleRepositoryBeanConfig {
             DataSource dataSource) {
         QueryModelMappingRegistry mappingRegistry = new QueryModelMappingRegistry()
                 // ordered alphabetically here
+                .register(AbstractRoleType.COMPLEX_TYPE, QAbstractRoleMapping.INSTANCE)
                 .register(ArchetypeType.COMPLEX_TYPE, QArchetypeMapping.INSTANCE)
                 .register(DashboardType.COMPLEX_TYPE, QDashboardMapping.INSTANCE)
                 .register(FocusType.COMPLEX_TYPE, QFocusMapping.INSTANCE)

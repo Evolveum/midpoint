@@ -17,7 +17,7 @@ import com.evolveum.midpoint.repo.sqale.qbean.MRole;
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QRole extends QObject<MRole> {
+public class QRole extends QAbstractRole<MRole> {
 
     private static final long serialVersionUID = -6556210963622526756L;
 

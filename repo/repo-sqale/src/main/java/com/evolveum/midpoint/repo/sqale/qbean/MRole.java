@@ -11,7 +11,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.QRole;
 /**
  * Querydsl "row bean" type related to {@link QRole}.
  */
-public class MRole extends MObject {
+public class MRole extends MAbstractRole {
 
     public String roleType;
 }
