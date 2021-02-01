@@ -72,6 +72,7 @@ public abstract class PrismNamespaceContext {
      */
     public abstract boolean isLocalEmpty();
 
+    public abstract boolean isEmpty();
 
 
     public abstract boolean isDefaultNamespaceOnly();
@@ -174,6 +175,11 @@ public abstract class PrismNamespaceContext {
 
         @Override
         public boolean isLocalEmpty() {
+            return false;
+        }
+
+        @Override
+        public boolean isEmpty() {
             return false;
         }
 
@@ -296,6 +302,11 @@ public abstract class PrismNamespaceContext {
         }
 
         @Override
+        public boolean isEmpty() {
+            return false;
+        }
+
+        @Override
         public boolean isDefaultNamespaceOnly() {
             return false;
         }
@@ -345,6 +356,11 @@ public abstract class PrismNamespaceContext {
 
         @Override
         public boolean isLocalEmpty() {
+            return true;
+        }
+
+        @Override
+        public boolean isEmpty() {
             return true;
         }
 
@@ -414,6 +430,10 @@ public abstract class PrismNamespaceContext {
 
     public static PrismNamespaceContext of(String ns) {
         return from(ImmutableMap.of(DEFAULT_PREFIX, ns));
+    }
+
+    public PrismNamespaceContext childDefaultNamespace(String namespace) {
+        return childContext(ImmutableMap.of(DEFAULT_PREFIX, namespace));
     }
 
 }
