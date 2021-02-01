@@ -9,12 +9,12 @@ package com.evolveum.midpoint.testing.story.grouper;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.asserter.ShadowAttributesAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismPropertyAsserter;
 import com.evolveum.midpoint.util.exception.*;
@@ -41,6 +41,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
 
+    private static final TestResource<TaskType> TASK_ASYNC_UPDATE = new TestResource<>(TEST_DIR, "task-async-update.xml", "8ba86427-8bc4-4c22-9dee-5403a063e453");
+
     private static final File CHANGE_110 = new File(TEST_DIR, "change-110-alumni-add.json");
     private static final File CHANGE_115 = new File(TEST_DIR, "change-115-staff-add.json");
     private static final File CHANGE_200 = new File(TEST_DIR, "change-200-banderson-add-alumni.json");
@@ -58,14 +60,8 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-//        setGlobalTracingOverride(createModelAndProvisioningLoggingTracingProfile());
+        addObject(TASK_ASYNC_UPDATE, initTask, initResult);
     }
-
-//    @Override
-//    protected TracingProfileType getTestMethodTracingProfile() {
-//        return createModelAndProvisioningLoggingTracingProfile()
-//                .fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
-//    }
 
     @Test
     public void test000Sanity() throws Exception {
@@ -106,8 +102,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
 
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        processUpdates(task, result, coords);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 
@@ -141,13 +136,6 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
                 .getOid();
     }
 
-    private void processUpdates(Task task, OperationResult result, ResourceShadowDiscriminator coords)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
-        throw new UnsupportedOperationException();
-        //provisioningService.processAsynchronousUpdates(coords, task, result);
-    }
-
     /**
      * GROUP_ADD event for ref:affiliation:staff.
      */
@@ -164,8 +152,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
         grouperDummyResource.addGroup(createGroup(STAFF_ID, STAFF_NAME));
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        processUpdates(task, result, coords);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 
@@ -218,8 +205,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
 
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        processUpdates(task, result, coords);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 
@@ -282,8 +268,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
 
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        processUpdates(task, result, coords);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 
@@ -346,8 +331,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
 
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        processUpdates(task, result, coords);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 
@@ -377,8 +361,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
 
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        processUpdates(task, result, coords);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 
@@ -440,8 +423,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
 
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        processUpdates(task, result, coords);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 
@@ -467,8 +449,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
 
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        processUpdates(task, result, coords);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 
@@ -530,8 +511,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
 
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        processUpdates(task, result, coords);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 
@@ -588,8 +568,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
 
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
-        processUpdates(task, result, coords);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 
