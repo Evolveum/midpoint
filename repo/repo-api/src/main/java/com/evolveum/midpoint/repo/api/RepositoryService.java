@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.api;
 import java.util.Collection;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -209,8 +210,10 @@ public interface RepositoryService {
      * @throws SchemaException error dealing with storage schema, e.g. schema violation
      * @throws IllegalArgumentException wrong OID format, etc.
      */
-    @NotNull
-    <T extends ObjectType> String addObject(PrismObject<T> object, RepoAddOptions options, OperationResult parentResult)
+    @NotNull <T extends ObjectType> String addObject(
+            @NotNull PrismObject<T> object,
+            RepoAddOptions options,
+            @NotNull OperationResult parentResult)
             throws ObjectAlreadyExistsException, SchemaException;
 
     /**
@@ -241,17 +244,27 @@ public interface RepositoryService {
      * @throws IllegalArgumentException wrong OID format, described change is not applicable
      */
     @NotNull <T extends ObjectType> ModifyObjectResult<T> modifyObject(
-            Class<T> type, String oid, Collection<? extends ItemDelta<?, ?>> modifications, OperationResult parentResult)
+            @NotNull Class<T> type,
+            @NotNull String oid,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
 
     @NotNull <T extends ObjectType> ModifyObjectResult<T> modifyObject(
-            Class<T> type, String oid, Collection<? extends ItemDelta<?, ?>> modifications,
-            RepoModifyOptions options, OperationResult parentResult)
+            @NotNull Class<T> type,
+            @NotNull String oid,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            @Nullable RepoModifyOptions options,
+            @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
 
-    @NotNull <T extends ObjectType> ModifyObjectResult<T> modifyObject(@NotNull Class<T> type,
-            @NotNull String oid, @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
-            ModificationPrecondition<T> precondition, RepoModifyOptions options, OperationResult parentResult)
+    @NotNull <T extends ObjectType> ModifyObjectResult<T> modifyObject(
+            @NotNull Class<T> type,
+            @NotNull String oid,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            @Nullable ModificationPrecondition<T> precondition,
+            @Nullable RepoModifyOptions options,
+            @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException;
 
     /**
@@ -301,8 +314,11 @@ public interface RepositoryService {
      * @throws IllegalArgumentException wrong object type
      * @throws SchemaException unknown property used in search query
      */
-    @NotNull <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+    @NotNull <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(
+            @NotNull Class<T> type,
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult)
             throws SchemaException;
 
     /**

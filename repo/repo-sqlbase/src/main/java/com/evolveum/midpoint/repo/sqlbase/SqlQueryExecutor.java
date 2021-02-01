@@ -11,7 +11,6 @@ import java.util.Collection;
 import com.querydsl.core.Tuple;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -30,21 +29,17 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public class SqlQueryExecutor {
 
     private final SqlRepoContext sqlRepoContext;
-    private final PrismContext prismContext;
 
-    public SqlQueryExecutor(SqlRepoContext sqlRepoContext, PrismContext prismContext) {
+    public SqlQueryExecutor(SqlRepoContext sqlRepoContext) {
         this.sqlRepoContext = sqlRepoContext;
-        this.prismContext = prismContext;
     }
 
     public <S, Q extends FlexibleRelationalPathBase<R>, R> int count(
-            @NotNull Class<S> schemaType,
+            @NotNull SqlQueryContext<S, Q, R> context,
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options)
             throws QueryException {
 
-        SqlQueryContext<S, Q, R> context =
-                SqlQueryContext.from(schemaType, prismContext, sqlRepoContext);
         if (query != null) {
             context.process(query.getFilter());
         }
@@ -57,13 +52,11 @@ public class SqlQueryExecutor {
     }
 
     public <S, Q extends FlexibleRelationalPathBase<R>, R> SearchResultList<S> list(
-            @NotNull Class<S> schemaType,
+            @NotNull SqlQueryContext<S, Q, R> context,
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options)
             throws QueryException, SchemaException {
 
-        SqlQueryContext<S, Q, R> context =
-                SqlQueryContext.from(schemaType, prismContext, sqlRepoContext);
         if (query != null) {
             context.process(query.getFilter());
             context.processObjectPaging(query.getPaging());

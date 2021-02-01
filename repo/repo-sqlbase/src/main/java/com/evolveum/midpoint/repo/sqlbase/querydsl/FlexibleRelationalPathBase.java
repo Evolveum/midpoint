@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,6 +10,7 @@ import java.sql.Types;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.PathMetadata;
@@ -120,11 +121,16 @@ public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T
     }
 
     /**
-     * Creates BLOB path for a property and registers column metadata for it.
+     * Creates byte array path for a property and registers column metadata for it.
      */
-    protected ArrayPath<byte[], Byte> createBlob(
+    protected ArrayPath<byte[], Byte> createByteArray(
             String property, ColumnMetadata columnMetadata) {
         return addMetadata(createArray(property, byte[].class), columnMetadata);
+    }
+
+    protected UuidPath createUuid(
+            String property, ColumnMetadata columnMetadata) {
+        return addMetadata(add(new UuidPath(UUID.class, forProperty(property))), columnMetadata);
     }
 
     /**
@@ -134,7 +140,12 @@ public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T
      */
     @Override
     protected <P extends Path<?>> P addMetadata(P path, ColumnMetadata metadata) {
-        propertyNameToPath.put(path.getMetadata().getName(), path);
+        String pathName = path.getMetadata().getName();
+        Path<?> overridden = propertyNameToPath.put(pathName, path);
+        if (overridden != null) {
+            throw new IllegalArgumentException(
+                    "Trying to override metadata for query path " + pathName);
+        }
         return super.addMetadata(path, metadata);
     }
 

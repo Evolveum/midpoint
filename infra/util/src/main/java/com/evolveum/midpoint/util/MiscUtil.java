@@ -306,6 +306,12 @@ public class MiscUtil {
                 : null;
     }
 
+    public static @Nullable Instant asInstant(@Nullable XMLGregorianCalendar xgc) {
+        return xgc != null
+                ? Instant.ofEpochMilli(xgc.toGregorianCalendar().getTimeInMillis())
+                : null;
+    }
+
     /**
      * Converts an XMLGregorianCalendar to an instance of java.util.Date
      *

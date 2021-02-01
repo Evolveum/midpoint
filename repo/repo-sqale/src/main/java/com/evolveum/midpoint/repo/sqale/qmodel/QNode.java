@@ -16,7 +16,7 @@ import com.querydsl.sql.PrimaryKey;
 import com.evolveum.midpoint.repo.sqale.qbean.MNode;
 
 /**
- * Querydsl query type for M_OBJECT table.
+ * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
 public class QNode extends QObject<MNode> {

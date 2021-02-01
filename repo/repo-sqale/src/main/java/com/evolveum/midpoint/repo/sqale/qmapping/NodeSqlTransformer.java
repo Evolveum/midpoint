@@ -6,17 +6,26 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmapping;
 
-import com.evolveum.midpoint.prism.PrismContext;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.repo.sqale.qbean.MNode;
 import com.evolveum.midpoint.repo.sqale.qmodel.QNode;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
 public class NodeSqlTransformer
         extends ObjectSqlTransformer<NodeType, QNode, MNode> {
 
     public NodeSqlTransformer(
-            PrismContext prismContext, QNodeMapping mapping, SqlRepoContext sqlRepoContext) {
-        super(prismContext, mapping, sqlRepoContext);
+            SqlTransformerContext transformerContext, QNodeMapping mapping) {
+        super(transformerContext, mapping);
+    }
+
+    @Override
+    public @NotNull MNode toRowObjectWithoutFullObject(NodeType schemaObject) {
+        MNode node = super.toRowObjectWithoutFullObject(schemaObject);
+
+        node.nodeIdentifier = schemaObject.getNodeIdentifier();
+        return node;
     }
 }

@@ -6,8 +6,10 @@
  */
 package com.evolveum.midpoint.repo.sqale.qbean;
 
+import java.time.Instant;
+import java.util.UUID;
+
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.sqale.MObjectTypeMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.QObject;
 
 /**
@@ -15,38 +17,29 @@ import com.evolveum.midpoint.repo.sqale.qmodel.QObject;
  */
 public class MObject {
 
-    public String oid;
-    public int objectTypeClass = MObjectTypeMapping.OBJECT.code();
+    public UUID oid;
+    public int objectTypeClass; // defaults are set on DB level
     public String nameNorm;
     public String nameOrig;
     public byte[] fullObject;
+    public Integer creatorRefRelationId;
+    public UUID creatorRefTargetOid;
+    public Integer creatorRefTargetType;
     public Integer createChannelId;
-
+    public Instant createTimestamp;
+    public Integer modifierRefRelationId;
+    public UUID modifierRefTargetOid;
+    public Integer modifierRefTargetType;
     public Integer modifyChannelId;
-
-    /*
-    fullObject BYTEA,
-    createChannel INTEGER REFERENCES m_qname(id),
-    createTimestamp TIMESTAMPTZ,
-    creatorRef_relation VARCHAR(157),
-    creatorRef_targetOid VARCHAR(36),
-    creatorRef_targetType INTEGER,
-    lifecycleState VARCHAR(255),
-    modifierRef_relation VARCHAR(157),
-    modifierRef_targetOid VARCHAR(36),
-    modifierRef_targetType INTEGER,
-    modifyChannel INTEGER REFERENCES m_qname(id),
-    modifyTimestamp TIMESTAMPTZ,
-    tenantRef_relation VARCHAR(157),
-    tenantRef_targetOid VARCHAR(36),
-    tenantRef_targetType INTEGER,
-    version INTEGER NOT NULL DEFAULT 1,
-    -- add GIN index for concrete tables where more than thousands of entries are expected (see m_user)
-    ext JSONB,
-    */
+    public Instant modifyTimestamp;
+    public Integer tenantRefRelationId;
+    public UUID tenantRefTargetOid;
+    public Integer tenantRefTargetType;
+    public String lifecycleState;
+    public Integer version;
+    public byte[] ext;
 
     public PolyString getName() {
         return new PolyString(nameOrig, nameNorm);
     }
-
 }

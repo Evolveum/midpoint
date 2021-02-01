@@ -6,14 +6,11 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmapping;
 
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sqale.qbean.MNode;
 import com.evolveum.midpoint.repo.sqale.qmodel.QNode;
 import com.evolveum.midpoint.repo.sqale.qmodel.QObject;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.PolyStringItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.StringItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -29,11 +26,6 @@ public class QNodeMapping
 
     private QNodeMapping() {
         super(QNode.TABLE_NAME, DEFAULT_ALIAS_NAME, NodeType.class, QNode.class);
-
-        addItemMapping(PrismConstants.T_ID, StringItemFilterProcessor.mapper(path(q -> q.oid)));
-        addItemMapping(ObjectType.F_NAME,
-                PolyStringItemFilterProcessor.mapper(
-                        path(q -> q.nameOrig), path(q -> q.nameNorm)));
     }
 
     @Override
@@ -43,7 +35,12 @@ public class QNodeMapping
 
     @Override
     public NodeSqlTransformer createTransformer(
-            PrismContext prismContext, SqlRepoContext sqlRepoContext) {
-        return new NodeSqlTransformer(prismContext, this, sqlRepoContext);
+            SqlTransformerContext transformerContext, SqlRepoContext sqlRepoContext) {
+        return new NodeSqlTransformer(transformerContext, this);
+    }
+
+    @Override
+    public MNode newRowObject() {
+        return new MNode();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -15,13 +15,13 @@ import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
-import com.evolveum.midpoint.repo.sqlbase.SqlPathContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 
 public class NaryLogicalFilterProcessor implements FilterProcessor<NaryLogicalFilter> {
 
-    private final SqlPathContext<?, ?, ?> context;
+    private final SqlQueryContext<?, ?, ?> context;
 
-    public NaryLogicalFilterProcessor(SqlPathContext<?, ?, ?> context) {
+    public NaryLogicalFilterProcessor(SqlQueryContext<?, ?, ?> context) {
         this.context = context;
     }
 

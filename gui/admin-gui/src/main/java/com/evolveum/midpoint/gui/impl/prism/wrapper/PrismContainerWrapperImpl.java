@@ -207,11 +207,6 @@ public class PrismContainerWrapperImpl<C extends Containerable>
         return cval.findItem(rest, type);
     }
 
-    @Override
-    public String debugDump(int indent) {
-        return super.debugDump(indent);
-    }
-
 
     @Override
     public <D extends ItemDelta<? extends PrismValue, ? extends ItemDefinition>> Collection<D> getDelta() throws SchemaException {

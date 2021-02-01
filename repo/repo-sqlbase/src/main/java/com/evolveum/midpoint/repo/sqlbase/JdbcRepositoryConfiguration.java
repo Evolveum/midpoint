@@ -21,6 +21,9 @@ public interface JdbcRepositoryConfiguration {
     String PROPERTY_JDBC_USERNAME = "jdbcUsername";
     String PROPERTY_JDBC_URL = "jdbcUrl";
 
+    String PROPERTY_MIN_POOL_SIZE = "minPoolSize";
+    String PROPERTY_MAX_POOL_SIZE = "maxPoolSize";
+
     String PROPERTY_USE_ZIP = "useZip";
     String PROPERTY_USE_ZIP_AUDIT = "useZipAudit";
 
@@ -29,6 +32,9 @@ public interface JdbcRepositoryConfiguration {
      * See LANG constants in {@link com.evolveum.midpoint.prism.PrismContext} for supported values.
      */
     String PROPERTY_FULL_OBJECT_FORMAT = "fullObjectFormat";
+
+    String PROPERTY_PERFORMANCE_STATISTICS_FILE = "performanceStatisticsFile";
+    String PROPERTY_PERFORMANCE_STATISTICS_LEVEL = "performanceStatisticsLevel";
 
     SupportedDatabase getDatabaseType();
     String getDataSource();
@@ -57,6 +63,9 @@ public interface JdbcRepositoryConfiguration {
      */
     String getFullObjectFormat();
     String getDefaultEmbeddedJdbcUrlPrefix();
+
+    String getPerformanceStatisticsFile();
+    int getPerformanceStatisticsLevel();
 
     default boolean isUsingH2() {
         return isUsing(SupportedDatabase.H2);

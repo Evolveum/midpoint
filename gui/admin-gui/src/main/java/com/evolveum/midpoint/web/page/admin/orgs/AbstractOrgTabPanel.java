@@ -52,7 +52,11 @@ public abstract class AbstractOrgTabPanel extends BasePanel<OrgType> {
 
     public AbstractOrgTabPanel(String id, PageBase pageBase) {
         super(id);
-        setParent(pageBase);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
         initLayout();
     }
 

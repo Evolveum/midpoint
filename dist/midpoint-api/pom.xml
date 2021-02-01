@@ -1,20 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <artifactId>dist</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
         <version>4.3-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>midpoint-api</artifactId>
@@ -89,6 +88,25 @@
                     <quiet>false</quiet>
                     <debug>false</debug>
                     <doclint>none</doclint>
+
+                    <!--
+                    TODO: Not usable yet, see https://github.com/asciidoctor/asciidoclet/pull/96 for the progress on JDK 11 support.
+                    Currently fails on:
+                    [ERROR] javadoc: error - invalid flag: -author
+
+                    And with configuration option:
+                    <useStandardDocletOptions>false</useStandardDocletOptions>
+                    It fails with:
+                    [ERROR] java.lang.NoSuchMethodError: 'boolean com.sun.tools.doclets.standard.Standard.validOptions(java.lang.String[][], com.sun.javadoc.DocErrorReporter)'
+
+                    And that is a showstopper for now.
+                    <doclet>org.asciidoctor.Asciidoclet</doclet>
+                    <docletArtifact>
+                        <groupId>org.asciidoctor</groupId>
+                        <artifactId>asciidoclet</artifactId>
+                        <version>${asciidoclet.version}</version>
+                    </docletArtifact>
+                    -->
                 </configuration>
                 <executions>
                     <execution>
@@ -108,40 +126,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>java8</id>
-            <activation>
-                <jdk>[1.8,)</jdk>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>${maven-javadoc-plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <id>javadoc-jar</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                                <configuration>
-                                    <includeDependencySources>true</includeDependencySources>
-                                    <dependencySourceIncludes>
-                                        <dependencySourceInclude>com.evolveum.*:*</dependencySourceInclude>
-                                    </dependencySourceIncludes>
-                                    <quiet>false</quiet>
-                                    <debug>false</debug>
-                                    <doclint>none</doclint>
-                                    <failOnError>true</failOnError>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>

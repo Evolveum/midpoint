@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -774,7 +773,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         role = repositoryService.getObject(RoleType.class, oid, null, result);
         result.recomputeStatus();
         AssertJUnit.assertTrue(result.isSuccess());
-        if (RepoModifyOptions.isExecuteIfNoChanges(getModifyOptions())) {
+        if (RepoModifyOptions.isForceReindex(getModifyOptions())) {
             SqlRepoTestUtil.assertVersionProgress(version, role.getVersion());
         } else {
             assertEquals("Version has changed", version, role.getVersion());

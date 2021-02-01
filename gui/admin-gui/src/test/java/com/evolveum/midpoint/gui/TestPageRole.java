@@ -22,7 +22,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -99,7 +98,7 @@ public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
         // Open Role0001 page
         renderPage(PageRole.class, role1Oid);
         // Show Members tab
-        clickOnTab(8);
+        clickOnTab(8, PageRole.class);
 
         // THEN
         tester.assertComponent(panel, AbstractRoleMemberPanel.class);
@@ -121,12 +120,6 @@ public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
         tester.debugComponentTrees(":rows:.*:cells:3:cell:link:label");
         tester.assertLabel(memberTable + ":body:rows:3:cells:3:cell:link:label", USER_JACK_USERNAME);
         tester.assertNotExists(memberTable + ":body:rows:4:cells:3:cell:link:label");
-    }
-
-    private void clickOnTab(int order) {
-        tester.assertRenderedPage(PageRole.class);
-        String tabPath = "mainPanel:mainForm:tabPanel:tabs-container:tabs:" + order + ":link";
-        tester.clickLink(tabPath);
     }
 
     private Page renderPage(Class<? extends Page> expectedRenderedPageClass) {

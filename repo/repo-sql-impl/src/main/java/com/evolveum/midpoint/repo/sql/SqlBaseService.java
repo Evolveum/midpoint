@@ -1,22 +1,22 @@
 /*
- * Copyright (c) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
+import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 
 /**
  * Common supertype for SQL-based repository-like services.
  */
 public abstract class SqlBaseService {
 
-    @Autowired private SqlPerformanceMonitorsCollectionImpl monitorsCollection;
+    @Autowired private SqlPerformanceMonitorsCollection monitorsCollection;
 
     private SqlPerformanceMonitorImpl performanceMonitor;
 

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sqale;
 
 import javax.sql.DataSource;
 
+import ch.qos.logback.classic.Level;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -15,15 +17,17 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
+import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
-import com.evolveum.midpoint.repo.sqale.qmapping.QNodeMapping;
+import com.evolveum.midpoint.repo.sqale.qmapping.*;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SystemConfigurationChangeDispatcherImpl;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorsCollectionImpl;
+import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * New SQL repository related configuration.
@@ -47,6 +51,11 @@ public class SqaleRepositoryBeanConfig {
     @Bean
     public SqaleRepositoryConfiguration sqaleRepositoryConfiguration(
             MidpointConfiguration midpointConfiguration) throws RepositoryServiceFactoryException {
+        // TODO remove logging change, when better way to do it for initial start is found
+        ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger("com.querydsl.sql")).setLevel(Level.DEBUG);
+        // PG logs too much on TRACE or not enough on DEBUG, not useful in the main log
+//        ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger("org.postgresql")).setLevel(Level.TRACE);
+
         return new SqaleRepositoryConfiguration(
                 midpointConfiguration.getConfiguration(
                         MidpointConfiguration.REPOSITORY_CONFIGURATION))
@@ -71,23 +80,42 @@ public class SqaleRepositoryBeanConfig {
     public SqlRepoContext sqlRepoContext(
             SqaleRepositoryConfiguration repositoryConfiguration,
             DataSource dataSource) {
-        QueryModelMappingRegistry mapping = new QueryModelMappingRegistry()
+        QueryModelMappingRegistry mappingRegistry = new QueryModelMappingRegistry()
+                // ordered alphabetically here
+                .register(ArchetypeType.COMPLEX_TYPE, QArchetypeMapping.INSTANCE)
+                .register(DashboardType.COMPLEX_TYPE, QDashboardMapping.INSTANCE)
                 .register(NodeType.COMPLEX_TYPE, QNodeMapping.INSTANCE)
+                .register(ObjectCollectionType.COMPLEX_TYPE, QObjectCollectionMapping.INSTANCE)
+                .register(RoleType.COMPLEX_TYPE, QRoleMapping.INSTANCE)
+                .register(SecurityPolicyType.COMPLEX_TYPE, QSecurityPolicyMapping.INSTANCE)
+                .register(SystemConfigurationType.COMPLEX_TYPE, QSystemConfigurationMapping.INSTANCE)
+                .register(TaskType.COMPLEX_TYPE, QTaskMapping.INSTANCE)
+                .register(UserType.COMPLEX_TYPE, QUserMapping.INSTANCE)
+                .register(ValuePolicyType.COMPLEX_TYPE, QValuePolicyMapping.INSTANCE)
                 .seal();
 
-        return new SqlRepoContext(repositoryConfiguration, dataSource, mapping);
+        return new SqlRepoContext(repositoryConfiguration, dataSource, mappingRegistry);
+    }
+
+    @Bean
+    public SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection() {
+        return new SqlPerformanceMonitorsCollectionImpl();
     }
 
     @Bean
     public SqaleRepositoryService repositoryService(
             SqlRepoContext sqlRepoContext,
-            PrismContext prismContext) {
-        return new SqaleRepositoryService(sqlRepoContext, prismContext);
+            SchemaHelper schemaService,
+            SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
+        return new SqaleRepositoryService(
+                sqlRepoContext,
+                schemaService,
+                sqlPerformanceMonitorsCollection);
     }
 
     // TODO @Bean for AuditServiceFactory later
 
-    // TODO rethink?
+    // TODO rethink? using Spring events
     @Bean
     public SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher() {
         return new SystemConfigurationChangeDispatcherImpl();

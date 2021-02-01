@@ -34,6 +34,9 @@ public class M11SystemConfiguration extends AbstractLabTest {
     private static final File OBJECT_COLLECTION_ACTIVE_EMP_FILE = new File(LAB_OBJECTS_DIRECTORY + "objectCollections/objectCollection-active-employees.xml");
     private static final File OBJECT_COLLECTION_INACTIVE_EMP_FILE = new File(LAB_OBJECTS_DIRECTORY + "objectCollections/objectCollection-inactive-employees.xml");
     private static final File OBJECT_COLLECTION_FORMER_EMP_FILE = new File(LAB_OBJECTS_DIRECTORY + "objectCollections/objectCollection-former-employees.xml");
+    private static final File ARCHETYPE_EMPLOYEE_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-employee.xml");
+    private static final File ARCHETYPE_EXTERNAL_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-external.xml");
+    private static final File OBJECT_TEMPLATE_USER_FILE_11 = new File(LAB_OBJECTS_DIRECTORY + "objectTemplate/object-template-example-user-11.xml");
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override
@@ -43,6 +46,7 @@ public class M11SystemConfiguration extends AbstractLabTest {
 
     @Test
     public void mod11test02ConfiguringDeploymentInformation() {
+        addObjectFromFile(OBJECT_TEMPLATE_USER_FILE_11);
         addObjectFromFile(SYSTEM_CONFIGURATION_FILE_11_2);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         basicPage.loggedUser().logout();

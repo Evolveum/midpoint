@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,40 +7,38 @@
 package com.evolveum.midpoint.model.impl.sync;
 
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.StringUtils;
-
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.jetbrains.annotations.Nullable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class SynchronizationContext<F extends FocusType> implements DebugDumpable {
 
@@ -132,8 +130,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 
         if (intent == null) {
             RefinedResourceSchema schema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-            ObjectClassComplexTypeDefinition occtd = schema.findDefaultObjectClassDefinition(getKind());
-            intent = occtd.getIntent();
+            intent = schema.findDefaultObjectClassDefinition(getKind()).getIntent();
         }
         return intent;
     }
@@ -292,9 +289,11 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     public PrismObject<ShadowType> getApplicableShadow() {
         return applicableShadow;
     }
+
     public PrismObject<ShadowType> getCurrentShadow() {
         return currentShadow;
     }
+
     public PrismObject<ResourceType> getResource() {
         return resource;
     }
@@ -319,8 +318,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         if (objectType == null) {
             throw new SchemaException("Unknown focus type " + focusTypeQName + " in synchronization policy in " + resource);
         }
-        //noinspection unchecked
-        this.focusClass = (Class<F>) objectType.getClassDefinition();
+        this.focusClass = objectType.getClassDefinition();
         return focusClass;
     }
 
@@ -364,15 +362,19 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     public PrismObject<SystemConfigurationType> getSystemConfiguration() {
         return systemConfiguration;
     }
+
     public String getChannel() {
         return channel;
     }
+
     public void setResource(PrismObject<ResourceType> resource) {
         this.resource = resource;
     }
+
     public void setSystemConfiguration(PrismObject<SystemConfigurationType> systemConfiguration) {
         this.systemConfiguration = systemConfiguration;
     }
+
     public void setChannel(String channel) {
         this.channel = channel;
     }

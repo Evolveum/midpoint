@@ -25,6 +25,7 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
+import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
@@ -33,7 +34,9 @@ import com.evolveum.midpoint.repo.sql.util.MidPointImplicitNamingStrategy;
 import com.evolveum.midpoint.repo.sql.util.MidPointPhysicalNamingStrategy;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.repo.sqlbase.SystemConfigurationChangeDispatcherImpl;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorsCollectionImpl;
 import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SchemaHelper;
 
 /**
  * SQL repository related configuration from {@link DataSourceFactory} through ORM with
@@ -174,8 +177,8 @@ public class SqlRepositoryBeanConfig {
     @Bean
     public AuditServiceFactory sqlAuditServiceFactory(
             BaseHelper defaultBaseHelper,
-            PrismContext prismContext) {
-        return new SqlAuditServiceFactory(defaultBaseHelper, prismContext);
+            SchemaHelper schemaService) {
+        return new SqlAuditServiceFactory(defaultBaseHelper, schemaService);
     }
 
     // TODO it would be better to have dependencies explicit here, but there is cyclic one
@@ -183,5 +186,10 @@ public class SqlRepositoryBeanConfig {
     @Bean
     public SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher() {
         return new SystemConfigurationChangeDispatcherImpl();
+    }
+
+    @Bean
+    public SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection() {
+        return new SqlPerformanceMonitorsCollectionImpl();
     }
 }

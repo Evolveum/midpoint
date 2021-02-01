@@ -116,9 +116,13 @@ public class Search<T> extends Component<T> {
     }
 
     private void clickDroDownForSearchMode() {
-        SelenideElement dropDownButton = getParentElement().$x(".//div[@"+Schrodinger.DATA_S_ID+"='searchContainer']").$x(".//button[@data-toggle='dropdown']");
-        dropDownButton.waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-        dropDownButton.waitUntil(Condition.attribute("aria-expanded", "true"), MidPoint.TIMEOUT_MEDIUM_6_S);
+        SelenideElement dropDownButton = getParentElement()
+                .$x(".//div[@"+Schrodinger.DATA_S_ID+"='searchContainer']")
+                .$x(".//button[@data-toggle='dropdown']");
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        dropDownButton.waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
+        dropDownButton.shouldHave(Condition.attribute("aria-expanded", "true"));
     }
 
     public InputBox<Search<T>> byFullText() {

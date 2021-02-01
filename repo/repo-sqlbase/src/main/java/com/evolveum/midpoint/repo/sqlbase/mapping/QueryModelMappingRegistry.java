@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -103,10 +103,10 @@ public class QueryModelMappingRegistry {
         return this;
     }
 
-    public <S, Q extends FlexibleRelationalPathBase<R>, R>
-    QueryModelMapping<S, Q, R> getBySchemaType(Class<S> schemaType) {
+    public <S, Q extends FlexibleRelationalPathBase<R>, R, QM extends QueryModelMapping<S, Q, R>>
+    QM getBySchemaType(Class<S> schemaType) {
         //noinspection unchecked
-        return (QueryModelMapping<S, Q, R>) Objects.requireNonNull(
+        return (QM) Objects.requireNonNull(
                 mappingBySchemaType.get(schemaType),
                 () -> "Missing mapping for schema type " + schemaType);
     }

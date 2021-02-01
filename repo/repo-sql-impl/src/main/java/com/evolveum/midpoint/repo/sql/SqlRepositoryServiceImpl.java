@@ -40,7 +40,8 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.repo.sql.helpers.*;
-import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
+import com.evolveum.midpoint.repo.sqlbase.ConflictWatcherImpl;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -100,7 +101,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @Autowired private OrgClosureManager closureManager;
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
 
-    private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal = new ThreadLocal<>();
+    private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal =
+            ThreadLocal.withInitial(ArrayList::new);
 
     private FullTextSearchConfigurationType fullTextSearchConfiguration;
 
@@ -263,8 +265,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     @NotNull
     @Override
-    public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
+    public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(
+            @NotNull Class<T> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult result) throws SchemaException {
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
 
@@ -366,7 +370,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @Override
     @NotNull
     public <T extends ObjectType> String addObject(
-            PrismObject<T> object, RepoAddOptions options, OperationResult result)
+            @NotNull PrismObject<T> object, RepoAddOptions options, @NotNull OperationResult result)
             throws ObjectAlreadyExistsException, SchemaException {
         Validate.notNull(object, "Object must not be null.");
         validateName(object);
@@ -406,7 +410,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         long opHandle = pm.registerOperationStart(OP_ADD_OBJECT, object.getCompileTimeClass());
         int attempt = 1;
         int restarts = 0;
-        boolean noFetchExtensionValueInsertionForbidden = false;
         try {
             // TODO use executeAttempts
             final String operation = "adding";
@@ -414,7 +417,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             String proposedOid = object.getOid();
             while (true) {
                 try {
-                    String createdOid = objectUpdater.addObjectAttempt(object, options, noFetchExtensionValueInsertionForbidden, subResult);
+                    String createdOid = objectUpdater.addObjectAttempt(object, options, subResult);
                     invokeConflictWatchers((w) -> w.afterAddObject(createdOid, object));
                     return createdOid;
                 } catch (RestartOperationRequestedException ex) {
@@ -428,7 +431,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     attempt = baseHelper.logOperationAttempt(proposedOid, operation, attempt, ex, subResult);
                     pm.registerOperationNewAttempt(opHandle, attempt);
                 }
-                noFetchExtensionValueInsertionForbidden = true; // todo This is a temporary measure; needs better handling.
             }
         } finally {
             pm.registerOperationFinish(opHandle, attempt);
@@ -501,8 +503,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     @NotNull
     @Override
-    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid,
-            Collection<? extends ItemDelta<?, ?>> modifications, OperationResult result)
+    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(
+            @NotNull Class<T> type,
+            @NotNull String oid,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         return modifyObject(type, oid, modifications, null, result);
     }
@@ -510,8 +515,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @NotNull
     @Override
     public <T extends ObjectType> ModifyObjectResult<T> modifyObject(
-            Class<T> type, String oid, Collection<? extends ItemDelta<?, ?>> modifications,
-            RepoModifyOptions options, OperationResult result)
+            @NotNull Class<T> type,
+            @NotNull String oid,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            RepoModifyOptions options,
+            @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         try {
             return modifyObject(type, oid, modifications, null, options, result);
@@ -523,10 +531,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @NotNull
     @Override
     public <T extends ObjectType> ModifyObjectResult<T> modifyObject(
-            @NotNull Class<T> type, @NotNull String oid, @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            @NotNull Class<T> type,
+            @NotNull String oid,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
             ModificationPrecondition<T> precondition,
             RepoModifyOptions options,
-            OperationResult result)
+            @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException {
 
         Validate.notNull(modifications, "Modifications must not be null.");
@@ -541,7 +551,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 .addArbitraryObjectCollectionAsParam("modifications", modifications)
                 .build();
 
-        if (modifications.isEmpty() && !RepoModifyOptions.isExecuteIfNoChanges(options)) {
+        if (modifications.isEmpty() && !RepoModifyOptions.isForceReindex(options)) {
             LOGGER.debug("Modification list is empty, nothing was modified.");
             subResult.recordStatus(OperationResultStatus.SUCCESS, "Modification list is empty, nothing was modified.");
             return new ModifyObjectResult<>(modifications);
@@ -1193,9 +1203,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @Override
     public ConflictWatcher createAndRegisterConflictWatcher(@NotNull String oid) {
         List<ConflictWatcherImpl> watchers = conflictWatchersThreadLocal.get();
-        if (watchers == null) {
-            conflictWatchersThreadLocal.set(watchers = new ArrayList<>());
-        }
         if (watchers.size() >= MAX_CONFLICT_WATCHERS) {
             throw new IllegalStateException("Conflicts watchers leaking: reached limit of "
                     + MAX_CONFLICT_WATCHERS + ": " + watchers);
