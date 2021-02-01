@@ -407,6 +407,19 @@ public abstract class PrismNamespaceContext {
                 return result;
             }
         },
+        GLOBAL_FIRST_SKIP_DEFAULTS {
+            @Override
+            List<String> apply(Impl context, String namespace) {
+                final List<String> result = context.parentPrefixesFor(namespace, this);
+                Collection<String> local = context.nsToPrefix.get(namespace);
+                for(String prefix : local) {
+                    if(!DEFAULT_PREFIX.equals(prefix)) {
+                        result.add(prefix);
+                    }
+                }
+                return result;
+            }
+        },
         LOCAL_FIRST {
             @Override
             List<String> apply(Impl context, String namespace) {

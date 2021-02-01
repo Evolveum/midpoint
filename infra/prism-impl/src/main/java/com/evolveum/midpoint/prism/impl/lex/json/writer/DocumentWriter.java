@@ -10,13 +10,15 @@ package com.evolveum.midpoint.prism.impl.lex.json.writer;
 import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.impl.lex.json.JsonInfraItems;
+import com.evolveum.midpoint.prism.impl.marshaller.ItemPathSerialization;
 import com.evolveum.midpoint.prism.impl.xnode.*;
-
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.MetadataAware;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.fasterxml.jackson.core.JsonGenerator;
 
 import org.apache.commons.lang.StringUtils;
@@ -28,6 +30,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Writes single or multiple documents (JSON/YAML).
@@ -74,7 +77,7 @@ class DocumentWriter {
         } else if (xnode instanceof ListXNodeImpl) {
             writeList((ListXNodeImpl) xnode, currentNamespace);
         } else if (xnode instanceof PrimitiveXNodeImpl) {
-            writePrimitive((PrimitiveXNodeImpl<?>) xnode);
+            writePrimitive((PrimitiveXNodeImpl<?>) xnode, currentNamespace);
         } else if (xnode instanceof SchemaXNodeImpl) {
             writeSchema((SchemaXNodeImpl) xnode);
         } else if (xnode instanceof IncompleteMarkerXNodeImpl) {
@@ -137,12 +140,36 @@ class DocumentWriter {
         generator.writeEndArray();
     }
 
-    private <T> void writePrimitive(PrimitiveXNodeImpl<T> primitive) throws IOException {
+    private <T> void writePrimitive(PrimitiveXNodeImpl<T> primitive, PrismNamespaceContext context) throws IOException {
         writeInlineTypeIfNeeded(primitive);
         if (primitive.isParsed()) {
-            generator.writeObject(primitive.getValue());
+            Object value = primitive.getValue();
+            if(value instanceof ItemPathType) {
+                value = ((ItemPathType) value).getItemPath();
+            }
+            if(value instanceof ItemPath) {
+                writeItemPath((ItemPath) value, context);
+            } else {
+                // FIXME: WE should probably special-case QName also
+                generator.writeObject(value);
+            }
         } else {
             generator.writeObject(primitive.getStringValue());
+        }
+    }
+
+    private void writeItemPath(ItemPath value, PrismNamespaceContext context) throws IOException {
+        ItemPathSerialization serialization = ItemPathSerialization.serialize(UniformItemPath.from(value), context);
+        // FIXME: We could serialize undeclared prefixes as local namespace context
+        PrismNamespaceContext localContext = context.childContext(serialization.undeclaredPrefixes());
+        if(!localContext.isLocalEmpty()) {
+            generator.writeStartObject();
+            writeNamespaceContextIfNeeded(localContext);
+            generator.writeFieldName(JsonInfraItems.PROP_VALUE);
+        }
+        generator.writeString(serialization.getXPathWithoutDeclarations());
+        if(!localContext.isLocalEmpty()) {
+            generator.writeEndObject();
         }
     }
 
@@ -196,13 +223,17 @@ class DocumentWriter {
         if (!SerializationOptions.isUseNsProperty(opts) || map.isEmpty()) {
             return PrismNamespaceContext.EMPTY;
         }
-
-        String currentNamespace = current.defaultNamespace().orElse("");
-        String namespace = determineNewCurrentNamespace(map, currentNamespace);
-        if (namespace != null && !StringUtils.equals(namespace, currentNamespace)) {
-            return current.childDefaultNamespace(namespace);
+        PrismNamespaceContext nodeLocal = map.namespaceContext();
+        if(nodeLocal.isEmpty()) {
+            String currentNamespace = current.defaultNamespace().orElse("");
+            String namespace = determineNewCurrentNamespace(map, currentNamespace);
+            if (namespace != null && !StringUtils.equals(namespace, currentNamespace)) {
+                return current.childDefaultNamespace(namespace);
+            }
+            return current.inherited();
         }
-        return current;
+        // Use node local if non empty
+        return nodeLocal;
     }
 
     /**
@@ -267,11 +298,16 @@ class DocumentWriter {
         if (namespaceMatch(localNamespace, key.getNamespaceURI())) {
             return key.getLocalPart();
         }
-        if (StringUtils.isNotEmpty(localNamespace) && !isAttribute(entry.getValue())) {
-            return QNameUtil.qNameToUri(key, true);        // items with no namespace should be written as such (starting with '#')
-        } else {
-            return QNameUtil.qNameToUri(key, false);    // items with no namespace can be written in plain
+        if(StringUtils.isNotEmpty(key.getNamespaceURI())) {
+            Optional<String> prefix = context.prefixFor(key.getNamespaceURI());
+            if(prefix.isPresent()) {
+                return prefix.get() + ":" + key.getLocalPart();
+            }
         }
+
+        // items with no namespace should be written as such (starting with '#')
+        // items with no namespace can be written in plain
+        return QNameUtil.qNameToUri(key, StringUtils.isNotEmpty(localNamespace) && !isAttribute(entry.getValue()));
     }
 
     private String createElementNameUri(QName elementName, PrismNamespaceContext context) {
