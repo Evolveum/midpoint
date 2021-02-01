@@ -12,7 +12,7 @@ import com.evolveum.midpoint.repo.sqale.qbean.MArchetype;
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QArchetype extends QObject<MArchetype> {
+public class QArchetype extends QAbstractRole<MArchetype> {
 
     private static final long serialVersionUID = -8367034620810300322L;
 

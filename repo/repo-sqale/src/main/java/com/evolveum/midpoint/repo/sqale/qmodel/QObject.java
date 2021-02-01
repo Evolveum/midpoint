@@ -47,32 +47,32 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
             ColumnMetadata.named("name_orig").ofType(Types.VARCHAR).withSize(255).notNull();
     public static final ColumnMetadata FULL_OBJECT =
             ColumnMetadata.named("fullObject").ofType(Types.BINARY);
-    public static final ColumnMetadata CREATOR_REF_RELATION_ID =
-            ColumnMetadata.named("creatorRef_relation_id").ofType(Types.INTEGER);
     public static final ColumnMetadata CREATOR_REF_TARGET_OID =
             ColumnMetadata.named("creatorRef_targetOid").ofType(UUID_TYPE);
     public static final ColumnMetadata CREATOR_REF_TARGET_TYPE =
             ColumnMetadata.named("creatorRef_targetType").ofType(Types.INTEGER);
+    public static final ColumnMetadata CREATOR_REF_RELATION_ID =
+            ColumnMetadata.named("creatorRef_relation_id").ofType(Types.INTEGER);
     public static final ColumnMetadata CREATE_CHANNEL_ID =
             ColumnMetadata.named("createChannel_id").ofType(Types.INTEGER);
     public static final ColumnMetadata CREATE_TIMESTAMP =
             ColumnMetadata.named("createTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
-    public static final ColumnMetadata MODIFIER_REF_RELATION_ID =
-            ColumnMetadata.named("modifierRef_relation_id").ofType(Types.INTEGER);
     public static final ColumnMetadata MODIFIER_REF_TARGET_OID =
             ColumnMetadata.named("modifierRef_targetOid").ofType(UUID_TYPE);
     public static final ColumnMetadata MODIFIER_REF_TARGET_TYPE =
             ColumnMetadata.named("modifierRef_targetType").ofType(Types.INTEGER);
+    public static final ColumnMetadata MODIFIER_REF_RELATION_ID =
+            ColumnMetadata.named("modifierRef_relation_id").ofType(Types.INTEGER);
     public static final ColumnMetadata MODIFY_CHANNEL_ID =
             ColumnMetadata.named("modifyChannel_id").ofType(Types.INTEGER);
     public static final ColumnMetadata MODIFY_TIMESTAMP =
             ColumnMetadata.named("modifyTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
-    public static final ColumnMetadata TENANT_REF_RELATION_ID =
-            ColumnMetadata.named("tenantRef_relation_id").ofType(Types.INTEGER);
     public static final ColumnMetadata TENANT_REF_TARGET_OID =
             ColumnMetadata.named("tenantRef_targetOid").ofType(UUID_TYPE);
     public static final ColumnMetadata TENANT_REF_TARGET_TYPE =
             ColumnMetadata.named("tenantRef_targetType").ofType(Types.INTEGER);
+    public static final ColumnMetadata TENANT_REF_RELATION_ID =
+            ColumnMetadata.named("tenantRef_relation_id").ofType(Types.INTEGER);
     public static final ColumnMetadata LIFECYCLE_STATE =
             ColumnMetadata.named("lifecycleState").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata VERSION =
@@ -85,32 +85,32 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
     public final StringPath nameNorm = createString("nameNorm", NAME_NORM);
     public final StringPath nameOrig = createString("nameOrig", NAME_ORIG);
     public final ArrayPath<byte[], Byte> fullObject = createByteArray("fullObject", FULL_OBJECT);
-    public final NumberPath<Integer> creatorRefRelationId =
-            createInteger("creatorRefRelationId", CREATOR_REF_RELATION_ID);
     public final UuidPath creatorRefTargetOid =
             createUuid("creatorRefTargetOid", CREATOR_REF_TARGET_OID);
     public final NumberPath<Integer> creatorRefTargetType =
             createInteger("creatorRefTargetType", CREATOR_REF_TARGET_TYPE);
+    public final NumberPath<Integer> creatorRefRelationId =
+            createInteger("creatorRefRelationId", CREATOR_REF_RELATION_ID);
     public final NumberPath<Integer> createChannelId =
             createInteger("createChannelId", CREATE_CHANNEL_ID);
     public final DateTimePath<Instant> createTimestamp =
             createInstant("createTimestamp", CREATE_TIMESTAMP);
-    public final NumberPath<Integer> modifierRefRelationId =
-            createInteger("modifierRefRelationId", MODIFIER_REF_RELATION_ID);
     public final UuidPath modifierRefTargetOid =
             createUuid("modifierRefTargetOid", MODIFIER_REF_TARGET_OID);
     public final NumberPath<Integer> modifierRefTargetType =
             createInteger("modifierRefTargetType", MODIFIER_REF_TARGET_TYPE);
+    public final NumberPath<Integer> modifierRefRelationId =
+            createInteger("modifierRefRelationId", MODIFIER_REF_RELATION_ID);
     public final NumberPath<Integer> modifyChannelId =
             createInteger("modifyChannelId", MODIFY_CHANNEL_ID);
     public final DateTimePath<Instant> modifyTimestamp =
             createInstant("modifyTimestamp", MODIFY_TIMESTAMP);
-    public final NumberPath<Integer> tenantRefRelationId =
-            createInteger("tenantRefRelationId", TENANT_REF_RELATION_ID);
     public final UuidPath tenantRefTargetOid =
             createUuid("tenantRefTargetOid", TENANT_REF_TARGET_OID);
     public final NumberPath<Integer> tenantRefTargetType =
             createInteger("tenantRefTargetType", TENANT_REF_TARGET_TYPE);
+    public final NumberPath<Integer> tenantRefRelationId =
+            createInteger("tenantRefRelationId", TENANT_REF_RELATION_ID);
     public final StringPath lifecycleState = createString("lifecycleState", LIFECYCLE_STATE);
     public final NumberPath<Integer> version = createInteger("version", VERSION);
     public final ArrayPath<byte[], Byte> ext = createByteArray("ext", EXT); // TODO is byte[] the right type?

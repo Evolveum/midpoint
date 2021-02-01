@@ -720,6 +720,55 @@ CREATE TABLE m_lookup_table_row (
 ALTER TABLE m_lookup_table_row
     ADD CONSTRAINT m_lookup_table_row_owner_oid_row_key_key UNIQUE (owner_oid, row_key);
 
+CREATE TABLE m_connector (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectTypeClass INTEGER GENERATED ALWAYS AS (0) STORED,
+    connectorBundle VARCHAR(255),
+    connectorType VARCHAR(255),
+    connectorVersion VARCHAR(255),
+    framework VARCHAR(255),
+    connectorHostRef_relation_id INTEGER,
+    connectorHostRef_targetOid UUID,
+    connectorHostRef_targetType INTEGER
+)
+    INHERITS (m_object);
+
+CREATE TRIGGER m_connector_oid_insert_tr BEFORE INSERT ON m_connector
+    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+CREATE TRIGGER m_connector_update_tr BEFORE UPDATE ON m_connector
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+CREATE TRIGGER m_connector_oid_delete_tr AFTER DELETE ON m_connector
+    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+
+CREATE INDEX m_connector_name_orig_idx ON m_connector (name_orig);
+ALTER TABLE m_connector ADD CONSTRAINT m_connector_name_norm_key UNIQUE (name_norm);
+
+-- TODO array/json in m_connector table
+-- CREATE TABLE m_connector_target_system (
+--     connector_oid    VARCHAR(36) NOT NULL,
+--     targetSystemType VARCHAR(255)
+-- );
+-- ALTER TABLE IF EXISTS m_connector_target_system
+--     ADD CONSTRAINT fk_connector_target_system FOREIGN KEY (connector_oid) REFERENCES m_connector;
+
+CREATE TABLE m_connector_host (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectTypeClass INTEGER GENERATED ALWAYS AS (1) STORED,
+    hostname VARCHAR(255),
+    port VARCHAR(32)
+)
+    INHERITS (m_object);
+
+CREATE TRIGGER m_connector_host_oid_insert_tr BEFORE INSERT ON m_connector_host
+    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+CREATE TRIGGER m_connector_host_update_tr BEFORE UPDATE ON m_connector_host
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+CREATE TRIGGER m_connector_host_oid_delete_tr AFTER DELETE ON m_connector_host
+    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+
+CREATE INDEX m_connector_host_name_orig_idx ON m_connector_host (name_orig);
+ALTER TABLE m_connector_host ADD CONSTRAINT m_connector_host_name_norm_key UNIQUE (name_norm);
+
 CREATE TABLE m_task (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectTypeClass INTEGER GENERATED ALWAYS AS (9) STORED,
@@ -995,10 +1044,6 @@ CREATE TABLE m_case_wi_reference (
   targetType      INTEGER,
   PRIMARY KEY (owner_owner_oid, owner_id, reference_type, targetOid, relation)
 );
-CREATE TABLE m_connector_target_system (
-  connector_oid    VARCHAR(36) NOT NULL,
-  targetSystemType VARCHAR(255)
-);
 CREATE TABLE m_ext_item (
   id       SERIAL NOT NULL,
   kind     INTEGER,
@@ -1161,27 +1206,6 @@ CREATE TABLE m_case (
   targetRef_targetOid       VARCHAR(36),
   targetRef_targetType      INTEGER,
   oid                       VARCHAR(36) NOT NULL,
-  PRIMARY KEY (oid)
-);
-CREATE TABLE m_connector (
-  connectorBundle               VARCHAR(255),
-  connectorHostRef_relation     VARCHAR(157),
-  connectorHostRef_targetOid    VARCHAR(36),
-  connectorHostRef_targetType   INTEGER,
-  connectorType                 VARCHAR(255),
-  connectorVersion              VARCHAR(255),
-  framework                     VARCHAR(255),
-  name_norm                     VARCHAR(255),
-  name_orig                     VARCHAR(255),
-  oid                           VARCHAR(36) NOT NULL,
-  PRIMARY KEY (oid)
-);
-CREATE TABLE m_connector_host (
-  hostname  VARCHAR(255),
-  name_norm VARCHAR(255),
-  name_orig VARCHAR(255),
-  port      VARCHAR(255),
-  oid       VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
 CREATE TABLE m_focus (
@@ -1426,14 +1450,6 @@ CREATE INDEX iCaseTypeTargetRefTargetOid ON m_case(targetRef_targetOid);
 CREATE INDEX iCaseTypeParentRefTargetOid ON m_case(parentRef_targetOid);
 CREATE INDEX iCaseTypeRequestorRefTargetOid ON m_case(requestorRef_targetOid);
 CREATE INDEX iCaseTypeCloseTimestamp ON m_case(closeTimestamp);
-CREATE INDEX iConnectorNameOrig
-  ON m_connector (name_orig);
-CREATE INDEX iConnectorNameNorm
-  ON m_connector (name_norm);
-CREATE INDEX iConnectorHostNameOrig
-  ON m_connector_host (name_orig);
-ALTER TABLE IF EXISTS m_connector_host
-  ADD CONSTRAINT uc_connector_host_name UNIQUE (name_norm);
 CREATE INDEX iFocusAdministrative
   ON m_focus (administrativeStatus);
 CREATE INDEX iFocusEffective
@@ -1547,8 +1563,6 @@ ALTER TABLE IF EXISTS m_case_wi
   ADD CONSTRAINT fk_case_wi_owner FOREIGN KEY (owner_oid) REFERENCES m_case;
 ALTER TABLE IF EXISTS m_case_wi_reference
   ADD CONSTRAINT fk_case_wi_reference_owner FOREIGN KEY (owner_owner_oid, owner_id) REFERENCES m_case_wi;
-ALTER TABLE IF EXISTS m_connector_target_system
-  ADD CONSTRAINT fk_connector_target_system FOREIGN KEY (connector_oid) REFERENCES m_connector;
 ALTER TABLE IF EXISTS m_focus_photo
   ADD CONSTRAINT fk_focus_photo FOREIGN KEY (owner_oid) REFERENCES m_focus;
 ALTER TABLE m_object_policy_situation
@@ -1610,10 +1624,6 @@ ALTER TABLE IF EXISTS m_archetype
   ADD CONSTRAINT fk_archetype FOREIGN KEY (oid) REFERENCES m_abstract_role;
 ALTER TABLE IF EXISTS m_case
   ADD CONSTRAINT fk_case FOREIGN KEY (oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_connector
-  ADD CONSTRAINT fk_connector FOREIGN KEY (oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_connector_host
-  ADD CONSTRAINT fk_connector_host FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_focus
   ADD CONSTRAINT fk_focus FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_form
@@ -1650,7 +1660,6 @@ CREATE INDEX iAssignmentExtPolyItemId ON M_ASSIGNMENT_EXT_POLY(ITEM_ID);
 CREATE INDEX iAssignmentExtReferenceItemId ON M_ASSIGNMENT_EXT_REFERENCE(ITEM_ID);
 CREATE INDEX iAssignmentExtStringItemId ON M_ASSIGNMENT_EXT_STRING(ITEM_ID);
 CREATE INDEX iAssignmentPolicySituationId ON M_ASSIGNMENT_POLICY_SITUATION(ASSIGNMENT_OID, ASSIGNMENT_ID);
-CREATE INDEX iConnectorTargetSystemOid ON M_CONNECTOR_TARGET_SYSTEM(CONNECTOR_OID);
 CREATE INDEX iObjectPolicySituationOid ON M_OBJECT_POLICY_SITUATION(OBJECT_OID);
 CREATE INDEX iObjectExtBooleanItemId ON M_OBJECT_EXT_BOOLEAN(ITEM_ID);
 CREATE INDEX iObjectExtDateItemId ON M_OBJECT_EXT_DATE(ITEM_ID);

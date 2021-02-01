@@ -86,6 +86,8 @@ public class SqaleRepositoryBeanConfig {
                 .register(ArchetypeType.COMPLEX_TYPE, QArchetypeMapping.INSTANCE)
                 .register(DashboardType.COMPLEX_TYPE, QDashboardMapping.INSTANCE)
                 .register(FocusType.COMPLEX_TYPE, QFocusMapping.INSTANCE)
+                .register(ConnectorType.COMPLEX_TYPE, QConnectorMapping.INSTANCE)
+                .register(ConnectorHostType.COMPLEX_TYPE, QConnectorHostMapping.INSTANCE)
                 .register(LookupTableType.COMPLEX_TYPE, QLookupTableMapping.INSTANCE)
                 .register(LookupTableRowType.COMPLEX_TYPE, QLookupTableRowMapping.INSTANCE)
                 .register(NodeType.COMPLEX_TYPE, QNodeMapping.INSTANCE)

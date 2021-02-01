@@ -6,16 +6,17 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmapping;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType.F_NODE_IDENTIFIER;
+
 import com.evolveum.midpoint.repo.sqale.qbean.MNode;
 import com.evolveum.midpoint.repo.sqale.qmodel.QNode;
-import com.evolveum.midpoint.repo.sqale.qmodel.QObject;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.mapping.item.StringItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
- * Mapping between {@link QObject} and {@link ObjectType}.
+ * Mapping between {@link QNode} and {@link NodeType}.
  */
 public class QNodeMapping
         extends QObjectMapping<NodeType, QNode, MNode> {
@@ -26,6 +27,9 @@ public class QNodeMapping
 
     private QNodeMapping() {
         super(QNode.TABLE_NAME, DEFAULT_ALIAS_NAME, NodeType.class, QNode.class);
+
+        addItemMapping(F_NODE_IDENTIFIER,
+                StringItemFilterProcessor.mapper(path(q -> q.nodeIdentifier)));
     }
 
     @Override

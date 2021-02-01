@@ -6,10 +6,13 @@
  */
 package com.evolveum.midpoint.repo.sqale.qbean;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.QArchetype;
+import com.evolveum.midpoint.repo.sqale.qmodel.QConnectorHost;
 
 /**
- * Querydsl "row bean" type related to {@link QArchetype}.
+ * Querydsl "row bean" type related to {@link QConnectorHost}.
  */
-public class MArchetype extends MAbstractRole {
+public class MConnectorHost extends MObject {
+
+    public String hostname;
+    public String port;
 }

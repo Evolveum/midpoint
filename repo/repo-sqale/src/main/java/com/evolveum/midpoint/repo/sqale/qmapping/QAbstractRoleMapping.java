@@ -41,11 +41,6 @@ public class QAbstractRoleMapping<
             @NotNull Class<Q> queryType) {
         super(tableName, defaultAliasName, schemaType, queryType);
 
-        addItemMapping(PrismConstants.T_ID, StringItemFilterProcessor.mapper(path(q -> q.oid)));
-        addItemMapping(AbstractRoleType.F_NAME,
-                PolyStringItemFilterProcessor.mapper(
-                        path(q -> q.nameOrig), path(q -> q.nameNorm)));
-
         // TODO mappings
         //  clone RefItemFilterProcessor and rework for UUID/ID for oid/relation
         //  old version can go to repo-sql-impl for audit only - or perhaps for newer audit too?
