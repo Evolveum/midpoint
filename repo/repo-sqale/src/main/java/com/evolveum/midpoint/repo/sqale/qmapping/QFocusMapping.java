@@ -11,11 +11,8 @@ import java.util.Collection;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.repo.sqale.qbean.MFocus;
 import com.evolveum.midpoint.repo.sqale.qmodel.QFocus;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.PolyStringItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.StringItemFilterProcessor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -39,11 +36,7 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
             @NotNull Class<Q> queryType) {
         super(tableName, defaultAliasName, schemaType, queryType);
 
-        addItemMapping(PrismConstants.T_ID, StringItemFilterProcessor.mapper(path(q -> q.oid)));
-        addItemMapping(FocusType.F_NAME,
-                PolyStringItemFilterProcessor.mapper(
-                        path(q -> q.nameOrig), path(q -> q.nameNorm)));
-
+//        addItemMapping(FocusType.F_ACTIVATION, null); // TODO sub-mapping for activation
         // TODO mappings
     }
 
