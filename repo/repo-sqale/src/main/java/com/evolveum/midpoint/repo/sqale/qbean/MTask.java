@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale.qbean;
 
+import java.time.Instant;
+
 import com.evolveum.midpoint.repo.sqale.qmodel.QTask;
 
 /**
@@ -13,7 +15,25 @@ import com.evolveum.midpoint.repo.sqale.qmodel.QTask;
  */
 public class MTask extends MObject {
 
-    /* TODO
-
-     */
+    public Integer binding;
+    public String category;
+    public Instant completionTimestamp;
+    public Integer executionStatus;
+    public byte[] fullResult;
+    public String handlerUri;
+    public Instant lastRunFinishTimestamp;
+    public Instant lastRunStartTimestamp;
+    public String node;
+    public String objectRefTargetOid;
+    public Integer objectRefTargetType;
+    public Integer objectRefRelationId;
+    public String ownerRefTargetOid;
+    public Integer ownerRefTargetType;
+    public Integer ownerRefRelationId;
+    public String parent;
+    public Integer recurrence;
+    public Integer status;
+    public String taskIdentifier;
+    public Integer threadStopAction;
+    public Integer waitingReason;
 }

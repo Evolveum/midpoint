@@ -53,7 +53,8 @@ public class SqaleRepositoryBeanConfig {
             MidpointConfiguration midpointConfiguration) throws RepositoryServiceFactoryException {
         // TODO remove logging change, when better way to do it for initial start is found
         ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger("com.querydsl.sql")).setLevel(Level.DEBUG);
-        ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger("org.postgresql")).setLevel(Level.DEBUG);
+        // PG logs too much on TRACE or not enough on DEBUG, not useful in the main log
+//        ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger("org.postgresql")).setLevel(Level.TRACE);
 
         return new SqaleRepositoryConfiguration(
                 midpointConfiguration.getConfiguration(
@@ -81,33 +82,42 @@ public class SqaleRepositoryBeanConfig {
             DataSource dataSource) {
         QueryModelMappingRegistry mappingRegistry = new QueryModelMappingRegistry()
                 // ordered alphabetically here
+                .register(ArchetypeType.COMPLEX_TYPE, QArchetypeMapping.INSTANCE)
+                .register(DashboardType.COMPLEX_TYPE, QDashboardMapping.INSTANCE)
                 .register(NodeType.COMPLEX_TYPE, QNodeMapping.INSTANCE)
                 .register(ObjectCollectionType.COMPLEX_TYPE, QObjectCollectionMapping.INSTANCE)
+                .register(RoleType.COMPLEX_TYPE, QRoleMapping.INSTANCE)
                 .register(SecurityPolicyType.COMPLEX_TYPE, QSecurityPolicyMapping.INSTANCE)
                 .register(SystemConfigurationType.COMPLEX_TYPE, QSystemConfigurationMapping.INSTANCE)
                 .register(TaskType.COMPLEX_TYPE, QTaskMapping.INSTANCE)
+                .register(UserType.COMPLEX_TYPE, QUserMapping.INSTANCE)
+                .register(ValuePolicyType.COMPLEX_TYPE, QValuePolicyMapping.INSTANCE)
                 .seal();
 
         return new SqlRepoContext(repositoryConfiguration, dataSource, mappingRegistry);
     }
 
     @Bean
+    public SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection() {
+        return new SqlPerformanceMonitorsCollectionImpl();
+    }
+
+    @Bean
     public SqaleRepositoryService repositoryService(
             SqlRepoContext sqlRepoContext,
-            SchemaHelper schemaService) {
-        return new SqaleRepositoryService(sqlRepoContext, schemaService);
+            SchemaHelper schemaService,
+            SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
+        return new SqaleRepositoryService(
+                sqlRepoContext,
+                schemaService,
+                sqlPerformanceMonitorsCollection);
     }
 
     // TODO @Bean for AuditServiceFactory later
 
-    // TODO rethink?
+    // TODO rethink? using Spring events
     @Bean
     public SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher() {
         return new SystemConfigurationChangeDispatcherImpl();
-    }
-
-    @Bean
-    public SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection() {
-        return new SqlPerformanceMonitorsCollectionImpl();
     }
 }

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
 import com.evolveum.midpoint.repo.sqlbase.TransactionIsolation;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 /**
@@ -33,29 +34,6 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
 
     private static final int DEFAULT_MIN_POOL_SIZE = 8;
     private static final int DEFAULT_MAX_POOL_SIZE = 20;
-
-    public static final String PROPERTY_DATASOURCE = "dataSource";
-
-    // ignored - we assume PostrgreSQL and use default values above
-    public static final String PROPERTY_DATABASE = "database";
-    public static final String PROPERTY_DRIVER_CLASS_NAME = "driverClassName";
-
-    public static final String PROPERTY_JDBC_PASSWORD = "jdbcPassword";
-    public static final String PROPERTY_JDBC_PASSWORD_FILE = "jdbcPasswordFile";
-    public static final String PROPERTY_JDBC_USERNAME = "jdbcUsername";
-    public static final String PROPERTY_JDBC_URL = "jdbcUrl";
-
-    public static final String PROPERTY_MIN_POOL_SIZE = "minPoolSize";
-    public static final String PROPERTY_MAX_POOL_SIZE = "maxPoolSize";
-
-    public static final String PROPERTY_USE_ZIP = "useZip";
-    public static final String PROPERTY_USE_ZIP_AUDIT = "useZipAudit";
-
-    /**
-     * Specifies language used for writing fullObject attribute.
-     * See LANG constants in {@link PrismContext} for supported values.
-     */
-    public static final String PROPERTY_FULL_OBJECT_FORMAT = "fullObjectFormat";
 
     /**
      * Database kind - either explicitly configured or derived from other options .
@@ -77,6 +55,9 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     private final boolean useZip;
     private final boolean useZipAudit;
     private final String fullObjectFormat;
+
+    private final String performanceStatisticsFile;
+    private final int performanceStatisticsLevel;
 
     public SqaleRepositoryConfiguration(Configuration configuration) {
         dataSource = configuration.getString(PROPERTY_DATASOURCE);
@@ -113,6 +94,9 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
         fullObjectFormat = System.getProperty(PROPERTY_FULL_OBJECT_FORMAT,
                 configuration.getString(PROPERTY_FULL_OBJECT_FORMAT, PrismContext.LANG_XML));
 
+        performanceStatisticsFile = configuration.getString(PROPERTY_PERFORMANCE_STATISTICS_FILE);
+        performanceStatisticsLevel = configuration.getInt(PROPERTY_PERFORMANCE_STATISTICS_LEVEL,
+                SqlPerformanceMonitorImpl.LEVEL_LOCAL_STATISTICS);
     }
 
     protected String defaultJdbcUrl() {
@@ -233,5 +217,15 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     @Override
     public boolean isFatalException(Throwable ex) {
         return false;
+    }
+
+    @Override
+    public String getPerformanceStatisticsFile() {
+        return performanceStatisticsFile;
+    }
+
+    @Override
+    public int getPerformanceStatisticsLevel() {
+        return performanceStatisticsLevel;
     }
 }

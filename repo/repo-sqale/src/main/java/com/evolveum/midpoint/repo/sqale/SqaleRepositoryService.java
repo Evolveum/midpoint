@@ -6,9 +6,9 @@
  */
 package com.evolveum.midpoint.repo.sqale;
 
-import java.util.Collection;
 import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Consumer;
 import javax.annotation.PreDestroy;
 
 import com.google.common.base.Strings;
@@ -36,6 +36,7 @@ import com.evolveum.midpoint.repo.sqale.qmapping.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmapping.SqaleModelMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.QObject;
 import com.evolveum.midpoint.repo.sqlbase.*;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -59,19 +60,34 @@ public class SqaleRepositoryService implements RepositoryService {
     private static final Trace LOGGER = TraceManager.getTrace(SqaleRepositoryService.class);
 
     private static final String OP_NAME_PREFIX = SqaleRepositoryService.class.getSimpleName() + '.';
+    private static final int MAX_CONFLICT_WATCHERS = 10;
 
     private final SqlRepoContext sqlRepoContext;
     private final SchemaHelper schemaService;
     private final SqlQueryExecutor sqlQueryExecutor;
     private final SqlTransformerContext transformerContext;
+    private final SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
+
+    private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal =
+            ThreadLocal.withInitial(ArrayList::new);
+
+    private SqlPerformanceMonitorImpl performanceMonitor; // set to null in destroy
 
     public SqaleRepositoryService(
             SqlRepoContext sqlRepoContext,
-            SchemaHelper schemaService) {
+            SchemaHelper schemaService,
+            SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
         this.sqlRepoContext = sqlRepoContext;
         this.schemaService = schemaService;
         this.sqlQueryExecutor = new SqlQueryExecutor(sqlRepoContext);
         this.transformerContext = new SqlTransformerContext(schemaService, sqlRepoContext);
+        this.sqlPerformanceMonitorsCollection = sqlPerformanceMonitorsCollection;
+
+        // monitor initialization and registration
+        JdbcRepositoryConfiguration config = sqlRepoContext.getJdbcRepositoryConfiguration();
+        performanceMonitor = new SqlPerformanceMonitorImpl(
+                config.getPerformanceStatisticsLevel(), config.getPerformanceStatisticsFile());
+        sqlPerformanceMonitorsCollection.register(performanceMonitor);
     }
 
     @Override
@@ -247,6 +263,9 @@ public class SqaleRepositoryService implements RepositoryService {
             // TODO use executeAttempts
             final String operation = "adding";
 
+            if (object.getVersion() == null) {
+                object.setVersion("1");
+            }
             String oid = addObjectAttempt(object, options, operationResult);
             return oid;
             /*
@@ -358,45 +377,46 @@ public class SqaleRepositoryService implements RepositoryService {
         UUID oidUuid = checkOid(oid);
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
-        OperationResult subResult = parentResult.subresult(MODIFY_OBJECT)
+        OperationResult operationResult = parentResult.subresult(MODIFY_OBJECT)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type.getName())
                 .addParam("oid", oid)
                 .addArbitraryObjectCollectionAsParam("modifications", modifications)
                 .build();
 
-        if (modifications.isEmpty() && !RepoModifyOptions.isForceReindex(options)) {
-            LOGGER.debug("Modification list is empty, nothing was modified.");
-            subResult.recordStatus(OperationResultStatus.SUCCESS,
-                    "Modification list is empty, nothing was modified.");
-            return new ModifyObjectResult<>(modifications);
-        }
-
-        if (InternalsConfig.encryptionChecks) {
-            CryptoUtil.checkEncrypted(modifications);
-        }
-
-        if (InternalsConfig.consistencyChecks) {
-            ItemDeltaCollectionsUtil.checkConsistence(modifications, ConsistencyCheckScope.THOROUGH);
-        } else {
-            ItemDeltaCollectionsUtil.checkConsistence(modifications, ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
-        }
-
-        logTraceModifications(modifications);
-
-        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
-            GetOperationOptionsBuilder getOptionsBuilder = schemaService.getOperationOptionsBuilder();
-            T object = readByOid(jdbcSession, type, oidUuid, getOptionsBuilder.build());
-            //noinspection unchecked
-            PrismObject<T> prismObject = (PrismObject<T>) object.asPrismObject();
-            if (precondition != null && !precondition.holds(prismObject)) {
-                throw new PreconditionViolationException("Modification precondition does not hold for " + prismObject);
+        try {
+            if (modifications.isEmpty() && !RepoModifyOptions.isForceReindex(options)) {
+                LOGGER.debug("Modification list is empty, nothing was modified.");
+                operationResult.recordStatus(OperationResultStatus.SUCCESS,
+                        "Modification list is empty, nothing was modified.");
+                return new ModifyObjectResult<>(modifications);
             }
-            // invokeConflictWatchers(w -> w.beforeModifyObject(prismObject)); TODO
 
-            PrismObject<T> originalObject = prismObject.clone();
+            if (InternalsConfig.encryptionChecks) {
+                CryptoUtil.checkEncrypted(modifications);
+            }
 
-            modifyObjectAttempt(jdbcSession, prismObject, modifications);
+            if (InternalsConfig.consistencyChecks) {
+                ItemDeltaCollectionsUtil.checkConsistence(modifications, ConsistencyCheckScope.THOROUGH);
+            } else {
+                ItemDeltaCollectionsUtil.checkConsistence(modifications, ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
+            }
+
+            logTraceModifications(modifications);
+
+            try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+                GetOperationOptionsBuilder getOptionsBuilder = schemaService.getOperationOptionsBuilder();
+                T object = readByOid(jdbcSession, type, oidUuid, getOptionsBuilder.build());
+                //noinspection unchecked
+                PrismObject<T> prismObject = (PrismObject<T>) object.asPrismObject();
+                if (precondition != null && !precondition.holds(prismObject)) {
+                    throw new PreconditionViolationException("Modification precondition does not hold for " + prismObject);
+                }
+                // invokeConflictWatchers(w -> w.beforeModifyObject(prismObject)); TODO
+
+                PrismObject<T> originalObject = prismObject.clone();
+
+                modifyObjectAttempt(jdbcSession, prismObject, modifications);
 
             /*
             RObject rObject = objectDeltaUpdater.modifyObject(type, oid, modifications, prismObject, modifyOptions, session, attemptContext);
@@ -414,10 +434,16 @@ public class SqaleRepositoryService implements RepositoryService {
             LOGGER.trace("Save finished.");
             */
 
-            // TODO is modifications cloning unavoidable? see the clone at the start of ObjectUpdater.modifyObjectAttempt
-            //  If cloning will be necessary, do it at the beginning of modifyObjectAttempt,
-            //  especially if called potentially multiple times.
-            return new ModifyObjectResult<>(originalObject, prismObject, modifications);
+                // TODO is modifications cloning unavoidable? see the clone at the start of ObjectUpdater.modifyObjectAttempt
+                //  If cloning will be necessary, do it at the beginning of modifyObjectAttempt,
+                //  especially if called potentially multiple times.
+                return new ModifyObjectResult<>(originalObject, prismObject, modifications);
+            }
+        } catch (Throwable t) {
+            operationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            operationResult.computeStatusIfUnknown();
         }
     }
 
@@ -679,21 +705,65 @@ public class SqaleRepositoryService implements RepositoryService {
         // TODO
     }
 
+    // TODO use internally in various operations (see old repo)
+    private void invokeConflictWatchers(Consumer<ConflictWatcherImpl> consumer) {
+        conflictWatchersThreadLocal.get().forEach(consumer);
+    }
+
     @Override
     public ConflictWatcher createAndRegisterConflictWatcher(@NotNull String oid) {
-        return null;
-        // TODO
+        List<ConflictWatcherImpl> watchers = conflictWatchersThreadLocal.get();
+        if (watchers.size() >= MAX_CONFLICT_WATCHERS) {
+            throw new IllegalStateException("Conflicts watchers leaking: reached limit of "
+                    + MAX_CONFLICT_WATCHERS + ": " + watchers);
+        }
+        ConflictWatcherImpl watcher = new ConflictWatcherImpl(oid);
+        watchers.add(watcher);
+        return watcher;
     }
 
     @Override
     public void unregisterConflictWatcher(ConflictWatcher watcher) {
-        // TODO
+        ConflictWatcherImpl watcherImpl = (ConflictWatcherImpl) watcher;
+        List<ConflictWatcherImpl> watchers = conflictWatchersThreadLocal.get();
+        // change these exceptions to logged errors, eventually
+        if (watchers == null) {
+            throw new IllegalStateException(
+                    "No conflict watchers registered for current thread; tried to unregister " + watcher);
+        } else if (!watchers.remove(watcherImpl)) { // expecting there's only one
+            throw new IllegalStateException(
+                    "Tried to unregister conflict watcher " + watcher + " that was not registered");
+        }
     }
 
     @Override
-    public boolean hasConflict(ConflictWatcher watcher, OperationResult result) {
-        return false;
-        // TODO
+    public boolean hasConflict(ConflictWatcher watcher, OperationResult parentResult) {
+        OperationResult result = parentResult.subresult(HAS_CONFLICT)
+                .setMinor()
+                .addParam("oid", watcher.getOid())
+                .addParam("watcherClass", watcher.getClass().getName())
+                .build();
+
+        try {
+            boolean rv;
+            if (watcher.hasConflict()) {
+                rv = true;
+            } else {
+                try {
+                    getVersion(ObjectType.class, watcher.getOid(), result);
+                } catch (ObjectNotFoundException | SchemaException e) {
+                    // just ignore this
+                }
+                rv = watcher.hasConflict();
+            }
+            result.addReturn("hasConflict", rv);
+            return rv;
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
     }
 
     @Override
@@ -706,13 +776,16 @@ public class SqaleRepositoryService implements RepositoryService {
 
     @Override
     public PerformanceMonitor getPerformanceMonitor() {
-        return null;
-        // TODO
+        return performanceMonitor;
     }
 
     @PreDestroy
     public void destroy() {
-        // TODO current monitoring is repo-sql-impl related, see SqlBaseService#destroy
+        if (performanceMonitor != null) {
+            performanceMonitor.shutdown();
+            sqlPerformanceMonitorsCollection.deregister(performanceMonitor);
+            performanceMonitor = null;
+        }
     }
 
     /**

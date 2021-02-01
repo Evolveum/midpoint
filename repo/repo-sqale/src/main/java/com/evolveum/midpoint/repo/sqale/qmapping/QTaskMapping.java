@@ -25,6 +25,8 @@ public class QTaskMapping
     private QTaskMapping() {
         super(QTask.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 TaskType.class, QTask.class);
+
+        // TODO column mappings
     }
 
     @Override

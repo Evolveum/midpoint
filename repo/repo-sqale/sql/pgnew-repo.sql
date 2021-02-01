@@ -561,6 +561,71 @@ CREATE TRIGGER m_object_collection_oid_delete_tr AFTER DELETE ON m_object_collec
 CREATE INDEX m_object_collection_name_orig_idx ON m_object_collection (name_orig);
 ALTER TABLE m_object_collection ADD CONSTRAINT m_object_collection_name_norm_key UNIQUE (name_norm);
 
+CREATE TABLE m_archetype (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectTypeClass INTEGER GENERATED ALWAYS AS (29) STORED
+)
+    INHERITS (m_object);
+
+CREATE TRIGGER m_archetype_oid_insert_tr BEFORE INSERT ON m_archetype
+    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+CREATE TRIGGER m_archetype_update_tr BEFORE UPDATE ON m_archetype
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+CREATE TRIGGER m_archetype_oid_delete_tr AFTER DELETE ON m_archetype
+    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+
+CREATE INDEX m_archetype_name_orig_idx ON m_archetype (name_orig);
+ALTER TABLE m_archetype ADD CONSTRAINT m_archetype_name_norm_key UNIQUE (name_norm);
+
+CREATE TABLE m_dashboard (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectTypeClass INTEGER GENERATED ALWAYS AS (30) STORED
+)
+    INHERITS (m_object);
+
+CREATE TRIGGER m_dashboard_oid_insert_tr BEFORE INSERT ON m_dashboard
+    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+CREATE TRIGGER m_dashboard_update_tr BEFORE UPDATE ON m_dashboard
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+CREATE TRIGGER m_dashboard_oid_delete_tr AFTER DELETE ON m_dashboard
+    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+
+CREATE INDEX m_dashboard_name_orig_idx ON m_dashboard (name_orig);
+ALTER TABLE m_dashboard ADD CONSTRAINT m_dashboard_name_norm_key UNIQUE (name_norm);
+
+CREATE TABLE m_value_policy (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectTypeClass INTEGER GENERATED ALWAYS AS (4) STORED
+)
+    INHERITS (m_object);
+
+CREATE TRIGGER m_value_policy_oid_insert_tr BEFORE INSERT ON m_value_policy
+    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+CREATE TRIGGER m_value_policy_update_tr BEFORE UPDATE ON m_value_policy
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+CREATE TRIGGER m_value_policy_oid_delete_tr AFTER DELETE ON m_value_policy
+    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+
+CREATE INDEX m_value_policy_name_orig_idx ON m_value_policy (name_orig);
+ALTER TABLE m_value_policy ADD CONSTRAINT m_value_policy_name_norm_key UNIQUE (name_norm);
+
+CREATE TABLE m_role (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectTypeClass INTEGER GENERATED ALWAYS AS (7) STORED,
+    roleType VARCHAR(255)
+)
+    INHERITS (m_object);
+
+CREATE TRIGGER m_role_oid_insert_tr BEFORE INSERT ON m_role
+    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+CREATE TRIGGER m_role_update_tr BEFORE UPDATE ON m_role
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+CREATE TRIGGER m_role_oid_delete_tr AFTER DELETE ON m_role
+    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+
+CREATE INDEX m_role_name_orig_idx ON m_role (name_orig);
+ALTER TABLE m_role ADD CONSTRAINT m_role_name_norm_key UNIQUE (name_norm);
+
 CREATE TABLE m_task (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectTypeClass INTEGER GENERATED ALWAYS AS (9) STORED,
@@ -997,12 +1062,6 @@ CREATE TABLE m_abstract_role (
   oid                   VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
-CREATE TABLE m_archetype (
-  name_norm VARCHAR(255),
-  name_orig VARCHAR(255),
-  oid       VARCHAR(36) NOT NULL,
-  PRIMARY KEY (oid)
-);
 CREATE TABLE m_case (
   closeTimestamp            TIMESTAMP,
   name_norm                 VARCHAR(255),
@@ -1043,12 +1102,6 @@ CREATE TABLE m_connector_host (
   port      VARCHAR(255),
   oid       VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
-);
-CREATE TABLE m_dashboard (
-    name_norm VARCHAR(255),
-    name_orig VARCHAR(255),
-    oid       VARCHAR(36) NOT NULL,
-    PRIMARY KEY (oid)
 );
 CREATE TABLE m_focus (
   administrativeStatus    INTEGER,
@@ -1160,13 +1213,6 @@ CREATE TABLE m_resource (
   oid                        VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
-CREATE TABLE m_role (
-  name_norm VARCHAR(255),
-  name_orig VARCHAR(255),
-  roleType  VARCHAR(255),
-  oid       VARCHAR(36) NOT NULL,
-  PRIMARY KEY (oid)
-);
 CREATE TABLE m_sequence (
   name_norm VARCHAR(255),
   name_orig VARCHAR(255),
@@ -1208,12 +1254,6 @@ CREATE TABLE m_user (
   title_norm           VARCHAR(255),
   title_orig           VARCHAR(255),
   oid                  VARCHAR(36) NOT NULL,
-  PRIMARY KEY (oid)
-);
-CREATE TABLE m_value_policy (
-  name_norm VARCHAR(255),
-  name_orig VARCHAR(255),
-  oid       VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
 CREATE INDEX iCertCampaignNameOrig
@@ -1371,9 +1411,6 @@ CREATE INDEX iConnectorHostNameOrig
   ON m_connector_host (name_orig);
 ALTER TABLE IF EXISTS m_connector_host
   ADD CONSTRAINT uc_connector_host_name UNIQUE (name_norm);
-CREATE INDEX iDashboardNameOrig ON m_dashboard(name_orig);
-ALTER TABLE IF EXISTS m_dashboard
-    ADD CONSTRAINT u_dashboard_name UNIQUE (name_norm);
 CREATE INDEX iFocusAdministrative
   ON m_focus (administrativeStatus);
 CREATE INDEX iFocusEffective
@@ -1462,10 +1499,6 @@ CREATE INDEX iUserNameOrig
   ON m_user (name_orig);
 ALTER TABLE IF EXISTS m_user
   ADD CONSTRAINT uc_user_name UNIQUE (name_norm);
-CREATE INDEX iValuePolicyNameOrig
-  ON m_value_policy (name_orig);
-ALTER TABLE IF EXISTS m_value_policy
-  ADD CONSTRAINT uc_value_policy_name UNIQUE (name_norm);
 ALTER TABLE IF EXISTS m_acc_cert_campaign
   ADD CONSTRAINT fk_acc_cert_campaign FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_acc_cert_case
@@ -1590,8 +1623,6 @@ ALTER TABLE IF EXISTS m_connector
   ADD CONSTRAINT fk_connector FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_connector_host
   ADD CONSTRAINT fk_connector_host FOREIGN KEY (oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_dashboard
-  ADD CONSTRAINT fk_dashboard FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_focus
   ADD CONSTRAINT fk_focus FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_form
@@ -1628,8 +1659,6 @@ ALTER TABLE IF EXISTS m_trigger
   ADD CONSTRAINT fk_trigger_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_user
   ADD CONSTRAINT fk_user FOREIGN KEY (oid) REFERENCES m_focus;
-ALTER TABLE IF EXISTS m_value_policy
-  ADD CONSTRAINT fk_value_policy FOREIGN KEY (oid) REFERENCES m_object;
 
 -- Indices for foreign keys; maintained manually
 CREATE INDEX iUserEmployeeTypeOid ON M_USER_EMPLOYEE_TYPE(USER_OID);
