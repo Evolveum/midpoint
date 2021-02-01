@@ -24,7 +24,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 /**
- * Querydsl query type for M_OBJECT table.
+ * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
 public abstract class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
@@ -42,7 +42,7 @@ public abstract class QObject<T extends MObject> extends FlexibleRelationalPathB
     public static final ColumnMetadata OID =
             ColumnMetadata.named("oid").ofType(UUID_TYPE).notNull();
     public static final ColumnMetadata EVENT_TYPE =
-            ColumnMetadata.named("objectTypeClass").ofType(Types.INTEGER).withSize(10).notNull();
+            ColumnMetadata.named("objectTypeClass").ofType(Types.INTEGER).notNull();
     public static final ColumnMetadata NAME_NORM =
             ColumnMetadata.named("name_norm").ofType(Types.VARCHAR).withSize(255).notNull();
     public static final ColumnMetadata NAME_ORIG =
@@ -50,35 +50,35 @@ public abstract class QObject<T extends MObject> extends FlexibleRelationalPathB
     public static final ColumnMetadata FULL_OBJECT =
             ColumnMetadata.named("fullObject").ofType(Types.BINARY);
     public static final ColumnMetadata CREATOR_REF_RELATION_ID =
-            ColumnMetadata.named("creatorRef_relation_id").ofType(Types.INTEGER).withSize(10);
+            ColumnMetadata.named("creatorRef_relation_id").ofType(Types.INTEGER);
     public static final ColumnMetadata CREATOR_REF_TARGET_OID =
             ColumnMetadata.named("creatorRef_targetOid").ofType(UUID_TYPE);
     public static final ColumnMetadata CREATOR_REF_TARGET_TYPE =
-            ColumnMetadata.named("creatorRef_targetType").ofType(Types.INTEGER).withSize(10);
+            ColumnMetadata.named("creatorRef_targetType").ofType(Types.INTEGER);
     public static final ColumnMetadata CREATE_CHANNEL_ID =
-            ColumnMetadata.named("createChannel_id").ofType(Types.INTEGER).withSize(10);
+            ColumnMetadata.named("createChannel_id").ofType(Types.INTEGER);
     public static final ColumnMetadata CREATE_TIMESTAMP =
             ColumnMetadata.named("createTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE).notNull();
     public static final ColumnMetadata MODIFIER_REF_RELATION_ID =
-            ColumnMetadata.named("modifierRef_relation_id").ofType(Types.INTEGER).withSize(10);
+            ColumnMetadata.named("modifierRef_relation_id").ofType(Types.INTEGER);
     public static final ColumnMetadata MODIFIER_REF_TARGET_OID =
             ColumnMetadata.named("modifierRef_targetOid").ofType(UUID_TYPE);
     public static final ColumnMetadata MODIFIER_REF_TARGET_TYPE =
-            ColumnMetadata.named("modifierRef_targetType").ofType(Types.INTEGER).withSize(10);
+            ColumnMetadata.named("modifierRef_targetType").ofType(Types.INTEGER);
     public static final ColumnMetadata MODIFY_CHANNEL_ID =
-            ColumnMetadata.named("modifyChannel_id").ofType(Types.INTEGER).withSize(10);
+            ColumnMetadata.named("modifyChannel_id").ofType(Types.INTEGER);
     public static final ColumnMetadata MODIFY_TIMESTAMP =
             ColumnMetadata.named("modifyTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE).notNull();
     public static final ColumnMetadata TENANT_REF_RELATION_ID =
-            ColumnMetadata.named("tenantRef_relation_id").ofType(Types.INTEGER).withSize(10);
+            ColumnMetadata.named("tenantRef_relation_id").ofType(Types.INTEGER);
     public static final ColumnMetadata TENANT_REF_TARGET_OID =
             ColumnMetadata.named("tenantRef_targetOid").ofType(UUID_TYPE);
     public static final ColumnMetadata TENANT_REF_TARGET_TYPE =
-            ColumnMetadata.named("tenantRef_targetType").ofType(Types.INTEGER).withSize(10);
+            ColumnMetadata.named("tenantRef_targetType").ofType(Types.INTEGER);
     public static final ColumnMetadata LIFECYCLE_STATE =
             ColumnMetadata.named("lifecycleState").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata VERSION =
-            ColumnMetadata.named("version").ofType(Types.INTEGER).withSize(10).notNull();
+            ColumnMetadata.named("version").ofType(Types.INTEGER).notNull();
     public static final ColumnMetadata EXT =
             ColumnMetadata.named("ext").ofType(Types.BINARY);
 
@@ -86,7 +86,7 @@ public abstract class QObject<T extends MObject> extends FlexibleRelationalPathB
     public final UuidPath oid = createUuid("oid", OID);
     public final StringPath nameNorm = createString("nameNorm", NAME_NORM);
     public final StringPath nameOrig = createString("nameOrig", NAME_ORIG);
-    public final ArrayPath<byte[], Byte> fullObject = createBlob("fullObject", FULL_OBJECT);
+    public final ArrayPath<byte[], Byte> fullObject = createByteArray("fullObject", FULL_OBJECT);
     public final NumberPath<Integer> creatorRefRelationId =
             createInteger("creatorRefRelationId", CREATOR_REF_RELATION_ID);
     public final UuidPath creatorRefTargetOid =
@@ -115,7 +115,7 @@ public abstract class QObject<T extends MObject> extends FlexibleRelationalPathB
             createInteger("tenantRefTargetType", TENANT_REF_TARGET_TYPE);
     public final StringPath lifecycleState = createString("lifecycleState", LIFECYCLE_STATE);
     public final NumberPath<Integer> version = createInteger("version", VERSION);
-    public final ArrayPath<byte[], Byte> ext = createBlob("ext", EXT); // TODO is byte[] the right type?
+    public final ArrayPath<byte[], Byte> ext = createByteArray("ext", EXT); // TODO is byte[] the right type?
 
     public final PrimaryKey<T> pk = createPrimaryKey(oid);
     public final ForeignKey<QQName> createChannelIdFk =

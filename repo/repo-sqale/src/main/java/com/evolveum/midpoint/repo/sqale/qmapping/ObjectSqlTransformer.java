@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmapping;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
@@ -80,6 +81,10 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
     public R toRowObjectWithoutFullObject(S schemaObject) {
         R row = mapping.newRowObject();
 
+        row.oid = Optional.ofNullable(schemaObject.getOid())
+                .map(UUID::fromString)
+                .orElse(null);
+
         // primitive columns common to ObjectType
         PolyStringType name = schemaObject.getName();
         row.nameOrig = name.getOrig();
@@ -132,8 +137,9 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
     }
 
     public byte[] createFullObject(S schemaObject) throws SchemaException {
-        if (schemaObject.getOid() == null) {
-            logger.warn("Object {} going to be serialized has no assigned OID.", schemaObject);
+        if (schemaObject.getOid() == null || schemaObject.getVersion() == null) {
+            throw new IllegalArgumentException(
+                    "Serialized object must have assigned OID and version: " + schemaObject);
         }
 
         return transformerContext.serializer()

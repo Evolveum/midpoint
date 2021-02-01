@@ -296,7 +296,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
         try { existFeedback = form.and().and().feedback().isError(); } catch (ElementNotFound e) { }
         Assert.assertFalse(existFeedback);
         form.assertPropertyWithTitleTextExist("telephoneNumber", "Primary telephone number of the user, org. unit, etc.")
-                .assertPropertyWithTitleTextExist("telephoneNumber", "Mobile Telephone Number")
+                .assertPropertyWithTitleTextDoesntExist("telephoneNumber", "Mobile Telephone Number")
                 .assertPropertyEnabled("honorificSuffix");
 
         addObjectFromFile(LOOKUP_EMP_STATUS_FILE);

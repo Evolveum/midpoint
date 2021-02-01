@@ -197,6 +197,10 @@ public class QueryInterpreter {
             return GetCertificationWorkItemResult.RESULT_STYLE;
         } else if (CaseWorkItemType.class.equals(context.getType())) {
             return GetContainerableIdOnlyResult.RESULT_STYLE;
+        /* TODO MID-6799
+        } else if (AssignmentType.class.equals(context.getType())) {
+            return GetContainerableIdOnlyResult.RESULT_STYLE;
+        */
         } else {
             throw new QueryException("Unsupported type: " + context.getType());
         }

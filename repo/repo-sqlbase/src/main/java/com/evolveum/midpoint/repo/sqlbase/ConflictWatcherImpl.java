@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.repo.sql;
+package com.evolveum.midpoint.repo.sqlbase;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -25,11 +25,11 @@ public class ConflictWatcherImpl implements ConflictWatcher {
     private int expectedVersion;
     private boolean objectDeleted;              // skip all future checks
 
-    ConflictWatcherImpl(@NotNull String oid) {
+    public ConflictWatcherImpl(@NotNull String oid) {
         this.oid = oid;
     }
 
-    <T extends ObjectType> void afterAddObject(@NotNull String oid, @NotNull PrismObject<T> object) {
+    public <T extends ObjectType> void afterAddObject(@NotNull String oid, @NotNull PrismObject<T> object) {
         if (notRelevant(oid)) {
             return;
         }
@@ -42,7 +42,7 @@ public class ConflictWatcherImpl implements ConflictWatcher {
         //System.out.println(Thread.currentThread().getName() + ": afterAddObject: " + this);
     }
 
-    void afterDeleteObject(String oid) {
+    public void afterDeleteObject(String oid) {
         if (this.oid.equals(oid)) {
             objectDeleted = true;
         }
@@ -55,7 +55,7 @@ public class ConflictWatcherImpl implements ConflictWatcher {
         checkExpectedVersion(object.getVersion());
     }
 
-    void afterModifyObject(String oid) {
+    public void afterModifyObject(String oid) {
         if (notRelevant(oid)) {
             return;
         }
@@ -63,14 +63,14 @@ public class ConflictWatcherImpl implements ConflictWatcher {
         //System.out.println(Thread.currentThread().getName() + ": afterModifyObject: " + this);
     }
 
-    void afterGetVersion(String oid, String currentRepoVersion) {
+    public void afterGetVersion(String oid, String currentRepoVersion) {
         if (notRelevant(oid)) {
             return;
         }
         checkExpectedVersion(currentRepoVersion);
     }
 
-    <T extends ObjectType> void afterGetObject(PrismObject<T> object) {
+    public <T extends ObjectType> void afterGetObject(PrismObject<T> object) {
         if (notRelevant(object.getOid())) {
             return;
         }

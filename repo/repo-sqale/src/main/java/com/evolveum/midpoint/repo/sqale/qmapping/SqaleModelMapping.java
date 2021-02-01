@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.repo.sqale.qbean.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.QObject;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
  * Mapping superclass with common functions for {@link QObject} and non-objects (e.g. containers).
@@ -18,7 +19,7 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
  * @see QueryModelMapping
  */
 // TODO change the type of QObject to something more abstract later (ScaleObject?)
-public abstract class SqaleModelMapping<S, Q extends QObject<R>, R extends MObject>
+public abstract class SqaleModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R extends MObject>
         extends QueryModelMapping<S, Q, R> {
 
     protected SqaleModelMapping(

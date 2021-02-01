@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018 Evolveum and contributors
+ * Copyright (c) 2016-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -27,6 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * OpenDJ, but without permissive modify, shortcut attributes, with manual matching rules, etc.
  * Uses SPR instead of VLV for paging.
  * Also has additional search filter.
+ * Uses unbind operation on disconnect.
  *
  * @author semancik
  */

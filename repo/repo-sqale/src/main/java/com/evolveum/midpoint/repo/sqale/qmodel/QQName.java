@@ -19,7 +19,8 @@ import com.evolveum.midpoint.repo.sqale.qbean.MQName;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
- * Querydsl query type for M_QNAME table that contains repetitive URIs (e.g. channels).
+ * Querydsl query type for {@value #TABLE_NAME} table that contains repetitive URIs (e.g. channels).
+ * This entity is not registered to any schema type so it doesn't have related mapping class.
  */
 public class QQName extends FlexibleRelationalPathBase<MQName> {
 
@@ -28,7 +29,7 @@ public class QQName extends FlexibleRelationalPathBase<MQName> {
     public static final String TABLE_NAME = "m_qname";
 
     public static final ColumnMetadata ID =
-            ColumnMetadata.named("id").ofType(Types.INTEGER).withSize(10).notNull();
+            ColumnMetadata.named("id").ofType(Types.INTEGER).notNull();
     public static final ColumnMetadata URI =
             ColumnMetadata.named("uri").ofType(Types.VARCHAR).withSize(255).notNull();
 
