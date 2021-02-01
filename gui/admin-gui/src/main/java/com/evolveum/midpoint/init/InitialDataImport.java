@@ -45,6 +45,10 @@ public class InitialDataImport extends DataImport {
     private static final Trace LOGGER = TraceManager.getTrace(InitialDataImport.class);
 
     public void init() throws SchemaException {
+        init(false);
+    }
+
+    public void init(boolean overwrite) throws SchemaException {
         LOGGER.info("Starting initial object import (if necessary).");
 
         OperationResult mainResult = new OperationResult(OPERATION_INITIAL_OBJECTS_IMPORT);
@@ -67,7 +71,7 @@ public class InitialDataImport extends DataImport {
                     ReportTypeUtil.applyDefinition(object, prismContext);
                 }
 
-                Boolean importObject = importObject(object, file, task, mainResult);
+                Boolean importObject = importObject(object, file, task, mainResult, overwrite);
                 if (importObject == null) {
                     continue;
                 }
@@ -102,9 +106,11 @@ public class InitialDataImport extends DataImport {
      * @param object
      * @param task
      * @param mainResult
+     * @param overwrite
      * @return null if nothing was imported, true if it was success, otherwise false
      */
-    private <O extends ObjectType> Boolean importObject(PrismObject<O> object, File file, Task task, OperationResult mainResult) {
+    private <O extends ObjectType> Boolean importObject(PrismObject<O> object, File file, Task task,
+            OperationResult mainResult, boolean overwrite) {
         OperationResult result = mainResult.createSubresult(OPERATION_IMPORT_OBJECT);
 
         boolean importObject = true;
@@ -123,7 +129,7 @@ public class InitialDataImport extends DataImport {
             }
         }
 
-        if (!importObject) {
+        if (!importObject && !overwrite) {
             return null;
         }
 
@@ -132,7 +138,7 @@ public class InitialDataImport extends DataImport {
         ObjectDelta delta = DeltaFactory.Object.createAddDelta(object);
         try {
             LOGGER.info("Starting initial import of file {}.", file.getName());
-            model.executeChanges(MiscUtil.createCollection(delta), ModelExecuteOptions.create(prismContext).setIsImport(), task, result);
+            model.executeChanges(MiscUtil.createCollection(delta), ModelExecuteOptions.create(prismContext).setIsImport().overwrite(overwrite), task, result);
             result.recordSuccess();
             LOGGER.info("Created {} as part of initial import", object);
             return true;
