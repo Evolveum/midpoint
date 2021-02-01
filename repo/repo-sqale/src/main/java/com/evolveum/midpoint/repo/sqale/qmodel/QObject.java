@@ -27,7 +27,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public abstract class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
+public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
 
     /** Alias for {@link Types#OTHER} working in tandem with {@link UuidPath}. */
     public static final int UUID_TYPE = Types.OTHER;
@@ -58,7 +58,7 @@ public abstract class QObject<T extends MObject> extends FlexibleRelationalPathB
     public static final ColumnMetadata CREATE_CHANNEL_ID =
             ColumnMetadata.named("createChannel_id").ofType(Types.INTEGER);
     public static final ColumnMetadata CREATE_TIMESTAMP =
-            ColumnMetadata.named("createTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE).notNull();
+            ColumnMetadata.named("createTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
     public static final ColumnMetadata MODIFIER_REF_RELATION_ID =
             ColumnMetadata.named("modifierRef_relation_id").ofType(Types.INTEGER);
     public static final ColumnMetadata MODIFIER_REF_TARGET_OID =
@@ -68,7 +68,7 @@ public abstract class QObject<T extends MObject> extends FlexibleRelationalPathB
     public static final ColumnMetadata MODIFY_CHANNEL_ID =
             ColumnMetadata.named("modifyChannel_id").ofType(Types.INTEGER);
     public static final ColumnMetadata MODIFY_TIMESTAMP =
-            ColumnMetadata.named("modifyTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE).notNull();
+            ColumnMetadata.named("modifyTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
     public static final ColumnMetadata TENANT_REF_RELATION_ID =
             ColumnMetadata.named("tenantRef_relation_id").ofType(Types.INTEGER);
     public static final ColumnMetadata TENANT_REF_TARGET_OID =
@@ -129,7 +129,7 @@ public abstract class QObject<T extends MObject> extends FlexibleRelationalPathB
     public final ForeignKey<QQName> tenantRefRelationIdFk =
             createForeignKey(tenantRefRelationId, QQName.ID.getName());
 
-    public QObject(Class<? extends T> type, String variable) {
+    public QObject(Class<T> type, String variable) {
         this(type, variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
     }
 
@@ -138,11 +138,11 @@ public abstract class QObject<T extends MObject> extends FlexibleRelationalPathB
     }
 
     /**
-     * Class representing generic {@code QClass<MObject>.class} which is otherwise impossible.
+     * Class representing generic {@code QObject<MObject>.class} which is otherwise impossible.
      * There should be no need to instantiate this, so the class is private and final.
      */
-    private static final class QObjectReal extends QObject<MObject> {
-        private QObjectReal(String variable) {
+    public static final class QObjectReal extends QObject<MObject> {
+        public QObjectReal(String variable) {
             super(MObject.class, variable);
         }
     }

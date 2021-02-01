@@ -142,7 +142,6 @@ INSERT INTO m_reftype VALUES (9, 'DELEGATED');
 INSERT INTO m_reftype VALUES (10, 'PERSONA');
 INSERT INTO m_reftype VALUES (11, 'ARCHETYPE');
 
-
 -- Catalog of used Q-names.
 -- Never update values of "uri" manually to change URI for some objects
 -- (unless you really want to migrate old URI to a new one).
@@ -229,11 +228,11 @@ CREATE TABLE m_focus (
     -- will be overridden with GENERATED value in concrete table
     objectTypeClass INTEGER NOT NULL DEFAULT 17,
     administrativeStatus INTEGER,
-    archiveTimestamp TIMESTAMPTZ,
-    disableReason VARCHAR(255),
-    disableTimestamp TIMESTAMPTZ,
     effectiveStatus INTEGER,
     enableTimestamp TIMESTAMPTZ,
+    disableTimestamp TIMESTAMPTZ,
+    disableReason VARCHAR(255),
+    archiveTimestamp TIMESTAMPTZ,
     validFrom TIMESTAMPTZ,
     validTo TIMESTAMPTZ,
     validityChangeTimestamp TIMESTAMPTZ,
@@ -287,6 +286,10 @@ CREATE TRIGGER m_user_oid_delete_tr AFTER DELETE ON m_user
 CREATE INDEX m_user_name_orig_idx ON m_user (name_orig);
 ALTER TABLE m_user ADD CONSTRAINT m_user_name_norm_key UNIQUE (name_norm);
 CREATE INDEX m_user_ext_idx ON m_user USING gin (ext);
+CREATE INDEX m_user_fullName_orig_idx ON m_user (fullName_orig);
+CREATE INDEX m_user_familyName_orig_idx ON m_user (familyName_orig);
+CREATE INDEX m_user_givenName_orig_idx ON m_user (givenName_orig);
+CREATE INDEX m_user_employeeNumber_idx ON m_user (employeeNumber);
 
 CREATE TABLE m_shadow (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
@@ -625,6 +628,50 @@ CREATE TRIGGER m_role_oid_delete_tr AFTER DELETE ON m_role
 
 CREATE INDEX m_role_name_orig_idx ON m_role (name_orig);
 ALTER TABLE m_role ADD CONSTRAINT m_role_name_norm_key UNIQUE (name_norm);
+
+CREATE TABLE m_report (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectTypeClass INTEGER GENERATED ALWAYS AS (11) STORED,
+    export INTEGER,
+    orientation INTEGER,
+    parent BOOLEAN,
+    useHibernateSession BOOLEAN
+)
+    INHERITS (m_object);
+
+CREATE TRIGGER m_value_policy_oid_insert_tr BEFORE INSERT ON m_value_policy
+    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+CREATE TRIGGER m_value_policy_update_tr BEFORE UPDATE ON m_value_policy
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+CREATE TRIGGER m_value_policy_oid_delete_tr AFTER DELETE ON m_value_policy
+    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+
+CREATE INDEX m_value_policy_name_orig_idx ON m_value_policy (name_orig);
+ALTER TABLE m_value_policy ADD CONSTRAINT m_value_policy_name_norm_key UNIQUE (name_norm);
+
+-- TODO old repo had index on parent, does it make sense? if so, which value is sparse?
+
+CREATE TABLE m_report_output (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectTypeClass INTEGER GENERATED ALWAYS AS (12) STORED,
+    reportRef_targetOid UUID,
+    reportRef_targetType INTEGER, -- soft-references m_objtype
+    reportRef_relation_id INTEGER -- soft-references m_qname
+)
+    INHERITS (m_object);
+
+CREATE INDEX iReportNameOrig
+    ON m_report (name_orig);
+ALTER TABLE IF EXISTS m_report
+    ADD CONSTRAINT uc_report_name UNIQUE (name_norm);
+CREATE INDEX iReportOutputNameOrig
+    ON m_report_output (name_orig);
+CREATE INDEX iReportOutputNameNorm
+    ON m_report_output (name_norm);
+ALTER TABLE IF EXISTS m_report
+    ADD CONSTRAINT fk_report FOREIGN KEY (oid) REFERENCES m_object;
+ALTER TABLE IF EXISTS m_report_output
+    ADD CONSTRAINT fk_report_output FOREIGN KEY (oid) REFERENCES m_object;
 
 CREATE TABLE m_task (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
@@ -1183,25 +1230,6 @@ CREATE TABLE m_org (
   oid          VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
-CREATE TABLE m_report (
-  export              INTEGER,
-  name_norm           VARCHAR(255),
-  name_orig           VARCHAR(255),
-  orientation         INTEGER,
-  parent              BOOLEAN,
-  useHibernateSession BOOLEAN,
-  oid                 VARCHAR(36) NOT NULL,
-  PRIMARY KEY (oid)
-);
-CREATE TABLE m_report_output (
-  name_norm             VARCHAR(255),
-  name_orig             VARCHAR(255),
-  reportRef_relation    VARCHAR(157),
-  reportRef_targetOid   VARCHAR(36),
-  reportRef_targetType  INTEGER,
-  oid                   VARCHAR(36) NOT NULL,
-  PRIMARY KEY (oid)
-);
 CREATE TABLE m_resource (
   administrativeState        INTEGER,
   connectorRef_relation      VARCHAR(157),
@@ -1232,29 +1260,6 @@ CREATE TABLE m_trigger (
   handlerUri     VARCHAR(255),
   timestampValue TIMESTAMP,
   PRIMARY KEY (owner_oid, id)
-);
-CREATE TABLE m_user (
-  additionalName_norm  VARCHAR(255),
-  additionalName_orig  VARCHAR(255),
-  employeeNumber       VARCHAR(255),
-  familyName_norm      VARCHAR(255),
-  familyName_orig      VARCHAR(255),
-  fullName_norm        VARCHAR(255),
-  fullName_orig        VARCHAR(255),
-  givenName_norm       VARCHAR(255),
-  givenName_orig       VARCHAR(255),
-  honorificPrefix_norm VARCHAR(255),
-  honorificPrefix_orig VARCHAR(255),
-  honorificSuffix_norm VARCHAR(255),
-  honorificSuffix_orig VARCHAR(255),
-  name_norm            VARCHAR(255),
-  name_orig            VARCHAR(255),
-  nickName_norm        VARCHAR(255),
-  nickName_orig        VARCHAR(255),
-  title_norm           VARCHAR(255),
-  title_orig           VARCHAR(255),
-  oid                  VARCHAR(36) NOT NULL,
-  PRIMARY KEY (oid)
 );
 CREATE INDEX iCertCampaignNameOrig
   ON m_acc_cert_campaign (name_orig);
@@ -1453,24 +1458,10 @@ CREATE INDEX iOrgNameOrig
   ON m_org (name_orig);
 ALTER TABLE IF EXISTS m_org
   ADD CONSTRAINT uc_org_name UNIQUE (name_norm);
-CREATE INDEX iReportParent
-  ON m_report (parent);
-CREATE INDEX iReportNameOrig
-  ON m_report (name_orig);
-ALTER TABLE IF EXISTS m_report
-  ADD CONSTRAINT uc_report_name UNIQUE (name_norm);
-CREATE INDEX iReportOutputNameOrig
-  ON m_report_output (name_orig);
-CREATE INDEX iReportOutputNameNorm
-  ON m_report_output (name_norm);
 CREATE INDEX iResourceNameOrig
   ON m_resource (name_orig);
 ALTER TABLE IF EXISTS m_resource
   ADD CONSTRAINT uc_resource_name UNIQUE (name_norm);
-CREATE INDEX iRoleNameOrig
-  ON m_role (name_orig);
-ALTER TABLE IF EXISTS m_role
-  ADD CONSTRAINT uc_role_name UNIQUE (name_norm);
 CREATE INDEX iSequenceNameOrig
   ON m_sequence (name_orig);
 ALTER TABLE IF EXISTS m_sequence
@@ -1487,18 +1478,6 @@ ALTER TABLE IF EXISTS m_system_configuration
   ADD CONSTRAINT uc_system_configuration_name UNIQUE (name_norm);
 CREATE INDEX iTriggerTimestamp
   ON m_trigger (timestampValue);
-CREATE INDEX iFullName
-  ON m_user (fullName_orig);
-CREATE INDEX iFamilyName
-  ON m_user (familyName_orig);
-CREATE INDEX iGivenName
-  ON m_user (givenName_orig);
-CREATE INDEX iEmployeeNumber
-  ON m_user (employeeNumber);
-CREATE INDEX iUserNameOrig
-  ON m_user (name_orig);
-ALTER TABLE IF EXISTS m_user
-  ADD CONSTRAINT uc_user_name UNIQUE (name_norm);
 ALTER TABLE IF EXISTS m_acc_cert_campaign
   ADD CONSTRAINT fk_acc_cert_campaign FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_acc_cert_case
@@ -1641,14 +1620,8 @@ ALTER TABLE IF EXISTS m_object_template
   ADD CONSTRAINT fk_object_template FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_org
   ADD CONSTRAINT fk_org FOREIGN KEY (oid) REFERENCES m_abstract_role;
-ALTER TABLE IF EXISTS m_report
-  ADD CONSTRAINT fk_report FOREIGN KEY (oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_report_output
-  ADD CONSTRAINT fk_report_output FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_resource
   ADD CONSTRAINT fk_resource FOREIGN KEY (oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_role
-  ADD CONSTRAINT fk_role FOREIGN KEY (oid) REFERENCES m_abstract_role;
 ALTER TABLE IF EXISTS m_sequence
   ADD CONSTRAINT fk_sequence FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_service
@@ -1657,8 +1630,6 @@ ALTER TABLE IF EXISTS m_system_configuration
   ADD CONSTRAINT fk_system_configuration FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_trigger
   ADD CONSTRAINT fk_trigger_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_user
-  ADD CONSTRAINT fk_user FOREIGN KEY (oid) REFERENCES m_focus;
 
 -- Indices for foreign keys; maintained manually
 CREATE INDEX iUserEmployeeTypeOid ON M_USER_EMPLOYEE_TYPE(USER_OID);

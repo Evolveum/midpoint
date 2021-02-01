@@ -20,7 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * Mapping between {@link QUser} and {@link UserType}.
  */
 public class QUserMapping
-        extends QObjectMapping<UserType, QUser, MUser> {
+        extends QFocusMapping<UserType, QUser, MUser> {
 
     public static final String DEFAULT_ALIAS_NAME = "u";
 
@@ -66,7 +66,7 @@ public class QUserMapping
     @Override
     public ObjectSqlTransformer<UserType, QUser, MUser>
     createTransformer(SqlTransformerContext transformerContext, SqlRepoContext sqlRepoContext) {
-        // no special class needed, no additional columns
+        // TODO create specific transformer
         return new ObjectSqlTransformer<>(transformerContext, this);
     }
 

@@ -12,27 +12,27 @@ import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.repo.sqale.qbean.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.QObject;
+import com.evolveum.midpoint.repo.sqale.qbean.MFocus;
+import com.evolveum.midpoint.repo.sqale.qmodel.QFocus;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.StringItemFilterProcessor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
- * Mapping between {@link QObject} and {@link ObjectType}.
+ * Mapping between {@link QFocus} and {@link FocusType}.
  */
-public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extends MObject>
-        extends SqaleModelMapping<S, Q, R> {
+public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends MFocus>
+        extends QObjectMapping<S, Q, R> {
 
-    public static final String DEFAULT_ALIAS_NAME = "o";
+    public static final String DEFAULT_ALIAS_NAME = "f";
 
-    public static final QObjectMapping<ObjectType, QObject.QObjectReal, MObject> INSTANCE =
-            new QObjectMapping<>(QObject.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                    ObjectType.class, QObject.QObjectReal.class);
+    public static final QFocusMapping<FocusType, QFocus.QFocusReal, MFocus> INSTANCE =
+            new QFocusMapping<>(QFocus.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                    FocusType.class, QFocus.QFocusReal.class);
 
-    protected QObjectMapping(
+    protected QFocusMapping(
             @NotNull String tableName,
             @NotNull String defaultAliasName,
             @NotNull Class<S> schemaType,
@@ -40,14 +40,10 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         super(tableName, defaultAliasName, schemaType, queryType);
 
         addItemMapping(PrismConstants.T_ID, StringItemFilterProcessor.mapper(path(q -> q.oid)));
-        addItemMapping(ObjectType.F_NAME,
+        addItemMapping(FocusType.F_NAME,
                 PolyStringItemFilterProcessor.mapper(
                         path(q -> q.nameOrig), path(q -> q.nameNorm)));
 
-        addItemMapping(ObjectType.F_METADATA,
-                // TODO nested-mapping
-                PolyStringItemFilterProcessor.mapper(
-                        path(q -> q.nameOrig), path(q -> q.nameNorm)));
         // TODO mappings
     }
 
@@ -57,10 +53,10 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         return new Path[] { entity.oid, entity.fullObject };
     }
 
-    // TODO verify that this allows creation of QObject alias and that it suffices for "generic query"
+    // TODO verify that this allows creation of QFocus alias and that it suffices for "generic query"
     @Override
     protected Q newAliasInstance(String alias) {
         //noinspection unchecked
-        return (Q) new QObject<>(MObject.class, alias);
+        return (Q) new QFocus<>(MFocus.class, alias);
     }
 }

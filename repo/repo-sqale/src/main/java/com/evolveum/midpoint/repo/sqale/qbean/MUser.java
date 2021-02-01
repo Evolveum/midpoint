@@ -11,7 +11,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.QUser;
 /**
  * Querydsl "row bean" type related to {@link QUser}.
  */
-public class MUser extends MObject {
+public class MUser extends MFocus {
 
     public String additionalNameNorm;
     public String additionalNameOrig;

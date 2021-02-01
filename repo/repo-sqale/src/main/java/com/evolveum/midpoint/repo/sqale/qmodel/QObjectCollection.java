@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel;
 
-import com.querydsl.sql.PrimaryKey;
-
 import com.evolveum.midpoint.repo.sqale.qbean.MObjectCollection;
 
 /**
@@ -21,8 +19,6 @@ public class QObjectCollection extends QObject<MObjectCollection> {
     public static final String TABLE_NAME = "m_object_collection";
 
     // no additional columns and relations
-
-    public final PrimaryKey<MObjectCollection> pk = createPrimaryKey(oid);
 
     public QObjectCollection(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

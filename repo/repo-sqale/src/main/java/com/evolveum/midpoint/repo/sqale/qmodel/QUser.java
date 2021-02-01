@@ -10,7 +10,6 @@ import java.sql.Types;
 
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
-import com.querydsl.sql.PrimaryKey;
 
 import com.evolveum.midpoint.repo.sqale.qbean.MUser;
 
@@ -18,7 +17,7 @@ import com.evolveum.midpoint.repo.sqale.qbean.MUser;
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QUser extends QObject<MUser> {
+public class QUser extends QFocus<MUser> {
 
     private static final long serialVersionUID = -6556210963622526756L;
 
@@ -76,8 +75,6 @@ public class QUser extends QObject<MUser> {
     public final StringPath nickNameOrig = createString("nickNameOrig", NICK_NAME_ORIG);
     public final StringPath titleNorm = createString("titleNorm", TITLE_NORM);
     public final StringPath titleOrig = createString("titleOrig", TITLE_ORIG);
-
-    public final PrimaryKey<MUser> pk = createPrimaryKey(oid);
 
     public QUser(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

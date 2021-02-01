@@ -10,7 +10,6 @@ import java.sql.Types;
 
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
-import com.querydsl.sql.PrimaryKey;
 
 import com.evolveum.midpoint.repo.sqale.qbean.MRole;
 
@@ -30,8 +29,6 @@ public class QRole extends QObject<MRole> {
     // columns and relations
 
     public final StringPath roleType = createString("roleType", ROLE_TYPE);
-
-    public final PrimaryKey<MRole> pk = createPrimaryKey(oid);
 
     public QRole(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel;
 
-import com.querydsl.sql.PrimaryKey;
-
 import com.evolveum.midpoint.repo.sqale.qbean.MArchetype;
 
 /**
@@ -21,8 +19,6 @@ public class QArchetype extends QObject<MArchetype> {
     public static final String TABLE_NAME = "m_archetype";
 
     // no additional columns and relations
-
-    public final PrimaryKey<MArchetype> pk = createPrimaryKey(oid);
 
     public QArchetype(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

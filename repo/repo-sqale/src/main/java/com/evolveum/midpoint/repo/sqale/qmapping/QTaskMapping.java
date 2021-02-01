@@ -37,7 +37,7 @@ public class QTaskMapping
     @Override
     public ObjectSqlTransformer<TaskType, QTask, MTask>
     createTransformer(SqlTransformerContext transformerContext, SqlRepoContext sqlRepoContext) {
-        // no special class needed, no additional columns
+        // TODO create specific transformer
         return new ObjectSqlTransformer<>(transformerContext, this);
     }
 

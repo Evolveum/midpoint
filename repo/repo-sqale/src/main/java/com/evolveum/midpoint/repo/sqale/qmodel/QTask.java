@@ -14,8 +14,6 @@ import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
-import com.querydsl.sql.ForeignKey;
-import com.querydsl.sql.PrimaryKey;
 
 import com.evolveum.midpoint.repo.sqale.qbean.MTask;
 
@@ -94,9 +92,6 @@ public class QTask extends QObject<MTask> {
     public final StringPath taskIdentifier = createString("taskIdentifier", TASK_IDENTIFIER);
     public final NumberPath<Integer> threadStopAction = createInteger("threadStopAction", THREAD_STOP_ACTION);
     public final NumberPath<Integer> waitingReason = createInteger("waitingReason", WAITING_REASON);
-
-    public final PrimaryKey<MTask> pk = createPrimaryKey(oid);
-    public final ForeignKey<QQName> qNameFk = createForeignKey(createChannelId, QQName.ID.getName());
 
     public QTask(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

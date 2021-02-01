@@ -41,7 +41,7 @@ public class QRoleMapping
     @Override
     public ObjectSqlTransformer<RoleType, QRole, MRole>
     createTransformer(SqlTransformerContext transformerContext, SqlRepoContext sqlRepoContext) {
-        // no special class needed, no additional columns
+        // TODO create specific transformer
         return new ObjectSqlTransformer<>(transformerContext, this);
     }
 
