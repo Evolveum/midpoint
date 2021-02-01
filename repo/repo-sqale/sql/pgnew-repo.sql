@@ -312,7 +312,7 @@ CREATE INDEX m_role_name_orig_idx ON m_role (name_orig);
 ALTER TABLE m_role ADD CONSTRAINT m_role_name_norm_key UNIQUE (name_norm);
 -- endregion
 
--- OTHER tables
+-- region OTHER tables
 -- "concrete" table, allows insert and defines "final" objectTypeClass with GENERATED
 CREATE TABLE m_resource (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
@@ -689,6 +689,37 @@ CREATE TABLE m_report_output (
 CREATE INDEX m_report_output_name_orig_idx ON m_report_output (name_orig);
 ALTER TABLE m_report_output ADD CONSTRAINT m_report_output_name_norm_key UNIQUE (name_norm);
 
+CREATE TABLE m_lookup_table (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectTypeClass INTEGER GENERATED ALWAYS AS (20) STORED
+)
+    INHERITS (m_object);
+
+CREATE TRIGGER m_lookup_table_oid_insert_tr BEFORE INSERT ON m_lookup_table
+    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+CREATE TRIGGER m_lookup_table_update_tr BEFORE UPDATE ON m_lookup_table
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+CREATE TRIGGER m_lookup_table_oid_delete_tr AFTER DELETE ON m_lookup_table
+    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+
+CREATE INDEX m_lookup_table_name_orig_idx ON m_lookup_table (name_orig);
+ALTER TABLE m_lookup_table ADD CONSTRAINT m_lookup_table_name_norm_key UNIQUE (name_norm);
+
+CREATE TABLE m_lookup_table_row (
+    owner_oid UUID NOT NULL REFERENCES m_lookup_table(oid),
+    row_id INTEGER NOT NULL,
+    row_key VARCHAR(255),
+    label_norm VARCHAR(255),
+    label_orig VARCHAR(255),
+    row_value VARCHAR(255),
+    lastChangeTimestamp TIMESTAMP,
+
+    PRIMARY KEY (owner_oid, row_id)
+);
+
+ALTER TABLE m_lookup_table_row
+    ADD CONSTRAINT m_lookup_table_row_owner_oid_row_key_key UNIQUE (owner_oid, row_key);
+
 CREATE TABLE m_task (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectTypeClass INTEGER GENERATED ALWAYS AS (9) STORED,
@@ -750,6 +781,7 @@ CREATE TABLE m_ext_item (
 
     PRIMARY KEY (id)
 );
+-- endregion
 
 /*
 -- EXPERIMENTAL EAV (first without catalog, so string keys are used)
@@ -1201,22 +1233,6 @@ CREATE TABLE m_global_metadata (
   value VARCHAR(255),
   PRIMARY KEY (name)
 );
-CREATE TABLE m_lookup_table (
-  name_norm VARCHAR(255),
-  name_orig VARCHAR(255),
-  oid       VARCHAR(36) NOT NULL,
-  PRIMARY KEY (oid)
-);
-CREATE TABLE m_lookup_table_row (
-  id                  INTEGER        NOT NULL,
-  owner_oid           VARCHAR(36) NOT NULL,
-  row_key             VARCHAR(255),
-  label_norm          VARCHAR(255),
-  label_orig          VARCHAR(255),
-  lastChangeTimestamp TIMESTAMP,
-  row_value           VARCHAR(255),
-  PRIMARY KEY (owner_oid, id)
-);
 CREATE TABLE m_object_template (
   name_norm VARCHAR(255),
   name_orig VARCHAR(255),
@@ -1440,12 +1456,6 @@ CREATE INDEX iGenericObjectNameOrig
   ON m_generic_object (name_orig);
 ALTER TABLE IF EXISTS m_generic_object
   ADD CONSTRAINT uc_generic_object_name UNIQUE (name_norm);
-CREATE INDEX iLookupTableNameOrig
-  ON m_lookup_table (name_orig);
-ALTER TABLE IF EXISTS m_lookup_table
-  ADD CONSTRAINT uc_lookup_name UNIQUE (name_norm);
-ALTER TABLE IF EXISTS m_lookup_table_row
-  ADD CONSTRAINT uc_row_key UNIQUE (owner_oid, row_key);
 CREATE INDEX iNodeNameOrig
   ON m_node (name_orig);
 ALTER TABLE IF EXISTS m_node
@@ -1612,10 +1622,6 @@ ALTER TABLE IF EXISTS m_function_library
   ADD CONSTRAINT fk_function_library FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_generic_object
   ADD CONSTRAINT fk_generic_object FOREIGN KEY (oid) REFERENCES m_focus;
-ALTER TABLE IF EXISTS m_lookup_table
-  ADD CONSTRAINT fk_lookup_table FOREIGN KEY (oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_lookup_table_row
-  ADD CONSTRAINT fk_lookup_table_owner FOREIGN KEY (owner_oid) REFERENCES m_lookup_table;
 ALTER TABLE IF EXISTS m_node
   ADD CONSTRAINT fk_node FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_object_template

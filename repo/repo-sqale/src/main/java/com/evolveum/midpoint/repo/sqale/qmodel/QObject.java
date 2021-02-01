@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel;
 
-import static com.querydsl.core.types.PathMetadataFactory.forVariable;
-
 import java.sql.Types;
 import java.time.Instant;
 
@@ -134,7 +132,7 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
     }
 
     public QObject(Class<? extends T> type, String variable, String schema, String table) {
-        super(type, forVariable(variable), schema, table);
+        super(type, variable, schema, table);
     }
 
     /**

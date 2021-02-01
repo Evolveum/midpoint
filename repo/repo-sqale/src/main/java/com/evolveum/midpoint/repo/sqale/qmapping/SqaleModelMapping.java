@@ -8,7 +8,6 @@ package com.evolveum.midpoint.repo.sqale.qmapping;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.repo.sqale.qbean.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.QObject;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -18,8 +17,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  *
  * @see QueryModelMapping
  */
-// TODO change the type of QObject to something more abstract later (ScaleObject?)
-public abstract class SqaleModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R extends MObject>
+public abstract class SqaleModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R>
         extends QueryModelMapping<S, Q, R> {
 
     protected SqaleModelMapping(

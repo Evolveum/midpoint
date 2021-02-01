@@ -20,7 +20,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 @SuppressWarnings("unused")
 public class QReportOutput extends QObject<MReportOutput> {
 
-    private static final long serialVersionUID = 289603300613404007L;
+    private static final long serialVersionUID = -544485328996889511L;
 
     public static final String TABLE_NAME = "m_report_output";
 

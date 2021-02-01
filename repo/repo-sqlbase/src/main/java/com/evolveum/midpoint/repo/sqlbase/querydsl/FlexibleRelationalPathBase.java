@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqlbase.querydsl;
 
+import static com.querydsl.core.types.PathMetadataFactory.forVariable;
+
 import java.sql.Types;
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -64,8 +66,8 @@ public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T
     private final Map<String, Path<?>> propertyNameToPath = new LinkedHashMap<>();
 
     public FlexibleRelationalPathBase(
-            Class<? extends T> type, PathMetadata metadata, String schema, String table) {
-        super(type, metadata, schema, table);
+            Class<? extends T> type, String pathVariable, String schema, String table) {
+        super(type, forVariable(pathVariable), schema, table);
     }
 
     /**

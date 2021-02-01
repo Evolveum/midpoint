@@ -20,7 +20,7 @@ import com.evolveum.midpoint.repo.sqale.qbean.MReport;
 @SuppressWarnings("unused")
 public class QReport extends QObject<MReport> {
 
-    private static final long serialVersionUID = 289603300613404007L;
+    private static final long serialVersionUID = -5738006878845987541L;
 
     public static final String TABLE_NAME = "m_report";
 

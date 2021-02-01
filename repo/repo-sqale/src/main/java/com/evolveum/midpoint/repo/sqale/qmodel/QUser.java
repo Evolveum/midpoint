@@ -19,7 +19,7 @@ import com.evolveum.midpoint.repo.sqale.qbean.MUser;
 @SuppressWarnings("unused")
 public class QUser extends QFocus<MUser> {
 
-    private static final long serialVersionUID = -6556210963622526756L;
+    private static final long serialVersionUID = 4995959722218007882L;
 
     public static final String TABLE_NAME = "m_user";
 

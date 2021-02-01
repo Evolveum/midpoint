@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel;
 
-import static com.querydsl.core.types.PathMetadataFactory.forVariable;
-
 import java.sql.Types;
 
 import com.querydsl.core.types.dsl.NumberPath;
@@ -43,6 +41,6 @@ public class QQName extends FlexibleRelationalPathBase<MQName> {
     }
 
     public QQName(String variable, String schema, String table) {
-        super(MQName.class, forVariable(variable), schema, table);
+        super(MQName.class, variable, schema, table);
     }
 }

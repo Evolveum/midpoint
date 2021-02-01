@@ -22,7 +22,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 @SuppressWarnings("unused")
 public class QAbstractRole<T extends MAbstractRole> extends QObject<T> {
 
-    private static final long serialVersionUID = -535915621882761789L;
+    private static final long serialVersionUID = 8559628642680237808L;
 
     public static final String TABLE_NAME = "m_abstract_role";
 
