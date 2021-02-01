@@ -35,6 +35,11 @@ public class ObjectProcessingRequest<O extends ObjectType> extends ItemProcessin
     }
 
     @Override
+    public String getObjectOidToRecordRetryTrigger() {
+        return getItem().asObjectable().getOid(); // TODO
+    }
+
+    @Override
     public void acknowledge(boolean release, OperationResult result) {
         // Nothing to acknowledge here.
     }

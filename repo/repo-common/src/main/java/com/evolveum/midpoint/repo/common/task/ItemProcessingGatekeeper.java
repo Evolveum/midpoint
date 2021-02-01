@@ -13,6 +13,7 @@ import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultBuilder;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -131,7 +132,7 @@ class ItemProcessingGatekeeper<I> {
             writeOperationExecutionRecord(result);
             recordIterativeOperationEnd();
 
-            canContinue = checkIfContinue(result) && canContinue;
+            canContinue = checkIfCanContinue(result) && canContinue;
 
             acknowledgeItemProcessed(result);
 
@@ -177,6 +178,8 @@ class ItemProcessingGatekeeper<I> {
             }
 
         } catch (Exception e) {
+
+            result.recordFatalError(e);
 
             // This is an error with top-level exception.
             // Note that we intentionally do not rethrow the exception.
@@ -251,7 +254,7 @@ class ItemProcessingGatekeeper<I> {
      * Determines whether to continue, stop, or suspend.
      * TODO implement better
      */
-    private boolean checkIfContinue(OperationResult result) {
+    private boolean checkIfCanContinue(OperationResult result) {
 
         if (!isError()) {
             return true;
@@ -259,7 +262,7 @@ class ItemProcessingGatekeeper<I> {
 
         TaskPartitionDefinitionType partDef = taskExecution.partDefinition;
         if (partDef == null) {
-            return partExecution.getContinueOnError(result.getStatus(), resultException, request, result);
+            return getContinueOnError(result.getStatus(), resultException, request, result);
         }
 
         CriticalityType criticality = ExceptionUtil.getCriticality(partDef.getErrorCriticality(), resultException, CriticalityType.PARTIAL);
@@ -270,6 +273,20 @@ class ItemProcessingGatekeeper<I> {
             // Exception means fatal error.
             taskExecution.setPermanentErrorEncountered(e);
             return false;
+        }
+    }
+
+    private boolean getContinueOnError(@NotNull OperationResultStatus status, @NotNull Throwable exception,
+            ItemProcessingRequest<?> request, OperationResult result) {
+        ErrorHandlingStrategyExecutor.Action action = partExecution.determineErrorAction(status, exception, request, result);
+        switch (action) {
+            case CONTINUE:
+                return true;
+            case SUSPEND:
+                taskExecution.setPermanentErrorEncountered(exception);
+            case STOP:
+            default:
+                return false;
         }
     }
 

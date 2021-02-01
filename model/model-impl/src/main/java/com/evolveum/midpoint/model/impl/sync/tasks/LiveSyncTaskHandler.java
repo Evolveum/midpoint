@@ -6,17 +6,12 @@
  */
 package com.evolveum.midpoint.model.impl.sync.tasks;
 
+import static org.apache.commons.lang3.BooleanUtils.isNotFalse;
+
+import static com.evolveum.midpoint.repo.common.task.ErrorHandlingStrategyExecutor.Action.CONTINUE;
+import static com.evolveum.midpoint.repo.common.task.ErrorHandlingStrategyExecutor.Action.STOP;
+
 import javax.annotation.PostConstruct;
-
-import com.evolveum.midpoint.model.impl.tasks.AbstractModelTaskHandler;
-import com.evolveum.midpoint.provisioning.api.*;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.repo.common.task.*;
-import com.evolveum.midpoint.schema.constants.Channel;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
@@ -24,14 +19,25 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper.TargetInfo;
+import com.evolveum.midpoint.model.impl.tasks.AbstractModelTaskHandler;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
+import com.evolveum.midpoint.provisioning.api.LiveSyncEvent;
+import com.evolveum.midpoint.provisioning.api.LiveSyncEventHandler;
+import com.evolveum.midpoint.provisioning.api.SynchronizationResult;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.common.task.*;
+import com.evolveum.midpoint.schema.constants.Channel;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 /**
  * The task handler for a live synchronization.
@@ -117,12 +123,8 @@ public class LiveSyncTaskHandler
     public class PartExecution extends AbstractIterativeTaskPartExecution
             <LiveSyncEvent, LiveSyncTaskHandler, TaskExecution, PartExecution, PartExecution.ItemProcessor> {
 
-        private final ErrorHandlingStrategyExecutor errorHandlingStrategyExecutor;
-
         public PartExecution(@NotNull TaskExecution taskExecution) {
             super(taskExecution);
-            errorHandlingStrategyExecutor = new ErrorHandlingStrategyExecutor(taskExecution.localCoordinatorTask,
-                    prismContext, repositoryService);
         }
 
         @Override
@@ -146,6 +148,15 @@ public class LiveSyncTaskHandler
             ModelImplUtils.clearRequestee(localCoordinatorTask);
             taskExecution.syncResult = provisioningService.synchronize(taskExecution.targetInfo.coords,
                     localCoordinatorTask, taskExecution.partDefinition, handler, opResult);
+        }
+
+        @Override
+        protected @NotNull ErrorHandlingStrategyExecutor.Action getDefaultErrorAction() {
+            // This could be a bit tricky if combined with partially-specified error handling strategy.
+            // So, please, do NOT combine these two! If you specify a strategy, do not use retryLiveSyncErrors extension item.
+            boolean retryErrors = isNotFalse(localCoordinatorTask.getExtensionPropertyRealValue(
+                    SchemaConstants.MODEL_EXTENSION_RETRY_LIVE_SYNC_ERRORS));
+            return retryErrors ? STOP : CONTINUE;
         }
 
         @Override
@@ -180,34 +191,6 @@ public class LiveSyncTaskHandler
                 } finally {
                     CHANGE_BEING_PROCESSED.remove();
                 }
-            }
-        }
-
-        @Override
-        public boolean getContinueOnError(OperationResultStatus status, @NotNull Throwable exception, ItemProcessingRequest<?> request, OperationResult result) {
-            // TODO generalize for all tasks
-            // TODO provide the exception
-            String shadowOid = getShadowOid(request);
-            ErrorHandlingStrategyExecutor.Action action = errorHandlingStrategyExecutor.determineAction(exception, status, shadowOid, result);
-            switch (action) {
-                case CONTINUE:
-                    return true;
-                case SUSPEND:
-                    taskExecution.setPermanentErrorEncountered(exception);
-                case STOP:
-                default:
-                    return false;
-            }
-        }
-
-        // FIXME
-        private String getShadowOid(ItemProcessingRequest<?> request) {
-            Object item = request.getItem();
-            if (item instanceof LiveSyncEvent) {
-                LiveSyncEvent event = (LiveSyncEvent) item;
-                return event.getShadowOid();
-            } else {
-                throw new IllegalStateException("Expected LiveSyncEvent, got " + item);
             }
         }
     }

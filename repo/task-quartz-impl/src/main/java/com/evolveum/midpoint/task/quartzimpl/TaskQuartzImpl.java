@@ -2063,6 +2063,17 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     }
 
     /*
+     * Misc
+     */
+
+    @Override
+    public TaskErrorHandlingStrategyType getErrorHandlingStrategy() {
+        synchronized (prismAccess) {
+            return taskPrism.asObjectable().getErrorHandlingStrategy();
+        }
+    }
+
+    /*
      * Node
      */
 

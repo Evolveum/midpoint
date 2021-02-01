@@ -48,6 +48,11 @@ public abstract class ItemProcessingRequest<I> implements AcknowledgementSink {
      */
     public abstract ObjectType getObjectToReportOperation();
 
+    /**
+     * @return OID of object to which we put a trigger causing operation retry (if known)
+     */
+    public abstract String getObjectOidToRecordRetryTrigger();
+
     public void done() {
         // TODO
     }

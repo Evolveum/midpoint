@@ -218,7 +218,6 @@ public class ProcessingCoordinator<I> {
                             stopRequestedByAnyWorker.set(true);
                         }
                     } finally {
-                        request.done(); // probably set already -- but better twice than not at all
                         requestsBuffer.markProcessed(request, taskIdentifier);
                         treatOperationResultAfterOperation();
                         workerTask.setProgressTransient(workerTask.getProgress() + 1);

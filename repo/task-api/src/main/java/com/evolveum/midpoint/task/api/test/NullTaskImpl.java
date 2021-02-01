@@ -209,6 +209,11 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
+    public TaskErrorHandlingStrategyType getErrorHandlingStrategy() {
+        return null;
+    }
+
+    @Override
     public String getOid() {
         return null;
     }

@@ -46,6 +46,20 @@ public class SyncItemProcessingRequest<SE extends SynchronizationEvent>
     }
 
     @Override
+    public String getObjectOidToRecordRetryTrigger() {
+        SE event = getItem();
+        if (event.getShadowOid() != null) {
+            return event.getShadowOid();
+        }
+        ResourceObjectShadowChangeDescription changeDescription = event.getChangeDescription();
+        if (changeDescription != null && changeDescription.getCurrentShadow() != null) {
+            return changeDescription.getCurrentShadow().getOid(); // TODO
+        } else {
+            return null;
+        }
+    }
+
+    @Override
     public @NotNull IterationItemInformation getIterationItemInformation() {
         ResourceObjectShadowChangeDescription changeDescription = getItem().getChangeDescription();
         if (changeDescription != null && changeDescription.getCurrentShadow() != null) {

@@ -108,6 +108,11 @@ public abstract class AbstractIterativeTaskPartExecution<I,
      */
     @NotNull private String contextDescription;
 
+    /**
+     * Determines and executes error handling strategy for this task part.
+     */
+    @NotNull private final ErrorHandlingStrategyExecutor errorHandlingStrategyExecutor;
+
     protected AbstractIterativeTaskPartExecution(@NotNull TE taskExecution) {
         this.taskHandler = taskExecution.taskHandler;
         this.taskExecution = taskExecution;
@@ -117,6 +122,9 @@ public abstract class AbstractIterativeTaskPartExecution<I,
         this.statistics = new ItemProcessingStatistics(localCoordinatorTask.getProgress());
         this.processShortNameCapitalized = taskHandler.getTaskTypeName();
         this.contextDescription = "";
+        this.errorHandlingStrategyExecutor = new ErrorHandlingStrategyExecutor(
+                taskExecution.localCoordinatorTask, taskHandler.prismContext, taskHandler.repositoryService,
+                getDefaultErrorAction());
     }
 
     public @NotNull TaskWorkBucketProcessingResult run(OperationResult opResult) throws SchemaException, ObjectNotFoundException,
@@ -341,8 +349,13 @@ public abstract class AbstractIterativeTaskPartExecution<I,
         return statistics.getTotalProgress();
     }
 
-    // FIXME brutal hack - replace by serious error handling code
-    public boolean getContinueOnError(OperationResultStatus status, @NotNull Throwable resultException, ItemProcessingRequest<?> request, OperationResult result) {
-        return true;
+    ErrorHandlingStrategyExecutor.Action determineErrorAction(@NotNull OperationResultStatus status,
+            @NotNull Throwable exception, ItemProcessingRequest<?> request, OperationResult result) {
+        return errorHandlingStrategyExecutor.determineAction(status, exception, request.getObjectOidToRecordRetryTrigger(), result);
     }
+
+    /**
+     * @return Default error action if no policy is specified or if no policy entry matches.
+     */
+    protected @NotNull abstract ErrorHandlingStrategyExecutor.Action getDefaultErrorAction();
 }

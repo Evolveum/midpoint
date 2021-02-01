@@ -333,7 +333,7 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
                 getPrismContext());
     }
 
-    protected Boolean getUseRepositoryDirectlyFromTask() {
+    private Boolean getUseRepositoryDirectlyFromTask() {
         return getTaskPropertyRealValue(SchemaConstants.MODEL_EXTENSION_USE_REPOSITORY_DIRECTLY);
     }
 
@@ -382,16 +382,6 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
                 : null;
     }
 
-//    public static void logPreviousResultIfNeeded(Task task, TaskWorkBucketProcessingResult previousRunResult, Trace logger) {
-//        OperationResult previousOpResult = previousRunResult.getOperationResult();
-//        if (previousOpResult != null) {
-//            previousOpResult.computeStatusIfUnknown();
-//            if (!previousOpResult.isSuccess()) {
-//                logger.warn("Last work bucket finished with status other than SUCCESS in {}:\n{}", task, previousOpResult.debugDump());
-//            }
-//        }
-//    }
-
     protected ExpressionProfile getExpressionProfile() {
         // TODO Determine from task object archetype
         return MiscSchemaUtil.getExpressionProfile();
@@ -413,12 +403,7 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
         return taskHandler;
     }
 
-    protected void processPermanentError(OperationResult opResult, Throwable t) {
-        opResult.recordFatalError(t);
-        runResult.setRunResultStatus(PERMANENT_ERROR);
-    }
-
-    protected <X> X getTaskPropertyRealValue(ItemName propertyName) {
+    private <X> X getTaskPropertyRealValue(ItemName propertyName) {
         return taskExecution.getTaskPropertyRealValue(propertyName);
     }
 
@@ -443,5 +428,12 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
         return localCoordinatorTask.getWorkManagement() != null &&
                 localCoordinatorTask.getWorkManagement().getTaskKind() == TaskKindType.WORKER &&
                 !Boolean.TRUE.equals(localCoordinatorTask.getWorkManagement().isScavenger());
+    }
+
+    @Override
+    protected ErrorHandlingStrategyExecutor.@NotNull Action getDefaultErrorAction() {
+        // This is the default for search-iterative tasks. It is a legacy behavior, and also the most logical:
+        // we do not need to stop on error, because there's always possible to re-run the whole task.
+        return ErrorHandlingStrategyExecutor.Action.CONTINUE;
     }
 }

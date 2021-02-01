@@ -137,8 +137,8 @@ public class AsyncUpdateTaskHandler
         }
 
         @Override
-        public boolean getContinueOnError(OperationResultStatus status, @NotNull Throwable resultException, ItemProcessingRequest<?> request, OperationResult result) {
-            return false; // TODO error handling
+        protected @NotNull ErrorHandlingStrategyExecutor.Action getDefaultErrorAction() {
+            return ErrorHandlingStrategyExecutor.Action.STOP; // We do not want to miss any change by default
         }
     }
 

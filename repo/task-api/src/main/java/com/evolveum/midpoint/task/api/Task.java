@@ -870,6 +870,9 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     @SuppressWarnings("unused")
     void setExecutionEnvironmentTransient(TaskExecutionEnvironmentType value);
 
+    // not thread-safe! use returned object only for reading
+    TaskErrorHandlingStrategyType getErrorHandlingStrategy();
+
     // ====================================================================================== Other methods
 
     /**

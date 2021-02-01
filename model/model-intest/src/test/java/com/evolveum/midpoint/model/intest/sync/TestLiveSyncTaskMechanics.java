@@ -1091,12 +1091,13 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         then("retrying partial errors (each 3th except for 9th)");
         stabilize();
         assertTask(CommonTasks.TASK_TRIGGER_SCANNER_ON_DEMAND.oid, "after")
-                .assertProgress(7) // 3, 6, 12, 15, 21, 24, 30
                 .display()
                 .iterativeTaskInformation()
+                    .display()
                     .assertSuccessCount(0)
                     .assertFailureCount(7)
-                    .display();
+                    .end()
+                .assertProgress(7); // 3, 6, 12, 15, 21, 24, 30
 
         assertShadow("e-000003", resource)
                 .display()

@@ -7,6 +7,20 @@
 
 package com.evolveum.midpoint.repo.common.task;
 
+import static java.util.Collections.emptyList;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
+import static com.evolveum.midpoint.repo.common.task.ErrorHandlingStrategyExecutor.Action.*;
+
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -24,31 +38,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.datatype.Duration;
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.repo.common.task.ErrorHandlingStrategyExecutor.Action.*;
-
-import static org.apache.commons.lang3.BooleanUtils.isNotFalse;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-
 /**
- * Executes live sync error handling strategy.
+ * Executes iterative task error handling strategy.
  *
- * The strategy consists of a set of ENTRIES, which are evaluated against specific error that has occurred.
- * Each entry contains a description of SITUATION(s) and appropriate REACTION.
+ * The strategy consists of a set of _entries_, which are evaluated against specific error that has occurred.
+ * Each entry contains a description of _situation(s)_ and appropriate _reaction_.
  *
- * The main {@link #determineAction(Throwable, OperationResultStatus, String, OperationResult)} method must be thread safe.
+ * The main {@link #determineAction(OperationResultStatus, Throwable, String, OperationResult)} method must be thread safe.
  *
- * TODO Generalize to arbitrary tasks
  */
 public class ErrorHandlingStrategyExecutor {
 
@@ -67,40 +64,43 @@ public class ErrorHandlingStrategyExecutor {
     @NotNull private final List<StrategyEntryInformation> strategyEntryInformationList;
     @NotNull private final RepositoryService repositoryService;
 
+    @NotNull private final Action defaultAction;
+
     public enum Action {
         CONTINUE, STOP, SUSPEND
     }
 
-    public ErrorHandlingStrategyExecutor(@NotNull Task task, @NotNull PrismContext prismContext,
-            @NotNull RepositoryService repositoryService) {
+    ErrorHandlingStrategyExecutor(@NotNull Task task, @NotNull PrismContext prismContext,
+            @NotNull RepositoryService repositoryService, @NotNull Action defaultAction) {
         this.prismContext = prismContext;
         this.strategyEntryInformationList = getErrorHandlingStrategyEntryList(task).stream()
                 .map(StrategyEntryInformation::new)
                 .collect(Collectors.toList());
         this.repositoryService = repositoryService;
+        this.defaultAction = defaultAction;
     }
 
     /**
      * Decides whether to stop or continue processing.
-     * @param t Exception that occurred.
      * @param status Failure status of the operation (fatalError, partialError).
+     * @param exception Exception that occurred.
      * @param opResult Here we should report our operations.
      * @return true of we should stop
      *
      * This method must be thread safe!
      */
-    public @NotNull Action determineAction(@Nullable Throwable t, @NotNull OperationResultStatus status, @Nullable String shadowOid,
-            @NotNull OperationResult opResult) {
+    @NotNull Action determineAction(@NotNull OperationResultStatus status, @NotNull Throwable exception,
+            @Nullable String triggerHolderOid, @NotNull OperationResult opResult) {
         for (StrategyEntryInformation entryInformation : strategyEntryInformationList) {
-            if (matches(entryInformation.entry, t, status)) {
-                return executeReaction(entryInformation, shadowOid, opResult);
+            if (matches(entryInformation.entry, status, exception)) {
+                return executeReaction(entryInformation, triggerHolderOid, opResult);
             }
         }
-        return STOP; // this is the default if no entry matches
+        return defaultAction;
     }
 
-    private boolean matches(@NotNull LiveSyncErrorHandlingStrategyEntryType entry, @SuppressWarnings("unused") Throwable t,
-            @NotNull OperationResultStatus status) {
+    private boolean matches(@NotNull TaskErrorHandlingStrategyEntryType entry, @NotNull OperationResultStatus status,
+            @SuppressWarnings("unused") Throwable exception) {
         if (entry.getSituation() == null || entry.getSituation().getStatus().isEmpty()) {
             return true;
         } else {
@@ -112,14 +112,14 @@ public class ErrorHandlingStrategyExecutor {
     /**
      * @return true if the processing should stop
      */
-    private @NotNull Action executeReaction(@NotNull ErrorHandlingStrategyExecutor.StrategyEntryInformation entry, @Nullable String shadowOid,
-            @NotNull OperationResult opResult) {
+    private @NotNull Action executeReaction(@NotNull ErrorHandlingStrategyExecutor.StrategyEntryInformation entry,
+            @Nullable String triggerHolderOid, @NotNull OperationResult opResult) {
 
         if (entry.registerMatchAndCheckThreshold()) {
             return SUSPEND;
         }
 
-        LiveSyncErrorReactionType reaction = entry.entry != null ? entry.entry.getReaction() : null;
+        TaskErrorReactionType reaction = entry.entry != null ? entry.entry.getReaction() : null;
         if (reaction == null) {
             return STOP;
         }
@@ -129,13 +129,13 @@ public class ErrorHandlingStrategyExecutor {
         } else if (reaction.getStop() != null) {
             return STOP;
         } else if (reaction.getRetryLater() != null) {
-            return processRetryLater(reaction, shadowOid, opResult);
+            return processRetryLater(reaction, triggerHolderOid, opResult);
         } else {
             return getDefaultAction(reaction);
         }
     }
 
-    private Action getDefaultAction(LiveSyncErrorReactionType reaction) {
+    private Action getDefaultAction(TaskErrorReactionType reaction) {
         if (reaction.getStopAfter() != null) {
             return CONTINUE;
         } else {
@@ -143,7 +143,8 @@ public class ErrorHandlingStrategyExecutor {
         }
     }
 
-    private Action processRetryLater(LiveSyncErrorReactionType reaction, @Nullable String shadowOid, @NotNull OperationResult opResult) {
+    private Action processRetryLater(TaskErrorReactionType reaction, @Nullable String shadowOid,
+            @NotNull OperationResult opResult) {
         if (shadowOid == null) {
             LOGGER.warn("'retryLater' reaction was configured but there is no shadow to attach trigger to. Having to stop "
                     + "in order to avoid data loss.");
@@ -159,7 +160,7 @@ public class ErrorHandlingStrategyExecutor {
         return CONTINUE;
     }
 
-    private void createShadowSynchronizationTrigger(LiveSyncRetryLaterReactionType retryReaction, String shadowOid,
+    private void createShadowSynchronizationTrigger(RetryLaterReactionType retryReaction, String shadowOid,
             OperationResult opResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         TriggerType trigger = new TriggerType(prismContext)
                 .handlerUri(SHADOW_RECONCILE_TRIGGER_HANDLER_URI)
@@ -177,44 +178,42 @@ public class ErrorHandlingStrategyExecutor {
         repositoryService.modifyObject(ShadowType.class, shadowOid, modifications, opResult);
     }
 
-    private XMLGregorianCalendar getFirstRetryTimestamp(LiveSyncRetryLaterReactionType retryReaction) {
+    private XMLGregorianCalendar getFirstRetryTimestamp(RetryLaterReactionType retryReaction) {
         return XmlTypeConverter.fromNow(defaultIfNull(retryReaction.getInitialInterval(), DEFAULT_INITIAL_RETRY_INTERVAL));
     }
 
-    private List<LiveSyncErrorHandlingStrategyEntryType> getErrorHandlingStrategyEntryList(Task task) {
-        LiveSyncErrorHandlingStrategyType strategy =
-                task.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_LIVE_SYNC_ERROR_HANDLING_STRATEGY);
+    private List<TaskErrorHandlingStrategyEntryType> getErrorHandlingStrategyEntryList(Task task) {
+
+        // The current way
+        TaskErrorHandlingStrategyType strategy = task.getErrorHandlingStrategy();
         if (strategy != null) {
-            LiveSyncErrorHandlingStrategyType clone = strategy.clone();
+            TaskErrorHandlingStrategyType clone = strategy.clone();
             clone.asPrismContainerValue().freeze();
             return clone.getEntry();
         }
 
-        // legacy way
-        LiveSyncErrorReactionType reaction = new LiveSyncErrorReactionType(prismContext);
-        boolean retryErrors =
-                isNotFalse(task.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_RETRY_LIVE_SYNC_ERRORS));
-        if (retryErrors) {
-            reaction.setStop(new LiveSyncStopProcessingReactionType(prismContext));
-        } else {
-            reaction.setIgnore(new LiveSyncIgnoreErrorReactionType(prismContext));
+        // The 4.2.x way
+        TaskErrorHandlingStrategyType strategyFromExtension =
+                task.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_LIVE_SYNC_ERROR_HANDLING_STRATEGY);
+        if (strategyFromExtension != null) {
+            TaskErrorHandlingStrategyType clone = strategyFromExtension.clone();
+            clone.asPrismContainerValue().freeze();
+            return clone.getEntry();
         }
-        LiveSyncErrorHandlingStrategyEntryType entry = new LiveSyncErrorHandlingStrategyEntryType(prismContext)
-                .reaction(reaction);
-        entry.asPrismContainerValue().freeze();
-        return Collections.singletonList(entry);
+
+        return emptyList();
     }
 
     private static class StrategyEntryInformation {
-        private final LiveSyncErrorHandlingStrategyEntryType entry; // frozen (due to thread safety)
+        private final TaskErrorHandlingStrategyEntryType entry; // frozen (due to thread safety)
         private final AtomicInteger matches = new AtomicInteger();
 
-        private StrategyEntryInformation(LiveSyncErrorHandlingStrategyEntryType entry) {
+        private StrategyEntryInformation(TaskErrorHandlingStrategyEntryType entry) {
             this.entry = entry.clone();
             this.entry.asPrismContainerValue().freeze();
         }
 
-        public boolean registerMatchAndCheckThreshold() {
+        private boolean registerMatchAndCheckThreshold() {
             int occurred = matches.incrementAndGet();
             Integer limit = getStopAfter();
             if (limit == null || occurred < limit) {
