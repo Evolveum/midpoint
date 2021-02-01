@@ -732,8 +732,16 @@ public class ChangeExecutor {
         if (isEmptyTombstone(projCtx)) {
             return false;
         }
-        if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.DELETE
-                || projCtx.isDelete()) {
+        if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
+            // Should we unlink broken accounts or not? Originally we considered broken contexts as "not isDelete".
+            // However, in 0bb36defb29448ba326713a8642439a64ba93160 we changed projCtx.isDelete method so that broken contexts
+            // with delete delta have isDelete=true.
+            //
+            // But we perhaps don't want to unlink such broken-being-deleted shadows (as tested e.g. in
+            // TestServiceAccounts.test104DeleteServiceAccount). So here we return "true".
+            return true;
+        }
+        if (projCtx.isDelete()) {
             return shadowAfterModification != null;
         }
         if (projCtx.hasPendingOperations()) {
