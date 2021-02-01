@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.task.api.util;
+package com.evolveum.midpoint.repo.common.task;
 
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -93,10 +93,18 @@ public class TaskExceptionHandlingUtil {
         }
     }
 
-    public static <TRR extends TaskRunResult> TRR processFinish(TRR runResult) {
+    static <TRR extends TaskRunResult> TRR processFinish(Trace logger,
+            TaskPartitionDefinitionType partition, String ctx, TRR runResult, ErrorState errorState) {
+
+        if (errorState.isPermanentErrorEncountered()) {
+            return processException(errorState.getPermanentErrorException(), logger, partition, ctx, runResult);
+        }
+        // TODO what in case of not permanent error?
+
         OperationResult opResult = runResult.getOperationResult();
 
         // Normally we compute status if unknown. But for tasks, the root status is IN_PROGRESS by default.
+        // So we do the computation even for IN_PROGRESS status.
         if (opResult.isUnknown() || opResult.isInProgress()) {
             opResult.computeStatus();
         }
@@ -116,7 +124,7 @@ public class TaskExceptionHandlingUtil {
         return processTaskException(taskException, logger, ctx, runResult);
     }
 
-    public static <TRR extends TaskRunResult> TRR processTaskException(TaskException e, Trace logger, String ctx, TRR runResult) {
+    private static <TRR extends TaskRunResult> TRR processTaskException(TaskException e, Trace logger, String ctx, TRR runResult) {
         Throwable cause = e.getCause();
         String causeMessageSuffix = cause != null ? ": " + cause.getMessage() : "";
         String message = e.getMessage() + causeMessageSuffix;

@@ -131,9 +131,7 @@ class ItemProcessingGatekeeper<I> {
             writeOperationExecutionRecord(result);
             recordIterativeOperationEnd();
 
-            if (isError()) {
-                processError(result); // TODO
-            }
+            canContinue = checkIfContinue(result) && canContinue;
 
             acknowledgeItemProcessed(result);
 
@@ -239,37 +237,29 @@ class ItemProcessingGatekeeper<I> {
                 runningStatisticsSnapshot.totalProgress,
                 runningStatisticsSnapshot.totalTimeMillis / runningStatisticsSnapshot.totalProgress);
 
+        if (isError() && getReportingOptions().isLogErrors()) {
+            logger.error("{} of object {} {} failed: {}", getProcessShortNameCapitalized(), iterationItemInformation,
+                    getContextDesc(), resultException.getMessage(), resultException);
+        }
+
         // TODO is this necessary?
         logger.trace("{} finished for {} {}, result:\n{}", getProcessShortNameCapitalized(), iterationItemInformation,
                 getContextDesc(), result.debugDumpLazily());
     }
 
-    // TODO clean up
-    private void processError(OperationResult result) {
-        assert isError();
-        int errorsCount = getStatistics().incrementErrors();
-        logger.trace("Processing error, count: {}", errorsCount);
+    /**
+     * Determines whether to continue, stop, or suspend.
+     * TODO implement better
+     */
+    private boolean checkIfContinue(OperationResult result) {
 
-        if (getReportingOptions().isLogErrors()) {
-            logger.error("{} of object {} {} failed: {}", getProcessShortNameCapitalized(), iterationItemInformation,
-                    getContextDesc(), resultException.getMessage(), resultException);
+        if (!isError()) {
+            return true;
         }
-        // We do not want to override the result set by handler. This is just a fallback case
-        if (result.isUnknown() || result.isInProgress()) {
-            result.recordFatalError("Failed to process: "+resultException.getMessage(), resultException);
-        }
-        result.summarize();
-        canContinue = canContinue && canContinueOnError(result);
-    }
-
-    private boolean canContinueOnError(OperationResult result) {
-        assert isError();
-
-        // TODO implement error handling here
 
         TaskPartitionDefinitionType partDef = taskExecution.partDefinition;
         if (partDef == null) {
-            return partExecution.getContinueOnError(result.getStatus(), request, result);
+            return partExecution.getContinueOnError(result.getStatus(), resultException, request, result);
         }
 
         CriticalityType criticality = ExceptionUtil.getCriticality(partDef.getErrorCriticality(), resultException, CriticalityType.PARTIAL);
@@ -277,7 +267,8 @@ class ItemProcessingGatekeeper<I> {
             RepoCommonUtils.processErrorCriticality(iterationItemInformation.getObjectName(), criticality, resultException, result);
             return true; // If we are here, the error is not fatal and we can continue.
         } catch (Throwable e) {
-            partExecution.setHardExceptionEncountered(e);
+            // Exception means fatal error.
+            taskExecution.setPermanentErrorEncountered(e);
             return false;
         }
     }
@@ -389,6 +380,10 @@ class ItemProcessingGatekeeper<I> {
         runningStatisticsSnapshot.totalTime = runningStatistics.addDuration(timing.durationNanos / 1000000.0);
         runningStatisticsSnapshot.totalProgress = runningStatistics.incrementProgress();
         runningStatisticsSnapshot.totalTimeMillis = System.currentTimeMillis() - partExecution.getStartTimeMillis();
+
+        if (isError()) {
+            runningStatistics.incrementErrors();
+        }
     }
 
     private void recordStatistics(OperationResult result) {

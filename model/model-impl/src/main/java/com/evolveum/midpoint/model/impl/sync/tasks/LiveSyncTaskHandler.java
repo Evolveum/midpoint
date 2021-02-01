@@ -139,10 +139,7 @@ public class LiveSyncTaskHandler
 
                 @Override
                 public void allEventsSubmitted(OperationResult result) {
-                    // TODO merge these three?
-                    coordinator.allItemsSubmitted();
-                    coordinator.waitForWorkersFinish(result);
-                    coordinator.nackQueuedRequests(result);
+                    coordinator.finishProcessing(result);
                 }
             };
 
@@ -187,16 +184,16 @@ public class LiveSyncTaskHandler
         }
 
         @Override
-        public boolean getContinueOnError(OperationResultStatus status, ItemProcessingRequest<?> request, OperationResult result) {
+        public boolean getContinueOnError(OperationResultStatus status, @NotNull Throwable exception, ItemProcessingRequest<?> request, OperationResult result) {
             // TODO generalize for all tasks
             // TODO provide the exception
             String shadowOid = getShadowOid(request);
-            ErrorHandlingStrategyExecutor.Action action = errorHandlingStrategyExecutor.determineAction(null, status, shadowOid, result);
+            ErrorHandlingStrategyExecutor.Action action = errorHandlingStrategyExecutor.determineAction(exception, status, shadowOid, result);
             switch (action) {
                 case CONTINUE:
                     return true;
                 case SUSPEND:
-                    suspendRequested.set(true);
+                    taskExecution.setPermanentErrorEncountered(exception);
                 case STOP:
                 default:
                     return false;

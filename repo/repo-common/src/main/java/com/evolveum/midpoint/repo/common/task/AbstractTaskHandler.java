@@ -27,8 +27,8 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
-import static com.evolveum.midpoint.task.api.util.TaskExceptionHandlingUtil.processException;
-import static com.evolveum.midpoint.task.api.util.TaskExceptionHandlingUtil.processFinish;
+import static com.evolveum.midpoint.repo.common.task.TaskExceptionHandlingUtil.processException;
+import static com.evolveum.midpoint.repo.common.task.TaskExceptionHandlingUtil.processFinish;
 
 /**
  * Task handler for iterative tasks.
@@ -158,7 +158,7 @@ public abstract class AbstractTaskHandler<
      * Main entry point.
      *
      * We basically delegate all the processing to a TaskExecution object.
-     * Error handling is delegated to {@link com.evolveum.midpoint.task.api.util.TaskExceptionHandlingUtil#processException(Throwable, Trace, TaskPartitionDefinitionType, String, TaskRunResult)}
+     * Error handling is delegated to {@link TaskExceptionHandlingUtil#processException(Throwable, Trace, TaskPartitionDefinitionType, String, TaskRunResult)}
      * method.
      */
     @Override
@@ -167,7 +167,7 @@ public abstract class AbstractTaskHandler<
         TE taskExecution = createTaskExecution(localCoordinatorTask, workBucket, partition, previousRunResult);
         try {
             taskExecution.run();
-            return processFinish(taskExecution.getCurrentRunResult());
+            return processFinish(logger, partition, taskTypeName, taskExecution.getCurrentRunResult(), taskExecution.getErrorState());
         } catch (Throwable t) {
             return processException(t, logger, partition, taskTypeName, taskExecution.getCurrentRunResult());
         }

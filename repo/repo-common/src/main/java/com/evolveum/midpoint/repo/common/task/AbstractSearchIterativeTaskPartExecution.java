@@ -108,14 +108,14 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
     }
 
     @Override
-    protected void setExpectedItems(OperationResult opResult) throws CommunicationException, ObjectNotFoundException,
+    protected void setProgressAndExpectedItems(OperationResult opResult) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException,
             ObjectAlreadyExistsException {
         Long expectedTotal = computeExpectedTotalIfApplicable(opResult);
-        setExpectedTotal(expectedTotal, opResult);
+        setProgressAndExpectedTotal(expectedTotal, opResult);
     }
 
-    private void setExpectedTotal(Long expectedTotal, OperationResult opResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    private void setProgressAndExpectedTotal(Long expectedTotal, OperationResult opResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         localCoordinatorTask.setProgress(runResult.getProgress());
         if (expectedTotal != null) {
             localCoordinatorTask.setExpectedTotal(expectedTotal);

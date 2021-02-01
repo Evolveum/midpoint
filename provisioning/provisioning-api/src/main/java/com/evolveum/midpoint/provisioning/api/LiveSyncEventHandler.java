@@ -25,9 +25,9 @@ public interface LiveSyncEventHandler extends SynchronizationEventHandler<LiveSy
      * signalled to stop the processing.
      *
      * Should do necessary cleanup, e.g. wait for workers to finish.
+     * All requests should be acknowledged (positively or negatively) when this method returns.
      *
-     * TODO should we require this method to ack all pending events?
+     * Should not throw an exception.
      */
     void allEventsSubmitted(OperationResult result);
-
 }

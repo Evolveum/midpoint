@@ -15,7 +15,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskException;
-import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskWorkBucketProcessingResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
@@ -65,6 +64,11 @@ public abstract class AbstractTaskExecution
      * TODO specify better - does each part execution supply its own result?
      */
     @NotNull private final TaskWorkBucketProcessingResult currentRunResult;
+
+    /**
+     * Error-related state of this task. Drives the suspend/continue decisions.
+     */
+    @NotNull private final ErrorState errorState = new ErrorState();
 
     private final AtomicReference<AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?>> currentTaskPartExecution
             = new AtomicReference<>();
@@ -116,8 +120,6 @@ public abstract class AbstractTaskExecution
 
             initialize(taskOperationResult);
 
-            boolean suspendRequested = false; // TODO fixme this hack
-
             List<? extends AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?>> partExecutions = createPartExecutions();
             for (int i = 0, partExecutionsSize = partExecutions.size(); i < partExecutionsSize; i++) {
                 AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?> partExecution = partExecutions.get(i);
@@ -131,25 +133,19 @@ public abstract class AbstractTaskExecution
                     throw t;
                 } finally {
                     opResult.computeStatusIfUnknown();
-                    if (partExecution.suspendRequested.get()) {
-                        suspendRequested = true;
-                    }
                 }
 
-                // Note that we continue even in the presence of errors in previous part.
+                // Note that we continue even in the presence of non-fatal errors in previous part.
                 // It is OK because this is how it was implemented in the only (in-task) multi-part execution: reconciliation.
+                //
                 // But generally, this behaviour should be controlled using a policy.
-                if (!localCoordinatorTask.canRun() || suspendRequested) {
+                if (!localCoordinatorTask.canRun() || errorState.isPermanentErrorEncountered()) {
                     break;
                 }
             }
 
             finish(taskOperationResult, null);
 
-            if (suspendRequested) {
-                // FIXME
-                throw new TaskException("Suspend requested", OperationResultStatus.FATAL_ERROR, TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR);
-            }
             return currentRunResult;
         } catch (Throwable t) {
             finish(currentRunResult.getOperationResult(), t);
@@ -215,34 +211,11 @@ public abstract class AbstractTaskExecution
         return currentTaskPartExecution != null ? currentTaskPartExecution.heartbeat() : null;
     }
 
+    public void setPermanentErrorEncountered(@NotNull Throwable reason) {
+        errorState.setPermanentErrorException(reason);
+    }
 
-    // ??? here
-
-//
-//    public void completeProcessing(Task task, OperationResult result) {
-//        signalAllItemsSubmitted();
-//        waitForCompletion(result); // in order to provide correct statistics results, we have to wait until all child tasks finish
-//        updateOperationResult(result);
-//    }
-//    private void signalAllItemsSubmitted() {
-//        allItemsSubmitted = true;
-//    }
-//    private void waitForCompletion(OperationResult opResult) {
-//        getTaskManager().waitForTransientChildren(coordinatorTask, opResult);
-//    }
-//    private void updateOperationResult(OperationResult opResult) {
-//        if (workerSpecificResults != null) { // not null in the parallel case
-//            for (OperationResult workerSpecificResult : workerSpecificResults) {
-//                workerSpecificResult.computeStatus();
-//                workerSpecificResult.summarize();
-//                opResult.addSubresult(workerSpecificResult);
-//            }
-//        }
-//        opResult.computeStatus("Issues during processing");
-//
-//        if (getErrors() > 0) {
-//            opResult.setStatus(OperationResultStatus.PARTIAL_ERROR);
-//        }
-//    }
-
+    public @NotNull ErrorState getErrorState() {
+        return errorState;
+    }
 }

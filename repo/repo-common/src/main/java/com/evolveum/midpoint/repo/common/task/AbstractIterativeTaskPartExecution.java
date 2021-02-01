@@ -9,10 +9,6 @@ package com.evolveum.midpoint.repo.common.task;
 
 import static com.evolveum.midpoint.repo.common.task.AnnotationSupportUtil.createFromAnnotation;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
-
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -24,7 +20,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskException;
-import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskWorkBucketProcessingResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -74,7 +69,9 @@ public abstract class AbstractIterativeTaskPartExecution<I,
     /**
      * Logger that is specific to the concrete task handler class. This is to avoid logging everything under
      * common {@link AbstractIterativeTaskPartExecution} or some of its generic subclasses. Also, it allows
-     * to group all processing related to the given task under a single logger. See {@link AbstractTaskHandler#logger}.
+     * to group all processing related to the given task under a single logger.
+     *
+     * See {@link AbstractTaskHandler#logger}.
      */
     @NotNull protected final Trace logger;
 
@@ -100,11 +97,6 @@ public abstract class AbstractIterativeTaskPartExecution<I,
     @NotNull protected final ItemProcessingStatistics statistics;
 
     /**
-     * TODO
-     */
-    @NotNull private final AtomicReference<Throwable> hardExceptionEncounteredRef = new AtomicReference<>();
-
-    /**
      * Things like "Import", "Reconciliation (on resource)", and so on. Used e.g. in log messages like:
      * "Import of UserType:jack (Jack Sparrow, c0c010c0-d34d-b33f-f00d-111111111111) from Crew Management has been started"
      */
@@ -115,9 +107,6 @@ public abstract class AbstractIterativeTaskPartExecution<I,
      * An example: "from [resource]".
      */
     @NotNull private String contextDescription;
-
-    // TODO - this is a hack for now
-    protected final AtomicBoolean suspendRequested = new AtomicBoolean();
 
     protected AbstractIterativeTaskPartExecution(@NotNull TE taskExecution) {
         this.taskHandler = taskExecution.taskHandler;
@@ -142,7 +131,7 @@ public abstract class AbstractIterativeTaskPartExecution<I,
         initialize(opResult);
 
         prepareItemSource(opResult);
-        setExpectedItems(opResult);
+        setProgressAndExpectedItems(opResult);
 
         itemProcessor = setupItemProcessor(opResult);
         coordinator = setupCoordinator();
@@ -151,32 +140,16 @@ public abstract class AbstractIterativeTaskPartExecution<I,
             coordinator.createWorkerTasks();
             processItems(opResult);
         } finally {
-            // This is redundant in the case of sync event handling, but necessary in order to avoid
-            // endless waiting if any exception occurs.
-            coordinator.allItemsSubmitted();
+            // This is redundant in the case of live sync event handling (because the handler gets a notification when all
+            // items are submitted, and must stop the threads in order to allow provisioning to update the token).
+            //
+            // But overall, it is necessary to do this here in order to avoid endless waiting if any exception occurs.
+            coordinator.finishProcessing(opResult);
         }
 
-        // TODO
-        Throwable exceptionEncountered = hardExceptionEncounteredRef.get();
-        if (exceptionEncountered != null) {
-            // FIXME this is a temporary hack
-            if (exceptionEncountered instanceof ThresholdPolicyViolationException) {
-                throw (ThresholdPolicyViolationException) exceptionEncountered;
-            } else {
-                return logErrorAndSetResult(runResult, opResult, exceptionEncountered.getMessage(), exceptionEncountered,
-                        FATAL_ERROR, PERMANENT_ERROR);
-            }
-        }
-
-        if (statistics.getErrors() > 0) {
-            opResult.setStatus(PARTIAL_ERROR);
-        } else {
-            opResult.setStatus(SUCCESS);
-        }
-        // TODO: check last handler status
+        setOperationResult(opResult);
 
         runResult.setProgress(getTotalProgress());
-        runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
 
         if (taskHandler.getReportingOptions().isLogFinishInfo()) {
             logFinishInfo(opResult);
@@ -188,6 +161,18 @@ public abstract class AbstractIterativeTaskPartExecution<I,
         runResult.setBucketComplete(localCoordinatorTask.canRun()); // TODO
         runResult.setShouldContinue(localCoordinatorTask.canRun()); // TODO
         return runResult;
+    }
+
+    // TODO finish this method
+    private void setOperationResult(OperationResult opResult) {
+        if (taskExecution.getErrorState().isPermanentErrorEncountered()) {
+            // We assume the error occurred within this part (otherwise that part would not even start).
+            opResult.setStatus(FATAL_ERROR);
+        } else if (statistics.getErrors() > 0) {
+            opResult.setStatus(PARTIAL_ERROR);
+        } else {
+            opResult.setStatus(SUCCESS);
+        }
     }
 
     /**
@@ -209,7 +194,7 @@ public abstract class AbstractIterativeTaskPartExecution<I,
      * Computes expected total and sets the value in the task. E.g. for search-iterative tasks we count the objects here.
      * TODO reconsider
      */
-    protected void setExpectedItems(OperationResult opResult) throws CommunicationException, ObjectNotFoundException,
+    protected void setProgressAndExpectedItems(OperationResult opResult) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException,
             ObjectAlreadyExistsException {
     }
@@ -306,6 +291,7 @@ public abstract class AbstractIterativeTaskPartExecution<I,
         if (!localCoordinatorTask.canRun()) {
             statMsg += " Task was interrupted during processing.";
         }
+        statMsg += " Resulting status: " + opResult.getStatus();
 
         opResult.createSubresult(getTaskOperationPrefix() + ".statistics")
                 .recordStatus(OperationResultStatus.SUCCESS, statMsg);
@@ -316,24 +302,6 @@ public abstract class AbstractIterativeTaskPartExecution<I,
 
     private String getTaskOperationPrefix() {
         return taskHandler.getTaskOperationPrefix();
-    }
-
-    public void setHardExceptionEncountered(Throwable t) {
-        hardExceptionEncounteredRef.set(t);
-    }
-
-    public Throwable getHardExceptionEncountered() {
-        return hardExceptionEncounteredRef.get();
-    }
-
-    // TODO fix/remove
-    private TaskWorkBucketProcessingResult logErrorAndSetResult(TaskWorkBucketProcessingResult runResult, OperationResult opResult, String message, Throwable e,
-            OperationResultStatus opStatus, TaskRunResult.TaskRunResultStatus status) {
-        logger.error("{}: {}: {}", processShortNameCapitalized, message, e.getMessage(), e);
-        opResult.recordStatus(opStatus, message + ": " + e.getMessage(), e);
-        runResult.setRunResultStatus(status);
-        runResult.setProgress(getTotalProgress());
-        return runResult;
     }
 
     private Integer getWorkerThreadsCount() {
@@ -374,7 +342,7 @@ public abstract class AbstractIterativeTaskPartExecution<I,
     }
 
     // FIXME brutal hack - replace by serious error handling code
-    public boolean getContinueOnError(OperationResultStatus status, ItemProcessingRequest<?> request, OperationResult result) {
+    public boolean getContinueOnError(OperationResultStatus status, @NotNull Throwable resultException, ItemProcessingRequest<?> request, OperationResult result) {
         return true;
     }
 }

@@ -14,6 +14,7 @@ import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -214,18 +215,23 @@ class RequestsBuffer<I> {
     }
 
     // should be called when there's no concurrency
-    void nackAllRequests(OperationResult result) {
-        nackAll(globalQueue, result);
-        reservedRequestsQueueMap.values().forEach(queue -> nackAll(queue, result));
+    int nackAllRequests(OperationResult result) {
+        AtomicInteger nackCounter = new AtomicInteger();
+
+        nackAll(globalQueue, nackCounter, result);
+        reservedRequestsQueueMap.values().forEach(queue -> nackAll(queue, nackCounter, result));
+
+        return nackCounter.get();
     }
 
-    private void nackAll(Queue<ItemProcessingRequest<I>> queue, OperationResult result) {
+    private void nackAll(Queue<ItemProcessingRequest<I>> queue, AtomicInteger counter, OperationResult result) {
         for (;;) {
             ItemProcessingRequest<I> request = queue.poll();
             if (request == null) {
                 break;
             } else {
                 request.acknowledge(false, result);
+                counter.incrementAndGet();
             }
         }
     }

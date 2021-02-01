@@ -54,8 +54,6 @@ public class ProcessingCoordinator<I> {
      */
     private final AtomicBoolean stopRequestedByAnyWorker = new AtomicBoolean(false);
 
-    private volatile Throwable exceptionEncountered; //?
-
     /**
      * Set to true when no more items are expected to arrive into the queue.
      * It is informing worker threads that they can stop.
@@ -163,14 +161,30 @@ public class ProcessingCoordinator<I> {
         return multithreaded;
     }
 
-    public void waitForWorkersFinish(OperationResult result) {
-        taskManager.waitForTransientChildren(coordinatorTask, result);
+    /**
+     * Tells the workers that they should not expect any more work and waits for their completion
+     * (which can occur either because of queue is empty or because canRun is false).
+     * Acknowledges any pending requests.
+     */
+    public void finishProcessing(OperationResult result) {
+        logger.trace("ProcessingCoordinator: finishing processing. Coordinator task canRun = {}", coordinatorTask.canRun());
+
+        allItemsSubmitted.set(true);
+        waitForWorkersFinish(result);
+        nackQueuedRequests(result);
     }
 
-    // TODO combine with wait for worker requests?
-    public void nackQueuedRequests(OperationResult result) {
+    private void waitForWorkersFinish(OperationResult result) {
+        logger.trace("Waiting for workers to finish");
+        taskManager.waitForTransientChildren(coordinatorTask, result);
+        logger.trace("Waiting for workers to finish done");
+    }
+
+    private void nackQueuedRequests(OperationResult result) {
         if (multithreaded) {
-            requestsBuffer.nackAllRequests(result);
+            logger.trace("Acknowledging (release=false) all pending requests");
+            int count = requestsBuffer.nackAllRequests(result);
+            logger.trace("Acknowledged {} pending requests", count);
         }
     }
 
@@ -252,11 +266,7 @@ public class ProcessingCoordinator<I> {
         }
     }
 
-    public void allItemsSubmitted() {
-        logger.trace("All items were submitted; coordinator task canRun = {}", coordinatorTask.canRun());
-        allItemsSubmitted.set(true);
-    }
-
+    // TODO decide on this
     void updateOperationResult(OperationResult opResult) {
         if (multithreaded) {
             assert workerSpecificResults != null;

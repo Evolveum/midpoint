@@ -29,13 +29,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskException;
-import com.evolveum.midpoint.task.api.TaskRunResult;
-import com.evolveum.midpoint.task.api.util.TaskExceptionHandlingUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 /**
  * Auxiliary methods for synchronization tasks (Live Sync, Async Update, and maybe others).
@@ -185,17 +182,5 @@ public class SyncTaskHelper {
             throw new TaskException("No refined schema defined. Probably some configuration problem.", FATAL_ERROR,
                     PERMANENT_ERROR);
         }
-    }
-
-    TaskException convertException(Throwable t, TaskPartitionDefinitionType partition) {
-        return TaskExceptionHandlingUtil.convertException(t, partition);
-    }
-
-    TaskRunResult processFinish(TaskRunResult runResult) {
-        return TaskExceptionHandlingUtil.processFinish(runResult);
-    }
-
-    TaskRunResult processTaskException(TaskException e, Trace logger, String ctx, TaskRunResult runResult) {
-        return TaskExceptionHandlingUtil.processTaskException(e, logger, ctx, runResult);
     }
 }
