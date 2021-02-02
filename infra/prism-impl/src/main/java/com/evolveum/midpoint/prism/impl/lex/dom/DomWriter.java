@@ -245,14 +245,21 @@ class DomWriter {
         // We cannot correctly serialize without a type. But this is needed sometimes. So just default to string.
         String stringValue = xprim.getStringValue();
         if (stringValue != null) {
+            // FIXME: DOMUtil.allNamespaceDeclarations does not return default namespace if document is constructed
+            PrismNamespaceContext currentNs = PrismNamespaceContext.from(DOMUtil.allNamespaceDeclarations(parentElement));
+            PrismNamespaceContext relevantNs = PrismNamespaceContext.from(xprim.getRelevantNamespaceDeclarations());
+            Element element;
             if (asAttribute) {
                 DOMUtil.setAttributeValue(parentElement, elementOrAttributeName.getLocalPart(), stringValue);
-                DOMUtil.setNamespaceDeclarations(parentElement, xprim.getRelevantNamespaceDeclarations());
+                element = parentElement;
             } else {
-                Element element = createAndAppendChild(elementOrAttributeName, parentElement);
+                element = createAndAppendChild(elementOrAttributeName, parentElement);
                 appendCommentIfPresent(element, xprim);
                 DOMUtil.setElementTextContent(element, stringValue);
-                DOMUtil.setNamespaceDeclarations(element, xprim.getRelevantNamespaceDeclarations());
+            }
+            PrismNamespaceContext rebased = relevantNs.rebasedOn(currentNs);
+            if(!rebased.isLocalEmpty()) {
+                DOMUtil.setNamespaceDeclarations(element, rebased.localPrefixes());
             }
         }
     }
@@ -320,7 +327,7 @@ class DomWriter {
             Map<String, String> availableNamespaces = DOMUtil.getAllNonDefaultNamespaceDeclarations(parent);
             PrismNamespaceContext localNs = PrismNamespaceContext.from(availableNamespaces);
 
-            ItemPathSerialization ctx = ItemPathSerialization.serialize(UniformItemPath.from(itemPathType.getItemPath()), localNs);
+            ItemPathSerialization ctx = ItemPathSerialization.serialize(UniformItemPath.from(itemPathType.getItemPath()), localNs, true);
 
             Element element = createAndAppendChild(elementName, parent);
             DOMUtil.setNamespaceDeclarations(element,ctx.undeclaredPrefixes());

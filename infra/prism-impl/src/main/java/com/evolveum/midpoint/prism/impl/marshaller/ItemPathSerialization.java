@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.prism.impl.marshaller;
 
 import java.util.*;
+
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
@@ -15,7 +16,6 @@ import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.PrismNamespaceContext.PrefixPreference;
 import com.evolveum.midpoint.prism.path.*;
-import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -89,6 +89,10 @@ public final class ItemPathSerialization {
     }
 
     public static ItemPathSerialization serialize(@NotNull UniformItemPath itemPath, PrismNamespaceContext context) {
+        return serialize(itemPath, context, false);
+    }
+
+    public static ItemPathSerialization serialize(@NotNull UniformItemPath itemPath, PrismNamespaceContext context, boolean overrideNs) {
         Map<String, String> usedPrefixToNs = new HashMap<String, String>();
         BiMap<String, String> undeclaredNsToPrefix = HashBiMap.create();
 
@@ -98,10 +102,10 @@ public final class ItemPathSerialization {
             PathHolderSegment xsegment;
             if (segment instanceof NameItemPathSegment) {
                 QName name = ((NameItemPathSegment) segment).getName();
-                xsegment = new PathHolderSegment(assignPrefix(name, context, undeclaredNsToPrefix, usedPrefixToNs));
+                xsegment = new PathHolderSegment(assignPrefix(name, context, undeclaredNsToPrefix, usedPrefixToNs, overrideNs));
             } else if (segment instanceof VariableItemPathSegment) {
                 QName name = ((VariableItemPathSegment) segment).getName();
-                xsegment = new PathHolderSegment(assignPrefix(name, context, undeclaredNsToPrefix, usedPrefixToNs), true);
+                xsegment = new PathHolderSegment(assignPrefix(name, context, undeclaredNsToPrefix, usedPrefixToNs, overrideNs), true);
             } else if (segment instanceof IdItemPathSegment) {
                 xsegment = new PathHolderSegment(idToString(((IdItemPathSegment) segment).getId()));
             } else if (segment instanceof ObjectReferencePathSegment) {
@@ -123,41 +127,74 @@ public final class ItemPathSerialization {
     }
 
     private static QName assignPrefix(@NotNull QName name, PrismNamespaceContext global,
-            Map<String, String> localNamespaceToPrefix, Map<String, String> prefixToNs) {
+            Map<String, String> localNamespaceToPrefix, Map<String, String> prefixToNs, boolean overrideNs) {
         String namespace = name.getNamespaceURI();
         String explicitPrefix = name.getPrefix();
         if(Strings.isNullOrEmpty(namespace)) {
-            Preconditions.checkState(Strings.isNullOrEmpty(explicitPrefix), "QName %s has prefix, but no namespace", name);
+            if(Strings.isNullOrEmpty(explicitPrefix)) {
+                /*
+                 * COMPAT: QName has prefix, but no namespace, fallback to default namespace
+                 *   since we do not know how to interpret it
+                 */
+                return new ItemName(name.getLocalPart());
+            }
             return name;
         }
+
+        String proposedPrefix = assignPrefix(namespace, explicitPrefix, global, localNamespaceToPrefix, prefixToNs, overrideNs);
+        if(explicitPrefix.equals(proposedPrefix)) {
+            return name;
+        }
+        return new ItemName(namespace, name.getLocalPart(), proposedPrefix);
+
+    }
+
+    private static String assignPrefix(String namespace, String explicitPrefix, PrismNamespaceContext global,
+            Map<String, String> localNamespaceToPrefix, Map<String, String> prefixToNs, boolean overrideNs) {
+
+        // First we try to use existing prefix
+        if(!Strings.isNullOrEmpty(explicitPrefix)) {
+            String localNs = prefixToNs.get(explicitPrefix);
+            if(namespace.equals(localNs)) {
+                return explicitPrefix;
+            }
+            Optional<String> globalNs = global.namespaceFor(explicitPrefix);
+            if(globalNs.isPresent() && namespace.equals(globalNs.get())) {
+                prefixToNs.put(explicitPrefix, namespace);
+                return explicitPrefix;
+            }
+            if(overrideNs && localNs == null) {
+                localNamespaceToPrefix.putIfAbsent(namespace, explicitPrefix);
+                prefixToNs.put(explicitPrefix, namespace);
+                return explicitPrefix;
+            }
+        }
+        // Renaming item/prefix
         String localPrefix = localNamespaceToPrefix.get(namespace);
         if(localPrefix != null) {
-            return new QName(namespace, name.getLocalPart(), localPrefix);
+            // We already created local prefix for specified namespace
+            return localPrefix;
         }
-        Optional<String> documentPrefix = global.prefixFor(namespace, PrefixPreference.GLOBAL_FIRST_SKIP_DEFAULTS);
-        if(documentPrefix.isPresent()) {
-            // Rename item (use document prefix)
-            prefixToNs.put(documentPrefix.get(), namespace);
-            return new QName(namespace, name.getLocalPart(), documentPrefix.get());
+        Optional<String> globalPrefix = global.prefixFor(namespace, PrefixPreference.GLOBAL_FIRST_SKIP_DEFAULTS);
+        if(globalPrefix.isPresent()) {
+            // We are reusing inherited prefix
+            prefixToNs.put(globalPrefix.get(), namespace);
+            return globalPrefix.get();
         }
 
-        // Lookup if prefix was not assigned locally already
-
-        // We assign prefix
+        // We Try to compute new prefix
         localPrefix = explicitPrefix;
         while(isPrefixConflicting(localPrefix, prefixToNs, global)) {
-            localPrefix = proposeNewPrefix(namespace, localPrefix);
+            localPrefix = proposeNewPrefix(namespace, explicitPrefix);
         }
 
         prefixToNs.put(localPrefix, namespace);
         localNamespaceToPrefix.put(namespace, localPrefix);
-
-        return new QName(namespace, name.getLocalPart(), localPrefix);
+        return localPrefix;
     }
 
     private static String proposeNewPrefix(String ns, String candidate) {
-        // FIXME Determine better assignment of random prefixes
-        return "gen" + new Random().nextInt(999);
+        return (Strings.isNullOrEmpty(candidate) ? "gen" : candidate) + new Random().nextInt(999);
     }
 
     private static boolean isPrefixConflicting(String candidate, Map<String, String> prefixToNs,
