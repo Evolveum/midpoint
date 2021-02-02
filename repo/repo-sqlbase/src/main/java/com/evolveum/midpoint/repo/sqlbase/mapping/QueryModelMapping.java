@@ -131,8 +131,8 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
      * on item filter processors.
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    protected <A> Function<EntityPath<?>, Path<?>> path(
-            Function<Q, Path<A>> rootToQueryItem) {
+    protected <A extends Path<?>> Function<EntityPath<?>, A> path(
+            Function<Q, A> rootToQueryItem) {
         return (Function) rootToQueryItem;
     }
 
@@ -141,9 +141,9 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
      * for paths not starting on the Q parameter used for this mapping instance.
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    protected <OQ extends EntityPath<OR>, OR, A> Function<EntityPath<?>, Path<?>> path(
+    protected <OQ extends EntityPath<OR>, OR, A extends Path<?>> Function<EntityPath<?>, A> path(
             @SuppressWarnings("unused") Class<OQ> queryType,
-            Function<OQ, Path<A>> entityToQueryItem) {
+            Function<OQ, A> entityToQueryItem) {
         return (Function) entityToQueryItem;
     }
 

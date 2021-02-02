@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.sql.audit.mapping;
 import java.util.function.Function;
 
 import com.querydsl.core.types.*;
+import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.core.types.dsl.StringPath;
 
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
@@ -28,24 +30,24 @@ public class AuditRefItemFilterProcessor extends ItemFilterProcessor<RefFilter> 
     /**
      * Returns the mapper function creating the ref-filter processor from context.
      */
-    public static ItemSqlMapper mapper(Function<EntityPath<?>, Path<?>> rootToOidPath) {
+    public static ItemSqlMapper mapper(Function<EntityPath<?>, StringPath> rootToOidPath) {
         return new ItemSqlMapper(ctx -> new AuditRefItemFilterProcessor(ctx, rootToOidPath, null));
     }
 
     public static ItemSqlMapper mapper(
-            Function<EntityPath<?>, Path<?>> rootToOidPath,
-            Function<EntityPath<?>, Path<?>> rootToTypePath) {
+            Function<EntityPath<?>, StringPath> rootToOidPath,
+            Function<EntityPath<?>, NumberPath<Integer>> rootToTypePath) {
         return new ItemSqlMapper(ctx ->
                 new AuditRefItemFilterProcessor(ctx, rootToOidPath, rootToTypePath));
     }
 
-    private final Path<?> oidPath;
-    private final Path<?> typePath;
+    private final StringPath oidPath;
+    private final NumberPath<Integer> typePath;
 
     private AuditRefItemFilterProcessor(
             SqlQueryContext<?, ?, ?> context,
-            Function<EntityPath<?>, Path<?>> rootToOidPath,
-            Function<EntityPath<?>, Path<?>> rootToTypePath) {
+            Function<EntityPath<?>, StringPath> rootToOidPath,
+            Function<EntityPath<?>, NumberPath<Integer>> rootToTypePath) {
         super(context);
         this.oidPath = rootToOidPath.apply(context.path());
         this.typePath = rootToTypePath != null ? rootToTypePath.apply(context.path()) : null;
@@ -58,13 +60,13 @@ public class AuditRefItemFilterProcessor extends ItemFilterProcessor<RefFilter> 
 
         if (ref != null) {
             if (ref.getOid() != null) {
-                return ExpressionUtils.predicate(Ops.EQ, oidPath, ConstantImpl.create(ref.getOid()));
+                return predicateWithNotTreated(oidPath, oidPath.eq(ref.getOid()));
             } else if (ref.getType() != null && typePath != null) {
                 Class<? extends ObjectType> type = context.qNameToSchemaClass(ref.getType());
-                return ExpressionUtils.predicate(Ops.EQ, typePath,
-                        ConstantImpl.create(RObjectType.getByJaxbType(type).ordinal()));
+                return predicateWithNotTreated(typePath,
+                        typePath.eq(RObjectType.getByJaxbType(type).ordinal()));
             }
         }
-        return ExpressionUtils.predicate(Ops.IS_NULL, oidPath);
+        return oidPath.isNull();
     }
 }

@@ -30,11 +30,12 @@ public class ItemSqlMapper {
 
     @NotNull private final Function<SqlQueryContext<?, ?, ?>, FilterProcessor<?>> filterProcessorFactory;
 
-    public ItemSqlMapper(
+    public <P extends Path<?>> ItemSqlMapper(
             @NotNull Function<SqlQueryContext<?, ?, ?>, FilterProcessor<?>> filterProcessorFactory,
-            @Nullable Function<EntityPath<?>, Path<?>> primaryItemMapping) {
+            @Nullable Function<EntityPath<?>, P> primaryItemMapping) {
         this.filterProcessorFactory = Objects.requireNonNull(filterProcessorFactory);
-        this.primaryItemMapping = primaryItemMapping;
+        //noinspection unchecked
+        this.primaryItemMapping = (Function<EntityPath<?>, Path<?>>) primaryItemMapping;
     }
 
     public ItemSqlMapper(

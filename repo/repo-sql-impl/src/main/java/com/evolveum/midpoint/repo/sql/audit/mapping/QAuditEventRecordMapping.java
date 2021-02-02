@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sql.audit.mapping;
 
 import static com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditEventRecord.TABLE_NAME;
+import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.stringMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.*;
 
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditEventRecord;
@@ -18,7 +19,10 @@ import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlDetailFetchMapper;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.*;
+import com.evolveum.midpoint.repo.sqlbase.mapping.item.CanonicalItemPathItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.mapping.item.DetailTableItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.mapping.item.EnumOrdinalItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.mapping.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
 /**
@@ -35,31 +39,24 @@ public class QAuditEventRecordMapping
         super(TABLE_NAME, DEFAULT_ALIAS_NAME,
                 AuditEventRecordType.class, QAuditEventRecord.class);
 
-        addItemMapping(F_CHANNEL, StringItemFilterProcessor.mapper(path(q -> q.channel)));
-        addItemMapping(F_EVENT_IDENTIFIER,
-                StringItemFilterProcessor.mapper(path(q -> q.eventIdentifier)));
+        addItemMapping(F_CHANNEL, stringMapper(path(q -> q.channel)));
+        addItemMapping(F_EVENT_IDENTIFIER, stringMapper(path(q -> q.eventIdentifier)));
         addItemMapping(F_EVENT_STAGE, EnumOrdinalItemFilterProcessor.mapper(
                 path(q -> q.eventStage), RAuditEventStage::fromSchemaValue));
         addItemMapping(F_EVENT_TYPE, EnumOrdinalItemFilterProcessor.mapper(
                 path(q -> q.eventType), RAuditEventType::fromSchemaValue));
-        addItemMapping(F_HOST_IDENTIFIER,
-                StringItemFilterProcessor.mapper(path(q -> q.hostIdentifier)));
-        addItemMapping(F_MESSAGE, StringItemFilterProcessor.mapper(path(q -> q.message)));
-        addItemMapping(F_NODE_IDENTIFIER,
-                StringItemFilterProcessor.mapper(path(q -> q.nodeIdentifier)));
+        addItemMapping(F_HOST_IDENTIFIER, stringMapper(path(q -> q.hostIdentifier)));
+        addItemMapping(F_MESSAGE, stringMapper(path(q -> q.message)));
+        addItemMapping(F_NODE_IDENTIFIER, stringMapper(path(q -> q.nodeIdentifier)));
         addItemMapping(F_OUTCOME, EnumOrdinalItemFilterProcessor.mapper(
                 path(q -> q.outcome), ROperationResultStatus::fromSchemaValue));
-        addItemMapping(F_PARAMETER, StringItemFilterProcessor.mapper(path(q -> q.parameter)));
-        addItemMapping(F_REMOTE_HOST_ADDRESS,
-                StringItemFilterProcessor.mapper(path(q -> q.remoteHostAddress)));
-        addItemMapping(F_REQUEST_IDENTIFIER,
-                StringItemFilterProcessor.mapper(path(q -> q.requestIdentifier)));
-        addItemMapping(F_RESULT, StringItemFilterProcessor.mapper(path(q -> q.result)));
-        addItemMapping(F_SESSION_IDENTIFIER,
-                StringItemFilterProcessor.mapper(path(q -> q.sessionIdentifier)));
-        addItemMapping(F_TASK_IDENTIFIER,
-                StringItemFilterProcessor.mapper(path(q -> q.taskIdentifier)));
-        addItemMapping(F_TASK_OID, StringItemFilterProcessor.mapper(path(q -> q.taskOid)));
+        addItemMapping(F_PARAMETER, stringMapper(path(q -> q.parameter)));
+        addItemMapping(F_REMOTE_HOST_ADDRESS, stringMapper(path(q -> q.remoteHostAddress)));
+        addItemMapping(F_REQUEST_IDENTIFIER, stringMapper(path(q -> q.requestIdentifier)));
+        addItemMapping(F_RESULT, stringMapper(path(q -> q.result)));
+        addItemMapping(F_SESSION_IDENTIFIER, stringMapper(path(q -> q.sessionIdentifier)));
+        addItemMapping(F_TASK_IDENTIFIER, stringMapper(path(q -> q.taskIdentifier)));
+        addItemMapping(F_TASK_OID, stringMapper(path(q -> q.taskOid)));
         addItemMapping(F_TIMESTAMP, TimestampItemFilterProcessor.mapper(path(q -> q.timestamp)));
 
         addItemMapping(F_CHANGED_ITEM, DetailTableItemFilterProcessor.mapper(
