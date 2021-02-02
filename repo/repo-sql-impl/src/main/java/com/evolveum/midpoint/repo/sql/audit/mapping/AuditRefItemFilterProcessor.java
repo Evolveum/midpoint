@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 public class AuditRefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
 
     /**
-     * Returns the mapper function creating the string filter processor from context.
+     * Returns the mapper function creating the ref-filter processor from context.
      */
     public static ItemSqlMapper mapper(Function<EntityPath<?>, Path<?>> rootToOidPath) {
         return new ItemSqlMapper(ctx -> new AuditRefItemFilterProcessor(ctx, rootToOidPath, null));
