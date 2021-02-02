@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.prism;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -22,7 +23,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 
-public abstract class PrismNamespaceContext {
+public abstract class PrismNamespaceContext implements Serializable {
 
     public static final PrismNamespaceContext EMPTY = new Empty();
     public static final String DEFAULT_PREFIX = "";
@@ -138,6 +139,7 @@ public abstract class PrismNamespaceContext {
 
     private static class Impl extends PrismNamespaceContext {
 
+        private static final long serialVersionUID = 1L;
         private final Impl parent;
         private final Map<String, String> prefixToNs;
         private final Multimap<String,String> nsToPrefix;
@@ -151,6 +153,7 @@ public abstract class PrismNamespaceContext {
             this.parent = parent;
             this.prefixToNs = ImmutableMap.copyOf(local);
 
+            // FIXME: nsToPrefix could be constructed lazily on first use
             ImmutableMultimap.Builder<String, String> builder = ImmutableMultimap.builder();
             for(Entry<String, String> e : prefixToNs.entrySet()) {
                 builder.put(e.getValue(), e.getKey());
@@ -302,6 +305,10 @@ public abstract class PrismNamespaceContext {
 
     private static class Inherited extends PrismNamespaceContext {
 
+        /**
+         *
+         */
+        private static final long serialVersionUID = 1L;
         private final Impl parent;
 
         public Inherited(Impl parent) {
@@ -315,7 +322,7 @@ public abstract class PrismNamespaceContext {
 
         @Override
         public Map<String, String> localPrefixes() {
-            return parent.localPrefixes();
+            return Collections.emptyMap();
         }
 
         @Override
@@ -370,6 +377,11 @@ public abstract class PrismNamespaceContext {
     }
 
     private static class Empty extends PrismNamespaceContext {
+
+        /**
+         *
+         */
+        private static final long serialVersionUID = 1L;
 
         @Override
         public Optional<PrismNamespaceContext> parent() {
@@ -435,6 +447,9 @@ public abstract class PrismNamespaceContext {
 
     public enum PrefixPreference {
 
+        /**
+         * Returns first found topmost (closest to namespace root) prefix
+         */
         GLOBAL_FIRST {
 
             @Override
@@ -444,6 +459,9 @@ public abstract class PrismNamespaceContext {
                 return result;
             }
         },
+        /**
+         * Returns first found topmost (closest to namespace root) prefix which is not default
+         */
         GLOBAL_FIRST_SKIP_DEFAULTS {
             @Override
             List<String> apply(Impl context, String namespace) {
