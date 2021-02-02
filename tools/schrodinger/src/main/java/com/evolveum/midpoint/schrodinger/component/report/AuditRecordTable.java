@@ -8,9 +8,11 @@ package com.evolveum.midpoint.schrodinger.component.report;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.CasesTab;
+import com.evolveum.midpoint.schrodinger.component.common.search.Search;
 import com.evolveum.midpoint.schrodinger.component.common.table.Table;
 import com.evolveum.midpoint.schrodinger.component.common.table.TableWithPageRedirect;
 import com.evolveum.midpoint.schrodinger.component.table.TableHeaderDropDownMenu;
@@ -34,6 +36,15 @@ public class AuditRecordTable<T> extends TableWithPageRedirect<T> {
 
     @Override
     public AuditLogViewerDetailsPage clickByName(String name) {
+        getParentElement().$(Schrodinger.byElementValue("span", "data-s-id", "label", name))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        return new AuditLogViewerDetailsPage();
+    }
+
+    public AuditLogViewerDetailsPage clickByRowColumnNumber(int rowNumber, int columnNumber) {
+        getCell(rowNumber, columnNumber).click();
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return new AuditLogViewerDetailsPage();
     }
 
@@ -71,5 +82,10 @@ public class AuditRecordTable<T> extends TableWithPageRedirect<T> {
         SelenideElement rowElement = rowsElement.get(row > 0 ? (row-1) : row);
         ElementsCollection columnsElement = rowElement.findAll(By.tagName("td"));
         return columnsElement.get(column > 0 ? (column-1) : column);
+    }
+
+    @Override
+    public Search<AuditRecordTable<T>> search() {
+        return (Search<AuditRecordTable<T>>) super.search();
     }
 }
