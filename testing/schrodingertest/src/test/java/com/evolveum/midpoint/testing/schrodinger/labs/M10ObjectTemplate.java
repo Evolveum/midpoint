@@ -71,8 +71,11 @@ public class M10ObjectTemplate extends AbstractLabTest{
     @Override
     protected void springTestContextPrepareTestInstance() throws Exception {
         String home = System.getProperty("midpoint.home");
+        File mpHomeDir = new File(home);
         File schemaDir = new File(home, "schema");
-
+        if (!mpHomeDir.exists()) {
+            super.springTestContextPrepareTestInstance();
+        }
         if (!schemaDir.mkdir()) {
             if (schemaDir.exists()) {
                 FileUtils.cleanDirectory(schemaDir);

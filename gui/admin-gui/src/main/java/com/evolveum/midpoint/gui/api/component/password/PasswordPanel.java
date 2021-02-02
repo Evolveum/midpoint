@@ -6,13 +6,32 @@
  */
 package com.evolveum.midpoint.gui.api.component.password;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
+
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.web.component.search.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Application;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.ajax.attributes.ThrottlingSettings;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.ComponentTag;
@@ -20,9 +39,13 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.PasswordTextField;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
+import org.apache.wicket.util.time.Duration;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
@@ -31,7 +54,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
@@ -42,11 +64,15 @@ import com.evolveum.midpoint.web.page.self.PageUserSelfProfile;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import org.jfree.util.Log;
+
 /**
  * @author lazyman
  */
 public class PasswordPanel extends InputPanel {
     private static final long serialVersionUID = 1L;
+
+    private static final Trace LOGGER = TraceManager.getTrace(PasswordPanel.class);
 
     private static final String ID_LINK_CONTAINER = "linkContainer";
     private static final String ID_PASSWORD_SET = "passwordSet";
@@ -57,21 +83,43 @@ public class PasswordPanel extends InputPanel {
     private static final String ID_INPUT_CONTAINER = "inputContainer";
     private static final String ID_PASSWORD_ONE = "password1";
     private static final String ID_PASSWORD_TWO = "password2";
+    private static final String ID_VALIDATION_CONTAINER = "validationContainer";
+    private static final String ID_VALIDATION_PARENT_ITEMS = "validationParentItems";
+    private static final String ID_VALIDATION_ITEMS = "validationItems";
+    private static final String ID_VALIDATION_ITEM = "validationItem";
 
     private boolean passwordInputVisible;
     private static boolean clearPasswordInput = false;
+    private static boolean setPasswordInput = false;
+    private final PageBase pageBase;
 
     public PasswordPanel(String id, IModel<ProtectedStringType> model) {
         this(id, model, false, model == null || model.getObject() == null);
     }
 
-    public PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly, boolean isInputVisible) {
-        super(id);
-        this.passwordInputVisible = isInputVisible;
-        initLayout(model, isReadOnly);
+    public <F extends FocusType> PasswordPanel(String id, IModel<ProtectedStringType> model, PrismObject<F> object,
+            PageBase pageBase) {
+        this(id, model, false, model == null || model.getObject() == null, object, pageBase);
     }
 
-    private void initLayout(final IModel<ProtectedStringType> model, final boolean isReadOnly) {
+    public <F extends FocusType> PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly, boolean isInputVisible) {
+        this(id, model,isReadOnly,isInputVisible, null, null);
+    }
+
+    public <F extends FocusType> PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly, boolean isInputVisible,
+            PrismObject<F> object, PageBase pageBase) {
+        super(id);
+        this.passwordInputVisible = isInputVisible;
+        this.pageBase = pageBase;
+        initLayout(model, isReadOnly, object);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+    }
+
+    private <F extends FocusType> void initLayout(final IModel<ProtectedStringType> model, final boolean isReadOnly, PrismObject<F> object) {
         setOutputMarkupId(true);
         final WebMarkupContainer inputContainer = new WebMarkupContainer(ID_INPUT_CONTAINER) {
             private static final long serialVersionUID = 1L;
@@ -83,6 +131,82 @@ public class PasswordPanel extends InputPanel {
         };
         inputContainer.setOutputMarkupId(true);
         add(inputContainer);
+
+        PrismObject<ValuePolicyType> valuePolicy = null;
+        try {
+            if (object != null) {
+                Task task = getPageBase().createSimpleTask("load value policy");
+                CredentialsPolicyType credentials = getPageBase().getModelInteractionService().getCredentialsPolicy(object, task, task.getResult());
+                if (credentials != null && credentials.getPassword() != null
+                        && credentials.getPassword().getValuePolicyRef() != null) {
+                    valuePolicy = WebModelServiceUtils.resolveReferenceNoFetch(
+                            credentials.getPassword().getValuePolicyRef(), getPageBase(), task, task.getResult());
+
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.warn("Couldn't load security policy for focus " + object, e);
+        }
+
+        PrismObject<ValuePolicyType> finalValuePolicy = valuePolicy;
+        LoadableModel<List<StringLimitationResult>> limitationsModel = new LoadableModel<>() {
+            @Override
+            protected List<StringLimitationResult> load() {
+                if (finalValuePolicy != null && object != null) {
+                    Task task = getPageBase().createSimpleTask("validation of password");
+                    try {
+                        ProtectedStringType newValue = !setPasswordInput ? new ProtectedStringType() : model.getObject();
+                        return getPageBase().getModelInteractionService().validateValue(
+                                newValue, finalValuePolicy.asObjectable(), object, task, task.getResult());
+                    } catch (Exception e) {
+                        LOGGER.error("Couldn't validate password security policy", e);
+                    }
+                }
+                return new ArrayList<>();
+            }
+        };
+
+        final WebMarkupContainer validationContainer = new WebMarkupContainer(ID_VALIDATION_CONTAINER) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return !limitationsModel.getObject().isEmpty();
+            }
+        };
+        validationContainer.setOutputMarkupId(true);
+        inputContainer.add(validationContainer);
+
+        final WebMarkupContainer validationParentContainer = new WebMarkupContainer(ID_VALIDATION_PARENT_ITEMS) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return !limitationsModel.getObject().isEmpty();
+            }
+        };
+        validationParentContainer.setOutputMarkupId(true);
+        validationContainer.add(validationParentContainer);
+
+        ListView<StringLimitationResult> validationItems = new ListView<>(ID_VALIDATION_ITEMS, limitationsModel) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void populateItem(ListItem<StringLimitationResult> item) {
+                StringLimitationPanel limitationPanel = new StringLimitationPanel(ID_VALIDATION_ITEM, item.getModel());
+                limitationPanel.setOutputMarkupId(true);
+                item.add(limitationPanel);
+                item.add(AttributeModifier.append("class", new IModel<String>() {
+                    @Override
+                    public String getObject() {
+                        return Boolean.TRUE.equals(item.getModelObject().isSuccess()) ? "list-group-item-success" : "";
+                    }
+                }));
+            }
+        };
+        validationItems.setOutputMarkupId(true);
+        validationParentContainer.add(validationItems);
 
         final PasswordTextField password1 = new SecureModelPasswordTextField(ID_PASSWORD_ONE, new PasswordModel(model)) {
             private static final long serialVersionUID = 1L;
@@ -120,7 +244,24 @@ public class PasswordPanel extends InputPanel {
 //                target.appendJavaScript("$(\"#"+ password2.getMarkupId() +"\").focus()");
             }
         });
-        password2.add(new PasswordValidator(password1));
+        password1.add(new AjaxFormComponentUpdatingBehavior("keyup") {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                limitationsModel.reset();
+                target.add(validationParentContainer);
+            }
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+                attributes.setThrottlingSettings(new ThrottlingSettings(Duration.milliseconds(500), true));
+                attributes.setChannel(new AjaxChannel("Drop", AjaxChannel.Type.DROP));
+            }
+        });
+        password2.add
+                (new PasswordValidator(password1));
 
         final WebMarkupContainer linkContainer = new WebMarkupContainer(ID_LINK_CONTAINER) {
             private static final long serialVersionUID = 1L;
@@ -147,6 +288,7 @@ public class PasswordPanel extends InputPanel {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 clearPasswordInput = true;
+                setPasswordInput = false;
                 onLinkClick(target);
             }
 
@@ -183,7 +325,7 @@ public class PasswordPanel extends InputPanel {
 
             @Override
             public boolean isVisible() {
-                PageBase pageBase = (PageBase) getPage();
+                PageBase pageBase = getPageBase();
                 if (pageBase == null) {
                     return false;
                 }
@@ -202,6 +344,10 @@ public class PasswordPanel extends InputPanel {
         removePassword.setOutputMarkupId(true);
         removeButtonContainer.add(removePassword);
         add(removeButtonContainer);
+    }
+
+    private PageBase getPageBase() {
+        return pageBase;
     }
 
     private void onLinkClick(AjaxRequestTarget target) {
@@ -304,8 +450,10 @@ public class PasswordPanel extends InputPanel {
         public void setObject(String object) {
             if (clearPasswordInput) {
                 clearPasswordInput = false;
+                setPasswordInput = false;
                 return;
             }
+            setPasswordInput = true;
             if (object == null) {
                 psModel.setObject(null);
             } else {

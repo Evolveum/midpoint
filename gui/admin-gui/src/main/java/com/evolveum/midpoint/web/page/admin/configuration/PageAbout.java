@@ -602,7 +602,7 @@ public class PageAbout extends PageAdminConfiguration {
             initialDataImport.setTaskManager(getTaskManager());
             initialDataImport.setPrismContext(getPrismContext());
             initialDataImport.setConfiguration(getMidpointConfiguration());
-            initialDataImport.init();
+            initialDataImport.init(true);
 
             // TODO consider if we need to go clusterwide here
             getCacheDispatcher().dispatchInvalidation(null, null, true, null);

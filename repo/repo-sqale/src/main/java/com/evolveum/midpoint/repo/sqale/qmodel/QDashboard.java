@@ -6,9 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel;
 
-import com.querydsl.sql.PrimaryKey;
-
-import com.evolveum.midpoint.repo.sqale.qbean.MDashboard;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.
@@ -21,8 +19,6 @@ public class QDashboard extends QObject<MDashboard> {
     public static final String TABLE_NAME = "m_dashboard";
 
     // no additional columns and relations
-
-    public final PrimaryKey<MDashboard> pk = createPrimaryKey(oid);
 
     public QDashboard(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
