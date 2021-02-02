@@ -301,7 +301,7 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
                 .selectTabAssignments();
         assigmentsTab
                 .table()
-                .assertTableContainsText(ARCHETYPE_EMPLOYEE_NAME);
+                .assertTableDoesntContainText(ARCHETYPE_EMPLOYEE_NAME);
         Utils.addAsignments(assigmentsTab, "Secret Projects I");
     }
 }
