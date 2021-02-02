@@ -28475,6 +28475,17 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="redirection" type="tns:OperationExecutionRecordRedirectionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Information about operation execution record redirection: the fact that the record
+                        belongs to object other than its current holder.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -28568,6 +28579,47 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+
+    <xsd:complexType name="OperationExecutionRecordRedirectionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about operation execution record redirection: the fact that the record
+                belongs to object other than its current holder.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="redirected" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        True if the operation execution record belongs to object other than the current one.
+                        (Actually this flag exists solely to allow easy query formulation and implementation.
+                        TODO: reconsider it.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="objectType" type="xsd:QName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of the proper record holder (if known).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="identification" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Identification of the proper record holder. Free-form, using
+                        any relevant data that is available. An example: connector object UID.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="operationExecutionRecordRedirection" type="tns:OperationExecutionRecordRedirectionType"/>
 
     <xsd:complexType name="LocalizableMessageType" abstract="true">
         <xsd:annotation>

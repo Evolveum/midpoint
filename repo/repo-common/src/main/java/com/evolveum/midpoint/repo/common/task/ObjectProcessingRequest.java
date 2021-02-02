@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.task;
 
+import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks.Target;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 import org.jetbrains.annotations.NotNull;
@@ -30,8 +31,8 @@ public class ObjectProcessingRequest<O extends ObjectType> extends ItemProcessin
     }
 
     @Override
-    public ObjectType getObjectToReportOperation() {
-        return getItem().asObjectable(); // TODO
+    public Target getOperationExecutionRecordingTarget() {
+        return createRecordingTargetForObject(getItem());
     }
 
     @Override

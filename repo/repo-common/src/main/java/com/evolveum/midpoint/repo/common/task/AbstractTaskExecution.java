@@ -218,4 +218,8 @@ public abstract class AbstractTaskExecution
     public @NotNull ErrorState getErrorState() {
         return errorState;
     }
+
+    public @NotNull String getRootTaskOid() {
+        return localCoordinatorTask.getRootTaskOid();
+    }
 }

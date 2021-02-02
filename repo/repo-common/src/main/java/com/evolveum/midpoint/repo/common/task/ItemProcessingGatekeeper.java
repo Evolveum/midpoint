@@ -22,7 +22,6 @@ import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingRootType;
 
@@ -360,13 +359,10 @@ class ItemProcessingGatekeeper<I> {
             return;
         }
 
-        ObjectType objectToReportOperation = request.getObjectToReportOperation();
-        if (objectToReportOperation != null) {
-            getOperationExecutionRecorder().recordOperationExecution(objectToReportOperation.asPrismObject(), resultException,
-                    taskExecution.localCoordinatorTask, result);
-        } else {
-            // TODO record the operation somewhere else (to the task, probably)
-        }
+        OperationExecutionRecorderForTasks.Target target = request.getOperationExecutionRecordingTarget();
+        RunningTask task = taskExecution.localCoordinatorTask;
+
+        getOperationExecutionRecorder().recordOperationExecution(target, resultException, task, result);
     }
 
     private OperationExecutionRecorderForTasks getOperationExecutionRecorder() {

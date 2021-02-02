@@ -183,9 +183,9 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .display()
                     .assertSuccessCount(9)
                     .assertFailureCount(1)
-                    .assertLastFailureObjectName(null) // TODO it should be reported in a better way
+                    .assertLastFailureObjectName("u-000001")
                     .end();
-        // TODO the error should be somehow reported in the task (currently it is not)
+        // TODO assert redirected errors in the task
     }
 
     @Test
@@ -212,7 +212,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .assertSuccessCount(8)
                     .assertFailureCount(2)
                     .end();
-        // TODO the error should be somehow reported in the task (currently it is not)
+        // TODO assert redirected errors in the task
 
         assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
                 .display();
@@ -250,5 +250,6 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                 .display();
         assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.getResource())
                 .display();
+        // TODO assert redirected errors in the task
     }
 }

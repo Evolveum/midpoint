@@ -2082,6 +2082,7 @@ public class ShadowCache {
                         resultShadow = resourceObject;
                         LOGGER.error("An error occurred while processing resource object {}. Recording it into object fetch result: {}",
                                 resourceObject, t.getMessage(), t);
+                        setShadowNameInEmergency(resultShadow);
                         ObjectTypeUtil.recordFetchError(resultShadow, objResult);
                     } else {
                         // This is the default (4.2 and before) behavior: we silently skip the problematic object and stop.
@@ -2127,6 +2128,19 @@ public class ShadowCache {
                 throw (RuntimeException) cause;
             } else {
                 throw new SystemException(cause.getMessage(), cause);
+            }
+        }
+    }
+
+    private void setShadowNameInEmergency(PrismObject<ShadowType> shadow) {
+        if (shadow.asObjectable().getName() == null) {
+            try {
+                PolyString name = ShadowUtil.determineShadowName(shadow);
+                if (name != null) {
+                    shadow.asObjectable().setName(new PolyStringType(name));
+                }
+            } catch (SchemaException e) {
+                LOGGER.warn("Couldn't determine the name for {}", shadow, e);
             }
         }
     }

@@ -64,4 +64,8 @@ public abstract class AbstractIterativeItemProcessor<I,
      */
     public abstract boolean process(ItemProcessingRequest<I> request, RunningTask workerTask, OperationResult parentResult)
             throws CommonException, PreconditionViolationException;
+
+    public @NotNull TE getTaskExecution() {
+        return taskExecution;
+    }
 }

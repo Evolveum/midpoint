@@ -7,15 +7,17 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.SynchronizationEvent;
 import com.evolveum.midpoint.repo.common.task.AbstractIterativeItemProcessor;
 import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
+import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * TODO
@@ -36,13 +38,19 @@ public class SyncItemProcessingRequest<SE extends SynchronizationEvent>
     }
 
     @Override
-    public ShadowType getObjectToReportOperation() {
+    public OperationExecutionRecorderForTasks.Target getOperationExecutionRecordingTarget() {
         ResourceObjectShadowChangeDescription changeDescription = getItem().getChangeDescription();
         if (changeDescription != null && changeDescription.getCurrentShadow() != null) {
-            return changeDescription.getCurrentShadow().asObjectable(); // TODO
+            return createRecordingTargetForObject(changeDescription.getCurrentShadow());
         } else {
-            return null;
+            return new OperationExecutionRecorderForTasks.Target(null, ShadowType.COMPLEX_TYPE,
+                    getMalformedEventIdentification(), getRootTaskOid(), TaskType.class);
         }
+    }
+
+    /** TODO (eventually also move to SynchronizationEvent) */
+    private String getMalformedEventIdentification() {
+        return getItem().toString();
     }
 
     @Override

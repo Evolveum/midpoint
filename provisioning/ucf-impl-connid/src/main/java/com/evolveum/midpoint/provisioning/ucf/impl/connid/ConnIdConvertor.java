@@ -60,10 +60,10 @@ class ConnIdConvertor {
 
     /**
      * Converts ICF ConnectorObject to the midPoint ResourceObject.
-     * <p/>
+     *
      * All the attributes are mapped using the same way as they are mapped in
      * the schema (which is actually no mapping at all now).
-     * <p/>
+     *
      * If an optional ResourceObjectDefinition was provided, the resulting
      * ResourceObject is schema-aware (getDefinition() method works). If no
      * ResourceObjectDefinition was provided, the object is schema-less. TODO:
