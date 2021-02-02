@@ -310,6 +310,33 @@ CREATE TRIGGER m_role_oid_delete_tr AFTER DELETE ON m_role
 
 CREATE INDEX m_role_name_orig_idx ON m_role (name_orig);
 ALTER TABLE m_role ADD CONSTRAINT m_role_name_norm_key UNIQUE (name_norm);
+
+CREATE TABLE m_service (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectTypeClass INTEGER GENERATED ALWAYS AS (24) STORED,
+    displayOrder INTEGER
+)
+    INHERITS (m_abstract_role);
+
+CREATE TRIGGER m_service_oid_insert_tr BEFORE INSERT ON m_service
+    FOR EACH ROW EXECUTE PROCEDURE insert_object_oid();
+CREATE TRIGGER m_service_update_tr BEFORE UPDATE ON m_service
+    FOR EACH ROW EXECUTE PROCEDURE before_update_object();
+CREATE TRIGGER m_service_oid_delete_tr AFTER DELETE ON m_service
+    FOR EACH ROW EXECUTE PROCEDURE delete_object_oid();
+
+CREATE INDEX m_service_name_orig_idx ON m_service (name_orig);
+ALTER TABLE m_service ADD CONSTRAINT m_service_name_norm_key UNIQUE (name_norm);
+
+/* TODO as array/JSON, it's List<String>
+CREATE TABLE m_service_type (
+    service_oid VARCHAR(36) NOT NULL,
+    serviceType VARCHAR(255)
+);
+CREATE INDEX iServiceTypeOid ON M_SERVICE_TYPE(SERVICE_OID);
+ALTER TABLE IF EXISTS m_service_type
+    ADD CONSTRAINT fk_service_type FOREIGN KEY (service_oid) REFERENCES m_service;
+*/
 -- endregion
 
 -- region OTHER tables
@@ -1148,10 +1175,6 @@ CREATE TABLE m_reference (
   targetType     INTEGER,
   PRIMARY KEY (owner_oid, reference_type, relation, targetOid)
 );
-CREATE TABLE m_service_type (
-  service_oid VARCHAR(36) NOT NULL,
-  serviceType VARCHAR(255)
-);
 CREATE TABLE m_shadow (
   attemptNumber                INTEGER,
   dead                         BOOLEAN,
@@ -1287,13 +1310,6 @@ CREATE TABLE m_sequence (
   name_norm VARCHAR(255),
   name_orig VARCHAR(255),
   oid       VARCHAR(36) NOT NULL,
-  PRIMARY KEY (oid)
-);
-CREATE TABLE m_service (
-  displayOrder INTEGER,
-  name_norm    VARCHAR(255),
-  name_orig    VARCHAR(255),
-  oid          VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
 CREATE TABLE m_trigger (
@@ -1494,12 +1510,6 @@ CREATE INDEX iSequenceNameOrig
   ON m_sequence (name_orig);
 ALTER TABLE IF EXISTS m_sequence
   ADD CONSTRAINT uc_sequence_name UNIQUE (name_norm);
-CREATE INDEX iServiceNameOrig
-  ON m_service (name_orig);
-CREATE INDEX iServiceNameNorm
-  ON m_service (name_norm);
-ALTER TABLE m_service
-  ADD CONSTRAINT uc_service_name UNIQUE (name_norm);
 CREATE INDEX iSystemConfigurationNameOrig
   ON m_system_configuration (name_orig);
 ALTER TABLE IF EXISTS m_system_configuration
@@ -1608,8 +1618,6 @@ ALTER TABLE IF EXISTS m_org_org_type
   ADD CONSTRAINT fk_org_org_type FOREIGN KEY (org_oid) REFERENCES m_org;
 ALTER TABLE IF EXISTS m_reference
   ADD CONSTRAINT fk_reference_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_service_type
-  ADD CONSTRAINT fk_service_type FOREIGN KEY (service_oid) REFERENCES m_service;
 ALTER TABLE IF EXISTS m_shadow
   ADD CONSTRAINT fk_shadow FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_user_employee_type
@@ -1642,8 +1650,6 @@ ALTER TABLE IF EXISTS m_resource
   ADD CONSTRAINT fk_resource FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_sequence
   ADD CONSTRAINT fk_sequence FOREIGN KEY (oid) REFERENCES m_object;
-ALTER TABLE IF EXISTS m_service
-  ADD CONSTRAINT fk_service FOREIGN KEY (oid) REFERENCES m_abstract_role;
 ALTER TABLE IF EXISTS m_system_configuration
   ADD CONSTRAINT fk_system_configuration FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_trigger
@@ -1669,7 +1675,6 @@ CREATE INDEX iObjectExtReferenceItemId ON M_OBJECT_EXT_REFERENCE(ITEM_ID);
 CREATE INDEX iObjectExtStringItemId ON M_OBJECT_EXT_STRING(ITEM_ID);
 CREATE INDEX iObjectSubtypeOid ON M_OBJECT_SUBTYPE(OBJECT_OID);
 CREATE INDEX iOrgOrgTypeOid ON M_ORG_ORG_TYPE(ORG_OID);
-CREATE INDEX iServiceTypeOid ON M_SERVICE_TYPE(SERVICE_OID);
 
 INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.2');
 
