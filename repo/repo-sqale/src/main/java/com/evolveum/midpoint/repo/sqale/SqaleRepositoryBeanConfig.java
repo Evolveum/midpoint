@@ -96,7 +96,7 @@ public class SqaleRepositoryBeanConfig {
     }
 
     @Bean
-    public SqlRepoContext sqlRepoContext(
+    public SqaleRepoContext sqlRepoContext(
             SqaleRepositoryConfiguration repositoryConfiguration,
             DataSource dataSource) {
         QueryModelMappingRegistry mappingRegistry = new QueryModelMappingRegistry()
@@ -123,7 +123,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(ValuePolicyType.COMPLEX_TYPE, QValuePolicyMapping.INSTANCE)
                 .seal();
 
-        return new SqlRepoContext(repositoryConfiguration, dataSource, mappingRegistry);
+        return new SqaleRepoContext(repositoryConfiguration, dataSource, mappingRegistry);
     }
 
     @Bean
