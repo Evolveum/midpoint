@@ -8,6 +8,7 @@ import javax.xml.namespace.QName;
 
 import org.javasimon.Split;
 import org.javasimon.Stopwatch;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -26,16 +27,23 @@ public class TestDeltaPerfComparison extends AbstractSchemaPerformanceTest {
     private static final int REPETITIONS = 10000;
 
 
-    @Test
-    public void testIncrementAndCompare() throws SchemaException {
 
-        for (int i = 1; i <= 4; i++) {
-            complexStructure((int) Math.pow(10,i), PlusMinusZero.PLUS);
-            complexStructure((int) Math.pow(10,i), PlusMinusZero.MINUS);
+    @DataProvider(name = "combinations")
+    public Object[][] testIncrementAndCompare() throws SchemaException {
+
+        int level = 4;
+
+        Object[][] ret = new Object[2*level][];
+        for (int i = 0; i < level; i++) {
+            int count=(int) Math.pow(10, i+1);
+            ret[i] = new Object[] { count, PlusMinusZero.PLUS};
+            ret[i+level] = new Object[] {count, PlusMinusZero.MINUS};
         }
+        return ret;
     }
 
 
+    @Test(dataProvider = "combinations")
     public void complexStructure(int assigmentCount, PlusMinusZero operation) throws SchemaException {
 
         PrismObject<UserType> user = PrismTestUtil.getPrismContext().createObject(UserType.class);
