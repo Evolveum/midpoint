@@ -772,6 +772,13 @@ public class DOMUtil {
     public static void setNamespaceDeclarations(Element element, Map<String, String> rootNamespaceDeclarations) {
         if (rootNamespaceDeclarations != null) {
             for (Entry<String, String> entry : rootNamespaceDeclarations.entrySet()) {
+                if(StringUtils.isEmpty(entry.getKey())) {
+                    // Default namespace, do not redeclare if not necessary.
+                    String defaultNamespace = element.lookupNamespaceURI(null);
+                    if(Objects.equals(entry.getValue(), defaultNamespace)) {
+                        continue;
+                    }
+                }
                 setNamespaceDeclaration(element, entry.getKey(), entry.getValue());
             }
         }
@@ -800,6 +807,17 @@ public class DOMUtil {
         retval.remove(null);
         return retval;
     }
+
+    public static Map<String, String> allNamespaceDeclarations(Node node) {
+        Map<String, String> retval = getAllVisibleNamespaceDeclarations(node);
+        String defaultNs = retval.remove(null);
+        if(defaultNs != null) {
+            retval.put("", defaultNs);
+        }
+
+        return retval;
+    }
+
 
     // returns owner node - works also for attributes
     private static Node getParentNode(Node node) {

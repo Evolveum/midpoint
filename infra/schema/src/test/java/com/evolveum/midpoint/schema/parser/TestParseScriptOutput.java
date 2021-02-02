@@ -73,7 +73,7 @@ public class TestParseScriptOutput extends AbstractPropertyValueParserTest<Pipel
 
         int count = StringUtils.countMatches(serialized, common_3);
         // temporarily set from 2 to 3 (some XML weirdness in Xerces 2.12/Xalan 2.7.2); see MID-5661
-        assertEquals("Wrong # of occurrences of '" + common_3 + "' in serialized form", 3, count);
+        assertEquals("Wrong # of occurrences of '" + common_3 + "' in serialized form", 2, count);
     }
 
 //    private void assertNamespaceDeclarations(String context, Element element, String... prefixes) {
