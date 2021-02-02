@@ -78,8 +78,9 @@ class DomReader {
             return Collections.singletonList(read());
         } else {
             List<RootXNodeImpl> rv = new ArrayList<>();
+            PrismNamespaceContext context = rootContext.childContext(DOMUtil.getNamespaceDeclarationsNonNull(root));
             for (Element child : DOMUtil.listChildElements(root)) {
-                rv.add(new DomReader(child, schemaRegistry, rootContext).read());
+                rv.add(new DomReader(child, schemaRegistry, context.inherited()).read());
             }
             return rv;
         }
@@ -101,10 +102,10 @@ class DomReader {
      * Reads the content of the element.
      *
      * @param knownElementName Pre-fetched element name. Might be null (this is expected if storeElementName is true).
-     * @param rootContext2
+     * @param parentContext
      */
     @NotNull
-    private XNodeImpl readElementContent(@NotNull Element element, QName knownElementName, PrismNamespaceContext rootContext2, boolean storeElementName) throws SchemaException {
+    private XNodeImpl readElementContent(@NotNull Element element, QName knownElementName, PrismNamespaceContext parentContext, boolean storeElementName) throws SchemaException {
         XNodeImpl node;
 
         QName xsiType = DOMUtil.resolveXsiType(element);
@@ -112,7 +113,7 @@ class DomReader {
 
         // FIXME: read namespaces
         Map<String, String> localNamespaces = DOMUtil.getNamespaceDeclarationsNonNull(element);
-        PrismNamespaceContext localNsCtx = rootContext2.childContext(localNamespaces);
+        PrismNamespaceContext localNsCtx = parentContext.childContext(localNamespaces);
 
         Element valueChild = DOMUtil.getMatchingChildElement(element, valueElementName);
         if (valueChild != null) {
