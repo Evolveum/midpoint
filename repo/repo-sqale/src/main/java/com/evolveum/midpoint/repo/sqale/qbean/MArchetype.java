@@ -11,5 +11,5 @@ import com.evolveum.midpoint.repo.sqale.qmodel.QArchetype;
 /**
  * Querydsl "row bean" type related to {@link QArchetype}.
  */
-public class MArchetype extends MObject {
+public class MArchetype extends MAbstractRole {
 }

@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel;
 
-import com.querydsl.sql.PrimaryKey;
-
 import com.evolveum.midpoint.repo.sqale.qbean.MSecurityPolicy;
 
 /**
@@ -21,8 +19,6 @@ public class QSecurityPolicy extends QObject<MSecurityPolicy> {
     public static final String TABLE_NAME = "m_security_policy";
 
     // no additional columns and relations
-
-    public final PrimaryKey<MSecurityPolicy> pk = createPrimaryKey(oid);
 
     public QSecurityPolicy(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

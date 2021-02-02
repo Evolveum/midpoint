@@ -10,8 +10,6 @@ import java.sql.Types;
 
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
-import com.querydsl.sql.ForeignKey;
-import com.querydsl.sql.PrimaryKey;
 
 import com.evolveum.midpoint.repo.sqale.qbean.MNode;
 
@@ -31,9 +29,6 @@ public class QNode extends QObject<MNode> {
     // columns and relations
 
     public final StringPath nodeIdentifier = createString("nodeIdentifier", NODE_IDENTIFIER);
-
-    public final PrimaryKey<MNode> pk = createPrimaryKey(oid);
-    public final ForeignKey<QQName> qNameFk = createForeignKey(createChannelId, QQName.ID.getName());
 
     public QNode(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

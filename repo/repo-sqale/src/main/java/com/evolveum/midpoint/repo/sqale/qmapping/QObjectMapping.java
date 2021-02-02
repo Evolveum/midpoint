@@ -23,8 +23,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * Mapping between {@link QObject} and {@link ObjectType}.
  */
-public abstract class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extends MObject>
+public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extends MObject>
         extends SqaleModelMapping<S, Q, R> {
+
+    public static final String DEFAULT_ALIAS_NAME = "o";
+
+    public static final QObjectMapping<ObjectType, QObject.QObjectReal, MObject> INSTANCE =
+            new QObjectMapping<>(QObject.TABLE_NAME, DEFAULT_ALIAS_NAME,
+                    ObjectType.class, QObject.QObjectReal.class);
 
     protected QObjectMapping(
             @NotNull String tableName,
@@ -49,5 +55,12 @@ public abstract class QObjectMapping<S extends ObjectType, Q extends QObject<R>,
     public @NotNull Path<?>[] selectExpressions(
             Q entity, Collection<SelectorOptions<GetOperationOptions>> options) {
         return new Path[] { entity.oid, entity.fullObject };
+    }
+
+    // TODO verify that this allows creation of QObject alias and that it suffices for "generic query"
+    @Override
+    protected Q newAliasInstance(String alias) {
+        //noinspection unchecked
+        return (Q) new QObject<>(MObject.class, alias);
     }
 }

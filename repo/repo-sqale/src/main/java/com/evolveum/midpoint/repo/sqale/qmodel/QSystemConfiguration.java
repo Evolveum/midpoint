@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel;
 
-import com.querydsl.sql.PrimaryKey;
-
 import com.evolveum.midpoint.repo.sqale.qbean.MSystemConfiguration;
 
 /**
@@ -21,8 +19,6 @@ public class QSystemConfiguration extends QObject<MSystemConfiguration> {
     public static final String TABLE_NAME = "m_system_configuration";
 
     // no additional columns and relations
-
-    public final PrimaryKey<MSystemConfiguration> pk = createPrimaryKey(oid);
 
     public QSystemConfiguration(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqlbase.querydsl;
 
+import static com.querydsl.core.types.PathMetadataFactory.forVariable;
+
 import java.sql.Types;
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -14,10 +16,7 @@ import java.util.UUID;
 
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.PathMetadata;
-import com.querydsl.core.types.dsl.ArrayPath;
-import com.querydsl.core.types.dsl.DateTimePath;
-import com.querydsl.core.types.dsl.NumberPath;
-import com.querydsl.core.types.dsl.StringPath;
+import com.querydsl.core.types.dsl.*;
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.RelationalPathBase;
 import org.jetbrains.annotations.NotNull;
@@ -67,8 +66,8 @@ public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T
     private final Map<String, Path<?>> propertyNameToPath = new LinkedHashMap<>();
 
     public FlexibleRelationalPathBase(
-            Class<? extends T> type, PathMetadata metadata, String schema, String table) {
-        super(type, metadata, schema, table);
+            Class<? extends T> type, String pathVariable, String schema, String table) {
+        super(type, forVariable(pathVariable), schema, table);
     }
 
     /**
@@ -93,6 +92,12 @@ public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T
     protected NumberPath<Long> createLong(
             String property, ColumnMetadata columnMetadata) {
         return createNumber(property, Long.class, columnMetadata);
+    }
+
+    /** Creates {@link BooleanPath} for a property and registers column metadata for it. */
+    protected BooleanPath createBoolean(
+            String property, ColumnMetadata columnMetadata) {
+        return addMetadata(createBoolean(property), columnMetadata);
     }
 
     /**
@@ -120,14 +125,13 @@ public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T
         return createDateTime(property, Instant.class, columnMetadata);
     }
 
-    /**
-     * Creates byte array path for a property and registers column metadata for it.
-     */
+    /** Creates byte array path for a property and registers column metadata for it. */
     protected ArrayPath<byte[], Byte> createByteArray(
             String property, ColumnMetadata columnMetadata) {
         return addMetadata(createArray(property, byte[].class), columnMetadata);
     }
 
+    /** Creates {@link UuidPath} path for a property and registers column metadata for it. */
     protected UuidPath createUuid(
             String property, ColumnMetadata columnMetadata) {
         return addMetadata(add(new UuidPath(UUID.class, forProperty(property))), columnMetadata);

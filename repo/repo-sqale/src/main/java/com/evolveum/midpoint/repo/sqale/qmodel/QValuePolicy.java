@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel;
 
-import com.querydsl.sql.PrimaryKey;
-
 import com.evolveum.midpoint.repo.sqale.qbean.MValuePolicy;
 
 /**
@@ -21,8 +19,6 @@ public class QValuePolicy extends QObject<MValuePolicy> {
     public static final String TABLE_NAME = "m_value_policy";
 
     // no additional columns and relations
-
-    public final PrimaryKey<MValuePolicy> pk = createPrimaryKey(oid);
 
     public QValuePolicy(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
