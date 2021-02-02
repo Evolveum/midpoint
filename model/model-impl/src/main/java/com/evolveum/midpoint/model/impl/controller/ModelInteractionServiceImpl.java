@@ -18,6 +18,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 
 import org.apache.commons.lang.BooleanUtils;
@@ -1293,6 +1294,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     private String getClearValue(ProtectedStringType protectedString) throws SchemaException, PolicyViolationException {
+        if (protectedString == null) {
+            return null;
+        }
         try {
             if (protectedString.isEncrypted()) {
 
@@ -1904,6 +1908,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Override
     public void applyView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
         collectionProcessor.compileView(existingView, objectListViewType);
+    }
+
+    @Override
+    public <O extends ObjectType> List<StringLimitationResult> validateValue(ProtectedStringType protectedStringValue, ValuePolicyType pp, PrismObject<O> object, Task task, OperationResult parentResult)
+            throws SchemaException, PolicyViolationException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        return policyProcessor.validateValue(getClearValue(protectedStringValue), pp, createOriginResolver(object, parentResult), "validate string", task, parentResult);
     }
 
 }

@@ -114,7 +114,7 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
     @Override
     protected void initSystem(Task task, OperationResult initResult) throws Exception {
         super.initSystem(task, initResult);
-        addObjectFromFile(SYSTEM_CONFIG_INITIAL, true, initResult);
+//        addObjectFromFile(SYSTEM_CONFIG_INITIAL, true, initResult);
         getObjectListToImport().forEach(objFile -> addObjectFromFile(objFile, true, initResult));
     }
 

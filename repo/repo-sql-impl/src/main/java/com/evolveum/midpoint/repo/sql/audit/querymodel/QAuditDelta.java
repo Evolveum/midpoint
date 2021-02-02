@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sql.audit.querymodel;
 
-import static com.querydsl.core.types.PathMetadataFactory.forVariable;
-
 import java.sql.Types;
 
 import com.querydsl.core.types.dsl.ArrayPath;
@@ -77,6 +75,6 @@ public class QAuditDelta extends FlexibleRelationalPathBase<MAuditDelta> {
     }
 
     public QAuditDelta(String variable, String schema, String table) {
-        super(MAuditDelta.class, forVariable(variable), schema, table);
+        super(MAuditDelta.class, variable, schema, table);
     }
 }

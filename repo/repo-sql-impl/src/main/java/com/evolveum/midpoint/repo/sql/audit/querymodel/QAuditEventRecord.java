@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sql.audit.querymodel;
 
-import static com.querydsl.core.types.PathMetadataFactory.forVariable;
-
 import java.sql.Types;
 import java.time.Instant;
 
@@ -137,6 +135,6 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
     }
 
     public QAuditEventRecord(String variable, String schema, String table) {
-        super(MAuditEventRecord.class, forVariable(variable), schema, table);
+        super(MAuditEventRecord.class, variable, schema, table);
     }
 }
