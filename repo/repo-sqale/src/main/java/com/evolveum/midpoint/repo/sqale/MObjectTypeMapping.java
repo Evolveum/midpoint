@@ -13,8 +13,8 @@ import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.QNode;
-import com.evolveum.midpoint.repo.sqale.qmodel.QObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.node.QNode;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -57,7 +57,7 @@ public enum MObjectTypeMapping {
     private final Class<? extends ObjectType> schemaType;
 
     // 'MObjectTypeMapping(int,
-    // java.lang.Class<com.evolveum.midpoint.repo.sqale.qmodel.QObject<?>>,
+    // java.lang.Class<com.evolveum.midpoint.repo.sqale.qmodel.object.QObject<?>>,
     // java.lang.Class<com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType>)' in 'com.evolveum.midpoint.repo.sqale.MObjectTypeMapping'
     // cannot be applied to '(int, null,
     // java.lang.Class<com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType>)'
