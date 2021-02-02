@@ -353,7 +353,7 @@ public final class ItemPathHolder {
                     sb.append(ParentPathSegment.SYMBOL);
                 } else if (IdentifierPathSegment.QNAME.equals(qname)) {
                     sb.append(IdentifierPathSegment.SYMBOL);
-                } else if (!StringUtils.isEmpty(qname.getPrefix())) {
+                } else if (StringUtils.isNotEmpty(qname.getPrefix())) {
                     sb.append(qname.getPrefix()).append(':').append(qname.getLocalPart());
                 } else {
                     if (StringUtils.isNotEmpty(qname.getNamespaceURI())) {
