@@ -18,7 +18,7 @@ public class MTask extends MObject {
     public Integer binding;
     public String category;
     public Instant completionTimestamp;
-    public Integer executionStatus;
+    public String executionStatus;
     public byte[] fullResult;
     public String handlerUri;
     public Instant lastRunFinishTimestamp;
@@ -32,8 +32,8 @@ public class MTask extends MObject {
     public Integer ownerRefRelationId;
     public String parent;
     public Integer recurrence;
-    public Integer status;
+    public String resultStatus;
     public String taskIdentifier;
     public Integer threadStopAction;
-    public Integer waitingReason;
+    public String waitingReason;
 }

@@ -127,8 +127,6 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
 
     /**
      * Lambda "wrapper" that helps with type inference when mapping paths from entity path.
-     * The returned types are ambiguous just as they are used in {@code mapper()} static methods
-     * on item filter processors.
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
     protected <A extends Path<?>> Function<EntityPath<?>, A> path(

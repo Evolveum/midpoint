@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.connector;
 import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.stringMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType.*;
 
+import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
@@ -34,8 +35,12 @@ public class QConnectorMapping
         addItemMapping(F_CONNECTOR_TYPE, stringMapper(path(q -> q.connectorType)));
         addItemMapping(F_CONNECTOR_VERSION, stringMapper(path(q -> q.connectorVersion)));
         addItemMapping(F_FRAMEWORK, stringMapper(path(q -> q.framework)));
+        addItemMapping(F_CONNECTOR_HOST_REF, RefItemFilterProcessor.mapper(
+                path(q -> q.connectorHostRefTargetOid),
+                path(q -> q.connectorHostRefTargetType),
+                path(q -> q.connectorHostRefRelationId)));
 
-        // TODO connector host ref mapping: connectorHostRefTargetOid, connectorHostRefTargetType, connectorHostRefRelationId
+        // TODO mapping for List<String> F_TARGET_SYSTEM_TYPE
     }
 
     @Override

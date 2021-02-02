@@ -15,7 +15,7 @@
 -- drop schema public cascade;
 CREATE SCHEMA IF NOT EXISTS public;
 
--- region Functions/triggers
+-- region OID-pool table
 -- To support gen_random_uuid() pgcrypto extension must be enabled for the database (not for PG 13).
 -- select * from pg_available_extensions order by name;
 DO $$
@@ -33,7 +33,9 @@ CREATE TABLE m_object_oid (
 
     CONSTRAINT m_object_oid_pk PRIMARY KEY (oid)
 );
+-- endregion
 
+-- region Functions/triggers
 -- BEFORE INSERT trigger - must be declared on all concrete m_object sub-tables.
 CREATE OR REPLACE FUNCTION insert_object_oid()
     RETURNS trigger
@@ -147,6 +149,7 @@ INSERT INTO m_reftype VALUES (11, 'ARCHETYPE');
 -- Catalog of used Q-names.
 -- Never update values of "uri" manually to change URI for some objects
 -- (unless you really want to migrate old URI to a new one).
+-- URI format is based on QNameUtil - that is "prefix-url#localPart".
 CREATE TABLE m_qname (
     id SERIAL,
 --     alias VARCHAR(32), -- TODO how to fill it? Perhaps not needed here.
@@ -796,13 +799,18 @@ CREATE TRIGGER m_connector_host_oid_delete_tr AFTER DELETE ON m_connector_host
 CREATE INDEX m_connector_host_name_orig_idx ON m_connector_host (name_orig);
 ALTER TABLE m_connector_host ADD CONSTRAINT m_connector_host_name_norm_key UNIQUE (name_norm);
 
+CREATE TYPE TaskExecutionStatusType AS ENUM ('RUNNABLE', 'WAITING', 'SUSPENDED', 'CLOSED');
+CREATE TYPE OperationResultStatusType AS ENUM ('SUCCESS', 'WARNING', 'PARTIAL_ERROR',
+    'FATAL_ERROR', 'HANDLED_ERROR', 'NOT_APPLICABLE', 'IN_PROGRESS', 'UNKNOWN');
+CREATE TYPE TaskWaitingReasonType AS ENUM ('OTHER_TASKS', 'OTHER');
+
 CREATE TABLE m_task (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectTypeClass INTEGER GENERATED ALWAYS AS (9) STORED,
     binding INTEGER,
     category VARCHAR(255),
     completionTimestamp TIMESTAMPTZ,
-    executionStatus INTEGER,
+    executionStatus TaskExecutionStatusType,
     fullResult BYTEA,
     handlerUri VARCHAR(255), -- TODO q_name?
     lastRunFinishTimestamp TIMESTAMPTZ,
@@ -816,10 +824,10 @@ CREATE TABLE m_task (
     ownerRef_relation_id INTEGER, -- soft-references m_qname
     parent VARCHAR(255), -- TODO why not FK?
     recurrence INTEGER,
-    status INTEGER,
+    resultStatus OperationResultStatusType,
     taskIdentifier VARCHAR(255),
     threadStopAction INTEGER,
-    waitingReason INTEGER
+    waitingReason TaskWaitingReasonType
 )
     INHERITS (m_object);
 

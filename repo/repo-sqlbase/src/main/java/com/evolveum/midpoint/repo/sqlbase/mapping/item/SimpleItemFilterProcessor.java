@@ -11,6 +11,7 @@ import java.util.function.Function;
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.BooleanPath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 
@@ -36,6 +37,13 @@ public class SimpleItemFilterProcessor<T, P extends Path<T>>
     /** Returns the mapper creating the integer filter processor from context. */
     public static ItemSqlMapper integerMapper(
             Function<EntityPath<?>, NumberPath<Integer>> rootToQueryItem) {
+        return new ItemSqlMapper(ctx ->
+                new SimpleItemFilterProcessor<>(ctx, rootToQueryItem), rootToQueryItem);
+    }
+
+    /** Returns the mapper creating the boolean filter processor from context. */
+    public static ItemSqlMapper booleanMapper(
+            Function<EntityPath<?>, BooleanPath> rootToQueryItem) {
         return new ItemSqlMapper(ctx ->
                 new SimpleItemFilterProcessor<>(ctx, rootToQueryItem), rootToQueryItem);
     }

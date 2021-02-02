@@ -37,7 +37,7 @@ public class QAbstractRole<T extends MAbstractRole> extends QObject<T> {
     public static final ColumnMetadata IDENTIFIER =
             ColumnMetadata.named("identifier").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata OWNER_REF_TARGET_OID =
-            ColumnMetadata.named("ownerRef_targetOid").ofType(UUID_TYPE);
+            ColumnMetadata.named("ownerRef_targetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata OWNER_REF_TARGET_TYPE =
             ColumnMetadata.named("ownerRef_targetType").ofType(Types.INTEGER);
     public static final ColumnMetadata OWNER_REF_RELATION_ID =
