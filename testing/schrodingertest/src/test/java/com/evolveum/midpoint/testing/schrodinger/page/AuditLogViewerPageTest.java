@@ -28,7 +28,7 @@ public class AuditLogViewerPageTest extends AbstractSchrodingerTest {
                     .clickByName("auditLogViewerTestUser")
                         .selectTabBasic()
                             .form()
-                                .changeAttributeValue("name", "auditLogViewerTestUser", "auditLogViewerTestUser1")
+                                .changeAttributeValue("Name", "auditLogViewerTestUser", "auditLogViewerTestUser1")
                                 .and()
                             .and()
                         .clickSave();
@@ -37,11 +37,11 @@ public class AuditLogViewerPageTest extends AbstractSchrodingerTest {
                     .table()
                         .search()
                             .referencePanelByItemName("Target", true)
-                            .inputRefName("auditLogViewer", "auditLogViewerTestUser")
+                            .inputRefName("auditLogViewer", "auditLogViewerTestUser1")
                             .updateSearch()
                         .and()
                     .clickByRowColumnNumber(0, 0);
-        detailsPage.deltaListPanel()
+        detailsPage.deltaPanel()
                     .header()
                         .assertIsLink()
                         .clickNameLink()

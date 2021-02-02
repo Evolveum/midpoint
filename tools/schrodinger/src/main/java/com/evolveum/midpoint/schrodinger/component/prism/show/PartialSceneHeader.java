@@ -6,8 +6,10 @@
  */
 package com.evolveum.midpoint.schrodinger.component.prism.show;
 
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 
+import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.page.org.OrgPage;
@@ -57,20 +59,23 @@ public class PartialSceneHeader extends Component<ScenePanel> {
     }
 
     public AssignmentHolderDetailsPage clickNameLink() {
+        if (!isLink()) {
+            return null;
+        }
+        AssignmentHolderDetailsPage page = null;
         if (changedObjectTypeEquals("user")) {
-            return new UserPage();
+            page = new UserPage();
+        } else if (changedObjectTypeEquals("role")) {
+            page = new RolePage();
+        } else if (changedObjectTypeEquals("service")) {
+            page = new ServicePage();
+        } else if (changedObjectTypeEquals("org")) {
+            page = new OrgPage();
         }
-        if (changedObjectTypeEquals("role")) {
-            return new RolePage();
-        }
-        if (changedObjectTypeEquals("service")) {
-            return new ServicePage();
-        }
-        if (changedObjectTypeEquals("org")) {
-            return new OrgPage();
-        }
+        getNameLink().click();
+        Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
 
-        return null;
+        return page;
     }
 
     public boolean isLink() {

@@ -16,8 +16,8 @@ import static com.codeborne.selenide.Selenide.$x;
 
 public class AuditLogViewerDetailsPage extends BasicPage {
 
-    public ScenePanel<AuditLogViewerDetailsPage> deltaListPanel() {
-        SelenideElement el = $x(".//div[@data-s-id='deltaListPanel']").waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+    public ScenePanel<AuditLogViewerDetailsPage> deltaPanel() {
+        SelenideElement el = $x(".//div[@data-s-id='deltaPanel']").waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
         return new ScenePanel<>(this, el);
     }
 

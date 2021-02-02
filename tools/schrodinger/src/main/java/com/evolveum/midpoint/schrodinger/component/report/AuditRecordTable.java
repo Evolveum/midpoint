@@ -43,7 +43,8 @@ public class AuditRecordTable<T> extends TableWithPageRedirect<T> {
     }
 
     public AuditLogViewerDetailsPage clickByRowColumnNumber(int rowNumber, int columnNumber) {
-        getCell(rowNumber, columnNumber).click();
+        getCell(rowNumber, columnNumber)
+                .$(By.tagName("a")).click();
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return new AuditLogViewerDetailsPage();
     }
