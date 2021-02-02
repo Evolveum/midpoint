@@ -13,8 +13,6 @@ import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.impl.ParsingContextImpl;
 import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
 import com.evolveum.midpoint.prism.impl.xnode.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -22,8 +20,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -164,10 +160,7 @@ public abstract class AbstractReader {
         ObjectMapper mapper = new ObjectMapper();
         SimpleModule sm = new SimpleModule();
         sm.addDeserializer(QName.class, new QNameDeserializer());
-        sm.addDeserializer(UniformItemPath.class, new ItemPathDeserializer());
-        sm.addDeserializer(ItemPath.class, new ItemPathDeserializer());
         sm.addDeserializer(PolyString.class, new PolyStringDeserializer());
-        sm.addDeserializer(ItemPathType.class, new ItemPathTypeDeserializer());
 
         mapper.registerModule(sm);
         parser.setCodec(mapper);
