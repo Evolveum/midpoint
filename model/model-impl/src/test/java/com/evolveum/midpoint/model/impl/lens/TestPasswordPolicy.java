@@ -273,7 +273,8 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
             CommunicationException, ConfigurationException, SecurityViolationException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        boolean isValid = valuePolicyProcessor.validateValue(passwd, pp, createUserOriginResolver(object), "assertPassword", task, result);
+        valuePolicyProcessor.validateValue(passwd, pp, createUserOriginResolver(object), "assertPassword", task, result);
+        boolean isValid = result.isAcceptable();
         result.computeStatus();
         if (!result.isSuccess()) {
             AssertJUnit.fail(result.debugDump());

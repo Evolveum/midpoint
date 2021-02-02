@@ -26,7 +26,14 @@
                             </label>
 
                             <div class="col-md-6 col-lg-6">
-                                <input class="form-control input-sm" wicket:id="password" type="password" autocomplete="new-password"/>
+                                <div class="password-parent" style="height:30px; position: relative;">
+                                    <div class="col-md-12" style="padding: 0px !important;">
+                                        <input class="form-control input-sm" wicket:id="password" type="password" autocomplete="new-password" style="padding-right: 26px;"/>
+                                    </div>
+                                    <div style="position: absolute; right: 8px; top: 8px; z-index: 5;">
+                                        <i class="fa fa-eye" style="float:right;cursor: pointer; color: #555555;" onclick="showPassword(this)"></i>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

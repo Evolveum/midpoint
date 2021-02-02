@@ -201,8 +201,6 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
     public static final String PROPERTY_LOCK_FOR_UPDATE_VIA_HIBERNATE = "lockForUpdateViaHibernate";
     public static final String PROPERTY_LOCK_FOR_UPDATE_VIA_SQL = "lockForUpdateViaSql";
     public static final String PROPERTY_READ_ONLY_TRANSACTIONS_STATEMENT = "readOnlyTransactionsStatement";
-    public static final String PROPERTY_PERFORMANCE_STATISTICS_FILE = "performanceStatisticsFile";
-    public static final String PROPERTY_PERFORMANCE_STATISTICS_LEVEL = "performanceStatisticsLevel";
 
     //other
     public static final String PROPERTY_ITERATIVE_SEARCH_BY_PAGING = "iterativeSearchByPaging";
@@ -784,10 +782,12 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
         return readOnlyTransactionStatement;
     }
 
+    @Override
     public String getPerformanceStatisticsFile() {
         return performanceStatisticsFile;
     }
 
+    @Override
     public int getPerformanceStatisticsLevel() {
         return performanceStatisticsLevel;
     }
