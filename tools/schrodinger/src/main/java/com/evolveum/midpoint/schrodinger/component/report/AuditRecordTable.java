@@ -10,7 +10,12 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.component.CasesTab;
 import com.evolveum.midpoint.schrodinger.component.common.table.Table;
+import com.evolveum.midpoint.schrodinger.component.common.table.TableWithPageRedirect;
+import com.evolveum.midpoint.schrodinger.component.table.TableHeaderDropDownMenu;
+import com.evolveum.midpoint.schrodinger.page.cases.CasePage;
+import com.evolveum.midpoint.schrodinger.page.report.AuditLogViewerDetailsPage;
 import com.evolveum.midpoint.schrodinger.page.report.AuditLogViewerPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
@@ -21,10 +26,25 @@ import static com.codeborne.selenide.Selenide.$;
  * @author skublik
  */
 
-public class AuditRecordTable extends Table<AuditLogViewerPage> {
+public class AuditRecordTable<T> extends TableWithPageRedirect<T> {
 
-    public AuditRecordTable(AuditLogViewerPage parent, SelenideElement parentElement) {
+    public AuditRecordTable(T parent, SelenideElement parentElement) {
         super(parent, parentElement);
+    }
+
+    @Override
+    public AuditLogViewerDetailsPage clickByName(String name) {
+        return new AuditLogViewerDetailsPage();
+    }
+
+    @Override
+    public AuditRecordTable<T> selectCheckboxByName(String name) {
+        return null;
+    }
+
+    @Override
+    protected TableHeaderDropDownMenu<AuditRecordTable<T>> clickHeaderActionDropDown() {
+        return null;
     }
 
     public void checkInitiator(int row, String name) {
