@@ -36,31 +36,37 @@ public class AboutPage extends BasicPage {
 
     public AboutPage repositorySelfTest() {
         $(Schrodinger.byDataResourceKey("PageAbout.button.testRepository")).click();
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return this;
     }
 
     public AboutPage checkAndRepairOrgClosureConsistency() {
         $(Schrodinger.byDataResourceKey("PageAbout.button.testRepositoryCheckOrgClosure")).click();
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return this;
     }
 
     public AboutPage reindexRepositoryObjects() {
         $(Schrodinger.byDataResourceKey("PageAbout.button.reindexRepositoryObjects")).click();
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return this;
     }
 
     public AboutPage provisioningSelfTest() {
         $(Schrodinger.byDataResourceKey("PageAbout.button.testProvisioning")).click();
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return this;
     }
 
     public AboutPage cleanupActivitiProcesses() {
         $(Schrodinger.byDataResourceKey("PageAbout.button.checkWorkflowProcesses")).click();
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return this;
     }
 
     public AboutPage clearCssJsCache() {
         $(Schrodinger.byDataResourceKey("PageAbout.button.clearCssJsCache")).click();
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return this;
     }
 
