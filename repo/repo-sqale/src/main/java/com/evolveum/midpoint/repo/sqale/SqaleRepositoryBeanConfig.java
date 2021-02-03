@@ -8,8 +8,6 @@ package com.evolveum.midpoint.repo.sqale;
 
 import javax.sql.DataSource;
 
-import ch.qos.logback.classic.Level;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -69,10 +67,6 @@ public class SqaleRepositoryBeanConfig {
     @Bean
     public SqaleRepositoryConfiguration sqaleRepositoryConfiguration(
             MidpointConfiguration midpointConfiguration) throws RepositoryServiceFactoryException {
-        // TODO remove logging change, when better way to do it for initial start is found
-        ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger("com.querydsl.sql")).setLevel(Level.DEBUG);
-        // PG logs too much on TRACE or not enough on DEBUG, not useful in the main log
-//        ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger("org.postgresql")).setLevel(Level.TRACE);
 
         return new SqaleRepositoryConfiguration(
                 midpointConfiguration.getConfiguration(
