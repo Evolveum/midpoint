@@ -14,7 +14,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
@@ -30,13 +29,11 @@ public abstract class AuditSqlTransformerBase<S, Q extends FlexibleRelationalPat
 
     protected final SqlTransformerContext transformerContext;
     protected final QueryModelMapping<S, Q, R> mapping;
-    protected final SqlRepoContext sqlRepoContext;
 
-    protected AuditSqlTransformerBase(SqlTransformerContext transformerContext,
-            QueryModelMapping<S, Q, R> mapping, SqlRepoContext sqlRepoContext) {
+    protected AuditSqlTransformerBase(
+            SqlTransformerContext transformerContext, QueryModelMapping<S, Q, R> mapping) {
         this.transformerContext = transformerContext;
         this.mapping = mapping;
-        this.sqlRepoContext = sqlRepoContext;
     }
 
     @Override

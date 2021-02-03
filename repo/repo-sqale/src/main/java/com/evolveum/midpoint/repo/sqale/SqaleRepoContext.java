@@ -20,7 +20,7 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
  */
 public class SqaleRepoContext extends SqlRepoContext {
 
-    private final QNameCache qNameCache;
+    private final UriCache uriCache;
 
     public SqaleRepoContext(
             JdbcRepositoryConfiguration jdbcRepositoryConfiguration,
@@ -28,17 +28,26 @@ public class SqaleRepoContext extends SqlRepoContext {
             QueryModelMappingRegistry mappingRegistry) {
         super(jdbcRepositoryConfiguration, dataSource, mappingRegistry);
 
-        qNameCache = new QNameCache();
+        uriCache = new UriCache();
     }
 
     @PostConstruct
     public void init() {
         try (JdbcSession jdbcSession = newJdbcSession().startReadOnlyTransaction()) {
-            qNameCache.initialize(jdbcSession);
+            uriCache.initialize(jdbcSession);
         }
     }
 
-    public Integer getQNameId(QName relation) {
-        return qNameCache.getIdMandatory(relation);
+    public Integer getCachedUriId(QName qName) {
+        return uriCache.getIdMandatory(qName);
+    }
+
+    public Integer getCachedUriId(String uri) {
+        return uriCache.getIdMandatory(uri);
+    }
+
+    /** Returns ID for URI creating new cache row in DB as needed. */
+    public Integer processCachedUri(String uri, JdbcSession jdbcSession) {
+        return uriCache.processCachedUri(uri, jdbcSession);
     }
 }

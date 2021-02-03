@@ -146,20 +146,22 @@ INSERT INTO m_reftype VALUES (9, 'DELEGATED');
 INSERT INTO m_reftype VALUES (10, 'PERSONA');
 INSERT INTO m_reftype VALUES (11, 'ARCHETYPE');
 
--- Catalog of used Q-names.
+-- Catalog of often used URIs, typically channels and relation Q-names.
 -- Never update values of "uri" manually to change URI for some objects
 -- (unless you really want to migrate old URI to a new one).
--- URI format is based on QNameUtil - that is "prefix-url#localPart".
-CREATE TABLE m_qname (
-    id SERIAL,
---     alias VARCHAR(32), -- TODO how to fill it? Perhaps not needed here.
-    uri VARCHAR(255) NOT NULL,
-
-    PRIMARY KEY (id)
+-- URI can be anything, for QNames the format is based on QNameUtil ("prefix-url#localPart").
+CREATE TABLE m_uri (
+    id SERIAL NOT NULL PRIMARY KEY,
+    uri VARCHAR(255) NOT NULL UNIQUE
 );
+-- endregion
 
--- ALTER TABLE m_qname ADD CONSTRAINT m_qname_alias_key UNIQUE (alias); -- TODO see above
-ALTER TABLE m_qname ADD CONSTRAINT m_qname_uri_key UNIQUE (uri);
+-- region custom enum types
+-- the same names like schema enum classes are used for the types (I like the Type suffix here)
+CREATE TYPE TaskExecutionStatusType AS ENUM ('RUNNABLE', 'WAITING', 'SUSPENDED', 'CLOSED');
+CREATE TYPE OperationResultStatusType AS ENUM ('SUCCESS', 'WARNING', 'PARTIAL_ERROR',
+    'FATAL_ERROR', 'HANDLED_ERROR', 'NOT_APPLICABLE', 'IN_PROGRESS', 'UNKNOWN');
+CREATE TYPE TaskWaitingReasonType AS ENUM ('OTHER_TASKS', 'OTHER');
 -- endregion
 
 -- region M_OBJECT
@@ -181,17 +183,17 @@ CREATE TABLE m_object (
     fullObject BYTEA,
     creatorRef_targetOid UUID,
     creatorRef_targetType INTEGER, -- soft-references m_objtype
-    creatorRef_relation_id INTEGER, -- soft-references m_qname,
-    createChannel_id INTEGER, -- soft-references m_qname
+    creatorRef_relation_id INTEGER, -- soft-references m_uri,
+    createChannel_id INTEGER, -- soft-references m_uri
     createTimestamp TIMESTAMPTZ,
     modifierRef_targetOid UUID,
     modifierRef_targetType INTEGER, -- soft-references m_objtype
-    modifierRef_relation_id INTEGER, -- soft-references m_qname
-    modifyChannel_id INTEGER, -- soft-references m_qname,
+    modifierRef_relation_id INTEGER, -- soft-references m_uri
+    modifyChannel_id INTEGER, -- soft-references m_uri,
     modifyTimestamp TIMESTAMPTZ,
     tenantRef_targetOid UUID,
     tenantRef_targetType INTEGER, -- soft-references m_objtype
-    tenantRef_relation_id INTEGER, -- soft-references m_qname,
+    tenantRef_relation_id INTEGER, -- soft-references m_uri,
     lifecycleState VARCHAR(255), -- TODO what is this? how many distinct values?
     version INTEGER NOT NULL DEFAULT 1,
     -- add GIN index for concrete tables where more than hundreds of entries are expected (see m_user)
@@ -289,7 +291,7 @@ CREATE TABLE m_abstract_role (
     identifier VARCHAR(255),
     ownerRef_targetOid UUID,
     ownerRef_targetType INTEGER, -- soft-references m_objtype
-    ownerRef_relation_id INTEGER, -- soft-references m_qname
+    ownerRef_relation_id INTEGER, -- soft-references m_uri
     requestable BOOLEAN,
     riskLevel VARCHAR(255),
 
@@ -350,7 +352,7 @@ CREATE TABLE m_resource (
     administrativeState INTEGER,
     connectorRef_targetOid UUID,
     connectorRef_targetType INTEGER, -- soft-references m_objtype
-    connectorRef_relation_id INTEGER, -- soft-references m_qname
+    connectorRef_relation_id INTEGER, -- soft-references m_uri
     o16_lastAvailabilityStatus INTEGER
 )
     INHERITS (m_object);
@@ -370,8 +372,8 @@ CREATE TABLE m_shadow (
     objectTypeClass INTEGER GENERATED ALWAYS AS (6) STORED,
     objectClass VARCHAR(157) NOT NULL,
     resourceRef_targetOid UUID,
-    resourceRef_targetType INTEGER, -- soft-references m_qname
-    resourceRef_relation_id INTEGER, -- soft-references m_qname
+    resourceRef_targetType INTEGER, -- soft-references m_uri
+    resourceRef_relation_id INTEGER, -- soft-references m_uri
     intent VARCHAR(255),
     kind INTEGER,
     attemptNumber INTEGER,
@@ -424,26 +426,26 @@ CREATE TABLE m_assignment (
     createTimestamp TIMESTAMPTZ,
     creatorRef_targetOid UUID,
     creatorRef_targetType INTEGER, -- soft-references m_objtype
-    creatorRef_relation_id INTEGER, -- soft-references m_qname
+    creatorRef_relation_id INTEGER, -- soft-references m_uri
     lifecycleState VARCHAR(255),
     modifierRef_targetOid UUID,
     modifierRef_targetType INTEGER, -- soft-references m_objtype
-    modifierRef_relation_id INTEGER, -- soft-references m_qname
+    modifierRef_relation_id INTEGER, -- soft-references m_uri
     modifyChannel VARCHAR(255),
     modifyTimestamp TIMESTAMPTZ,
     orderValue INTEGER,
     orgRef_targetOid UUID,
     orgRef_targetType INTEGER, -- soft-references m_objtype
-    orgRef_relation_id INTEGER, -- soft-references m_qname
+    orgRef_relation_id INTEGER, -- soft-references m_uri
     resourceRef_targetOid UUID,
     resourceRef_targetType INTEGER, -- soft-references m_objtype
-    resourceRef_relation_id INTEGER, -- soft-references m_qname
+    resourceRef_relation_id INTEGER, -- soft-references m_uri
     targetRef_targetOid UUID,
     targetRef_targetType INTEGER, -- soft-references m_objtype
-    targetRef_relation_id INTEGER, -- soft-references m_qname
+    targetRef_relation_id INTEGER, -- soft-references m_uri
     tenantRef_targetOid UUID,
     tenantRef_targetType INTEGER, -- soft-references m_objtype
-    tenantRef_relation_id INTEGER, -- soft-references m_qname
+    tenantRef_relation_id INTEGER, -- soft-references m_uri
     extId INTEGER, -- TODO what is this?
     extOid VARCHAR(36), -- is this UUID too?
     ext JSONB,
@@ -459,7 +461,7 @@ CREATE TABLE m_acc_cert_campaign (
     objectTypeClass INTEGER GENERATED ALWAYS AS (22) STORED,
     definitionRef_targetOid UUID,
     definitionRef_targetType INTEGER, -- soft-references m_objtype
-    definitionRef_relation_id INTEGER, -- soft-references m_qname
+    definitionRef_relation_id INTEGER, -- soft-references m_uri
     endTimestamp TIMESTAMPTZ,
     handlerUri VARCHAR(255),
     iteration INTEGER NOT NULL,
@@ -467,7 +469,7 @@ CREATE TABLE m_acc_cert_campaign (
     name_orig VARCHAR(255),
     ownerRef_targetOid UUID,
     ownerRef_targetType INTEGER, -- soft-references m_objtype
-    ownerRef_relation_id INTEGER, -- soft-references m_qname
+    ownerRef_relation_id INTEGER, -- soft-references m_uri
     stageNumber INTEGER,
     startTimestamp TIMESTAMPTZ,
     state INTEGER
@@ -503,10 +505,10 @@ CREATE TABLE m_acc_cert_case (
     iteration INTEGER NOT NULL,
     objectRef_targetOid UUID,
     objectRef_targetType INTEGER, -- soft-references m_objtype
-    objectRef_relation_id INTEGER, -- soft-references m_qname
+    objectRef_relation_id INTEGER, -- soft-references m_uri
     orgRef_targetOid UUID,
     orgRef_targetType INTEGER, -- soft-references m_objtype
-    orgRef_relation_id INTEGER, -- soft-references m_qname
+    orgRef_relation_id INTEGER, -- soft-references m_uri
     outcome VARCHAR(255),
     remediedTimestamp TIMESTAMPTZ,
     reviewDeadline TIMESTAMPTZ,
@@ -514,10 +516,10 @@ CREATE TABLE m_acc_cert_case (
     stageNumber INTEGER,
     targetRef_targetOid UUID,
     targetRef_targetType INTEGER, -- soft-references m_objtype
-    targetRef_relation_id INTEGER, -- soft-references m_qname
+    targetRef_relation_id INTEGER, -- soft-references m_uri
     tenantRef_targetOid UUID,
     tenantRef_targetType INTEGER, -- soft-references m_objtype
-    tenantRef_relation_id INTEGER, -- soft-references m_qname
+    tenantRef_relation_id INTEGER, -- soft-references m_uri
 
     PRIMARY KEY (owner_oid, id)
 );
@@ -532,7 +534,7 @@ CREATE TABLE m_acc_cert_definition (
     name_orig VARCHAR(255),
     ownerRef_targetOid UUID,
     ownerRef_targetType INTEGER, -- soft-references m_objtype
-    ownerRef_relation_id INTEGER -- soft-references m_qname
+    ownerRef_relation_id INTEGER -- soft-references m_uri
 )
     INHERITS (m_object);
 
@@ -555,7 +557,7 @@ CREATE TABLE m_acc_cert_wi (
     iteration INTEGER NOT NULL,
     outcome VARCHAR(255),
     outputChangeTimestamp TIMESTAMPTZ,
-    performerRef_relation_id INTEGER, -- soft-references m_qname
+    performerRef_relation_id INTEGER, -- soft-references m_uri
     performerRef_targetOid UUID,
     performerRef_targetType INTEGER,
     stageNumber INTEGER,
@@ -569,7 +571,7 @@ CREATE TABLE m_acc_cert_wi_reference (
     owner_owner_owner_oid UUID NOT NULL,
     targetOid UUID NOT NULL,
     targetType INTEGER, -- soft-references m_objtype
-    relation_id INTEGER NOT NULL, -- soft-references m_qname
+    relation_id INTEGER NOT NULL, -- soft-references m_uri
 
     PRIMARY KEY (owner_owner_owner_oid, owner_owner_id, owner_id, relation_id, targetOid)
 );
@@ -712,7 +714,7 @@ CREATE TABLE m_report_output (
     objectTypeClass INTEGER GENERATED ALWAYS AS (12) STORED,
     reportRef_targetOid UUID,
     reportRef_targetType INTEGER, -- soft-references m_objtype
-    reportRef_relation_id INTEGER -- soft-references m_qname
+    reportRef_relation_id INTEGER -- soft-references m_uri
 )
     INHERITS (m_object);
 
@@ -799,11 +801,6 @@ CREATE TRIGGER m_connector_host_oid_delete_tr AFTER DELETE ON m_connector_host
 CREATE INDEX m_connector_host_name_orig_idx ON m_connector_host (name_orig);
 ALTER TABLE m_connector_host ADD CONSTRAINT m_connector_host_name_norm_key UNIQUE (name_norm);
 
-CREATE TYPE TaskExecutionStatusType AS ENUM ('RUNNABLE', 'WAITING', 'SUSPENDED', 'CLOSED');
-CREATE TYPE OperationResultStatusType AS ENUM ('SUCCESS', 'WARNING', 'PARTIAL_ERROR',
-    'FATAL_ERROR', 'HANDLED_ERROR', 'NOT_APPLICABLE', 'IN_PROGRESS', 'UNKNOWN');
-CREATE TYPE TaskWaitingReasonType AS ENUM ('OTHER_TASKS', 'OTHER');
-
 CREATE TABLE m_task (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectTypeClass INTEGER GENERATED ALWAYS AS (9) STORED,
@@ -818,10 +815,10 @@ CREATE TABLE m_task (
     node VARCHAR(255), -- TODO why not FK?
     objectRef_targetOid UUID,
     objectRef_targetType INTEGER, -- soft-references m_objtype
-    objectRef_relation_id INTEGER, -- soft-references m_qname
+    objectRef_relation_id INTEGER, -- soft-references m_uri
     ownerRef_targetOid UUID,
     ownerRef_targetType INTEGER, -- soft-references m_objtype
-    ownerRef_relation_id INTEGER, -- soft-references m_qname
+    ownerRef_relation_id INTEGER, -- soft-references m_uri
     parent VARCHAR(255), -- TODO why not FK?
     recurrence INTEGER,
     resultStatus OperationResultStatusType,
@@ -898,7 +895,7 @@ CREATE TABLE m_object_ext_reference (
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
     ext_item_id VARCHAR(32) NOT NULL,
     target_oid UUID NOT NULL,
-    relation_id INTEGER REFERENCES m_qname(id),
+    relation_id INTEGER references m_uri(id),
     targetType INTEGER,
     PRIMARY KEY (owner_oid, ext_item_id, target_oid)
 );

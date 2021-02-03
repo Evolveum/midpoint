@@ -17,7 +17,7 @@ import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.ForeignKey;
 import com.querydsl.sql.PrimaryKey;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.common.QQName;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
@@ -113,16 +113,16 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
     public final ArrayPath<byte[], Byte> ext = createByteArray("ext", EXT); // TODO is byte[] the right type?
 
     public final PrimaryKey<T> pk = createPrimaryKey(oid);
-    public final ForeignKey<QQName> createChannelIdFk =
-            createForeignKey(createChannelId, QQName.ID.getName());
-    public final ForeignKey<QQName> modifyChannelIdFk =
-            createForeignKey(modifyChannelId, QQName.ID.getName());
-    public final ForeignKey<QQName> creatorRefRelationIdFk =
-            createForeignKey(creatorRefRelationId, QQName.ID.getName());
-    public final ForeignKey<QQName> modifierRefRelationIdFk =
-            createForeignKey(modifierRefRelationId, QQName.ID.getName());
-    public final ForeignKey<QQName> tenantRefRelationIdFk =
-            createForeignKey(tenantRefRelationId, QQName.ID.getName());
+    public final ForeignKey<QUri> createChannelIdFk =
+            createForeignKey(createChannelId, QUri.ID.getName());
+    public final ForeignKey<QUri> modifyChannelIdFk =
+            createForeignKey(modifyChannelId, QUri.ID.getName());
+    public final ForeignKey<QUri> creatorRefRelationIdFk =
+            createForeignKey(creatorRefRelationId, QUri.ID.getName());
+    public final ForeignKey<QUri> modifierRefRelationIdFk =
+            createForeignKey(modifierRefRelationId, QUri.ID.getName());
+    public final ForeignKey<QUri> tenantRefRelationIdFk =
+            createForeignKey(tenantRefRelationId, QUri.ID.getName());
 
     public QObject(Class<T> type, String variable) {
         this(type, variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

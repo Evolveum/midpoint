@@ -17,7 +17,7 @@ import com.querydsl.core.types.dsl.NumberPath;
 
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.repo.sqale.qmodel.common.QQName;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
@@ -26,7 +26,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 /**
  * Filter processor for reference item paths, typically mapped to three columns.
  * OID is represented by UUID column, type by ID (see {@link MObjectTypeMapping} and relation
- * by Integer (foreign key) to {@link QQName}.
+ * by Integer (foreign key) to {@link QUri}.
  */
 public class RefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
 
@@ -84,7 +84,7 @@ public class RefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
         }
         if (ref.getRelation() != null) {
             Integer relationId = ((SqaleRepoContext) context.sqlRepoContext())
-                    .getQNameId(ref.getRelation());
+                    .getCachedUriId(ref.getRelation());
             predicate = ExpressionUtils.and(predicate,
                     predicateWithNotTreated(relationIdPath, relationIdPath.eq(relationId)));
         } else if (!filter.isRelationNullAsAny()) {

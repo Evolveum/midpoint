@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.node;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
@@ -21,8 +22,8 @@ public class NodeSqlTransformer
     }
 
     @Override
-    public @NotNull MNode toRowObjectWithoutFullObject(NodeType schemaObject) {
-        MNode node = super.toRowObjectWithoutFullObject(schemaObject);
+    public @NotNull MNode toRowObjectWithoutFullObject(NodeType schemaObject, JdbcSession jdbcSession) {
+        MNode node = super.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
 
         node.nodeIdentifier = schemaObject.getNodeIdentifier();
         return node;

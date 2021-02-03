@@ -10,27 +10,31 @@ import java.util.function.Function;
 
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.dsl.StringPath;
+import com.querydsl.core.types.dsl.EnumPath;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
 
 /**
  * Filter processor for a an attribute path (Prism item) of enum type that is mapped
- * to SQL as {@link Enum#name()} (typically upper-case constant).
- * This may be processed as enum type on databases that support it (e.g. PostgreSQL enum type).
+ * to matching PostgreSQL enum type - this allows to use schema enums directly.
+ * Use only enums that change rarely-to-never, enum type defined in SQL schema must be changed
+ * accordingly - but this is still less complicated than with old repo where each enum was doubled.
+ *
+ * Each enum type must be registered in {@link QuerydslUtils#querydslConfiguration}.
  */
 public class EnumItemFilterProcessor<E extends Enum<E>>
-        extends SinglePathItemFilterProcessor<PropertyValueFilter<E>, StringPath> {
+        extends SinglePathItemFilterProcessor<PropertyValueFilter<E>, EnumPath<E>> {
 
     /**
      * Returns the mapper creating the enum filter processor from context.
      */
-    public static ItemSqlMapper mapper(
-            @NotNull Function<EntityPath<?>, StringPath> rootToQueryItem) {
+    public static <E extends Enum<E>> ItemSqlMapper mapper(
+            @NotNull Function<EntityPath<?>, EnumPath<E>> rootToQueryItem) {
         return new ItemSqlMapper(ctx ->
                 new EnumItemFilterProcessor<>(ctx, rootToQueryItem),
                 rootToQueryItem);
@@ -38,13 +42,12 @@ public class EnumItemFilterProcessor<E extends Enum<E>>
 
     private EnumItemFilterProcessor(
             SqlQueryContext<?, ?, ?> context,
-            Function<EntityPath<?>, StringPath> rootToQueryItem) {
+            Function<EntityPath<?>, EnumPath<E>> rootToQueryItem) {
         super(context, rootToQueryItem);
     }
 
     @Override
     public Predicate process(PropertyValueFilter<E> filter) throws QueryException {
-        ValueFilterValues<E> values = new ValueFilterValues<>(filter, e -> e.name());
-        return createBinaryCondition(filter, path, values);
+        return createBinaryCondition(filter, path, new ValueFilterValues<>(filter));
     }
 }

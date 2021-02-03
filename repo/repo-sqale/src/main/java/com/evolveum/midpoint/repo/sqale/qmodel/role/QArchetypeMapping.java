@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.role;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 
@@ -32,10 +30,10 @@ public class QArchetypeMapping
     }
 
     @Override
-    public ObjectSqlTransformer<ArchetypeType, QArchetype, MArchetype>
-    createTransformer(SqlTransformerContext transformerContext, SqlRepoContext sqlRepoContext) {
+    public AbstractRoleSqlTransformer<ArchetypeType, QArchetype, MArchetype>
+    createTransformer(SqlTransformerContext transformerContext) {
         // no special class needed, no additional columns
-        return new ObjectSqlTransformer<>(transformerContext, this);
+        return new AbstractRoleSqlTransformer<>(transformerContext, this);
     }
 
     @Override

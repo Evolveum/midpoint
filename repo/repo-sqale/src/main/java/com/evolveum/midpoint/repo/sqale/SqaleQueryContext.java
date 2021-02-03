@@ -51,7 +51,7 @@ public class SqaleQueryContext<S, Q extends QObject<R>, R extends MObject>
 
     @Override
     protected SqlTransformer<S, Q, R> createTransformer() {
-        return mapping.createTransformer(transformerContext, sqlRepoContext);
+        return mapping.createTransformer(transformerContext);
     }
 
     @Override

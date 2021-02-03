@@ -14,6 +14,7 @@ import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -27,9 +28,12 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
 
     public static final String DEFAULT_ALIAS_NAME = "f";
 
-    public static final QFocusMapping<FocusType, QFocus.QFocusReal, MFocus> INSTANCE =
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public static final Class<QFocus<MFocus>> CLASS = (Class) QFocus.class;
+
+    public static final QFocusMapping<FocusType, QFocus<MFocus>, MFocus> INSTANCE =
             new QFocusMapping<>(QFocus.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                    FocusType.class, QFocus.QFocusReal.class);
+                    FocusType.class, CLASS);
 
     protected QFocusMapping(
             @NotNull String tableName,
@@ -78,5 +82,11 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
     protected Q newAliasInstance(String alias) {
         //noinspection unchecked
         return (Q) new QFocus<>(MFocus.class, alias);
+    }
+
+    @Override
+    public FocusSqlTransformer<S, Q, R> createTransformer(
+            SqlTransformerContext transformerContext) {
+        return new FocusSqlTransformer<>(transformerContext, this);
     }
 }

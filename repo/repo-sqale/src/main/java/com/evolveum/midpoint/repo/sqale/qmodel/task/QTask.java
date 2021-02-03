@@ -9,14 +9,14 @@ package com.evolveum.midpoint.repo.sqale.qmodel.task;
 import java.sql.Types;
 import java.time.Instant;
 
-import com.querydsl.core.types.dsl.ArrayPath;
-import com.querydsl.core.types.dsl.DateTimePath;
-import com.querydsl.core.types.dsl.NumberPath;
-import com.querydsl.core.types.dsl.StringPath;
+import com.querydsl.core.types.dsl.*;
 import com.querydsl.sql.ColumnMetadata;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWaitingReasonType;
 
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.
@@ -35,7 +35,7 @@ public class QTask extends QObject<MTask> {
     public static final ColumnMetadata COMPLETION_TIMESTAMP =
             ColumnMetadata.named("completionTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
     public static final ColumnMetadata EXECUTION_STATUS =
-            ColumnMetadata.named("executionStatus").ofType(Types.INTEGER);
+            ColumnMetadata.named("executionStatus").ofType(Types.OTHER);
     public static final ColumnMetadata FULL_RESULT =
             ColumnMetadata.named("fullResult").ofType(Types.BINARY);
     public static final ColumnMetadata HANDLER_URI =
@@ -63,19 +63,20 @@ public class QTask extends QObject<MTask> {
     public static final ColumnMetadata RECURRENCE =
             ColumnMetadata.named("recurrence").ofType(Types.INTEGER);
     public static final ColumnMetadata RESULT_STATUS =
-            ColumnMetadata.named("resultStatus").ofType(Types.INTEGER);
+            ColumnMetadata.named("resultStatus").ofType(Types.OTHER);
     public static final ColumnMetadata TASK_IDENTIFIER =
             ColumnMetadata.named("taskIdentifier").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata THREAD_STOP_ACTION =
             ColumnMetadata.named("threadStopAction").ofType(Types.INTEGER);
     public static final ColumnMetadata WAITING_REASON =
-            ColumnMetadata.named("waitingReason").ofType(Types.INTEGER);
+            ColumnMetadata.named("waitingReason").ofType(Types.OTHER);
 
     // columns and relations
     public final NumberPath<Integer> binding = createInteger("binding", BINDING);
     public final StringPath category = createString("category", CATEGORY);
     public final DateTimePath<Instant> completionTimestamp = createInstant("completionTimestamp", COMPLETION_TIMESTAMP);
-    public final StringPath executionStatus = createString("executionStatus", EXECUTION_STATUS);
+    public final EnumPath<TaskExecutionStatusType> executionStatus =
+            createEnum("executionStatus", TaskExecutionStatusType.class, EXECUTION_STATUS);
     public final ArrayPath<byte[], Byte> fullResult = createByteArray("fullResult", FULL_RESULT);
     public final StringPath handlerUri = createString("handlerUri", HANDLER_URI);
     public final DateTimePath<Instant> lastRunFinishTimestamp = createInstant("lastRunFinishTimestamp", LAST_RUN_FINISH_TIMESTAMP);
@@ -89,10 +90,12 @@ public class QTask extends QObject<MTask> {
     public final NumberPath<Integer> ownerRefRelationId = createInteger("ownerRefRelationId", OWNER_REF_RELATION_ID);
     public final StringPath parent = createString("parent", PARENT);
     public final NumberPath<Integer> recurrence = createInteger("recurrence", RECURRENCE);
-    public final StringPath resultStatus = createString("resultStatus", RESULT_STATUS);
+    public final EnumPath<OperationResultStatusType> resultStatus =
+            createEnum("resultStatus", OperationResultStatusType.class, RESULT_STATUS);
     public final StringPath taskIdentifier = createString("taskIdentifier", TASK_IDENTIFIER);
     public final NumberPath<Integer> threadStopAction = createInteger("threadStopAction", THREAD_STOP_ACTION);
-    public final StringPath waitingReason = createString("waitingReason", WAITING_REASON);
+    public final EnumPath<TaskWaitingReasonType> waitingReason =
+            createEnum("waitingReason", TaskWaitingReasonType.class, WAITING_REASON);
 
     public QTask(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

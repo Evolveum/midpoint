@@ -48,7 +48,7 @@ public class AuditSqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
 
     @Override
     protected SqlTransformer<S, Q, R> createTransformer() {
-        return mapping.createTransformer(transformerContext, sqlRepoContext);
+        return mapping.createTransformer(transformerContext);
     }
 
     public <T> Class<? extends T> qNameToSchemaClass(@NotNull QName qName) {

@@ -16,6 +16,7 @@ import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -63,5 +64,11 @@ public class QAbstractRoleMapping<
     protected Q newAliasInstance(String alias) {
         //noinspection unchecked
         return (Q) new QAbstractRole<>(MAbstractRole.class, alias);
+    }
+
+    @Override
+    public AbstractRoleSqlTransformer<S, Q, R> createTransformer(
+            SqlTransformerContext transformerContext) {
+        return new AbstractRoleSqlTransformer<>(transformerContext, this);
     }
 }

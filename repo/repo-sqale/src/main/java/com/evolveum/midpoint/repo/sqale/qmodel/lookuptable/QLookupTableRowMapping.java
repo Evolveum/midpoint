@@ -10,7 +10,6 @@ import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterPr
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType.*;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleModelMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.TimestampItemFilterProcessor;
@@ -45,7 +44,7 @@ public class QLookupTableRowMapping
 
     @Override
     public LookupTableRowTransformer createTransformer(
-            SqlTransformerContext transformerContext, SqlRepoContext sqlRepoContext) {
+            SqlTransformerContext transformerContext) {
         return new LookupTableRowTransformer(transformerContext, this);
     }
 

@@ -10,10 +10,8 @@ import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterPr
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType.*;
 
 import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -49,10 +47,9 @@ public class QConnectorMapping
     }
 
     @Override
-    public ObjectSqlTransformer<ConnectorType, QConnector, MConnector>
-    createTransformer(SqlTransformerContext transformerContext, SqlRepoContext sqlRepoContext) {
-        // TODO create specific transformer
-        return new ObjectSqlTransformer<>(transformerContext, this);
+    public ConnectorSqlTransformer createTransformer(
+            SqlTransformerContext transformerContext) {
+        return new ConnectorSqlTransformer(transformerContext, this);
     }
 
     @Override

@@ -69,25 +69,19 @@ public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T
         super(type, forVariable(pathVariable), schema, table);
     }
 
-    /**
-     * Creates {@link NumberPath} for a number property and registers column metadata for it.
-     */
+    /** Creates {@link NumberPath} for a number property and registers column metadata for it. */
     protected <A extends Number & Comparable<?>> NumberPath<A> createNumber(
             String property, Class<A> type, ColumnMetadata columnMetadata) {
         return addMetadata(createNumber(property, type), columnMetadata);
     }
 
-    /**
-     * Creates {@link NumberPath} for an Integer property and registers column metadata for it.
-     */
+    /** Creates {@link NumberPath} for an Integer property and registers column metadata for it. */
     protected NumberPath<Integer> createInteger(
             String property, ColumnMetadata columnMetadata) {
         return createNumber(property, Integer.class, columnMetadata);
     }
 
-    /**
-     * Creates {@link NumberPath} for a Long property and registers column metadata for it.
-     */
+    /** Creates {@link NumberPath} for a Long property and registers column metadata for it. */
     protected NumberPath<Long> createLong(
             String property, ColumnMetadata columnMetadata) {
         return createNumber(property, Long.class, columnMetadata);
@@ -99,16 +93,18 @@ public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T
         return addMetadata(createBoolean(property), columnMetadata);
     }
 
-    /**
-     * Creates {@link StringPath} and for a property registers column metadata for it.
-     */
+    /** Creates {@link StringPath} and for a property registers column metadata for it. */
     public StringPath createString(String property, ColumnMetadata columnMetadata) {
         return addMetadata(createString(property), columnMetadata);
     }
 
-    /**
-     * Creates {@link DateTimePath} for a property and registers column metadata for it.
-     */
+    /** Creates {@link EnumPath} for a property and registers column metadata for it. */
+    protected <A extends Enum<A>> EnumPath<A> createEnum(
+            String property, Class<A> type, ColumnMetadata columnMetadata) {
+        return addMetadata(createEnum(property, type), columnMetadata);
+    }
+
+    /** Creates {@link DateTimePath} for a property and registers column metadata for it. */
     @SuppressWarnings("rawtypes")
     protected <A extends Comparable> DateTimePath<A> createDateTime(
             String property, Class<? super A> type, ColumnMetadata columnMetadata) {

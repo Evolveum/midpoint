@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
@@ -221,7 +220,7 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
      * Creates {@link SqlTransformer} of row bean to schema type, override if provided.
      */
     public SqlTransformer<S, Q, R> createTransformer(
-            SqlTransformerContext sqlTransformerContext, SqlRepoContext sqlRepoContext) {
+            SqlTransformerContext sqlTransformerContext) {
         throw new UnsupportedOperationException("Bean transformer not supported for " + queryType);
     }
 

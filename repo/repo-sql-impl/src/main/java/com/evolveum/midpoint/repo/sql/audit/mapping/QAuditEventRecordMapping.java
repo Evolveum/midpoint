@@ -15,7 +15,6 @@ import com.evolveum.midpoint.repo.sql.audit.querymodel.*;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlDetailFetchMapper;
@@ -119,7 +118,7 @@ public class QAuditEventRecordMapping
 
     @Override
     public AuditEventRecordSqlTransformer createTransformer(
-            SqlTransformerContext transformerContext, SqlRepoContext sqlRepoContext) {
-        return new AuditEventRecordSqlTransformer(transformerContext, this, sqlRepoContext);
+            SqlTransformerContext transformerContext) {
+        return new AuditEventRecordSqlTransformer(transformerContext, this);
     }
 }

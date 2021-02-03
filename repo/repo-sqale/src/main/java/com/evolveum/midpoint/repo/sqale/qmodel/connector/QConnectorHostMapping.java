@@ -13,7 +13,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHost
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -43,7 +42,7 @@ public class QConnectorHostMapping
 
     @Override
     public ObjectSqlTransformer<ConnectorHostType, QConnectorHost, MConnectorHost>
-    createTransformer(SqlTransformerContext transformerContext, SqlRepoContext sqlRepoContext) {
+    createTransformer(SqlTransformerContext transformerContext) {
         // TODO create specific transformer
         return new ObjectSqlTransformer<>(transformerContext, this);
     }
