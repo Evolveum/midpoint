@@ -119,7 +119,7 @@ public abstract class AbstractReader {
             LexicalProcessor.RootXNodeHandler handler, boolean expectingMultipleObjects) throws SchemaException, IOException {
         JsonParser configuredParser = configureParser(unconfiguredParser);
         JsonReadingContext ctx = new JsonReadingContext(configuredParser, (ParsingContextImpl) parsingContext,
-                handler, this::tagToTypeName, schemaRegistry.getPrismContext());
+                handler, this::tagToTypeName, schemaRegistry);
         readTreatingExceptions(expectingMultipleObjects, configuredParser, ctx);
     }
 

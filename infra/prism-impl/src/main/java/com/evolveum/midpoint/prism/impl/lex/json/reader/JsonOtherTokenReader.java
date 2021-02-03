@@ -18,6 +18,7 @@ import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismNamespaceContext;
+import com.evolveum.midpoint.prism.impl.lex.json.DefinitionContext;
 import com.evolveum.midpoint.prism.impl.lex.json.JsonNullValueParser;
 import com.evolveum.midpoint.prism.impl.lex.json.JsonValueParser;
 import com.evolveum.midpoint.prism.impl.xnode.ListXNodeImpl;
@@ -40,10 +41,13 @@ class JsonOtherTokenReader {
 
     private final PrismNamespaceContext parentContext;
 
-    JsonOtherTokenReader(JsonReadingContext ctx, PrismNamespaceContext context) {
+    private final DefinitionContext def;
+
+    JsonOtherTokenReader(JsonReadingContext ctx, PrismNamespaceContext context, DefinitionContext def) {
         this.ctx = ctx;
         this.parser = ctx.parser;
         this.parentContext = context;
+        this.def = def;
     }
 
     @NotNull XNodeImpl readValue() throws IOException, SchemaException {
@@ -51,7 +55,7 @@ class JsonOtherTokenReader {
 
         switch (currentToken) {
             case START_OBJECT:
-                return new JsonObjectTokenReader(ctx, parentContext).read();
+                return new JsonObjectTokenReader(ctx, parentContext, def).read();
             case START_ARRAY:
                 return parseToList();
             case VALUE_STRING:

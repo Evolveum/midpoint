@@ -7,10 +7,17 @@
 
 package com.evolveum.midpoint.prism.impl.lex.json.reader;
 
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.TypeDefinition;
 import com.evolveum.midpoint.prism.impl.ParsingContextImpl;
 import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
+import com.evolveum.midpoint.prism.impl.lex.json.DefinitionContext;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.fasterxml.jackson.core.JsonParser;
+
+import java.util.Optional;
+
+import javax.xml.namespace.QName;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -22,19 +29,20 @@ class JsonReadingContext {
     @NotNull final ParsingContextImpl prismParsingContext;
     @NotNull final LexicalProcessor.RootXNodeHandler objectHandler;
     @NotNull final AbstractReader.YamlTagResolver yamlTagResolver;
-    @NotNull final PrismContext prismContext;
 
     private boolean aborted;
+    private @NotNull SchemaRegistry schemaRegistry;
 
     JsonReadingContext(@NotNull JsonParser parser, @NotNull ParsingContextImpl prismParsingContext,
             @NotNull LexicalProcessor.RootXNodeHandler objectHandler, @NotNull AbstractReader.YamlTagResolver yamlTagResolver,
-            @NotNull PrismContext prismContext) {
+            @NotNull SchemaRegistry schemaRegistry) {
         this.parser = parser;
         this.prismParsingContext = prismParsingContext;
         this.objectHandler = objectHandler;
         this.yamlTagResolver = yamlTagResolver;
-        this.prismContext = prismContext;
+        this.schemaRegistry = schemaRegistry;
     }
+
 
     public boolean isAborted() {
         return aborted;
@@ -51,5 +59,21 @@ class JsonReadingContext {
     @NotNull
     String getPositionSuffixIfPresent() {
         return " At: " + getPositionSuffix();
+    }
+
+
+    public Optional<TypeDefinition> resolveType(QName typeName) {
+        return Optional.ofNullable(schemaRegistry.findTypeDefinitionByType(typeName));
+    }
+
+
+    public DefinitionContext rootDefinition() {
+        return DefinitionContext.root(schemaRegistry);
+    }
+
+
+    public @NotNull DefinitionContext replaceDefinition(@NotNull DefinitionContext definition, QName typeName) {
+        TypeDefinition typeDef = schemaRegistry.findTypeDefinitionByType(typeName);
+        return DefinitionContext.awareFromType(definition.getName(), typeDef);
     }
 }

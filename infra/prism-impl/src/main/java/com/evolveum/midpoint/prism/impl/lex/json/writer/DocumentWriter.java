@@ -159,7 +159,7 @@ class DocumentWriter {
     }
 
     private void writeItemPath(ItemPath value, PrismNamespaceContext context) throws IOException {
-        ItemPathSerialization serialization = ItemPathSerialization.serialize(UniformItemPath.from(value), context);
+        ItemPathSerialization serialization = ItemPathSerialization.serialize(UniformItemPath.from(value), context, true);
         // FIXME: We could serialize undeclared prefixes as local namespace context
         PrismNamespaceContext localContext = context.childContext(serialization.undeclaredPrefixes());
         if(!localContext.isLocalEmpty()) {

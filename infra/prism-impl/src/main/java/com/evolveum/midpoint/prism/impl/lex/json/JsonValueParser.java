@@ -46,12 +46,16 @@ public class JsonValueParser<T> implements ValueParser<T> {
     @Override
     public T parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
         Class<?> clazz = XsdTypeMapper.toJavaType(typeName);
-        ObjectReader r = mapper.readerFor(clazz);
         if(ItemPathType.class.isAssignableFrom(clazz)) {
             return (T) new ItemPathType(parseItemPath());
         } else if(ItemPath.class.isAssignableFrom(clazz)) {
             return (T) parseItemPath();
+        } if(QName.class.isAssignableFrom(clazz)) {
+            return (T) DefinitionContext.resolveQName(getStringValue(), context);
         }
+
+
+        ObjectReader r = mapper.readerFor(clazz);
 
         try {
             return r.readValue(node);

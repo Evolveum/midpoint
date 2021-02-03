@@ -52,15 +52,35 @@ public class TestPrismParsingJson extends TestPrismParsing {
 
     @Test
     public void testPrismNamespaceContext() throws SchemaException, IOException {
-        File jackContext = new File(getCommonSubdir(), "user-jack-object-context.json");
+        File jackContext = getFile("user-jack-object-context");
+
         JsonReader parser = new JsonReader(getPrismContext().getSchemaRegistry());
 
         @NotNull
         RootXNodeImpl rootXNode = parser.read(new ParserFileSource(jackContext), getPrismContext().getDefaultParsingContext());
+        assertContextJack(rootXNode);
+    }
+
+    @Test
+    public void testPrismNamespaceAxiom() throws SchemaException, IOException {
+        File jackContext = getFile("user-jack-object-axiom");
+
+        JsonReader parser = new JsonReader(getPrismContext().getSchemaRegistry());
+
+        @NotNull
+        RootXNodeImpl rootXNode = parser.read(new ParserFileSource(jackContext), getPrismContext().getDefaultParsingContext());
+        assertContextJack(rootXNode);
+    }
+
+    private void assertContextJack(@NotNull RootXNodeImpl rootXNode) throws SchemaException {
         assertNotNull(rootXNode);
         MapXNodeImpl mapNode = rootXNode.toMapXNode();
         MapXNode password = get(MapXNode.class, mapNode, "object", "password");
         assertNotNull(password.toMap().get(ProtectedDataType.F_ENCRYPTED_DATA), "EncryptedData should be qualified");
+
+        MapXNode accountRef = get(MapXNode.class, mapNode, "object", "accountRef");
+
+
 
         PrimitiveXNode<ItemPath> pathNode = get(PrimitiveXNode.class, mapNode, "object", "accountRef", "filter", "equal", "path");
 
@@ -73,6 +93,11 @@ public class TestPrismParsingJson extends TestPrismParsing {
         @NotNull
         String output = serializer.write(rootXNode, null);
         display(output);
+        @NotNull
+        PrismObject<Objectable> jackOriginal = getPrismContext().parserFor(rootXNode).parse();
+        @NotNull
+        PrismObject<Objectable> jackSerialized = getPrismContext().parserFor(output).language(getOutputFormat()).parse();
+        assertEquals(jackSerialized, jackOriginal);
 
     }
 

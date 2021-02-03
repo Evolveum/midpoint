@@ -14,8 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
-
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.impl.xnode.*;
@@ -34,12 +32,10 @@ import com.google.common.collect.ImmutableMap.Builder;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismNamespaceContext;
+import com.evolveum.midpoint.prism.impl.lex.json.DefinitionContext;
 import com.evolveum.midpoint.prism.impl.lex.json.JsonInfraItems;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.QNameUtil.PrefixedName;
-import com.evolveum.midpoint.util.QNameUtil.QNameInfo;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -94,6 +90,8 @@ class JsonObjectTokenReader {
 
     private boolean namespaceSensitiveStarted = false;
 
+    private @NotNull DefinitionContext definition;
+
     private static final Map<QName, ItemProcessor> PROCESSORS = ImmutableMap.<QName, ItemProcessor>builder()
             // Namespace definition processing
             .put(PROP_NAMESPACE_QNAME, JsonObjectTokenReader::processNamespaceDeclaration)
@@ -110,10 +108,11 @@ class JsonObjectTokenReader {
 
     private static final ItemProcessor STANDARD_PROCESSOR = namespaceSensitive(JsonObjectTokenReader::processStandardFieldValue);
 
-    JsonObjectTokenReader(@NotNull JsonReadingContext ctx, PrismNamespaceContext parentContext) {
+    JsonObjectTokenReader(@NotNull JsonReadingContext ctx, PrismNamespaceContext parentContext, @NotNull DefinitionContext definition) {
         this.ctx = ctx;
         this.parser = ctx.parser;
         this.parentContext = parentContext;
+        this.definition = definition;
     }
 
     /**
@@ -135,7 +134,7 @@ class JsonObjectTokenReader {
     }
 
     private void processFields() throws IOException, SchemaException {
-        QName currentFieldName = null;
+        DefinitionContext currentField = null;
         while (!ctx.isAborted()) {
             JsonToken token = parser.nextToken();
             if (token == null) {
@@ -145,60 +144,36 @@ class JsonObjectTokenReader {
             } else if (token == JsonToken.END_OBJECT) {
                 break;
             } else if (token == JsonToken.FIELD_NAME) {
-                currentFieldName = processFieldName(currentFieldName);
+                currentField = processFieldName(currentField);
             } else {
-                processFieldValue(currentFieldName);
-                currentFieldName = null;
+                processFieldValue(currentField);
+                currentField = null;
             }
         }
     }
 
-    private @NotNull QName processFieldName(QName currentFieldName) throws IOException, SchemaException {
+    private @NotNull DefinitionContext processFieldName(DefinitionContext currentFieldName) throws IOException, SchemaException {
         String newFieldName = parser.getCurrentName();
         if (currentFieldName != null) {
-            warnOrThrow("Two field names in succession: " + currentFieldName + " and " + newFieldName);
+            warnOrThrow("Two field names in succession: " + currentFieldName.getName() + " and " + newFieldName);
         }
-        return resolveQName(newFieldName);
+        return definition.resolve(newFieldName, namespaceContext());
     }
 
     private @NotNull QName resolveQName(String name) throws SchemaException {
-
-        if (name.startsWith("@")) {
-            // Infra properties are unqualified for now
-            return new QName(name);
-        }
-        if (!QNameUtil.isUriQName(name)) {
-            PrefixedName prefixed = QNameUtil.parsePrefixedName(name);
-            Optional<String> ns = namespaceContext().namespaceFor(prefixed.prefix());
-            if(ns.isPresent()) {
-                return new QName(ns.get(), prefixed.localName());
-            } else if (!prefixed.prefix().isEmpty()) {
-                warnOrThrow("Undeclared prefix '%s'", prefixed.prefix());
-            } else {
-                return new QName(prefixed.localName());
-            }
-        }
-        QNameInfo result = QNameUtil.uriToQNameInfo(name, true);
-        // FIXME: Explicit empty namespace is workaround for cases, where we somehow lost namespace
-        // eg. parsing json with filters without namespaces
-        if (Strings.isNullOrEmpty(result.name.getNamespaceURI()) && !result.explicitEmptyNamespace) {
-            Optional<String> defaultNs = namespaceContext().defaultNamespace();
-            if(defaultNs.isPresent()) {
-                result = QNameUtil.qnameToQnameInfo(new QName(defaultNs.get(), result.name.getLocalPart()));
-            }
-        }
-        return result.name;
+        return definition.unaware().resolve(name, namespaceContext()).getName();
     }
 
-    private void processFieldValue(QName name) throws IOException, SchemaException {
+
+    private void processFieldValue(DefinitionContext name) throws IOException, SchemaException {
         assert name != null;
-        XNodeImpl value = readValue();
-        PROCESSORS.getOrDefault(name, STANDARD_PROCESSOR).apply(this, name, value);
+        XNodeImpl value = readValue(name);
+        PROCESSORS.getOrDefault(name.getName(), STANDARD_PROCESSOR).apply(this, name.getName(), value);
 
     }
 
-    private XNodeImpl readValue() throws IOException, SchemaException {
-        return new JsonOtherTokenReader(ctx,namespaceContext().inherited()).readValue();
+    private XNodeImpl readValue(DefinitionContext name) throws IOException, SchemaException {
+        return new JsonOtherTokenReader(ctx,namespaceContext().inherited(), name).readValue();
     }
 
     private PrismNamespaceContext namespaceContext() {
@@ -273,11 +248,20 @@ class JsonObjectTokenReader {
         elementName = resolveQName(nsName);
     }
 
+    /**
+     *
+     * @param name
+     * @param value
+     * @throws SchemaException
+     */
     private void processTypeDeclaration(QName name, XNodeImpl value) throws SchemaException {
         if (typeName != null) {
             warnOrThrow("Value type defined more than once");
         }
-        typeName = QNameUtil.uriToQName(getCurrentFieldStringValue(name, value), true);
+        String stringValue = getCurrentFieldStringValue(name, value);
+        // TODO: Compat: WE tread default prefixes as empty namespace, not default namespace
+        typeName = definition.unaware().resolve(stringValue, namespaceContext().childDefaultNamespace("")).getName();
+        definition = ctx.replaceDefinition(definition,typeName);
     }
 
     private void processNamespaceDeclaration(QName name, XNodeImpl value) throws SchemaException {
@@ -393,4 +377,5 @@ class JsonObjectTokenReader {
 
         void apply(JsonObjectTokenReader reader, QName itemName, XNodeImpl value) throws SchemaException;
     }
+
 }

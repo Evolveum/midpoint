@@ -48,8 +48,6 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
      */
     private final Set<String> unqualifiedSubnodeNames = new HashSet<>();
 
-    private boolean hasDefaultNamespaceMarkers;
-
     @NotNull private List<MapXNode> metadataNodes = new ArrayList<>();
 
     @Deprecated
@@ -156,7 +154,8 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
             if (QNameUtil.match(key, entry.getKey())) {
                 iterator.remove();
                 unqualifiedSubnodeNames.remove(key.getLocalPart());
-                return entry.getValue();
+                throw new IllegalStateException("Removing unqualified: " + key);
+                //return entry.getValue();
             }
         }
         return null;
@@ -377,34 +376,6 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
         }
         super.performFreeze();
     }
-
-    // TODO reconsider performance of this method
-    public void replaceDefaultNamespaceMarkers(String marker, String defaultNamespace) {
-        if (hasDefaultNamespaceMarkers) {
-            // As we have no method to replace existing entry in LinkedHashMap, we need to copy all the entries,
-            // qualifying them as needed.
-            LinkedHashMap<QName, XNodeImpl> originalSubNodes = subnodes;
-            subnodes = new LinkedHashMap<>();
-            unqualifiedSubnodeNames.clear();
-            for (Map.Entry<QName, XNodeImpl> originalEntry : originalSubNodes.entrySet()) {
-                QName originalKey = originalEntry.getKey();
-                QName newKey;
-                if (marker.equals(originalKey.getNamespaceURI())) {
-                    // Note that defaultNamespace can be "", so newKey can be unqualified
-                    newKey = new QName(defaultNamespace, originalKey.getLocalPart());
-                } else {
-                    newKey = originalKey;
-                }
-                merge(newKey, originalEntry.getValue());
-            }
-            hasDefaultNamespaceMarkers = false;
-        }
-    }
-
-    public void setHasDefaultNamespaceMarkers() {
-        hasDefaultNamespaceMarkers = true;
-    }
-
 
     @Override
     public @NotNull List<MapXNode> getMetadataNodes() {
