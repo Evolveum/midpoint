@@ -16,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -72,4 +73,9 @@ public interface PrismContainerDefinition<C extends Containerable> extends ItemD
 
     @Override
     Class<C> getTypeClass();
+
+    @Override
+    default Optional<ComplexTypeDefinition> structuredType() {
+        return Optional.of(getComplexTypeDefinition());
+    }
 }

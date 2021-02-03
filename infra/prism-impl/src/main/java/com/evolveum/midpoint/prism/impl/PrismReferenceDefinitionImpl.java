@@ -7,8 +7,11 @@
 
 package com.evolveum.midpoint.prism.impl;
 
+import java.util.Optional;
+
 import javax.xml.namespace.QName;
 
+import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.impl.delta.ReferenceDeltaImpl;
@@ -43,8 +46,13 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
     private QName compositeObjectElementName;
     private boolean isComposite = false;
 
+    private transient Lazy<Optional<ComplexTypeDefinition>> structuredType;
+
     public PrismReferenceDefinitionImpl(QName elementName, QName typeName, PrismContext prismContext) {
         super(elementName, typeName, prismContext);
+        structuredType = Lazy.from(() ->
+            Optional.ofNullable(getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByType(getTypeName()))
+        );
     }
 
     /**
@@ -61,6 +69,7 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
         return targetTypeName;
     }
 
+    @Override
     public void setTargetTypeName(QName targetTypeName) {
         checkMutable();
         this.targetTypeName = targetTypeName;
@@ -80,6 +89,7 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
         return isComposite;
     }
 
+    @Override
     public void setComposite(boolean isComposite) {
         checkMutable();
         this.isComposite = isComposite;
@@ -174,6 +184,7 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
     /**
      * Return a human readable name of this class suitable for logs.
      */
+    @Override
     public String getDebugDumpClassName() {
         return "PRD";
     }
@@ -183,10 +194,16 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
         return "reference";
     }
 
+    @Override
     protected void extendToString(StringBuilder sb) {
         super.extendToString(sb);
         if (isComposite) {
             sb.append(",composite");
         }
+    }
+
+    @Override
+    public Optional<ComplexTypeDefinition> structuredType() {
+        return structuredType.get();
     }
 }
