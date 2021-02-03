@@ -16,6 +16,7 @@ import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeItemProcessor;
 import com.evolveum.midpoint.repo.common.task.HandledObjectType;
+import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.repo.common.task.ItemProcessorClass;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -38,6 +39,8 @@ class ReconciliationTaskFirstPartExecution
 
     ReconciliationTaskFirstPartExecution(ReconciliationTaskExecution taskExecution) {
         super(taskExecution);
+        reportingOptions.setEnableSynchronizationStatistics(false);
+
         setProcessShortNameCapitalized("Reconciliation (operation completion)");
         setContextDescription("on " + taskExecution.getTargetInfo().getContextDescription());
         setRequiresDirectRepositoryAccess();
@@ -71,7 +74,9 @@ class ReconciliationTaskFirstPartExecution
         }
 
         @Override
-        protected boolean processObject(PrismObject<ShadowType> object, RunningTask workerTask, OperationResult result)
+        protected boolean processObject(PrismObject<ShadowType> object,
+                ItemProcessingRequest<PrismObject<ShadowType>> request,
+                RunningTask workerTask, OperationResult result)
                 throws CommonException, PreconditionViolationException {
             RepositoryCache.enterLocalCaches(taskHandler.cacheConfigurationManager);
             try {

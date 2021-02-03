@@ -10,6 +10,8 @@ package com.evolveum.midpoint.repo.common.task;
 import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+import java.io.Serializable;
+
 /**
  * Options that drive state, progress, and error reporting of a search-iterative task.
  * Factored out to provide better separation of concerns.
@@ -17,7 +19,7 @@ import com.evolveum.midpoint.util.annotation.Experimental;
  * TODO finish
  */
 @Experimental
-public class TaskReportingOptions {
+public class TaskReportingOptions implements Cloneable, Serializable {
 
     private boolean logFinishInfo = true;
     private boolean countObjectsOnStart = true;         // todo make configurable per task instance (if necessary)
@@ -104,5 +106,13 @@ public class TaskReportingOptions {
     public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
         return new StatisticsCollectionStrategy(!isPreserveStatistics(), isEnableIterationStatistics(),
                 isEnableSynchronizationStatistics(), isEnableActionsExecutedStatistics());
+    }
+
+    public TaskReportingOptions clone() {
+        try {
+            return (TaskReportingOptions) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

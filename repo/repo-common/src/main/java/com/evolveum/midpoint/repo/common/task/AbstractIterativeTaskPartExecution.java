@@ -113,6 +113,13 @@ public abstract class AbstractIterativeTaskPartExecution<I,
      */
     @NotNull private final ErrorHandlingStrategyExecutor errorHandlingStrategyExecutor;
 
+    /**
+     * Reporting options specific for this task part. They are copied from the main options
+     * present in the task handler - by default. Note this will change when we allow configuring
+     * them for individual tasks.
+     */
+    @NotNull protected final TaskReportingOptions reportingOptions;
+
     protected AbstractIterativeTaskPartExecution(@NotNull TE taskExecution) {
         this.taskHandler = taskExecution.taskHandler;
         this.taskExecution = taskExecution;
@@ -125,6 +132,7 @@ public abstract class AbstractIterativeTaskPartExecution<I,
         this.errorHandlingStrategyExecutor = new ErrorHandlingStrategyExecutor(
                 taskExecution.localCoordinatorTask, taskHandler.prismContext, taskHandler.repositoryService,
                 getDefaultErrorAction());
+        this.reportingOptions = taskHandler.getReportingOptions().clone();
     }
 
     public @NotNull TaskWorkBucketProcessingResult run(OperationResult opResult) throws SchemaException, ObjectNotFoundException,
@@ -159,7 +167,7 @@ public abstract class AbstractIterativeTaskPartExecution<I,
 
         runResult.setProgress(getTotalProgress());
 
-        if (taskHandler.getReportingOptions().isLogFinishInfo()) {
+        if (getReportingOptions().isLogFinishInfo()) {
             logFinishInfo(opResult);
         }
 
@@ -358,4 +366,8 @@ public abstract class AbstractIterativeTaskPartExecution<I,
      * @return Default error action if no policy is specified or if no policy entry matches.
      */
     protected @NotNull abstract ErrorHandlingStrategyExecutor.Action getDefaultErrorAction();
+
+    public @NotNull TaskReportingOptions getReportingOptions() {
+        return reportingOptions;
+    }
 }

@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Processes individual objects found by the iterative search.
  *
- * It provides backwards-compatible {@link #processObject(PrismObject, RunningTask, OperationResult)}
+ * It provides backwards-compatible {@link #processObject(PrismObject, ItemProcessingRequest, RunningTask, OperationResult)}
  * to be used instead of more generic {@link #process(ItemProcessingRequest, RunningTask, OperationResult)} method.
  *
  * But also allows separate processing of errored objects by {@link #processError(PrismObject, OperationResultType, RunningTask, OperationResult)}.
@@ -42,13 +42,14 @@ public abstract class AbstractSearchIterativeItemProcessor<
         PrismObject<O> object = request.getItem();
         OperationResultType errorFetchResult = object.asObjectable().getFetchResult();
         if (errorFetchResult == null) {
-            return processObject(object, workerTask, parentResult);
+            return processObject(object, request, workerTask, parentResult);
         } else {
             return processError(object, errorFetchResult, workerTask, parentResult);
         }
     }
 
-    protected abstract boolean processObject(PrismObject<O> object, RunningTask workerTask, OperationResult result)
+    protected abstract boolean processObject(PrismObject<O> object, ItemProcessingRequest<PrismObject<O>> request,
+            RunningTask workerTask, OperationResult result)
             throws CommonException, PreconditionViolationException;
 
     @SuppressWarnings("WeakerAccess")

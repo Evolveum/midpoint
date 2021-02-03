@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.task;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.logging.Trace;
 
 import org.jetbrains.annotations.NotNull;
@@ -67,5 +68,10 @@ public abstract class AbstractIterativeItemProcessor<I,
 
     public @NotNull TE getTaskExecution() {
         return taskExecution;
+    }
+
+    @Experimental // maybe will be removed
+    public @NotNull String createItemProcessingRequestIdentifier() {
+        return taskHandler.lightweightIdentifierGenerator.generate().toString();
     }
 }

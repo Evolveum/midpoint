@@ -864,12 +864,18 @@ public class ChangeExecutor {
             LOGGER.trace("Shadow is gone, skipping modifying situation in shadow.");
             result.muteLastSubresultError();
             result.recordSuccess();
+            task.onSynchronizationSituationChange(context.getItemProcessingIdentifier(), projectionOid, null); // TODO or what?
             return;
         } catch (Exception ex) {
             LOGGER.trace("Problem with getting shadow, skipping modifying situation in shadow.");
             result.recordPartialError(ex);
+            task.onSynchronizationSituationChange(context.getItemProcessingIdentifier(), projectionOid, null); // TODO or what?
             return;
         }
+
+        // Note there can be some discrepancies between computed situation and the one that will be really present
+        // in the repository after the task finishes. It can occur if the modify operation does not succeed.
+        task.onSynchronizationSituationChange(context.getItemProcessingIdentifier(), projectionOid, newSituation);
 
         SynchronizationSituationType currentSynchronizationSituation = currentShadow.asObjectable().getSynchronizationSituation();
         if (currentSynchronizationSituation == SynchronizationSituationType.DELETED && ShadowUtil.isDead(currentShadow.asObjectable())) {

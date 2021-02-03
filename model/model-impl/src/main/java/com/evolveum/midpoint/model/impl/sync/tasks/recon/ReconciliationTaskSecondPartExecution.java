@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeItemProcessor;
 import com.evolveum.midpoint.repo.common.task.HandledObjectType;
+import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.repo.common.task.ItemProcessorClass;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -59,7 +60,6 @@ class ReconciliationTaskSecondPartExecution
                 targetInfo.getObjectClassDefinition(),
                 taskExecution.getObjectsFilter(),
                 taskHandler.getObjectChangeListener(),
-                taskHandler.getTaskTypeName(),
                 SchemaConstants.CHANNEL_RECON,
                 taskExecution.partDefinition,
                 false);
@@ -102,9 +102,9 @@ class ReconciliationTaskSecondPartExecution
         }
 
         @Override
-        protected boolean processObject(PrismObject<ShadowType> object, RunningTask workerTask, OperationResult result)
-                throws CommonException, PreconditionViolationException {
-            synchronizer.handleObject(object, workerTask, result);
+        protected boolean processObject(PrismObject<ShadowType> object, ItemProcessingRequest<PrismObject<ShadowType>> request,
+                RunningTask workerTask, OperationResult result) throws CommonException, PreconditionViolationException {
+            synchronizer.synchronize(object, request.getIdentifier(), workerTask, result);
             return true;
         }
     }

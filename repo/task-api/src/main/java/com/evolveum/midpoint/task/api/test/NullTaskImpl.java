@@ -19,6 +19,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
@@ -701,13 +702,28 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started,
-            Throwable exception, SynchronizationInformation.Record originalStateIncrement, SynchronizationInformation.Record newStateIncrement) {
+    public void recordSynchronizationOperationLegacy(SynchronizationInformation.LegacyCounters originalStateIncrement, SynchronizationInformation.LegacyCounters newStateIncrement) {
     }
 
     @Override
-    public void recordSynchronizationOperationEnd(ShadowType shadow, long started, Throwable exception,
-            SynchronizationInformation.Record originalStateIncrement, SynchronizationInformation.Record newStateIncrement) {
+    public void onSyncItemProcessingStart(@NotNull String processingIdentifier, @Nullable SynchronizationSituationType situationBefore) {
+    }
+
+    @Override
+    public void onSynchronizationStart(@Nullable String processingIdentifier, @Nullable String shadowOid, @Nullable SynchronizationSituationType situation) {
+    }
+
+    @Override
+    public void onSynchronizationExclusion(@Nullable String processingIdentifier, @NotNull SynchronizationExclusionReasonType exclusionReason) {
+    }
+
+    @Override
+    public void onSynchronizationSituationChange(@Nullable String processingIdentifier, String shadowOid, @Nullable SynchronizationSituationType situation) {
+    }
+
+    @Override
+    public void onSyncItemProcessingEnd(@NotNull String processingIdentifier,
+            SynchronizationInformation.@NotNull Status status) {
     }
 
     @Override

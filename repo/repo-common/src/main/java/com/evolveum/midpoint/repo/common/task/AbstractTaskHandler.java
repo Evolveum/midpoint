@@ -121,6 +121,7 @@ public abstract class AbstractTaskHandler<
     @Autowired protected SchemaHelper schemaHelper;
     @Autowired protected MatchingRuleRegistry matchingRuleRegistry;
     @Autowired protected OperationExecutionRecorderForTasks operationExecutionRecorder;
+    @Autowired protected LightweightIdentifierGenerator lightweightIdentifierGenerator;
 
     protected AbstractTaskHandler(@NotNull Trace logger, @NotNull String taskTypeName, @NotNull String taskOperationPrefix) {
         this.logger = logger;

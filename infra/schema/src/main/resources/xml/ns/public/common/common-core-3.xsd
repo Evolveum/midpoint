@@ -11859,6 +11859,71 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:simpleType name="SynchronizationExclusionReasonType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.3</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="synchronized">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Resource object was synchronized - either successfully or not.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SYNCHRONIZED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="protected">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Resource object was excluded from synchronization because it is protected.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PROTECTED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="noSynchronizationPolicy">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Resource object was excluded from synchronization because because no synchronization policy was found.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NO_SYNCHRONIZATION_POLICY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="synchronizationDisabled">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Resource object was excluded from synchronization because because synchronization is disabled for it.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SYNCHRONIZATION_DISABLED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="notApplicableForTask">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Resource object was excluded form synchronization because it is not applicable for the task.
+                        (So it is skipped.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NOT_APPLICABLE_FOR_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:complexType name="SynchronizationReactionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -25196,26 +25261,51 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="countProtected" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countNoSynchronizationPolicy" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countSynchronizationDisabled" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countNotApplicableForTask" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countDeleted" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countDisputed" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countLinked" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countUnlinked" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countUnmatched" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countProtectedAfter" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countNoSynchronizationPolicyAfter" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countSynchronizationDisabledAfter" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countNotApplicableForTaskAfter" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countDeletedAfter" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countDisputedAfter" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countLinkedAfter" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countUnlinkedAfter" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countUnmatchedAfter" type="xsd:int" minOccurs="1" />
+            <xsd:element name="transition" type="tns:SynchronizationSituationTransitionType" minOccurs="0" maxOccurs="unbounded" />
+
+            <xsd:element name="countProtected" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countNoSynchronizationPolicy" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countSynchronizationDisabled" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countNotApplicableForTask" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countDeleted" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countDisputed" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countLinked" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countUnlinked" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countUnmatched" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countProtectedAfter" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countNoSynchronizationPolicyAfter" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countSynchronizationDisabledAfter" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countNotApplicableForTaskAfter" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countDeletedAfter" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countDisputedAfter" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countLinkedAfter" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countUnlinkedAfter" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countUnmatchedAfter" type="xsd:int" minOccurs="0" />
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:complexType name="SynchronizationSituationTransitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>false</a:container> <!-- parent is not a container yet -->
+                <a:experimental>true</a:experimental>
+                <a:since>4.3</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="onProcessingStart" type="tns:SynchronizationSituationType" minOccurs="0" />
+            <xsd:element name="onSynchronizationStart" type="tns:SynchronizationSituationType" minOccurs="0" />
+            <xsd:element name="onSynchronizationEnd" type="tns:SynchronizationSituationType" minOccurs="0" />
+            <xsd:element name="exclusionReason" type="tns:SynchronizationExclusionReasonType" minOccurs="0" />
+            <xsd:element name="countSuccess" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countError" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countSkip" type="xsd:int" minOccurs="0" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="synchronizationSituationTransition" type="tns:SynchronizationSituationTransitionType"/>
 
     <xsd:complexType name="ActionsExecutedInformationType">
         <xsd:annotation>

@@ -10,11 +10,16 @@ package com.evolveum.midpoint.repo.common.task;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks.Target;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Request to process an object.
@@ -43,5 +48,16 @@ public class ObjectProcessingRequest<O extends ObjectType> extends ItemProcessin
     @Override
     public void acknowledge(boolean release, OperationResult result) {
         // Nothing to acknowledge here.
+    }
+
+    @Override
+    public @Nullable String getItemOid() {
+        return item.getOid();
+    }
+
+    @Override
+    public @Nullable SynchronizationSituationType getSynchronizationSituationOnProcessingStart() {
+        O object = item.asObjectable();
+        return object instanceof ShadowType ? ((ShadowType) object).getSynchronizationSituation() : null;
     }
 }

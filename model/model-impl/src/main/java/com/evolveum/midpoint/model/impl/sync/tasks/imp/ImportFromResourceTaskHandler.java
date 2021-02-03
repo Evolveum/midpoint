@@ -101,11 +101,10 @@ public class ImportFromResourceTaskHandler
                     targetInfo.getObjectClassDefinition(),
                     new NullSynchronizationObjectFilterImpl(),
                     changeNotificationDispatcher,
-                    taskTypeName,
                     SchemaConstants.CHANNEL_IMPORT,
                     null,
                     true);
-            synchronizer.handleObject(shadow.asPrismObject(), task, result);
+            synchronizer.synchronize(shadow.asPrismObject(), null, task, result);
             result.computeStatusIfUnknown();
             return !result.isError();
         } catch (TaskException t) {

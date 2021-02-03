@@ -27,7 +27,7 @@ public interface SynchronizationService extends ResourceObjectChangeListener {
 
     <F extends FocusType> SynchronizationContext<F> loadSynchronizationContext(PrismObject<ShadowType> applicableShadow,
             PrismObject<ShadowType> currentShadow, ObjectDelta<ShadowType> objectDelta, PrismObject<ResourceType> resource,
-            String sourceChanel, PrismObject<SystemConfigurationType> configuration, Task task, OperationResult result) throws
+            String sourceChanel, String itemProcessingIdentifier, PrismObject<SystemConfigurationType> configuration, Task task, OperationResult result) throws
             SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
     <F extends FocusType> boolean matchUserCorrelationRule(PrismObject<ShadowType> shadow, PrismObject<F> focus,

@@ -65,6 +65,14 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
 
     private boolean cleanDeadShadow = false;
 
+    /**
+     * Identifies (synchronizable) item processing as part of which this change description was generated.
+     * This identifier applies only to immediate synchronization of the item. It should *not* be propagated
+     * to any related or unrelated processing like the one induced by discovery, error handling or similar
+     * activities.
+     */
+    private String itemProcessingIdentifier;
+
     public ObjectDelta<ShadowType> getObjectDelta() {
         return objectDelta;
     }
@@ -129,6 +137,14 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
         this.cleanDeadShadow = cleanDeadShadow;
     }
 
+    public String getItemProcessingIdentifier() {
+        return itemProcessingIdentifier;
+    }
+
+    public void setItemProcessingIdentifier(String itemProcessingIdentifier) {
+        this.itemProcessingIdentifier = itemProcessingIdentifier;
+    }
+
     public void checkConsistence() {
         if (resource == null) {
             throw new IllegalArgumentException("No resource in "+this.getClass().getSimpleName());
@@ -170,14 +186,19 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
 
     @Override
     public String toString() {
-        return "ResourceObjectShadowChangeDescription(objectDelta=" + objectDelta + ", currentShadow="
-                + SchemaDebugUtil.prettyPrint(currentShadow) + ", oldShadow=" + SchemaDebugUtil.prettyPrint(oldShadow) + ", sourceChannel=" + sourceChannel
-                + ", resource=" + resource + (unrelatedChange ? " UNRELATED" : "") + (simulate ? " SIMULATE" : "") + (cleanDeadShadow ? " CLEAN DEAD SHADOW" : "") + ")";
+        return "ResourceObjectShadowChangeDescription("
+                + "objectDelta=" + objectDelta
+                + ", currentShadow=" + SchemaDebugUtil.prettyPrint(currentShadow)
+                + ", oldShadow=" + SchemaDebugUtil.prettyPrint(oldShadow)
+                + ", sourceChannel=" + sourceChannel
+                + ", resource=" + resource
+                + ", processing=" + itemProcessingIdentifier
+                + (unrelatedChange ? " UNRELATED" : "")
+                + (simulate ? " SIMULATE" : "")
+                + (cleanDeadShadow ? " CLEAN DEAD SHADOW" : "")
+                + ")";
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.util.DebugDumpable#debugDump(int)
-     */
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
@@ -238,6 +259,9 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
         SchemaDebugUtil.indentDebugDump(sb, indent+1);
         sb.append("cleanDeadShadow: ").append(cleanDeadShadow);
 
+        sb.append("\n");
+        SchemaDebugUtil.indentDebugDump(sb, indent+1);
+        sb.append("itemProcessingIdentifier: ").append(itemProcessingIdentifier);
 
         return sb.toString();
     }

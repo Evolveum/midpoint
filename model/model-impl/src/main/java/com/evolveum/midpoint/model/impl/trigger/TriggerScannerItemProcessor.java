@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -59,7 +60,9 @@ public class TriggerScannerItemProcessor
     }
 
     @Override
-    protected boolean processObject(PrismObject<ObjectType> object, RunningTask workerTask, OperationResult result)
+    protected boolean processObject(PrismObject<ObjectType> object,
+            ItemProcessingRequest<PrismObject<ObjectType>> request,
+            RunningTask workerTask, OperationResult result)
             throws CommonException, PreconditionViolationException {
         fireTriggers(object, workerTask, result);
         return true;

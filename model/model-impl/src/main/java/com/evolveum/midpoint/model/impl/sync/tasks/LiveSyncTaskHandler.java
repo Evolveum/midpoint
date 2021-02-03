@@ -179,6 +179,7 @@ public class LiveSyncTaskHandler
                 CHANGE_BEING_PROCESSED.set(event.getSequentialNumber());
                 try {
                     if (event.isComplete()) {
+                        event.getChangeDescription().setItemProcessingIdentifier(request.getIdentifier()); // hack?
                         changeNotificationDispatcher.notifyChange(event.getChangeDescription(), workerTask, result);
                     } else if (event.isSkip()) {
                         result.recordNotApplicable();

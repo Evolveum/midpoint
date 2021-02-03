@@ -15,6 +15,7 @@ import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeItemProcessor;
 import com.evolveum.midpoint.repo.common.task.AbstractTaskExecution;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskPartExecution;
+import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -145,7 +146,9 @@ public abstract class SimpleIterativeTaskHandler<O extends ObjectType, EC extend
         }
 
         @Override
-        protected boolean processObject(PrismObject<O> object, RunningTask workerTask, OperationResult result)
+        protected boolean processObject(PrismObject<O> object,
+                ItemProcessingRequest<PrismObject<O>> request,
+                RunningTask workerTask, OperationResult result)
                 throws CommonException, PreconditionViolationException {
             partExecution.processing.handleObject(object, workerTask, result);
             return true;

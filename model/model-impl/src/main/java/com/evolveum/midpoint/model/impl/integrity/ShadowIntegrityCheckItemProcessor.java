@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeItemProcessor;
+import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -55,7 +56,9 @@ public class ShadowIntegrityCheckItemProcessor
     }
 
     @Override
-    protected boolean processObject(PrismObject<ShadowType> shadow, RunningTask workerTask, OperationResult parentResult)
+    protected boolean processObject(PrismObject<ShadowType> shadow,
+            ItemProcessingRequest<PrismObject<ShadowType>> request,
+            RunningTask workerTask, OperationResult parentResult)
             throws CommonException {
 
         OperationResult result = parentResult.createMinorSubresult(CLASS_DOT + "processObject");
@@ -343,7 +346,7 @@ public class ShadowIntegrityCheckItemProcessor
         try {
             syncCtx = taskHandler.getSynchronizationService()
                     .loadSynchronizationContext(fullShadow, fullShadow, null, resource, task.getChannel(),
-                            taskHandler.getSystemObjectsCache().getSystemConfiguration(result), task, result);
+                            null, taskHandler.getSystemObjectsCache().getSystemConfiguration(result), task, result);
         } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException | SecurityViolationException e) {
             checkResult.recordError(ShadowStatistics.CANNOT_APPLY_FIX, new SystemException("Couldn't prepare fix for missing intent, because the synchronization policy couldn't be determined", e));
             return;

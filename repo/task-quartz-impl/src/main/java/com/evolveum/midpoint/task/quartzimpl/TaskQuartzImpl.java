@@ -2576,19 +2576,38 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     }
 
     @Override
-    public void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid,
-            long started, Throwable exception, SynchronizationInformation.Record originalStateIncrement,
-            SynchronizationInformation.Record newStateIncrement) {
-        LOGGER.trace("recordSynchronizationOperationEnd: {} in {}", objectDisplayName, this);
-        statistics.recordSynchronizationOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception, originalStateIncrement, newStateIncrement);
+    public void recordSynchronizationOperationLegacy(SynchronizationInformation.LegacyCounters originalStateIncrement,
+            SynchronizationInformation.LegacyCounters newStateIncrement) {
+        statistics.onSyncItemProcessingEnd(originalStateIncrement, newStateIncrement);
     }
 
     @Override
-    public void recordSynchronizationOperationEnd(ShadowType shadow, long started, Throwable exception,
-            SynchronizationInformation.Record originalStateIncrement,
-            SynchronizationInformation.Record newStateIncrement) {
-        LOGGER.trace("recordSynchronizationOperationEnd: {} in {}", shadow, this);
-        statistics.recordSynchronizationOperationEnd(shadow, started, exception, originalStateIncrement, newStateIncrement);
+    public void onSyncItemProcessingStart(@NotNull String processingIdentifier, @Nullable SynchronizationSituationType situationBefore) {
+        statistics.onSyncItemProcessingStart(processingIdentifier, situationBefore);
+    }
+
+    @Override
+    public void onSynchronizationStart(@Nullable String processingIdentifier, @Nullable String shadowOid,
+            @Nullable SynchronizationSituationType situation) {
+        statistics.onSynchronizationStart(processingIdentifier, shadowOid, situation);
+    }
+
+    @Override
+    public void onSynchronizationExclusion(@Nullable String processingIdentifier,
+            @NotNull SynchronizationExclusionReasonType exclusionReason) {
+        statistics.onSynchronizationExclusion(processingIdentifier, exclusionReason);
+    }
+
+    @Override
+    public void onSynchronizationSituationChange(@Nullable String processingIdentifier,
+            @Nullable String shadowOid, @Nullable SynchronizationSituationType situation) {
+        statistics.onSynchronizationSituationChange(processingIdentifier, shadowOid, situation);
+    }
+
+    @Override
+    public synchronized void onSyncItemProcessingEnd(@NotNull String processingIdentifier,
+            @NotNull SynchronizationInformation.Status status) {
+        statistics.onSyncItemProcessingEnd(processingIdentifier, status);
     }
 
     @Override

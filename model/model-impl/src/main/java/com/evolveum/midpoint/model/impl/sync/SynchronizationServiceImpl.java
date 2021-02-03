@@ -37,9 +37,7 @@ import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -53,7 +51,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -129,17 +126,18 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             // We need this e.g. in case of delete
             applicableShadow = change.getOldShadow();
         }
+        String applicableShadowOid = applicableShadow != null ? applicableShadow.getOid() : null;
 
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-        SynchronizationEventInformation eventInfo = new SynchronizationEventInformation(applicableShadow);
+        SynchronizationEventInformation eventInfo = new SynchronizationEventInformation();
 
         try {
             PrismObject<SystemConfigurationType> configuration = systemObjectCache.getSystemConfiguration(subResult);
             SynchronizationContext<?> syncCtx = loadSynchronizationContext(
                     applicableShadow, currentShadow, change.getObjectDelta(), change.getResource(),
-                    change.getSourceChannel(), configuration, task, subResult);
+                    change.getSourceChannel(), change.getItemProcessingIdentifier(), configuration, task, subResult);
             syncCtx.setUnrelatedChange(change.isUnrelatedChange());
-            traceObjectSynchronization(syncCtx);
+            LOGGER.trace("SYNCHRONIZATION determined policy: {}", syncCtx);
 
             if (!checkSynchronizationPolicy(syncCtx, eventInfo, subResult) || !checkProtected(syncCtx, eventInfo, subResult)) {
                 return;
@@ -149,8 +147,9 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     syncCtx.getPolicyName());
 
             setupSituation(syncCtx, change, subResult);
-            eventInfo.setOriginalSituation(syncCtx.getSituation());
-            eventInfo.setNewSituation(syncCtx.getSituation());     // potentially overwritten later
+
+            eventInfo.setOnSynchronizationStart(syncCtx.getSituation());
+            task.onSynchronizationStart(change.getItemProcessingIdentifier(), applicableShadowOid, syncCtx.getSituation());
 
             boolean isDryRun = TaskUtil.isDryRun(syncCtx.getTask());
             saveSyncMetadata(syncCtx, change, !isDryRun, now, subResult);
@@ -166,15 +165,13 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             }
         } catch (SystemException ex) {
             // avoid unnecessary re-wrap
-            eventInfo.setException(ex);
             subResult.recordFatalError(ex);
             throw ex;
         } catch (Exception ex) {
-            eventInfo.setException(ex);
             subResult.recordFatalError(ex);
             throw new SystemException(ex);
         } finally {
-            eventInfo.record(task);
+            eventInfo.record(task); // TODO
             task.markObjectActionExecutedBoundary();
         }
     }
@@ -217,12 +214,12 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     public <F extends FocusType> SynchronizationContext<F> loadSynchronizationContext(PrismObject<ShadowType> applicableShadow,
             PrismObject<ShadowType> currentShadow, ObjectDelta<ShadowType> resourceObjectDelta,
             PrismObject<ResourceType> resource, String sourceChanel,
-            PrismObject<SystemConfigurationType> configuration, Task task, OperationResult result)
+            String itemProcessingIdentifier, PrismObject<SystemConfigurationType> configuration, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 
         SynchronizationContext<F> syncCtx = new SynchronizationContext<>(applicableShadow, currentShadow, resourceObjectDelta,
-                resource, sourceChanel, prismContext, expressionFactory, task);
+                resource, sourceChanel, prismContext, expressionFactory, task, itemProcessingIdentifier);
         syncCtx.setSystemConfiguration(configuration);
 
         SynchronizationType synchronization = resource.asObjectable().getSynchronization();
@@ -332,12 +329,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
     }
 
-    private <F extends FocusType> void traceObjectSynchronization(SynchronizationContext<F> syncCtx) {
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("SYNCHRONIZATION determined policy: {}", syncCtx);
-        }
-    }
-
     private <F extends FocusType> boolean checkSynchronizationPolicy(SynchronizationContext<F> syncCtx,
             SynchronizationEventInformation eventInfo, OperationResult result) throws SchemaException {
         Task task = syncCtx.getTask();
@@ -377,7 +368,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, false);
             executeShadowModifications(syncCtx.getApplicableShadow(), modifications, task, result);
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
-            eventInfo.setSpecialSituation(SynchronizationEventInformation.SpecialSituation.NO_SYNCHRONIZATION_POLICY);
+            eventInfo.setExclusionReason(SynchronizationExclusionReasonType.NO_SYNCHRONIZATION_POLICY);
+            task.onSynchronizationExclusion(syncCtx.getItemProcessingIdentifier(), SynchronizationExclusionReasonType.NO_SYNCHRONIZATION_POLICY);
             return false;
         }
 
@@ -388,7 +380,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, true);
             executeShadowModifications(syncCtx.getApplicableShadow(), modifications, task, result);
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
-            eventInfo.setSpecialSituation(SynchronizationEventInformation.SpecialSituation.SYNCHRONIZATION_NOT_ENABLED);
+            eventInfo.setExclusionReason(SynchronizationExclusionReasonType.SYNCHRONIZATION_DISABLED);
+            task.onSynchronizationExclusion(syncCtx.getItemProcessingIdentifier(), SynchronizationExclusionReasonType.SYNCHRONIZATION_DISABLED);
             return false;
         }
 
@@ -402,7 +395,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, true);
             executeShadowModifications(syncCtx.getApplicableShadow(), modifications, task, result);
             result.recordSuccess();
-            eventInfo.setSpecialSituation(SynchronizationEventInformation.SpecialSituation.PROTECTED);
+            eventInfo.setExclusionReason(SynchronizationExclusionReasonType.PROTECTED);
+            task.onSynchronizationExclusion(syncCtx.getItemProcessingIdentifier(), SynchronizationExclusionReasonType.PROTECTED);
             LOGGER.debug("SYNCHRONIZATION: DONE for protected shadow {}", syncCtx.getApplicableShadow());
             return false;
         }
@@ -467,33 +461,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             }
         }
     }
-
-    // @Override
-    // public void notifyFailure(ResourceOperationFailureDescription
-    // failureDescription,
-    // Task task, OperationResult parentResult) {
-    // Validate.notNull(failureDescription, "Resource object shadow failure
-    // description must not be null.");
-    // Validate.notNull(failureDescription.getCurrentShadow(), "Current shadow
-    // in resource object shadow failure description must not be null.");
-    // Validate.notNull(failureDescription.getObjectDelta(), "Delta in resource
-    // object shadow failure description must not be null.");
-    // Validate.notNull(failureDescription.getResource(), "Resource in failure
-    // must not be null.");
-    // Validate.notNull(failureDescription.getResult(), "Result in failure
-    // description must not be null.");
-    // Validate.notNull(parentResult, "Parent operation result must not be
-    // null.");
-    //
-    // LOGGER.debug("SYNCHRONIZATION: received failure notifiation {}",
-    // failureDescription);
-    //
-    // LOGGER.error("Provisioning error: {}",
-    // failureDescription.getResult().getMessage());
-    //
-    // // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-    // TODO TODO TODO TODO
-    // }
 
     /**
      * XXX: in situation when one account belongs to two different idm users
@@ -616,7 +583,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             ExpressionEvaluationException, CommunicationException, SecurityViolationException {
 
         SynchronizationContext<F> synchronizationContext = loadSynchronizationContext(shadow, shadow, null,
-                resourceType.asPrismObject(), task.getChannel(), configuration, task, result);
+                resourceType.asPrismObject(), task.getChannel(), null, configuration, task, result);
         return synchronizationExpressionsEvaluator.matchFocusByCorrelationRule(synchronizationContext, focus, result);
     }
 
@@ -646,7 +613,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             if (syncCtx.getSituation() != null) {
                 return;
             }
-            syncCtx.setSituation(getSynchornizationSituationFromChange(change));
+            syncCtx.setSituation(getSynchronizationSituationFromChange(change));
             return;
         }
 
@@ -690,7 +657,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                 state = SynchronizationSituationType.UNMATCHED;
                 break;
             case 1:
-                state = getSynchornizationSituationFromChange(change);
+                state = getSynchronizationSituationFromChange(change);
 
                 user = users.get(0).asObjectable();
                 break;
@@ -702,7 +669,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         syncCtx.setSituation(state);
     }
 
-    private SynchronizationSituationType getSynchornizationSituationFromChange(ResourceObjectShadowChangeDescription change) {
+    private SynchronizationSituationType getSynchronizationSituationFromChange(ResourceObjectShadowChangeDescription change) {
         switch (getModificationType(change)) {
             case ADD:
             case MODIFY:
@@ -750,25 +717,17 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             return;
         }
 
-        ModelExecuteOptions options = createOptions(syncCtx, change);
+        if (isSynchronize(reaction)) {
+            Task task = syncCtx.getTask();
 
-        final boolean willSynchronize = isSynchronize(reaction);
-        LensContext<F> lensContext;
-
-        Task task = syncCtx.getTask();
-        if (willSynchronize) {
-            lensContext = createLensContext(syncCtx, change, options, parentResult);
+            ModelExecuteOptions options = createOptions(syncCtx, change);
+            LensContext<F> lensContext = createLensContext(syncCtx, change, options, parentResult);
             lensContext.setDoReconciliationForAllProjections(BooleanUtils.isTrue(reaction.isReconcileAll()));
             LOGGER.trace("---[ SYNCHRONIZATION context before action execution ]-------------------------\n"
                     + "{}\n------------------------------------------", lensContext.debugDumpLazily());
-        } else {
-            lensContext = null;
-        }
-
-        if (willSynchronize) {
 
             // there's no point in calling executeAction without context - so
-            // the actions are executed only if synchronize == true
+            // the actions are executed only if we are doing the synchronization
             executeActions(syncCtx, lensContext, BeforeAfterType.BEFORE, logDebug, task, parentResult);
 
             Iterator<LensProjectionContext> iterator = lensContext.getProjectionContextsIterator();
@@ -791,9 +750,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     clockworkMedic.exitModelMethod(false);
                 }
 
-            } catch (ConfigurationException | ObjectNotFoundException | SchemaException |
-                    PolicyViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException |
-                    CommunicationException | SecurityViolationException | PreconditionViolationException | RuntimeException e) {
+            } catch (Exception e) {
                 LOGGER.error("SYNCHRONIZATION: Error in synchronization on {} for situation {}: {}: {}. Change was {}",
                         syncCtx.getResource(), syncCtx.getSituation(), e.getClass().getSimpleName(), e.getMessage(), change, e);
 //                parentResult.recordFatalError("Error during sync", e);
@@ -812,10 +769,13 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
             if (originalProjectionContext != null) {
                 SynchronizationSituationType resolvedSituation = originalProjectionContext.getSynchronizationSituationResolved();
-                if (eventInfo.getNewSituation() != resolvedSituation && resolvedSituation != null) {
-                    // Resolved situation of null means it is unknown. So we stick with situation as originally determined.
-                    LOGGER.trace("We have changed new situation: {} -> {}", eventInfo.getNewSituation(), resolvedSituation);
-                    eventInfo.setNewSituation(resolvedSituation);
+                if (resolvedSituation != null) {
+                    if (eventInfo.getOnSynchronizationEnd() != resolvedSituation) {
+                        LOGGER.trace("We have changed new situation: {} -> {}", eventInfo.getOnSynchronizationEnd(), resolvedSituation);
+                    }
+                    eventInfo.setOnSynchronizationEnd(resolvedSituation); // legacy
+                } else {
+                    LOGGER.trace("Resolved situation is null i.e. unknown");
                 }
             }
 
@@ -863,6 +823,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         context.setLazyAuditRequest(true);
         context.setSystemConfiguration(syncCtx.getSystemConfiguration());
         context.setOptions(options);
+        context.setItemProcessingIdentifier(syncCtx.getItemProcessingIdentifier());
 
         ResourceType resource = change.getResource().asObjectable();
         if (ModelExecuteOptions.isLimitPropagation(options)) {
@@ -1118,35 +1079,16 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         return "model synchronization service";
     }
 
+    // will be removed
     private static class SynchronizationEventInformation {
-
-        private String objectName;
-        private String objectDisplayName;
-        private String objectOid;
-        private Throwable exception;
-        private final long started;
 
         private boolean alreadySaved;
 
-        private enum SpecialSituation {
-            NO_SYNCHRONIZATION_POLICY, SYNCHRONIZATION_NOT_ENABLED, PROTECTED
-        }
+        private SynchronizationSituationType onSynchronizationStart;
+        private SynchronizationSituationType onSynchronizationEnd;
+        private SynchronizationExclusionReasonType exclusionReason;
 
-        private SynchronizationSituationType originalSituation;
-        private SynchronizationSituationType newSituation;
-        private SpecialSituation specialSituation;
-
-        private SynchronizationEventInformation(PrismObject<? extends ShadowType> currentShadow) {
-            started = System.currentTimeMillis();
-            if (currentShadow != null) {
-                final ShadowType shadow = currentShadow.asObjectable();
-                objectName = PolyString.getOrig(shadow.getName());
-                objectDisplayName = StatisticsUtil.getDisplayName(shadow);
-                objectOid = currentShadow.getOid();
-            }
-        }
-
-        private void setSituation(SynchronizationInformation.Record increment,
+        private void setSituation(SynchronizationInformation.LegacyCounters increment,
                 SynchronizationSituationType situation) {
             if (situation != null) {
                 switch (situation) {
@@ -1171,36 +1113,33 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             }
         }
 
-        private void setSpecialSituation(SpecialSituation situation) {
-            specialSituation = situation;
+        private void setExclusionReason(SynchronizationExclusionReasonType exclusionReason) {
+            this.exclusionReason = exclusionReason;
         }
 
-        private void setOriginalSituation(SynchronizationSituationType situation) {
-            originalSituation = situation;
+        private void setOnSynchronizationStart(SynchronizationSituationType situation) {
+            onSynchronizationStart = situation;
+            onSynchronizationEnd = situation; // potentially overwritten later
         }
 
-        private SynchronizationSituationType getNewSituation() {
-            return newSituation;
+        private SynchronizationSituationType getOnSynchronizationEnd() {
+            return onSynchronizationEnd;
         }
 
-        private void setNewSituation(SynchronizationSituationType situation) {
-            newSituation = situation;
-        }
-
-        public void setException(Exception ex) {
-            exception = ex;
+        private void setOnSynchronizationEnd(SynchronizationSituationType situation) {
+            onSynchronizationEnd = situation;
         }
 
         private void record(Task task) {
-            SynchronizationInformation.Record originalStateIncrement = new SynchronizationInformation.Record();
-            SynchronizationInformation.Record newStateIncrement = new SynchronizationInformation.Record();
-            if (specialSituation != null) {
-                switch (specialSituation) {
+            SynchronizationInformation.LegacyCounters originalStateIncrement = new SynchronizationInformation.LegacyCounters();
+            SynchronizationInformation.LegacyCounters newStateIncrement = new SynchronizationInformation.LegacyCounters();
+            if (exclusionReason != null) {
+                switch (exclusionReason) {
                     case NO_SYNCHRONIZATION_POLICY:
                         originalStateIncrement.setCountNoSynchronizationPolicy(1);
                         newStateIncrement.setCountNoSynchronizationPolicy(1);
                         break;
-                    case SYNCHRONIZATION_NOT_ENABLED:
+                    case SYNCHRONIZATION_DISABLED:
                         originalStateIncrement.setCountSynchronizationDisabled(1);
                         newStateIncrement.setCountSynchronizationDisabled(1);
                         break;
@@ -1209,19 +1148,18 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                         newStateIncrement.setCountProtected(1);
                         break;
                     default:
-                        throw new AssertionError(specialSituation);
+                        throw new AssertionError(exclusionReason);
                 }
             } else {
-                setSituation(originalStateIncrement, originalSituation);
-                setSituation(newStateIncrement, newSituation);
+                setSituation(originalStateIncrement, onSynchronizationStart);
+                setSituation(newStateIncrement, onSynchronizationEnd);
             }
-            saveToTask(task, originalStateIncrement, newStateIncrement);
+            saveToTaskLegacy(task, originalStateIncrement, newStateIncrement);
         }
 
-        private void saveToTask(Task task, SynchronizationInformation.Record originalStateIncrement,
-                SynchronizationInformation.Record newStateIncrement) {
-            task.recordSynchronizationOperationEnd(objectName, objectDisplayName, ShadowType.COMPLEX_TYPE,
-                    objectOid, started, exception, originalStateIncrement, newStateIncrement);
+        private void saveToTaskLegacy(Task task, SynchronizationInformation.LegacyCounters originalStateIncrement,
+                SynchronizationInformation.LegacyCounters newStateIncrement) {
+            task.recordSynchronizationOperationLegacy(originalStateIncrement, newStateIncrement);
             if (alreadySaved) {
                 throw new IllegalStateException("SynchronizationEventInformation already saved");
             } else {

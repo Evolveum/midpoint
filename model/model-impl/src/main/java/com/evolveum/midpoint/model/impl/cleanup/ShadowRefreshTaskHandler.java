@@ -8,7 +8,7 @@ package com.evolveum.midpoint.model.impl.cleanup;
 
 import javax.annotation.PostConstruct;
 
-import com.evolveum.midpoint.repo.common.task.TaskExecutionClass;
+import com.evolveum.midpoint.repo.common.task.*;
 
 import com.evolveum.midpoint.task.api.TaskWorkBucketProcessingResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
@@ -25,9 +25,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.repo.common.task.HandledObjectType;
-import com.evolveum.midpoint.repo.common.task.PartExecutionClass;
-import com.evolveum.midpoint.repo.common.task.ItemProcessorClass;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -97,7 +94,9 @@ public class ShadowRefreshTaskHandler
             }
 
             @Override
-            protected boolean processObject(PrismObject<ShadowType> object, RunningTask workerTask, OperationResult result)
+            protected boolean processObject(PrismObject<ShadowType> object,
+                    ItemProcessingRequest<PrismObject<ShadowType>> request,
+                    RunningTask workerTask, OperationResult result)
                     throws CommonException, PreconditionViolationException {
                 provisioningService.refreshShadow(object, null, workerTask, result);
                 return true;

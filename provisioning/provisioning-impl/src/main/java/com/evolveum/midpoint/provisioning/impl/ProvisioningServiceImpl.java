@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
+import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.checkNotInMaintenance;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -13,18 +15,6 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.provisioning.api.*;
-import com.evolveum.midpoint.provisioning.impl.sync.AsyncUpdater;
-import com.evolveum.midpoint.provisioning.impl.sync.SynchronizationOperationResult;
-import com.evolveum.midpoint.provisioning.impl.sync.LiveSynchronizer;
-import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
-import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
-import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
-import com.evolveum.midpoint.schema.cache.CacheType;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,15 +55,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.checkNotInMaintenance;
 
 /**
  * Implementation of provisioning service.

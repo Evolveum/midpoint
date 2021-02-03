@@ -45,7 +45,6 @@ public class Synchronizer {
     @NotNull private final ObjectClassComplexTypeDefinition objectClassDef;
     @NotNull private final SynchronizationObjectsFilter objectsFilter;
     @NotNull private final ResourceObjectChangeListener objectChangeListener;
-    @NotNull private final String taskTypeName;
     @NotNull private final QName sourceChannel;
     private final TaskPartitionDefinitionType partDefinition;
     private final boolean forceAdd;
@@ -54,7 +53,6 @@ public class Synchronizer {
             @NotNull ObjectClassComplexTypeDefinition objectClassDef,
             @NotNull SynchronizationObjectsFilter objectsFilter,
             @NotNull ResourceObjectChangeListener objectChangeListener,
-            @NotNull String taskTypeName,
             @NotNull QName sourceChannel,
             TaskPartitionDefinitionType partDefinition,
             boolean forceAdd) {
@@ -62,7 +60,6 @@ public class Synchronizer {
         this.objectClassDef = objectClassDef;
         this.objectsFilter = objectsFilter;
         this.objectChangeListener = objectChangeListener;
-        this.taskTypeName = taskTypeName;
         this.sourceChannel = sourceChannel;
         this.partDefinition = partDefinition;
         this.forceAdd = forceAdd;
@@ -77,8 +74,8 @@ public class Synchronizer {
      * called for each account on a resource. We will pretend that the account
      * was created and invoke notification interface.
      */
-    public void handleObject(PrismObject<ShadowType> shadowObject, Task workerTask, OperationResult result) {
-        long started = System.currentTimeMillis(); // TODO temporary
+    public void synchronize(PrismObject<ShadowType> shadowObject, String itemProcessingIdentifier, Task workerTask,
+            OperationResult result) {
         ShadowType shadow = shadowObject.asObjectable();
         if (ObjectTypeUtil.hasFetchError(shadowObject)) {
             // Not used in iterative tasks. There we filter out these objects before processing.
@@ -90,23 +87,26 @@ public class Synchronizer {
         }
         if (Boolean.TRUE.equals(shadow.isProtectedObject())) {
             LOGGER.trace("Skipping {} because it is protected", shadowObject);
-            SynchronizationInformation.Record record = SynchronizationInformation.Record.createProtected(); // TODO temporary
-            workerTask.recordSynchronizationOperationEnd(shadow, started, null, record, record); // TODO temporary
+            SynchronizationInformation.LegacyCounters record = SynchronizationInformation.LegacyCounters.createProtected(); // TODO temporary
+            workerTask.recordSynchronizationOperationLegacy(record, record); // TODO temporary
+            workerTask.onSynchronizationExclusion(itemProcessingIdentifier, SynchronizationExclusionReasonType.PROTECTED);
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it is protected");
             return;
         }
         if (!isShadowUnknown(shadow) && !objectsFilter.matches(shadowObject)) {
             LOGGER.trace("Skipping {} because it does not match objectClass/kind/intent", shadowObject);
-            SynchronizationInformation.Record record = SynchronizationInformation.Record.createNotApplicable(); // TODO temporary
-            workerTask.recordSynchronizationOperationEnd(shadow, started, null, record, record); // TODO temporary
+            SynchronizationInformation.LegacyCounters record = SynchronizationInformation.LegacyCounters.createNotApplicable(); // TODO temporary
+            workerTask.recordSynchronizationOperationLegacy(record, record); // TODO temporary
+            workerTask.onSynchronizationExclusion(itemProcessingIdentifier, SynchronizationExclusionReasonType.NOT_APPLICABLE_FOR_TASK);
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it does not match objectClass/kind/intent");
             return;
         }
 
-        handleObjectInternal(shadowObject, workerTask, result);
+        handleObjectInternal(shadowObject, itemProcessingIdentifier, workerTask, result);
     }
 
-    private void handleObjectInternal(PrismObject<ShadowType> shadowObject, Task workerTask, OperationResult result) {
+    private void handleObjectInternal(PrismObject<ShadowType> shadowObject, String itemProcessingIdentifier, Task workerTask,
+            OperationResult result) {
         // We are going to pretend that all of the objects were just created.
         // That will effectively import them to the repository
 
@@ -114,6 +114,7 @@ public class Synchronizer {
         change.setSourceChannel(QNameUtil.qNameToUri(sourceChannel));
         change.setResource(resource.asPrismObject());
         change.setSimulate(isSimulate());
+        change.setItemProcessingIdentifier(itemProcessingIdentifier);
 
         if (forceAdd) {
             // We should provide shadow in the state before the change. But we are

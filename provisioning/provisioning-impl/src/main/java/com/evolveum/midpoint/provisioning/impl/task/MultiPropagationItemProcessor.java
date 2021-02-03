@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeItemProcessor;
+import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -38,7 +39,9 @@ public class MultiPropagationItemProcessor
     }
 
     @Override
-    protected boolean processObject(PrismObject<ResourceType> resource, RunningTask workerTask, OperationResult taskResult)
+    protected boolean processObject(PrismObject<ResourceType> resource,
+            ItemProcessingRequest<PrismObject<ResourceType>> request,
+            RunningTask workerTask, OperationResult taskResult)
             throws CommonException {
 
         logger.trace("Propagating provisioning operations on {}", resource);

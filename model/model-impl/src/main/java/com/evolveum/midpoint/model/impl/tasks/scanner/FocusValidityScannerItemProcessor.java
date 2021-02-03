@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -42,7 +43,9 @@ public class FocusValidityScannerItemProcessor
     }
 
     @Override
-    protected boolean processObject(PrismObject<FocusType> object, RunningTask workerTask, OperationResult result)
+    protected boolean processObject(PrismObject<FocusType> object,
+            ItemProcessingRequest<PrismObject<FocusType>> request,
+            RunningTask workerTask, OperationResult result)
             throws CommonException, PreconditionViolationException {
         if (taskExecution.oidAlreadySeen(object.getOid())) { // TODO implement by the gatekeeper
             logger.trace("Recomputation already executed for {}", ObjectTypeUtil.toShortString(object));

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.integrity;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeItemProcessor;
+import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -37,7 +38,9 @@ public class ObjectIntegrityCheckItemProcessor
     }
 
     @Override
-    protected boolean processObject(PrismObject<ObjectType> object, RunningTask workerTask, OperationResult parentResult) throws CommonException {
+    protected boolean processObject(PrismObject<ObjectType> object,
+            ItemProcessingRequest<PrismObject<ObjectType>> request,
+            RunningTask workerTask, OperationResult parentResult) throws CommonException {
         OperationResult result = parentResult.createMinorSubresult(CLASS_DOT + "handleObject");
         try {
             partExecution.objectStatistics.record(object);

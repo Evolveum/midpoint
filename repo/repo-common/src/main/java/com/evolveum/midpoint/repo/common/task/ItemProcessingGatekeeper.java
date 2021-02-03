@@ -15,6 +15,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultBuilder;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
+import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -28,6 +29,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingRootType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
+import java.util.Objects;
+
+import static com.evolveum.midpoint.schema.statistics.SynchronizationInformation.Status.ERROR;
+import static com.evolveum.midpoint.schema.statistics.SynchronizationInformation.Status.SUCCESS;
 
 /**
  * Responsible for the necessary general procedures before and after processing of a single item.
@@ -96,6 +101,9 @@ class ItemProcessingGatekeeper<I> {
      */
     private Throwable resultException;
 
+    /** What was the status of processing of this item? */
+    private SynchronizationInformation.Status processingStatus;
+
     /**
      * True if the flow of new events can continue. It can be switched to false either if the item processor
      * or error-handling routine tells so. Generally, it must be very harsh situation that results in immediate task stop.
@@ -124,12 +132,14 @@ class ItemProcessingGatekeeper<I> {
             startTracingAndDynamicProfiling();
             logOperationStart();
             recordIterativeOperationStart();
+            onSyncItemProcessingStart();
 
             OperationResult result = doProcessItem(parentResult);
 
             stopTracingAndDynamicProfiling(result, parentResult);
             writeOperationExecutionRecord(result);
             recordIterativeOperationEnd();
+            onSyncItemProcessingEnd();
 
             canContinue = checkIfCanContinue(result) && canContinue;
 
@@ -159,6 +169,9 @@ class ItemProcessingGatekeeper<I> {
         }
     }
 
+    /**
+     * Fills-in resultException and processingStatus.
+     */
     private OperationResult doProcessItem(OperationResult parentResult) {
 
         OperationResult result = new OperationResult("dummy");
@@ -187,6 +200,8 @@ class ItemProcessingGatekeeper<I> {
         } finally {
             RepositoryCache.exitLocalCaches();
         }
+
+        processingStatus = isError() ? ERROR : SUCCESS; // TODO: SKIPPED
 
         return result;
     }
@@ -289,10 +304,30 @@ class ItemProcessingGatekeeper<I> {
         }
     }
 
+    private void recordIterativeOperationStart() {
+        if (getReportingOptions().isEnableIterationStatistics()) {
+            workerTask.recordIterativeOperationStart(iterationItemInformation);
+        }
+    }
+
     private void recordIterativeOperationEnd() {
-        // TODO consider result status of NOT_APPLICABLE (means skipped)
-        // resultException != null iff there was an error (even if not an exception)
-        workerTask.recordIterativeOperationEnd(iterationItemInformation, timing.startTimeMillis, resultException);
+        if (getReportingOptions().isEnableIterationStatistics()) {
+            // TODO consider result status of NOT_APPLICABLE (means skipped)
+            // resultException != null iff there was an error (even if not an exception)
+            workerTask.recordIterativeOperationEnd(iterationItemInformation, timing.startTimeMillis, resultException);
+        }
+    }
+
+    private void onSyncItemProcessingStart() {
+        if (getReportingOptions().isEnableSynchronizationStatistics()) {
+            workerTask.onSyncItemProcessingStart(request.getIdentifier(), request.getSynchronizationSituationOnProcessingStart());
+        }
+    }
+
+    private void onSyncItemProcessingEnd() {
+        if (getReportingOptions().isEnableSynchronizationStatistics()) {
+            workerTask.onSyncItemProcessingEnd(request.getIdentifier(), Objects.requireNonNull(processingStatus));
+        }
     }
 
     private void stopTracingAndDynamicProfiling(OperationResult result, OperationResult parentResult) {
@@ -338,10 +373,6 @@ class ItemProcessingGatekeeper<I> {
         return partExecution.getContextDescription();
     }
 
-    private void recordIterativeOperationStart() {
-        workerTask.recordIterativeOperationStart(iterationItemInformation);
-    }
-
     private void startTracingAndDynamicProfiling() {
         if (partExecution.providesTracingAndDynamicProfiling()) {
             int objectsSeen = coordinatorTask.getAndIncrementObjectsSeen();
@@ -370,7 +401,7 @@ class ItemProcessingGatekeeper<I> {
     }
 
     private @NotNull TaskReportingOptions getReportingOptions() {
-        return partExecution.taskHandler.getReportingOptions();
+        return partExecution.getReportingOptions();
     }
 
     private CacheConfigurationManager getCacheConfigurationManager() {
@@ -437,5 +468,4 @@ class ItemProcessingGatekeeper<I> {
         private long totalProgress;
         private long totalTimeMillis;
     }
-
 }

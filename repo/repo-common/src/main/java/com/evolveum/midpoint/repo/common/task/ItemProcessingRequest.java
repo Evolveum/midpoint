@@ -15,10 +15,13 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.task.api.RunningTask;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.Objects;
@@ -36,9 +39,18 @@ public abstract class ItemProcessingRequest<I> implements AcknowledgementSink {
     @NotNull protected final I item;
     @NotNull private final AbstractIterativeItemProcessor<I, ?, ?, ?, ?> itemProcessor;
 
+    /**
+     * Unique identifier of this request. Not to be confused with requestIdentifier used for auditing purposes!
+     *
+     * Most probably it will be replaced by something different.
+     */
+    @Experimental // maybe will be removed
+    @NotNull private final String identifier;
+
     public ItemProcessingRequest(@NotNull I item, @NotNull AbstractIterativeItemProcessor<I, ?, ?, ?, ?> itemProcessor) {
         this.item = item;
         this.itemProcessor = itemProcessor;
+        this.identifier = itemProcessor.createItemProcessingRequestIdentifier();
     }
 
     public @NotNull I getItem() {
@@ -86,5 +98,21 @@ public abstract class ItemProcessingRequest<I> implements AcknowledgementSink {
     protected @NotNull QName getType(PrismObject<?> object) {
         return Objects.requireNonNull(
                 getPrismContext().getSchemaRegistry().determineTypeForClass(object.getCompileTimeClass()));
+    }
+
+    /**
+     * OID of the object connected to the item being processed (usually the object itself or related shadow).
+     *
+     * TODO reconsider
+     */
+    public abstract @Nullable String getItemOid();
+
+    /**
+     * TODO reconsider
+     */
+    public abstract @Nullable SynchronizationSituationType getSynchronizationSituationOnProcessingStart();
+
+    public String getIdentifier() {
+        return identifier;
     }
 }
