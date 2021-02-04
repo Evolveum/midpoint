@@ -34,7 +34,7 @@ public class Utils {
 
     public static void setOptionCheckedByName(String optionName, boolean checked) {
         SelenideElement checkBox = $(By.name(optionName)).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
-        checkBox.setSelected(checked);
+        checkBox.setSelected(checked).waitUntil(Condition.checked, MidPoint.TIMEOUT_DEFAULT_2_S);
     }
 
     public static void setOptionCheckedById(String id, boolean checked) {
