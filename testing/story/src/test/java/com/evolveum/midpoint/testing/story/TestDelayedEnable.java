@@ -10,6 +10,8 @@ import java.io.File;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -93,7 +95,13 @@ public class TestDelayedEnable extends AbstractStoryTest {
         // subtype==employee: Make sure that this is not applied to administrator or other non-person accounts.
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_EMPLOYEE, OBJECT_TEMPLATE_USER_OID, initResult);
 
-        modifyObjectReplaceProperty(TaskType.class, TASK_TRIGGER_SCANNER_OID, TaskType.F_RECURRENCE, null, initTask, initResult, TaskRecurrenceType.SINGLE);
+        // TODO or consider just deleting recurrence section
+        ObjectDelta<TaskType> delta = deltaFor(TaskType.class)
+                .item(TaskType.F_SCHEDULE).replace()
+                .item(TaskType.F_RECURRENCE).replace(TaskRecurrenceType.SINGLE)
+                .asObjectDelta(TASK_TRIGGER_SCANNER_OID);
+        executeChanges(delta, null, initTask, initResult);
+
         rememberCounter(InternalCounters.TRIGGER_FIRED_COUNT);
     }
 

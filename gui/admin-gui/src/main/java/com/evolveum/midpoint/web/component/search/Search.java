@@ -51,6 +51,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     public static final String F_ITEMS = "items";
     public static final String F_SPECIAL_ITEMS = "specialItems";
     public static final String F_ADVANCED_QUERY = "advancedQuery";
+    public static final String F_DSL_QUERY = "dslQuery";
     public static final String F_ADVANCED_ERROR = "advancedError";
     public static final String F_FULL_TEXT = "fullText";
     public static final String F_OID = "oid";
@@ -70,6 +71,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     private boolean canConfigure = true; //TODO should be changed to false
 
     private String advancedQuery;
+    private String dslQuery;
     private String advancedError;
     private String fullText;
     private String oid;
@@ -295,7 +297,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         } else {
             query = createQueryFromDefaultItems(pageBase, variables);
             ObjectQuery searchTypeQuery = null;
-            if (SearchBoxModeType.ADVANCED.equals(searchType)) {
+            if (SearchBoxModeType.ADVANCED.equals(searchType) || SearchBoxModeType.QUERY_DSL.equals(searchType)) {
                 searchTypeQuery = createObjectQueryAdvanced(pageBase);
             } else if (SearchBoxModeType.FULLTEXT.equals(searchType)) {
                 searchTypeQuery = createObjectQueryFullText(pageBase);
@@ -324,7 +326,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
         List<ObjectFilter> conditions = new ArrayList<>();
         for (SearchItem item : specialItems){
-            if (item.isEnabled() && item.isApplyFilter()) {
+            if (item.isApplyFilter()) {
                 if (item instanceof SpecialSearchItem) {
                     ObjectFilter filter = ((SpecialSearchItem) item).createFilter(pageBase, variables);
                     if (filter != null) {
@@ -589,7 +591,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     public boolean isShowAdvanced() {
-        return SearchBoxModeType.ADVANCED.equals(searchType);
+        return SearchBoxModeType.ADVANCED.equals(searchType) || SearchBoxModeType.QUERY_DSL.equals(searchType);
     }
 
     public String getAdvancedQuery() {
@@ -598,6 +600,14 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     public void setAdvancedQuery(String advancedQuery) {
         this.advancedQuery = advancedQuery;
+    }
+
+    public String getDslQuery() {
+        return dslQuery;
+    }
+
+    public void setDslQuery(String dslQuery) {
+        this.dslQuery = dslQuery;
     }
 
     public String getFullText() {
@@ -659,12 +669,20 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     private ObjectFilter createAdvancedObjectFilter(PrismContext ctx) throws SchemaException {
-        if (StringUtils.isEmpty(advancedQuery)) {
-            return null;
+        if (SearchBoxModeType.ADVANCED.equals(searchType)) {
+            if (StringUtils.isEmpty(advancedQuery)) {
+                return null;
+            }
+            SearchFilterType search = ctx.parserFor(advancedQuery).type(SearchFilterType.COMPLEX_TYPE).parseRealValue();
+            return ctx.getQueryConverter().parseFilter(search, getTypeClass());
+        } else if (SearchBoxModeType.QUERY_DSL.equals(searchType)) {
+            if (StringUtils.isEmpty(dslQuery)) {
+                return null;
+            }
+            return ctx.createQueryParser().parseQuery(getTypeClass(), dslQuery);
         }
 
-        SearchFilterType search = ctx.parserFor(advancedQuery).type(SearchFilterType.COMPLEX_TYPE).parseRealValue();
-        return ctx.getQueryConverter().parseFilter(search, getTypeClass());
+        return null;
     }
 
     public boolean isAdvancedQueryValid(PrismContext ctx) {
@@ -721,7 +739,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
         Throwable t = ex;
         while (t != null) {
-            sb.append(t.getMessage()).append('\n');
+            sb.append(t.getMessage() == null ? t.getClass() : t.getMessage()).append('\n');
             t = t.getCause();
         }
 

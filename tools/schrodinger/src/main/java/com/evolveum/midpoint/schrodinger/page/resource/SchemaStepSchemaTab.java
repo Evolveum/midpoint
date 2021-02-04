@@ -15,6 +15,7 @@ import com.evolveum.midpoint.schrodinger.component.common.table.Table;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import org.openqa.selenium.By;
+import org.testng.Assert;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -48,6 +49,11 @@ public class SchemaStepSchemaTab extends TabWithContainerWrapper<SchemaWizardSte
     public Table<SchemaStepSchemaTab> getAttributesTable() {
         return new Table<SchemaStepSchemaTab>(this,
                 $(Schrodinger.byDataId("attributeTable")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S));
+    }
+
+    public SchemaStepSchemaTab assertObjectClassPresent(String objectClassName) {
+        Assert.assertTrue(isObjectClassPresent(objectClassName), "Object class component isn't visible.");
+        return this;
     }
 
 }

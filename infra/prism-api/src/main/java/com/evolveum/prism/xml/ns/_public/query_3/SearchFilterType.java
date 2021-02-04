@@ -49,9 +49,13 @@ public class SearchFilterType extends AbstractFreezable implements Serializable,
 
     public static final QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "SearchFilterType");
     public static final QName F_DESCRIPTION = new QName(PrismConstants.NS_QUERY, "description");
+    public static final QName F_TEXT = new QName(PrismConstants.NS_QUERY, "text");
 
     @XmlElement
     protected String description;
+
+    @XmlElement
+    protected String text;
 
     // this one is not exposed via JAXB
     protected MapXNode filterClauseXNode; // single-subnode map node (key = filter element qname, value = contents)
@@ -82,9 +86,18 @@ public class SearchFilterType extends AbstractFreezable implements Serializable,
         return description;
     }
 
+    public String getText() {
+        return text;
+    }
+
     public void setDescription(String description) {
         checkMutable();
         this.description = description;
+    }
+
+    public void setText(String text) {
+        checkMutable();
+        this.text = text;
     }
 
     public boolean containsFilterClause() {
@@ -129,20 +142,15 @@ public class SearchFilterType extends AbstractFreezable implements Serializable,
         if (xnode == null || xnode.isEmpty()) {
             this.filterClauseXNode = null;
             this.description = null;
+            this.text = null;
         } else {
             if (!(xnode instanceof MapXNode)) {
                 throw new SchemaException("Cannot parse filter from " + xnode);
             }
             MapXNode xmap = (MapXNode) xnode;
-            XNode xdesc = xmap.get(SearchFilterType.F_DESCRIPTION);
-            if (xdesc != null) {
-                if (xdesc instanceof PrimitiveXNode<?>) {
-                    String desc = ((PrimitiveXNode<String>) xdesc).getParsedValue(DOMUtil.XSD_STRING, String.class);
-                    setDescription(desc);
-                } else {
-                    throw new SchemaException("Description must have a primitive value");
-                }
-            }
+
+            setDescription(parseString(xmap, F_DESCRIPTION, "Description"));
+            setText(parseString(xmap, F_TEXT, "Text"));
             Map<QName, XNode> filterMap = new HashMap<>();
             for (QName key : xmap.keySet()) {
                 if (!QNameUtil.match(key, SearchFilterType.F_DESCRIPTION) && !QNameUtil.match(key, new QName("condition"))) {
@@ -155,6 +163,18 @@ public class SearchFilterType extends AbstractFreezable implements Serializable,
             this.filterClauseXNode = prismContext.xnodeFactory().map(filterMap);
             prismContext.getQueryConverter().parseFilterPreliminarily(this.filterClauseXNode, pc);
         }
+    }
+
+    private static String parseString(MapXNode xmap, QName name, String displayName) throws SchemaException {
+        XNode xdesc = xmap.get(name);
+        if (xdesc != null) {
+            if (xdesc instanceof PrimitiveXNode<?>) {
+                return ((PrimitiveXNode<?>) xdesc).getParsedValue(DOMUtil.XSD_STRING, String.class);
+            } else {
+                throw new SchemaException(displayName + " must have a primitive value");
+            }
+        }
+        return null;
     }
 
     public MapXNode serializeToXNode(PrismContext prismContext) throws SchemaException {
@@ -182,6 +202,7 @@ public class SearchFilterType extends AbstractFreezable implements Serializable,
         return ToStringBuilder.reflectionToString(this);
     }
 
+    @Override
     public int hashCode(ObjectLocator locator, HashCodeStrategy strategy) {
         int currentHashCode = 1;
         MapXNode theFilter = this.filterClauseXNode;
@@ -189,11 +210,13 @@ public class SearchFilterType extends AbstractFreezable implements Serializable,
         return currentHashCode;
     }
 
+    @Override
     public int hashCode() {
         final HashCodeStrategy strategy = DomAwareHashCodeStrategy.INSTANCE;
         return this.hashCode(null, strategy);
     }
 
+    @Override
     @SuppressWarnings("RedundantIfStatement")
     public boolean equals(ObjectLocator thisLocator, ObjectLocator thatLocator, Object object, EqualsStrategy strategy) {
         if (!(object instanceof SearchFilterType)) {
@@ -211,6 +234,7 @@ public class SearchFilterType extends AbstractFreezable implements Serializable,
         return true;
     }
 
+    @Override
     @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
     public boolean equals(Object object) {
         final EqualsStrategy strategy = DomAwareEqualsStrategy.INSTANCE;

@@ -403,8 +403,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Description of recent operations executed on this object (or related objects, e.g. shadows
-                            in case of a focal object). The number of operations to be kept here is configurable.
+                            Description of recent operations executed on this object (or related objects in special
+                            cases). The number of operations to be kept here is configurable.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -6445,6 +6445,10 @@
                                 instance-specific resource schema or for other
                                 purposes. If not set a default namespace is assumed.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>4.3</a:deprecatedSince>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element ref="tns:schema" minOccurs="0">
@@ -16089,6 +16093,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="name" type="t:PolyStringType" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="minOccurs" type="xsd:int" default="0" minOccurs="0" maxOccurs="1"/>
@@ -16154,6 +16159,17 @@
                           Message that will be displayed to user when the expression check fails.
                         </p>
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Display properties of the CheckExpressionType objects.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>CheckExpressionType.display</a:displayName>
+                        <a:since>4.3</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <!-- TODO: success message? -->
@@ -25611,8 +25627,7 @@
                        <xsd:annotation>
                            <xsd:documentation>
                                Configuration for default type of object for search boxes that support object type selection.
-                               E.g. UserType or RoleType. Setting it to ObjectType should display all objects.
-                               Type selection may not be applicable to all types of lists/views.
+                               E.g. UserType or RoleType. Type selection may not be applicable to all types of lists/views.
                                E.g. it does not make sense for lists that only contain objects of a single type.
                                Therefore some views may not even display object type selection at all.
                            </xsd:documentation>
@@ -25627,10 +25642,10 @@
                            <xsd:documentation>
                                Configuration for the relation of the search box. Relation may not be applicable to all types of lists/views.
                                E.g. it does not make sense for flat searches. Therefore some views may not even display
-                               scope selection at all.
+                               relation selection at all.
                            </xsd:documentation>
                            <xsd:appinfo>
-                               <a:displayName>SearchBoxConfigurationType.objectTypeConfiguration</a:displayName>
+                               <a:displayName>SearchBoxConfigurationType.relationConfiguration</a:displayName>
                                <a:since>4.3</a:since>
                            </xsd:appinfo>
                        </xsd:annotation>
@@ -25638,12 +25653,12 @@
                    <xsd:element name="indirectConfiguration" type="tns:IndirectSearchItemConfigurationType" minOccurs="0" maxOccurs="1">
                        <xsd:annotation>
                            <xsd:documentation>
-                               Configuration for the relation of the search box. Relation may not be applicable to all types of lists/views.
+                               Configuration for the indirect of the search box. Relation may not be applicable to all types of lists/views.
                                E.g. it does not make sense for flat searches. Therefore some views may not even display
-                               scope selection at all.
+                               indirect selection at all.
                            </xsd:documentation>
                            <xsd:appinfo>
-                               <a:displayName>SearchBoxConfigurationType.objectTypeConfiguration</a:displayName>
+                               <a:displayName>SearchBoxConfigurationType.indirectConfiguration</a:displayName>
                                <a:since>4.3</a:since>
                            </xsd:appinfo>
                        </xsd:annotation>
@@ -25654,7 +25669,7 @@
                                Configuration for the project/org search item. Project/Org is applicable only to role members table.
                            </xsd:documentation>
                            <xsd:appinfo>
-                               <a:displayName>SearchBoxConfigurationType.objectTypeConfiguration</a:displayName>
+                               <a:displayName>SearchBoxConfigurationType.projectConfiguration</a:displayName>
                                <a:since>4.3</a:since>
                            </xsd:appinfo>
                        </xsd:annotation>
@@ -25665,7 +25680,7 @@
                                Configuration for the tenant search item. Tenant is applicable only to role members table.
                            </xsd:documentation>
                            <xsd:appinfo>
-                               <a:displayName>SearchBoxConfigurationType.objectTypeConfiguration</a:displayName>
+                               <a:displayName>SearchBoxConfigurationType.tenantConfiguration</a:displayName>
                                <a:since>4.3</a:since>
                            </xsd:appinfo>
                        </xsd:annotation>
@@ -25756,7 +25771,7 @@
                                 Define allowed values for search item panel. Default allowed values are different by the page.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>ObjectTypeSearchItemConfigurationType.defaultValue</a:displayName>
+                                <a:displayName>ObjectTypeSearchItemConfigurationType.supportedTypes</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -26063,6 +26078,16 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="OID"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="queryDsl">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Query DSL search mode. Ability to create complex query using a query DSL.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="QUERY_DSL"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -28444,7 +28469,18 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0" maxOccurs="1">
+            <xsd:element name="recordType" type="tns:OperationExecutionRecordTypeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of the operation execution record: either simple (recording modification or modifications
+                        of a given object) or complex (recording the whole process of e.g. reconciliation of a given object).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         When was this information recorded. It is expected that it was when
@@ -28455,50 +28491,88 @@
             <xsd:element name="operation" type="tns:ObjectDeltaOperationType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The elementary operation(s) that were part of the execution and their results.
-                        However, the content would be reduced e.g. by deletion of modification items and operation
-                        result children. The level of reduction could be configurable in the future.
+                        The elementary modification operations that were part of the (complex or simple) operation execution
+                        and their results. However, the content would be reduced e.g. by deletion of modification items
+                        and operation result children. The level of reduction could be configurable in the future.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="status" type="tns:OperationResultStatusType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="status" type="tns:OperationResultStatusType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Overall result status of the whole operation.
+                        Result status of the whole operation (complex or simple).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="initiatorRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="initiatorRef" type="tns:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         User that initiated the operation. (TODO)
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                        <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="taskRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="taskRef" type="tns:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The task that was used to initiate the operation (if any). Only the latest result for a given
-                        non-zero task OID will be kept for any object.
+                        The task that was used to initiate the operation (if any). Only the latest result(s)
+                        for a given non-zero task OID will be kept for any object.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="channel" type="xsd:string" minOccurs="0" maxOccurs="1">
+            <xsd:element name="channel" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Channel through which the operation was initiated.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="requestIdentifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Request identifier related to this (complex or simple) operation.
+                        Generally, each complex operation has its own request identifier, and it is used for all
+                        enclosed simple operations. However, there might be complex operations without request identifier
+                        (if model-level processing is not present).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+
+    <xsd:simpleType name="OperationExecutionRecordTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Type of an operation execution record.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.3</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="simple">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SIMPLE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="complex">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="COMPLEX"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="LocalizableMessageType" abstract="true">
         <xsd:annotation>

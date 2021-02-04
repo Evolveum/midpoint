@@ -10,7 +10,6 @@ package com.evolveum.midpoint.testing.schrodinger;
 import com.evolveum.midpoint.schrodinger.page.configuration.ImportObjectPage;
 
 import org.apache.commons.io.FileUtils;
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -34,9 +33,8 @@ public class ImportTest extends AbstractSchrodingerTest {
                 .getObjectsFromEmbeddedEditor()
                 .setEditorXmlText(xml);
 
-        Assert.assertTrue(
-                importObject.clickImportXmlButton()
-                        .feedback()
-                        .isSuccess());
+        importObject.clickImportXmlButton()
+                .feedback()
+                        .assertSuccess();
     }
 }

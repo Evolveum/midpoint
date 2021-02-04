@@ -36,7 +36,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.repo.sql.audit.SqlQueryExecutor;
+import com.evolveum.midpoint.repo.sql.audit.AuditSqlQueryContext;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditDelta;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.audit.mapping.*;
@@ -48,13 +48,11 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.RChangeType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
-import com.evolveum.midpoint.repo.sql.helpers.JdbcSession;
-import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sql.util.TemporaryTableDialect;
-import com.evolveum.midpoint.repo.sqlbase.QueryException;
-import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
+import com.evolveum.midpoint.repo.sqlbase.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -99,24 +97,33 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     private static final String QUERY_MAX_RESULT = "setMaxResults";
     private static final String QUERY_FIRST_RESULT = "setFirstResult";
 
-    private final BaseHelper baseHelper;
-    private final PrismContext prismContext;
+    private final BaseHelper baseHelper; // only for logging/exception handling
+    private final SqlRepoContext sqlRepoContext;
+    private final SchemaHelper schemaService;
 
     private final SqlQueryExecutor sqlQueryExecutor;
+    private final SqlTransformerContext sqlTransformerContext;
 
     private volatile SystemConfigurationAuditType auditConfiguration;
 
     public SqlAuditServiceImpl(
             BaseHelper baseHelper,
-            PrismContext prismContext) {
+            SqlRepoContext sqlRepoContext,
+            SchemaHelper schemaService) {
         this.baseHelper = baseHelper;
-        this.prismContext = prismContext;
-        this.sqlQueryExecutor = new SqlQueryExecutor(baseHelper, prismContext);
+        this.sqlRepoContext = sqlRepoContext;
+        this.schemaService = schemaService;
+        this.sqlQueryExecutor = new SqlQueryExecutor(sqlRepoContext);
+        this.sqlTransformerContext = new SqlTransformerContext(schemaService, sqlRepoContext);
+    }
+
+    public SqlRepoContext getSqlRepoContext() {
+        return sqlRepoContext;
     }
 
     @Override
     public SqlRepositoryConfiguration sqlConfiguration() {
-        return baseHelper.getConfiguration();
+        return (SqlRepositoryConfiguration) sqlRepoContext.getJdbcRepositoryConfiguration();
     }
 
     @Override
@@ -143,7 +150,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     }
 
     private void auditAttempt(AuditEventRecord record) {
-        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startTransaction()) {
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             try {
                 long recordId = insertAuditEventRecord(jdbcSession, record);
 
@@ -170,9 +177,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         QAuditEventRecordMapping aerMapping = QAuditEventRecordMapping.INSTANCE;
         QAuditEventRecord aer = aerMapping.defaultAlias();
         MAuditEventRecord aerBean = aerMapping
-                .createTransformer(prismContext, baseHelper.sqlRepoContext())
+                .createTransformer(sqlTransformerContext)
                 .from(record);
-        SQLInsertClause insert = jdbcSession.insert(aer).populate(aerBean);
+        SQLInsertClause insert = jdbcSession.newInsert(aer).populate(aerBean);
 
         Map<String, ColumnMetadata> customColumns = aerMapping.getExtensionColumns();
         for (Entry<String, String> property : record.getCustomColumnProperty().entrySet()) {
@@ -202,7 +209,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
 
         if (!deltasByChecksum.isEmpty()) {
-            SQLInsertClause insertBatch = jdbcSession.insert(
+            SQLInsertClause insertBatch = jdbcSession.newInsert(
                     QAuditDeltaMapping.INSTANCE.defaultAlias());
             for (MAuditDelta value : deltasByChecksum.values()) {
                 // NULLs are important to keep the value count consistent during the batch
@@ -241,7 +248,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 if (jaxb != null) {
                     mAuditDelta.status = MiscUtil.enumOrdinal(
                             RUtil.getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
-                    String full = prismContext.xmlSerializer()
+                    String full = schemaService.createStringSerializer(PrismContext.LANG_XML)
                             .options(SerializationOptions.createEscapeInvalidCharacters())
                             .serializeRealValue(jaxb, SchemaConstantsGenerated.C_OPERATION_RESULT);
                     mAuditDelta.fullResult = RUtil.getBytesFromSerializedForm(
@@ -270,12 +277,13 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         for (MAuditDelta delta : deltas) {
             try {
                 ObjectDeltaType deltaBean =
-                        prismContext.parserFor(delta.serializedDelta)
+                        schemaService.parserFor(delta.serializedDelta)
                                 .parseRealValue(ObjectDeltaType.class);
                 for (ItemDeltaType itemDelta : deltaBean.getItemDelta()) {
                     ItemPath path = itemDelta.getPath().getItemPath();
-                    CanonicalItemPath canonical = prismContext.createCanonicalItemPath(
-                            path, deltaBean.getObjectType());
+                    CanonicalItemPath canonical =
+                            schemaService.createCanonicalItemPath(
+                                    path, deltaBean.getObjectType());
                     for (int i = 0; i < canonical.size(); i++) {
                         changedItemPaths.add(canonical.allUpToIncluding(i).asString());
                     }
@@ -292,7 +300,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
         if (!changedItemPaths.isEmpty()) {
             QAuditItem qAuditItem = QAuditItemMapping.INSTANCE.defaultAlias();
-            SQLInsertClause insertBatch = jdbcSession.insert(qAuditItem);
+            SQLInsertClause insertBatch = jdbcSession.newInsert(qAuditItem);
             for (String changedItemPath : changedItemPaths) {
                 insertBatch.set(qAuditItem.recordId, recordId)
                         .set(qAuditItem.changedItemPath, changedItemPath)
@@ -310,7 +318,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
 
         QAuditPropertyValue qAuditPropertyValue = QAuditPropertyValueMapping.INSTANCE.defaultAlias();
-        SQLInsertClause insertBatch = jdbcSession.insert(qAuditPropertyValue);
+        SQLInsertClause insertBatch = jdbcSession.newInsert(qAuditPropertyValue);
         for (String propertyName : properties.keySet()) {
             for (String propertyValue : properties.get(propertyName)) {
                 // id will be generated, but we're not interested in those here
@@ -335,7 +343,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
 
         QAuditRefValue qAuditRefValue = QAuditRefValueMapping.INSTANCE.defaultAlias();
-        SQLInsertClause insertBatch = jdbcSession.insert(qAuditRefValue);
+        SQLInsertClause insertBatch = jdbcSession.newInsert(qAuditRefValue);
         for (String refName : references.keySet()) {
             for (AuditReferenceValue refValue : references.get(refName)) {
                 // id will be generated, but we're not interested in those here
@@ -366,7 +374,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
 
         QAuditResource qAuditResource = QAuditResourceMapping.INSTANCE.defaultAlias();
-        SQLInsertClause insertBatch = jdbcSession.insert(qAuditResource);
+        SQLInsertClause insertBatch = jdbcSession.newInsert(qAuditResource);
         for (String resourceOid : resourceOids) {
             insertBatch.set(qAuditResource.recordId, recordId)
                     .set(qAuditResource.resourceOid, resourceOid)
@@ -387,8 +395,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         long opHandle = pm.registerOperationStart(operation, AuditEventRecord.class);
         int attempt = 1;
 
-        OperationResult result = parentResult.createSubresult(OP_LIST_RECORDS);
-        result.addParam("query", query);
+        OperationResult result = parentResult.subresult(OP_LIST_RECORDS)
+                .addParam("query", query)
+                .build();
 
         while (true) {
             OperationResult attemptResult = result.createMinorSubresult(OP_LIST_RECORDS_ATTEMPT);
@@ -439,7 +448,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                     DebugUtil.debugDump(params, 2));
         }
 
-        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startReadOnlyTransaction()) {
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
             try {
                 Connection conn = jdbcSession.connection();
                 SupportedDatabase database = sqlConfiguration().getDatabaseType();
@@ -514,6 +523,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                     //do not throw an error. rather audit record without delta than fatal error.
                 }
             }
+        } catch (Throwable t) {
+            deltaResult.recordFatalError(t);
+            throw t;
         } finally {
             deltaResult.computeStatus();
         }
@@ -625,15 +637,15 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 byte[] data = resultSet.getBytes(QAuditDelta.DELTA.getName());
                 String serializedDelta = RUtil.getSerializedFormFromBytes(data, sqlConfiguration().isUsingSQLServer());
 
-                ObjectDeltaType delta = prismContext.parserFor(serializedDelta)
+                ObjectDeltaType delta = schemaService.parserFor(serializedDelta)
                         .parseRealValue(ObjectDeltaType.class);
-                odo.setObjectDelta(DeltaConvertor.createObjectDelta(delta, prismContext));
+                odo.setObjectDelta(DeltaConvertor.createObjectDelta(delta, schemaService.getPrismContext()));
             }
             if (resultSet.getBytes(QAuditDelta.FULL_RESULT.getName()) != null) {
                 byte[] data = resultSet.getBytes(QAuditDelta.FULL_RESULT.getName());
                 String serializedResult = RUtil.getSerializedFormFromBytes(data, sqlConfiguration().isUsingSQLServer());
 
-                OperationResultType resultType = prismContext.parserFor(serializedResult)
+                OperationResultType resultType = schemaService.parserFor(serializedResult)
                         .parseRealValue(OperationResultType.class);
                 odo.setExecutionResult(OperationResult.createOperationResult(resultType));
             }
@@ -727,9 +739,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             return null;
         }
 
-        PrismReferenceValue prv = prismContext.itemFactory().createReferenceValue(oid,
-                prismContext.getSchemaRegistry().determineTypeForClass(
-                        repoObjectType.getJaxbClass()));
+        PrismReferenceValue prv = schemaService.createReferenceValue(oid, repoObjectType.getJaxbClass());
         prv.setDescription(description);
         if (targetName != null) {
             prv.setTargetName(new PolyString(targetName));
@@ -894,9 +904,11 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
      */
     private int batchDeletionAttempt(
             BiFunction<JdbcSession, String, Integer> recordsSelector,
-            Holder<Integer> totalCountHolder, long batchStart, OperationResult subResult) {
+            Holder<Integer> totalCountHolder, long batchStart, OperationResult parentResult) {
 
-        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startTransaction()) {
+        OperationResult result = parentResult.createSubresult("batchDeletionAttempt");
+
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             try {
                 TemporaryTableDialect ttDialect = TemporaryTableDialect
                         .getTempTableDialect(sqlConfiguration().getDatabaseType());
@@ -943,17 +955,19 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 totalCountHolder.setValue(totalCount);
                 LOGGER.debug("Audit cleanup batch finishing successfully in {} milliseconds; total count = {}",
                         System.currentTimeMillis() - batchStart, totalCount);
+
                 return count;
             } catch (RuntimeException ex) {
                 LOGGER.debug("Audit cleanup batch finishing with exception in {} milliseconds; exception = {}",
                         System.currentTimeMillis() - batchStart, ex.getMessage());
-                jdbcSession.handleGeneralRuntimeException(ex, subResult);
+                jdbcSession.handleGeneralRuntimeException(ex, result);
                 throw new AssertionError("We shouldn't get here.");
             }
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
         } finally {
-            if (subResult != null && subResult.isUnknown()) {
-                subResult.computeStatus();
-            }
+            result.computeStatusIfUnknown();
         }
     }
 
@@ -961,7 +975,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             JdbcSession jdbcSession, String tempTable, Date minValue) {
 
         QAuditEventRecord aer = QAuditEventRecordMapping.INSTANCE.defaultAlias();
-        SQLQuery<Long> populateQuery = jdbcSession.query()
+        SQLQuery<Long> populateQuery = jdbcSession.newQuery()
                 .select(aer.id)
                 .from(aer)
                 .where(aer.timestamp.lt(Instant.ofEpochMilli(minValue.getTime())))
@@ -969,14 +983,14 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 .limit(CLEANUP_AUDIT_BATCH_SIZE);
 
         QAuditTemp tmp = new QAuditTemp("tmp", tempTable);
-        return (int) jdbcSession.insert(tmp).select(populateQuery).execute();
+        return (int) jdbcSession.newInsert(tmp).select(populateQuery).execute();
     }
 
     private int selectRecordsByNumberToKeep(
             JdbcSession jdbcSession, String tempTable, int recordsToKeep) {
 
         QAuditEventRecord aer = QAuditEventRecordMapping.INSTANCE.defaultAlias();
-        long totalAuditRecords = jdbcSession.query().from(aer).fetchCount();
+        long totalAuditRecords = jdbcSession.newQuery().from(aer).fetchCount();
 
         // we will find the number to delete and limit it to range [0,CLEANUP_AUDIT_BATCH_SIZE]
         long recordsToDelete = Math.max(0,
@@ -987,14 +1001,14 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             return 0;
         }
 
-        SQLQuery<Long> populateQuery = jdbcSession.query()
+        SQLQuery<Long> populateQuery = jdbcSession.newQuery()
                 .select(aer.id)
                 .from(aer)
                 .orderBy(aer.timestamp.asc())
                 .limit(recordsToDelete);
 
         QAuditTemp tmp = new QAuditTemp("tmp", tempTable);
-        return (int) jdbcSession.insert(tmp).select(populateQuery).execute();
+        return (int) jdbcSession.newInsert(tmp).select(populateQuery).execute();
     }
 
     /**
@@ -1055,7 +1069,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     }
 
     public long countObjects(String query, Map<String, Object> params) {
-        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startReadOnlyTransaction()) {
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
             try {
                 SupportedDatabase database = jdbcSession.databaseType();
 
@@ -1111,10 +1125,15 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 .build();
 
         try {
-            return sqlQueryExecutor.count(AuditEventRecordType.class, query, options);
+            var queryContext = AuditSqlQueryContext.from(
+                    AuditEventRecordType.class, sqlTransformerContext, sqlRepoContext);
+            return sqlQueryExecutor.count(queryContext, query, options);
         } catch (QueryException | RuntimeException e) {
             baseHelper.handleGeneralException(e, operationResult);
             throw new SystemException(e);
+        } catch (Throwable t) {
+            operationResult.recordFatalError(t);
+            throw t;
         } finally {
             operationResult.computeStatusIfUnknown();
         }
@@ -1132,17 +1151,20 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 .build();
 
         try {
+            var queryContext = AuditSqlQueryContext.from(
+                    AuditEventRecordType.class, sqlTransformerContext, sqlRepoContext);
             SearchResultList<AuditEventRecordType> result =
-                    sqlQueryExecutor.list(AuditEventRecordType.class, query, options);
+                    sqlQueryExecutor.list(queryContext, query, options);
 //            addContainerDefinition(AuditEventRecordType.class, result);
             return result;
         } catch (QueryException | RuntimeException e) {
             baseHelper.handleGeneralException(e, operationResult);
             throw new SystemException(e);
+        } catch (Throwable t) {
+            operationResult.recordFatalError(t);
+            throw t;
         } finally {
-            if (operationResult != null && operationResult.isUnknown()) {
-                operationResult.computeStatus();
-            }
+            operationResult.computeStatusIfUnknown();
         }
     }
 
@@ -1156,8 +1178,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     @SuppressWarnings("SameParameterValue")
     private <C extends Containerable> void addContainerDefinition(
             Class<C> containerableType, List<C> containerableValues) throws SchemaException {
-        PrismContainerDefinition<C> containerDefinition = prismContext.getSchemaRegistry()
-                .findContainerDefinitionByCompileTimeClass(containerableType);
+        PrismContainerDefinition<C> containerDefinition =
+                schemaService.findContainerDefinitionByCompileTimeClass(containerableType);
         PrismContainer<C> container = containerDefinition.instantiate();
         for (C containerValue : containerableValues) {
             //noinspection unchecked

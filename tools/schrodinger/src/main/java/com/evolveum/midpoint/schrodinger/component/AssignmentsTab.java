@@ -20,6 +20,9 @@ import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import com.evolveum.midpoint.schrodinger.util.Utils;
 
+import org.openqa.selenium.By;
+import org.testng.Assert;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -122,5 +125,16 @@ public class AssignmentsTab<P extends AssignmentHolderDetailsPage> extends TabWi
     @Override
     protected String getPrismViewPanelId() {
         return "assignmentsContainer";
+    }
+
+    public AssignmentsTab<P> assertAssignmentsWithRelationExist(String relation, String... expectedAssignments) {
+        Assert.assertTrue(containsAssignmentsWithRelation(relation, expectedAssignments), "Assignments doesn't exist.");
+        return this;
+    }
+
+    public AssignmentsTab<P> assertAssignmentsCountLabelEquals(String expectedValue) {
+        SelenideElement el = $(By.partialLinkText("Assignments"));
+        Assert.assertEquals(el.$x(".//small[@data-s-id='count']").getText(), expectedValue, "Assignments count label doesn't equal to expected value");
+        return this;
     }
 }

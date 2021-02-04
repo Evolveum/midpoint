@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -15,14 +15,14 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
-import com.evolveum.midpoint.repo.sqlbase.SqlPathContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 
 /**
  * Type of {@link FilterProcessor} for a single Prism item (not necessarily one SQL column).
- * These are executed as "leafs" of filter processing tree returning terminal predicates.
+ * These are executed as "leaves" of filter processing tree returning terminal predicates.
  * These are used in {@link QueryModelMapping} objects.
  * This superclass contains support methods for determining operator from filter,
  * getting single value and other typical operations needed by item filter processors.
@@ -30,9 +30,9 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 public abstract class ItemFilterProcessor<O extends ObjectFilter>
         implements FilterProcessor<O> {
 
-    protected final SqlPathContext<?, ?, ?> context;
+    protected final SqlQueryContext<?, ?, ?> context;
 
-    protected ItemFilterProcessor(SqlPathContext<?, ?, ?> context) {
+    protected ItemFilterProcessor(SqlQueryContext<?, ?, ?> context) {
         this.context = context;
     }
 
@@ -101,6 +101,14 @@ public abstract class ItemFilterProcessor<O extends ObjectFilter>
 
     protected Predicate singleValuePredicate(Path<?> path, Ops operator, Object value) {
         Predicate predicate = ExpressionUtils.predicate(operator, path, ConstantImpl.create(value));
+        return predicateWithNotTreated(path, predicate);
+    }
+
+    /**
+     * Returns the predicate or (predicate AND path IS NOT NULL) if NOT is used somewhere above.
+     * This makes NOT truly complementary to non-NOT result.
+     */
+    protected Predicate predicateWithNotTreated(Path<?> path, Predicate predicate) {
         return context.isNotFilterUsed()
                 ? ExpressionUtils.and(predicate, ExpressionUtils.predicate(Ops.IS_NOT_NULL, path))
                 : predicate;

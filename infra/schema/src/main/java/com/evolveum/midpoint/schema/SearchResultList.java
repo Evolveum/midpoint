@@ -1,10 +1,17 @@
 /*
- * Copyright (c) 2014-2018 Evolveum and contributors
+ * Copyright (C) 2014-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.schema;
+
+import java.io.Serializable;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.AbstractFreezable;
 import com.evolveum.midpoint.prism.Freezable;
@@ -12,16 +19,8 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.io.Serializable;
-import java.util.*;
-
-/**
- * @author semancik
- *
- */
-public class SearchResultList<T> extends AbstractFreezable implements List<T>, Cloneable, Serializable, ShortDumpable {
+public class SearchResultList<T> extends AbstractFreezable
+        implements List<T>, Cloneable, Serializable, ShortDumpable {
 
     private List<T> list = null;
     private SearchResultMetadata metadata = null;
@@ -44,15 +43,14 @@ public class SearchResultList<T> extends AbstractFreezable implements List<T>, C
         }
     }
 
-    public SearchResultList() { }
+    public SearchResultList() {
+    }
 
     public SearchResultList(List<T> list) {
-        super();
         this.list = list;
     }
 
     public SearchResultList(List<T> list, SearchResultMetadata metadata) {
-        super();
         this.list = list;
         this.metadata = metadata;
     }
@@ -177,6 +175,12 @@ public class SearchResultList<T> extends AbstractFreezable implements List<T>, C
         return getInitializedList().subList(fromIndex, toIndex);
     }
 
+    public <R> SearchResultList<R> map(Function<T, R> mappingFunction) {
+        return new SearchResultList<>(
+                list.stream().map(mappingFunction).collect(Collectors.toList()),
+                metadata);
+    }
+
     // Do NOT auto-generate -- there are manual changes here
     @Override
     public int hashCode() {
@@ -190,9 +194,16 @@ public class SearchResultList<T> extends AbstractFreezable implements List<T>, C
     // Do NOT auto-generate -- there are manual changes here
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+
         SearchResultList other = (SearchResultList) obj;
         if (list == null || list.isEmpty()) {
             if (other.list != null && !other.list.isEmpty()) {
@@ -214,13 +225,13 @@ public class SearchResultList<T> extends AbstractFreezable implements List<T>, C
             if (list == null) {
                 return "SearchResultList(null)";
             } else {
-                return "SearchResultList("+list+")";
+                return "SearchResultList(" + list + ")";
             }
         } else {
             if (list == null) {
-                return "SearchResultList("+metadata+")";
+                return "SearchResultList(" + metadata + ")";
             } else {
-                return "SearchResultList("+list+", "+metadata+")";
+                return "SearchResultList(" + list + ", " + metadata + ")";
             }
         }
     }

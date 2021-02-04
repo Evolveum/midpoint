@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -18,27 +18,28 @@ import com.querydsl.sql.ColumnMetadata;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
-import com.evolveum.midpoint.repo.sqlbase.SqlPathContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.QNameUtil;
 
 /**
  * Common supertype for mapping items/attributes between schema (prism) classes and query types.
- * See {@link #addItemMapping(ItemName, ItemSqlMapper)} for details about mapping mechanism.
+ * See {@link #addItemMapping(QName, ItemSqlMapper)} for details about mapping mechanism.
  * See {@link #addDetailFetchMapper(ItemName, SqlDetailFetchMapper)} for more about mapping
  * related to-many detail tables.
  * <p>
- * <b>Goal:</b> Map object query conditions and ORDER BY to SQL.
- * <p>
- * <b>Non-goal:</b> Map objects from Q-type to prism and back.
- * This is done by code, possibly static method from a DTO "assembler" class.
+ * The main goal of this type is to map object query conditions and ORDER BY to SQL.
+ * Transformation between schema/prism objects and repository objects (row beans or tuples) is
+ * delegated to {@link SqlTransformer}.
+ * Objects of various {@link QueryModelMapping} subclasses are factories for the transformer.
  *
  * @param <S> schema type
  * @param <Q> type of entity path
@@ -104,7 +105,7 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
      * @param itemMapper mapper wrapping the information about column mappings working also
      * as a factory for {@link FilterProcessor}
      */
-    public final void addItemMapping(ItemName itemName, ItemSqlMapper itemMapper) {
+    public final void addItemMapping(QName itemName, ItemSqlMapper itemMapper) {
         itemFilterProcessorMapping.put(itemName, itemMapper);
     }
 
@@ -125,12 +126,10 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
 
     /**
      * Lambda "wrapper" that helps with type inference when mapping paths from entity path.
-     * The returned types are ambiguous just as they are used in {@code mapper()} static methods
-     * on item filter processors.
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    protected <A> Function<EntityPath<?>, Path<?>> path(
-            Function<Q, Path<A>> rootToQueryItem) {
+    protected <A extends Path<?>> Function<EntityPath<?>, A> path(
+            Function<Q, A> rootToQueryItem) {
         return (Function) rootToQueryItem;
     }
 
@@ -139,9 +138,9 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
      * for paths not starting on the Q parameter used for this mapping instance.
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    protected <OQ extends EntityPath<OR>, OR, A> Function<EntityPath<?>, Path<?>> path(
+    protected <OQ extends EntityPath<OR>, OR, A extends Path<?>> Function<EntityPath<?>, A> path(
             @SuppressWarnings("unused") Class<OQ> queryType,
-            Function<OQ, Path<A>> entityToQueryItem) {
+            Function<OQ, A> entityToQueryItem) {
         return (Function) entityToQueryItem;
     }
 
@@ -155,12 +154,12 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
 
     // we want loose typing for client's sake, there is no other chance to get the right type here
     public final <T extends ObjectFilter> @NotNull FilterProcessor<T> createItemFilterProcessor(
-            ItemName itemName, SqlPathContext<?, ?, ?> context)
+            ItemName itemName, SqlQueryContext<?, ?, ?> context)
             throws QueryException {
         return itemMapping(itemName).createFilterProcessor(context);
     }
 
-    public final @Nullable Path<?> primarySqlPath(ItemName itemName, SqlPathContext<?, ?, ?> context)
+    public final @Nullable Path<?> primarySqlPath(ItemName itemName, SqlQueryContext<?, ?, ?> context)
             throws QueryException {
         return itemMapping(itemName).itemPrimaryPath(context.path());
     }
@@ -221,7 +220,7 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
      * Creates {@link SqlTransformer} of row bean to schema type, override if provided.
      */
     public SqlTransformer<S, Q, R> createTransformer(
-            PrismContext prismContext, SqlRepoContext sqlRepoContext) {
+            SqlTransformerContext sqlTransformerContext) {
         throw new UnsupportedOperationException("Bean transformer not supported for " + queryType);
     }
 
@@ -253,6 +252,16 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
         return Collections.unmodifiableMap(extensionColumns);
     }
 
+    /**
+     * By default uses {@link #selectExpressionsWithCustomColumns} and does not use options.
+     * Can be overridden to fulfil other needs, e.g. to select just full object..
+     */
+    public @NotNull Path<?>[] selectExpressions(
+            Q entity,
+            @SuppressWarnings("unused") Collection<SelectorOptions<GetOperationOptions>> options) {
+        return selectExpressionsWithCustomColumns(entity);
+    }
+
     public @NotNull Path<?>[] selectExpressionsWithCustomColumns(Q entity) {
         List<Path<?>> expressions = new ArrayList<>();
         expressions.add(entity);
@@ -270,5 +279,10 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
                 ", schemaType=" + schemaType +
                 ", queryType=" + queryType +
                 '}';
+    }
+
+    public R newRowObject() {
+        throw new UnsupportedOperationException(
+                "Row bean creation not implemented for query type " + queryType.getName());
     }
 }

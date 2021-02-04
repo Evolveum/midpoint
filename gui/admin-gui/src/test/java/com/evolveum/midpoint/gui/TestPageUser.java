@@ -24,7 +24,6 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerPanel;
 import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -178,9 +177,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
     }
 
     private void clickOnTab(int order) {
-        tester.assertRenderedPage(PageUser.class);
-        String tabPath = "mainPanel:mainForm:tabPanel:tabs-container:tabs:" + order + ":link";
-        tester.clickLink(tabPath);
+        clickOnTab(order, PageUser.class);
     }
 
     private PageUser renderPage() {

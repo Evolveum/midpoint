@@ -45,8 +45,8 @@ public class LoginPageTest extends AbstractLoginPageTest {
         String linkTag = "link='";
         String link = notification.substring(notification.indexOf(linkTag) + linkTag.length(), notification.lastIndexOf("''"));
         open(link);
-        RegistrationConfirmationPage registrationConfirmationPage = new RegistrationConfirmationPage();
-        Assert.assertTrue(registrationConfirmationPage.successPanelExists());
+        new RegistrationConfirmationPage()
+                .assertSuccessPanelExists();
         String actualUrl = basicPage.getCurrentUrl();
         Assert.assertTrue(actualUrl.endsWith("/registration"));
     }
@@ -106,7 +106,7 @@ public class LoginPageTest extends AbstractLoginPageTest {
         open("/");
 
         login.changeLanguage("de");
-        Assert.assertTrue(login.signInButtonTitleMatch("Anmelden"));
+        login.assertSignInButtonTitleMatch("Anmelden");
     }
 
     @Test
@@ -116,7 +116,7 @@ public class LoginPageTest extends AbstractLoginPageTest {
         login.goToUrl();
 
         login.changeLanguage("us");
-        Assert.assertTrue(login.elementWithTextExists("Select an Identity Provider"));
+        login.assertElementWithTextExists("Select an Identity Provider");
     }
 
     @Override

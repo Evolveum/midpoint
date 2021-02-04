@@ -21,9 +21,6 @@ import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-/**
- * @author Viliam Repan (lazyman)
- */
 public class DataSourceFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(DataSourceFactory.class);

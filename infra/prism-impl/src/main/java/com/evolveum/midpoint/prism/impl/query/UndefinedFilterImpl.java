@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.query.UndefinedFilter;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+// FIXME: This could be singleton
 public class UndefinedFilterImpl extends ObjectFilterImpl implements UndefinedFilter {
 
     public UndefinedFilterImpl() {
@@ -25,6 +26,11 @@ public class UndefinedFilterImpl extends ObjectFilterImpl implements UndefinedFi
     @Override
     public UndefinedFilterImpl clone() {
         return new UndefinedFilterImpl();
+    }
+
+    @Override
+    protected void performFreeze() {
+        // NOOP
     }
 
     @Override

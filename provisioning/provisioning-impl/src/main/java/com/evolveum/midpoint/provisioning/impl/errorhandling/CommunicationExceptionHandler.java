@@ -11,6 +11,7 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -54,9 +55,6 @@ public class CommunicationExceptionHandler extends ErrorHandler {
             ConfigurationException, ExpressionEvaluationException {
 
         ResourceType resource = ctx.getResource();
-        if (!ProvisioningUtil.isDoDiscovery(resource, rootOptions)) {
-            throwException(cause, null, parentResult);
-        }
 
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_GET_ERROR);
         result.addParam("exception", cause.getMessage());

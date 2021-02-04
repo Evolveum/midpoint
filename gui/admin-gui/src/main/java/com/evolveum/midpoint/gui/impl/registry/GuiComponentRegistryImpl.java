@@ -86,11 +86,15 @@ public class GuiComponentRegistryImpl implements GuiComponentRegistry {
                 .filter(f -> f.match(itemWrapper))
                 .findFirst();
         if (!opt.isPresent()) {
-            LOGGER.trace("No factory found for {}", itemWrapper.debugDump());
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("No factory found for {}", itemWrapper.debugDump());
+            }
             return null;
         }
         GuiComponentFactory<?> factory = opt.get();
-        LOGGER.trace("Found component factory {} for {}", factory, itemWrapper.debugDump());
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Found component factory {} for \n{}", factory, itemWrapper.debugDump());
+        }
         //noinspection unchecked
         return (GuiComponentFactory<T>) factory;
     }
@@ -98,12 +102,16 @@ public class GuiComponentRegistryImpl implements GuiComponentRegistry {
     public <IW extends ItemWrapper, VW extends PrismValueWrapper, PV extends PrismValue, C extends Containerable> ItemWrapperFactory<IW, VW, PV> findWrapperFactory(ItemDefinition<?> def, PrismContainerValue<C> parent) {
         Optional<ItemWrapperFactory<IW, VW, PV>> opt = (Optional) wrapperFactories.stream().filter(f -> f.match(def, parent)).findFirst();
         if (!opt.isPresent()) {
-            LOGGER.trace("Could not find factory for {}.", def);
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Could not find factory for {}.", def);
+            }
             return null;
         }
 
         ItemWrapperFactory<IW, VW, PV> factory = opt.get();
-        LOGGER.trace("Found factory: {}", factory);
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Found factory: {}", factory);
+        }
         return factory;
 
     }
@@ -117,7 +125,7 @@ public class GuiComponentRegistryImpl implements GuiComponentRegistry {
 
         //TODO do we want to throw exception? or just pretend as nothing has happend?
         if (!(factory instanceof PrismContainerWrapperFactory)) {
-            LOGGER.trace("Unexpected facotry found, expected container wrapper factory, byt found: {}", factory);
+            LOGGER.trace("Unexpected factoryG found, expected container wrapper factory, byt found: {}", factory);
             return null;
         }
 

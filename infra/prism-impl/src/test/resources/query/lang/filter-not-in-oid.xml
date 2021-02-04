@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<q:filter xsi:type="q:SearchFilterType"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <q:text>. not inOid (
+        "00000000-0000-0000-0000-000000000000", 
+        "00000000-0000-0000-0000-000000000001",
+        "00000000-0000-0000-0000-000000000002",
+        "00000000-0000-0000-0000-000000000003"
+        )</q:text>
+    <!--  
+    <q:not>
+        <q:inOid>
+            <q:value>00000000-0000-0000-0000-000000000000</q:value>
+            <q:value>00000000-0000-0000-0000-000000000001</q:value>
+            <q:value>00000000-0000-0000-0000-000000000002</q:value>
+            <q:value>00000000-0000-0000-0000-000000000003</q:value>
+        </q:inOid>
+    </q:not>
+    -->
+</q:filter>

@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.component.search.Search;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxChannel;
@@ -40,6 +38,7 @@ import com.evolveum.midpoint.web.component.assignment.*;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
+import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -122,7 +121,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         searchForm.setOutputMarkupId(true);
 
         IModel<Search> searchModel = Model.of(getRoleCatalogStorage().getSearch() != null ? getRoleCatalogStorage().getSearch() :
-                SearchFactory.createSearch(getQueryClass(), getPageBase()));
+                createSearch());
         SearchPanel search = new SearchPanel(ID_SEARCH, searchModel, false) {
             private static final long serialVersionUID = 1L;
 
@@ -134,6 +133,10 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         getRoleCatalogStorage().setSearch(searchModel.getObject());
         searchForm.add(search);
         shoppingCartContainer.add(searchForm);
+    }
+
+    protected Search createSearch() {
+        return SearchFactory.createSearch(getQueryClass(), getPageBase());
     }
 
     protected void searchPerformed(AjaxRequestTarget target) {

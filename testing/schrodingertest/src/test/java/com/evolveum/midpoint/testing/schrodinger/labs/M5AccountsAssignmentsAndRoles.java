@@ -37,7 +37,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -50,12 +49,26 @@ import javax.xml.namespace.QName;
 public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(M5AccountsAssignmentsAndRoles.class);
+    protected static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M5/";
 
     private static final File TOP_SECRET_I_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-top-secret-i.xml");
     private static final File CSV_1_RESOURCE_FILE_5_5 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-5-5.xml");
+    private static final File CSV_2_RESOURCE_FILE_5_5 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-2-canteen-5-5.xml");
     private static final File CSV_3_RESOURCE_FILE_5_5 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-5-5.xml");
     private static final String ARCHETYPE_EMPLOYEE_NAME = "Employee";
     private static final String ARCHETYPE_EMPLOYEE_LABEL = "Employee";
+    private static final File INTERNAL_EMPLOYEE_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-internal-employee.xml");
+    private static final File NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE = new File(LAB_OBJECTS_DIRECTORY + "valuePolicies/numeric-pin-first-nonzero-policy.xml");
+    private static final File CSV_1_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access.xml");
+    private static final File CSV_2_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-2-canteen.xml");
+    private static final File CSV_3_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap.xml");
+    private static final File INCOGNITO_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-incognito.xml");
+    private static final File SYSTEM_CONFIGURATION_FILE_5_7 = new File(LAB_OBJECTS_DIRECTORY + "systemConfiguration/system-configuration-5-7.xml");
+    private static final File ARCHETYPE_EMPLOYEE_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-employee.xml");
+    private static final File ARCHETYPE_EXTERNAL_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-external.xml");
+    private static final File SECRET_I_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-secret-i.xml");
+    private static final File SECRET_II_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-secret-ii.xml");
+    protected static final File KIRK_USER_TIBERIUS_FILE = new File("./src/test/resources/labs/objects/users/kirk-tiberius-user.xml");
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override
@@ -92,30 +105,28 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
         addObjectFromFile(TOP_SECRET_I_ROLE_FILE);
 
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Secret Projects I", "Secret Projects II");
-        Assert.assertTrue(
-            showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
+        showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
                 .form()
-                    .compareInputAttributeValues("groups", "Lucky Numbers",
-                            "Teleportation", "Time Travel", "Presidential Candidates Motivation"));
+                    .assertInputAttributeValuesMatches("groups", "Lucky Numbers",
+                            "Teleportation", "Time Travel", "Presidential Candidates Motivation");
 
         Utils.removeAssignments(showUser("kirk").selectTabAssignments(), "Secret Projects I");
 
-        Assert.assertTrue(
-                showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
+        showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
                     .form()
-                        .compareInputAttributeValues("groups", "Lucky Numbers",
-                                "Presidential Candidates Motivation"));
+                        .assertInputAttributeValuesMatches("groups", "Lucky Numbers",
+                                "Presidential Candidates Motivation");
 
         Utils.removeAssignments(showUser("kirk").selectTabAssignments(), "Secret Projects II");
 
-        Assert.assertFalse(existShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk"));
+        assertShadowDoesntExist(CSV_1_RESOURCE_NAME, "Login", "jkirk");
 
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Internal Employee");
 
-        Assert.assertTrue(existShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk"));
-        Assert.assertTrue(existShadow(CSV_2_RESOURCE_NAME, "Login", "jkirk"));
-        Assert.assertTrue(existShadow(CSV_3_RESOURCE_NAME, "Distinguished Name",
-                "cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com"));
+        assertShadowExists(CSV_1_RESOURCE_NAME, "Login", "jkirk");
+        assertShadowExists(CSV_2_RESOURCE_NAME, "Login", "jkirk");
+        assertShadowExists(CSV_3_RESOURCE_NAME, "Distinguished Name",
+                "cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com");
 
     }
 
@@ -151,14 +162,14 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
         Utils.addAsignments(tab, "Secret Projects I", "Secret Projects II", "Top Secret Projects I");
 
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Too Many Secrets");
-        Assert.assertTrue(existShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk"));
+        assertShadowExists(CSV_1_RESOURCE_NAME, "Login", "jkirk");
 
         DirectIndirectAssignmentTable<AssignmentsTab<UserPage>> table = showUser("kirk").selectTabAssignments()
                 .selectTypeAllDirectIndirect();
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
-        Assert.assertTrue(table.containsIndirectAssignments("Secret Projects I",
+        table.assertIndirectAssignmentsExist("Secret Projects I",
                 "Secret Projects II", "Top Secret Projects I", CSV_1_RESOURCE_NAME, CSV_2_RESOURCE_NAME,
-                CSV_3_RESOURCE_NAME));
+                CSV_3_RESOURCE_NAME);
 
         Utils.removeAssignments(showUser("kirk").selectTabAssignments(), "Too Many Secrets");
     }
@@ -179,9 +190,10 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
         AccountPage shadow = showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
         Selenide.sleep(2000);
         PrismForm<AccountPage> accountForm = shadow.form();
-        accountForm.assertSelectAttributeValueMatches("administrativeStatus", "Disabled");
-        Assert.assertTrue(accountForm.showEmptyAttributes("Attributes")
-                .compareInputAttributeValues("groups", new ArrayList<String>()));
+        accountForm
+                .assertSelectAttributeValueMatches("administrativeStatus", "Disabled")
+                .showEmptyAttributes("Attributes")
+                .assertInputAttributeValuesMatches("groups", new ArrayList<String>());
 
         showShadow(CSV_2_RESOURCE_NAME, "Login", "jkirk");
         accountForm.assertSelectAttributeValueMatches("administrativeStatus", "Disabled");
@@ -191,10 +203,10 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
 
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Internal Employee");
         showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
-        accountForm.assertSelectAttributeValueMatches("administrativeStatus", "Enabled");
-        Assert.assertTrue(
-                accountForm.compareInputAttributeValues("groups", "Internal Employees",
-                        "Essential Documents"));
+        accountForm
+                .assertSelectAttributeValueMatches("administrativeStatus", "Enabled")
+                .assertInputAttributeValuesMatches("groups", "Internal Employees",
+                        "Essential Documents");
 
         showShadow(CSV_2_RESOURCE_NAME, "Login", "jkirk");
         accountForm.assertSelectAttributeValueMatches("administrativeStatus", "Enabled");
@@ -209,22 +221,20 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
         AccountPage shadow = showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         PrismForm<AccountPage> accountForm = shadow.form();
-        Assert.assertTrue(
-                accountForm.compareInputAttributeValues("groups", "Internal Employees",
+        accountForm.assertInputAttributeValuesMatches("groups", "Internal Employees",
                         "Essential Documents", "Lucky Numbers", "Teleportation",
                         "Time Travel", "Presidential Candidates Motivation",
                         "Area 52 Managers", "Area 52 News Obfuscators", "Abduction Professional Services",
-                        "Immortality Training", "Telekinesis In Practice", "IDDQD"));
-        Assert.assertTrue(
-                accountForm.compareInputAttributeValues("groups", "Lucky Numbers",
-                        "Teleportation", "Time Travel", "Presidential Candidates Motivation"));
+                        "Immortality Training", "Telekinesis In Practice", "IDDQD");
+        accountForm.assertInputAttributeValuesMatches("groups", "Lucky Numbers",
+                        "Teleportation", "Time Travel", "Presidential Candidates Motivation");
 
         Utils.setStatusForAssignment(showUser("kirk").selectTabAssignments(), "Too Many Secrets", "Disabled");
 
         showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
-        accountForm.assertSelectAttributeValueMatches("administrativeStatus", "Enabled");
-        Assert.assertTrue(
-                accountForm.compareInputAttributeValues("groups", "Internal Employees", "Essential Documents"));
+        accountForm
+                .assertSelectAttributeValueMatches("administrativeStatus", "Enabled")
+                .assertInputAttributeValuesMatches("groups", "Internal Employees", "Essential Documents");
 
         showShadow(CSV_2_RESOURCE_NAME, "Login", "jkirk");
         accountForm.assertSelectAttributeValueMatches("administrativeStatus", "Enabled");
@@ -235,9 +245,10 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
         Utils.setStatusForAssignment(showUser("kirk").selectTabAssignments(), "Internal Employee", "Disabled");
 
         showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
-        accountForm.assertSelectAttributeValueMatches("administrativeStatus", "Disabled");
-        Assert.assertTrue(accountForm.showEmptyAttributes("Attributes")
-                .compareInputAttributeValues("groups", new ArrayList<String>()));
+        accountForm
+                .assertSelectAttributeValueMatches("administrativeStatus", "Disabled")
+                .showEmptyAttributes("Attributes")
+                .assertInputAttributeValuesMatches("groups", new ArrayList<String>());
 
         showShadow(CSV_2_RESOURCE_NAME, "Login", "jkirk");
         accountForm.assertSelectAttributeValueMatches("administrativeStatus", "Disabled");
@@ -288,7 +299,9 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
 
         AssignmentsTab<UserPage> assigmentsTab = showUser("janeway")
                 .selectTabAssignments();
-        Assert.assertFalse(assigmentsTab.table().containsText(ARCHETYPE_EMPLOYEE_NAME));
+        assigmentsTab
+                .table()
+                .assertTableDoesntContainText(ARCHETYPE_EMPLOYEE_NAME);
         Utils.addAsignments(assigmentsTab, "Secret Projects I");
     }
 }

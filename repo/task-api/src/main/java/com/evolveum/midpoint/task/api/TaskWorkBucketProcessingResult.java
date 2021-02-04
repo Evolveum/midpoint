@@ -7,14 +7,22 @@
 
 package com.evolveum.midpoint.task.api;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 /**
  * EXPERIMENTAL
- *
- * @author mederly
  */
+@Experimental
 public class TaskWorkBucketProcessingResult extends TaskRunResult {
 
-    private boolean bucketComplete;         // "bucket not complete" implies "should not continue"
+    /**
+     * TODO
+     */
+    private boolean bucketComplete; // "bucket not complete" implies "should not continue"
+
+    /**
+     * TODO
+     */
     private boolean shouldContinue;
 
     public boolean isBucketComplete() {

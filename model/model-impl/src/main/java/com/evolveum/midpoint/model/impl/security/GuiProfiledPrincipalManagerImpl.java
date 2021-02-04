@@ -1,28 +1,22 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.model.impl.security;
 
-import java.util.*;
+import static java.util.Collections.emptyList;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 
-import com.evolveum.midpoint.TerminateSessionEvent;
-import com.evolveum.midpoint.model.api.authentication.MidpointDirContextAdapter;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceAware;
 import org.springframework.context.support.MessageSourceAccessor;
@@ -37,36 +31,33 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
 import org.springframework.stereotype.Service;
 
+import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
+import com.evolveum.midpoint.model.api.authentication.MidpointDirContextAdapter;
 import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.model.impl.FocusComputer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.AuthorizationTransformer;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import static java.util.Collections.emptyList;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author lazyman
@@ -82,9 +73,6 @@ public class GuiProfiledPrincipalManagerImpl implements GuiProfiledPrincipalMana
     private RepositoryService repositoryService;
 
     @Autowired
-    @Qualifier("modelObjectResolver")
-    private ObjectResolver objectResolver;
-    @Autowired
     private GuiProfileCompiler guiProfileCompiler;
     @Autowired
     private FocusComputer focusComputer;
@@ -98,10 +86,6 @@ public class GuiProfiledPrincipalManagerImpl implements GuiProfiledPrincipalMana
     // registry is not available e.g. during tests
     @Autowired(required = false)
     private SessionRegistry sessionRegistry;
-
-    //optional application.yml property for LDAP authentication, marks LDAP attribute name that correlates with midPoint UserType name
-//    @Value("${auth.ldap.search.naming-attr:#{null}}")
-//    private String ldapNamingAttr;
 
     private MessageSourceAccessor messages;
 
@@ -263,7 +247,9 @@ public class GuiProfiledPrincipalManagerImpl implements GuiProfiledPrincipalMana
         ObjectQuery query = ObjectQueryUtil.createNormNameQuery(usernamePoly, prismContext);
         LOGGER.trace("Looking for user, query:\n" + query.debugDump());
 
-        List<PrismObject<FocusType>> list = repositoryService.searchObjects((Class<FocusType>) clazz, query, null, result);
+        //noinspection rawtypes,unchecked
+        List<PrismObject<FocusType>> list = (SearchResultList)
+                repositoryService.searchObjects(clazz, query, null, result);
         LOGGER.trace("Users found: {}.", list.size());
         if (list.size() != 1) {
             return null;
@@ -271,7 +257,7 @@ public class GuiProfiledPrincipalManagerImpl implements GuiProfiledPrincipalMana
         return list.get(0);
     }
 
-    private void initializePrincipalFromAssignments(GuiProfiledPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private void initializePrincipalFromAssignments(GuiProfiledPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer) {
         Task task = taskManager.createTaskInstance(GuiProfiledPrincipalManagerImpl.class.getName() + ".initializePrincipalFromAssignments");
         OperationResult result = task.getResult();
         try {
@@ -285,7 +271,7 @@ public class GuiProfiledPrincipalManagerImpl implements GuiProfiledPrincipalMana
     }
 
     private void save(MidPointPrincipal person, Collection<? extends ItemDelta<?, ?>> itemDeltas,
-                      OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+            OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         LOGGER.trace("Updating user {} with deltas:\n{}", person.getFocus(), DebugUtil.debugDumpLazily(itemDeltas));
         repositoryService.modifyObject(FocusType.class, person.getFocus().getOid(), itemDeltas, result);
     }
@@ -331,8 +317,9 @@ public class GuiProfiledPrincipalManagerImpl implements GuiProfiledPrincipalMana
             ObjectReferenceType ownerRef = ((TaskType) (object.asObjectable())).getOwnerRef();
             if (ownerRef != null && ownerRef.getOid() != null && ownerRef.getType() != null) {
                 try {
-                    owner = (PrismObject<F>) repositoryService.getObject(ObjectTypes.getObjectTypeFromTypeQName(ownerRef.getType()).getClassDefinition(),
-                            ownerRef.getOid(), null, result);
+                    ObjectTypes type = ObjectTypes.getObjectTypeFromTypeQName(ownerRef.getType());
+                    owner = repositoryService.getObject(
+                            type.getClassDefinition(), ownerRef.getOid(), null, result);
                 } catch (ObjectNotFoundException | SchemaException e) {
                     LOGGER.warn("Cannot resolve owner of {}: {}", object, e.getMessage(), e);
                 }
@@ -344,8 +331,8 @@ public class GuiProfiledPrincipalManagerImpl implements GuiProfiledPrincipalMana
         }
         if (owner.canRepresent(UserType.class)) {
             PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
-            LifecycleStateModelType lifecycleModel = getLifecycleModel((PrismObject<UserType>) owner, systemConfiguration);
-            focusComputer.recompute((PrismObject<UserType>) owner, lifecycleModel);
+            LifecycleStateModelType lifecycleModel = getLifecycleModel(owner, systemConfiguration);
+            focusComputer.recompute(owner, lifecycleModel);
         }
         return owner;
     }
@@ -363,7 +350,7 @@ public class GuiProfiledPrincipalManagerImpl implements GuiProfiledPrincipalMana
 
     @Override
     public UserDetails mapUserFromContext(DirContextOperations ctx, String username,
-                                          Collection<? extends GrantedAuthority> authorities) {
+            Collection<? extends GrantedAuthority> authorities) {
 
         String userNameEffective = username;
         Class<? extends FocusType> focusType = UserType.class;

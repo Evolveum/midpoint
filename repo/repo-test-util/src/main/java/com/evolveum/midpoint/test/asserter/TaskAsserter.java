@@ -204,6 +204,11 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         return this;
     }
 
+    public TaskAsserter<RA> assertFatalError() {
+        TestUtil.assertFatalError(getTaskBean().getResult());
+        return this;
+    }
+
     public TaskAsserter<RA> assertCategory(String category) {
         assertEquals(category, getTaskBean().getCategory());
         return this;
@@ -219,5 +224,11 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         AssignmentsAsserter<TaskType, TaskAsserter<RA>, RA> asserter = new AssignmentsAsserter<>(this, getDetails());
         copySetupTo(asserter);
         return asserter;
+    }
+
+    public ObjectReferenceAsserter<UserType, RA> owner() {
+        ObjectReferenceAsserter<UserType, RA> ownerAsserter = new ObjectReferenceAsserter<>(getTaskBean().getOwnerRef().asReferenceValue(), UserType.class);
+        copySetupTo(ownerAsserter);
+        return ownerAsserter;
     }
 }

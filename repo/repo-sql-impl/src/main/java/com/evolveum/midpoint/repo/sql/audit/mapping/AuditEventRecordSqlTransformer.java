@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -15,11 +15,10 @@ import javax.xml.namespace.QName;
 import com.querydsl.core.Tuple;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.sql.audit.SqlTransformerBase;
+import com.evolveum.midpoint.repo.sql.audit.AuditSqlTransformerBase;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditDelta;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditRefValue;
@@ -29,7 +28,7 @@ import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -43,11 +42,11 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * Transformation of audit event records between repo and Prism world.
  */
 public class AuditEventRecordSqlTransformer
-        extends SqlTransformerBase<AuditEventRecordType, QAuditEventRecord, MAuditEventRecord> {
+        extends AuditSqlTransformerBase<AuditEventRecordType, QAuditEventRecord, MAuditEventRecord> {
 
-    public AuditEventRecordSqlTransformer(PrismContext prismContext,
-            QAuditEventRecordMapping mapping, SqlRepoContext sqlRepoContext) {
-        super(prismContext, mapping, sqlRepoContext);
+    public AuditEventRecordSqlTransformer(
+            SqlTransformerContext transformerContext, QAuditEventRecordMapping mapping) {
+        super(transformerContext, mapping);
     }
 
     public AuditEventRecordType toSchemaObject(MAuditEventRecord row) throws SchemaException {
@@ -62,7 +61,7 @@ public class AuditEventRecordSqlTransformer
 
     private AuditEventRecordType mapSimpleAttributes(MAuditEventRecord row) {
         // prismContext in constructor ensures complex type definition
-        return new AuditEventRecordType(prismContext)
+        return new AuditEventRecordType(transformerContext.prismContext())
                 .channel(row.channel)
                 .eventIdentifier(row.eventIdentifier)
                 .eventStage(auditEventStageTypeFromRepo(row.eventStage))
@@ -103,7 +102,7 @@ public class AuditEventRecordSqlTransformer
         }
 
         SqlTransformer<ObjectDeltaOperationType, QAuditDelta, MAuditDelta> deltaTransformer =
-                QAuditDeltaMapping.INSTANCE.createTransformer(prismContext, sqlRepoContext);
+                QAuditDeltaMapping.INSTANCE.createTransformer(transformerContext);
         for (MAuditDelta delta : deltas) {
             record.delta(deltaTransformer.toSchemaObject(delta));
         }
@@ -245,8 +244,7 @@ public class AuditEventRecordSqlTransformer
 
     private Integer targetTypeToRepoOrdinal(PrismReferenceValue targetOwner) {
         //noinspection rawtypes
-        Class objectClass = prismContext.getSchemaRegistry()
-                .determineClassForType(targetOwner.getTargetType());
+        Class objectClass = transformerContext.qNameToSchemaClass(targetOwner.getTargetType());
         //noinspection unchecked
         return MiscUtil.enumOrdinal(RObjectType.getByJaxbType(objectClass));
     }

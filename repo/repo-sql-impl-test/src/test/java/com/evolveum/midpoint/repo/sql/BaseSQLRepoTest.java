@@ -53,11 +53,12 @@ import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
-import com.evolveum.midpoint.repo.sql.helpers.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.repo.sql.testing.TestQueryListener;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.*;
@@ -327,9 +328,9 @@ public class BaseSQLRepoTest extends AbstractSpringTest
 
     protected <S, Q extends FlexibleRelationalPathBase<R>, R> List<R> select(
             QueryModelMapping<S, Q, R> mapping, Predicate... conditions) {
-        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startReadOnlyTransaction()) {
+        try (JdbcSession jdbcSession = createJdbcSession().startReadOnlyTransaction()) {
             Q alias = mapping.defaultAlias();
-            SQLQuery<R> query = jdbcSession.query()
+            SQLQuery<R> query = jdbcSession.newQuery()
                     .select(alias)
                     .from(alias)
                     .where(conditions);
@@ -348,13 +349,19 @@ public class BaseSQLRepoTest extends AbstractSpringTest
 
     protected <S, Q extends FlexibleRelationalPathBase<R>, R> long count(
             QueryModelMapping<S, Q, R> mapping, Predicate... conditions) {
-        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startReadOnlyTransaction()) {
+        try (JdbcSession jdbcSession = createJdbcSession().startReadOnlyTransaction()) {
             Q alias = mapping.defaultAlias();
-            return jdbcSession.query()
+            return jdbcSession.newQuery()
                     .select(alias)
                     .from(alias)
                     .where(conditions)
                     .fetchCount();
         }
+    }
+
+    /** Creates new {@link JdbcSession} based on {@link #baseHelper} setup. */
+    protected JdbcSession createJdbcSession() {
+        return new SqlRepoContext(baseHelper.getConfiguration(), baseHelper.dataSource(), null)
+                .newJdbcSession();
     }
 }

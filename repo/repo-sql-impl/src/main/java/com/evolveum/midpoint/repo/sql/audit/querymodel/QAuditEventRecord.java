@@ -1,12 +1,10 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql.audit.querymodel;
-
-import static com.querydsl.core.types.PathMetadataFactory.forVariable;
 
 import java.sql.Types;
 import java.time.Instant;
@@ -44,9 +42,9 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
     public static final ColumnMetadata EVENT_IDENTIFIER =
             ColumnMetadata.named("eventIdentifier").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata EVENT_STAGE =
-            ColumnMetadata.named("eventStage").ofType(Types.INTEGER).withSize(10);
+            ColumnMetadata.named("eventStage").ofType(Types.INTEGER);
     public static final ColumnMetadata EVENT_TYPE =
-            ColumnMetadata.named("eventType").ofType(Types.INTEGER).withSize(10);
+            ColumnMetadata.named("eventType").ofType(Types.INTEGER);
     public static final ColumnMetadata HOST_IDENTIFIER =
             ColumnMetadata.named("hostIdentifier").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata INITIATOR_NAME =
@@ -54,14 +52,14 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
     public static final ColumnMetadata INITIATOR_OID =
             ColumnMetadata.named("initiatorOid").ofType(Types.VARCHAR).withSize(36);
     public static final ColumnMetadata INITIATOR_TYPE =
-            ColumnMetadata.named("initiatorType").ofType(Types.INTEGER).withSize(10);
+            ColumnMetadata.named("initiatorType").ofType(Types.INTEGER);
     public static final ColumnMetadata MESSAGE =
             ColumnMetadata.named("message").ofType(Types.VARCHAR)
                     .withSize(AuditService.MAX_MESSAGE_SIZE);
     public static final ColumnMetadata NODE_IDENTIFIER =
             ColumnMetadata.named("nodeIdentifier").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata OUTCOME =
-            ColumnMetadata.named("outcome").ofType(Types.INTEGER).withSize(10);
+            ColumnMetadata.named("outcome").ofType(Types.INTEGER);
     public static final ColumnMetadata PARAMETER =
             ColumnMetadata.named("parameter").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata REMOTE_HOST_ADDRESS =
@@ -77,13 +75,13 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
     public static final ColumnMetadata TARGET_OID =
             ColumnMetadata.named("targetOid").ofType(Types.VARCHAR).withSize(36);
     public static final ColumnMetadata TARGET_TYPE =
-            ColumnMetadata.named("targetType").ofType(Types.INTEGER).withSize(10);
+            ColumnMetadata.named("targetType").ofType(Types.INTEGER);
     public static final ColumnMetadata TARGET_OWNER_NAME =
             ColumnMetadata.named("targetOwnerName").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata TARGET_OWNER_OID =
             ColumnMetadata.named("targetOwnerOid").ofType(Types.VARCHAR).withSize(36);
     public static final ColumnMetadata TARGET_OWNER_TYPE =
-            ColumnMetadata.named("targetOwnerType").ofType(Types.INTEGER).withSize(10);
+            ColumnMetadata.named("targetOwnerType").ofType(Types.INTEGER);
     public static final ColumnMetadata TASK_IDENTIFIER =
             ColumnMetadata.named("taskIdentifier").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata TASK_OID =
@@ -137,6 +135,6 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
     }
 
     public QAuditEventRecord(String variable, String schema, String table) {
-        super(MAuditEventRecord.class, forVariable(variable), schema, table);
+        super(MAuditEventRecord.class, variable, schema, table);
     }
 }

@@ -19,6 +19,7 @@ import com.google.common.annotations.VisibleForTesting;
  *
  * TODO Remove this interface eventually.
  */
+@Deprecated
 @VisibleForTesting
 public interface ItemDefinitionTestAccess {
 

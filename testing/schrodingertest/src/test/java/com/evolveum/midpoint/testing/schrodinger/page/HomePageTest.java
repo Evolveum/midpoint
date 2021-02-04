@@ -6,11 +6,7 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.page;
 
-import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
-import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
-
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import static com.codeborne.selenide.Selenide.open;

@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2010-2021 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.repo.sqlbase.querydsl;
 
 import java.util.*;
@@ -5,11 +11,66 @@ import java.util.function.BiConsumer;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Expression;
+import com.querydsl.sql.Configuration;
+import com.querydsl.sql.H2Templates;
+import com.querydsl.sql.MySQLTemplates;
+import com.querydsl.sql.PostgreSQLTemplates;
+import com.querydsl.sql.types.EnumAsObjectType;
 import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWaitingReasonType;
 
 // TODO MID-6318, MID-6319 review what needed (let's say in 2021), drop the rest
 public enum QuerydslUtils {
     ;
+
+    /**
+     * Returns configuration for Querydsl based on the used database type.
+     */
+    public static Configuration querydslConfiguration(SupportedDatabase databaseType) {
+        Configuration querydslConfiguration;
+        switch (databaseType) {
+            case H2:
+                querydslConfiguration =
+                        new Configuration(H2Templates.DEFAULT);
+                break;
+            case MYSQL:
+            case MARIADB:
+                querydslConfiguration =
+                        new Configuration(MySQLTemplates.DEFAULT);
+                break;
+            case POSTGRESQL:
+                querydslConfiguration =
+                        new Configuration(PostgreSQLTemplates.DEFAULT);
+                break;
+            case SQLSERVER:
+                querydslConfiguration =
+                        new Configuration(MidpointSQLServerTemplates.DEFAULT);
+                break;
+            case ORACLE:
+                querydslConfiguration =
+                        new Configuration(MidpointOracleTemplates.DEFAULT);
+                break;
+            default:
+                throw new SystemException(
+                        "Unsupported database type " + databaseType + " for Querydsl config");
+        }
+
+        // See InstantType javadoc for the reasons why we need this to support Instant.
+        // Alternatively we may stick to Timestamp and go on with our miserable lives. ;-)
+        querydslConfiguration.register(new InstantType());
+
+        // each enum type must be registered if we want to map it as objects (to PG enum types)
+        querydslConfiguration.register(new EnumAsObjectType<>(OperationResultStatusType.class));
+        querydslConfiguration.register(new EnumAsObjectType<>(TaskExecutionStatusType.class));
+        querydslConfiguration.register(new EnumAsObjectType<>(TaskWaitingReasonType.class));
+
+        return querydslConfiguration;
+    }
 
     /**
      * Resolves one-to-many relations between two paths from the {@link Tuple}-based result.

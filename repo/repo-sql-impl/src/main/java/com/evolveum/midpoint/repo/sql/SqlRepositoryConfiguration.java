@@ -19,13 +19,15 @@ import java.util.Objects;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager;
-import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
+import com.evolveum.midpoint.repo.sql.helpers.TransactionSerializationProblemDetector;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
 import com.evolveum.midpoint.repo.sqlbase.TransactionIsolation;
@@ -199,8 +201,6 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
     public static final String PROPERTY_LOCK_FOR_UPDATE_VIA_HIBERNATE = "lockForUpdateViaHibernate";
     public static final String PROPERTY_LOCK_FOR_UPDATE_VIA_SQL = "lockForUpdateViaSql";
     public static final String PROPERTY_READ_ONLY_TRANSACTIONS_STATEMENT = "readOnlyTransactionsStatement";
-    public static final String PROPERTY_PERFORMANCE_STATISTICS_FILE = "performanceStatisticsFile";
-    public static final String PROPERTY_PERFORMANCE_STATISTICS_LEVEL = "performanceStatisticsLevel";
 
     //other
     public static final String PROPERTY_ITERATIVE_SEARCH_BY_PAGING = "iterativeSearchByPaging";
@@ -318,6 +318,8 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
      *    4. embedded (if true, H2 is used)
      */
     public SqlRepositoryConfiguration(Configuration configuration) {
+        Validate.notNull(configuration, "Repository configuration must not be null.");
+
         dataSource = MiscUtil.nullIfEmpty(configuration.getString(PROPERTY_DATASOURCE));
 
         // guessing the database + setting related basic properties
@@ -519,6 +521,15 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
         return jdbcUrl.toString();
     }
 
+    /**
+     * If exception is related to serialization it is not considered "fatal" and can be retried.
+     */
+    @Override
+    public boolean isFatalException(Throwable ex) {
+        return !new TransactionSerializationProblemDetector(this, LOGGER)
+                .isExceptionRelatedToSerialization(ex);
+    }
+
     // The methods below are static to highlight their data dependencies and to avoid using properties
     // that were not yet initialized.
     private static String getDefaultDriverClassName(String dataSource, Database database) {
@@ -621,7 +632,7 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
      *
      * @throws RepositoryServiceFactoryException if configuration is invalid.
      */
-    public void validate() throws RepositoryServiceFactoryException {
+    public SqlRepositoryConfiguration validate() throws RepositoryServiceFactoryException {
         if (dataSource == null) {
             notEmpty(jdbcUrl, "JDBC Url is empty or not defined.");
             // We don't check username and password, they can be null (MID-5342)
@@ -652,6 +663,8 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
         if (minPoolSize > maxPoolSize) {
             throw new RepositoryServiceFactoryException("Max. pool size must be greater than min. pool size.");
         }
+
+        return this;
     }
 
     private void notEmpty(String value, String message) throws RepositoryServiceFactoryException {
@@ -764,14 +777,17 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
         return lockForUpdateViaSql;
     }
 
+    @Override
     public String getReadOnlyTransactionStatement() {
         return readOnlyTransactionStatement;
     }
 
+    @Override
     public String getPerformanceStatisticsFile() {
         return performanceStatisticsFile;
     }
 
+    @Override
     public int getPerformanceStatisticsLevel() {
         return performanceStatisticsLevel;
     }

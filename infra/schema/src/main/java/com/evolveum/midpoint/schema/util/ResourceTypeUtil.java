@@ -751,19 +751,23 @@ public class ResourceTypeUtil {
     }
 
     public static boolean isInMaintenance(ResourceType resource) {
-        if (resource == null)
+        if (resource == null) {
             return false;
+        }
 
         AdministrativeOperationalStateType administrativeOperationalState = resource.getAdministrativeOperationalState();
-        if (administrativeOperationalState == null)
+        if (administrativeOperationalState == null) {
             return false;
+        }
 
         AdministrativeAvailabilityStatusType administrativeAvailabilityStatus = administrativeOperationalState.getAdministrativeAvailabilityStatus();
-        if (administrativeAvailabilityStatus == null)
+        if (administrativeAvailabilityStatus == null) {
             return false;
+        }
 
-        if (AdministrativeAvailabilityStatusType.MAINTENANCE == administrativeAvailabilityStatus)
+        if (AdministrativeAvailabilityStatusType.MAINTENANCE == administrativeAvailabilityStatus) {
             return true;
+        }
 
         return false;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -15,6 +15,7 @@ import org.apache.poi.ss.formula.functions.T;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -56,7 +57,7 @@ public class DashboardSearchPanel extends BasePanel<T> {
     private SearchType selectedSearchType = SearchType.USERS;
 
     private enum SearchType {
-        USERS, RESOURCES, TASKS;
+        USERS, RESOURCES, TASKS
     }
 
     public DashboardSearchPanel(String id) {
@@ -96,12 +97,6 @@ public class DashboardSearchPanel extends BasePanel<T> {
 
         final AjaxSubmitLink searchButton = new AjaxSubmitLink(ID_SEARCH_BUTTON) {
 
-            private static final long serialVersionUID = 1L;
-
-            public IModel<?> getBody() {
-                return searchTypes.get(selectedSearchType);
-            }
-
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
                 performSearch(getSearchText());
@@ -109,17 +104,20 @@ public class DashboardSearchPanel extends BasePanel<T> {
         };
         searchButton.setOutputMarkupId(true);
         searchButton.setOutputMarkupPlaceholderTag(true);
+        Label searchButtonLabel = new Label("searchButtonLabel", (IModel<Object>) () -> searchTypes.get(selectedSearchType).getObject());
+        searchButtonLabel.setOutputMarkupId(true);
+        searchButton.add(searchButtonLabel);
         searchForm.add(searchButton);
         searchForm.setDefaultButton(searchButton);
 
-        ListView<SearchType> li = new ListView<SearchType>(
+        ListView<SearchType> li = new ListView<>(
                 ID_SEARCH_TYPES, new ListModel<>(new ArrayList<>(searchTypes.keySet()))) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(final ListItem<SearchType> item) {
-                final AjaxLink<String> searchTypeLink = new AjaxLink<String>(ID_SEARCH_TYPE_ITEM) {
+                final AjaxLink<String> searchTypeLink = new AjaxLink<>(ID_SEARCH_TYPE_ITEM) {
 
                     private static final long serialVersionUID = 1L;
 
@@ -164,15 +162,13 @@ public class DashboardSearchPanel extends BasePanel<T> {
             params.add(PageBase.PARAMETER_SEARCH_BY_NAME, text);
         }
         switch (selectedSearchType) {
-            case USERS:
-                setResponsePage(PageUsers.class, params);
-                break;
             case RESOURCES:
                 setResponsePage(PageResources.class, params);
                 break;
             case TASKS:
                 setResponsePage(PageTasks.class, params);
                 break;
+            case USERS:
             default:
                 setResponsePage(PageUsers.class, params);
         }

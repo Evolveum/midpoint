@@ -23,7 +23,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.commons.io.FileUtils;
-import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -36,6 +35,12 @@ import java.io.IOException;
  */
 
 public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
+
+    private static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M3/";
+    private static final File CSV_1_SIMPLE_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-simple.xml");
+    private static final File NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE = new File(LAB_OBJECTS_DIRECTORY + "valuePolicies/numeric-pin-first-nonzero-policy.xml");
+    private static final File CSV_2_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-2-canteen.xml");
+    private static final File CSV_3_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap.xml");
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override
@@ -65,26 +70,20 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
         // Password attribute name should be password
         configTab.assertInputAttributeValueMatches(PASSWORD_ATTRIBUTE_NAME, CSV_1_PASSWORD_ATTRIBUTE_NAME);
 
-        ResourceWizardPage resourceWizard = basicPage.listResources()
+        SchemaStepSchemaTab schemaStepSchemaTab = basicPage.listResources()
                 .table()
                     .clickByName(CSV_1_RESOURCE_NAME)
-                        .clickShowUsingWizard();
-
-        Assert.assertTrue(resourceWizard.isReadonlyMode());
-
-        //Configuration tab
-        Assert.assertTrue(resourceWizard.selectConfigurationStep().getParentElement().exists());
-
-        //Schema tab
-        SchemaStepSchemaTab schemaStepSchemaTab = resourceWizard
-                .selectSchemaStep()
-                .selectSchemaTab();
-        Assert.assertTrue(schemaStepSchemaTab.isObjectClassPresent(CSV_1_ACCOUNT_OBJECT_CLASS_LINK));
-
-        schemaStepSchemaTab.clickObjectClass(CSV_1_ACCOUNT_OBJECT_CLASS_LINK);
+                        .clickShowUsingWizard()
+                        .assertReadonlyMode()
+                            .selectConfigurationStep()
+                            .and()
+                            .selectSchemaStep()
+                                .selectSchemaTab()
+                                .assertObjectClassPresent(CSV_1_ACCOUNT_OBJECT_CLASS_LINK)
+                                .clickObjectClass(CSV_1_ACCOUNT_OBJECT_CLASS_LINK);
         //check resource attributes are present
         CSV_1_RESOURCE_ATTRIBUTES.forEach(attr ->
-                Assert.assertTrue(schemaStepSchemaTab.getAttributesTable().containsText(attr)));
+                schemaStepSchemaTab.getAttributesTable().assertTableContainsText(attr));
 
         importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE, true);
 
@@ -136,7 +135,7 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
                         .feedback()
                             .isSuccess();
 
-        Assert.assertTrue(existShadow(CSV_1_RESOURCE_NAME, "Login", "kirk"));
+        assertShadowExists(CSV_1_RESOURCE_NAME, "Login", "kirk");
 
         showUser("kirk")
                 .selectTabBasic()
@@ -173,7 +172,7 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
                         .feedback()
                             .isSuccess();
 
-        Assert.assertFalse(existShadow(CSV_1_RESOURCE_NAME, "Login", "kirk"));
+        assertShadowDoesntExist(CSV_1_RESOURCE_NAME, "Login", "kirk");
 
     }
 }

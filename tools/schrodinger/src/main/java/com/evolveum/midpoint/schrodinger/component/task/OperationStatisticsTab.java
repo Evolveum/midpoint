@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.schrodinger.component.task;
 
 import com.codeborne.selenide.SelenideElement;
+import org.testng.Assert;
 
 import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
@@ -40,5 +41,35 @@ public class OperationStatisticsTab extends Component<TaskPage> {
             return null;
         }
         return Integer.valueOf(textValue);
+    }
+
+    public OperationStatisticsTab assertSuccessfullyProcessedCountMatch(int expectedCount) {
+        Assert.assertTrue(getSuccessfullyProcessed() == expectedCount, "The count of successfully processed objects doesn't match to " + expectedCount);
+        return this;
+    }
+
+    public OperationStatisticsTab assertSuccessfullyProcessedIsNull() {
+        Assert.assertNull(getSuccessfullyProcessed(), "The value of successfully processed objects should be null.");
+        return this;
+    }
+
+    public OperationStatisticsTab assertObjectsFailedToBeProcessedCountMatch(int expectedCount) {
+        Assert.assertTrue(getObjectsFailedToBeProcessed() == expectedCount, "The count of failed objects doesn't match to " + expectedCount);
+        return this;
+    }
+
+    public OperationStatisticsTab assertObjectsFailedToBeProcessedIsNull() {
+        Assert.assertNull(getObjectsFailedToBeProcessed(), "The value of failed objects should be null.");
+        return this;
+    }
+
+    public OperationStatisticsTab assertObjectsTotalCountMatch(int expectedCount) {
+        Assert.assertTrue(getObjectsTotalCount() == expectedCount, "The total count of processed objects doesn't match to " + expectedCount);
+        return this;
+    }
+
+    public OperationStatisticsTab assertObjectsTotalIsNull() {
+        Assert.assertNull(getObjectsTotalCount(), "The total count of processed objects should be null.");
+        return null;
     }
 }

@@ -25,11 +25,10 @@
     <bean id="testSqlRepositoryBeanPostProcessor"
             class="com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryBeanPostProcessor"/>
 
-    <bean id="sqlAuditFactory" class="com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory"/>
-
     <bean id="testDataSourceFactory"
-            class="com.evolveum.midpoint.repo.sqlbase.DataSourceFactory">
-        <constructor-arg value="#{repositoryServiceFactory.configuration}"/>
+            class="com.evolveum.midpoint.repo.sqlbase.DataSourceFactory"
+            depends-on="sqlEmbeddedRepository">
+        <constructor-arg ref="sqlRepositoryConfiguration"/>
     </bean>
 
     <bean id="testDataSource"
@@ -63,6 +62,15 @@
         </property>
     </bean>
 
+    <bean id="testSqlRepositoryConfigurationFactory"
+            class="com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryConfigurationFactory">
+        <constructor-arg ref="midpointConfiguration"/>
+    </bean>
+
+    <bean id="sqlRepositoryConfiguration"
+            factory-bean="testSqlRepositoryConfigurationFactory"
+            factory-method="createSqlRepositoryConfiguration"/>
+
     <!-- Hibernate session factory -->
     <bean id="testSessionFactory"
             class="org.springframework.orm.hibernate5.LocalSessionFactoryBean"
@@ -71,9 +79,9 @@
         <property name="dataSource" ref="proxiedTestDataSource"/>
         <property name="hibernateProperties">
             <props>
-                <prop key="hibernate.dialect">#{repositoryServiceFactory.configuration.hibernateDialect}</prop>
+                <prop key="hibernate.dialect">#{sqlRepositoryConfiguration.hibernateDialect}</prop>
                 <prop key="hibernate.show_sql">false</prop>
-                <prop key="hibernate.hbm2ddl.auto">#{repositoryServiceFactory.configuration.hibernateHbm2ddl}</prop>
+                <prop key="hibernate.hbm2ddl.auto">#{sqlRepositoryConfiguration.hibernateHbm2ddl}</prop>
                 <prop key="hibernate.id.new_generator_mappings">true</prop>
                 <prop key="hibernate.jdbc.batch_size">20</prop>
                 <prop key="javax.persistence.validation.mode">none</prop>

@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.Contract;
@@ -940,7 +942,28 @@ public class OperationResult
     public Stream<OperationResult> getResultStream() {
         return Stream.concat(Stream.of(this),
                 getSubresults().stream()
-                        .flatMap(subresult -> subresult.getResultStream()));
+                        .flatMap(OperationResult::getResultStream));
+    }
+
+    public OperationResult findSubResultStrictly(String operation) {
+        return emptyIfNull(subresults).stream()
+                .filter(r -> operation.equals(r.getOperation()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Subresult '" + operation + "' not found"));
+    }
+
+    /**
+     * This is used in situations where handled error is actually the success.
+     *
+     * For example, when writing an operation execution record to an object which we expect to be deleted,
+     * we consider such an operation to be a success. We do not want to bother user or administrator with
+     * the information that there was something that went wrong - when, in fact, it was really expected.
+     */
+    @Experimental
+    public void switchHandledErrorToSuccess() {
+        if (status == OperationResultStatus.HANDLED_ERROR) {
+            status = OperationResultStatus.SUCCESS;
+        }
     }
 
     public static final class PreviewResult {
@@ -1432,7 +1455,7 @@ public class OperationResult
     }
 
     /**
-     * If the operation is an error then it will switch the status to EXPECTED_ERROR.
+     * If the operation is an error then it will switch the status to HANDLED_ERROR.
      * This is used if the error is expected and properly handled.
      */
     public void muteError() {

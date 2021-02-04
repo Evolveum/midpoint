@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
-import com.evolveum.midpoint.repo.sqlbase.SqlPathContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
 
 /**
@@ -27,7 +27,7 @@ import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
  * to final type used for ordinal. Can be {@code null} if no mapping is needed.
  */
 public class EnumOrdinalItemFilterProcessor<E extends Enum<E>>
-        extends SinglePathItemFilterProcessor<PropertyValueFilter<E>> {
+        extends SinglePathItemFilterProcessor<PropertyValueFilter<E>, Path<Integer>> {
 
     @Nullable
     private final Function<E, Integer> conversionFunction;
@@ -38,7 +38,7 @@ public class EnumOrdinalItemFilterProcessor<E extends Enum<E>>
      * numbers are used in the repository.
      */
     public static ItemSqlMapper mapper(
-            @NotNull Function<EntityPath<?>, Path<?>> rootToQueryItem) {
+            @NotNull Function<EntityPath<?>, Path<Integer>> rootToQueryItem) {
         return mapper(rootToQueryItem, null);
     }
 
@@ -47,7 +47,7 @@ public class EnumOrdinalItemFilterProcessor<E extends Enum<E>>
      * with enum value conversion function.
      */
     public static <E extends Enum<E>> ItemSqlMapper mapper(
-            @NotNull Function<EntityPath<?>, Path<?>> rootToQueryItem,
+            @NotNull Function<EntityPath<?>, Path<Integer>> rootToQueryItem,
             @Nullable Function<E, Enum<?>> conversionFunction) {
         return new ItemSqlMapper(ctx ->
                 new EnumOrdinalItemFilterProcessor<>(ctx, rootToQueryItem, conversionFunction),
@@ -55,8 +55,8 @@ public class EnumOrdinalItemFilterProcessor<E extends Enum<E>>
     }
 
     private EnumOrdinalItemFilterProcessor(
-            SqlPathContext<?, ?, ?> context,
-            Function<EntityPath<?>, Path<?>> rootToQueryItem,
+            SqlQueryContext<?, ?, ?> context,
+            Function<EntityPath<?>, Path<Integer>> rootToQueryItem,
             @Nullable Function<E, Enum<?>> conversionFunction) {
         super(context, rootToQueryItem);
         this.conversionFunction = conversionFunction != null

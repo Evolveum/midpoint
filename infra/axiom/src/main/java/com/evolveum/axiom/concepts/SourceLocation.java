@@ -39,6 +39,13 @@ public class SourceLocation {
         return character;
     }
 
+    public SourceLocation offset(int oLine, int oPos) {
+        if(oLine == 0) {
+            return from(sourceName, this.line, this.character + oPos);
+        }
+        return from(sourceName, this.line + oLine, oPos);
+    }
+
     public static SourceLocation runtime() {
         return SourceLocation.from("IN-MEMORY", 0, 0);
     }

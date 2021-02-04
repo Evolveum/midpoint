@@ -14,6 +14,7 @@ import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import org.openqa.selenium.By;
+import org.testng.Assert;
 
 import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.$;
@@ -108,6 +109,12 @@ public class ReferenceSearchItemPanel<T> extends Component<T> {
         SelenideElement inputField = getParentElement().parent().$x(".//input[@" + Schrodinger.DATA_S_ID + "='input']")
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
         return value.equals(inputField.getValue());
+
+    }
+
+    public ReferenceSearchItemPanel<T> assertRefSearchFieldValueMatch(String value) {
+        Assert.assertTrue(matchRefSearchFieldValue(value));
+        return this;
 
     }
 

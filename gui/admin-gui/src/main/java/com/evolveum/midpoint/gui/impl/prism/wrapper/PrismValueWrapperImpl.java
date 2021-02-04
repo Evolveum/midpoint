@@ -159,8 +159,6 @@ public abstract class PrismValueWrapperImpl<T> implements PrismValueWrapper<T> {
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createIndentedStringBuilder(indent);
         sb.append("Status: ").append(status).append("\n");
-        sb.append("New value: ").append(newValue.debugDump()).append("\n");
-        sb.append("Old value: ").append(oldValue.debugDump()).append("\n");
         return sb.toString();
     }
 

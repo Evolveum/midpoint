@@ -23,13 +23,13 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.jetbrains.annotations.TestOnly;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -44,6 +44,8 @@ import java.util.stream.Collectors;
  *
  * @author semancik
  */
+// FIXME: Move to test-jar
+@TestOnly
 public class PrismTestUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismTestUtil.class);

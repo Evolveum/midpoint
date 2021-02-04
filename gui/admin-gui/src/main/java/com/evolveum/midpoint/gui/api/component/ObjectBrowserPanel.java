@@ -1,14 +1,13 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.api.component;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
@@ -19,6 +18,8 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.SearchItem;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.Component;
@@ -79,7 +80,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
         this.parentPage = parentPage;
         this.queryFilter = queryFilter;
         this.selectedObjectsList = selectedData;
-        typeModel = new LoadableModel<ObjectTypes>(false) {
+        typeModel = new LoadableModel<>(false) {
 
             private static final long serialVersionUID = 1L;
 
@@ -184,9 +185,9 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
     }
 
     private ObjectListPanel<O> createObjectListPanel(ObjectTypes type, final boolean multiselect) {
-        Class typeClass = type.getClassDefinition();
+        Class<O> typeClass = type.getClassDefinition();
 
-        PopupObjectListPanel<O> listPanel = new PopupObjectListPanel<O>(ID_TABLE, typeClass, getOptions(),
+        PopupObjectListPanel<O> listPanel = new PopupObjectListPanel<>(ID_TABLE, typeClass, getOptions(),
                 multiselect) {
 
             private static final long serialVersionUID = 1L;
@@ -206,12 +207,24 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
             }
 
             @Override
-            protected List<O> getPreselectedObjectList(){
+            protected List<O> getPreselectedObjectList() {
                 return selectedObjectsList;
+            }
+
+            @Override
+            protected Search createSearch(Class<? extends O> type) {
+                Search search = super.createSearch(type);
+                getSpecialSearchItemFunctions()
+                        .forEach(function -> search.addSpecialItem(function.apply(search)));
+                return search;
             }
         };
         listPanel.setOutputMarkupId(true);
         return listPanel;
+    }
+
+    protected Set<Function<Search, SearchItem>> getSpecialSearchItemFunctions() {
+        return Collections.emptySet();
     }
 
     protected void addPerformed(AjaxRequestTarget target, QName type, List<O> selected) {
@@ -258,5 +271,4 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
     public Component getComponent() {
         return this;
     }
-
 }

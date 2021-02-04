@@ -11,13 +11,9 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
 import com.evolveum.midpoint.schrodinger.component.DateTimePanel;
-import com.evolveum.midpoint.schrodinger.component.common.DelegationDetailsPanel;
-import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
@@ -58,7 +54,7 @@ public class UserTest extends AbstractSchrodingerTest {
             .clickSave();
 
         ListUsersPage usersPage = basicPage.listUsers();
-        PrismForm<AssignmentHolderBasicTab<UserPage>> userForm = usersPage
+        usersPage
                 .table()
                 .search()
                 .byName()
@@ -67,19 +63,17 @@ public class UserTest extends AbstractSchrodingerTest {
                 .and()
                 .clickByName("jdoe222323")
                 .selectTabBasic()
-                .form();
-        userForm.assertInputAttributeValueMatches("name", "jdoe222323");
-        userForm.assertInputAttributeValueMatches("givenName", "john");
-        userForm.assertInputAttributeValueMatches("familyName", "doe");
+                .form()
+                .assertInputAttributeValueMatches("name", "jdoe222323")
+                .assertInputAttributeValueMatches("givenName", "john")
+                .assertInputAttributeValueMatches("familyName", "doe");
 
     }
 
     @Test //covers MID-5845
     public void test0020isLocalizedPolystringValueDisplayed(){
         UserPage user = basicPage.newUser();
-
-        Assert.assertTrue(
-                user.selectTabBasic()
+        user.selectTabBasic()
                         .form()
                         .addAttributeValue("name", LOCALIZATION_TEST_USER_NAME_ORIG)
                         .setPolyStringLocalizedValue(UserType.F_NAME, LOCALIZATION_VALUE, LOCALIZATION_TEST_USER_NAME_DE)
@@ -87,8 +81,7 @@ public class UserTest extends AbstractSchrodingerTest {
                         .and()
                         .clickSave()
                         .feedback()
-                        .isSuccess()
-        );
+                        .assertSuccess();
 
         basicPage.loggedUser().logout();
         FormLoginPage loginPage = midPoint.formLogin();
@@ -110,7 +103,7 @@ public class UserTest extends AbstractSchrodingerTest {
 
     @Test
     public void test0030createDelegationTest() {
-        Assert.assertTrue(showUser("DelegateFromUser")
+        showUser("DelegateFromUser")
                 .selectTabDelegations()
                     .clickAddDelegation()
                         .table()
@@ -123,44 +116,40 @@ public class UserTest extends AbstractSchrodingerTest {
                     .and()
                 .clickSave()
                 .feedback()
-                .isSuccess());
+                .assertSuccess();
 
-        DelegationDetailsPanel delegationDetailsPanel = showUser("DelegateToUser")
+        showUser("DelegateToUser")
                 .selectTabDelegatedToMe()
                     .getDelegationDetailsPanel("DelegateFromUser")
-                    .expandDetailsPanel("DelegateFromUser");
-        delegationDetailsPanel.assertAssignmentPrivilegesNotSelected();
-        delegationDetailsPanel.assertAssignmentLimitationsNotSelected();
-        delegationDetailsPanel.assertApprovalWorkItemsSelected();
-        delegationDetailsPanel.assertCertificationWorkItemsSelected();
+                    .expandDetailsPanel("DelegateFromUser")
+                    .assertAssignmentPrivilegesNotSelected()
+                    .assertAssignmentLimitationsNotSelected()
+                    .assertApprovalWorkItemsSelected()
+                    .assertCertificationWorkItemsSelected()
+                    .assertDescriptionDisabled()
+                    .assertValidFromPanelDisabled();
 
-        Assert.assertFalse(delegationDetailsPanel.isDescriptionEnabled(), "Description should be disabled");
-        Assert.assertTrue(delegationDetailsPanel.isValidFromPanelDisabled(), "Valid from panel should be disabled");
-
-        DelegationDetailsPanel delegationDetailsFromUser = showUser("DelegateFromUser")
+        showUser("DelegateFromUser")
                 .selectTabDelegations()
                 .getDelegationDetailsPanel("DelegateToUser")
-                .expandDetailsPanel("DelegateToUser");
-
-        delegationDetailsFromUser.assertAssignmentPrivilegesNotSelected();
-        delegationDetailsFromUser.assertAssignmentLimitationsNotSelected();
-        delegationDetailsFromUser.assertApprovalWorkItemsSelected();
-        delegationDetailsFromUser.assertCertificationWorkItemsSelected();
-
-        Assert.assertFalse(delegationDetailsFromUser.isDescriptionEnabled(), "Description should be disabled");
-        Assert.assertTrue(delegationDetailsFromUser.isValidFromPanelDisabled(), "Valid from panel should be disabled");
+                .expandDetailsPanel("DelegateToUser")
+                .assertAssignmentPrivilegesNotSelected()
+                .assertAssignmentLimitationsNotSelected()
+                .assertApprovalWorkItemsSelected()
+                .assertCertificationWorkItemsSelected()
+                .assertDescriptionDisabled()
+                .assertValidFromPanelDisabled();
     }
 
     @Test
     public void test0040delegateAssignmentPrivileges() {
         basicPage.loggedUser().logout();
-        Assert.assertTrue(midPoint.formLogin().login("DelegateEndUserRoleToUser", "password")
+        midPoint.formLogin().login("DelegateEndUserRoleToUser", "password")
                         .feedback()
-                        .isError(),
-                "User shouldn't login, doesn't has rights yet");
+                        .assertError();
         midPoint.formLogin().login(username, password);
 
-        Assert.assertTrue(showUser("DelegateEndUserRoleFromUser")
+        showUser("DelegateEndUserRoleFromUser")
                 .selectTabDelegations()
                     .clickAddDelegation()
                         .table()
@@ -178,13 +167,11 @@ public class UserTest extends AbstractSchrodingerTest {
                     .and()
                 .clickSave()
                 .feedback()
-                .isSuccess(),
-                "Couldn't delegate DelegableEndUserRole role to user");
+                .assertSuccess();
 
         basicPage.loggedUser().logout();
-        Assert.assertTrue(midPoint.formLogin().login("DelegateEndUserRoleToUser", "password")
-                        .userMenuExists(),
-                "User should be logged in, he has delegated end user role");
+        midPoint.formLogin().login("DelegateEndUserRoleToUser", "password")
+                        .assertUserMenuExist();
     }
 
 }

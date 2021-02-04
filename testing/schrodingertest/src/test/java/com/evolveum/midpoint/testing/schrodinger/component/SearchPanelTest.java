@@ -14,7 +14,10 @@ import java.util.List;
 
 import com.evolveum.midpoint.schrodinger.component.DateTimePanel;
 
-import org.testng.Assert;
+import com.evolveum.midpoint.schrodinger.component.org.MemberPanel;
+import com.evolveum.midpoint.schrodinger.component.org.MemberTable;
+import com.evolveum.midpoint.schrodinger.component.org.OrgRootTab;
+
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schrodinger.component.common.search.Search;
@@ -33,19 +36,24 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
     private static final String COMPONENT_USERS_DIRECTORY = COMPONENT_OBJECTS_DIRECTORY + "users/";
     private static final String COMPONENT_ROLES_DIRECTORY = COMPONENT_OBJECTS_DIRECTORY + "roles/";
     private static final String COMPONENT_ORGS_DIRECTORY = COMPONENT_OBJECTS_DIRECTORY + "orgs/";
+    private static final String COMPONENT_SYSTEM_CONFIG_DIRECTORY = COMPONENT_OBJECTS_DIRECTORY + "systemConfiguation/";
 
+    private static final File SEARCH_CONFIG_SYSTEM_CONFIG_FILE = new File(COMPONENT_SYSTEM_CONFIG_DIRECTORY + "system-configuration-search-configuration.xml");
+    private static final File SEARCH_CONFIG_WITHOUT_DEFAULT_ITEM_SYSTEM_CONFIG_FILE = new File(COMPONENT_SYSTEM_CONFIG_DIRECTORY + "system-configuration-search-without-def-search-items.xml");
     private static final File SEARCH_BY_NAME_USER_FILE = new File(COMPONENT_USERS_DIRECTORY + "searchByNameUser.xml");
     private static final File SEARCH_BY_GIVEN_NAME_USER_FILE = new File(COMPONENT_USERS_DIRECTORY + "searchByGivenNameUser.xml");
     private static final File SEARCH_BY_FAMILY_NAME_USER_FILE = new File(COMPONENT_USERS_DIRECTORY + "searchByFamilyNameUser.xml");
     private static final File SEARCH_BY_ROLE_MEMBERSHIP_NAME_USER_FILE = new File(COMPONENT_USERS_DIRECTORY + "user-role-membership-name-search.xml");
     private static final File SEARCH_BY_ROLE_MEMBERSHIP_OID_USER_FILE = new File(COMPONENT_USERS_DIRECTORY + "user-role-membership-oid-search.xml");
     private static final File SEARCH_BY_ROLE_MEMBERSHIP_TYPE_USER_FILE = new File(COMPONENT_USERS_DIRECTORY + "user-role-membership-type-search.xml");
+    private static final File ORG_MEMBER_SEARCH_USER_FILE = new File(COMPONENT_USERS_DIRECTORY + "user-org-assignment-member-search.xml");
     private static final File SEARCH_BY_ROLE_MEMBERSHIP_RELATION_USER_FILE = new File(COMPONENT_USERS_DIRECTORY + "user-role-membership-relation-search.xml");
     private static final File REQUESTABLE_ROLE_FILE = new File(COMPONENT_ROLES_DIRECTORY + "requestableRole.xml");
     private static final File DISABLED_ROLE_FILE = new File(COMPONENT_ROLES_DIRECTORY + "disabledRole.xml");
     private static final File SEARCH_BY_ROLE_MEMBERSHIP_NAME_ROLE_FILE = new File(COMPONENT_ROLES_DIRECTORY + "role-membership-search-by-name.xml");
     private static final File SEARCH_BY_ROLE_MEMBERSHIP_OID_ROLE_FILE = new File(COMPONENT_ROLES_DIRECTORY + "role-membership-search-by-oid.xml");
     private static final File SEARCH_BY_ROLE_MEMBERSHIP_TYPE_ORG_FILE = new File(COMPONENT_ORGS_DIRECTORY + "org-membership-search-by-type.xml");
+    private static final File ORG_MEMBER_SEARCH_ROOT_ORG_FILE = new File(COMPONENT_ORGS_DIRECTORY + "org-root-member-search.xml");
     private static final File SEARCH_BY_ROLE_MEMBERSHIP_RELATIONS_ROLE_FILE = new File(COMPONENT_ROLES_DIRECTORY + "role-membership-search-by-relation.xml");
     private static final File SYSTEM_CONFIG_WITH_CONFIGURED_USER_SEARCH = new File("./src/test/resources/configuration/objects/systemconfig/system-configuration-with-configured-user-search.xml");
     private static final File USER_WITH_EMPLOYEE_NUMBER_FILE = new File(COMPONENT_USERS_DIRECTORY + "user-with-employee-number.xml");
@@ -63,9 +71,10 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
     protected List<File> getObjectListToImport(){
         return Arrays.asList(SEARCH_BY_NAME_USER_FILE, SEARCH_BY_GIVEN_NAME_USER_FILE, SEARCH_BY_FAMILY_NAME_USER_FILE,
                 REQUESTABLE_ROLE_FILE, DISABLED_ROLE_FILE, SEARCH_BY_ROLE_MEMBERSHIP_NAME_USER_FILE, SEARCH_BY_ROLE_MEMBERSHIP_OID_USER_FILE,
-                SEARCH_BY_ROLE_MEMBERSHIP_TYPE_USER_FILE, SEARCH_BY_ROLE_MEMBERSHIP_RELATION_USER_FILE, SEARCH_BY_ROLE_MEMBERSHIP_NAME_ROLE_FILE,
-                SEARCH_BY_ROLE_MEMBERSHIP_OID_ROLE_FILE, SEARCH_BY_ROLE_MEMBERSHIP_TYPE_ORG_FILE, SEARCH_BY_ROLE_MEMBERSHIP_RELATIONS_ROLE_FILE,
-                USER_WITH_EMPLOYEE_NUMBER_FILE, USER_WITH_EMAIL_ADDRESS_FILE);
+                SEARCH_BY_ROLE_MEMBERSHIP_TYPE_USER_FILE, ORG_MEMBER_SEARCH_USER_FILE, SEARCH_BY_ROLE_MEMBERSHIP_RELATION_USER_FILE,
+                SEARCH_BY_ROLE_MEMBERSHIP_NAME_ROLE_FILE, SEARCH_BY_ROLE_MEMBERSHIP_OID_ROLE_FILE, ORG_MEMBER_SEARCH_ROOT_ORG_FILE,
+                SEARCH_BY_ROLE_MEMBERSHIP_TYPE_ORG_FILE, SEARCH_BY_ROLE_MEMBERSHIP_RELATIONS_ROLE_FILE, USER_WITH_EMPLOYEE_NUMBER_FILE,
+                USER_WITH_EMAIL_ADDRESS_FILE);
     }
 
     @Test
@@ -78,25 +87,25 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
                 .inputValue("searchByNameUser")
                 .updateSearch();
         table.assertTableContainsText("searchByNameUser");
-        table.assertTableContainsText("searchByGivenNameUser");
-        table.assertTableContainsText("searchByFamilyNameUser");
+        table.assertTableDoesntContainText("searchByGivenNameUser");
+        table.assertTableDoesntContainText("searchByFamilyNameUser");
         usersListSearch.clearTextSearchItemByNameAndUpdate(NAME_ATTRIBUTE);
 
         usersListSearch
                 .textInputPanelByItemName(GIVEN_NAME_ATTRIBUTE)
                 .inputValue("searchByGivenNameUser")
                 .updateSearch();
-        table.assertTableContainsText("searchByNameUser");
+        table.assertTableDoesntContainText("searchByNameUser");
         table.assertTableContainsText("searchByGivenNameUser");
-        table.assertTableContainsText("searchByFamilyNameUser");
+        table.assertTableDoesntContainText("searchByFamilyNameUser");
         usersListSearch.clearTextSearchItemByNameAndUpdate(GIVEN_NAME_ATTRIBUTE);
 
         usersListSearch
                 .textInputPanelByItemName(FAMILY_NAME_ATTRIBUTE)
                 .inputValue("searchByFamilyNameUser")
                 .updateSearch();
-        table.assertTableContainsText("searchByNameUser");
-        table.assertTableContainsText("searchByGivenNameUser");
+        table.assertTableDoesntContainText("searchByNameUser");
+        table.assertTableDoesntContainText("searchByGivenNameUser");
         table.assertTableContainsText("searchByFamilyNameUser");
         usersListSearch.clearTextSearchItemByNameAndUpdate(FAMILY_NAME_ATTRIBUTE);
     }
@@ -105,16 +114,17 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
     public void test0020addSearchAttributeByAddButtonClick() {
         RolesPageTable table = basicPage.listRoles().table();
         Search<RolesPageTable> search = (Search<RolesPageTable>) table.search();
-        search.addSearchItemByAddButtonClick(REQUESTABLE_ATTRIBUTE);
-        Assert.assertNotNull(search.textInputPanelByItemName(REQUESTABLE_ATTRIBUTE, false));
+        search.addSearchItemByAddButtonClick(REQUESTABLE_ATTRIBUTE)
+                .assertExistSearchItem(REQUESTABLE_ATTRIBUTE);
     }
 
     @Test
     public void test0030addSearchAttributeByNameLinkClick() {
         ServicesPageTable table = basicPage.listServices().table();
         Search<ServicesPageTable> search = (Search<ServicesPageTable>) table.search();
-        search.addSearchItemByNameLinkClick(ROLE_MEMBERSHIP_ATTRIBUTE);
-        Assert.assertNotNull(search.textInputPanelByItemName(ROLE_MEMBERSHIP_ATTRIBUTE, false));
+        search
+                .addSearchItemByNameLinkClick(ROLE_MEMBERSHIP_ATTRIBUTE)
+                .assertExistSearchItem(ROLE_MEMBERSHIP_ATTRIBUTE);
     }
 
     @Test
@@ -151,7 +161,7 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
                 .inputRefOid("332fd5e-sdf7-4322-9ff3-1848cd6ed4aa")
                 .updateSearch();
         table.assertTableObjectsCountEquals(1);
-        Assert.assertTrue(table.containsLinksTextPartially("testUserWithRoleMembershipSearchByOid"));
+        table.assertTableContainsLinkTextPartially("testUserWithRoleMembershipSearchByOid");
     }
 
     @Test
@@ -162,8 +172,8 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
         search.referencePanelByItemName(ROLE_MEMBERSHIP_ATTRIBUTE)
                 .inputRefType("Organization")
                 .updateSearch();
-        table.assertTableObjectsCountEquals(1);
-        Assert.assertTrue(table.containsLinksTextPartially("testUserWithRoleMembershipSearchByType"));
+        table.assertTableObjectsCountEquals(2);
+        table.assertTableContainsLinkTextPartially("testUserWithRoleMembershipSearchByType");
     }
 
     @Test
@@ -175,7 +185,7 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
                 .inputRefRelation("Manager")
                 .updateSearch();
         table.assertTableObjectsCountEquals(1);
-        Assert.assertTrue(table.containsLinksTextPartially("testUserWithRoleMembershipSearchByRelation"));
+        table.assertTableContainsLinkTextPartially("testUserWithRoleMembershipSearchByRelation");
     }
 
     @Test
@@ -186,9 +196,11 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
         search.referencePanelByItemName(ROLE_MEMBERSHIP_ATTRIBUTE)
                 .inputRefName("roleMembershipByName", "roleMembershipByNameSearch")
                 .updateSearch();
-        table.assertTableObjectsCountEquals(1);
-        Assert.assertTrue(table.containsLinksTextPartially("testUserWithRoleMembershipSearchByName"));
-        Assert.assertTrue(search.referencePanelByItemName(ROLE_MEMBERSHIP_ATTRIBUTE).matchRefSearchFieldValue(REF_SEARCH_FIELD_VALUE));
+        table
+                .assertTableObjectsCountEquals(1)
+                .assertTableContainsLinkTextPartially("testUserWithRoleMembershipSearchByName");
+        search.referencePanelByItemName(ROLE_MEMBERSHIP_ATTRIBUTE)
+                .assertRefSearchFieldValueMatch(REF_SEARCH_FIELD_VALUE);
     }
 
     @Test
@@ -204,14 +216,14 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
                 .inputValue("544")
                 .updateSearch();
         table.assertTableObjectsCountEquals(1);
-        Assert.assertTrue(table.containsLinksTextPartially("searchByEmployeeNumberUser"));
+        table.assertTableContainsLinkTextPartially("searchByEmployeeNumberUser");
 
         search.clearTextSearchItemByNameAndUpdate("By employee number");
         search.textInputPanelByItemName("By email", false)
                 .inputValue("testEmailAddress@test.com")
                 .updateSearch();
         table.assertTableObjectsCountEquals(1);
-        Assert.assertTrue(table.containsLinksTextPartially("searchByEmailAddressUser"));
+        table.assertTableContainsLinkTextPartially("searchByEmailAddressUser");
     }
 
     @Test
@@ -223,6 +235,51 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
                         .dateIntervalPanelByItemName("Time")
                             .getFromDateTimeFieldPanel()
                                 .setDateTimeValue(formater.format(new Date()), "", "", DateTimePanel.AmOrPmChoice.AM);
+    }
+
+    @Test
+    public void test0110OrgMemberPanelConfiguration() {
+        basicPage.orgStructure()
+                .selectTabWithRootOrg("orgRootMemberSearch")
+                    .getMemberPanel()
+                        .table()
+                            .assertTableDoesntContainText("orgMembershipByTypeSearch");
+
+        addObjectFromFile(SEARCH_CONFIG_SYSTEM_CONFIG_FILE);
+        basicPage.loggedUser().logout();
+        basicPage = midPoint.formLogin().login(getUsername(), getPassword());
+
+        MemberTable<MemberPanel<OrgRootTab>> table = basicPage.orgStructure()
+                .selectTabWithRootOrg("orgRootMemberSearch")
+                    .getMemberPanel()
+                        .table();
+        table.assertTableContainsText("orgMembershipByTypeSearch");
+        table.search().assertExistSearchItem("Type2").assertHelpTextOfSearchItem("Type2", "Type help")
+                .assertActualOptionOfSelectSearchItem("Type2", "Organization");
+        table.search().assertExistSearchItem("Relation2").assertHelpTextOfSearchItem("Relation2", "Help relation")
+                .assertActualOptionOfSelectSearchItem("Relation2", "Member");
+        table.search().assertExistSearchItem("Scope2").assertHelpTextOfSearchItem("Scope2", "Help scope")
+                .assertActualOptionOfSelectSearchItem("Scope2", "Subtree");
+        table.search().dropDownPanelByItemName("Scope2").inputDropDownValue("One level");
+        table.search().assertExistSearchItem("Indirect2").assertHelpTextOfSearchItem("Indirect2", "Indirect help")
+                .assertActualOptionOfSelectSearchItem("Indirect2", "True");
+    }
+
+    @Test
+    public void test0120OrgMemberPanelConfigurationWithoutDefaultSearchItems() {
+        addObjectFromFile(SEARCH_CONFIG_WITHOUT_DEFAULT_ITEM_SYSTEM_CONFIG_FILE);
+        basicPage.loggedUser().logout();
+        basicPage = midPoint.formLogin().login(getUsername(), getPassword());
+
+        MemberTable<MemberPanel<OrgRootTab>> table = basicPage.orgStructure()
+                .selectTabWithRootOrg("orgRootMemberSearch")
+                .getMemberPanel()
+                .table();
+        table.assertTableDoesntContainText("orgMembershipByTypeSearch");
+        table.search().assertDoesntExistSearchItem("Type2");
+        table.search().assertDoesntExistSearchItem("Relation2");
+        table.search().assertDoesntExistSearchItem("Scope2");
+        table.search().assertDoesntExistSearchItem("Indirect2");
     }
 
 }

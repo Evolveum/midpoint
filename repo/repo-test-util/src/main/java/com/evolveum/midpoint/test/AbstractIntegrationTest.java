@@ -564,12 +564,17 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected <T extends ObjectType> List<PrismObject<T>> repoAddObjectsFromFile(
             String filePath, Class<T> type, OperationResult parentResult)
             throws SchemaException, ObjectAlreadyExistsException, IOException, EncryptionException {
-
         return repoAddObjectsFromFile(new File(filePath), type, parentResult);
     }
 
     protected <T extends ObjectType> List<PrismObject<T>> repoAddObjectsFromFile(
             File file, Class<T> type, OperationResult parentResult)
+            throws SchemaException, ObjectAlreadyExistsException, IOException, EncryptionException {
+        return repoAddObjectsFromFile(file, type, null, parentResult);
+    }
+
+    protected <T extends ObjectType> List<PrismObject<T>> repoAddObjectsFromFile(
+            File file, Class<T> type, RepoAddOptions options, OperationResult parentResult)
             throws SchemaException, ObjectAlreadyExistsException, IOException, EncryptionException {
 
         OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
@@ -579,7 +584,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         List<PrismObject<T>> objects = (List) prismContext.parserFor(file).parseObjects();
         for (PrismObject<T> object : objects) {
             try {
-                repoAddObject(object, result);
+                repoAddObject(object, null, options, result);
             } catch (ObjectAlreadyExistsException e) {
                 throw new ObjectAlreadyExistsException(e.getMessage() + " while adding " + object + " from file " + file, e);
             } catch (SchemaException e) {

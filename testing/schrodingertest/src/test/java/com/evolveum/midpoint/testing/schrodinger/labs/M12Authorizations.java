@@ -10,7 +10,6 @@ import com.codeborne.selenide.Selenide;
 
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schrodinger.MidPoint;
-import com.evolveum.midpoint.schrodinger.page.configuration.AboutPage;
 
 import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 
@@ -19,8 +18,6 @@ import com.evolveum.midpoint.schrodinger.util.Utils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.Assert;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -35,6 +32,7 @@ import java.io.IOException;
 public class M12Authorizations extends AbstractLabTest{
 
     private static final Logger LOG = LoggerFactory.getLogger(M12Authorizations.class);
+    protected static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M12/";
 
     private static final File ROLE_BASIC_USER_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-basic-user.xml");
     private static final File ROLE_BASIC_USER_FILE_12_1 = new File(LAB_OBJECTS_DIRECTORY + "roles/role-basic-user-12-1.xml");
@@ -72,13 +70,13 @@ public class M12Authorizations extends AbstractLabTest{
         login.login("X000005", "qwerty12345XXXX");
 
         ProfilePage profile = basicPage.profile();
-        Assert.assertTrue(profile.selectTabProjections()
+        profile.selectTabProjections()
             .table()
-                .containsLinksTextPartially("")); //TODO projections names
+                .assertTableContainsLinksTextPartially(""); //TODO projections names
 
-        Assert.assertTrue(profile.selectTabAssignments()
+        profile.selectTabAssignments()
                 .table()
-                    .containsLinksTextPartially("Basic user", "")); //TODO roles names
+                    .assertTableContainsLinksTextPartially("Basic user", ""); //TODO roles names
 
         basicPage.credentials(); //TODO implement credentials page
 

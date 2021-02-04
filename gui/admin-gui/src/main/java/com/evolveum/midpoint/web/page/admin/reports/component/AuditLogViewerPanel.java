@@ -126,9 +126,9 @@ public class AuditLogViewerPanel extends BasePanel {
             @Override
             protected Search createSearch(Class<? extends AuditEventRecordType> type) {
                 AuditLogStorage storage = (AuditLogStorage) getPageStorage();
-                Search search = SearchFactory.createContainerSearch(new ContainerTypeSearchItem(new SearchValue(type, "")), AuditEventRecordType.F_TIMESTAMP, getPageBase());
+                Search search = SearchFactory.createContainerSearch(new ContainerTypeSearchItem(new SearchValue(type, "")), AuditEventRecordType.F_TIMESTAMP, getPageBase(), true);
                 DateSearchItem timestampItem = (DateSearchItem) search.findPropertySearchItem(AuditEventRecordType.F_TIMESTAMP);
-                if (timestampItem.getFromDate() == null && timestampItem.getToDate() == null && !isCollectionViewPanelForWidget()) {
+                if (timestampItem != null && timestampItem.getFromDate() == null && timestampItem.getToDate() == null && !isCollectionViewPanelForWidget()) {
                     Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
                     timestampItem.setFromDate(MiscUtil.asXMLGregorianCalendar(todayDate));
                 }
@@ -261,6 +261,11 @@ public class AuditLogViewerPanel extends BasePanel {
                         AuditEventRecordType auditEventRecordType = unwrapModel(rowModel);
                         dispatchToObjectDetailsPage(auditEventRecordType.getInitiatorRef(), getPageBase(), false);
                     }
+
+                    @Override
+                    public boolean isEnabled(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
+                        return unwrapModel(rowModel) != null;
+                    }
                 };
         columns.add(initiatorRefColumn);
 
@@ -306,7 +311,8 @@ public class AuditLogViewerPanel extends BasePanel {
 
                         @Override
                         public boolean isEnabled(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
-                            return !AuditEventTypeType.DELETE_OBJECT.equals(rowModel.getObject().getValue().getEventType());
+                            return !AuditEventTypeType.DELETE_OBJECT.equals(rowModel.getObject().getValue().getEventType()) &&
+                                    unwrapModel(rowModel) != null;
                         }
 
                         @Override
@@ -334,6 +340,11 @@ public class AuditLogViewerPanel extends BasePanel {
                         public void onClick(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
                             AuditEventRecordType auditEventRecordType = unwrapModel(rowModel);
                             dispatchToObjectDetailsPage(auditEventRecordType.getTargetOwnerRef(), getPageBase(), false);
+                        }
+
+                        @Override
+                        public boolean isEnabled(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
+                            return unwrapModel(rowModel) != null;
                         }
                     };
             columns.add(targetOwnerRefColumn);
@@ -406,6 +417,7 @@ public class AuditLogViewerPanel extends BasePanel {
                 } catch (SchemaException e) {
                     throw new SystemException("Couldn't adopt event record: " + e, e);
                 }
+                getAuditLogViewerStorage().setAuditRecord(record);
                 getPageBase().navigateToNext(new PageAuditLogDetails(record));
             }
         };

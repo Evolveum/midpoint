@@ -9,10 +9,10 @@ package com.evolveum.midpoint.repo.sqale;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Optional;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -20,6 +20,7 @@ import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
 import com.evolveum.midpoint.repo.sqlbase.TransactionIsolation;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 /**
@@ -28,29 +29,16 @@ import com.evolveum.midpoint.util.exception.SystemException;
  */
 public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration {
 
-    public static final String PROPERTY_DATABASE = "database";
+    private static final String DEFAULT_DRIVER = "org.postgresql.Driver";
+    private static final SupportedDatabase DEFAULT_DATABASE = SupportedDatabase.POSTGRESQL;
 
-    public static final String PROPERTY_DATASOURCE = "dataSource";
-
-    public static final String PROPERTY_DRIVER_CLASS_NAME = "driverClassName";
-    public static final String PROPERTY_JDBC_PASSWORD = "jdbcPassword";
-    public static final String PROPERTY_JDBC_PASSWORD_FILE = "jdbcPasswordFile";
-    public static final String PROPERTY_JDBC_USERNAME = "jdbcUsername";
-    public static final String PROPERTY_JDBC_URL = "jdbcUrl";
-
-    public static final String PROPERTY_USE_ZIP = "useZip";
-    public static final String PROPERTY_USE_ZIP_AUDIT = "useZipAudit";
-
-    /**
-     * Specifies language used for writing fullObject attribute.
-     * See LANG constants in {@link PrismContext} for supported values.
-     */
-    public static final String PROPERTY_FULL_OBJECT_FORMAT = "fullObjectFormat";
+    private static final int DEFAULT_MIN_POOL_SIZE = 8;
+    private static final int DEFAULT_MAX_POOL_SIZE = 20;
 
     /**
      * Database kind - either explicitly configured or derived from other options .
      */
-//    @NotNull // TODO we want this not null eventually, see guessDatabaseType()
+    @NotNull
     private final SupportedDatabase databaseType;
 
     // either dataSource or JDBC URL must be set
@@ -61,9 +49,15 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
 
     private final String driverClassName;
 
+    private final int minPoolSize;
+    private final int maxPoolSize;
+
     private final boolean useZip;
     private final boolean useZipAudit;
     private final String fullObjectFormat;
+
+    private final String performanceStatisticsFile;
+    private final int performanceStatisticsLevel;
 
     public SqaleRepositoryConfiguration(Configuration configuration) {
         dataSource = configuration.getString(PROPERTY_DATASOURCE);
@@ -71,38 +65,41 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
         jdbcUrl = configuration.getString(PROPERTY_JDBC_URL, defaultJdbcUrl());
         jdbcUsername = configuration.getString(PROPERTY_JDBC_USERNAME);
 
-        driverClassName = configuration.getString(PROPERTY_DRIVER_CLASS_NAME);
+        // TODO perhaps add warnings that other values are ignored anyway?
+        databaseType = DEFAULT_DATABASE;
+//        databaseType = Optional.ofNullable(configuration.getString(PROPERTY_DATABASE))
+//                .map(s -> SupportedDatabase.valueOf(s.toUpperCase()))
+//                .orElse(guessDatabaseType(configuration));
 
-        databaseType = Optional.ofNullable(configuration.getString(PROPERTY_DATABASE))
-                .map(s -> SupportedDatabase.valueOf(s.toUpperCase()))
-                .orElse(guessDatabaseType(configuration));
+        driverClassName = DEFAULT_DRIVER; //configuration.getString(PROPERTY_DRIVER_CLASS_NAME);
 
         String jdbcPasswordFile = configuration.getString(PROPERTY_JDBC_PASSWORD_FILE);
         if (jdbcPasswordFile != null) {
             try {
                 jdbcPassword = Files.readString(Path.of(jdbcPasswordFile));
             } catch (IOException e) {
-                throw new SystemException("Couldn't read JDBC password from specified file '" + jdbcPasswordFile + "': " + e.getMessage(), e);
+                throw new SystemException("Couldn't read JDBC password from specified file '"
+                        + jdbcPasswordFile + "': " + e.getMessage(), e);
             }
         } else {
             jdbcPassword = System.getProperty(PROPERTY_JDBC_PASSWORD,
                     configuration.getString(PROPERTY_JDBC_PASSWORD));
         }
 
+        minPoolSize = configuration.getInt(PROPERTY_MIN_POOL_SIZE, DEFAULT_MIN_POOL_SIZE);
+        maxPoolSize = configuration.getInt(PROPERTY_MAX_POOL_SIZE, DEFAULT_MAX_POOL_SIZE);
+
         useZip = configuration.getBoolean(PROPERTY_USE_ZIP, false);
         useZipAudit = configuration.getBoolean(PROPERTY_USE_ZIP_AUDIT, true);
         fullObjectFormat = System.getProperty(PROPERTY_FULL_OBJECT_FORMAT,
                 configuration.getString(PROPERTY_FULL_OBJECT_FORMAT, PrismContext.LANG_XML));
+
+        performanceStatisticsFile = configuration.getString(PROPERTY_PERFORMANCE_STATISTICS_FILE);
+        performanceStatisticsLevel = configuration.getInt(PROPERTY_PERFORMANCE_STATISTICS_LEVEL,
+                SqlPerformanceMonitorImpl.LEVEL_LOCAL_STATISTICS);
     }
 
     protected String defaultJdbcUrl() {
-        return null;
-    }
-
-    // TODO: we want this not null eventually, but if it is not null in this base class,
-    //  how can subclass add any information (e.g. using Hibernate dialect)?
-    protected SupportedDatabase guessDatabaseType(Configuration configuration) {
-        // TODO
         return null;
     }
 
@@ -152,13 +149,17 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
         return fullObjectFormat;
     }
 
-    public void validate() throws RepositoryServiceFactoryException {
+    public SqaleRepositoryConfiguration validate() throws RepositoryServiceFactoryException {
         if (dataSource == null) {
             notEmpty(jdbcUrl, "JDBC Url is empty or not defined.");
             // We don't check username and password, they can be null (MID-5342)
             // In case of configuration mismatch we let the JDBC driver to fail.
             notEmpty(driverClassName, "Driver class name is empty or not defined.");
         }
+
+        // TODO the rest from SqlRepoConf#validate except for Hibernate of course
+
+        return this;
     }
 
     public String getDefaultEmbeddedJdbcUrlPrefix() {
@@ -177,20 +178,25 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
         return databaseType == db;
     }
 
-    // TODO
+    // TODO - IMPLEMENT EVERYTHING BELOW
     @Override
     public TransactionIsolation getTransactionIsolation() {
         return null;
     }
 
     @Override
+    public String getReadOnlyTransactionStatement() {
+        return null;
+    }
+
+    @Override
     public int getMinPoolSize() {
-        return 0;
+        return minPoolSize;
     }
 
     @Override
     public int getMaxPoolSize() {
-        return 0;
+        return maxPoolSize;
     }
 
     @Override
@@ -206,5 +212,20 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     @Override
     public long getInitializationFailTimeout() {
         return 0;
+    }
+
+    @Override
+    public boolean isFatalException(Throwable ex) {
+        return false;
+    }
+
+    @Override
+    public String getPerformanceStatisticsFile() {
+        return performanceStatisticsFile;
+    }
+
+    @Override
+    public int getPerformanceStatisticsLevel() {
+        return performanceStatisticsLevel;
     }
 }

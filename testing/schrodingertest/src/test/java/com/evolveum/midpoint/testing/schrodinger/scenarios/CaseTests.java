@@ -10,7 +10,6 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 
@@ -19,7 +18,6 @@ import com.evolveum.midpoint.schrodinger.component.cases.WorkitemDetailsPanel;
 import com.evolveum.midpoint.schrodinger.component.common.search.Search;
 import com.evolveum.midpoint.schrodinger.component.common.search.TextInputSearchItemPanel;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
@@ -54,50 +52,37 @@ public class CaseTests extends AbstractSchrodingerTest {
     @Test //covers mid-5813
     public void test100openCasesAndCheckMenuEnabled() {
         //check All cases page is opened, menu item is active, other case menu items are inactive
-        AllCasesPage allCasesPage = basicPage.listAllCases();
-
-        Assert.assertTrue(isCaseMenuItemActive(ConstantsUtil.MENU_ALL_CASES, false));
-        Assert.assertFalse(isCaseMenuItemActive(ConstantsUtil.MENU_MY_CASES_MENU_ITEM_LABEL_TEXT, false));
-        Assert.assertFalse(isCaseMenuItemActive(ConstantsUtil.MENU_ALL_APPROVALS_MENU_ITEM_LABEL_TEXT, false));
-        Assert.assertFalse(isCaseMenuItemActive(ConstantsUtil.MENU_ALL_MANUAL_CASES_MENU_ITEM_LABEL_TEXT, false));
-        Assert.assertFalse(isCaseMenuItemActive(ConstantsUtil.MENU_ALL_REQUESTS_MENU_ITEM_LABEL_TEXT, false));
-
-        //check My cases page is opened, menu item is active, other case menu items are inactive
-        MyCasesPage myCasesPage = basicPage.listMyCases();
-
-        Assert.assertFalse(isCaseMenuItemActive(ConstantsUtil.MENU_ALL_CASES, false));
-        Assert.assertTrue(isCaseMenuItemActive(ConstantsUtil.MENU_MY_CASES_MENU_ITEM_LABEL_TEXT, false));
-        Assert.assertFalse(isCaseMenuItemActive(ConstantsUtil.MENU_ALL_APPROVALS_MENU_ITEM_LABEL_TEXT, false));
-        Assert.assertFalse(isCaseMenuItemActive(ConstantsUtil.MENU_ALL_MANUAL_CASES_MENU_ITEM_LABEL_TEXT, false));
-        Assert.assertFalse(isCaseMenuItemActive(ConstantsUtil.MENU_ALL_REQUESTS_MENU_ITEM_LABEL_TEXT, false));
-
-        //check All manual cases page is opened, menu item is active, other case menu items are inactive
-        AllManualCasesPage allManualCasesPage = basicPage.listAllManualCases();
-
-        Assert.assertFalse(isCaseMenuItemActive(ConstantsUtil.MENU_ALL_CASES, false));
-        Assert.assertFalse(isCaseMenuItemActive(ConstantsUtil.MENU_MY_CASES_MENU_ITEM_LABEL_TEXT, false));
-        Assert.assertFalse(isCaseMenuItemActive(ConstantsUtil.MENU_ALL_APPROVALS_MENU_ITEM_LABEL_TEXT, false));
-        Assert.assertTrue(isCaseMenuItemActive(ConstantsUtil.MENU_ALL_MANUAL_CASES_MENU_ITEM_LABEL_TEXT, false));
-        Assert.assertFalse(isCaseMenuItemActive(ConstantsUtil.MENU_ALL_REQUESTS_MENU_ITEM_LABEL_TEXT, false));
-
-        //check All requests page is opened, menu item is active, other case menu items are inactive
-        AllRequestsPage allRequestsPage = basicPage.listAllRequests();
-
-        Assert.assertFalse(isCaseMenuItemActive(ConstantsUtil.MENU_ALL_CASES, false));
-        Assert.assertFalse(isCaseMenuItemActive(ConstantsUtil.MENU_MY_CASES_MENU_ITEM_LABEL_TEXT, false));
-        Assert.assertFalse(isCaseMenuItemActive(ConstantsUtil.MENU_ALL_APPROVALS_MENU_ITEM_LABEL_TEXT, false));
-        Assert.assertFalse(isCaseMenuItemActive(ConstantsUtil.MENU_ALL_MANUAL_CASES_MENU_ITEM_LABEL_TEXT, false));
-        Assert.assertTrue(isCaseMenuItemActive(ConstantsUtil.MENU_ALL_REQUESTS_MENU_ITEM_LABEL_TEXT, false));
-
-        //check All approvals page is opened, menu item is active, other case menu items are inactive
-        AllApprovalsPage allApprovalsPage = basicPage.listAllApprovals();
-
-        Assert.assertFalse(isCaseMenuItemActive(ConstantsUtil.MENU_ALL_CASES, false));
-        Assert.assertFalse(isCaseMenuItemActive(ConstantsUtil.MENU_MY_CASES_MENU_ITEM_LABEL_TEXT, false));
-        Assert.assertTrue(isCaseMenuItemActive(ConstantsUtil.MENU_ALL_APPROVALS_MENU_ITEM_LABEL_TEXT, false));
-        Assert.assertFalse(isCaseMenuItemActive(ConstantsUtil.MENU_ALL_MANUAL_CASES_MENU_ITEM_LABEL_TEXT, false));
-        Assert.assertFalse(isCaseMenuItemActive(ConstantsUtil.MENU_ALL_REQUESTS_MENU_ITEM_LABEL_TEXT, false));
-     }
+        basicPage.listAllCases()
+                .assertMenuItemActive(getCaseMenuItemElement(ConstantsUtil.MENU_ALL_CASES, false))
+                .assertMenuItemDoesntActive(getCaseMenuItemElement(ConstantsUtil.MENU_MY_CASES_MENU_ITEM_LABEL_TEXT, false))
+                .assertMenuItemDoesntActive(getCaseMenuItemElement(ConstantsUtil.MENU_ALL_APPROVALS_MENU_ITEM_LABEL_TEXT, false))
+                .assertMenuItemDoesntActive(getCaseMenuItemElement(ConstantsUtil.MENU_ALL_MANUAL_CASES_MENU_ITEM_LABEL_TEXT, false))
+                .assertMenuItemDoesntActive(getCaseMenuItemElement(ConstantsUtil.MENU_ALL_REQUESTS_MENU_ITEM_LABEL_TEXT, false))
+                .listMyCases()
+                .assertMenuItemDoesntActive(getCaseMenuItemElement(ConstantsUtil.MENU_ALL_CASES, false))
+                .assertMenuItemActive(getCaseMenuItemElement(ConstantsUtil.MENU_MY_CASES_MENU_ITEM_LABEL_TEXT, false))
+                .assertMenuItemDoesntActive(getCaseMenuItemElement(ConstantsUtil.MENU_ALL_APPROVALS_MENU_ITEM_LABEL_TEXT, false))
+                .assertMenuItemDoesntActive(getCaseMenuItemElement(ConstantsUtil.MENU_ALL_MANUAL_CASES_MENU_ITEM_LABEL_TEXT, false))
+                .assertMenuItemDoesntActive(getCaseMenuItemElement(ConstantsUtil.MENU_ALL_REQUESTS_MENU_ITEM_LABEL_TEXT, false))
+                .listAllManualCases()
+                .assertMenuItemDoesntActive(getCaseMenuItemElement(ConstantsUtil.MENU_ALL_CASES, false))
+                .assertMenuItemDoesntActive(getCaseMenuItemElement(ConstantsUtil.MENU_MY_CASES_MENU_ITEM_LABEL_TEXT, false))
+                .assertMenuItemDoesntActive(getCaseMenuItemElement(ConstantsUtil.MENU_ALL_APPROVALS_MENU_ITEM_LABEL_TEXT, false))
+                .assertMenuItemActive(getCaseMenuItemElement(ConstantsUtil.MENU_ALL_MANUAL_CASES_MENU_ITEM_LABEL_TEXT, false))
+                .assertMenuItemDoesntActive(getCaseMenuItemElement(ConstantsUtil.MENU_ALL_REQUESTS_MENU_ITEM_LABEL_TEXT, false))
+                .listAllRequests()
+                .assertMenuItemDoesntActive(getCaseMenuItemElement(ConstantsUtil.MENU_ALL_CASES, false))
+                .assertMenuItemDoesntActive(getCaseMenuItemElement(ConstantsUtil.MENU_MY_CASES_MENU_ITEM_LABEL_TEXT, false))
+                .assertMenuItemDoesntActive(getCaseMenuItemElement(ConstantsUtil.MENU_ALL_APPROVALS_MENU_ITEM_LABEL_TEXT, false))
+                .assertMenuItemDoesntActive(getCaseMenuItemElement(ConstantsUtil.MENU_ALL_MANUAL_CASES_MENU_ITEM_LABEL_TEXT, false))
+                .assertMenuItemActive(getCaseMenuItemElement(ConstantsUtil.MENU_ALL_REQUESTS_MENU_ITEM_LABEL_TEXT, false))
+                .listAllApprovals()
+                .assertMenuItemDoesntActive(getCaseMenuItemElement(ConstantsUtil.MENU_ALL_CASES, false))
+                .assertMenuItemDoesntActive(getCaseMenuItemElement(ConstantsUtil.MENU_MY_CASES_MENU_ITEM_LABEL_TEXT, false))
+                .assertMenuItemActive(getCaseMenuItemElement(ConstantsUtil.MENU_ALL_APPROVALS_MENU_ITEM_LABEL_TEXT, false))
+                .assertMenuItemDoesntActive(getCaseMenuItemElement(ConstantsUtil.MENU_ALL_MANUAL_CASES_MENU_ITEM_LABEL_TEXT, false))
+                .assertMenuItemDoesntActive(getCaseMenuItemElement(ConstantsUtil.MENU_ALL_REQUESTS_MENU_ITEM_LABEL_TEXT, false));
+    }
 
      @Test
      public void test110isCaseCreated(){
@@ -111,7 +96,7 @@ public class CaseTests extends AbstractSchrodingerTest {
                     .inputValue(REQUEST_CASE_NAME + CASE_CREATION_TEST_USER_NAME)
                     .updateSearch()
                  .and()
-                 .containsLinkTextPartially(REQUEST_CASE_NAME + CASE_CREATION_TEST_USER_NAME);
+                 .assertTableContainsLinkTextPartially(REQUEST_CASE_NAME + CASE_CREATION_TEST_USER_NAME);
 
      }
 
@@ -150,14 +135,13 @@ public class CaseTests extends AbstractSchrodingerTest {
                 .updateSearch()
                 .and()
                 .clickByPartialName(REQUEST_CASE_NAME + CASE_CREATION_TEST_USER_NAME);
-        Assert.assertTrue(casePage
+        casePage
                         .selectTabChildren()
                         .table()
-                        .currentTableContains("div", "closed"));
-
-        Assert.assertTrue(casePage
-                        .selectTabOperationRequest()
-                        .changesAreApplied());
+                        .assertCurrentTableContains("div", "closed")
+                        .and()
+                    .selectTabOperationRequest()
+                        .assertChangesAreApplied();
     }
 
     @Test
@@ -196,13 +180,13 @@ public class CaseTests extends AbstractSchrodingerTest {
                 .and()
                 .clickByPartialName(REQUEST_CASE_NAME + REJECT_WORKITEM_TEST_USER_NAME);
 
-        Assert.assertTrue(casePage
+        casePage
                         .selectTabChildren()
                         .table()
-                        .currentTableContains("div", "closed"));
-        Assert.assertTrue(casePage
+                        .assertCurrentTableContains("div", "closed")
+                        .and()
                 .selectTabOperationRequest()
-                .changesAreRejected());
+                .assertChangesAreRejected();
     }
 
     @Test
@@ -252,32 +236,31 @@ public class CaseTests extends AbstractSchrodingerTest {
                 .table()
                 .clickByName(FORWARD_WORKITEM_TO_USER_NAME);
 
-        Assert.assertTrue(allRequestsPage
+        allRequestsPage
                 .feedback()
-                .isSuccess());
+                .assertSuccess();
 
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
 
-        allRequestsPage = basicPage.listAllRequests();
-        Assert.assertTrue(allRequestsPage
+        basicPage.listAllRequests()
                 .table()
-                .search()
-                .byName()
-                .inputValue(REQUEST_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME)
-                .updateSearch()
-                .and()
-                .clickByPartialName(REQUEST_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME)
-                .selectTabChildren()
-                .table()
-                .clickByPartialName(ASSIGNING_ROLE_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME)
-                .selectTabWorkitems()
-                .table()
-                .clickByName(ASSIGNING_ROLE_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME)
-                .matchApproverElementValue(FORWARD_WORKITEM_TO_USER_NAME));
+                    .search()
+                        .byName()
+                        .inputValue(REQUEST_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME)
+                        .updateSearch()
+                    .and()
+                    .clickByPartialName(REQUEST_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME)
+                        .selectTabChildren()
+                            .table()
+                            .clickByPartialName(ASSIGNING_ROLE_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME)
+                                .selectTabWorkitems()
+                                    .table()
+                                    .clickByName(ASSIGNING_ROLE_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME)
+                                    .assertApproverElementValueMatches(FORWARD_WORKITEM_TO_USER_NAME);
 
     }
 
-    private boolean isCaseMenuItemActive(String menuIdentifier, boolean checkByLabelText){
+    private SelenideElement getCaseMenuItemElement(String menuIdentifier, boolean checkByLabelText){
         SelenideElement casesMenuItemElement;
         if (!checkByLabelText) {
             casesMenuItemElement = basicPage.getMenuItemElement(ConstantsUtil.ADMINISTRATION_MENU_ITEMS_SECTION_KEY,
@@ -286,8 +269,7 @@ public class CaseTests extends AbstractSchrodingerTest {
             casesMenuItemElement = basicPage.getMenuItemElementByMenuLabelText(ConstantsUtil.ADMINISTRATION_MENU_ITEMS_SECTION_KEY,
                     ConstantsUtil.MENU_TOP_CASES, menuIdentifier);
         }
-        SelenideElement casesMenuLi = casesMenuItemElement.parent().parent();
-        return casesMenuLi.has(Condition.cssClass("active"));
+        return casesMenuItemElement;
     }
 
     private void createUserAndAssignRoleWithApprovement(String userName){

@@ -19,6 +19,10 @@ import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.ex.ElementNotFound;
 import com.codeborne.selenide.testng.BrowserPerClass;
 
+import com.codeborne.selenide.testng.TextReport;
+
+import com.codeborne.selenide.testng.annotations.Report;
+
 import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
 import com.evolveum.midpoint.schrodinger.component.resource.ResourceAccountsTab;
 import com.evolveum.midpoint.schrodinger.component.resource.ResourceShadowTable;
@@ -26,6 +30,8 @@ import com.evolveum.midpoint.schrodinger.page.resource.AccountPage;
 import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
+
+import com.evolveum.midpoint.testing.schrodinger.reports.SchrodingerTextReport;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -66,12 +72,14 @@ import com.evolveum.midpoint.web.boot.MidPointSpringApplication;
 @ActiveProfiles("default")
 @SpringBootTest(classes = MidPointSpringApplication.class, webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @TestPropertySource(properties = { "server.port=8180", "midpoint.schrodinger=true" })
-@Listeners({ BrowserPerClass.class })
+@Listeners({ BrowserPerClass.class, SchrodingerTextReport.class })
+@Report
 public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
 
     public static final String PROPERTY_NAME_MIDPOINT_HOME = "-Dmidpoint.home";
     public static final String PROPERTY_NAME_USER_HOME = "user.home";
     public static final String PROPERTY_NAME_FILE_SEPARATOR = "file.separator";
+    private static final File SYSTEM_CONFIG_INITIAL = new File("src/test/resources/configuration/objects/systemconfig/system-configuration-initial.xml");
 
     protected static final String CSV_RESOURCE_ATTR_UNIQUE = "Unique attribute name";
 
@@ -106,6 +114,7 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
     @Override
     protected void initSystem(Task task, OperationResult initResult) throws Exception {
         super.initSystem(task, initResult);
+//        addObjectFromFile(SYSTEM_CONFIG_INITIAL, true, initResult);
         getObjectListToImport().forEach(objFile -> addObjectFromFile(objFile, true, initResult));
     }
 
@@ -306,17 +315,15 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
             Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
             Selenide.screenshot("afterSixSecondsSleep");
 
-            Assert.assertTrue(resourceConfigurationTab
+            resourceConfigurationTab
                     .form()
                     .changeAttributeValue(attributeName, oldValue, newValue)
                     .and()
                     .and()
                     .clickSaveAndTestConnection()
-                    .isTestSuccess()
-            );
+                    .assertIsTestSuccess();
         } else {
-            Assert.assertTrue(
-                    listResourcesPage
+            listResourcesPage
                             .table()
                             .search()
                             .byName()
@@ -330,8 +337,7 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
                             .and()
                             .and()
                             .clickSaveAndTestConnection()
-                            .isTestFailure()
-            );
+                            .assertIsTestFailure();
         }
 
     }
@@ -350,7 +356,7 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
             if (overwrite) {
                 options = RepoAddOptions.createOverwrite();
             }
-            repoAddObjectFromFile(file, options, false, result);
+            repoAddObjectsFromFile(file, null, options, result);
         } catch (SchemaException | ObjectAlreadyExistsException | EncryptionException | IOException ex) {
             LOG.error("Unable to add object, {}", result.getUserFriendlyMessage(), ex);
         }
@@ -359,6 +365,7 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
     public UserPage showUser(String userName){
         UserPage user = showUserInTable(userName).clickByName(userName);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        Selenide.screenshot("usersAfterReconcile");
         return user;
     }
 
@@ -381,13 +388,22 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
                 .clickByName(itemValue);
     }
 
-    public boolean existShadow(String resourceName, String searchedItem, String itemValue){
-        return existShadow(resourceName, searchedItem, itemValue, null, false);
+    public ResourceShadowTable assertShadowExists(String resourceName, String searchedItem, String itemValue){
+        return assertShadowExists(resourceName, searchedItem, itemValue, null, false);
     }
 
-    public boolean existShadow(String resourceName, String searchedItem, String itemValue, String intent,  boolean useRepository){
+    public ResourceShadowTable assertShadowExists(String resourceName, String searchedItem, String itemValue, String intent,  boolean useRepository){
         ResourceShadowTable table = getShadowTable(resourceName, searchedItem, itemValue, intent, useRepository);
-        return table.containsText(itemValue);
+        return (ResourceShadowTable) table.assertTableContainsText(itemValue);
+    }
+
+    public ResourceShadowTable assertShadowDoesntExist(String resourceName, String searchedItem, String itemValue){
+        return assertShadowDoesntExist(resourceName, searchedItem, itemValue, null, false);
+    }
+
+    public ResourceShadowTable assertShadowDoesntExist(String resourceName, String searchedItem, String itemValue, String intent,  boolean useRepository){
+        ResourceShadowTable table = getShadowTable(resourceName, searchedItem, itemValue, intent, useRepository);
+        return (ResourceShadowTable) table.assertTableDoesntContainText(itemValue);
     }
 
     public ResourceShadowTable getShadowTable(String resourceName, String searchedItem, String itemValue) {

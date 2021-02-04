@@ -7,25 +7,22 @@
 package com.evolveum.midpoint.repo.sql.audit.mapping;
 
 import static com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditEventRecord.TABLE_NAME;
+import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.stringMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.*;
 
-import java.util.function.Function;
-
-import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.audit.querymodel.*;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlDetailFetchMapper;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.*;
+import com.evolveum.midpoint.repo.sqlbase.mapping.item.CanonicalItemPathItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.mapping.item.DetailTableItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.mapping.item.EnumOrdinalItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.mapping.item.TimestampItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Mapping between {@link QAuditEventRecord} and {@link AuditEventRecordType}.
@@ -41,31 +38,24 @@ public class QAuditEventRecordMapping
         super(TABLE_NAME, DEFAULT_ALIAS_NAME,
                 AuditEventRecordType.class, QAuditEventRecord.class);
 
-        addItemMapping(F_CHANNEL, StringItemFilterProcessor.mapper(path(q -> q.channel)));
-        addItemMapping(F_EVENT_IDENTIFIER,
-                StringItemFilterProcessor.mapper(path(q -> q.eventIdentifier)));
+        addItemMapping(F_CHANNEL, stringMapper(path(q -> q.channel)));
+        addItemMapping(F_EVENT_IDENTIFIER, stringMapper(path(q -> q.eventIdentifier)));
         addItemMapping(F_EVENT_STAGE, EnumOrdinalItemFilterProcessor.mapper(
                 path(q -> q.eventStage), RAuditEventStage::fromSchemaValue));
         addItemMapping(F_EVENT_TYPE, EnumOrdinalItemFilterProcessor.mapper(
                 path(q -> q.eventType), RAuditEventType::fromSchemaValue));
-        addItemMapping(F_HOST_IDENTIFIER,
-                StringItemFilterProcessor.mapper(path(q -> q.hostIdentifier)));
-        addItemMapping(F_MESSAGE, StringItemFilterProcessor.mapper(path(q -> q.message)));
-        addItemMapping(F_NODE_IDENTIFIER,
-                StringItemFilterProcessor.mapper(path(q -> q.nodeIdentifier)));
+        addItemMapping(F_HOST_IDENTIFIER, stringMapper(path(q -> q.hostIdentifier)));
+        addItemMapping(F_MESSAGE, stringMapper(path(q -> q.message)));
+        addItemMapping(F_NODE_IDENTIFIER, stringMapper(path(q -> q.nodeIdentifier)));
         addItemMapping(F_OUTCOME, EnumOrdinalItemFilterProcessor.mapper(
                 path(q -> q.outcome), ROperationResultStatus::fromSchemaValue));
-        addItemMapping(F_PARAMETER, StringItemFilterProcessor.mapper(path(q -> q.parameter)));
-        addItemMapping(F_REMOTE_HOST_ADDRESS,
-                StringItemFilterProcessor.mapper(path(q -> q.remoteHostAddress)));
-        addItemMapping(F_REQUEST_IDENTIFIER,
-                StringItemFilterProcessor.mapper(path(q -> q.requestIdentifier)));
-        addItemMapping(F_RESULT, StringItemFilterProcessor.mapper(path(q -> q.result)));
-        addItemMapping(F_SESSION_IDENTIFIER,
-                StringItemFilterProcessor.mapper(path(q -> q.sessionIdentifier)));
-        addItemMapping(F_TASK_IDENTIFIER,
-                StringItemFilterProcessor.mapper(path(q -> q.taskIdentifier)));
-        addItemMapping(F_TASK_OID, StringItemFilterProcessor.mapper(path(q -> q.taskOid)));
+        addItemMapping(F_PARAMETER, stringMapper(path(q -> q.parameter)));
+        addItemMapping(F_REMOTE_HOST_ADDRESS, stringMapper(path(q -> q.remoteHostAddress)));
+        addItemMapping(F_REQUEST_IDENTIFIER, stringMapper(path(q -> q.requestIdentifier)));
+        addItemMapping(F_RESULT, stringMapper(path(q -> q.result)));
+        addItemMapping(F_SESSION_IDENTIFIER, stringMapper(path(q -> q.sessionIdentifier)));
+        addItemMapping(F_TASK_IDENTIFIER, stringMapper(path(q -> q.taskIdentifier)));
+        addItemMapping(F_TASK_OID, stringMapper(path(q -> q.taskOid)));
         addItemMapping(F_TIMESTAMP, TimestampItemFilterProcessor.mapper(path(q -> q.timestamp)));
 
         addItemMapping(F_CHANGED_ITEM, DetailTableItemFilterProcessor.mapper(
@@ -78,13 +68,13 @@ public class QAuditEventRecordMapping
          * No need to map initiatorName, initiatorType, attorneyName for query, OID should suffice.
          * There is also no F_ATTORNEY_NAME and similar paths - unless these are "extension" columns?
          */
-        addItemMapping(F_INITIATOR_REF, RefItemFilterProcessor.mapper(
-                path(q -> q.initiatorOid), path(q -> q.initiatorType), typeConversion()));
-        addItemMapping(F_ATTORNEY_REF, RefItemFilterProcessor.mapper(path(q -> q.attorneyOid)));
-        addItemMapping(F_TARGET_REF, RefItemFilterProcessor.mapper(
-                path(q -> q.targetOid), path(q -> q.targetType), typeConversion()));
-        addItemMapping(F_TARGET_OWNER_REF, RefItemFilterProcessor.mapper(
-                path(q -> q.targetOwnerOid), path(q -> q.targetOwnerType), typeConversion()));
+        addItemMapping(F_INITIATOR_REF, AuditRefItemFilterProcessor.mapper(
+                path(q -> q.initiatorOid), path(q -> q.initiatorType)));
+        addItemMapping(F_ATTORNEY_REF, AuditRefItemFilterProcessor.mapper(path(q -> q.attorneyOid)));
+        addItemMapping(F_TARGET_REF, AuditRefItemFilterProcessor.mapper(
+                path(q -> q.targetOid), path(q -> q.targetType)));
+        addItemMapping(F_TARGET_OWNER_REF, AuditRefItemFilterProcessor.mapper(
+                path(q -> q.targetOwnerOid), path(q -> q.targetOwnerType)));
 
         addItemMapping(F_CUSTOM_COLUMN_PROPERTY, AuditCustomColumnItemFilterProcessor.mapper());
 
@@ -128,14 +118,7 @@ public class QAuditEventRecordMapping
 
     @Override
     public AuditEventRecordSqlTransformer createTransformer(
-            PrismContext prismContext, SqlRepoContext sqlRepoContext) {
-        return new AuditEventRecordSqlTransformer(prismContext, this, sqlRepoContext);
-    }
-
-    private Function<Class<ObjectType>, Integer> typeConversion() {
-        return t -> {
-            @NotNull RObjectType rObjectType = RObjectType.getByJaxbType(t);
-            return rObjectType.ordinal();
-        };
+            SqlTransformerContext transformerContext) {
+        return new AuditEventRecordSqlTransformer(transformerContext, this);
     }
 }

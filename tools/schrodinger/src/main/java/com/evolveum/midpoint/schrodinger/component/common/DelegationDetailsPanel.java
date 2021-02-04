@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import com.evolveum.midpoint.schrodinger.util.Utils;
 
 import org.openqa.selenium.By;
+import org.testng.Assert;
 
 import static com.codeborne.selenide.Selenide.$;
 /**
@@ -68,32 +69,13 @@ public class DelegationDetailsPanel<T> extends Component<T> {
     }
 
     public boolean isValidFromPanelEnabled () {
-        getValidFromPanel().findDate().shouldBe(Condition.enabled);
         if (!getValidFromPanel().findDate().isEnabled()) {
             return false;
         }
-        getValidFromPanel().findHours().shouldBe(Condition.enabled);
         if (!getValidFromPanel().findHours().isEnabled()) {
             return false;
         }
-        getValidFromPanel().findMinutes().shouldBe(Condition.enabled);
         if (!getValidFromPanel().findMinutes().isEnabled()) {
-            return false;
-        }
-        return true;
-    }
-
-    public boolean isValidFromPanelDisabled () {
-        getValidFromPanel().findDate().shouldBe(Condition.disabled);
-        if (getValidFromPanel().findDate().isEnabled()) {
-            return false;
-        }
-        getValidFromPanel().findHours().shouldBe(Condition.disabled);
-        if (getValidFromPanel().findHours().isEnabled()) {
-            return false;
-        }
-        getValidFromPanel().findMinutes().shouldBe(Condition.disabled);
-        if (getValidFromPanel().findMinutes().isEnabled()) {
             return false;
         }
         return true;
@@ -161,48 +143,63 @@ public class DelegationDetailsPanel<T> extends Component<T> {
                 .isSelected();
     }
 
-    public void assertApprovalWorkItemsSelected() {
-        if (!isApprovalWorkItemsSelected()) {
-            throw new AssertionError("Workflow approvals (for approval work items) checkbox is not selected but should be.");
-        }
+    public DelegationDetailsPanel<T> assertApprovalWorkItemsSelected() {
+        Assert.assertTrue(isApprovalWorkItemsSelected(), "Workflow approvals (for approval work items) checkbox is not selected but should be.");
+        return this;
     }
 
-    public void assertApprovalWorkItemsNotSelected() {
-        if (isApprovalWorkItemsSelected()) {
-            throw new AssertionError("Workflow approvals (for approval work items) checkbox is selected but shouldn't be.");
-        }
-    }
-    public void assertAssignmentLimitationsSelected() {
-        if (!isAssignmentLimitationsSelected()) {
-            throw new AssertionError("Assignment limitations checkbox is not selected but should be.");
-        }
+    public DelegationDetailsPanel<T> assertApprovalWorkItemsNotSelected() {
+        Assert.assertTrue(isApprovalWorkItemsSelected(), "Workflow approvals (for approval work items) checkbox is selected but shouldn't be.");
+        return this;
     }
 
-    public void assertAssignmentLimitationsNotSelected() {
-        if (isAssignmentLimitationsSelected()) {
-            throw new AssertionError("Assignment limitations checkbox is selected but shouldn't be.");
-        }
-    }
-    public void assertAssignmentPrivilegesSelected() {
-        if (!isAssignmentPrivilegesSelected()) {
-            throw new AssertionError("Assignment privileges checkbox is not selected but should be.");
-        }
+    public DelegationDetailsPanel<T> assertAssignmentLimitationsSelected() {
+        Assert.assertTrue(isAssignmentLimitationsSelected(), "Assignment limitations checkbox is not selected but should be.");
+        return this;
     }
 
-    public void assertAssignmentPrivilegesNotSelected() {
-        if (isAssignmentPrivilegesSelected()) {
-            throw new AssertionError("Assignment privileges checkbox is selected but shouldn't be.");
-        }
-    }
-    public void assertCertificationWorkItemsSelected() {
-        if (!isCertificationWorkItemsSelected()) {
-            throw new AssertionError("Workflow approvals (for certification work items) checkbox is not selected but should be.");
-        }
+    public DelegationDetailsPanel<T> assertAssignmentLimitationsNotSelected() {
+        Assert.assertFalse(isAssignmentLimitationsSelected(), "Assignment limitations checkbox is selected but shouldn't be.");
+        return this;
     }
 
-    public void assertCertificationWorkItemsNotSelected() {
-        if (isCertificationWorkItemsSelected()) {
-            throw new AssertionError("Workflow approvals (for certification work items) checkbox is selected but shouldn't be.");
-        }
+    public DelegationDetailsPanel<T> assertAssignmentPrivilegesSelected() {
+        Assert.assertTrue(isAssignmentPrivilegesSelected(),"Assignment privileges checkbox is not selected but should be.");
+        return this;
+    }
+
+    public DelegationDetailsPanel<T> assertAssignmentPrivilegesNotSelected() {
+        Assert.assertFalse(isAssignmentPrivilegesSelected(),"Assignment privileges checkbox is selected but shouldn't be.");
+        return this;
+    }
+
+    public DelegationDetailsPanel<T> assertCertificationWorkItemsSelected() {
+        Assert.assertTrue(isCertificationWorkItemsSelected(), "Workflow approvals (for certification work items) checkbox is not selected but should be.");
+        return this;
+    }
+
+    public DelegationDetailsPanel<T> assertCertificationWorkItemsNotSelected() {
+        Assert.assertFalse(isCertificationWorkItemsSelected(), "Workflow approvals (for certification work items) checkbox is selected but shouldn't be.");
+        return this;
+    }
+
+    public DelegationDetailsPanel<T> assertDescriptionEnabled() {
+        Assert.assertTrue(isDescriptionEnabled());
+        return this;
+    }
+
+    public DelegationDetailsPanel<T> assertDescriptionDisabled() {
+        Assert.assertFalse(isDescriptionEnabled());
+        return this;
+    }
+
+    public DelegationDetailsPanel<T> assertValidFromPanelEnabled() {
+        Assert.assertTrue(isValidFromPanelEnabled());
+        return this;
+    }
+
+    public DelegationDetailsPanel<T> assertValidFromPanelDisabled() {
+        Assert.assertFalse(isValidFromPanelEnabled());
+        return this;
     }
 }

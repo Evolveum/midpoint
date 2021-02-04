@@ -1,4 +1,6 @@
 -- @formatter:off
+-- This is incorporated into new repo with m_* prefix, this c_* version is better for old repo.
+
 -- Describes c_object.objectClassType
 CREATE TABLE c_objtype (
     id INT PRIMARY KEY,

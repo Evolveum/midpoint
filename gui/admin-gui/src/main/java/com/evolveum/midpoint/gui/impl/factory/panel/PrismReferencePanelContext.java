@@ -6,18 +6,21 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
-import com.evolveum.midpoint.prism.*;
+import java.util.Set;
+import java.util.function.Function;
 
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.SearchItem;
 
 /**
  * @author katka
- *
  */
-public class PrismReferencePanelContext<R extends Referencable> extends ItemPanelContext<R, PrismReferenceWrapper<R>>{
+public class PrismReferencePanelContext<R extends Referencable> extends ItemPanelContext<R, PrismReferenceWrapper<R>> {
 
     public PrismReferencePanelContext(IModel<PrismReferenceWrapper<R>> itemWrapper) {
         super(itemWrapper);
@@ -25,6 +28,10 @@ public class PrismReferencePanelContext<R extends Referencable> extends ItemPane
 
     public ObjectFilter getFilter() {
         return unwrapWrapperModel().getFilter();
+    }
+
+    public Set<Function<Search, SearchItem>> getSpecialSearchItems() {
+        return unwrapWrapperModel().getSpecialSearchItemFunctions();
     }
 
 }

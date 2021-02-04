@@ -11,14 +11,11 @@ import com.codeborne.selenide.Selenide;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
-import com.evolveum.midpoint.schrodinger.component.task.EnvironmentalPerformanceTab;
 import com.evolveum.midpoint.schrodinger.component.task.OperationStatisticsTab;
-import com.evolveum.midpoint.schrodinger.component.task.ResultTab;
 import com.evolveum.midpoint.schrodinger.page.task.ListTasksPage;
 import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -87,25 +84,19 @@ public class TaskPageTest extends AbstractSchrodingerTest {
                     .clickByName("OperationStatisticsCleanupTest");
         OperationStatisticsTab operationStatisticsTab = taskPage
                 .selectTabOperationStatistics();
-        Assert.assertEquals(operationStatisticsTab.getSuccessfullyProcessed(), Integer.valueOf(30),
-                "The count of successfully processed objects doesn't match");
-        Assert.assertEquals(operationStatisticsTab.getObjectsFailedToBeProcessed(), Integer.valueOf(3),
-                "The count of failed objects doesn't match");
-        Assert.assertEquals(operationStatisticsTab.getObjectsTotalCount(), Integer.valueOf(33),
-                "The total count of processed objects doesn't match");
-        Assert.assertTrue(taskPage
+        operationStatisticsTab.assertSuccessfullyProcessedCountMatch(30);
+        operationStatisticsTab.assertObjectsFailedToBeProcessedCountMatch(3);
+        operationStatisticsTab.assertObjectsTotalCountMatch(33);
+        taskPage
                 .cleanupEnvironmentalPerformanceInfo()
                 .clickYes()
                 .feedback()
-                .isSuccess());
+                .assertSuccess();
         operationStatisticsTab = taskPage
                 .selectTabOperationStatistics();
-        Assert.assertNull(operationStatisticsTab.getSuccessfullyProcessed(),
-                "The count of successfully processed objects after cleanup is not null");
-        Assert.assertNull(operationStatisticsTab.getObjectsFailedToBeProcessed(),
-                "The count of failed objects after cleanup is not null");
-        Assert.assertNull(operationStatisticsTab.getObjectsTotalCount(),
-                "The total count of processed objects after cleanup is not null");
+        operationStatisticsTab.assertSuccessfullyProcessedIsNull();
+        operationStatisticsTab.assertObjectsFailedToBeProcessedIsNull();
+        operationStatisticsTab.assertObjectsTotalIsNull();
 
     }
 
@@ -119,31 +110,25 @@ public class TaskPageTest extends AbstractSchrodingerTest {
                         .updateSearch()
                     .and()
                     .clickByName("EnvironmentalPerformanceCleanupTest");
-        EnvironmentalPerformanceTab environmentalPerformanceTab = taskPage
-                .selectTabEnvironmentalPerformance();
-        Assert.assertEquals(environmentalPerformanceTab.getStatisticsPanel().getMappingsEvaluationContainingObjectValue(), "ManRes",
-                "'Containing object' value doesn't match");
-        Assert.assertEquals(environmentalPerformanceTab.getStatisticsPanel().getMappingsEvaluationInvocationsCountValue(), "4",
-                "'Invocations count' value doesn't match");
-        Assert.assertEquals(environmentalPerformanceTab.getStatisticsPanel().getMappingsEvaluationMaxValue(), "1",
-                "'Max' value doesn't match");
-        Assert.assertEquals(environmentalPerformanceTab.getStatisticsPanel().getMappingsEvaluationTotalTimeValue(), "2",
-                "'Total time' value doesn't match");
-        Assert.assertTrue(taskPage
+        taskPage
+                .selectTabEnvironmentalPerformance()
+                    .getStatisticsPanel()
+                        .assertMappingsEvaluationContainingObjectValueMatch("ManRes")
+                        .assertMappingsEvaluationInvocationsCountValueMatch("4")
+                        .assertMappingsEvaluationMaxValueMatch("1")
+                        .assertMappingsEvaluationTotalTimeValueMatch("2");
+        taskPage
                 .cleanupEnvironmentalPerformanceInfo()
                 .clickYes()
                 .feedback()
-                .isSuccess());
-        environmentalPerformanceTab = taskPage
-                .selectTabEnvironmentalPerformance();
-        Assert.assertNull(environmentalPerformanceTab.getStatisticsPanel().getMappingsEvaluationContainingObjectValue(),
-                "'Containing object' value is not null after cleanup");
-        Assert.assertNull(environmentalPerformanceTab.getStatisticsPanel().getMappingsEvaluationInvocationsCountValue(),
-                "'Invocations count' value is not null after cleanup");
-        Assert.assertNull(environmentalPerformanceTab.getStatisticsPanel().getMappingsEvaluationMaxValue(),
-                "'Max' value is not null after cleanup");
-        Assert.assertNull(environmentalPerformanceTab.getStatisticsPanel().getMappingsEvaluationTotalTimeValue(),
-                "'Total time' value is not null after cleanup");
+                .assertSuccess();
+        taskPage
+                .selectTabEnvironmentalPerformance()
+                    .getStatisticsPanel()
+                        .assertMappingsEvaluationContainingObjectValueMatch(null)
+                        .assertMappingsEvaluationInvocationsCountValueMatch(null)
+                        .assertMappingsEvaluationMaxValueMatch(null)
+                        .assertMappingsEvaluationTotalTimeValueMatch(null);
     }
 
     @Test
@@ -157,35 +142,29 @@ public class TaskPageTest extends AbstractSchrodingerTest {
                     .and()
                     .clickByName("ResultCleanupTest");
         String tokenValue = "1000000000000003831";
-        ResultTab resultTab = taskPage
-                .selectTabResult();
-        Assert.assertTrue(resultTab.getResultsTable().containsText(tokenValue),
-                "'Token' value '" + tokenValue +"' is absent");
-        Assert.assertEquals(resultTab.getOperationValueByToken(tokenValue), "run",
-                "'Operation' value doesn't match");
-        Assert.assertEquals(resultTab.getStatusValueByToken(tokenValue), "IN_PROGRESS",
-                "'Status' value doesn't match");
-        Assert.assertEquals(resultTab.getTimestampValueByToken(tokenValue), "1/1/20, 12:00:00 AM",
-                "'Timestamp' value doesn't match");
-        Assert.assertEquals(resultTab.getMessageValueByToken(tokenValue), "Test results",
-                "'Message' value doesn't match");
-        Assert.assertTrue(taskPage
+        taskPage
+                .selectTabResult()
+                    .getResultsTable()
+                        .assertTableContainsText(tokenValue)
+                        .and()
+                    .assertOperationValueByTokenMatch(tokenValue, "run")
+                    .assertStatusValueByTokenMatch(tokenValue, "IN_PROGRESS")
+                    .assertTimestampValueByTokenMatch(tokenValue, "1/1/20, 12:00:00 AM")
+                    .assertMessageValueByTokenMatch(tokenValue, "Test results");
+        taskPage
                 .cleanupResults()
-                .clickYes()
-                .feedback()
-                .isSuccess());
-        resultTab = taskPage
-                .selectTabResult();
-        Assert.assertFalse(resultTab.getResultsTable().containsText(tokenValue),
-                "'Token' value '" + tokenValue +"' is present after cleanup");
-        Assert.assertNull(resultTab.getOperationValueByToken(tokenValue),
-                "'Operation' value is not null after cleanup");
-        Assert.assertNull(resultTab.getStatusValueByToken(tokenValue),
-                "'Status' value is not null after cleanup");
-        Assert.assertNull(resultTab.getTimestampValueByToken(tokenValue),
-                "'Timestamp' value is not null after cleanup");
-        Assert.assertNull(resultTab.getMessageValueByToken(tokenValue),
-                "'Message' value is not null after cleanup");
+                    .clickYes()
+                        .feedback()
+                        .assertSuccess();
+        taskPage
+                .selectTabResult()
+                    .getResultsTable()
+                        .assertTableDoesntContainText(tokenValue)
+                        .and()
+                    .assertOperationValueByTokenMatch(tokenValue, null)
+                    .assertStatusValueByTokenMatch(tokenValue, null)
+                    .assertTimestampValueByTokenMatch(tokenValue, null)
+                    .assertMessageValueByTokenMatch(tokenValue, null);
 
     }
 }

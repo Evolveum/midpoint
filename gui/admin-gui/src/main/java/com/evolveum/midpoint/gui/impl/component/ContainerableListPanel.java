@@ -149,13 +149,15 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
             @Override
             public Search load() {
-                Search<C> search = null;
+                Search<C> newSearch = createSearch(getType());
 
+                Search<C> search = null;
                 PageStorage storage = getPageStorage();
-                if (storage != null) {
+                String searchByName = getSearchByNameParameterValue();
+                if (storage != null && searchByName == null) {  // do NOT use storage when using name search (e.g. from dashboard)
                     search = storage.getSearch();
                 }
-                Search<C> newSearch = createSearch(getType());
+
                 if (search == null ||
                         (!SearchBoxModeType.ADVANCED.equals(search.getSearchType()) && !search.getAllDefinitions().containsAll(newSearch.getAllDefinitions()))
                         || search.isTypeChanged()) {
@@ -163,7 +165,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                     search.searchWasReload();
                 }
 
-                String searchByName = getSearchByNameParameterValue();
                 if (searchByName != null) {
                     if (SearchBoxModeType.FULLTEXT.equals(search.getSearchType())) {
                         search.setFullText(searchByName);
@@ -175,6 +176,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                         }
                     }
                 }
+
 
                 if (isCollectionViewPanel()) {
                     search.setCollectionSearchItem(new ObjectCollectionSearchItem(search, getObjectCollectionView()));

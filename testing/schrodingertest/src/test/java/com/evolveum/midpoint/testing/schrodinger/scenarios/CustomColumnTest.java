@@ -11,7 +11,6 @@ import com.evolveum.midpoint.schrodinger.component.modal.ExportPopupPanel;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -69,14 +68,9 @@ public class CustomColumnTest extends AbstractSchrodingerTest {
                 .clickExportButton()
                     .table();
         screenshot("exportTable");
-        Assert.assertNotNull(exportTable
-                .rowByColumnLabel("Column name", "Name (custom)"),
-                "Name column (in Export popup) doesn't exist,");
-        Assert.assertNotNull(exportTable
-                .rowByColumnLabel("Column name", "Role membership"),
-                "Role membership column (in Export popup) doesn't exist,");
-        Assert.assertNotNull(exportTable
-                .rowByColumnLabel("Column name", "Preferred language"),
-                "Preferred language column (in Export popup) doesn't exist,");
+        exportTable
+                .assertTableRowExists("Column name", "Name (custom)")
+                .assertTableRowExists("Column name", "Role membership")
+                .assertTableRowExists("Column name", "Preferred language");
     }
 }

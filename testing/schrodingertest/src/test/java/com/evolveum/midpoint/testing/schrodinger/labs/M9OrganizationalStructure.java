@@ -14,10 +14,8 @@ import com.evolveum.midpoint.schrodinger.page.org.OrgTreePage;
 
 import com.evolveum.midpoint.schrodinger.page.resource.AccountPage;
 import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 import org.apache.commons.io.FileUtils;
-import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -32,6 +30,19 @@ import java.util.List;
 
 public class M9OrganizationalStructure extends AbstractLabTest{
 
+    private static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M9/";
+    private static final File ARCHETYPE_ORG_FUNCTIONAL_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-org-functional.xml");
+    private static final File ARCHETYPE_ORG_COMPANY_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-org-company.xml");
+    private static final File ARCHETYPE_ORG_GROUP_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-org-group.xml");
+    private static final File ARCHETYPE_ORG_GROUP_LIST_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-org-group-list.xml");
+    private static final File KIRK_USER_TIBERIUS_FILE = new File(LAB_OBJECTS_DIRECTORY + "users/kirk-tiberius-user.xml");
+    private static final File OBJECT_TEMPLATE_USER_FILE = new File(LAB_OBJECTS_DIRECTORY + "objectTemplate/object-template-example-user.xml");
+    private static final File NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE = new File(LAB_OBJECTS_DIRECTORY + "valuePolicies/numeric-pin-first-nonzero-policy.xml");
+    private static final File ORG_EXAMPLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "org/org-example.xml");
+    private static final File ORG_SECRET_OPS_FILE = new File(LAB_OBJECTS_DIRECTORY + "org/org-secret-ops.xml");
+    private static final File CSV_1_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-9.xml");
+    private static final File SECRET_I_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-secret-i.xml");
+    private static final File SECRET_II_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-secret-ii.xml");
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override
@@ -58,23 +69,23 @@ public class M9OrganizationalStructure extends AbstractLabTest{
         importObject(ORG_EXAMPLE_FILE, true);
 
         OrgTreePage orgTree = basicPage.orgStructure();
-        Assert.assertTrue(orgTree.selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
+        orgTree.selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                 .getOrgHierarchyPanel()
                     .showTreeNodeDropDownMenu("ExAmPLE, Inc. - Functional Structure")
                         .expandAll()
                     .expandOrg("Software Department")
-                    .containsChildOrg("ExAmPLE, Inc. - Functional Structure", "Executive Division", "Sales Department",
-                                "Human Resources", "Technology Division", "IT Administration Department", "Software Department", "Java Development"));
-        Assert.assertTrue(orgTree.selectTabWithRootOrg("Groups")
+                    .assertChildOrgExists("ExAmPLE, Inc. - Functional Structure", "Executive Division", "Sales Department",
+                                "Human Resources", "Technology Division", "IT Administration Department", "Software Department", "Java Development");
+        orgTree.selectTabWithRootOrg("Groups")
                 .getOrgHierarchyPanel()
-                    .containsChildOrg("Groups", "Active Employees", "Administrators", "Contractors", "Former Employees",
-                        "Inactive Employees", "Security"));
+                    .assertChildOrgExists("Groups", "Active Employees", "Administrators", "Contractors", "Former Employees",
+                        "Inactive Employees", "Security");
 
         importObject(ORG_SECRET_OPS_FILE, true);
-        Assert.assertTrue(basicPage.orgStructure()
+        basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                     .getOrgHierarchyPanel()
-                        .containsChildOrg("Secret Operations", "Transportation and Logistics Department"));
+                        .assertChildOrgExists("Secret Operations", "Transportation and Logistics Department");
     }
 
     @Test(dependsOnMethods = {"mod09test01ImportStaticOrgStructure"})
@@ -174,7 +185,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                     .getMemberPanel()
                         .selectType("User")
                             .table()
-                            .assertTableContainsText("kirk");
+                            .assertTableDoesntContainText("kirk");
 
         basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
@@ -235,10 +246,10 @@ public class M9OrganizationalStructure extends AbstractLabTest{
 
         AccountPage accountPage = showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
         Selenide.screenshot("M9_accountPage");
-        Assert.assertTrue(accountPage
+        accountPage
                         .form()
-                        .compareInputAttributeValues("groups", "Internal Employees",
-                                "Essential Documents", "Teleportation", "Time Travel"));
+                        .assertInputAttributeValuesMatches("groups", "Internal Employees",
+                                "Essential Documents", "Teleportation", "Time Travel");
 
         basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
@@ -264,11 +275,10 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                                     .feedback()
                                         .isSuccess();
 
-        Assert.assertTrue(
-                showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
+        showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
                         .form()
-                        .compareInputAttributeValues("groups", "Internal Employees",
-                                "Essential Documents", "Teleportation", "Time Travel"));
+                        .assertInputAttributeValuesMatches("groups", "Internal Employees",
+                                "Essential Documents", "Teleportation", "Time Travel");
 
         basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
@@ -285,16 +295,14 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                 .feedback()
                     .isInfo();
 
-        Assert.assertTrue(
-                showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
+        showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
                         .form()
-                        .compareInputAttributeValues("groups", "Internal Employees",
-                                "Essential Documents", "Teleportation", "Time Travel", "Lucky Numbers",
-                                "Presidential Candidates Motivation"));
+                        .assertInputAttributeValuesMatches("groups", "Internal Employees", "Essential Documents",
+                                "Teleportation", "Time Travel", "Lucky Numbers", "Presidential Candidates Motivation");
 
-        Assert.assertTrue(showUser("kirk").selectTabAssignments()
+        showUser("kirk").selectTabAssignments()
                 .selectTypeAllDirectIndirect()
-                    .containsIndirectAssignments("Secret Projects II"));
+                    .assertIndirectAssignmentsExist("Secret Projects II");
     }
 
 }

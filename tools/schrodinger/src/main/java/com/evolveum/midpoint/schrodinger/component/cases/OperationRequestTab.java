@@ -13,6 +13,7 @@ import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.page.cases.CasePage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
+import org.testng.Assert;
 
 import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.$;
@@ -40,5 +41,15 @@ public class OperationRequestTab extends Component<CasePage> {
                 .$(By.className("box-danger"))
                 .$(byText("Changes rejected"))
                 .is(Condition.visible);
+    }
+
+    public OperationRequestTab assertChangesAreApplied() {
+        Assert.assertTrue(changesAreApplied(), "Changes are not applied");
+        return this;
+    }
+
+    public OperationRequestTab assertChangesAreRejected() {
+        Assert.assertTrue(changesAreRejected(), "Changes are not rejected");
+        return this;
     }
 }

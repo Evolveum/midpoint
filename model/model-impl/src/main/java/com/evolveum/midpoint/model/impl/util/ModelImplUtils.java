@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.model.impl.sync.tasks.SynchronizationObjectsFilterImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -80,11 +81,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-/**
- *
- * @author lazyman
- *
- */
 public class ModelImplUtils {
 
     private static final String OPERATION_RESOLVE_REFERENCE = ObjectImporter.class.getName() + ".resolveReference";
@@ -157,9 +153,8 @@ public class ModelImplUtils {
         List<ObjectPolicyConfigurationType> typeWithSubtype = new ArrayList<>();
         List<ObjectPolicyConfigurationType> noTypeNoSubtype = new ArrayList<>();
         List<ObjectPolicyConfigurationType> noTypeWithSubtype = new ArrayList<>();
-        List<ObjectPolicyConfigurationType> all = new ArrayList<>();
-
-        all.addAll(systemConfigurationType.getDefaultObjectPolicyConfiguration());
+        List<ObjectPolicyConfigurationType> all = new ArrayList<>(
+                systemConfigurationType.getDefaultObjectPolicyConfiguration());
 
         for (ObjectPolicyConfigurationType aPolicyConfigurationType: all) {
             QName typeQName = aPolicyConfigurationType.getType();
@@ -362,6 +357,7 @@ public class ModelImplUtils {
             }
             if (object != null && refVal.getOriginType() != null) {
                 // Check if declared and actual type matches
+                //noinspection EqualsBetweenInconvertibleTypes - both are Class, false alarm
                 if (!object.getClass().equals(type)) {
                     result.recordWarning("Type mismatch on property " + refName + ": declared:"
                             + refVal.getOriginType() + ", actual: " + object.getClass());
@@ -471,6 +467,14 @@ public class ModelImplUtils {
             return true;
         }
         return false;
+    }
+
+    public static SynchronizationObjectsFilterImpl determineSynchronizationObjectsFilter(
+            @NotNull ObjectClassComplexTypeDefinition objectclassDef, Task task) {
+        ShadowKindType kind = getTaskExtensionPropertyValue(task, ModelConstants.KIND_PROPERTY_NAME);
+        String intent = getTaskExtensionPropertyValue(task, ModelConstants.INTENT_PROPERTY_NAME);
+
+        return new SynchronizationObjectsFilterImpl(objectclassDef, kind, intent);
     }
 
     public static ObjectClassComplexTypeDefinition determineObjectClass(RefinedResourceSchema refinedSchema, Task task)
@@ -706,7 +710,7 @@ public class ModelImplUtils {
             expressionVariables.put(ExpressionConstants.VAR_THIS_ASSIGNMENT, assignmentPathVariables.getThisAssignment(), assignmentDef);
             expressionVariables.put(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentPathVariables.getFocusAssignment(), assignmentDef);
             PrismObjectDefinition<AbstractRoleType> abstractRoleDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AbstractRoleType.class);
-            expressionVariables.put(ExpressionConstants.VAR_IMMEDIATE_ROLE, (PrismObject) assignmentPathVariables.getImmediateRole(), abstractRoleDefinition);
+            expressionVariables.put(ExpressionConstants.VAR_IMMEDIATE_ROLE, assignmentPathVariables.getImmediateRole(), abstractRoleDefinition);
         } else {
             // to avoid "no such variable" exceptions in boundary cases
             // for null/empty paths we might consider creating empty AssignmentPathVariables objects to keep null/empty path distinction
@@ -826,5 +830,4 @@ public class ModelImplUtils {
     public static String generateRequestIdentifier() {
         return UUID.randomUUID().toString();
     }
-
 }

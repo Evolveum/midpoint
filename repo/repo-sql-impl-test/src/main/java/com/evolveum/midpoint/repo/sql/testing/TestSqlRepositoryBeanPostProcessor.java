@@ -4,52 +4,42 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.testing;
 
-import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.hibernate.query.Query;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.context.ApplicationContext;
 
-/**
- * @author lazyman
- */
+import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(TestSqlRepositoryBeanPostProcessor.class);
+
     private static final String TRUNCATE_FUNCTION = "cleanupTestDatabase";
     private static final String TRUNCATE_PROCEDURE = "cleanupTestDatabaseProc";
 
-    @Autowired private ApplicationContext context;
+    @Autowired private SqlRepositoryConfiguration repoConfig;
 
     @Override
-    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-        if ((bean instanceof SqlRepositoryFactory) || (bean instanceof SessionFactory)
-                || (bean instanceof SqlRepositoryServiceImpl)) {
-            LOGGER.info("Post process: " + bean.getClass().getName());
-        }
-
+    public Object postProcessAfterInitialization(@NotNull Object bean, @NotNull String beanName)
+            throws BeansException {
         if (!(bean instanceof SessionFactory)) {
             return bean;
         }
         LOGGER.info("Postprocessing session factory - removing everything from database if necessary.");
 
-        TestSqlRepositoryFactory factory = context.getBean(TestSqlRepositoryFactory.class);
         //we'll attempt to drop database objects if configuration contains dropIfExists=true and embedded=false
-        SqlRepositoryConfiguration config = factory.getConfiguration();
-        if (!config.isDropIfExists() || config.isEmbedded()) {
+        if (!repoConfig.isDropIfExists() || repoConfig.isEmbedded()) {
             LOGGER.info("We're not deleting objects from DB, drop if exists=false or embedded=true.");
             return bean;
         }
@@ -61,8 +51,8 @@ public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor {
         try {
             session.beginTransaction();
 
-            Query query;
-            if (useProcedure(factory.getConfiguration())) {
+            Query<?> query;
+            if (useProcedure(repoConfig)) {
                 LOGGER.info("Using truncate procedure.");
                 query = session.createNativeQuery("{ call " + TRUNCATE_PROCEDURE + "() }");
                 query.executeUpdate();
@@ -102,7 +92,8 @@ public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor {
     }
 
     @Override
-    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+    public Object postProcessBeforeInitialization(@NotNull Object bean, @NotNull String beanName)
+            throws BeansException {
         return bean;
     }
 }

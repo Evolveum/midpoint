@@ -8,12 +8,16 @@ package com.evolveum.midpoint.schrodinger.component.prism.show;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 
+import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
+import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import org.openqa.selenium.By;
+import org.testng.Assert;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,10 +30,21 @@ public class ScenePanel<T> extends Component<T> {
         super(parent, parentElement);
     }
 
-    public boolean isExpanded() {
-        SelenideElement minimizeButton = $(Schrodinger.byDataId("minimizeButton"));
+    public ScenePanel<T> assertExpanded() {
+        SelenideElement minimizeButton = getParentElement().$x(".//a[@data-s-id='minimizeButton']").waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
         SelenideElement icon = minimizeButton.$(By.tagName("i"));
-        return icon.has(Condition.cssClass("fa-chevron-down"));
+        Assert.assertTrue(icon.has(Condition.cssClass("fa-chevron-down")), "Primary deltas should be expanded.");
+        return this;
+    }
+
+    public ScenePanel<T> expandScenePanel() {
+        SelenideElement minimizeButton = getParentElement().$x(".//a[@data-s-id='minimizeButton']").waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+        SelenideElement icon = minimizeButton.$(By.tagName("i"));
+        if (!icon.has(Condition.cssClass("fa-chevron-down"))) {
+            minimizeButton.click();
+            Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        }
+        return this;
     }
 
     public List<ScenePanel> objectDeltas() {
@@ -44,6 +59,10 @@ public class ScenePanel<T> extends Component<T> {
         return new PartialSceneHeader(this, element);
     }
 
+    public ScenePanel<T> assertDeltasSizeEquals(int expectedSize) {
+        Assert.assertEquals(expectedSize, objectDeltas().size());
+        return this;
+    }
 
 
 }

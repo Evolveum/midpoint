@@ -10,47 +10,6 @@ import java.util.*;
 import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
-import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
-import com.evolveum.midpoint.prism.util.PolyStringUtils;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.constants.RelationTypes;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
-import com.evolveum.midpoint.web.component.MultifunctionalButton;
-import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
-import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
-import com.evolveum.midpoint.web.component.dialog.ConfigureTaskConfirmationPanel;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.search.*;
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
-import com.evolveum.midpoint.web.session.MemberPanelStorage;
-import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -63,34 +22,73 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.markup.html.form.ChoiceRenderer;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.*;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
+import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.prism.util.PolyStringUtils;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
+import com.evolveum.midpoint.web.component.MultifunctionalButton;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
+import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.dialog.ChooseFocusTypeAndRelationDialogPanel;
+import com.evolveum.midpoint.web.component.dialog.ConfigureTaskConfirmationPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.search.*;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
-
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.web.session.MemberPanelStorage;
+import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extends BasePanel<R> {
 
@@ -118,8 +116,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     private UserInterfaceFeatureType defaultTenantConfiguration = null;
     private UserInterfaceFeatureType defaultProjectConfiguration = null;
     private PageBase pageBase;
-
-    protected static final String ID_SEARCH_BY_RELATION = "searchByRelation";
 
     private static final Map<QName, Map<String, String>> AUTHORIZATIONS = new HashMap<>();
     private static final Map<QName, UserProfileStorage.TableId> TABLES_ID = new HashMap<>();
@@ -347,16 +343,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             protected PageStorage getPageStorage(String storageKey){
-                PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(storageKey);
-                if (storage == null) {
-                    storage = getSession().getSessionStorage().initPageStorage(storageKey);
-                    if (storage instanceof MemberPanelStorage) {
-                        ((MemberPanelStorage) storage).setIndirect(defaultIndirectConfiguration.isIndirect());
-                        ((MemberPanelStorage) storage).setRelation(defaultRelationConfiguration.getDefaultValue());
-                        ((MemberPanelStorage) storage).setOrgSearchScope(defaultScopeConfiguration.getDefaultValue());
-                    }
-                }
-                return storage;
+                return getSession().getSessionStorage().getPageStorageMap().get(storageKey);
             }
 
             @Override
@@ -364,7 +351,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 Search search = null;
                 if (getMemberPanelStorage() != null) {
                     if (getMemberPanelStorage().getRelation() == null) {
-                        getMemberPanelStorage().setRelation(getSupportedRelations().getDefaultRelation());
+                        getMemberPanelStorage().setRelation(getSupportedRelations().getDefaultRelationAllowAny());
                     }
                     if (getMemberPanelStorage().getSearch() != null) {
                         search = getMemberPanelStorage().getSearch();
@@ -403,6 +390,10 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                     }
                 }
 
+                GuiObjectListPanelConfigurationType additionalPanel = getAdditionalPanelConfig();
+                if (additionalPanel != null && additionalPanel.getSearchBoxConfiguration() != null){
+                    search.setCanConfigure(!Boolean.FALSE.equals(additionalPanel.getSearchBoxConfiguration().isAllowToConfigureSearchItems()));
+                }
                 return search;
             }
 
@@ -410,11 +401,16 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             protected ObjectQuery getCustomizeContentQuery() {
                 if (!CompiledGuiProfile.isVisible(defaultRelationConfiguration.getVisibility(), null)
                         && !CompiledGuiProfile.isVisible(defaultIndirectConfiguration.getVisibility(), null)
-                        && !CompiledGuiProfile.isVisible(defaultScopeConfiguration.getVisibility(), null)
-                        && !CompiledGuiProfile.isVisible(defaultTenantConfiguration.getVisibility(), null)
-                        && !CompiledGuiProfile.isVisible(defaultProjectConfiguration.getVisibility(), null)){
+                        && (!(AbstractRoleMemberPanel.this.getModelObject() instanceof OrgType) || !CompiledGuiProfile.isVisible(defaultScopeConfiguration.getVisibility(), null))
+                        && (!(AbstractRoleMemberPanel.this.getModelObject() instanceof RoleType) || !CompiledGuiProfile.isVisible(defaultTenantConfiguration.getVisibility(), null))
+                        && (!(AbstractRoleMemberPanel.this.getModelObject() instanceof RoleType) || !CompiledGuiProfile.isVisible(defaultProjectConfiguration.getVisibility(), null))){
                     PrismContext prismContext = getPageBase().getPrismContext();
-                    List relations = getSupportedRelations().getAvailableRelationList();
+                    List relations = new ArrayList();
+                    if (QNameUtil.match(PrismConstants.Q_ANY, getSupportedRelations().getDefaultRelation())) {
+                        relations.addAll(getSupportedRelations().getAvailableRelationList());
+                    } else {
+                        relations.add(getSupportedRelations().getDefaultRelation());
+                    }
 
                     R object = AbstractRoleMemberPanel.this.getModelObject();
                     Class type = getSearchModel().getObject().getTypeClass();
@@ -503,7 +499,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             public boolean isApplyFilter() {
-                return !SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope());
+                return !CompiledGuiProfile.isVisible(defaultScopeConfiguration.getVisibility(), null)
+                        || !SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope());
             }
 
             @Override
@@ -586,7 +583,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                     return null;
                 }
                 Class type = search.getTypeClass();
-                ObjectReferenceType ref = MemberOperationsHelper.createReference(object, getSelectedRelation());
+                ObjectReferenceType ref = MemberOperationsHelper.createReference(object, null);
                 return pageBase.getPrismContext().queryFor(type).isChildOf(ref.asReferenceValue()).buildFilter();
             }
 
@@ -635,7 +632,12 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 if (object == null) {
                     return null;
                 }
-                List relations = getSupportedRelations().getAvailableRelationList();
+                List relations = new ArrayList();
+                if (QNameUtil.match(PrismConstants.Q_ANY, getMemberPanelStorage().getRelation())) {
+                    relations.addAll(getSupportedRelations().getAvailableRelationList());
+                } else {
+                    relations.add(getMemberPanelStorage().getRelation());
+                }
 
                 ObjectFilter filter;
                 PrismContext prismContext = pageBase.getPrismContext();
@@ -656,7 +658,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             public boolean isApplyFilter() {
-                return !SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope());
+                return !CompiledGuiProfile.isVisible(defaultScopeConfiguration.getVisibility(), null)
+                        || !SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope());
             }
 
             @Override
@@ -715,9 +718,10 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             public boolean isApplyFilter() {
-                return !SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope())
+                return !CompiledGuiProfile.isVisible(defaultScopeConfiguration.getVisibility(), null)
+                        || (!SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope())
                         && !CompiledGuiProfile.isVisible(defaultRelationConfiguration.getVisibility(), null)
-                        && !Boolean.TRUE.equals(getMemberPanelStorage().getIndirect());
+                        && !Boolean.TRUE.equals(getMemberPanelStorage().getIndirect()));
             }
 
             @Override
@@ -727,7 +731,12 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                     return null;
                 }
                 PrismContext prismContext = pageBase.getPrismContext();
-                List relations = getSupportedRelations().getAvailableRelationList();
+                List relations = new ArrayList();
+                if (QNameUtil.match(PrismConstants.Q_ANY, getSupportedRelations().getDefaultRelationAllowAny())) {
+                    relations.addAll(getSupportedRelations().getAvailableRelationList());
+                } else {
+                    relations.add(getSupportedRelations().getDefaultRelationAllowAny());
+                }
 
                 ObjectFilter filter;
                 Class type = search.getTypeClass();
@@ -812,10 +821,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             public boolean isApplyFilter() {
-                return !SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope())
+                return !CompiledGuiProfile.isVisible(defaultScopeConfiguration.getVisibility(), null)
+                        || (!SearchBoxScopeType.SUBTREE.equals(getMemberPanelStorage().getOrgSearchScope())
                         && !CompiledGuiProfile.isVisible(defaultRelationConfiguration.getVisibility(), null)
                         && !CompiledGuiProfile.isVisible(defaultTenantConfiguration.getVisibility(), null)
-                        && !Boolean.TRUE.equals(getMemberPanelStorage().getIndirect());
+                        && !Boolean.TRUE.equals(getMemberPanelStorage().getIndirect()));
             }
 
             @Override
@@ -825,7 +835,12 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                     return null;
                 }
                 PrismContext prismContext = pageBase.getPrismContext();
-                List relations = getSupportedRelations().getAvailableRelationList();
+                List relations = new ArrayList();
+                if (QNameUtil.match(PrismConstants.Q_ANY, getSupportedRelations().getDefaultRelationAllowAny())) {
+                    relations.addAll(getSupportedRelations().getAvailableRelationList());
+                } else {
+                    relations.add(getSupportedRelations().getDefaultRelationAllowAny());
+                }
 
                 ObjectFilter filter;
                 Class type = search.getTypeClass();
@@ -1451,15 +1466,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         ((PageBase) getPage()).showMainPopup(dialog, target);
     }
 
-    protected QName getSelectedRelation() {
-        MemberPanelStorage storage = getMemberPanelStorage();
-        if (storage != null) {
-            return storage.getRelation();
-        }
-        RelationDropDownChoicePanel relationDropDown = (RelationDropDownChoicePanel) get(createComponentPath(ID_FORM, ID_SEARCH_BY_RELATION));
-        return relationDropDown.getRelationValue();
-    }
-
     protected QName getSearchType(){
         return ObjectTypes.getObjectType(getMemberPanelStorage().getSearch().getTypeClass()).getTypeQName();
     }
@@ -1635,6 +1641,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(storageKey);
             if (storage == null) {
                 storage = getSession().getSessionStorage().initPageStorage(storageKey);
+                if (storage instanceof MemberPanelStorage) {
+                    ((MemberPanelStorage) storage).setIndirect(defaultIndirectConfiguration.isIndirect());
+                    ((MemberPanelStorage) storage).setRelation(getSupportedRelations().getDefaultRelationAllowAny());
+                    ((MemberPanelStorage) storage).setOrgSearchScope(defaultScopeConfiguration.getDefaultValue());
+                }
             }
             return (MemberPanelStorage) storage;
         }

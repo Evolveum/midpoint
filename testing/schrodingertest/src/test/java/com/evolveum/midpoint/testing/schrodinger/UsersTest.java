@@ -13,7 +13,6 @@ import com.evolveum.midpoint.schrodinger.component.common.Paging;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -30,22 +29,16 @@ public class UsersTest extends AbstractSchrodingerTest {
     private static final File LOOKUP_TABLE_SUBTYPES = new File("src/test/resources/configuration/objects/lookuptable/subtypes.xml");
     private static final File OT_FOR_LOOKUP_TABLE_SUBTYPES = new File("src/test/resources/configuration/objects/objecttemplate/object-template-for-lookup-table-subtypes.xml");
     private static final File SYSTEM_CONFIG_WITH_LOOKUP_TABLE = new File("src/test/resources/configuration/objects/systemconfig/system-configuration-with-lookup-table.xml");
+    private static final File MULTIPLE_USERS = new File("src/test/resources/configuration/objects/users/jack-users.xml");
 
     @Override
     protected List<File> getObjectListToImport(){
-        return Arrays.asList(LOOKUP_TABLE_SUBTYPES, OT_FOR_LOOKUP_TABLE_SUBTYPES, SYSTEM_CONFIG_WITH_LOOKUP_TABLE);
+        return Arrays.asList(LOOKUP_TABLE_SUBTYPES, OT_FOR_LOOKUP_TABLE_SUBTYPES, SYSTEM_CONFIG_WITH_LOOKUP_TABLE, MULTIPLE_USERS);
     }
 
     @Test
     public void test001UserTablePaging() {
         ListUsersPage users = basicPage.listUsers();
-
-        screenshot("listUsers");
-
-        for (int i = 0; i < 21; i++) {
-            addUser("john" + i);
-            Selenide.sleep(5000);
-        }
 
         Paging paging = users
                 .table()
@@ -54,16 +47,15 @@ public class UsersTest extends AbstractSchrodingerTest {
         paging.pageSize(5);
         Selenide.sleep(3000);
 
-        screenshot("paging");
-
-        paging.next();
-        paging.last();
-        paging.previous();
-        paging.first();
-        paging.actualPagePlusOne();
-        paging.actualPagePlusTwo();
-        paging.actualPageMinusTwo();
-        paging.actualPageMinusOne();
+        paging
+                .next()
+                .last()
+                .previous()
+                .first()
+                .actualPagePlusOne()
+                .actualPagePlusTwo()
+                .actualPageMinusTwo()
+                .actualPageMinusOne();
     }
 
     @Test
@@ -81,49 +73,41 @@ public class UsersTest extends AbstractSchrodingerTest {
 
         ListUsersPage users = basicPage.listUsers();
 
-        Assert.assertTrue(
-            users
+        users
                 .table()
                     .search()
                         .textInputPanelByItemName("title")
                             .inputValue("PhD.")
                     .updateSearch()
                     .and()
-                .currentTableContains("searchUser")
-        );
+                .assertCurrentTableContains("searchUser");
 
-        Assert.assertTrue(
-                users
+        users
                 .table()
                     .search()
                         .textInputPanelByItemName("title")
                             .inputValue("PhD")
                     .updateSearch()
                     .and()
-                .currentTableContains("searchUser")
-        );
+                .assertCurrentTableContains("searchUser");
 
-        Assert.assertFalse(
-            users
+        users
                 .table()
                     .search()
                         .textInputPanelByItemName("title")
                             .inputValue("Ing.")
                     .updateSearch()
                     .and()
-                .currentTableContains("searchUser")
-        );
+                .assertCurrentTableDoesntContain("searchUser");
 
-        Assert.assertFalse(
-            users
+        users
                 .table()
                     .search()
                         .textInputPanelByItemName("title")
                             .inputValue("Ing")
                     .updateSearch()
                     .and()
-                .currentTableContains("searchUser")
-        );
+                .assertCurrentTableDoesntContain("searchUser");
 
     }
 

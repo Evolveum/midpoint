@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -14,7 +14,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
-import com.evolveum.midpoint.repo.sqlbase.SqlPathContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
@@ -34,7 +33,7 @@ public class DetailTableItemFilterProcessor
     private final ItemSqlMapper nestedItemMapper;
 
     public DetailTableItemFilterProcessor(
-            SqlPathContext<?, ?, ?> ctx,
+            SqlQueryContext<?, ?, ?> ctx,
             Class<DQ> detailQueryType,
             BiFunction<Q, DQ, Predicate> joinOnPredicate,
             ItemSqlMapper nestedItemMapper) {
@@ -79,12 +78,12 @@ public class DetailTableItemFilterProcessor
     public Predicate process(PropertyValueFilter<String> filter) throws QueryException {
         // this part takes care of delegation to the nested path, including JOIN creation
         QueryModelMapping<?, DQ, DR> mapping =
-                context.sqlConfiguration().getMappingByQueryType(detailQueryType);
+                context.sqlRepoContext().getMappingByQueryType(detailQueryType);
         String aliasName = context.uniqueAliasName(mapping.defaultAliasName());
         DQ joinPath = mapping.newAlias(aliasName);
         //noinspection unchecked
         SqlQueryContext<?, DQ, DR> joinContext =
-                ((SqlPathContext<?, Q, ?>) context).leftJoin(joinPath, joinOnPredicate);
+                ((SqlQueryContext<?, Q, ?>) context).leftJoin(joinPath, joinOnPredicate);
 
         // now we create the actual filter processor on the inner context
         FilterProcessor<ObjectFilter> filterProcessor =

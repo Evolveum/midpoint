@@ -1,12 +1,10 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql.audit.querymodel;
-
-import static com.querydsl.core.types.PathMetadataFactory.forVariable;
 
 import java.sql.Types;
 
@@ -53,7 +51,7 @@ public class QAuditPropertyValue extends FlexibleRelationalPathBase<MAuditProper
     }
 
     public QAuditPropertyValue(String variable, String schema, String table) {
-        super(MAuditPropertyValue.class, forVariable(variable), schema, table);
+        super(MAuditPropertyValue.class, variable, schema, table);
     }
 }
 

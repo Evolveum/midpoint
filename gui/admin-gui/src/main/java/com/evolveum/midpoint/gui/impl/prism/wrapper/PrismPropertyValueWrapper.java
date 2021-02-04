@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.DebugUtil;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
@@ -126,5 +128,13 @@ public class PrismPropertyValueWrapper<T> extends PrismValueWrapperImpl<T> {
     @Override
     public PrismPropertyValue<T> getOldValue() {
         return super.getOldValue();
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = DebugUtil.createIndentedStringBuilder(indent);
+        sb.append(getNewValue().debugDump())
+                .append(" (").append(getStatus()).append(", old: ").append(getOldValue().debugDump()).append(")");
+        return sb.toString();
     }
 }

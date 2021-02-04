@@ -674,7 +674,7 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
                 return false;
             }
         }
-        return Objects.equals(a.getClearValue(), a.getClearValue());
+        return Objects.equals(a.getClearValue(), b.getClearValue());
     }
 
     private boolean areEquivalentHashed(ProtectedStringType a, ProtectedStringType b) {

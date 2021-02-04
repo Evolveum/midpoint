@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -3121,8 +3121,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return waitForTaskFinish(taskOid, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
     }
 
-    protected Task waitForTaskFinish(String taskOid, boolean checkSubresult, Function<TaskFinishChecker.Builder, TaskFinishChecker.Builder> customizer) throws CommonException {
-        return waitForTaskFinish(taskOid, checkSubresult, 0, DEFAULT_TASK_WAIT_TIMEOUT, false, 0, customizer);
+    protected Task waitForTaskFinish(String taskOid, Function<TaskFinishChecker.Builder, TaskFinishChecker.Builder> customizer) throws CommonException {
+        return waitForTaskFinish(taskOid, false, 0, DEFAULT_TASK_WAIT_TIMEOUT, false, 0, customizer);
     }
 
     protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout) throws CommonException {
@@ -3622,9 +3622,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     private static OperationResult getSubresult(OperationResult result, boolean checkSubresult) {
-        if (checkSubresult) {
-            return result != null ? result.getLastSubresult() : null;
-        }
+        // FIXME
+//        if (checkSubresult) {
+//            return result != null ? result.getLastSubresult() : null;
+//        }
         return result;
     }
 
@@ -4830,7 +4831,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 }
             } else {
                 ObjectTypes focusType = ObjectTypes.getObjectTypeFromTypeQName(focusTypeQName);
-                if (type != focusType.getClassDefinition()) {
+                if (type != (Class<?>) focusType.getClassDefinition()) {
                     continue;
                 }
             }
@@ -5578,10 +5579,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected <F extends FocusType, P extends FocusType> PrismObject<P> assertLinkedPersona(PrismObject<F> focus, Class<P> personaClass, String subtype) throws ObjectNotFoundException, SchemaException {
+    protected <F extends FocusType, P extends FocusType> PrismObject<P> assertLinkedPersona(
+            PrismObject<F> focus, Class<P> personaClass, String subtype)
+            throws ObjectNotFoundException, SchemaException {
         OperationResult result = new OperationResult("assertLinkedPersona");
         for (ObjectReferenceType personaRef : focus.asObjectable().getPersonaRef()) {
-            PrismObject<P> persona = repositoryService.getObject((Class<P>) ObjectTypes.getObjectTypeFromTypeQName(personaRef.getType()).getClassDefinition(),
+            PrismObject<P> persona = repositoryService.getObject(
+                    ObjectTypes.getObjectTypeFromTypeQName(personaRef.getType()).getClassDefinition(),
                     personaRef.getOid(), null, result);
             if (isTypeAndSubtype(persona, personaClass, subtype)) {
                 return persona;
@@ -5686,7 +5690,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         displayValue("Password of " + user, password);
         PrismObject<ValuePolicyType> passwordPolicy = repositoryService.getObject(ValuePolicyType.class, passwordPolicyOid, null, result);
         List<LocalizableMessage> messages = new ArrayList<>();
-        boolean valid = valuePolicyProcessor.validateValue(password, passwordPolicy.asObjectable(), createUserOriginResolver(user), messages, "validating password of " + user, task, result);
+        valuePolicyProcessor.validateValue(password, passwordPolicy.asObjectable(), createUserOriginResolver(user), messages, "validating password of " + user, task, result);
+        boolean valid = result.isAcceptable();
         if (!valid) {
             fail("Password for " + user + " does not comply with password policy: " + messages);
         }
@@ -6218,7 +6223,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             Collection<SelectorOptions<GetOperationOptions>> options, int expectedResults) throws Exception {
         ObjectQuery originalQuery = query != null ? query.clone() : null;
         return assertSearch(type, query, options,
-                new SearchAssertion<O>() {
+                new SearchAssertion<>() {
 
                     @Override
                     public void assertObjects(String message, List<PrismObject<O>> objects) throws Exception {
@@ -6252,7 +6257,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, String... expectedOids) throws Exception {
         assertSearch(type, query, options,
-                new SearchAssertion<O>() {
+                new SearchAssertion<>() {
 
                     @Override
                     public void assertObjects(String message, List<PrismObject<O>> objects) throws Exception {

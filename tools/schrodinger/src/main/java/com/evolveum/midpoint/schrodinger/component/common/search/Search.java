@@ -14,10 +14,15 @@ import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.component.common.InputBox;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
+import com.evolveum.midpoint.schrodinger.util.Utils;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.interactions.Actions;
+import org.testng.Assert;
 
 import static com.codeborne.selenide.Selectors.byText;
+import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$x;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -95,7 +100,7 @@ public class Search<T> extends Component<T> {
     }
 
     public Search<T> updateSearch(){
-        SelenideElement simpleSearchButton = getParentElement().$x(".//a[@" + Schrodinger.DATA_S_ID + "='searchSimple']")
+        SelenideElement simpleSearchButton = getParentElement().$x(".//button[@" + Schrodinger.DATA_S_ID + "='searchButtonBeforeDropdown']")
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
         Actions builder = new Actions(WebDriverRunner.getWebDriver());
         builder.moveToElement(simpleSearchButton, 5, 5).click().build().perform();
@@ -104,23 +109,34 @@ public class Search<T> extends Component<T> {
     }
 
     private void choiceBasicSearch() {
-        SelenideElement linksContainer = getParentElement().$(Schrodinger.byDataId("div", "linksContainer")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+        clickDroDownForSearchMode();
         try {
-            SelenideElement basicLink = linksContainer.$(Schrodinger.byDataId("a", "basic"));
-            basicLink.waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+            SelenideElement basicLink = getParentElement().$x(".//a[@"+Schrodinger.DATA_S_ID+"='menuItemLink' and contains(text(), 'Basic')]");
+            basicLink.waitUntil(Condition.appears, MidPoint.TIMEOUT_MEDIUM_6_S).click();
             basicLink.waitWhile(Condition.appears, MidPoint.TIMEOUT_MEDIUM_6_S);
         } catch (Throwable t) {
-            // all is ok, basic search is already selected option, TODO: Schrodinger should provide easy method to check component existence
+            getParentElement().$x(".//a[@"+Schrodinger.DATA_S_ID+"='more']").waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
         }
     }
 
-    public InputBox<Search<T>> byFullText() {
+    private void clickDroDownForSearchMode() {
+        SelenideElement dropDownButton = getParentElement()
+                .$x(".//div[@"+Schrodinger.DATA_S_ID+"='searchContainer']")
+                .$x(".//button[@data-toggle='dropdown']");
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        dropDownButton.waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
+        dropDownButton.shouldHave(Condition.attribute("aria-expanded", "true"));
+    }
 
-        SelenideElement linksContainer = getParentElement().$(Schrodinger.byDataId("div", "linksContainer")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+    public InputBox<Search<T>> byFullText() {
+        clickDroDownForSearchMode();
         try {
-            linksContainer.$(Schrodinger.byDataId("a", "fullText")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+            SelenideElement basicLink = getParentElement().$x(".//a[@"+Schrodinger.DATA_S_ID+"='menuItemLink' and contains(text(), 'Full text')]");
+            basicLink.waitUntil(Condition.appears, MidPoint.TIMEOUT_MEDIUM_6_S).click();
+            basicLink.waitWhile(Condition.appears, MidPoint.TIMEOUT_MEDIUM_6_S);
         } catch (Throwable t) {
-            // all is ok, fullText search is already selected option, TODO: Schrodinger should provide easy method to check component existence
+            // all is ok, fullText search is already selected option, check is provided next in next row
         }
 
         // we assume fulltext is enabled in systemconfig, else error is thrown here:
@@ -130,7 +146,7 @@ public class Search<T> extends Component<T> {
 
     public Search<T> addSearchItemByNameLinkClick(String name) {
         choiceBasicSearch();
-        getParentElement().$x(".//a[@"+Schrodinger.DATA_S_ID+"='more']").waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        getParentElement().$x(".//a[@"+Schrodinger.DATA_S_ID+"='more']").waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         SelenideElement popover = getDisplayedPopover();
         popover.$(Schrodinger.byElementValue("a", name))
@@ -163,16 +179,7 @@ public class Search<T> extends Component<T> {
     }
 
     private SelenideElement getDisplayedPopover() {
-        ElementsCollection popoverElements = getParentElement().$$(Schrodinger.byDataId("popover"));
-        SelenideElement popover = null;
-        for (SelenideElement popoverElement : popoverElements) {
-            if (popoverElement.isDisplayed()) {
-                popover = popoverElement;
-                break;
-            }
-            popover = popoverElement;
-        }
-        return popover;
+        return $(By.className("search-popover")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
     }
 
 
@@ -209,6 +216,29 @@ public class Search<T> extends Component<T> {
         TextInputSearchItemPanel searchField = new TextInputSearchItemPanel(this, itemElement);
         searchField.inputValue("");
         updateSearch();
+        return this;
+    }
+
+    public Search<T> assertExistSearchItem(String name) {
+        Assert.assertNotNull(getItemByName(name), "Search item with name '" + name + "' don't exists.");
+        return this;
+    }
+
+    public Search<T> assertDoesntExistSearchItem(String name) {
+        Assert.assertNull(getItemByName(name), "Search item with name '" + name + "' exists.");
+        return this;
+    }
+
+    public Search<T> assertHelpTextOfSearchItem(String name, String expectedHelpText) {
+        Assert.assertTrue(getItemByName(name).$x("./i[@"+ Schrodinger.DATA_S_ID +"='help']")
+                        .has(Condition.attribute("data-original-title", expectedHelpText)),
+                "Search item with name '" + name + "' don't contains help text '" + expectedHelpText + "'");
+        return this;
+    }
+
+    public Search<T> assertActualOptionOfSelectSearchItem(String name, String expectedOption) {
+        Assert.assertTrue(getItemByName(name).$x("./div[@" + Schrodinger.DATA_S_ID + "='searchItemField']").$x("./select[@" + Schrodinger.DATA_S_ID + "='input']")
+                .$x("./option[@selected='selected']").has(Condition.text(expectedOption)), "Search item with name '" + name + "' don't contains option '" + expectedOption + "'");
         return this;
     }
 }

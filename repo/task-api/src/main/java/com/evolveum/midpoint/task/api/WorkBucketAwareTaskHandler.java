@@ -15,7 +15,7 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import static com.evolveum.midpoint.prism.PrismProperty.getRealValue;
 
 /**
- * @author mederly
+ * TODO
  */
 public interface WorkBucketAwareTaskHandler extends TaskHandler {
 
@@ -29,7 +29,8 @@ public interface WorkBucketAwareTaskHandler extends TaskHandler {
         throw new UnsupportedOperationException("run with no work bucket is not supported here");
     }
 
-    TaskWorkBucketProcessingResult run(RunningTask task, WorkBucketType workBucket, TaskPartitionDefinitionType partitionDefinition, TaskWorkBucketProcessingResult previousRunResult);
+    TaskWorkBucketProcessingResult run(RunningTask task, WorkBucketType workBucket,
+            TaskPartitionDefinitionType partitionDefinition, TaskWorkBucketProcessingResult previousRunResult);
 
     default TaskWorkBucketProcessingResult onNoMoreBuckets(Task task, TaskWorkBucketProcessingResult previousRunResult) {
         return previousRunResult;

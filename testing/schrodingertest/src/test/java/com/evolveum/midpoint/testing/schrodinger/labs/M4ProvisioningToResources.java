@@ -26,7 +26,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -43,11 +42,17 @@ import java.util.List;
 public class M4ProvisioningToResources extends AbstractLabTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(M4ProvisioningToResources.class);
+    protected static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M4/";
 
     private static final File CSV_1_RESOURCE_FILE_4_2 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-4-2.xml");
     private static final File CSV_3_RESOURCE_FILE_4_2 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-4-2.xml");
     private static final File CSV_1_RESOURCE_FILE_4_3 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-4-3.xml");
     private static final File CSV_3_RESOURCE_FILE_4_4 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-4-4.xml");
+    private static final File KIRK_USER_FILE = new File(LAB_OBJECTS_DIRECTORY + "users/kirk-user.xml");
+    private static final File NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE = new File(LAB_OBJECTS_DIRECTORY + "valuePolicies/numeric-pin-first-nonzero-policy.xml");
+    private static final File CSV_1_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access.xml");
+    private static final File CSV_2_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-2-canteen.xml");
+    private static final File CSV_3_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap.xml");
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override
@@ -95,7 +100,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                         .feedback()
                             .isSuccess();
 
-        Assert.assertTrue(existShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk"));
+        assertShadowExists(CSV_1_RESOURCE_NAME, "Login", "jkirk");
 
         showUser("kirk")
                 .selectTabBasic()
@@ -124,7 +129,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                     .isSuccess();
 
         showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
-        Assert.assertTrue(accountForm.compareSelectAttributeValue("administrativeStatus", "Disabled"));
+        accountForm.assertSelectAttributeValueMatches("administrativeStatus", "Disabled");
         showUserInTable("kirk")
                 .selectAll()
                 .and()
@@ -133,7 +138,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                             .clickYes();
 
         showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
-        Assert.assertTrue(accountForm.compareSelectAttributeValue("administrativeStatus", "Enabled"));
+        accountForm.assertSelectAttributeValueMatches("administrativeStatus", "Enabled");
 
         changeAdministrativeStatusViaProjectionTab("kirk", "jkirk", "Disabled", CSV_1_RESOURCE_NAME);
         changeAdministrativeStatusViaProjectionTab("kirk", "jkirk", "Enabled", CSV_1_RESOURCE_NAME);
@@ -165,9 +170,9 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                     .feedback()
                         .isSuccess();
 
-        Assert.assertTrue(existShadow(CSV_2_RESOURCE_NAME, "Login", "kirk"));
+        assertShadowExists(CSV_2_RESOURCE_NAME, "Login", "kirk");
 
-        Assert.assertTrue(basicPage.listResources()
+        basicPage.listResources()
                 .table()
                     .search()
                         .byName()
@@ -183,7 +188,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                                             .inputValue("cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com")
                                         .updateSearch()
                                         .and()
-                                    .containsText("cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com"));
+                                    .assertTableContainsText("cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com");
 
         showUser("kirk")
                 .selectTabProjections()
@@ -204,7 +209,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                     .feedback()
                         .isSuccess();
 
-        Assert.assertFalse(existShadow(CSV_2_RESOURCE_NAME, "Login", "kirk"));
+        assertShadowDoesntExist(CSV_2_RESOURCE_NAME, "Login", "kirk");
     }
 
     @Test(dependsOnMethods = {"mod04test01BasicProvisioningToMultipleResources"}, groups={"M4"})
@@ -343,7 +348,8 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                 .clickSave()
                     .feedback()
                     .isSuccess();
-        AccountPage shadow = showShadow(resourceName, "Login", accountName);
-        Assert.assertTrue(shadow.form().compareSelectAttributeValue("administrativeStatus", status));
+        showShadow(resourceName, "Login", accountName)
+                .form()
+                    .assertSelectAttributeValueMatches("administrativeStatus", status);
     }
 }

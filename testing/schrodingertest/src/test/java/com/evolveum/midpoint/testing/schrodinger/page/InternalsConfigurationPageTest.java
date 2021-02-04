@@ -10,9 +10,7 @@ import com.evolveum.midpoint.schrodinger.component.DateTimePanel;
 import com.evolveum.midpoint.schrodinger.component.configuration.ClockTab;
 import com.evolveum.midpoint.schrodinger.page.configuration.InternalsConfigurationPage;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
-import org.testng.Assert;
 import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 /**
@@ -36,15 +34,17 @@ public class InternalsConfigurationPageTest extends AbstractSchrodingerTest {
 
         clockTab.changeTime("5/15/2099", "10", "30", DateTimePanel.AmOrPmChoice.PM);
 
-        Assert.assertTrue(basicPage.feedback().isSuccess());
+        basicPage.feedback().assertSuccess();
 
         basicPage.aboutPage();
-        clockTab = basicPage.internalsConfiguration().clockTab();
-
-        Assert.assertEquals(clockTab.getOffsetPanel().date(), "5/15/2099");
-        Assert.assertEquals(clockTab.getOffsetPanel().hours(), "10");
-        Assert.assertEquals(clockTab.getOffsetPanel().minutes(), "30");
-        Assert.assertEquals(clockTab.getOffsetPanel().amOrPmChoice(), DateTimePanel.AmOrPmChoice.PM.name());
+        basicPage
+                .internalsConfiguration()
+                    .clockTab()
+                        .getOffsetPanel()
+                            .assertDateValueEquals("5/15/2099")
+                            .assertHoursValueEquals("10")
+                            .assertMinutesValueEquals("30")
+                            .assertAmPmValueEquals(DateTimePanel.AmOrPmChoice.PM.name());
     }
 
     @Test
@@ -54,6 +54,6 @@ public class InternalsConfigurationPageTest extends AbstractSchrodingerTest {
 
         clockTab.resetTime();
 
-        Assert.assertTrue(basicPage.feedback().isSuccess());
+        basicPage.feedback().assertSuccess();
     }
 }

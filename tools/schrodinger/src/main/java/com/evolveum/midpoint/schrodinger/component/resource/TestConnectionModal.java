@@ -14,6 +14,8 @@ import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
 import com.evolveum.midpoint.schrodinger.component.modal.ModalBox;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
+import org.testng.Assert;
+
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 
@@ -161,6 +163,16 @@ public class TestConnectionModal<T> extends ModalBox<T> {
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return this.getParent();
+    }
+
+    public TestConnectionModal<T> assertIsTestSuccess() {
+        Assert.assertTrue(isTestSuccess());
+        return this;
+    }
+
+    public TestConnectionModal<T> assertIsTestFailure() {
+        Assert.assertTrue(isTestFailure());
+        return this;
     }
 
 }

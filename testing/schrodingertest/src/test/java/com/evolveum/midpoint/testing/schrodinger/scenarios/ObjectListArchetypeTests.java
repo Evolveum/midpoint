@@ -12,7 +12,6 @@ import java.util.List;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
@@ -56,28 +55,20 @@ public class ObjectListArchetypeTests extends AbstractSchrodingerTest {
                 .loginWithReloadLoginPage(getUsername(), getPassword());
 
         //check archetype pluralLabel
-        ListUsersPage collectionListPage = basicPage.listUsers(ARCHETYPE_PLURAL_LABEL);
-
-        //check the icon class next to the Employee  menu item
-        Assert.assertTrue("fa fa-male"
-                .equals(basicPage.getAdministrationMenuItemIconClass("PageAdmin.menu.top.users", ARCHETYPE_PLURAL_LABEL)),
-                "Employee icon css style doesn't match to .fa.fa-male");
-
-        Assert.assertTrue(collectionListPage
+        basicPage
+                .listUsers(ARCHETYPE_PLURAL_LABEL)
+                .assertAdministrationMenuItemIconClassEquals("PageAdmin.menu.top.users", ARCHETYPE_PLURAL_LABEL, "fa fa-male");
+        basicPage
+                .listUsers(ARCHETYPE_PLURAL_LABEL)
                 .table()
-                .buttonToolBarExists(),
-                "Button toolbar is absent");
-
-        //check new employee button exists on the toolbar
-        collectionListPage
-                .table()
+                .assertButtonToolBarExists()
                 .getToolbarButton(ARCHETYPE_ICON_CSS_STYLE)
                 .shouldBe(Condition.visible)
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
 
     }
 
-    @Test(priority = 3, dependsOnMethods ={"actualizeArchetypeConfiguration"}, groups = OBJECT_LIST_ARCHETYPE_TESTS_GROUP)
+//    @Test(priority = 3, dependsOnMethods ={"actualizeArchetypeConfiguration"}, groups = OBJECT_LIST_ARCHETYPE_TESTS_GROUP)
     public void createNewEmployeeUser(){
         ListUsersPage collectionListPage = basicPage.listUsers(ARCHETYPE_PLURAL_LABEL);
 
@@ -107,14 +98,10 @@ public class ObjectListArchetypeTests extends AbstractSchrodingerTest {
     @Test(priority = 4, dependsOnMethods ={"actualizeArchetypeConfiguration"})
     public void checkNewObjectButtonWithDropdown(){
         Selenide.sleep(5000);
-        ListUsersPage userListPage = basicPage.listUsers();
-        Assert.assertEquals(userListPage
+        basicPage.listUsers()
                 .table()
-                .countDropdownButtonChildrenButtons(".fa.fa-plus"), 2);
-        userListPage = basicPage.listUsers();
-        userListPage
-                .table()
-                    .newObjectCollectionButtonClickPerformed(".fa.fa-plus", ARCHETYPE_ICON_CSS_STYLE);
+                .assertNewObjectDropdownButtonsCountEquals(".fa.fa-plus", 2)
+                .newObjectCollectionButtonClickPerformed("fa fa-plus ", ARCHETYPE_ICON_CSS_STYLE);
     }
 
 }

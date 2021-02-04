@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -1206,8 +1206,8 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
     @Override
     public PrismSchema getPrismSchema(String namespace) {
         List<PrismSchema> schemas = parsedSchemas.get(namespace).stream()
-                .filter(s -> s.getSchema() != null)
                 .map(s -> s.getSchema())
+                .filter(schema -> schema != null)
                 .collect(Collectors.toList());
         if (schemas.size() > 1) {
             throw new IllegalStateException("More than one prism schema for namespace " + namespace);
@@ -1221,8 +1221,8 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
     @Override
     public Collection<PrismSchema> getSchemas() {
         return parsedSchemas.values().stream()
-                .filter(s -> s.getSchema() != null)
                 .map(s -> s.getSchema())
+                .filter(schema -> schema != null)
                 .collect(Collectors.toList());
     }
 
@@ -1429,11 +1429,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
             return (Class<T>) cached;
         } else {
             Class<?> computed = computeClassForType(type);
-            if (computed == null) {
-                classForTypeIncludingXsd.put(type, NO_CLASS);
-            } else {
-                classForTypeIncludingXsd.put(type, computed);
-            }
+            classForTypeIncludingXsd.put(type, Objects.requireNonNullElse(computed, NO_CLASS));
             //noinspection unchecked
             return (Class<T>) computed;
         }
@@ -1457,11 +1453,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
             return (Class<T>) cached;
         } else {
             Class<?> computed = computeCompileTimeClass(type);
-            if (computed == null) {
-                classForTypeExcludingXsd.put(type, NO_CLASS);
-            } else {
-                classForTypeExcludingXsd.put(type, computed);
-            }
+            classForTypeExcludingXsd.put(type, Objects.requireNonNullElse(computed, NO_CLASS));
             //noinspection unchecked
             return (Class<T>) computed;
         }

@@ -15,12 +15,9 @@ import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Utils;
 import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
 
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -36,13 +33,21 @@ import java.util.List;
 public class M6ConfiguringMultipleAccountTypes extends AbstractLabTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(M6ConfiguringMultipleAccountTypes.class);
+    protected static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M6/";
 
     private static final File CSV_1_RESOURCE_FILE_6_1 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-6-1.xml");
+    private static final File CSV_2_RESOURCE_FILE_6_1 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-2-canteen-6-1.xml");
     private static final File CSV_3_RESOURCE_FILE_6_1 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-6-1.xml");
     private static final File CSV1_TESTER_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-csv1-tester.xml");
     private static final File CSV3_ADMIN_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-csv3-admin.xml");
     private static final String CSV1_TESTER_ROLE_NAME = "CSV-1 Tester";
     private static final String CSV3_ADMIN_ROLE_NAME = "CSV-3 Admin";
+    private static final File NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE = new File(LAB_OBJECTS_DIRECTORY + "valuePolicies/numeric-pin-first-nonzero-policy.xml");
+    private static final File SECRET_I_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-secret-i.xml");
+    private static final File SECRET_II_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-secret-ii.xml");
+    private static final File INCOGNITO_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-incognito.xml");
+    private static final File INTERNAL_EMPLOYEE_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-internal-employee.xml");
+    private static final File KIRK_USER_TIBERIUS_FILE = new File(LAB_OBJECTS_DIRECTORY + "users/kirk-tiberius-user.xml");
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override
@@ -68,7 +73,7 @@ public class M6ConfiguringMultipleAccountTypes extends AbstractLabTest {
         importObject(CSV_1_RESOURCE_FILE_6_1, true);
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
 
-        importObject(CSV_2_RESOURCE_FILE_5_5, true);
+        importObject(CSV_2_RESOURCE_FILE_6_1, true);
         changeResourceAttribute(CSV_2_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv2TargetFile.getAbsolutePath(), true);
 
         importObject(CSV_3_RESOURCE_FILE_6_1, true);
@@ -112,13 +117,13 @@ public class M6ConfiguringMultipleAccountTypes extends AbstractLabTest {
             .assertTableContainsText("cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com");
         table.assertTableContainsText("cn=Jim Tiberius Kirk,ou=_Administrators_,ou=ExAmPLE,dc=example,dc=com");
 
-        Assert.assertTrue(existShadow(CSV_1_RESOURCE_NAME, "Name", "jkirk", "default", true));
-        Assert.assertTrue(existShadow(CSV_1_RESOURCE_NAME, "Name", "_kirk", "test", true));
-        Assert.assertTrue(existShadow(CSV_2_RESOURCE_NAME, "Name", "jkirk", "default", true));
-        Assert.assertTrue(existShadow(CSV_3_RESOURCE_NAME, "Name",
-                "cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com", "default", true));
-        Assert.assertTrue(existShadow(CSV_3_RESOURCE_NAME, "Name",
-                "cn=Jim Tiberius Kirk,ou=_Administrators_,ou=ExAmPLE,dc=example,dc=com", "admin", true));
+        assertShadowExists(CSV_1_RESOURCE_NAME, "Name", "jkirk", "default", true);
+        assertShadowExists(CSV_1_RESOURCE_NAME, "Name", "_kirk", "test", true);
+        assertShadowExists(CSV_2_RESOURCE_NAME, "Name", "jkirk", "default", true);
+        assertShadowExists(CSV_3_RESOURCE_NAME, "Name",
+                "cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com", "default", true);
+        assertShadowExists(CSV_3_RESOURCE_NAME, "Name",
+                "cn=Jim Tiberius Kirk,ou=_Administrators_,ou=ExAmPLE,dc=example,dc=com", "admin", true);
     }
 
 }
