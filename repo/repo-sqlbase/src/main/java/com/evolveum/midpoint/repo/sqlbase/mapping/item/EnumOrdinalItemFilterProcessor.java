@@ -27,7 +27,7 @@ import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
  * to final type used for ordinal. Can be {@code null} if no mapping is needed.
  */
 public class EnumOrdinalItemFilterProcessor<E extends Enum<E>>
-        extends SinglePathItemFilterProcessor<PropertyValueFilter<E>> {
+        extends SinglePathItemFilterProcessor<PropertyValueFilter<E>, Path<Integer>> {
 
     @Nullable
     private final Function<E, Integer> conversionFunction;
@@ -38,7 +38,7 @@ public class EnumOrdinalItemFilterProcessor<E extends Enum<E>>
      * numbers are used in the repository.
      */
     public static ItemSqlMapper mapper(
-            @NotNull Function<EntityPath<?>, Path<?>> rootToQueryItem) {
+            @NotNull Function<EntityPath<?>, Path<Integer>> rootToQueryItem) {
         return mapper(rootToQueryItem, null);
     }
 
@@ -47,7 +47,7 @@ public class EnumOrdinalItemFilterProcessor<E extends Enum<E>>
      * with enum value conversion function.
      */
     public static <E extends Enum<E>> ItemSqlMapper mapper(
-            @NotNull Function<EntityPath<?>, Path<?>> rootToQueryItem,
+            @NotNull Function<EntityPath<?>, Path<Integer>> rootToQueryItem,
             @Nullable Function<E, Enum<?>> conversionFunction) {
         return new ItemSqlMapper(ctx ->
                 new EnumOrdinalItemFilterProcessor<>(ctx, rootToQueryItem, conversionFunction),
@@ -56,7 +56,7 @@ public class EnumOrdinalItemFilterProcessor<E extends Enum<E>>
 
     private EnumOrdinalItemFilterProcessor(
             SqlQueryContext<?, ?, ?> context,
-            Function<EntityPath<?>, Path<?>> rootToQueryItem,
+            Function<EntityPath<?>, Path<Integer>> rootToQueryItem,
             @Nullable Function<E, Enum<?>> conversionFunction) {
         super(context, rootToQueryItem);
         this.conversionFunction = conversionFunction != null

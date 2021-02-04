@@ -78,7 +78,7 @@ public class DetailTableItemFilterProcessor
     public Predicate process(PropertyValueFilter<String> filter) throws QueryException {
         // this part takes care of delegation to the nested path, including JOIN creation
         QueryModelMapping<?, DQ, DR> mapping =
-                context.sqlConfiguration().getMappingByQueryType(detailQueryType);
+                context.sqlRepoContext().getMappingByQueryType(detailQueryType);
         String aliasName = context.uniqueAliasName(mapping.defaultAliasName());
         DQ joinPath = mapping.newAlias(aliasName);
         //noinspection unchecked

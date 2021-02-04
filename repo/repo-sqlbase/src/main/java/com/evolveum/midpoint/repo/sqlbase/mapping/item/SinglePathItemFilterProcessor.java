@@ -19,13 +19,13 @@ import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
  * This is typically obtained from context path (typically relational) using mapping function.
  * Typically it's the same function that is also called "primary mapping" and used for ordering.
  */
-public abstract class SinglePathItemFilterProcessor<O extends ObjectFilter>
+public abstract class SinglePathItemFilterProcessor<O extends ObjectFilter, P extends Path<?>>
         extends ItemFilterProcessor<O> {
 
-    protected final Path<?> path;
+    protected final P path;
 
     public SinglePathItemFilterProcessor(
-            SqlQueryContext<?, ?, ?> context, Function<EntityPath<?>, Path<?>> rootToQueryItem) {
+            SqlQueryContext<?, ?, ?> context, Function<EntityPath<?>, P> rootToQueryItem) {
         super(context);
         this.path = rootToQueryItem.apply(context.path());
     }

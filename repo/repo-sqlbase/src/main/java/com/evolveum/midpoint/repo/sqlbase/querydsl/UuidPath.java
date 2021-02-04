@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqlbase.querydsl;
 
+import java.sql.Types;
 import java.util.UUID;
 
 import com.querydsl.core.types.PathMetadata;
@@ -14,6 +15,9 @@ import com.querydsl.core.types.dsl.ComparablePath;
 public class UuidPath extends ComparablePath<UUID> {
 
     private static final long serialVersionUID = -7475296682846579579L;
+
+    /** Alias for {@link Types#OTHER} working in tandem with {@link UuidPath}. */
+    public static final int UUID_TYPE = Types.OTHER;
 
     protected UuidPath(Class<? extends UUID> type, PathMetadata metadata) {
         super(type, metadata);

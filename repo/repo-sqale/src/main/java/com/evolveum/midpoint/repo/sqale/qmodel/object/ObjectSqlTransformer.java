@@ -9,8 +9,6 @@ package com.evolveum.midpoint.repo.sqale.qmodel.object;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Optional;
-import java.util.UUID;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.Tuple;
@@ -18,9 +16,10 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.SerializationOptions;
-import com.evolveum.midpoint.repo.sqale.MObjectTypeMapping;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleTransformerBase;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -74,14 +73,14 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
 
     /**
      * Override this to fill additional row attributes after calling this super version.
+     * <p>
+     * *This must be called with active JDBC session* so it can create new {@link QUri} rows.
      */
     @NotNull
-    public R toRowObjectWithoutFullObject(S schemaObject) {
+    public R toRowObjectWithoutFullObject(S schemaObject, JdbcSession jdbcSession) {
         R row = mapping.newRowObject();
 
-        row.oid = Optional.ofNullable(schemaObject.getOid())
-                .map(UUID::fromString)
-                .orElse(null);
+        row.oid = oidToUUid(schemaObject.getOid());
 
         // primitive columns common to ObjectType
         PolyStringType name = schemaObject.getName();
@@ -92,31 +91,28 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
         if (metadata != null) {
             ObjectReferenceType creatorRef = metadata.getCreatorRef();
             if (creatorRef != null) {
-                row.creatorRefRelationId = qNameToId(creatorRef.getRelation());
-                row.creatorRefTargetOid = UUID.fromString(creatorRef.getOid());
-                row.creatorRefTargetType = MObjectTypeMapping.fromSchemaType(
-                        transformerContext.qNameToSchemaClass(creatorRef.getType())).code();
+                row.creatorRefTargetOid = oidToUUid(creatorRef.getOid());
+                row.creatorRefTargetType = schemaTypeToCode(creatorRef.getType());
+                row.creatorRefRelationId = processCachedUri(creatorRef.getRelation(), jdbcSession);
             }
-            row.createChannelId = qNameToId(metadata.getCreateChannel());
+            row.createChannelId = processCachedUri(metadata.getCreateChannel(), jdbcSession);
             row.createTimestamp = MiscUtil.asInstant(metadata.getCreateTimestamp());
 
             ObjectReferenceType modifierRef = metadata.getModifierRef();
             if (modifierRef != null) {
-                row.modifierRefRelationId = qNameToId(modifierRef.getRelation());
-                row.modifierRefTargetOid = UUID.fromString(modifierRef.getOid());
-                row.modifierRefTargetType = MObjectTypeMapping.fromSchemaType(
-                        transformerContext.qNameToSchemaClass(modifierRef.getType())).code();
+                row.modifierRefTargetOid = oidToUUid(modifierRef.getOid());
+                row.modifierRefTargetType = schemaTypeToCode(modifierRef.getType());
+                row.modifierRefRelationId = processCachedUri(modifierRef.getRelation(), jdbcSession);
             }
-            row.modifyChannelId = qNameToId(metadata.getModifyChannel());
+            row.modifyChannelId = processCachedUri(metadata.getModifyChannel(), jdbcSession);
             row.modifyTimestamp = MiscUtil.asInstant(metadata.getModifyTimestamp());
         }
 
         ObjectReferenceType tenantRef = schemaObject.getTenantRef();
         if (tenantRef != null) {
-            row.tenantRefRelationId = qNameToId(tenantRef.getRelation());
-            row.tenantRefTargetOid = UUID.fromString(tenantRef.getOid());
-            row.tenantRefTargetType = MObjectTypeMapping.fromSchemaType(
-                    transformerContext.qNameToSchemaClass(tenantRef.getType())).code();
+            row.tenantRefTargetOid = oidToUUid(tenantRef.getOid());
+            row.tenantRefTargetType = schemaTypeToCode(tenantRef.getType());
+            row.tenantRefRelationId = processCachedUri(tenantRef.getRelation(), jdbcSession);
         }
 
         row.lifecycleState = schemaObject.getLifecycleState();

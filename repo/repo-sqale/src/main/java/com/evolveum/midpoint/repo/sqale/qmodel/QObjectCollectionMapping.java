@@ -8,7 +8,6 @@ package com.evolveum.midpoint.repo.sqale.qmodel;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 
@@ -34,7 +33,7 @@ public class QObjectCollectionMapping
 
     @Override
     public ObjectSqlTransformer<ObjectCollectionType, QObjectCollection, MObjectCollection>
-    createTransformer(SqlTransformerContext transformerContext, SqlRepoContext sqlRepoContext) {
+    createTransformer(SqlTransformerContext transformerContext) {
         // no special class needed, no additional columns
         return new ObjectSqlTransformer<>(transformerContext, this);
     }
