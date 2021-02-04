@@ -62,10 +62,10 @@ public class SqaleRepositoryService implements RepositoryService {
     private static final String OP_NAME_PREFIX = SqaleRepositoryService.class.getSimpleName() + '.';
     private static final int MAX_CONFLICT_WATCHERS = 10;
 
-    private final SqlRepoContext sqlRepoContext;
+    private final SqaleRepoContext sqlRepoContext;
     private final SchemaHelper schemaService;
     private final SqlQueryExecutor sqlQueryExecutor;
-    private final SqlTransformerContext transformerContext;
+    private final SqaleTransformerContext transformerContext;
     private final SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
 
     private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal =
@@ -74,13 +74,13 @@ public class SqaleRepositoryService implements RepositoryService {
     private SqlPerformanceMonitorImpl performanceMonitor; // set to null in destroy
 
     public SqaleRepositoryService(
-            SqlRepoContext sqlRepoContext,
+            SqaleRepoContext sqlRepoContext,
             SchemaHelper schemaService,
             SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
         this.sqlRepoContext = sqlRepoContext;
         this.schemaService = schemaService;
         this.sqlQueryExecutor = new SqlQueryExecutor(sqlRepoContext);
-        this.transformerContext = new SqlTransformerContext(schemaService, sqlRepoContext);
+        this.transformerContext = new SqaleTransformerContext(schemaService, sqlRepoContext);
         this.sqlPerformanceMonitorsCollection = sqlPerformanceMonitorsCollection;
 
         // monitor initialization and registration
@@ -176,7 +176,7 @@ public class SqaleRepositoryService implements RepositoryService {
                     + "' with oid '" + oidString + "' was not found.", oidString);
         }
 
-        return rootMapping.createTransformer(transformerContext, sqlRepoContext)
+        return rootMapping.createTransformer(transformerContext)
                 .toSchemaObject(result, root, options);
     }
 
@@ -200,7 +200,7 @@ public class SqaleRepositoryService implements RepositoryService {
                 .where(root.oid.eq(oid))
                 .fetchOne();
 
-        return rootMapping.createTransformer(transformerContext, sqlRepoContext)
+        return rootMapping.createTransformer(transformerContext)
                 .toSchemaObject(result, root, options);
     }
 
@@ -310,10 +310,10 @@ public class SqaleRepositoryService implements RepositoryService {
         Q root = rootMapping.defaultAlias();
 
         ObjectSqlTransformer<S, Q, R> transformer = (ObjectSqlTransformer<S, Q, R>)
-                rootMapping.createTransformer(transformerContext, sqlRepoContext);
-        R row = transformer.toRowObjectWithoutFullObject(object.asObjectable());
+                rootMapping.createTransformer(transformerContext);
 
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
+            R row = transformer.toRowObjectWithoutFullObject(object.asObjectable(), jdbcSession);
             // first insert without full object, because we don't know the OID yet
             UUID oid = jdbcSession.newInsert(root)
                     .populate(row)
@@ -478,7 +478,7 @@ public class SqaleRepositoryService implements RepositoryService {
         int newVersion = SqaleUtils.objectVersionAsInt(prismObject) + 1;
         prismObject.setVersion(String.valueOf(newVersion));
         ObjectSqlTransformer<S, Q, R> transformer = (ObjectSqlTransformer<S, Q, R>)
-                rootMapping.createTransformer(transformerContext, sqlRepoContext);
+                rootMapping.createTransformer(transformerContext);
         update.set(root.fullObject, transformer.createFullObject(prismObject.asObjectable()));
         update.set(root.version, newVersion);
         update.execute();

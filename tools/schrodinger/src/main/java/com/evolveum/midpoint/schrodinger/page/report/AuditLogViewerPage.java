@@ -21,7 +21,7 @@ import static com.codeborne.selenide.Selenide.$;
  */
 public class AuditLogViewerPage extends BasicPage {
 
-    public AuditRecordTable table() {
+    public AuditRecordTable<AuditLogViewerPage> table() {
         SelenideElement box = $(By.cssSelector(".box.boxed-table"))
                 .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
         return new AuditRecordTable(this, box);

@@ -6,12 +6,10 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.role;
 
+import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.integerMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType.F_DISPLAY_ORDER;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.StringItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
 /**
@@ -28,8 +26,7 @@ public class QServiceMapping
         super(QService.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 ServiceType.class, QService.class);
 
-        addItemMapping(F_DISPLAY_ORDER,
-                StringItemFilterProcessor.mapper(path(q -> q.displayOrder)));
+        addItemMapping(F_DISPLAY_ORDER, integerMapper(path(q -> q.displayOrder)));
     }
 
     @Override
@@ -38,10 +35,8 @@ public class QServiceMapping
     }
 
     @Override
-    public ObjectSqlTransformer<ServiceType, QService, MService>
-    createTransformer(SqlTransformerContext transformerContext, SqlRepoContext sqlRepoContext) {
-        // TODO create specific transformer
-        return new ObjectSqlTransformer<>(transformerContext, this);
+    public ServiceSqlTransformer createTransformer(SqlTransformerContext transformerContext) {
+        return new ServiceSqlTransformer(transformerContext, this);
     }
 
     @Override

@@ -34,7 +34,7 @@ public class QConnector extends QObject<MConnector> {
     public static final ColumnMetadata FRAMEWORK =
             ColumnMetadata.named("framework").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata CONNECTOR_HOST_REF_TARGET_OID =
-            ColumnMetadata.named("connectorHostRef_targetOid").ofType(UUID_TYPE);
+            ColumnMetadata.named("connectorHostRef_targetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata CONNECTOR_HOST_REF_TARGET_TYPE =
             ColumnMetadata.named("connectorHostRef_targetType").ofType(Types.INTEGER);
     public static final ColumnMetadata CONNECTOR_HOST_REF_RELATION_ID =

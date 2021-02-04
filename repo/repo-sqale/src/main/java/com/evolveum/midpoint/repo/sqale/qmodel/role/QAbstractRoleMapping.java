@@ -6,12 +6,18 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.role;
 
+import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.booleanMapper;
+import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.stringMapper;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType.*;
+
 import java.util.Collection;
 
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.mapping.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
@@ -37,9 +43,14 @@ public class QAbstractRoleMapping<
             @NotNull Class<Q> queryType) {
         super(tableName, defaultAliasName, schemaType, queryType);
 
-        // TODO mappings
-        //  clone RefItemFilterProcessor and rework for UUID/ID for oid/relation
-        //  old version can go to repo-sql-impl for audit only - or perhaps for newer audit too?
+        // TODO how is approvalProcess mapped? Nothing found in RAbstractRole
+        // addItemMapping(AbstractRoleType.F_AUTOASSIGN ...TODO nested mapping AutoassignSpecificationType
+        addItemMapping(F_DISPLAY_NAME, PolyStringItemFilterProcessor.mapper(
+                path(q -> q.displayNameOrig), path(q -> q.displayNameNorm)));
+        addItemMapping(F_IDENTIFIER, stringMapper(path(q -> q.identifier)));
+        // TODO how is ownerRef* mapped? Nothing found in RAbstractRole or as F_ constant
+        addItemMapping(F_REQUESTABLE, booleanMapper(path(q -> q.requestable)));
+        addItemMapping(F_RISK_LEVEL, stringMapper(path(q -> q.riskLevel)));
     }
 
     @Override
@@ -53,5 +64,11 @@ public class QAbstractRoleMapping<
     protected Q newAliasInstance(String alias) {
         //noinspection unchecked
         return (Q) new QAbstractRole<>(MAbstractRole.class, alias);
+    }
+
+    @Override
+    public AbstractRoleSqlTransformer<S, Q, R> createTransformer(
+            SqlTransformerContext transformerContext) {
+        return new AbstractRoleSqlTransformer<>(transformerContext, this);
     }
 }

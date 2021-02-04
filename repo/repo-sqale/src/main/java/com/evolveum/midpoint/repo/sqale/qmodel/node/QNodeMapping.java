@@ -6,12 +6,11 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.node;
 
+import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.stringMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType.F_NODE_IDENTIFIER;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.StringItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
 /**
@@ -27,8 +26,7 @@ public class QNodeMapping
     private QNodeMapping() {
         super(QNode.TABLE_NAME, DEFAULT_ALIAS_NAME, NodeType.class, QNode.class);
 
-        addItemMapping(F_NODE_IDENTIFIER,
-                StringItemFilterProcessor.mapper(path(q -> q.nodeIdentifier)));
+        addItemMapping(F_NODE_IDENTIFIER, stringMapper(path(q -> q.nodeIdentifier)));
     }
 
     @Override
@@ -38,7 +36,7 @@ public class QNodeMapping
 
     @Override
     public NodeSqlTransformer createTransformer(
-            SqlTransformerContext transformerContext, SqlRepoContext sqlRepoContext) {
+            SqlTransformerContext transformerContext) {
         return new NodeSqlTransformer(transformerContext, this);
     }
 

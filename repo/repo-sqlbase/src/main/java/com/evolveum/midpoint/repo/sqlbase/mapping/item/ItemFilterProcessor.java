@@ -101,6 +101,14 @@ public abstract class ItemFilterProcessor<O extends ObjectFilter>
 
     protected Predicate singleValuePredicate(Path<?> path, Ops operator, Object value) {
         Predicate predicate = ExpressionUtils.predicate(operator, path, ConstantImpl.create(value));
+        return predicateWithNotTreated(path, predicate);
+    }
+
+    /**
+     * Returns the predicate or (predicate AND path IS NOT NULL) if NOT is used somewhere above.
+     * This makes NOT truly complementary to non-NOT result.
+     */
+    protected Predicate predicateWithNotTreated(Path<?> path, Predicate predicate) {
         return context.isNotFilterUsed()
                 ? ExpressionUtils.and(predicate, ExpressionUtils.predicate(Ops.IS_NOT_NULL, path))
                 : predicate;

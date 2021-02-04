@@ -25,7 +25,7 @@ public class QReportOutput extends QObject<MReportOutput> {
     public static final String TABLE_NAME = "m_report_output";
 
     public static final ColumnMetadata REPORT_REF_TARGET_OID =
-            ColumnMetadata.named("reportRef_targetOid").ofType(UUID_TYPE);
+            ColumnMetadata.named("reportRef_targetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata REPORT_REF_TARGET_TYPE =
             ColumnMetadata.named("reportRef_targetType").ofType(Types.INTEGER);
     public static final ColumnMetadata REPORT_REF_RELATION_ID =

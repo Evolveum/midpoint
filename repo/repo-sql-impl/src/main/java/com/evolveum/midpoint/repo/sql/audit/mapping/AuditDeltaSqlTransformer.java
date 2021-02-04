@@ -7,13 +7,13 @@
 package com.evolveum.midpoint.repo.sql.audit.mapping;
 
 import com.querydsl.sql.SQLServerTemplates;
+import com.querydsl.sql.SQLTemplates;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.audit.AuditSqlTransformerBase;
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditDelta;
 import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditDelta;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
@@ -27,14 +27,15 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class AuditDeltaSqlTransformer
         extends AuditSqlTransformerBase<ObjectDeltaOperationType, QAuditDelta, MAuditDelta> {
 
-    public AuditDeltaSqlTransformer(SqlTransformerContext sqlTransformerContext,
-            QAuditDeltaMapping mapping, SqlRepoContext sqlRepoContext) {
-        super(sqlTransformerContext, mapping, sqlRepoContext);
+    public AuditDeltaSqlTransformer(
+            SqlTransformerContext sqlTransformerContext, QAuditDeltaMapping mapping) {
+        super(sqlTransformerContext, mapping);
     }
 
     public ObjectDeltaOperationType toSchemaObject(MAuditDelta row) throws SchemaException {
         ObjectDeltaOperationType odo = new ObjectDeltaOperationType();
-        boolean usingSqlServer = sqlRepoContext.getQuerydslTemplates() instanceof SQLServerTemplates;
+        SQLTemplates querydslTemplates = transformerContext.sqlRepoContext().getQuerydslTemplates();
+        boolean usingSqlServer = querydslTemplates instanceof SQLServerTemplates;
         if (row.delta != null) {
             String serializedDelta =
                     RUtil.getSerializedFormFromBytes(row.delta, usingSqlServer);

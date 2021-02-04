@@ -365,6 +365,7 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
     public UserPage showUser(String userName){
         UserPage user = showUserInTable(userName).clickByName(userName);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        Selenide.screenshot("usersAfterReconcile");
         return user;
     }
 

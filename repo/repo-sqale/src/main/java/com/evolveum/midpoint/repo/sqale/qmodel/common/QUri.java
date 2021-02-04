@@ -19,11 +19,13 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  * Querydsl query type for {@value #TABLE_NAME} table that contains repetitive URIs (e.g. channels).
  * This entity is not registered to any schema type so it doesn't have related mapping class.
  */
-public class QQName extends FlexibleRelationalPathBase<MQName> {
+public class QUri extends FlexibleRelationalPathBase<MUri> {
 
     private static final long serialVersionUID = -1519824042438215508L;
 
-    public static final String TABLE_NAME = "m_qname";
+    public static final String TABLE_NAME = "m_uri";
+
+    public static final QUri DEFAULT = new QUri("uri");
 
     public static final ColumnMetadata ID =
             ColumnMetadata.named("id").ofType(Types.INTEGER).notNull();
@@ -33,13 +35,13 @@ public class QQName extends FlexibleRelationalPathBase<MQName> {
     public final NumberPath<Integer> id = createInteger("id", ID);
     public final StringPath uri = createString("uri", URI);
 
-    public final PrimaryKey<MQName> pk = createPrimaryKey(id);
+    public final PrimaryKey<MUri> pk = createPrimaryKey(id);
 
-    public QQName(String variable) {
+    public QUri(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
     }
 
-    public QQName(String variable, String schema, String table) {
-        super(MQName.class, variable, schema, table);
+    public QUri(String variable, String schema, String table) {
+        super(MUri.class, variable, schema, table);
     }
 }

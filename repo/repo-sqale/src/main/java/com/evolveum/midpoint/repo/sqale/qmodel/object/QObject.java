@@ -17,7 +17,7 @@ import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.ForeignKey;
 import com.querydsl.sql.PrimaryKey;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.common.QQName;
+import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
@@ -27,9 +27,6 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 @SuppressWarnings("unused")
 public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
 
-    /** Alias for {@link Types#OTHER} working in tandem with {@link UuidPath}. */
-    public static final int UUID_TYPE = Types.OTHER;
-
     private static final long serialVersionUID = -4174420892574422778L;
 
     /** If {@code QObject.class} is not enough because of generics, try {@code QObject.CLASS}. */
@@ -38,7 +35,7 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
     public static final String TABLE_NAME = "m_object";
 
     public static final ColumnMetadata OID =
-            ColumnMetadata.named("oid").ofType(UUID_TYPE).notNull();
+            ColumnMetadata.named("oid").ofType(UuidPath.UUID_TYPE).notNull();
     public static final ColumnMetadata EVENT_TYPE =
             ColumnMetadata.named("objectTypeClass").ofType(Types.INTEGER).notNull();
     public static final ColumnMetadata NAME_NORM =
@@ -48,7 +45,7 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
     public static final ColumnMetadata FULL_OBJECT =
             ColumnMetadata.named("fullObject").ofType(Types.BINARY);
     public static final ColumnMetadata CREATOR_REF_TARGET_OID =
-            ColumnMetadata.named("creatorRef_targetOid").ofType(UUID_TYPE);
+            ColumnMetadata.named("creatorRef_targetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata CREATOR_REF_TARGET_TYPE =
             ColumnMetadata.named("creatorRef_targetType").ofType(Types.INTEGER);
     public static final ColumnMetadata CREATOR_REF_RELATION_ID =
@@ -58,7 +55,7 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
     public static final ColumnMetadata CREATE_TIMESTAMP =
             ColumnMetadata.named("createTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
     public static final ColumnMetadata MODIFIER_REF_TARGET_OID =
-            ColumnMetadata.named("modifierRef_targetOid").ofType(UUID_TYPE);
+            ColumnMetadata.named("modifierRef_targetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata MODIFIER_REF_TARGET_TYPE =
             ColumnMetadata.named("modifierRef_targetType").ofType(Types.INTEGER);
     public static final ColumnMetadata MODIFIER_REF_RELATION_ID =
@@ -68,7 +65,7 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
     public static final ColumnMetadata MODIFY_TIMESTAMP =
             ColumnMetadata.named("modifyTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
     public static final ColumnMetadata TENANT_REF_TARGET_OID =
-            ColumnMetadata.named("tenantRef_targetOid").ofType(UUID_TYPE);
+            ColumnMetadata.named("tenantRef_targetOid").ofType(UuidPath.UUID_TYPE);
     public static final ColumnMetadata TENANT_REF_TARGET_TYPE =
             ColumnMetadata.named("tenantRef_targetType").ofType(Types.INTEGER);
     public static final ColumnMetadata TENANT_REF_RELATION_ID =
@@ -116,16 +113,16 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
     public final ArrayPath<byte[], Byte> ext = createByteArray("ext", EXT); // TODO is byte[] the right type?
 
     public final PrimaryKey<T> pk = createPrimaryKey(oid);
-    public final ForeignKey<QQName> createChannelIdFk =
-            createForeignKey(createChannelId, QQName.ID.getName());
-    public final ForeignKey<QQName> modifyChannelIdFk =
-            createForeignKey(modifyChannelId, QQName.ID.getName());
-    public final ForeignKey<QQName> creatorRefRelationIdFk =
-            createForeignKey(creatorRefRelationId, QQName.ID.getName());
-    public final ForeignKey<QQName> modifierRefRelationIdFk =
-            createForeignKey(modifierRefRelationId, QQName.ID.getName());
-    public final ForeignKey<QQName> tenantRefRelationIdFk =
-            createForeignKey(tenantRefRelationId, QQName.ID.getName());
+    public final ForeignKey<QUri> createChannelIdFk =
+            createForeignKey(createChannelId, QUri.ID.getName());
+    public final ForeignKey<QUri> modifyChannelIdFk =
+            createForeignKey(modifyChannelId, QUri.ID.getName());
+    public final ForeignKey<QUri> creatorRefRelationIdFk =
+            createForeignKey(creatorRefRelationId, QUri.ID.getName());
+    public final ForeignKey<QUri> modifierRefRelationIdFk =
+            createForeignKey(modifierRefRelationId, QUri.ID.getName());
+    public final ForeignKey<QUri> tenantRefRelationIdFk =
+            createForeignKey(tenantRefRelationId, QUri.ID.getName());
 
     public QObject(Class<T> type, String variable) {
         this(type, variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
