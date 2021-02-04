@@ -6,10 +6,16 @@
  */
 package com.evolveum.midpoint.prism;
 
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.constructInitializedPrismContext;
 import static org.testng.AssertJUnit.*;
 
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 
+import com.evolveum.midpoint.prism.impl.PrismContextImpl;
+import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
+import com.evolveum.midpoint.prism.impl.PrismValueImpl;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -79,5 +85,32 @@ public class TestEquals extends AbstractPrismTest {
         goodAssignment.normalize();
         assertEquals("Not equals after normalize(good)", goodAssignment, brokenAssignment);
 
+    }
+
+    @Test
+    public void testEqualsProtectedStringTypePrismValue() throws Exception {
+        // GIVEN
+        PrismContext prismContext = constructInitializedPrismContext();
+        Protector protector = PrismInternalTestUtil.createProtector(Protector.XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC);
+        ((PrismContextImpl)prismContext).setDefaultProtector(protector);
+
+        ProtectedStringType p1 = new ProtectedStringType();
+        p1.setClearValue("a");
+        PrismPropertyValueImpl pv1 = new PrismPropertyValueImpl(p1, prismContext);
+
+        ProtectedStringType p2 = new ProtectedStringType();
+        p2.setClearValue("b");
+        PrismPropertyValueImpl pv2 = new PrismPropertyValueImpl(p2, prismContext);
+
+        ProtectedStringType p3 = new ProtectedStringType();
+        p3.setClearValue("a");
+        PrismPropertyValueImpl pv3 = new PrismPropertyValueImpl(p3, prismContext);
+
+        // WHEN, THEN
+        boolean result1 = pv1.equals(pv2);
+        boolean result2 = pv1.equals(pv3);
+
+        assertFalse(result1);
+        assertTrue(result2);
     }
 }
