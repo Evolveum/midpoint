@@ -115,6 +115,19 @@ public class Table<T> extends Component<T> {
         return null;
     }
 
+    public String getTableCellValue(String columnResourceKey, int rowIndex) {
+        int columnIndex = findColumnByResourceKey(columnResourceKey);
+        ElementsCollection rows = getParentElement().findAll("tbody tr");
+        if (rowIndex > rows.size()) {
+            return null;
+        }
+        SelenideElement element = rows.get(rowIndex).find("td:nth-child(" + (columnIndex - 1) + ")");
+        if (element == null) {
+            return null;
+        }
+        return element.getText();
+    }
+
     public Search<? extends Table<T>> search() {
         SelenideElement searchElement = getParentElement().$(By.cssSelector(".form-inline.pull-right.search-form"));
 
@@ -254,6 +267,16 @@ public class Table<T> extends Component<T> {
     public Table<T> assertCurrentTableDoesntContain(String elementName, String elementValue) {
         Assert.assertFalse(currentTableContains(elementName, elementValue), "Table shouldn't contain element " + elementName + " with value " +
                 elementValue);
+        return this;
+    }
+
+    public Table<T> assertTableContainsColumnWithValue(String columnResourceKey, String value) {
+        Assert.assertNotNull(rowByColumnResourceKey(columnResourceKey, value));
+        return this;
+    }
+
+    public Table<T> assertTableColumnValueIsEmpty(String columnResourceKey) {
+        Assert.assertEquals(getTableCellValue(columnResourceKey, 1), "");
         return this;
     }
 
