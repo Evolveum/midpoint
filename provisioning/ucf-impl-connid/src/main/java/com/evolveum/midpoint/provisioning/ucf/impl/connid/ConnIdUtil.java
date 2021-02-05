@@ -114,14 +114,18 @@ public class ConnIdUtil {
      *            OperationResult to record failure
      * @return reasonable midPoint exception
      */
-    static Throwable processConnIdException(Throwable connIdException, String desc,
-            OperationResult connIdResult) {
+    static Throwable processConnIdException(Throwable connIdException, String desc, OperationResult connIdResult) {
         // Whole exception handling in this case is a black magic.
         // ConnId does not define any checked exceptions so the developers are not
         // guided towards good exception handling. Sun Identity Connector Framework (ConnId predecessor)
         // haven't had any "best practice" for error reporting. Now there is some
         // basic (runtime) exceptions and the connectors are getting somehow better. But this
         // nightmarish code is still needed to support bad connectors.
+
+        if (connIdResult == null) {
+            throw new IllegalArgumentException(
+                    createMessageFromAllExceptions("Null parent result while processing ConnId exception",connIdException));
+        }
 
         if (connIdException == null) {
             connIdResult.recordFatalError("Null exception while processing ConnId exception ");
@@ -207,10 +211,6 @@ public class ConnIdUtil {
             // Common midPoint exceptions, pass through
             connIdResult.recordFatalError(connIdException);
             return connIdException;
-        }
-
-        if (connIdResult == null) {
-            throw new IllegalArgumentException(createMessageFromAllExceptions("Null parent result while processing ConnId exception",connIdException));
         }
 
         Exception knownCause;

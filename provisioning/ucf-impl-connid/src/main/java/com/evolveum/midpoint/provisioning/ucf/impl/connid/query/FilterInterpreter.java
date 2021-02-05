@@ -16,32 +16,30 @@ import com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import org.jetbrains.annotations.NotNull;
+
 public class FilterInterpreter {
 
-    private ObjectClassComplexTypeDefinition objectClassDefinition;
+    private final ObjectClassComplexTypeDefinition objectClassDefinition;
 
-    public FilterInterpreter(ObjectClassComplexTypeDefinition objectClassDefinition){
+    public FilterInterpreter(ObjectClassComplexTypeDefinition objectClassDefinition) {
         this.objectClassDefinition = objectClassDefinition;
     }
 
     public Filter interpret(ObjectFilter filter, ConnIdNameMapper icfNameMapper) throws SchemaException{
+        return createOperation(filter)
+                .interpret(filter, icfNameMapper);
+    }
 
-        Operation operation = null;
-
-        if (LogicalFilter.class.isAssignableFrom(filter.getClass())){
-            operation = new LogicalOperation(this);
+    @NotNull
+    private Operation createOperation(ObjectFilter filter) {
+        if (filter instanceof LogicalFilter) {
+            return new LogicalOperation(this);
+        } else if (filter instanceof ValueFilter) {
+            return new ValueOperation(this);
+        } else {
+            throw new UnsupportedOperationException("Unsupported filter type: " + filter.getClass().getSimpleName());
         }
-
-        if (ValueFilter.class.isAssignableFrom(filter.getClass())){
-            operation = new ValueOperation(this);
-        }
-
-        if (operation == null){
-            throw new UnsupportedOperationException("Unssupported filter type: " + filter.getClass().getSimpleName());
-        }
-
-        return operation.interpret(filter, icfNameMapper);
-
     }
 
     public ObjectClassComplexTypeDefinition getObjectClassDefinition() {

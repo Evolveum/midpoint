@@ -69,5 +69,5 @@ public interface ResourceAttributeContainerDefinition extends PrismContainerDefi
     @Override
     List<? extends ResourceAttributeDefinition> getDefinitions();
 
-    <T extends ShadowType> PrismObjectDefinition<T> toShadowDefinition();
+    @NotNull <T extends ShadowType> PrismObjectDefinition<T> toShadowDefinition();
 }
