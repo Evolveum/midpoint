@@ -7,6 +7,21 @@
 
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
+import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.processConnIdException;
+import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnectorInstanceConnIdImpl.toShadowDefinition;
+
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import javax.xml.namespace.QName;
+
+import com.google.common.base.MoreObjects;
+import org.apache.commons.lang.Validate;
+import org.identityconnectors.framework.api.ConnectorFacade;
+import org.identityconnectors.framework.common.objects.*;
+import org.identityconnectors.framework.common.objects.filter.Filter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -26,21 +41,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
-
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang3.ObjectUtils;
-import org.identityconnectors.framework.api.ConnectorFacade;
-import org.identityconnectors.framework.common.objects.*;
-import org.identityconnectors.framework.common.objects.filter.Filter;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.processConnIdException;
-import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnectorInstanceConnIdImpl.toShadowDefinition;
 
 /**
  * Executes `search` operation. (Offloads {@link ConnectorInstanceConnIdImpl} from this task.)
@@ -301,7 +301,7 @@ class SearchExecutor {
                 int number = objectsFetched.getAndIncrement(); // The numbering starts at 0
                 if (isNoConnectorPaging()) {
                     if (query != null && query.getPaging() != null) {
-                        int offset = ObjectUtils.defaultIfNull(query.getPaging().getOffset(), 0);
+                        int offset = MoreObjects.firstNonNull(query.getPaging().getOffset(), 0);
                         Integer maxSize = query.getPaging().getMaxSize();
                         if (number < offset) {
                             return true;
