@@ -501,7 +501,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         // WHEN
         when();
 
-        waitForTaskNextRun(TASK_ERROR.oid, false, 10000, true);
+        waitForTaskNextRun(TASK_ERROR.oid, false, 30000, true);
 
         // THEN
         then();
@@ -562,7 +562,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         when();
 
         try {
-            waitForTaskNextRun(TASK_ERROR_IMPRECISE.oid, false, 10000, true);
+            waitForTaskNextRun(TASK_ERROR_IMPRECISE.oid, false, 30000, true);
         } catch (Throwable t) {
             suspendTask(TASK_ERROR_IMPRECISE.oid, 10000);
             throw t;
@@ -711,8 +711,8 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         assertTaskClosed(taskAfter);
 
         assertSyncToken(taskAfter, 1);
-        assertEquals("Wrong noSyncPolicy counter value", 1, syncInfo.getCountNoSynchronizationPolicy());
-        assertEquals("Wrong noSyncPolicyAfter counter value", 1, syncInfo.getCountNoSynchronizationPolicyAfter());
+        assertEquals("Wrong noSyncPolicy counter value", 1, (Object) syncInfo.getCountNoSynchronizationPolicy());
+        assertEquals("Wrong noSyncPolicyAfter counter value", 1, (Object) syncInfo.getCountNoSynchronizationPolicyAfter());
     }
 
     /*
@@ -752,6 +752,9 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         given();
 
         assertTask(xferTask.oid, "before")
+                .iterativeTaskInformation()
+                    .display()
+                    .end()
                 .synchronizationInformation()
                     .display()
                     .assertTotal(0, 0)
@@ -774,6 +777,9 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
 
         stabilize();
         assertTask(xferTask.oid, "after")
+                .iterativeTaskInformation()
+                    .display()
+                    .end()
                 .synchronizationInformation()
                     .display()
                     .assertTotal(XFER_ACCOUNTS, XFER_ACCOUNTS)
@@ -808,6 +814,9 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
     private void assertXfer1StateAfterRename(TaskAsserter<Void> asserter) {
         asserter
                 .assertSuccess()
+                .iterativeTaskInformation()
+                    .display()
+                    .end()
                 .synchronizationInformation()
                     .display()
                     .assertTotal(2*XFER_ACCOUNTS, 2*XFER_ACCOUNTS) // each account was touched twice
@@ -838,6 +847,9 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         int t = getWorkerThreads() > 0 ? getWorkerThreads() : 1;
         doXferRenameAndSync(TASK_XFER2, RESOURCE_DUMMY_XFER2_SOURCE)
                 .assertPartialError()
+                .iterativeTaskInformation()
+                    .display()
+                    .end()
                 .synchronizationInformation()
                     .display()
                     .assertTotal(XFER_ACCOUNTS+t, XFER_ACCOUNTS+t) // XFER_ACCOUNTS from the first run, t from the second (failed immediately)
@@ -861,6 +873,9 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         given();
 
         assertTask(xferTask.oid, "before")
+                .iterativeTaskInformation()
+                    .display()
+                    .end()
                 .synchronizationInformation().display().end()
                 .actionsExecutedInformation().display().end();
 
@@ -901,12 +916,18 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         if (getWorkerThreads() > 0) {
             doXferLiveSync(TASK_XFER2)
                     .assertPartialError()
+                    .iterativeTaskInformation()
+                        .display()
+                        .end()
                     .synchronizationInformation().display().end()
                     .actionsExecutedInformation().display().end();
             // No special asserts here. The number of accounts being processed may depend on the timing.
         } else {
             doXferLiveSync(TASK_XFER2)
                     .assertPartialError()
+                    .iterativeTaskInformation()
+                        .display()
+                        .end()
                     .synchronizationInformation()
                         .display()
                             .assertTotal(XFER_ACCOUNTS+3, XFER_ACCOUNTS+3) // XFER_ACCOUNTS from the first run, 1 from the second (failed immediately), 2 for the third (first ok, second fails)
@@ -973,6 +994,9 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         given();
 
         assertTask(xferTask.oid, "before")
+                .iterativeTaskInformation()
+                    .display()
+                    .end()
                 .synchronizationInformation().display().end()
                 .actionsExecutedInformation().display().end();
 
@@ -1091,12 +1115,13 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         then("retrying partial errors (each 3th except for 9th)");
         stabilize();
         assertTask(CommonTasks.TASK_TRIGGER_SCANNER_ON_DEMAND.oid, "after")
-                .assertProgress(7) // 3, 6, 12, 15, 21, 24, 30
                 .display()
                 .iterativeTaskInformation()
+                    .display()
                     .assertSuccessCount(0)
                     .assertFailureCount(7)
-                    .display();
+                    .end()
+                .assertProgress(7); // 3, 6, 12, 15, 21, 24, 30
 
         assertShadow("e-000003", resource)
                 .display()
@@ -1122,7 +1147,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         then("retrying fatal errors (each 9th)");
         stabilize();
         assertTask(CommonTasks.TASK_TRIGGER_SCANNER_ON_DEMAND.oid, "after")
-                .assertProgress(3) // 9, 18, 27
+                .assertProgress(7+3) // 9, 18, 27
                 .display()
                 .iterativeTaskInformation()
                     .assertSuccessCount(0)
@@ -1155,7 +1180,7 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
         then("retrying everything, errors turned off");
         stabilize();
         assertTask(CommonTasks.TASK_TRIGGER_SCANNER_ON_DEMAND.oid, "after")
-                .assertProgress(10) // each 3rd
+                .assertProgress(7+3+10) // each 3rd
                 .display()
                 .iterativeTaskInformation()
                     .assertSuccessCount(10)

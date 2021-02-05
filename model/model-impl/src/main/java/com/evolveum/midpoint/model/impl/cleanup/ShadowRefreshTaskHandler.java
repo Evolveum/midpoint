@@ -8,7 +8,7 @@ package com.evolveum.midpoint.model.impl.cleanup;
 
 import javax.annotation.PostConstruct;
 
-import com.evolveum.midpoint.repo.common.task.TaskExecutionClass;
+import com.evolveum.midpoint.repo.common.task.*;
 
 import com.evolveum.midpoint.task.api.TaskWorkBucketProcessingResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
@@ -17,7 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.model.impl.tasks.scanner.AbstractScannerResultHandler;
+import com.evolveum.midpoint.model.impl.tasks.scanner.AbstractScannerItemProcessor;
 import com.evolveum.midpoint.model.impl.tasks.scanner.AbstractScannerTaskExecution;
 import com.evolveum.midpoint.model.impl.tasks.scanner.AbstractScannerTaskHandler;
 import com.evolveum.midpoint.model.impl.tasks.scanner.AbstractScannerTaskPartExecution;
@@ -25,9 +25,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.repo.common.task.HandledObjectType;
-import com.evolveum.midpoint.repo.common.task.PartExecutionClass;
-import com.evolveum.midpoint.repo.common.task.ResultHandlerClass;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -57,7 +54,7 @@ public class ShadowRefreshTaskHandler
     private static final Trace LOGGER = TraceManager.getTrace(ShadowRefreshTaskHandler.class);
 
     public ShadowRefreshTaskHandler() {
-        super("Shadow refresh", OperationConstants.SHADOW_REFRESH);
+        super(LOGGER, "Shadow refresh", OperationConstants.SHADOW_REFRESH);
     }
 
     @PostConstruct
@@ -65,23 +62,14 @@ public class ShadowRefreshTaskHandler
         taskManager.registerHandler(HANDLER_URI, this);
     }
 
-    @ResultHandlerClass(PartExecution.Handler.class)
+    @ItemProcessorClass(PartExecution.ItemProcessor.class)
     @HandledObjectType(ShadowType.class)
-    public class PartExecution
-            extends AbstractScannerTaskPartExecution
-            <ShadowType,
-                    ShadowRefreshTaskHandler,
-                    ShadowRefreshTaskHandler.TaskExecution,
-                    PartExecution,
-                    PartExecution.Handler> {
+    public class PartExecution extends AbstractScannerTaskPartExecution
+            <ShadowType, ShadowRefreshTaskHandler, TaskExecution, PartExecution, PartExecution.ItemProcessor> {
 
         public PartExecution(ShadowRefreshTaskHandler.TaskExecution ctx) {
             super(ctx);
-        }
-
-        @Override
-        protected boolean requiresDirectRepositoryAccess(OperationResult opResult) {
-            return true;
+            setRequiresDirectRepositoryAccess();
         }
 
         @Override
@@ -98,24 +86,19 @@ public class ShadowRefreshTaskHandler
             return query;
         }
 
-        public class Handler
-                extends AbstractScannerResultHandler
-                <ShadowType,
-                        ShadowRefreshTaskHandler,
-                        ShadowRefreshTaskHandler.TaskExecution,
-                        PartExecution,
-                        PartExecution.Handler> {
+        public class ItemProcessor extends AbstractScannerItemProcessor
+                <ShadowType, ShadowRefreshTaskHandler, TaskExecution, PartExecution, ItemProcessor> {
 
-            public Handler(PartExecution taskExecution) {
-                super(taskExecution);
+            public ItemProcessor() {
+                super(PartExecution.this);
             }
 
             @Override
-            protected boolean handleObject(PrismObject<ShadowType> object, RunningTask workerTask, OperationResult result)
+            protected boolean processObject(PrismObject<ShadowType> object,
+                    ItemProcessingRequest<PrismObject<ShadowType>> request,
+                    RunningTask workerTask, OperationResult result)
                     throws CommonException, PreconditionViolationException {
-                LOGGER.trace("Refreshing {}", object);
                 provisioningService.refreshShadow(object, null, workerTask, result);
-                LOGGER.trace("Refreshed {}", object);
                 return true;
             }
         }
@@ -127,7 +110,6 @@ public class ShadowRefreshTaskHandler
     }
 
     /** Just to make Java compiler happy. */
-
     public static class TaskExecution
             extends AbstractScannerTaskExecution<ShadowRefreshTaskHandler, ShadowRefreshTaskHandler.TaskExecution> {
 

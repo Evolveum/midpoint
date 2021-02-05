@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.task.api;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author semancik
  *
@@ -13,6 +15,6 @@ package com.evolveum.midpoint.task.api;
 @FunctionalInterface
 public interface LightweightIdentifierGenerator {
 
-    LightweightIdentifier generate();
+    @NotNull LightweightIdentifier generate();
 
 }

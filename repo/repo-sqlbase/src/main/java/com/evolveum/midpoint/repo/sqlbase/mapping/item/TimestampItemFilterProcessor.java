@@ -12,8 +12,8 @@ import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.querydsl.core.types.EntityPath;
-import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.DateTimePath;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
@@ -28,19 +28,19 @@ import com.evolveum.midpoint.util.MiscUtil;
  * (what else do we want?) to paths of {@link Instant}, {@link Timestamp} and {@link Long}.
  */
 public class TimestampItemFilterProcessor
-        extends SinglePathItemFilterProcessor<PropertyValueFilter<?>> {
+        extends SinglePathItemFilterProcessor<PropertyValueFilter<?>, DateTimePath<Instant>> {
 
     /**
      * Returns the mapper function creating the timestamp filter processor from context.
      */
     public static ItemSqlMapper mapper(
-            Function<EntityPath<?>, Path<?>> rootToQueryItem) {
+            Function<EntityPath<?>, DateTimePath<Instant>> rootToQueryItem) {
         return new ItemSqlMapper(context ->
                 new TimestampItemFilterProcessor(context, rootToQueryItem), rootToQueryItem);
     }
 
     private TimestampItemFilterProcessor(SqlQueryContext<?, ?, ?> context,
-            Function<EntityPath<?>, Path<?>> rootToQueryItem) {
+            Function<EntityPath<?>, DateTimePath<Instant>> rootToQueryItem) {
         super(context, rootToQueryItem);
     }
 

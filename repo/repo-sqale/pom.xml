@@ -27,11 +27,6 @@
 
     <dependencies>
         <dependency>
-            <!--TODO temporary, remove later with logger level setting in SqaleRepositoryService-->
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
             <version>${project.version}</version>

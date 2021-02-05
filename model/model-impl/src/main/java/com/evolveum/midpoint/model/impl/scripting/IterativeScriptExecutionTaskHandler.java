@@ -49,7 +49,7 @@ public class IterativeScriptExecutionTaskHandler
     private static final Trace LOGGER = TraceManager.getTrace(IterativeScriptExecutionTaskHandler.class);
 
     public IterativeScriptExecutionTaskHandler() {
-        super("Execute script", OperationConstants.EXECUTE_SCRIPT);
+        super(LOGGER, "Execute script", OperationConstants.EXECUTE_SCRIPT);
         reportingOptions.setPreserveStatistics(false);
     }
 

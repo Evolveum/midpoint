@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.tasks.scanner;
 
-import com.evolveum.midpoint.model.impl.tasks.AbstractSearchIterativeModelTaskPartExecution;
+import com.evolveum.midpoint.model.impl.tasks.AbstractIterativeModelTaskPartExecution;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -20,9 +20,9 @@ public abstract class AbstractScannerTaskPartExecution
         <O extends ObjectType,
                 TH extends AbstractScannerTaskHandler<TH, TE>,
                 TE extends AbstractScannerTaskExecution<TH, TE>,
-                E extends AbstractScannerTaskPartExecution<O, TH, TE, E, RH>,
-                RH extends AbstractScannerResultHandler<O, TH, TE, E, RH>>
-    extends AbstractSearchIterativeModelTaskPartExecution<O, TH, TE, E, RH> {
+                E extends AbstractScannerTaskPartExecution<O, TH, TE, E, IP>,
+                IP extends AbstractScannerItemProcessor<O, TH, TE, E, IP>>
+    extends AbstractIterativeModelTaskPartExecution<O, TH, TE, E, IP> {
 
     public AbstractScannerTaskPartExecution(TE taskExecution) {
         super(taskExecution);

@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sqale.qmodel;
 
 import java.util.Collection;
+import java.util.UUID;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.Tuple;
@@ -17,6 +18,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.evolveum.midpoint.repo.sqale.MObjectTypeMapping;
+import com.evolveum.midpoint.repo.sqale.SqaleTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
@@ -33,13 +36,20 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
-    protected final SqlTransformerContext transformerContext;
+    protected final SqaleTransformerContext transformerContext;
     protected final QueryModelMapping<S, Q, R> mapping;
 
+    /**
+     * Constructor uses {@link SqlTransformerContext} type even when it really is
+     * {@link SqaleTransformerContext}, but this way we can cast it just once here; otherwise cast
+     * would be needed in each implementation of {@link QueryModelMapping#createTransformer)}.
+     * (Alternative is to parametrize {@link QueryModelMapping} with various {@link SqlTransformer}
+     * types which is not convenient at all. This little downcast is low price to pay.)
+     */
     protected SqaleTransformerBase(
             SqlTransformerContext transformerContext,
             QueryModelMapping<S, Q, R> mapping) {
-        this.transformerContext = transformerContext;
+        this.transformerContext = (SqaleTransformerContext) transformerContext;
         this.mapping = mapping;
     }
 
@@ -120,14 +130,38 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
         return MiscUtil.trimString(value, columnMetadata.getSize());
     }
 
-    protected Integer qNameToId(QName qName) {
+    /** Returns ID for cached URI (represented by QName) without going ot database. */
+    protected Integer getCachedUriId(QName qName) {
         return qName != null
-                ? qNameToId(QNameUtil.qNameToUri(transformerContext.normalizeRelation(qName)))
+                ? getCachedUriId(QNameUtil.qNameToUri(transformerContext.normalizeRelation(qName)))
                 : null;
     }
 
-    protected Integer qNameToId(String qName) {
-        // TODO add some kind of QName registry processing here - but how to smuggle the component here?
-        return null;
+    /** Returns ID for cached URI without going ot database. */
+    protected Integer getCachedUriId(String uri) {
+        return transformerContext.getCachedUriId(uri);
+    }
+
+    /** Returns ID for URI (represented by QName) creating new cache row in DB as needed. */
+    protected Integer processCachedUri(QName qName, JdbcSession jdbcSession) {
+        return qName != null
+                ? processCachedUri(
+                QNameUtil.qNameToUri(transformerContext.normalizeRelation(qName)),
+                jdbcSession)
+                : null;
+    }
+
+    /** Returns ID for URI creating new cache row in DB as needed. */
+    protected Integer processCachedUri(String uri, JdbcSession jdbcSession) {
+        return transformerContext.processCachedUri(uri, jdbcSession);
+    }
+
+    protected @Nullable UUID oidToUUid(@Nullable String oid) {
+        return oid != null ? UUID.fromString(oid) : null;
+    }
+
+    protected int schemaTypeToCode(QName schemaType) {
+        return MObjectTypeMapping.fromSchemaType(
+                transformerContext.qNameToSchemaClass(schemaType)).code();
     }
 }

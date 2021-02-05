@@ -6,13 +6,11 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 
+import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.stringMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.UserType.*;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.PolyStringItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.StringItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -32,8 +30,7 @@ public class QUserMapping
         addItemMapping(F_ADDITIONAL_NAME,
                 PolyStringItemFilterProcessor.mapper(
                         path(q -> q.additionalNameOrig), path(q -> q.additionalNameNorm)));
-        addItemMapping(F_EMPLOYEE_NUMBER,
-                StringItemFilterProcessor.mapper(path(q -> q.employeeNumber)));
+        addItemMapping(F_EMPLOYEE_NUMBER, stringMapper(path(q -> q.employeeNumber)));
         addItemMapping(F_FAMILY_NAME,
                 PolyStringItemFilterProcessor.mapper(
                         path(q -> q.familyNameOrig), path(q -> q.familyNameNorm)));
@@ -63,10 +60,9 @@ public class QUserMapping
     }
 
     @Override
-    public ObjectSqlTransformer<UserType, QUser, MUser>
-    createTransformer(SqlTransformerContext transformerContext, SqlRepoContext sqlRepoContext) {
-        // TODO create specific transformer
-        return new ObjectSqlTransformer<>(transformerContext, this);
+    public UserSqlTransformer createTransformer(
+            SqlTransformerContext transformerContext) {
+        return new UserSqlTransformer(transformerContext, this);
     }
 
     @Override

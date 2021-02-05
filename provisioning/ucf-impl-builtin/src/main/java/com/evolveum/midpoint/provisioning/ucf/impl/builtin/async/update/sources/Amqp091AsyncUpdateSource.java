@@ -103,12 +103,24 @@ public class Amqp091AsyncUpdateSource implements ActiveAsyncUpdateSource {
                         byte[] body = message.getBody();
                         LOGGER.info("Received a message on {}", consumerTag);   // todo debug
                         LOGGER.info("Message is:\n{}", new String(body, StandardCharsets.UTF_8)); // todo trace
-                        boolean successful = listener.onMessage(createAsyncUpdateMessage(message));
-                        if (successful) {
-                            activeChannel.basicAck(message.getEnvelope().getDeliveryTag(), false);
-                        } else {
-                            LOGGER.debug("Message processing was not successful, rejecting message according to the current settings");
-                            rejectMessage(message);
+                        boolean successful = listener.onMessage(createAsyncUpdateMessage(message), (processed, result) -> {
+                            if (processed) {
+                                try {
+                                    activeChannel.basicAck(message.getEnvelope().getDeliveryTag(), false);
+                                } catch (IOException e) {
+                                    throw new SystemException("Couldn't acknowledge message processing", e); // TODO
+                                }
+                            } else {
+                                LOGGER.debug("Message processing was not successful, rejecting message according to the current settings");
+                                try {
+                                    rejectMessage(message);
+                                } catch (IOException e) {
+                                    throw new SystemException("Couldn't reject message processing", e); // TODO
+                                }
+                            }
+                        });
+                        if (!successful) {
+                            rejectMessage(message); // TODO ok?!
                         }
                         AMQP.BasicProperties properties = message.getProperties();
                         if (properties.getHeaders() != null) {

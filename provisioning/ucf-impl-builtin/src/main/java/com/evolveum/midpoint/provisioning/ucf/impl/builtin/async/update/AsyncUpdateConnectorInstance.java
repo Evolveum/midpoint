@@ -6,12 +6,21 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.update;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
+
+import org.apache.commons.lang3.ObjectUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.security.core.Authentication;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncUpdateSource;
-import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncChangeListener;
+import com.evolveum.midpoint.provisioning.ucf.api.async.UcfAsyncUpdateChangeListener;
 import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManagedConnectorInstance;
 import com.evolveum.midpoint.repo.api.RepositoryAware;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -30,25 +39,22 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskManagerAware;
 import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateErrorHandlingActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AsyncUpdateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
-import org.apache.commons.lang3.ObjectUtils;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.security.core.Authentication;
-
-import java.util.*;
-import java.util.function.Supplier;
 
 /**
  *  Connector that is able to obtain and process asynchronous updates.
  *  It can be used to receive messages from JMS or AMQP messaging systems; or maybe from REST calls in the future.
  *
- *  Currently we keep no state besides the configuration and open listening activities. It is because calls to this
- *  connector should be really infrequent. Sources are therefore instantiated on demand, e.g. on test() or startListening() calls.
+ *  Currently we keep no state besides the configuration and open sources and listening activities (in {@link ConnectorListener}).
+ *  It is because calls to this connector should be really infrequent. Sources are therefore instantiated on demand,
+ *  e.g. on {@link #test(OperationResult)} or {@link #listenForChanges(UcfAsyncUpdateChangeListener, Supplier, OperationResult)} calls.
  */
 @SuppressWarnings("DefaultAnnotationParam")
 @ManagedConnector(type="AsyncUpdateConnector", version="1.0.0")
@@ -79,9 +85,9 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
     private RepositoryService repositoryService;
 
     /**
-     * Listening helper. Null if there's no listening in progress.
+     * Current listener. There can be at most one. See {@link #listenForChanges(UcfAsyncUpdateChangeListener, Supplier, OperationResult)}.
      */
-    private ConnectorListeningHelper listeningHelper;
+    private final AtomicReference<ConnectorListener> listener = new AtomicReference<>();
 
     @ManagedConnectorConfiguration
     public ConnectorConfiguration getConfiguration() {
@@ -89,15 +95,13 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
     }
 
     public void setConfiguration(ConnectorConfiguration configuration) {
-        LOGGER.info("Setting new configuration in {}", this);       // todo debug
+        LOGGER.info("Setting new configuration in {}", this); // todo debug
         configuration.validate();
-        if (listeningHelper != null && configuration.hasSourcesChanged(this.configuration)) {
-            LOGGER.info("Configuration of sources has changed. Restarting listening in {}", this);      // todo debug
-            try {
-                listeningHelper.restart(configuration);
-            } catch (RuntimeException | SchemaException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't restart listening activity in {}", e, this);
-                listeningHelper.stop();
+        if (configuration.hasSourcesChanged(this.configuration)) {
+            ConnectorListener currentListener = listener.get();
+            if (currentListener != null) {
+                LOGGER.info("Configuration of sources has changed. Restarting listening in {}", this); // todo debug
+                currentListener.restart(configuration);
             }
         }
         this.configuration = configuration;
@@ -138,23 +142,28 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
     }
 
     @Override
-    public void listenForChanges(@NotNull AsyncChangeListener changeListener, @NotNull Supplier<Boolean> canRunSupplier,
+    public void listenForChanges(@NotNull UcfAsyncUpdateChangeListener changeListener, @NotNull Supplier<Boolean> canRunSupplier,
             @NotNull OperationResult parentResult) throws SchemaException {
 
-        // TODO implement some synchronization here (but note that listeningState.stop() can take some time)
-        if (listeningHelper != null) {
-            LOGGER.warn("Starting listening for changes while other listening activities are in progress in {}. "
-                    + "Closing them first. State: {}", this, listeningHelper);
-            listeningHelper.stop();
-            listeningHelper = null;
+        if (listener.get() != null) {
+            throw new IllegalStateException("A listening is already in progress in " + this);
         }
 
         Authentication authentication = securityContextManager.getAuthentication();
-        listeningHelper = new ConnectorListeningHelper(this, changeListener, authentication);
-        try {
-            listeningHelper.listenForChanges(configuration, canRunSupplier);
-        } finally {
-            listeningHelper = null;
+        TransformationalAsyncUpdateMessageListener transformationalListener =
+                new TransformationalAsyncUpdateMessageListener(changeListener, authentication, this);
+        ConnectorListener newListener = new ConnectorListener(this, transformationalListener);
+
+        boolean success = listener.compareAndSet(null, newListener);
+        if (success) {
+            // listener was null, now is set
+            try {
+                newListener.listenForChanges(configuration, canRunSupplier);
+            } finally {
+                listener.set(null);
+            }
+        } else {
+            throw new IllegalStateException("Another listening has been started in " + this);
         }
     }
 
@@ -313,9 +322,10 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
     }
 
     @Override
-    public void fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
+    public UcfFetchChangesResult fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
             AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter,
-            LiveSyncChangeListener changeHandler, OperationResult parentResult) {
+            @NotNull UcfLiveSyncChangeListener changeHandler, OperationResult parentResult) {
+        return null;
     }
 
     //endregion

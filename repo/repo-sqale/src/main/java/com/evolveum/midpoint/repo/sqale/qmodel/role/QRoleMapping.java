@@ -6,12 +6,10 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.role;
 
+import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.stringMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType.F_ROLE_TYPE;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
-import com.evolveum.midpoint.repo.sqlbase.mapping.item.StringItemFilterProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 /**
@@ -28,8 +26,7 @@ public class QRoleMapping
         super(QRole.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 RoleType.class, QRole.class);
 
-        addItemMapping(F_ROLE_TYPE,
-                StringItemFilterProcessor.mapper(path(q -> q.roleType)));
+        addItemMapping(F_ROLE_TYPE, stringMapper(path(q -> q.roleType)));
     }
 
     @Override
@@ -38,10 +35,8 @@ public class QRoleMapping
     }
 
     @Override
-    public ObjectSqlTransformer<RoleType, QRole, MRole>
-    createTransformer(SqlTransformerContext transformerContext, SqlRepoContext sqlRepoContext) {
-        // TODO create specific transformer
-        return new ObjectSqlTransformer<>(transformerContext, this);
+    public RoleSqlTransformer createTransformer(SqlTransformerContext transformerContext) {
+        return new RoleSqlTransformer(transformerContext, this);
     }
 
     @Override

@@ -24,7 +24,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.task.DefaultHandledObjectType;
-import com.evolveum.midpoint.repo.common.task.ResultHandlerClass;
+import com.evolveum.midpoint.repo.common.task.ItemProcessorClass;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -34,7 +34,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 /**
  * Execution of a single focus validity scanner task part.
  */
-@ResultHandlerClass(FocusValidityScannerResultHandler.class)
+@ItemProcessorClass(FocusValidityScannerItemProcessor.class)
 @DefaultHandledObjectType(FocusType.class)
 public class FocusValidityScannerTaskPartExecution
         extends AbstractScannerTaskPartExecution
@@ -42,7 +42,7 @@ public class FocusValidityScannerTaskPartExecution
                 FocusValidityScannerTaskHandler,
                 FocusValidityScannerTaskExecution,
                 FocusValidityScannerTaskPartExecution,
-                FocusValidityScannerResultHandler> {
+                FocusValidityScannerItemProcessor> {
 
     /** Determines whether we want to search for objects, assignments, or both at once. */
     @NotNull private final QueryScope queryScope;

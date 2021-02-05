@@ -112,14 +112,4 @@ public class QFocus<T extends MFocus> extends QObject<T> {
     public QFocus(Class<? extends T> type, String variable, String schema, String table) {
         super(type, variable, schema, table);
     }
-
-    /**
-     * Class representing generic {@code QFocus<MFocus>.class} which is otherwise impossible.
-     * There should be no need to instantiate this, so the class is private and final.
-     */
-    public static final class QFocusReal extends QFocus<MFocus> {
-        public QFocusReal(String variable) {
-            super(MFocus.class, variable);
-        }
-    }
 }

@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks;
 
+import com.evolveum.midpoint.prism.PrismObject;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -49,12 +51,12 @@ public class SynchronizationObjectsFilterImpl implements SynchronizationObjectsF
     }
 
     @Override
-    public boolean matches(@NotNull ShadowType shadow) {
+    public boolean matches(@NotNull PrismObject<ShadowType> shadow) {
         return matchesObjectClassName(shadow) && matchesKind(shadow) && matchesIntent(shadow);
     }
 
-    private boolean matchesObjectClassName(@NotNull ShadowType shadow) {
-        return QNameUtil.match(objectClassDefinition.getTypeName(), shadow.getObjectClass());
+    private boolean matchesObjectClassName(@NotNull PrismObject<ShadowType> shadow) {
+        return QNameUtil.match(objectClassDefinition.getTypeName(), shadow.asObjectable().getObjectClass());
     }
 
     /**
@@ -62,14 +64,14 @@ public class SynchronizationObjectsFilterImpl implements SynchronizationObjectsF
      *
      * Originally we looked also at the kind corresponding to the refined object class definition (if present).
      */
-    private boolean matchesKind(ShadowType shadow) {
+    private boolean matchesKind(PrismObject<ShadowType> shadow) {
         return kind == null || ShadowUtil.getKind(shadow) == kind;
     }
 
     /**
      * Does the shadow intent match?
      */
-    private boolean matchesIntent(ShadowType shadow) {
+    private boolean matchesIntent(PrismObject<ShadowType> shadow) {
         return intent == null || intent.equals(ShadowUtil.getIntent(shadow));
     }
 }

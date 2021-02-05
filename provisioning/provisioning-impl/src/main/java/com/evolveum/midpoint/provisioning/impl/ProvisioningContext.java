@@ -276,6 +276,16 @@ public class ProvisioningContext extends StateReporter {
         return child;
     }
 
+    /**
+     * Creates an exact copy of the context but with different task.
+     */
+    public ProvisioningContext spawn(Task workerTask) {
+        ProvisioningContext child = spawnSameResource();
+        child.shadowCoordinates = shadowCoordinates; // todo clone?
+        child.setTask(workerTask);
+        return child;
+    }
+
     public ProvisioningContext spawn(QName objectClassQName) {
         ProvisioningContext ctx = spawnSameResource();
         ctx.shadowCoordinates = new ResourceShadowDiscriminator(getResourceOid(), null, null, null, false);

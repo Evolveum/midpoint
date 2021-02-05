@@ -68,7 +68,7 @@ public class AuditCustomColumnItemFilterProcessor extends ItemFilterProcessor<
             for (AuditEventRecordCustomColumnPropertyType propertyType : values.allValuesRaw()) {
                 Predicate right = createPredicate(filter, propertyType);
                 predicate = predicate != null
-                        ? ExpressionUtils.predicate(Ops.OR, predicate, right)
+                        ? ExpressionUtils.or(predicate, right)
                         : right;
             }
             return predicate;

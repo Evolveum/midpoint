@@ -7,17 +7,18 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Passes all shadows.
+ * Object filter that passes all shadows.
  */
 public class NullSynchronizationObjectFilterImpl implements SynchronizationObjectsFilter {
 
     @Override
-    public boolean matches(@NotNull ShadowType shadow) {
+    public boolean matches(@NotNull PrismObject<ShadowType> shadow) {
         return true;
     }
 }

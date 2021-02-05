@@ -9,6 +9,8 @@ package com.evolveum.midpoint.provisioning.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.apache.commons.lang.Validate;
 import org.springframework.stereotype.Component;
 
@@ -23,14 +25,6 @@ import com.evolveum.midpoint.provisioning.api.ResourceOperationListener;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -52,9 +46,9 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
     private static final String CLASS_NAME_WITH_DOT = ChangeNotificationDispatcherImpl.class.getName() + ".";
 
     private boolean filterProtectedObjects = true;
-    private List<ResourceObjectChangeListener> changeListeners = new ArrayList<>();     // use synchronized access only!
-    private List<ResourceOperationListener> operationListeners = new ArrayList<>();
-    private List<ResourceEventListener> eventListeners = new ArrayList<>();
+    private final List<ResourceObjectChangeListener> changeListeners = new ArrayList<>();     // use synchronized access only!
+    private final List<ResourceOperationListener> operationListeners = new ArrayList<>();
+    private final List<ResourceEventListener> eventListeners = new ArrayList<>();
 
     private static final Trace LOGGER = TraceManager.getTrace(ChangeNotificationDispatcherImpl.class);
 
@@ -264,9 +258,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 
     @Override
     public void notifyEvent(ResourceEventDescription eventDescription,
-            Task task, OperationResult parentResult) throws SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ObjectNotFoundException, GenericConnectorException, ObjectAlreadyExistsException,
-            ExpressionEvaluationException, PolicyViolationException {
+            Task task, OperationResult parentResult) throws CommonException, GenericConnectorException {
         Validate.notNull(eventDescription, "Event description must not be null.");
 
         if (LOGGER.isTraceEnabled()) {

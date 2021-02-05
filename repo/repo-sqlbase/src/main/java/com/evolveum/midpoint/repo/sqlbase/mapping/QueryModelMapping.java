@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
@@ -127,12 +126,10 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
 
     /**
      * Lambda "wrapper" that helps with type inference when mapping paths from entity path.
-     * The returned types are ambiguous just as they are used in {@code mapper()} static methods
-     * on item filter processors.
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    protected <A> Function<EntityPath<?>, Path<?>> path(
-            Function<Q, Path<A>> rootToQueryItem) {
+    protected <A extends Path<?>> Function<EntityPath<?>, A> path(
+            Function<Q, A> rootToQueryItem) {
         return (Function) rootToQueryItem;
     }
 
@@ -141,9 +138,9 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
      * for paths not starting on the Q parameter used for this mapping instance.
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    protected <OQ extends EntityPath<OR>, OR, A> Function<EntityPath<?>, Path<?>> path(
+    protected <OQ extends EntityPath<OR>, OR, A extends Path<?>> Function<EntityPath<?>, A> path(
             @SuppressWarnings("unused") Class<OQ> queryType,
-            Function<OQ, Path<A>> entityToQueryItem) {
+            Function<OQ, A> entityToQueryItem) {
         return (Function) entityToQueryItem;
     }
 
@@ -223,7 +220,7 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
      * Creates {@link SqlTransformer} of row bean to schema type, override if provided.
      */
     public SqlTransformer<S, Q, R> createTransformer(
-            SqlTransformerContext sqlTransformerContext, SqlRepoContext sqlRepoContext) {
+            SqlTransformerContext sqlTransformerContext) {
         throw new UnsupportedOperationException("Bean transformer not supported for " + queryType);
     }
 

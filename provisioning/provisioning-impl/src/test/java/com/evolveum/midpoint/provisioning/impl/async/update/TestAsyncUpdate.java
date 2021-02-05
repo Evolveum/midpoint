@@ -82,12 +82,6 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     protected PrismObject<ResourceType> resource;
 
-//    @Override
-//    protected TracingProfileType getTestMethodTracingProfile() {
-//        return createModelAndProvisioningLoggingTracingProfile()
-//                .fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
-//    }
-
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         // We need to switch off the encryption checks. Some values cannot be encrypted as we do
@@ -226,9 +220,10 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         addDummyAccount("banderson");
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        mockAsyncUpdateTaskHandler.processUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
+        assertNotNull("No last change", lastChange);
         displayDumpable("The change", lastChange);
 
         PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
@@ -256,7 +251,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         setDummyAccountTestAttribute("banderson", "value1", "value2", "value3");
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        mockAsyncUpdateTaskHandler.processUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         displayDumpable("The change", lastChange);
@@ -294,7 +289,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         setDummyAccountTestAttribute("banderson", "value1", "value2", "value3", "value4");
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        mockAsyncUpdateTaskHandler.processUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         displayDumpable("The change", lastChange);
@@ -332,7 +327,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         setDummyAccountTestAttribute("banderson", "value1", "value3", "value4");
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        mockAsyncUpdateTaskHandler.processUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         displayDumpable("The change", lastChange);
@@ -370,7 +365,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         setDummyAccountTestAttribute("banderson", "value100");
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        mockAsyncUpdateTaskHandler.processUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         displayDumpable("The change", lastChange);
@@ -408,7 +403,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         setDummyAccountTestAttribute("banderson", "value4");
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        mockAsyncUpdateTaskHandler.processUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         displayDumpable("The change", lastChange);
@@ -440,7 +435,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         setDummyAccountTestAttribute("banderson", "value125");
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        mockAsyncUpdateTaskHandler.processUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         displayDumpable("The change", lastChange);
@@ -467,7 +462,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         syncServiceMock.reset();
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        mockAsyncUpdateTaskHandler.processUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
         displayDumpable("The change", lastChange);

@@ -180,7 +180,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
                     .map(t -> t.get(entity))
                     .collect(Collectors.toList());
             for (SqlDetailFetchMapper<R, ?, ?, ?> fetcher : mapping().detailFetchMappers()) {
-                fetcher.execute(sqlConfiguration(), () -> sqlConfiguration().newQuery(conn), dataEntities);
+                fetcher.execute(sqlRepoContext, () -> sqlRepoContext.newQuery(conn), dataEntities);
             }
         }
 
@@ -209,7 +209,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         // getClass returns Class<?> but it is really Class<DQ>, just suppressing the warning here
         //noinspection unchecked
         Class<DQ> aClass = (Class<DQ>) newPath.getClass();
-        QueryModelMapping<?, DQ, DR> mapping = sqlConfiguration().getMappingByQueryType(aClass);
+        QueryModelMapping<?, DQ, DR> mapping = sqlRepoContext.getMappingByQueryType(aClass);
         return deriveNew(newPath, mapping);
     }
 
@@ -306,7 +306,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         return notFilterUsed;
     }
 
-    public SqlRepoContext sqlConfiguration() {
+    public SqlRepoContext sqlRepoContext() {
         return sqlRepoContext;
     }
 

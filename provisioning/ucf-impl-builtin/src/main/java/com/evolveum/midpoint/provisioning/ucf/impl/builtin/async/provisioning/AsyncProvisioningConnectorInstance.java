@@ -383,9 +383,10 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     }
 
     @Override
-    public void fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
+    public UcfFetchChangesResult fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
             AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter,
-            LiveSyncChangeListener changeHandler, OperationResult parentResult) {
+            @NotNull UcfLiveSyncChangeListener changeHandler, OperationResult parentResult) {
+        return null;
     }
 
     @Override

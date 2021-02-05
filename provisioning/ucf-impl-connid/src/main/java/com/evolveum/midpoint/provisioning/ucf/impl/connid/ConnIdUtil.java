@@ -67,6 +67,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.identityconnectors.framework.impl.api.remote.RemoteWrappedException;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Set of utility methods that work around some of the ConnId and connector problems.
@@ -574,7 +575,7 @@ public class ConnIdUtil {
         }
     }
 
-    public static Collection<ResourceAttribute<?>> convertToIdentifiers(Uid uid,
+    @NotNull public static Collection<ResourceAttribute<?>> convertToIdentifiers(Uid uid,
             ObjectClassComplexTypeDefinition ocDef, ResourceSchema resourceSchema) throws SchemaException {
         ObjectClassComplexTypeDefinition concreteObjectClassDefinition = getConcreteObjectClassDefinition(ocDef, resourceSchema);
         if (concreteObjectClassDefinition == null) {

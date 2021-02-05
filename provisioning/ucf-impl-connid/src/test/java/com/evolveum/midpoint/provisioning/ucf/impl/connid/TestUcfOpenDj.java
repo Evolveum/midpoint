@@ -347,7 +347,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         CollectingChangeListener handler = new CollectingChangeListener();
         cc.fetchChanges(accountDefinition, lastToken, null, null, null, handler, result);
 
-        List<Change> changes = handler.getChanges();
+        List<UcfLiveSyncChange> changes = handler.getChanges();
         displayValue("Changes", changes);
 
         // No changes (token-only changes are gone in 4.0.1)
