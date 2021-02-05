@@ -340,16 +340,16 @@ public class TestDummyNegative extends AbstractDummyTest {
     /**
      * Checks the behaviour when getting broken accounts, i.e. accounts that cannot be retrieved
      * because of e.g.
-     * - inability to convert from ConnId to resource object (ShadowType)
+     *
+     * - inability to convert from ConnId to resource object (`ShadowType`)
      * - inability to create or update midPoint shadow
      *
-     * The current behavior is that getObject throws an exception in these cases.
-     * This may or may not be ideal. We can consider changing that (to signalling via fetchResult)
-     * later. But that would mean adapting the clients so that they would check the fetchResult
+     * The current behavior is that `getObject` throws an exception in these cases.
+     * This may or may not be ideal. We can consider changing that (to signalling via `fetchResult`)
+     * later. But that would mean adapting the clients so that they would check the `fetchResult`
      * and use the resulting shadow only if it's OK.
      *
-     * ---
-     * Because the getObject operation requires a shadow to exists, we have to create these objects
+     * Because the `getObject` operation requires a shadow to exists, we have to create these objects
      * in a good shape, retrieve them, and break them afterwards.
      */
     @Test

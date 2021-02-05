@@ -42,13 +42,6 @@ public class ResourceObjectAsyncChange extends ResourceObjectChange implements A
         this.acknowledgementSink = ucfAsyncUpdateChange;
     }
 
-    public ResourceObjectAsyncChange(int localSequenceNumber, @NotNull Throwable throwable, @NotNull AcknowledgementSink acknowledgementSink) {
-        super(localSequenceNumber, null, emptyList(), null, null);
-        this.notificationOnly = false;
-        this.acknowledgementSink = acknowledgementSink;
-        setSkipFurtherProcessing(throwable);
-    }
-
     public void preprocess(ResourceObjectConverter converter, ProvisioningContext originalCtx, Task listenerTask,
             OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,

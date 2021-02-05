@@ -121,6 +121,9 @@ public abstract class ResourceObjectChange implements DebugDumpable {
         this(ucfChange.getLocalSequenceNumber(), ucfChange.getPrimaryIdentifierRealValue(),
                 ucfChange.getIdentifiers(), ucfChange.getResourceObject(), ucfChange.getObjectDelta());
         this.objectClassDefinition = ucfChange.getObjectClassDefinition();
+        if (ucfChange.isError()) {
+            processingState.setSkipFurtherProcessing(ucfChange.getErrorState().getException());
+        }
     }
 
     public void setObjectClassDefinition(RefinedObjectClassDefinition definition) {

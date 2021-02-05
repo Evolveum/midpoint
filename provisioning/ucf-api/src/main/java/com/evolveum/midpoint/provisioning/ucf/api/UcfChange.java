@@ -37,8 +37,9 @@ public abstract class UcfChange implements DebugDumpable {
 
     /**
      * Real value of the primary identifier of the object.
+     * Can be null in the case of errors.
      */
-    @NotNull private final Object primaryIdentifierRealValue;
+    private final Object primaryIdentifierRealValue;
 
     /**
      * Definition of the object class. Can be missing for delete deltas.
@@ -68,24 +69,30 @@ public abstract class UcfChange implements DebugDumpable {
      */
     private final PrismObject<ShadowType> resourceObject;
 
-    UcfChange(int localSequenceNumber, @NotNull Object primaryIdentifierRealValue,
+    /**
+     * Was there any error while processing the change in UCF layer?
+     */
+    @NotNull private final UcfErrorState errorState;
+
+    UcfChange(int localSequenceNumber, Object primaryIdentifierRealValue,
             ObjectClassComplexTypeDefinition objectClassDefinition,
             @NotNull Collection<ResourceAttribute<?>> identifiers,
             ObjectDelta<ShadowType> objectDelta,
-            PrismObject<ShadowType> resourceObject) {
+            PrismObject<ShadowType> resourceObject, @NotNull UcfErrorState errorState) {
         this.localSequenceNumber = localSequenceNumber;
         this.primaryIdentifierRealValue = primaryIdentifierRealValue;
         this.objectClassDefinition = objectClassDefinition;
         this.identifiers = unmodifiableCollection(identifiers);
         this.resourceObject = resourceObject;
         this.objectDelta = objectDelta;
+        this.errorState = errorState;
     }
 
     public int getLocalSequenceNumber() {
         return localSequenceNumber;
     }
 
-    public @NotNull Object getPrimaryIdentifierRealValue() {
+    public Object getPrimaryIdentifierRealValue() {
         return primaryIdentifierRealValue;
     }
 
@@ -105,6 +112,10 @@ public abstract class UcfChange implements DebugDumpable {
         return resourceObject;
     }
 
+    public @NotNull UcfErrorState getErrorState() {
+        return errorState;
+    }
+
     @Override
     public String toString() {
         return getClass().getSimpleName()
@@ -114,6 +125,7 @@ public abstract class UcfChange implements DebugDumpable {
                 + ", identifiers=" + identifiers
                 + ", objectDelta=" + objectDelta
                 + ", resourceObject=" + resourceObject
+                + ", errorState=" + errorState
                 + toStringExtra() + ")";
     }
 
@@ -127,23 +139,23 @@ public abstract class UcfChange implements DebugDumpable {
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
-        DebugUtil.indentDebugDump(sb, 0);
+        DebugUtil.indentDebugDump(sb, indent);
         sb.append(getClass().getSimpleName());
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "localSequenceNumber", localSequenceNumber, indent + 1);
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "primaryIdentifierValue", String.valueOf(primaryIdentifierRealValue), indent + 1);
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "objectClassDefinition", objectClassDefinition, indent + 1);
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "identifiers", identifiers, indent + 1);
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "objectDelta", objectDelta, indent + 1);
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "resourceObject", resourceObject, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "localSequenceNumber", localSequenceNumber, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "primaryIdentifierValue", String.valueOf(primaryIdentifierRealValue), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "objectClassDefinition", objectClassDefinition, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "identifiers", identifiers, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "objectDelta", objectDelta, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "resourceObject", resourceObject, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "errorState", errorState, indent + 1);
         debugDumpExtra(sb, indent);
         return sb.toString();
     }
 
     protected abstract void debugDumpExtra(StringBuilder sb, int indent);
+
+    public boolean isError() {
+        return errorState.isError();
+    }
 }

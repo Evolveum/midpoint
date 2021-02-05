@@ -9,11 +9,13 @@ package com.evolveum.midpoint.provisioning.ucf.api.async;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a connection to asynchronous provisioning target (e.g. JMS queue residing in a broker).
  */
+@VisibleForTesting // just to provide mock implementations
 public interface AsyncProvisioningTarget {
 
     /**

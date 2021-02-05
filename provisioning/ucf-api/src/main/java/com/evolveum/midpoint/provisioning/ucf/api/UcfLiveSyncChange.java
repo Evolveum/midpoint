@@ -32,8 +32,9 @@ public class UcfLiveSyncChange extends UcfChange {
     public UcfLiveSyncChange(int localSequenceNumber, @NotNull Object primaryIdentifierRealValue,
             @NotNull Collection<ResourceAttribute<?>> identifiers, ObjectClassComplexTypeDefinition objectClassDefinition,
             ObjectDelta<ShadowType> objectDelta, PrismObject<ShadowType> resourceObject,
-            @NotNull PrismProperty<?> token) {
-        super(localSequenceNumber, primaryIdentifierRealValue, objectClassDefinition, identifiers, objectDelta, resourceObject);
+            @NotNull PrismProperty<?> token, UcfErrorState errorState) {
+        super(localSequenceNumber, primaryIdentifierRealValue, objectClassDefinition, identifiers, objectDelta, resourceObject,
+                errorState);
         this.token = token;
     }
 

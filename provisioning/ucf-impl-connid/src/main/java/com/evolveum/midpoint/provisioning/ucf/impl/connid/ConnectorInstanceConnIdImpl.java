@@ -1663,27 +1663,14 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                     }
                     UcfLiveSyncChange change = null;
                     try {
-                        boolean canContinue = false; // Driven by the signal from the listener
-
                         // Here we again assume we are called in a single thread, and that changes received here are in
                         // the correct order - i.e. in the order in which they are to be processed.
                         int sequentialNumber = deltasProcessed.incrementAndGet();
 
-                        try {
-                            change = changeConverter.prepareChange(sequentialNumber, syncDelta, handleResult);
-                        } catch (Exception e) {
-                            handleResult.recordFatalError(e);
-                            String primaryIdentifierValue = syncDelta.getUid().getUidValue();
-                            PrismProperty<?> token = TokenUtil.createTokenProperty(syncDelta.getToken(), prismContext);
-                            canContinue = changeListener.onError(sequentialNumber, primaryIdentifierValue,
-                                    token, e, handleResult);
-                            change = null; // just to be sure that the change listener will not get executed
-                        }
+                        change = changeConverter.createChange(sequentialNumber, syncDelta, handleResult);
 
-                        if (change != null) {
-                            // The following should not throw any exceptions
-                            canContinue = changeListener.onChange(change, handleResult);
-                        }
+                        // The following should not throw any exceptions
+                        boolean canContinue = changeListener.onChange(change, handleResult);
 
                         boolean doContinue = canContinue && canRun(reporter) && (maxChanges == null || maxChanges == 0 || sequentialNumber < maxChanges);
                         if (!doContinue) {

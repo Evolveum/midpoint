@@ -1848,68 +1848,56 @@ public class ResourceObjectConverter {
         Integer maxChanges = getMaxChanges(ctx);
 
         AtomicInteger processed = new AtomicInteger(0);
-        UcfLiveSyncChangeListener localListener = new UcfLiveSyncChangeListener() {
-            @Override
-            public boolean onChange(UcfLiveSyncChange ucfChange, OperationResult lParentResult) {
-                int changeNumber = processed.getAndIncrement();
+        UcfLiveSyncChangeListener localListener = (ucfChange, lParentResult) -> {
+            int changeNumber = processed.getAndIncrement();
 
-                ResourceObjectLiveSyncChange change = new ResourceObjectLiveSyncChange(ucfChange);
+            ResourceObjectLiveSyncChange change = new ResourceObjectLiveSyncChange(ucfChange);
 
-                Task task = ctx.getTask();
-                boolean requestedTracingHere;
-                requestedTracingHere = task instanceof RunningTask &&
-                        ((RunningTask) task).requestTracingIfNeeded(
-                                (RunningTask) task, changeNumber,
-                                TracingRootType.LIVE_SYNC_CHANGE_PROCESSING);
+            Task task = ctx.getTask();
+            boolean requestedTracingHere;
+            requestedTracingHere = task instanceof RunningTask &&
+                    ((RunningTask) task).requestTracingIfNeeded(
+                            (RunningTask) task, changeNumber,
+                            TracingRootType.LIVE_SYNC_CHANGE_PROCESSING);
+            try {
+                OperationResultBuilder resultBuilder = lParentResult.subresult(OPERATION_HANDLE_CHANGE)
+                        .setMinor()
+                        .addParam("number", changeNumber)
+                        .addParam("localSequenceNumber", ucfChange.getLocalSequenceNumber())
+                        .addArbitraryObjectAsParam("primaryIdentifier", ucfChange.getPrimaryIdentifierRealValue())
+                        .addArbitraryObjectAsParam("token", ucfChange.getToken());
+
+                // Here we request tracing if configured to do so. Note that this is only a partial solution: for multithreaded
+                // livesync we currently do not trace the "worker" part of the processing.
+                boolean tracingRequested;
                 try {
-                    OperationResultBuilder resultBuilder = lParentResult.subresult(OPERATION_HANDLE_CHANGE)
-                            .setMinor()
-                            .addParam("number", changeNumber)
-                            .addParam("localSequenceNumber", ucfChange.getLocalSequenceNumber())
-                            .addArbitraryObjectAsParam("primaryIdentifier", ucfChange.getPrimaryIdentifierRealValue())
-                            .addArbitraryObjectAsParam("token", ucfChange.getToken());
-
-                    // Here we request tracing if configured to do so. Note that this is only a partial solution: for multithreaded
-                    // livesync we currently do not trace the "worker" part of the processing.
-                    boolean tracingRequested;
+                    tracingRequested = setTracingInOperationResultIfRequested(resultBuilder,
+                            TracingRootType.LIVE_SYNC_CHANGE_PROCESSING, task, lParentResult);
+                } catch (Exception e) {
+                    change.setSkipFurtherProcessing(e);
+                    tracingRequested = false;
+                }
+                OperationResult lResult = resultBuilder.build();
+                try {
                     try {
-                        tracingRequested = setTracingInOperationResultIfRequested(resultBuilder,
-                                TracingRootType.LIVE_SYNC_CHANGE_PROCESSING, task, lParentResult);
+                        change.preprocess(ResourceObjectConverter.this, ctx, attrsToReturn, lResult);
                     } catch (Exception e) {
                         change.setSkipFurtherProcessing(e);
-                        tracingRequested = false;
                     }
-                    OperationResult lResult = resultBuilder.build();
-                    try {
-                        try {
-                            change.preprocess(ResourceObjectConverter.this, ctx, attrsToReturn, lResult);
-                        } catch (Exception e) {
-                            change.setSkipFurtherProcessing(e);
-                        }
-                        return outerListener.onChange(change, lResult);
-                    } catch (Throwable t) {
-                        lResult.recordFatalError(t);
-                        throw t;
-                    } finally {
-                        lResult.computeStatusIfUnknown();
-                        if (tracingRequested) {
-                            tracer.storeTrace(task, lResult, lParentResult);
-                        }
-                    }
+                    return outerListener.onChange(change, lResult);
+                } catch (Throwable t) {
+                    lResult.recordFatalError(t);
+                    throw t;
                 } finally {
-                    if (requestedTracingHere && task instanceof RunningTask) {
-                        ((RunningTask) task).stopTracing();
+                    lResult.computeStatusIfUnknown();
+                    if (tracingRequested) {
+                        tracer.storeTrace(task, lResult, lParentResult);
                     }
                 }
-            }
-
-            @Override
-            public boolean onError(int localSequentialNumber, @NotNull Object primaryIdentifierRealValue,
-                    @NotNull PrismProperty<?> token, @NotNull Throwable throwable, @NotNull OperationResult result) {
-                // We want to propagate failed change to upper layers for reporting/error-handling purposes (marked as 'skip')
-                ResourceObjectLiveSyncChange change = new ResourceObjectLiveSyncChange(localSequentialNumber,
-                        primaryIdentifierRealValue, token, throwable);
-                return outerListener.onChange(change, result);
+            } finally {
+                if (requestedTracingHere && task instanceof RunningTask) {
+                    ((RunningTask) task).stopTracing();
+                }
             }
         };
 
@@ -1958,24 +1946,14 @@ public class ResourceObjectConverter {
         LOGGER.trace("Listening for async updates, objectClass: {}", ctx.getObjectClassDefinition());
         ConnectorInstance connector = ctx.getConnector(AsyncUpdateCapabilityType.class, parentResult);
 
-        UcfAsyncUpdateChangeListener innerListener = new UcfAsyncUpdateChangeListener() {
-            @Override
-            public void onChange(UcfAsyncUpdateChange ucfChange, Task listenerTask, OperationResult listenerResult) {
-                ResourceObjectAsyncChange change = new ResourceObjectAsyncChange(ucfChange);
-                try {
-                    change.preprocess(ResourceObjectConverter.this, ctx, listenerTask, listenerResult);
-                } catch (Exception e) {
-                    change.setSkipFurtherProcessing(e);
-                }
-                outerListener.onChange(change, listenerResult);
+        UcfAsyncUpdateChangeListener innerListener = (ucfChange, listenerTask, listenerResult) -> {
+            ResourceObjectAsyncChange change = new ResourceObjectAsyncChange(ucfChange);
+            try {
+                change.preprocess(ResourceObjectConverter.this, ctx, listenerTask, listenerResult);
+            } catch (Exception e) {
+                change.setSkipFurtherProcessing(e);
             }
-
-            @Override
-            public void onError(int localSequentialNumber, @NotNull Throwable throwable, @NotNull AcknowledgementSink acknowledgeable, OperationResult result) {
-                // We want to propagate failed change to upper layers for reporting/error-handling purposes (marked as 'skip')
-                ResourceObjectAsyncChange change = new ResourceObjectAsyncChange(localSequentialNumber, throwable, acknowledgeable);
-                outerListener.onChange(change, result);
-            }
+            outerListener.onChange(change, listenerResult);
         };
         connector.listenForChanges(innerListener, ctx::canRun, parentResult);
 

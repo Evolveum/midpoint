@@ -20,6 +20,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
+import static java.util.Collections.emptyList;
+
 /**
  * TODO
  */
@@ -40,8 +42,15 @@ public class UcfAsyncUpdateChange extends UcfChange implements AcknowledgementSi
             ObjectDelta<ShadowType> objectDelta, PrismObject<ShadowType> currentResourceObject,
             boolean notificationOnly, AcknowledgementSink acknowledgeSink) {
         super(localSequenceNumber, primaryIdentifierRealValue, objectClassDefinition, identifiers,
-                objectDelta, currentResourceObject);
+                objectDelta, currentResourceObject, new UcfErrorState());
         this.notificationOnly = notificationOnly;
+        this.acknowledgeSink = acknowledgeSink;
+    }
+
+    public UcfAsyncUpdateChange(int localSequenceNumber, UcfErrorState errorState, AcknowledgementSink acknowledgeSink) {
+        super(localSequenceNumber, null, null, emptyList(),
+                null, null, errorState);
+        this.notificationOnly = false;
         this.acknowledgeSink = acknowledgeSink;
     }
 

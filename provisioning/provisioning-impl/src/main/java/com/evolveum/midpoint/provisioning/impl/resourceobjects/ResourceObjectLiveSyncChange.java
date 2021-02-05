@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
-import static java.util.Collections.emptyList;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -39,23 +37,9 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
      */
     @NotNull private final PrismProperty<?> token;
 
-    /**
-     * Attributes that we want to be present, based on the definition of the object class.
-     *
-     * Computed during pre-processing. Probably has no meaning after that.
-     */
-    private AttributesToReturn attributesToReturn;
-
     public ResourceObjectLiveSyncChange(UcfLiveSyncChange ucfLiveSyncChange) {
         super(ucfLiveSyncChange);
         this.token = ucfLiveSyncChange.getToken();
-    }
-
-    public ResourceObjectLiveSyncChange(int localSequenceNumber, @NotNull Object primaryIdentifierRealValue,
-            @NotNull PrismProperty<?> token, Throwable throwable) {
-        super(localSequenceNumber, primaryIdentifierRealValue, emptyList(), null, null);
-        setSkipFurtherProcessing(throwable);
-        this.token = token;
     }
 
     /**
@@ -74,34 +58,34 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
         LOGGER.trace("Change before pre-processing:\n{}", debugDumpLazily());
 
         determineProvisioningContext(originalCtx, null);
-        determineAttributesToReturn(originalCtx, originalAttributesToReturn);
 
         if (!isDelete()) {
-            fetchOrPostProcessResourceObject(converter, originalCtx, originalAttributesToReturn, result);
+            postProcessOrFetchResourceObject(converter, originalCtx, originalAttributesToReturn, result);
         }
 
         LOGGER.trace("Pre-processed change:\n{}", debugDumpLazily());
     }
 
-    private void fetchOrPostProcessResourceObject(ResourceObjectConverter converter, ProvisioningContext originalCtx,
+    private void postProcessOrFetchResourceObject(ResourceObjectConverter converter, ProvisioningContext originalCtx,
             AttributesToReturn originalAttributesToReturn, OperationResult result) throws CommunicationException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException,
             ObjectNotFoundException, SkipProcessingException {
+        AttributesToReturn actualAttributesToReturn = determineAttributesToReturn(originalCtx, originalAttributesToReturn);
         if (resourceObject == null) {
             // TODO maybe we can postpone this fetch to ShadowCache.preProcessChange where it is implemented anyway
             LOGGER.trace("Fetching object {} because it is not in the change", identifiers);
-            fetchResourceObject(converter, result);
-        } else if (originalCtx.isWildcard() && !MiscUtil.equals(attributesToReturn, originalAttributesToReturn)) {
+            fetchResourceObject(converter, actualAttributesToReturn, result);
+        } else if (originalCtx.isWildcard() && !MiscUtil.equals(actualAttributesToReturn, originalAttributesToReturn)) {
             LOGGER.trace("Re-fetching object {} because mismatching attributesToReturn", identifiers);
-            fetchResourceObject(converter, result);
+            fetchResourceObject(converter, actualAttributesToReturn, result);
         } else {
             converter.postProcessResourceObjectRead(context, resourceObject, true, result);
         }
     }
 
-    private void fetchResourceObject(ResourceObjectConverter converter, OperationResult result) throws CommunicationException,
-            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException,
-            SkipProcessingException {
+    private void fetchResourceObject(ResourceObjectConverter converter, AttributesToReturn attributesToReturn,
+            OperationResult result) throws CommunicationException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException, SkipProcessingException {
         try {
             // todo consider whether it is always necessary to fetch the entitlements
             resourceObject = converter.fetchResourceObject(context, identifiers, attributesToReturn, true, result);
@@ -114,13 +98,13 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
         }
     }
 
-    private void determineAttributesToReturn(ProvisioningContext originalCtx, AttributesToReturn originalAttrsToReturn)
+    private AttributesToReturn determineAttributesToReturn(ProvisioningContext originalCtx, AttributesToReturn originalAttrsToReturn)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             ExpressionEvaluationException {
         if (context == originalCtx) {
-            attributesToReturn = originalAttrsToReturn;
+            return originalAttrsToReturn;
         } else {
-            attributesToReturn = ProvisioningUtil.createAttributesToReturn(context);
+            return ProvisioningUtil.createAttributesToReturn(context);
         }
     }
 

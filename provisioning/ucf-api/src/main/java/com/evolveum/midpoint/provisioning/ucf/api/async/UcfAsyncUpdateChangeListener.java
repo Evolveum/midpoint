@@ -7,10 +7,6 @@
 
 package com.evolveum.midpoint.provisioning.ucf.api.async;
 
-import com.evolveum.midpoint.schema.AcknowledgementSink;
-
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.provisioning.ucf.api.UcfAsyncUpdateChange;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -31,14 +27,4 @@ public interface UcfAsyncUpdateChangeListener {
      * Or when the source itself emits messages in a thread different from the caller's one.</p>
      */
     void onChange(UcfAsyncUpdateChange change, Task task, OperationResult result);
-
-    /**
-     * Called when the connector gets a message but it cannot be converted to change or changes.
-     *
-     * @param localSequentialNumber Sequential number of this "quasi-change"
-     * @param throwable A throwable describing the problem
-     * @param acknowledgementSink Where to send acknowledgements to
-     */
-    void onError(int localSequentialNumber, @NotNull Throwable throwable, @NotNull AcknowledgementSink acknowledgementSink,
-            OperationResult result);
 }
