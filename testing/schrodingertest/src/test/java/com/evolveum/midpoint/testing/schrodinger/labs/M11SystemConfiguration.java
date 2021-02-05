@@ -29,14 +29,14 @@ public class M11SystemConfiguration extends AbstractLabTest {
     private static final Logger LOG = LoggerFactory.getLogger(M11SystemConfiguration.class);
     protected static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M11/";
 
-    private static final File SYSTEM_CONFIGURATION_FILE_11_2 = new File(LAB_OBJECTS_DIRECTORY + "systemConfiguration/system-configuration-11-2.xml");
-    private static final File SYSTEM_CONFIGURATION_FILE_11_3 = new File(LAB_OBJECTS_DIRECTORY + "systemConfiguration/system-configuration-11-3.xml");
-    private static final File OBJECT_COLLECTION_ACTIVE_EMP_FILE = new File(LAB_OBJECTS_DIRECTORY + "objectCollections/objectCollection-active-employees.xml");
-    private static final File OBJECT_COLLECTION_INACTIVE_EMP_FILE = new File(LAB_OBJECTS_DIRECTORY + "objectCollections/objectCollection-inactive-employees.xml");
-    private static final File OBJECT_COLLECTION_FORMER_EMP_FILE = new File(LAB_OBJECTS_DIRECTORY + "objectCollections/objectCollection-former-employees.xml");
+    private static final File SYSTEM_CONFIGURATION_FILE_11_2 = new File(LAB_OBJECTS_DIRECTORY + "systemconfiguration/system-configuration-11-2.xml");
+    private static final File SYSTEM_CONFIGURATION_FILE_11_3 = new File(LAB_OBJECTS_DIRECTORY + "systemconfiguration/system-configuration-11-3.xml");
+    private static final File OBJECT_COLLECTION_ACTIVE_EMP_FILE = new File(LAB_OBJECTS_DIRECTORY + "objectcollections/objectCollection-active-employees.xml");
+    private static final File OBJECT_COLLECTION_INACTIVE_EMP_FILE = new File(LAB_OBJECTS_DIRECTORY + "objectcollections/objectCollection-inactive-employees.xml");
+    private static final File OBJECT_COLLECTION_FORMER_EMP_FILE = new File(LAB_OBJECTS_DIRECTORY + "objectcollections/objectCollection-former-employees.xml");
     private static final File ARCHETYPE_EMPLOYEE_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-employee.xml");
     private static final File ARCHETYPE_EXTERNAL_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-external.xml");
-    private static final File OBJECT_TEMPLATE_USER_FILE_11 = new File(LAB_OBJECTS_DIRECTORY + "objectTemplate/object-template-example-user-11.xml");
+    private static final File OBJECT_TEMPLATE_USER_FILE_11 = new File(LAB_OBJECTS_DIRECTORY + "objecttemplate/object-template-example-user-11.xml");
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override
