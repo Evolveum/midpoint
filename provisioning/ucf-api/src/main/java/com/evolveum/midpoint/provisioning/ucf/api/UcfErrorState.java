@@ -19,12 +19,20 @@ public class UcfErrorState implements DebugDumpable {
 
     private final Throwable exception;
 
-    public UcfErrorState() {
+    private UcfErrorState() {
         this(null);
     }
 
-    public UcfErrorState(Throwable e) {
+    private UcfErrorState(Throwable e) {
         this.exception = e;
+    }
+
+    public static UcfErrorState success() {
+        return new UcfErrorState();
+    }
+
+    public static UcfErrorState error(Throwable e) {
+        return new UcfErrorState(e);
     }
 
     public Throwable getException() {

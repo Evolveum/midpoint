@@ -42,7 +42,7 @@ public class UcfAsyncUpdateChange extends UcfChange implements AcknowledgementSi
             ObjectDelta<ShadowType> objectDelta, PrismObject<ShadowType> currentResourceObject,
             boolean notificationOnly, AcknowledgementSink acknowledgeSink) {
         super(localSequenceNumber, primaryIdentifierRealValue, objectClassDefinition, identifiers,
-                objectDelta, currentResourceObject, new UcfErrorState());
+                objectDelta, currentResourceObject, UcfErrorState.success());
         this.notificationOnly = notificationOnly;
         this.acknowledgeSink = acknowledgeSink;
     }

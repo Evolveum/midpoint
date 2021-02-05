@@ -349,9 +349,9 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
 
     @Override
     public SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
-            ShadowResultHandler handler, AttributesToReturn attributesToReturn,
+            FetchedObjectHandler handler, AttributesToReturn attributesToReturn,
             PagedSearchCapabilityType pagedSearchConfiguration, SearchHierarchyConstraints searchHierarchyConstraints,
-            FetchErrorReportingMethodType errorReportingMethod,
+            UcfFetchErrorReportingMethod ucfErrorReportingMethod,
             StateReporter reporter, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("search");
         return null;

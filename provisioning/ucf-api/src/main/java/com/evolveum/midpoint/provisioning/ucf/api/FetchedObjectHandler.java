@@ -6,9 +6,6 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
 /**
  * Classes implementing this interface are used to handle iterative results.
  *
@@ -18,13 +15,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author Radovan Semancik
  */
 @FunctionalInterface
-public interface ShadowResultHandler {
+public interface FetchedObjectHandler {
 
     /**
      * Handle a single result.
      * @param object Resource object to process.
      * @return true if the operation should proceed, false if it should stop
      */
-    boolean handle(PrismObject<ShadowType> object);
+    boolean handle(FetchedUcfObject object);
 
 }

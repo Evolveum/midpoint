@@ -554,12 +554,9 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OpenDJController.OBJECT_CLASS_INETORGPERSON_NAME);
         // Determine object class from the schema
 
-        ShadowResultHandler handler = new ShadowResultHandler() {
-            @Override
-            public boolean handle(PrismObject<ShadowType> object) {
-                display("Search: found: " + object);
-                return true;
-            }
+        FetchedObjectHandler handler = ucfObject -> {
+            displayDumpable("Search: found", ucfObject);
+            return true;
         };
 
         OperationResult result = createOperationResult();

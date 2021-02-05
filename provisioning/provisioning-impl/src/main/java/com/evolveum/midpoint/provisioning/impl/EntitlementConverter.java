@@ -16,6 +16,7 @@ import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -31,12 +32,6 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
-import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.ucf.api.Operation;
-import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
-import com.evolveum.midpoint.provisioning.ucf.api.ShadowResultHandler;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -235,29 +230,27 @@ class EntitlementConverter {
 
         SearchHierarchyConstraints searchHierarchyConstraints = determineSearchHierarchyConstraints(entitlementCtx, parentResult);
 
-        ShadowResultHandler handler = new ShadowResultHandler() {
-            @Override
-            public boolean handle(PrismObject<ShadowType> entitlementShadow) {
-                PrismContainerValue<ShadowAssociationType> associationCVal = associationContainer.createNewValue();
-                associationCVal.asContainerable().setName(associationName);
-                Collection<ResourceAttribute<?>> entitlementIdentifiers = ShadowUtil.getAllIdentifiers(entitlementShadow);
-                try {
-                    ResourceAttributeContainer identifiersContainer = ObjectFactory.createResourceAttributeContainer(
-                            ShadowAssociationType.F_IDENTIFIERS, entitlementDef.toResourceAttributeContainerDefinition(), prismContext);
-                    associationCVal.add(identifiersContainer);
-                    identifiersContainer.getValue().addAll(Item.cloneCollection(entitlementIdentifiers));
+        FetchedObjectHandler handler = ucfObject -> {
+            PrismObject<ShadowType> entitlementShadow = ucfObject.getResourceObject();
+            PrismContainerValue<ShadowAssociationType> associationCVal = associationContainer.createNewValue();
+            associationCVal.asContainerable().setName(associationName);
+            Collection<ResourceAttribute<?>> entitlementIdentifiers = ShadowUtil.getAllIdentifiers(entitlementShadow);
+            try {
+                ResourceAttributeContainer identifiersContainer = ObjectFactory.createResourceAttributeContainer(
+                        ShadowAssociationType.F_IDENTIFIERS, entitlementDef.toResourceAttributeContainerDefinition(), prismContext);
+                associationCVal.add(identifiersContainer);
+                identifiersContainer.getValue().addAll(Item.cloneCollection(entitlementIdentifiers));
 
-                    // Remember the full shadow in user data. This is used later as an optimization to create the shadow in repo
-                    identifiersContainer.setUserData(ResourceObjectConverter.FULL_SHADOW_KEY, entitlementShadow);
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Processed entitlement-to-subject association for account {} and entitlement {}",
-                                ShadowUtil.getHumanReadableName(resourceObject), ShadowUtil.getHumanReadableName(entitlementShadow));
-                    }
-                } catch (SchemaException e) {
-                    throw new TunnelException(e);
+                // Remember the full shadow in user data. This is used later as an optimization to create the shadow in repo
+                identifiersContainer.setUserData(ResourceObjectConverter.FULL_SHADOW_KEY, entitlementShadow);
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Processed entitlement-to-subject association for account {} and entitlement {}",
+                            ShadowUtil.getHumanReadableName(resourceObject), ShadowUtil.getHumanReadableName(entitlementShadow));
                 }
-                return true;
+            } catch (SchemaException e) {
+                throw new TunnelException(e);
             }
+            return true;
         };
 
         ConnectorInstance connector = subjectCtx.getConnector(ReadCapabilityType.class, parentResult);
@@ -267,8 +260,8 @@ class EntitlementConverter {
                         ShadowUtil.getHumanReadableName(resourceObject), query);
             }
             try {
-                connector.search(entitlementDef, query, handler, attributesToReturn, null, searchHierarchyConstraints,
-                        FetchErrorReportingMethodType.DEFAULT, subjectCtx, parentResult);
+                connector.search(entitlementDef, query, handler, attributesToReturn, null,
+                        searchHierarchyConstraints, UcfFetchErrorReportingMethod.EXCEPTION, subjectCtx, parentResult);
             } catch (GenericFrameworkException e) {
                 throw new GenericConnectorException("Generic error in the connector " + connector + ". Reason: "
                         + e.getMessage(), e);
@@ -443,49 +436,45 @@ class EntitlementConverter {
 
                 SearchHierarchyConstraints searchHierarchyConstraints = determineSearchHierarchyConstraints(entitlementCtx, parentResult);
 
-                ShadowResultHandler handler = new ShadowResultHandler() {
-                    @Override
-                    public boolean handle(PrismObject<ShadowType> entitlementShadow) {
-                        Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(entitlementShadow);
-                        ResourceObjectDiscriminator disc = new ResourceObjectDiscriminator(entitlementOcDef.getTypeName(), primaryIdentifiers);
-                        ResourceObjectOperations operations = roMap.get(disc);
-                        if (operations == null) {
-                            operations = new ResourceObjectOperations();
-                            roMap.put(disc, operations);
-                            operations.setResourceObjectContext(entitlementCtx);
-                            Collection<? extends ResourceAttribute<?>> allIdentifiers = ShadowUtil.getAllIdentifiers(entitlementShadow);
-                            operations.setAllIdentifiers(allIdentifiers);
-                        }
+                FetchedObjectHandler handler = ucfObject -> {
+                    PrismObject<ShadowType> entitlementShadow = ucfObject.getResourceObject();
+                    Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(entitlementShadow);
+                    ResourceObjectDiscriminator disc = new ResourceObjectDiscriminator(entitlementOcDef.getTypeName(), primaryIdentifiers);
+                    ResourceObjectOperations operations = roMap.get(disc);
+                    if (operations == null) {
+                        operations = new ResourceObjectOperations();
+                        roMap.put(disc, operations);
+                        operations.setResourceObjectContext(entitlementCtx);
+                        Collection<? extends ResourceAttribute<?>> allIdentifiers = ShadowUtil.getAllIdentifiers(entitlementShadow);
+                        operations.setAllIdentifiers(allIdentifiers);
+                    }
 
-                        PropertyDelta<T> attributeDelta = null;
-                        for(Operation operation: operations.getOperations()) {
-                            if (operation instanceof PropertyModificationOperation) {
-                                PropertyModificationOperation propOp = (PropertyModificationOperation)operation;
-                                if (propOp.getPropertyDelta().getElementName().equals(assocAttrName)) {
-                                    attributeDelta = propOp.getPropertyDelta();
-                                }
+                    PropertyDelta<T> attributeDelta = null;
+                    for(Operation operation: operations.getOperations()) {
+                        if (operation instanceof PropertyModificationOperation) {
+                            PropertyModificationOperation propOp = (PropertyModificationOperation)operation;
+                            if (propOp.getPropertyDelta().getElementName().equals(assocAttrName)) {
+                                attributeDelta = propOp.getPropertyDelta();
                             }
                         }
-                        if (attributeDelta == null) {
-                            attributeDelta = assocAttrDef.createEmptyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, assocAttrName));
-                            PropertyModificationOperation attributeModification = new PropertyModificationOperation(attributeDelta);
-                            attributeModification.setMatchingRuleQName(assocDefType.getMatchingRule());
-                            operations.add(attributeModification);
-                        }
-
-                        attributeDelta.addValuesToDelete(valueAttr.getClonedValues());
-                        if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace("Association in deleted shadow delta:\n{}", attributeDelta.debugDump());
-                        }
-
-                        return true;
                     }
+                    if (attributeDelta == null) {
+                        attributeDelta = assocAttrDef.createEmptyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, assocAttrName));
+                        PropertyModificationOperation attributeModification = new PropertyModificationOperation(attributeDelta);
+                        attributeModification.setMatchingRuleQName(assocDefType.getMatchingRule());
+                        operations.add(attributeModification);
+                    }
+
+                    attributeDelta.addValuesToDelete(valueAttr.getClonedValues());
+                    LOGGER.trace("Association in deleted shadow delta:\n{}", attributeDelta.debugDumpLazily());
+
+                    return true;
                 };
                 try {
                     LOGGER.trace("Searching for associations in deleted shadow, query: {}", query);
                     ConnectorInstance connector = subjectCtx.getConnector(ReadCapabilityType.class, parentResult);
-                    connector.search(entitlementOcDef, query, handler, attributesToReturn, null, searchHierarchyConstraints,
-                            FetchErrorReportingMethodType.DEFAULT, subjectCtx, parentResult);
+                    connector.search(entitlementOcDef, query, handler, attributesToReturn, null,
+                            searchHierarchyConstraints, UcfFetchErrorReportingMethod.EXCEPTION, subjectCtx, parentResult);
                 } catch (TunnelException e) {
                     throw (SchemaException)e.getCause();
                 } catch (GenericFrameworkException e) {

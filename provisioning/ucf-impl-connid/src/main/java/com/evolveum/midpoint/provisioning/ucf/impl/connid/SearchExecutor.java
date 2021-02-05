@@ -7,15 +7,12 @@
 
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
-import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.ucf.api.ShadowResultHandler;
+import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -26,7 +23,6 @@ import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
@@ -47,7 +43,7 @@ import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.proc
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnectorInstanceConnIdImpl.toShadowDefinition;
 
 /**
- * Executes `search` operation.
+ * Executes `search` operation. (Offloads {@link ConnectorInstanceConnIdImpl} from this task.)
  */
 class SearchExecutor {
 
@@ -56,12 +52,12 @@ class SearchExecutor {
     @NotNull private final ObjectClass icfObjectClass;
     private final ObjectQuery query;
     private final Filter connIdFilter;
-    @NotNull private final ShadowResultHandler handler;
+    @NotNull private final FetchedObjectHandler handler;
     private final AttributesToReturn attributesToReturn;
     private final PagedSearchCapabilityType pagedSearchConfiguration;
     private final SearchHierarchyConstraints searchHierarchyConstraints;
-    private final FetchErrorReportingMethodType errorReportingMethod;
-    @NotNull private final StateReporter reporter;
+    private final UcfFetchErrorReportingMethod errorReportingMethod;
+    private final StateReporter reporter;
     @NotNull private final OperationResult result;
     @NotNull private final ConnectorInstanceConnIdImpl connectorInstance;
 
@@ -72,9 +68,9 @@ class SearchExecutor {
     private final AtomicInteger objectsFetched = new AtomicInteger(0);
 
     SearchExecutor(@NotNull ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
-            @NotNull ShadowResultHandler handler, AttributesToReturn attributesToReturn,
+            @NotNull FetchedObjectHandler handler, AttributesToReturn attributesToReturn,
             PagedSearchCapabilityType pagedSearchConfiguration, SearchHierarchyConstraints searchHierarchyConstraints,
-            FetchErrorReportingMethodType errorReportingMethod, @NotNull StateReporter reporter, @NotNull OperationResult result,
+            UcfFetchErrorReportingMethod errorReportingMethod, StateReporter reporter, @NotNull OperationResult result,
             @NotNull ConnectorInstanceConnIdImpl connectorInstance) throws SchemaException {
 
         this.objectClassDefinition = objectClassDefinition;
@@ -316,11 +312,11 @@ class SearchExecutor {
                     }
                 }
 
-                PrismObject<ShadowType> resourceObject = connectorInstance.connIdConvertor.convertToResourceObject(
+                FetchedUcfObject ucfObject = connectorInstance.connIdConvertor.convertToUcfObject(
                         connectorObject, objectDefinition, false, connectorInstance.isCaseIgnoreAttributeNames(),
                         connectorInstance.isLegacySchema(), errorReportingMethod, result);
 
-                return handler.handle(resourceObject);
+                return handler.handle(ucfObject);
 
             } catch (SchemaException e) {
                 throw new IntermediateException(e);

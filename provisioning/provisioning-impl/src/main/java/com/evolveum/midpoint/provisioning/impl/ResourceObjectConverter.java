@@ -175,19 +175,16 @@ public class ResourceObjectConverter {
                     .itemWithDef(secondaryIdentifierDef, ShadowType.F_ATTRIBUTES, secondaryIdentifierDef.getItemName()).eq(secondaryIdentifierValue)
                     .build();
             final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<>();
-            ShadowResultHandler handler = new ShadowResultHandler() {
-                @Override
-                public boolean handle(PrismObject<ShadowType> shadow) {
-                    if (!shadowHolder.isEmpty()) {
-                        throw new IllegalStateException("More than one value found for secondary identifier "+finalSecondaryIdentifier);
-                    }
-                    shadowHolder.setValue(shadow);
-                    return true;
+            FetchedObjectHandler handler = ucfObject -> {
+                if (!shadowHolder.isEmpty()) {
+                    throw new IllegalStateException("More than one value found for secondary identifier "+finalSecondaryIdentifier);
                 }
+                shadowHolder.setValue(ucfObject.getResourceObject());
+                return true;
             };
             try {
                 connector.search(ctx.getObjectClassDefinition(), query, handler, attributesToReturn, null, null,
-                        FetchErrorReportingMethodType.DEFAULT, ctx, parentResult);
+                        UcfFetchErrorReportingMethod.EXCEPTION, ctx, parentResult);
                 if (shadowHolder.isEmpty()) {
                     throw new ObjectNotFoundException("No object found for secondary identifier "+secondaryIdentifier);
                 }
@@ -1285,11 +1282,20 @@ public class ResourceObjectConverter {
 
         AtomicInteger objectCounter = new AtomicInteger(0);
 
+        UcfFetchErrorReportingMethod ucfErrorReportingMethod;
+        if (errorReportingMethod == FetchErrorReportingMethodType.FETCH_RESULT) {
+            ucfErrorReportingMethod = UcfFetchErrorReportingMethod.UCF_OBJECT;
+        } else {
+            ucfErrorReportingMethod = UcfFetchErrorReportingMethod.EXCEPTION;
+        }
+
         SearchResultMetadata metadata;
         try {
 
             metadata = connector.search(objectClassDef, query,
-                    (shadow) -> {
+                    (ucfObject) -> {
+                        PrismObject<ShadowType> shadow = ucfObject.getResourceObjectWithFetchResult();
+
                         // in order to utilize the cache right from the beginning...
                         RepositoryCache.enterLocalCaches(cacheConfigurationManager);
                         try {
@@ -1317,7 +1323,6 @@ public class ResourceObjectConverter {
                                 OperationResult objResult = resultBuilder.build();
                                 try {
                                     postProcessResourceObjectRead(ctx, shadow, fetchAssociations, objResult);
-                                    Validate.notNull(shadow, "null shadow");
                                     return resultHandler.handle(shadow, objResult);
                                 } catch (Throwable t) {
                                     objResult.recordFatalError(t);
@@ -1348,7 +1353,7 @@ public class ResourceObjectConverter {
                         }
                     },
                     attributesToReturn, objectClassDef.getPagedSearches(ctx.getResource()), searchHierarchyConstraints,
-                    errorReportingMethod, ctx, parentResult);
+                    ucfErrorReportingMethod, ctx, parentResult);
 
         } catch (GenericFrameworkException e) {
             parentResult.recordFatalError("Generic error in the connector: " + e.getMessage(), e);

@@ -24,7 +24,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import org.jetbrains.annotations.NotNull;
@@ -204,8 +203,8 @@ public interface ConnectorInstance {
      *                                 e.g. if search base points to an non-existent object.
      */
     SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
-            ShadowResultHandler handler, AttributesToReturn attributesToReturn, PagedSearchCapabilityType pagedSearchConfiguration,
-            SearchHierarchyConstraints searchHierarchyConstraints, FetchErrorReportingMethodType errorReportingMethod,
+            FetchedObjectHandler handler, AttributesToReturn attributesToReturn, PagedSearchCapabilityType pagedSearchConfiguration,
+            SearchHierarchyConstraints searchHierarchyConstraints, UcfFetchErrorReportingMethod errorReportingMethod,
             StateReporter reporter, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException,
                     ObjectNotFoundException;

@@ -512,8 +512,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             PrismObjectDefinition<ShadowType> shadowDefinition = toShadowDefinition(objectClassDefinition);
             // TODO configure error reporting method
             PrismObject<ShadowType> shadow = connIdConvertor
-                    .convertToResourceObject(co, shadowDefinition, false, caseIgnoreAttributeNames,
-                            legacySchema, FetchErrorReportingMethodType.DEFAULT, result);
+                    .convertToUcfObject(co, shadowDefinition, false, caseIgnoreAttributeNames,
+                            legacySchema, UcfFetchErrorReportingMethod.EXCEPTION, result)
+                    .getResourceObject();
 
             result.recordSuccess();
             return shadow;
@@ -1751,9 +1752,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
     @Override
     public SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition,
-            ObjectQuery query, ShadowResultHandler handler, AttributesToReturn attributesToReturn,
+            ObjectQuery query, FetchedObjectHandler handler, AttributesToReturn attributesToReturn,
             PagedSearchCapabilityType pagedSearchConfiguration, SearchHierarchyConstraints searchHierarchyConstraints,
-            FetchErrorReportingMethodType errorReportingMethod, StateReporter reporter, OperationResult parentResult)
+            UcfFetchErrorReportingMethod ucfErrorReportingMethod, StateReporter reporter, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SecurityViolationException, SchemaException,
                         ObjectNotFoundException {
 
@@ -1775,7 +1776,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
             return new SearchExecutor(objectClassDefinition, query, handler, attributesToReturn,
                     pagedSearchConfiguration, searchHierarchyConstraints,
-                    errorReportingMethod, reporter, result, this)
+                    ucfErrorReportingMethod, reporter, result, this)
                     .execute();
 
         } catch (Throwable t) {

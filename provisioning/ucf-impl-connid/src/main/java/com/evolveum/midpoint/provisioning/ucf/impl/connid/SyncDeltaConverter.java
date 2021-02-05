@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.ucf.api.UcfFetchErrorReportingMethod;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfErrorState;
 
 import org.identityconnectors.framework.common.objects.ObjectClass;
@@ -40,7 +41,6 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -97,9 +97,13 @@ class SyncDeltaConverter {
                 LOGGER.trace("Object definition: {}", objectDefinition);
 
                 // We can consider using "fetch result" error reporting method here, and go along with a partial object.
-                resourceObject = connIdConvertor.convertToResourceObject(connIdDelta.getObject(),
-                        objectDefinition, false, connectorInstance.isCaseIgnoreAttributeNames(), connectorInstance.isLegacySchema(),
-                        FetchErrorReportingMethodType.EXCEPTION, result);
+                resourceObject = connIdConvertor
+                        .convertToUcfObject(
+                                connIdDelta.getObject(), objectDefinition, false,
+                                connectorInstance.isCaseIgnoreAttributeNames(), connectorInstance.isLegacySchema(),
+                                UcfFetchErrorReportingMethod.EXCEPTION, result)
+                        .getResourceObject();
+
                 LOGGER.trace("Got (current) resource object: {}", resourceObject.debugDumpLazily());
                 identifiers.addAll(emptyIfNull(ShadowUtil.getAllIdentifiers(resourceObject)));
 
@@ -111,11 +115,11 @@ class SyncDeltaConverter {
             } else {
                 throw new GenericFrameworkException("Unexpected sync delta type " + icfDeltaType);
             }
-            errorState = new UcfErrorState();
+            errorState = UcfErrorState.success();
 
         } catch (Exception e) {
             result.recordFatalError(e);
-            errorState = new UcfErrorState(e);
+            errorState = UcfErrorState.error(e);
         }
 
         UcfLiveSyncChange change = new UcfLiveSyncChange(localSequenceNumber, uidValue, identifiers, actualObjectClass,

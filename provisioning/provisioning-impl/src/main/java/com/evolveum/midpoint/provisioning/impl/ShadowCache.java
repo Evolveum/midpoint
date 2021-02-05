@@ -2057,7 +2057,7 @@ public class ShadowCache {
             ExpressionEvaluationException, SecurityViolationException {
 
         boolean isDoDiscovery = ProvisioningUtil.isDoDiscovery(ctx.getResource(), rootOptions);
-        FetchErrorReportingMethodType errorReportingMethod = getErrorReportingMethod(rootOptions);
+        FetchErrorReportingMethodType ucfErrorReportingMethod = getErrorReportingMethod(rootOptions);
 
         // We need to record the fetch down here. Now it is certain that we are
         // going to fetch from resource
@@ -2075,10 +2075,10 @@ public class ShadowCache {
                     resultShadow = treatObjectFound(ctx, updateRepository, isDoDiscovery, resourceObject, objResult);
                 } catch (Throwable t) {
                     objResult.recordFatalError(t.getMessage(), t);
-                    if (errorReportingMethod == EXCEPTION) {
+                    if (ucfErrorReportingMethod == EXCEPTION) {
                         // No need to log the exception. It will be dumped when caught and processed in upper layers.
                         throw new TunnelException(t);
-                    } else if (errorReportingMethod == FETCH_RESULT) {
+                    } else if (ucfErrorReportingMethod == FETCH_RESULT) {
                         resultShadow = resourceObject;
                         LOGGER.error("An error occurred while processing resource object {}. Recording it into object fetch result: {}",
                                 resourceObject, t.getMessage(), t);
@@ -2109,7 +2109,7 @@ public class ShadowCache {
         boolean fetchAssociations = SelectorOptions.hasToLoadPath(ShadowType.F_ASSOCIATION, options);
         try {
             return resourceObjectConverter.searchResourceObjects(ctx, resultHandler, attributeQuery,
-                    fetchAssociations, errorReportingMethod, parentResult);
+                    fetchAssociations, ucfErrorReportingMethod, parentResult);
         } catch (TunnelException e) {
             Throwable cause = e.getCause();
             if (cause instanceof ObjectNotFoundException) {

@@ -32,7 +32,6 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AbstractWriteCapabilityType;
@@ -237,10 +236,10 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
     @Override
     public SearchResultMetadata search(
             ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
-            ShadowResultHandler handler, AttributesToReturn attributesToReturn,
+            FetchedObjectHandler handler, AttributesToReturn attributesToReturn,
             PagedSearchCapabilityType pagedSearchConfiguration,
             SearchHierarchyConstraints searchHierarchyConstraints,
-            FetchErrorReportingMethodType errorReportingMethod,
+            UcfFetchErrorReportingMethod errorReportingMethod,
             StateReporter reporter,
             OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("search");

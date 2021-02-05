@@ -154,7 +154,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
                 result.recordFatalError(e.getMessage(), e);
 
                 int changeSequentialNumber = changesProduced.incrementAndGet();
-                UcfAsyncUpdateChange change = new UcfAsyncUpdateChange(changeSequentialNumber, new UcfErrorState(e),
+                UcfAsyncUpdateChange change = new UcfAsyncUpdateChange(changeSequentialNumber, UcfErrorState.error(e),
                         acknowledgementSink);
                 changeListener.onChange(change, task, result);
             } finally {
