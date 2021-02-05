@@ -8,6 +8,8 @@ import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ObjectTemplateTests extends AbstractSchrodingerTest {
 
@@ -17,18 +19,16 @@ public class ObjectTemplateTests extends AbstractSchrodingerTest {
 
     @Test
     public void test00100addObjectTemplateTest() {
-        basicPage
-                .newUser()
-                    .selectTabBasic()
-                        .form()
-                            .addAttributeValue("Name", "userWithoutFullname")
-                            .addAttributeValue("Given name", "Mark")
-                            .addAttributeValue("Family name", "Sadman")
-                        .and()
-                    .and()
-                    .clickSave()
-                        .feedback()
-                        .assertSuccess();
+        Map<String, String> attributesMap = new HashMap<>();
+        attributesMap.put("Name", "userWithoutFullname");
+        attributesMap.put("Given name", "Mark");
+        attributesMap.put("Family name", "Sadman");
+        createUser(attributesMap);
+
+        attributesMap.clear();
+        attributesMap.put("Name", "userWithoutFullname");
+        attributesMap.put("Given name", "Mark");
+        attributesMap.put("Family name", "Sadman");
         basicPage
                 .listUsers()
                     .table()

@@ -11,9 +11,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.ex.ElementNotFound;
@@ -23,7 +21,9 @@ import com.codeborne.selenide.testng.TextReport;
 
 import com.codeborne.selenide.testng.annotations.Report;
 
+import com.evolveum.midpoint.schrodinger.component.TabWithContainerWrapper;
 import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
+import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.component.resource.ResourceAccountsTab;
 import com.evolveum.midpoint.schrodinger.component.resource.ResourceShadowTable;
 import com.evolveum.midpoint.schrodinger.page.resource.AccountPage;
@@ -454,4 +454,23 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
         return showTask(name, "");
     }
 
+    protected void createUser(String newUserName) {
+        Map<String, String> attr = new HashMap<>();
+        attr.put("Name", newUserName);
+        createUser(attr);
+    }
+
+    protected void createUser(Map<String, String> newUserAttributesMap) {
+        PrismForm<TabWithContainerWrapper<UserPage>> form = basicPage
+                .newUser()
+                    .selectTabBasic()
+                        .form();
+        newUserAttributesMap.forEach((key, attr) -> form.addAttributeValue(key, newUserAttributesMap.get(key)));
+        form
+                    .and()
+                .and()
+                .clickSave()
+                .feedback()
+                .assertSuccess();
+    }
 }
