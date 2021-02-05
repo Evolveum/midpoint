@@ -91,11 +91,11 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
                 currentSequenceNumber.getAndIncrement(),
                 primaryIdentifierRealValue, identifiers,
                 getResourceObject(eventDescription),
-                eventDescription.getObjectDelta());
-        resourceObjectChange.preprocess(ctx);
+                eventDescription.getObjectDelta(), ctx);
+        resourceObjectChange.initialize(task, result);
 
         AdoptedExternalChange adoptedChange = new AdoptedExternalChange(resourceObjectChange, false, changeProcessingBeans);
-        adoptedChange.preprocess(result);
+        adoptedChange.initialize(result);
 
         if (adoptedChange.isPreprocessed()) {
             ResourceObjectShadowChangeDescription shadowChangeDescription = adoptedChange.getShadowChangeDescription();

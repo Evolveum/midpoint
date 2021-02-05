@@ -114,21 +114,22 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements DebugDum
         this.currentResourceObject = CloneUtil.clone(resourceObjectChange.getResourceObject());
     }
 
-    public void preprocess(OperationResult result) {
+    // TODO migrate to InitializableMixin
+    public void initialize(OperationResult result) {
         if (processingState.isSkipFurtherProcessing()) {
             return;
         }
         try {
-            preprocessInternal(result);
+            initializeInternal(result);
 
-            processingState.setPreprocessed();
+            processingState.setInitialized();
             checkConsistence();
         } catch (Exception e) {
             setSkipFurtherProcessing(e);
         }
     }
 
-    private void preprocessInternal(OperationResult result) throws SchemaException, CommunicationException,
+    private void initializeInternal(OperationResult result) throws SchemaException, CommunicationException,
             ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, SkipProcessingException,
             EncryptionException, SecurityViolationException {
 
@@ -144,7 +145,7 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements DebugDum
 
         applyAttributesDefinition();
 
-        LOGGER.trace("Processing change, old shadow: {}", ShadowUtil.shortDumpShadowLazily(repoShadow));
+        LOGGER.trace("Initializing change, old shadow: {}", ShadowUtil.shortDumpShadowLazily(repoShadow));
 
         if (currentResourceObject == null && !isDelete()) {
             currentResourceObject = determineCurrentResourceObject(result);
@@ -381,7 +382,7 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements DebugDum
     // TODO deduplicate
     private void setSkipFurtherProcessing(Throwable t) {
         LOGGER.warn("Got an exception, skipping further processing in {}", this, t); // TODO debug
-        processingState.setSkipFurtherProcessing(t);
+        processingState.recordException(t);
     }
 
     public ResourceObjectShadowChangeDescription getShadowChangeDescription() {
@@ -389,7 +390,7 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements DebugDum
     }
 
     public boolean isPreprocessed() {
-        return processingState.isPreprocessed();
+        return processingState.isInitialized();
     }
 
     public Object getPrimaryIdentifierValue() {

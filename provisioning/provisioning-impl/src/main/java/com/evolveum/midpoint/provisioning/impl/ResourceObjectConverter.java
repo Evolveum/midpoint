@@ -20,10 +20,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectAsyncChange;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectAsyncChangeListener;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectLiveSyncChangeListener;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectLiveSyncChange;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.*;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.api.async.UcfAsyncUpdateChangeListener;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
@@ -1263,9 +1260,9 @@ public class ResourceObjectConverter {
         }
     }
 
-    public SearchResultMetadata searchResourceObjects(final ProvisioningContext ctx,
-            final ResultHandler<ShadowType> resultHandler, ObjectQuery query, final boolean fetchAssociations,
-            FetchErrorReportingMethodType errorReportingMethod, final OperationResult parentResult) throws SchemaException,
+    public SearchResultMetadata searchResourceObjects(ProvisioningContext ctx,
+            ResourceObjectHandler resultHandler, ObjectQuery query, boolean fetchAssociations,
+            FetchErrorReportingMethodType errorReportingMethod, OperationResult parentResult) throws SchemaException,
             CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
         LOGGER.trace("Searching resource objects, query: {}", query);
@@ -1294,7 +1291,8 @@ public class ResourceObjectConverter {
 
             metadata = connector.search(objectClassDef, query,
                     (ucfObject) -> {
-                        PrismObject<ShadowType> shadow = ucfObject.getResourceObjectWithFetchResult();
+                        FetchedResourceObject fetchedObject = new FetchedResourceObject(ucfObject, ResourceObjectConverter.this,
+                                ctx, fetchAssociations);
 
                         // in order to utilize the cache right from the beginning...
                         RepositoryCache.enterLocalCaches(cacheConfigurationManager);
@@ -1312,8 +1310,9 @@ public class ResourceObjectConverter {
                                 OperationResultBuilder resultBuilder = parentResult
                                         .subresult(OperationConstants.OPERATION_SEARCH_RESULT)
                                         .setMinor()
-                                        .addParam("number", objectNumber);
-                                // TODO primary identifier (but it's not computed yet)
+                                        .addParam("number", objectNumber)
+                                        .addArbitraryObjectAsParam("primaryIdentifierValue", ucfObject.getPrimaryIdentifierValue())
+                                        .addArbitraryObjectAsParam("errorState", ucfObject.getErrorState());
 
                                 // Here we request tracing if configured to do so. Note that this is only a partial solution: for multithreaded
                                 // operations we currently do not trace the "worker" part of the processing.
@@ -1322,8 +1321,8 @@ public class ResourceObjectConverter {
 
                                 OperationResult objResult = resultBuilder.build();
                                 try {
-                                    postProcessResourceObjectRead(ctx, shadow, fetchAssociations, objResult);
-                                    return resultHandler.handle(shadow, objResult);
+                                    fetchedObject.initialize(task, objResult);
+                                    return resultHandler.handle(fetchedObject, objResult);
                                 } catch (Throwable t) {
                                     objResult.recordFatalError(t);
                                     throw t;
@@ -1856,7 +1855,8 @@ public class ResourceObjectConverter {
         UcfLiveSyncChangeListener localListener = (ucfChange, lParentResult) -> {
             int changeNumber = processed.getAndIncrement();
 
-            ResourceObjectLiveSyncChange change = new ResourceObjectLiveSyncChange(ucfChange);
+            ResourceObjectLiveSyncChange change = new ResourceObjectLiveSyncChange(ucfChange, ResourceObjectConverter.this,
+                    ctx, attrsToReturn);
 
             Task task = ctx.getTask();
             boolean requestedTracingHere;
@@ -1879,16 +1879,12 @@ public class ResourceObjectConverter {
                     tracingRequested = setTracingInOperationResultIfRequested(resultBuilder,
                             TracingRootType.LIVE_SYNC_CHANGE_PROCESSING, task, lParentResult);
                 } catch (Exception e) {
-                    change.setSkipFurtherProcessing(e);
+                    change.processException(e);
                     tracingRequested = false;
                 }
                 OperationResult lResult = resultBuilder.build();
                 try {
-                    try {
-                        change.preprocess(ResourceObjectConverter.this, ctx, attrsToReturn, lResult);
-                    } catch (Exception e) {
-                        change.setSkipFurtherProcessing(e);
-                    }
+                    change.initialize(task, lResult);
                     return outerListener.onChange(change, lResult);
                 } catch (Throwable t) {
                     lResult.recordFatalError(t);
@@ -1952,12 +1948,8 @@ public class ResourceObjectConverter {
         ConnectorInstance connector = ctx.getConnector(AsyncUpdateCapabilityType.class, parentResult);
 
         UcfAsyncUpdateChangeListener innerListener = (ucfChange, listenerTask, listenerResult) -> {
-            ResourceObjectAsyncChange change = new ResourceObjectAsyncChange(ucfChange);
-            try {
-                change.preprocess(ResourceObjectConverter.this, ctx, listenerTask, listenerResult);
-            } catch (Exception e) {
-                change.setSkipFurtherProcessing(e);
-            }
+            ResourceObjectAsyncChange change = new ResourceObjectAsyncChange(ucfChange, ResourceObjectConverter.this, ctx);
+            change.initialize(listenerTask, listenerResult);
             outerListener.onChange(change, listenerResult);
         };
         connector.listenForChanges(innerListener, ctx::canRun, parentResult);

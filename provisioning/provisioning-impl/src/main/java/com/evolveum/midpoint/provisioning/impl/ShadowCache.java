@@ -23,6 +23,8 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.*;
 import com.evolveum.midpoint.provisioning.impl.errorhandling.ErrorHandler;
 import com.evolveum.midpoint.provisioning.impl.errorhandling.ErrorHandlerLocator;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.FetchedResourceObject;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectHandler;
 import com.evolveum.midpoint.provisioning.impl.shadowmanager.ShadowManager;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
@@ -2066,11 +2068,13 @@ public class ShadowCache {
 
         ObjectQuery attributeQuery = createAttributeQuery(query);
 
-        ResultHandler<ShadowType> resultHandler = (PrismObject<ShadowType> resourceObject, OperationResult objResult) -> {
-            LOGGER.trace("Found resource object\n{}", resourceObject.debugDumpLazily(1));
+        ResourceObjectHandler resultHandler = (FetchedResourceObject fetchedObject, OperationResult objResult) -> {
+            LOGGER.trace("Found resource object\n{}", fetchedObject.debugDumpLazily(1));
             PrismObject<ShadowType> resultShadow;
 
-            if (!ObjectTypeUtil.hasFetchError(resourceObject)) {
+            // FIXME all of this!
+            if (fetchedObject.getProcessingState().isInitialized()) {
+                PrismObject<ShadowType> resourceObject = fetchedObject.getResourceObject();
                 try {
                     resultShadow = treatObjectFound(ctx, updateRepository, isDoDiscovery, resourceObject, objResult);
                 } catch (Throwable t) {
@@ -2093,7 +2097,7 @@ public class ShadowCache {
                     }
                 }
             } else {
-                resultShadow = resourceObject;
+                resultShadow = fetchedObject.getResourceObjectWithFetchResult();
             }
 
             try {

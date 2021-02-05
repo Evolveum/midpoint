@@ -11,17 +11,14 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.provisioning.api.ResourceEventListener;
-
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceEventDescription;
+import com.evolveum.midpoint.provisioning.api.ResourceEventListener;
+import com.evolveum.midpoint.provisioning.impl.InitializableMixin;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfChange;
 import com.evolveum.midpoint.provisioning.util.ProcessingState;
@@ -30,9 +27,10 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -43,7 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * see {@link ResourceEventListener#notifyEvent(ResourceEventDescription, Task, OperationResult)}.
  */
 @SuppressWarnings("JavadocReference")
-public abstract class ResourceObjectChange implements DebugDumpable {
+public abstract class ResourceObjectChange implements InitializableMixin {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectChange.class);
 
@@ -108,22 +106,24 @@ public abstract class ResourceObjectChange implements DebugDumpable {
     ResourceObjectChange(int localSequenceNumber, Object primaryIdentifierRealValue,
             @NotNull Collection<ResourceAttribute<?>> identifiers,
             PrismObject<ShadowType> resourceObject,
-            ObjectDelta<ShadowType> objectDelta) {
+            ObjectDelta<ShadowType> objectDelta,
+            @NotNull ProcessingState processingState) {
         this.localSequenceNumber = localSequenceNumber;
         this.primaryIdentifierRealValue = primaryIdentifierRealValue;
         this.identifiers = identifiers;
         this.resourceObject = resourceObject;
         this.objectDelta = objectDelta;
-        this.processingState = new ProcessingState();
+        this.processingState = processingState;
     }
 
     ResourceObjectChange(UcfChange ucfChange) {
-        this(ucfChange.getLocalSequenceNumber(), ucfChange.getPrimaryIdentifierRealValue(),
-                ucfChange.getIdentifiers(), ucfChange.getResourceObject(), ucfChange.getObjectDelta());
+        this(ucfChange.getLocalSequenceNumber(),
+                ucfChange.getPrimaryIdentifierRealValue(),
+                ucfChange.getIdentifiers(),
+                ucfChange.getResourceObject(),
+                ucfChange.getObjectDelta(),
+                ProcessingState.fromUcfErrorState(ucfChange.getErrorState()));
         this.objectClassDefinition = ucfChange.getObjectClassDefinition();
-        if (ucfChange.isError()) {
-            processingState.setSkipFurtherProcessing(ucfChange.getErrorState().getException());
-        }
     }
 
     public void setObjectClassDefinition(RefinedObjectClassDefinition definition) {
@@ -134,7 +134,7 @@ public abstract class ResourceObjectChange implements DebugDumpable {
         this.resourceObject = resourceObject;
     }
 
-    public void setResourceRefIfMissing(String resourceOid) {
+    void setResourceRefIfMissing(String resourceOid) {
         setResourceRefIfMissing(resourceObject, resourceOid);
         if (objectDelta != null) {
             setResourceRefIfMissing(objectDelta.getObjectToAdd(), resourceOid);
@@ -149,11 +149,6 @@ public abstract class ResourceObjectChange implements DebugDumpable {
 
     public @NotNull ProcessingState getProcessingState() {
         return processingState;
-    }
-
-    public void setSkipFurtherProcessing(Throwable t) {
-        LOGGER.warn("Got an exception, skipping further processing in {}", this, t); // TODO debug
-        processingState.setSkipFurtherProcessing(t);
     }
 
     public ObjectClassComplexTypeDefinition getObjectClassDefinition() {

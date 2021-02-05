@@ -45,7 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.LiveSyncCapa
  * Implements Live synchronization functionality.
  *
  * Although this class exists outside of {@link ShadowCache}, the related functionality is embedded
- * in {@link AdoptedLiveSyncChange#preprocess(OperationResult)} method.
+ * in {@link AdoptedLiveSyncChange#initialize(OperationResult)} method.
  *
  * Responsibilities:
  *
@@ -85,7 +85,7 @@ public class LiveSynchronizer {
             int sequentialNumber = ctx.oldestTokenWatcher.changeArrived(resourceObjectChange.getToken());
 
             AdoptedLiveSyncChange change = new AdoptedLiveSyncChange(resourceObjectChange, ctx.simulate, beans);
-            change.preprocess(lResult);
+            change.initialize(lResult);
 
             LiveSyncEvent event = new LiveSyncEventImpl(change) {
                 @Override

@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
+import com.evolveum.midpoint.task.api.Task;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -14,7 +16,6 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ResourceObjectConverter;
 import com.evolveum.midpoint.provisioning.impl.sync.SkipProcessingException;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
-import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfLiveSyncChange;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -37,33 +38,30 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
      */
     @NotNull private final PrismProperty<?> token;
 
-    public ResourceObjectLiveSyncChange(UcfLiveSyncChange ucfLiveSyncChange) {
-        super(ucfLiveSyncChange);
-        this.token = ucfLiveSyncChange.getToken();
-    }
+    @NotNull private final InitializationContext initializationContext;
 
     /**
-     * Initializes the change into fully operational "resource object live sync change" state.
-     *
      * @param originalCtx Provisioning context determined from the parameters of the synchronize method. It can be wildcard.
      * @param originalAttributesToReturn Attributes to return determined from the parameters of the synchronize method. It can be null.
      */
-    public void preprocess(ResourceObjectConverter converter, ProvisioningContext originalCtx,
-            AttributesToReturn originalAttributesToReturn, OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException, SecurityViolationException, GenericFrameworkException, SkipProcessingException {
+    public ResourceObjectLiveSyncChange(UcfLiveSyncChange ucfLiveSyncChange, ResourceObjectConverter converter,
+            ProvisioningContext originalCtx, AttributesToReturn originalAttributesToReturn) {
+        super(ucfLiveSyncChange);
+        this.token = ucfLiveSyncChange.getToken();
+        this.initializationContext = new InitializationContext(converter, originalCtx, originalAttributesToReturn);
+    }
 
-        processingState.checkSkipProcessing();
+    @Override
+    public void initializeInternal(Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException, SecurityViolationException, SkipProcessingException {
 
-        LOGGER.trace("Change before pre-processing:\n{}", debugDumpLazily());
-
-        determineProvisioningContext(originalCtx, null);
+        determineProvisioningContext(initializationContext.originalCtx, null);
 
         if (!isDelete()) {
-            postProcessOrFetchResourceObject(converter, originalCtx, originalAttributesToReturn, result);
+            postProcessOrFetchResourceObject(initializationContext.converter, initializationContext.originalCtx,
+                    initializationContext.originalAttrsToReturn, result);
         }
-
-        LOGGER.trace("Pre-processed change:\n{}", debugDumpLazily());
     }
 
     private void postProcessOrFetchResourceObject(ResourceObjectConverter converter, ProvisioningContext originalCtx,
@@ -121,5 +119,22 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
     protected void debugDumpExtra(StringBuilder sb, int indent) {
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "token", token, indent + 1);
+    }
+
+    @Override
+    public Trace getLogger() {
+        return LOGGER;
+    }
+
+    private static class InitializationContext {
+        private final ResourceObjectConverter converter;
+        private final ProvisioningContext originalCtx;
+        private final AttributesToReturn originalAttrsToReturn;
+
+        private InitializationContext(ResourceObjectConverter converter, ProvisioningContext originalCtx, AttributesToReturn originalAttrsToReturn) {
+            this.converter = converter;
+            this.originalCtx = originalCtx;
+            this.originalAttrsToReturn = originalAttrsToReturn;
+        }
     }
 }

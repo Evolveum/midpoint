@@ -8,10 +8,12 @@
 package com.evolveum.midpoint.provisioning.util;
 
 import com.evolveum.midpoint.provisioning.impl.sync.SkipProcessingException;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfErrorState;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 /**
- * TODO
+ * Represents state of processing of given internal provisioning object: a change or a fetched object - at
+ * both "resource objects" or "shadow cache" levels.
  */
 @Experimental
 public class ProcessingState {
@@ -19,14 +21,28 @@ public class ProcessingState {
     /**
      * True if no further processing (in provisioning module) should be done with this item.
      *
-     * It is probably malformed or not applicable. But we need to carry this change through up to
-     * the task that will record its presence and process it (usually by recording an exception).
+     * The most frequent reason is that the item could not be initialized (a.k.a. pre-processed) successfully.
+     * The second option (applicable to changes only) is that the change was fetched but later was observed to be
+     * not relevant.
+     *
+     * In all these cases we want to provide the item to the requesting task (like import, reconciliation, live sync,
+     * async update), in order to be correctly acted upon w.r.t. statistics, error handing, and so on.
      */
     private boolean skipFurtherProcessing;
 
+    /**
+     * Was an exception encountered during the initialization?
+     *
+     * If not null, {@link #skipFurtherProcessing} must be true. (If null, it may be true or false.)
+     */
     private Throwable exceptionEncountered;
 
-    private boolean preprocessed;
+    /**
+     * Was this item successfully initialized?
+     *
+     * If not, it is not safe to use it for regular processing. Only to pass it up the call stack.
+     */
+    private boolean initialized;
 
     public ProcessingState() {
     }
@@ -34,10 +50,29 @@ public class ProcessingState {
     public ProcessingState(ProcessingState processingState) {
         this.skipFurtherProcessing = processingState.skipFurtherProcessing;
         this.exceptionEncountered = processingState.exceptionEncountered;
-        this.preprocessed = false;
+        this.initialized = false;
     }
 
-    public void setSkipFurtherProcessing(Throwable t) {
+    public static ProcessingState success() {
+        return new ProcessingState();
+    }
+
+    public static ProcessingState error(Throwable exception) {
+        ProcessingState state = new ProcessingState();
+        state.skipFurtherProcessing = true;
+        state.exceptionEncountered = exception;
+        return state;
+    }
+
+    public static ProcessingState fromUcfErrorState(UcfErrorState errorState) {
+        if (errorState.isError()) {
+            return ProcessingState.error(errorState.getException());
+        } else {
+            return ProcessingState.success();
+        }
+    }
+
+    public void recordException(Throwable t) {
         skipFurtherProcessing = true;
         if (t instanceof SkipProcessingException) {
             if (t.getCause() != null) {
@@ -61,7 +96,7 @@ public class ProcessingState {
         return "ProcessingState{" +
                 "skipFurtherProcessing=" + skipFurtherProcessing +
                 ", e=" + exceptionEncountered +
-                ", preprocessed=" + preprocessed +
+                ", initialized=" + initialized +
                 '}';
     }
 
@@ -71,14 +106,14 @@ public class ProcessingState {
         }
     }
 
-    public boolean isPreprocessed() {
-        return preprocessed;
+    public boolean isInitialized() {
+        return initialized;
     }
 
-    public void setPreprocessed() {
+    public void setInitialized() {
         assert !skipFurtherProcessing;
         assert exceptionEncountered == null;
-        this.preprocessed = true;
+        this.initialized = true;
     }
 
     public Throwable getExceptionEncountered() {

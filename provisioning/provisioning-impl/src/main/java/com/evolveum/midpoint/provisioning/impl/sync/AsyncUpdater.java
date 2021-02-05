@@ -60,7 +60,7 @@ public class AsyncUpdater {
         ResourceObjectAsyncChangeListener listener = (resourceObjectChange, opResult) -> {
 
             AdoptedAsyncChange change = new AdoptedAsyncChange(resourceObjectChange, changeProcessingBeans);
-            change.preprocess(opResult);
+            change.initialize(opResult);
 
             AsyncUpdateEvent event = new AsyncUpdateEventImpl(change) {
                 @Override

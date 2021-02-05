@@ -78,6 +78,7 @@ public class FetchedUcfObject implements DebugDumpable {
                 '}';
     }
 
+    @SuppressWarnings("DuplicatedCode")
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
@@ -88,22 +89,5 @@ public class FetchedUcfObject implements DebugDumpable {
         DebugUtil.debugDumpWithLabelLn(sb, "primaryIdentifierValue", String.valueOf(primaryIdentifierValue), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "errorState", errorState, indent + 1);
         return sb.toString();
-    }
-
-    // TEMPORARY (for migration)
-    public PrismObject<ShadowType> getResourceObjectWithFetchResult() {
-        if (!errorState.isError()) {
-            return resourceObject;
-        } else {
-            PrismObject<ShadowType> clone = resourceObject.clone();
-            if (CollectionUtils.isEmpty(ShadowUtil.getPrimaryIdentifiers(resourceObject))) {
-                // HACK HACK HACK
-                clone.asObjectable().setName(PolyStringType.fromOrig(String.valueOf(primaryIdentifierValue)));
-            }
-            OperationResult result = new OperationResult("fetchObject"); // HACK HACK HACK
-            result.recordFatalError(errorState.getException());
-            ObjectTypeUtil.recordFetchError(clone, result);
-            return clone;
-        }
     }
 }

@@ -7,11 +7,8 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
-import static java.util.Collections.emptyList;
-
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ResourceObjectConverter;
-import com.evolveum.midpoint.provisioning.impl.sync.SkipProcessingException;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfAsyncUpdateChange;
 import com.evolveum.midpoint.schema.AcknowledgementSink;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -36,28 +33,23 @@ public class ResourceObjectAsyncChange extends ResourceObjectChange implements A
     /** Where to send acknowledgements to. */
     @NotNull private final AcknowledgementSink acknowledgementSink;
 
-    public ResourceObjectAsyncChange(@NotNull UcfAsyncUpdateChange ucfAsyncUpdateChange) {
+    @NotNull private final InitializationContext initializationContext;
+
+    public ResourceObjectAsyncChange(@NotNull UcfAsyncUpdateChange ucfAsyncUpdateChange,
+            @NotNull ResourceObjectConverter converter, @NotNull ProvisioningContext ctx) {
         super(ucfAsyncUpdateChange);
         this.notificationOnly = ucfAsyncUpdateChange.isNotificationOnly();
         this.acknowledgementSink = ucfAsyncUpdateChange;
+        this.initializationContext = new InitializationContext(converter, ctx);
     }
 
-    public void preprocess(ResourceObjectConverter converter, ProvisioningContext originalCtx, Task listenerTask,
-            OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException, SecurityViolationException, SkipProcessingException {
+    @Override
+    public void initializeInternal(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, SecurityViolationException {
 
-        processingState.checkSkipProcessing();
-
-        LOGGER.trace("Change before pre-processing:\n{}", debugDumpLazily());
-
-        determineProvisioningContext(originalCtx, listenerTask);
-
+        determineProvisioningContext(initializationContext.originalCtx, task);
         setResourceRefIfMissing(context.getResourceOid()); // TODO why not in other kinds of changes (LS, EXT)?
-
-        postProcessResourceObjectIfAny(converter, result);
-
-        LOGGER.trace("Pre-processed change\n:{}", debugDumpLazily());
+        postProcessResourceObjectIfAny(initializationContext.converter, result);
     }
 
     private void postProcessResourceObjectIfAny(ResourceObjectConverter converter, OperationResult result)
@@ -96,5 +88,21 @@ public class ResourceObjectAsyncChange extends ResourceObjectChange implements A
     @Override
     public void acknowledge(boolean release, OperationResult result) {
         acknowledgementSink.acknowledge(release, result);
+    }
+
+    @Override
+    public Trace getLogger() {
+        return LOGGER;
+    }
+
+    private static class InitializationContext {
+
+        private final ResourceObjectConverter converter;
+        private final ProvisioningContext originalCtx;
+
+        private InitializationContext(ResourceObjectConverter converter, ProvisioningContext originalCtx) {
+            this.converter = converter;
+            this.originalCtx = originalCtx;
+        }
     }
 }
