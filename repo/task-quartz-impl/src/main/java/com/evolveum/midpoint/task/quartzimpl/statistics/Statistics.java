@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.statistics.OperationsPerformanceInformation;
 import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -280,24 +281,46 @@ public class Statistics implements WorkBucketStatisticsCollector {
         environmentalPerformanceInformation.recordMappingOperation(objectOid, objectName, objectTypeName, mappingName, duration);
     }
 
-    public synchronized void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType,
-            String objectOid,
-            long started, Throwable exception, SynchronizationInformation.Record originalStateIncrement,
-            SynchronizationInformation.Record newStateIncrement) {
+    public synchronized void onSyncItemProcessingEnd(SynchronizationInformation.LegacyCounters originalStateIncrement,
+            SynchronizationInformation.LegacyCounters newStateIncrement) {
         if (synchronizationInformation != null) {
             synchronizationInformation
-                    .recordSynchronizationOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception,
-                            originalStateIncrement, newStateIncrement);
+                    .recordSynchronizationOperationLegacy(originalStateIncrement, newStateIncrement);
         }
     }
 
-    public synchronized void recordSynchronizationOperationEnd(ShadowType shadow,
-            long started, Throwable exception, SynchronizationInformation.Record originalStateIncrement,
-            SynchronizationInformation.Record newStateIncrement) {
+    public synchronized void onSyncItemProcessingStart(@NotNull String processingIdentifier,
+            @Nullable SynchronizationSituationType beforeOperation) {
         if (synchronizationInformation != null) {
-            synchronizationInformation.recordSynchronizationOperationEnd(PolyString.getOrig(shadow.getName()),
-                    StatisticsUtil.getDisplayName(shadow), ShadowType.COMPLEX_TYPE, shadow.getOid(),
-                    started, exception, originalStateIncrement, newStateIncrement);
+            synchronizationInformation.onItemProcessingStart(processingIdentifier, beforeOperation);
+        }
+    }
+
+    public synchronized void onSynchronizationStart(@Nullable String processingIdentifier,
+            @Nullable String shadowOid, @Nullable SynchronizationSituationType situation) {
+        if (synchronizationInformation != null) {
+            synchronizationInformation.onSynchronizationStart(processingIdentifier, shadowOid, situation);
+        }
+    }
+
+    public synchronized void onSynchronizationExclusion(@Nullable String processingIdentifier,
+            @NotNull SynchronizationExclusionReasonType exclusionReason) {
+        if (synchronizationInformation != null) {
+            synchronizationInformation.onSynchronizationExclusion(processingIdentifier, exclusionReason);
+        }
+    }
+
+    public synchronized void onSynchronizationSituationChange(@Nullable String processingIdentifier,
+            @Nullable String shadowOid, @Nullable SynchronizationSituationType situation) {
+        if (synchronizationInformation != null) {
+            synchronizationInformation.onSynchronizationSituationChange(processingIdentifier, shadowOid, situation);
+        }
+    }
+
+    public synchronized void onSyncItemProcessingEnd(@NotNull String processingIdentifier,
+            @NotNull SynchronizationInformation.Status status) {
+        if (synchronizationInformation != null) {
+            synchronizationInformation.onSyncItemProcessingEnd(processingIdentifier, status);
         }
     }
 

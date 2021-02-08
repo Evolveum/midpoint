@@ -101,6 +101,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
     private static final String ID_ADVANCED_GROUP = "advancedGroup";
     private static final String ID_MORE_GROUP = "moreGroup";
     private static final String ID_ADVANCED_AREA = "advancedArea";
+    private static final String ID_QUERY_DSL_FIELD = "queryDslField";
     private static final String ID_ADVANCED_CHECK = "advancedCheck";
     private static final String ID_ADVANCED_ERROR = "advancedError";
     private static final String ID_MENU_ITEM = "menuItem";
@@ -551,27 +552,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         advancedCheck.add(AttributeAppender.append("class", createAdvancedGroupLabelStyle()));
         advancedGroup.add(advancedCheck);
 
-
-        IModel<String> advancedValueModel = new IModel<String>() {
-            @Override
-            public String getObject() {
-                if (SearchBoxModeType.QUERY_DSL.equals(getModelObject().getSearchType())) {
-                    return getModelObject().getDslQuery();
-                }
-                return getModelObject().getAdvancedQuery();
-            }
-
-            @Override
-            public void setObject(String object) {
-                if (SearchBoxModeType.QUERY_DSL.equals(getModelObject().getSearchType())) {
-                    getModelObject().setDslQuery(object);
-                } else {
-                    getModelObject().setAdvancedQuery(object);
-                }
-            }
-        };
-
-        TextArea<?> advancedArea = new TextArea<>(ID_ADVANCED_AREA, advancedValueModel);
+        TextArea<?> advancedArea = new TextArea<>(ID_ADVANCED_AREA, new PropertyModel<>(getModel(), Search.F_ADVANCED_QUERY));
         advancedArea.add(new AjaxFormComponentUpdatingBehavior("keyup") {
 
             @Override
@@ -587,17 +568,30 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
                         new ThrottlingSettings(ID_ADVANCED_AREA, Duration.milliseconds(500), true));
             }
         });
-        IModel<String> advanceAreaPlaceholderModel = new IModel<String>() {
-            @Override
-            public String getObject() {
-                if (SearchBoxModeType.QUERY_DSL.equals(getModelObject().getSearchType())) {
-                    return getPageBase().createStringResource("SearchPanel.insertQueryDsl").getString();
-                }
-                return getPageBase().createStringResource("SearchPanel.insertFilterXml").getString();
-            }
-        };
-        advancedArea.add(AttributeAppender.append("placeholder", advanceAreaPlaceholderModel));
+        advancedArea.add(AttributeAppender.append("placeholder", getPageBase().createStringResource("SearchPanel.insertFilterXml")));
+        advancedArea.add(createVisibleBehaviour(SearchBoxModeType.ADVANCED));
         advancedGroup.add(advancedArea);
+
+        TextField<String> queryDslField = new TextField<>(ID_QUERY_DSL_FIELD,
+                new PropertyModel<>(getModel(), Search.F_DSL_QUERY));
+        queryDslField.add(new AjaxFormComponentUpdatingBehavior("keyup") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                updateAdvancedArea(advancedArea, target);
+            }
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+
+                attributes.setThrottlingSettings(
+                        new ThrottlingSettings(ID_QUERY_DSL_FIELD, Duration.milliseconds(500), true));
+            }
+        });
+        queryDslField.add(AttributeAppender.append("placeholder", getPageBase().createStringResource("SearchPanel.insertQueryDsl")));
+        queryDslField.add(createVisibleBehaviour(SearchBoxModeType.QUERY_DSL));
+        advancedGroup.add(queryDslField);
 
         Label advancedError = new Label(ID_ADVANCED_ERROR,
                 new PropertyModel<String>(getModel(), Search.F_ADVANCED_ERROR));

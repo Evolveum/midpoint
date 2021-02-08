@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
@@ -24,5 +25,5 @@ public interface SynchronizationObjectsFilter {
      *
      * (Normally, we check object class, kind, and intent with regards to values provided by the task.)
      */
-    boolean matches(@NotNull ShadowType shadow);
+    boolean matches(@NotNull PrismObject<ShadowType> shadow);
 }

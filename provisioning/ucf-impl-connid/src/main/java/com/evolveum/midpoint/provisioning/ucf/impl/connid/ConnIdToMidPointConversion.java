@@ -26,6 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.identityconnectors.common.security.GuardedString;
@@ -409,8 +410,10 @@ class ConnIdToMidPointConversion {
      * @param result Operation result reflecting the failure.
      */
     @NotNull PrismObject<ShadowType> reportErrorInFetchResult(OperationResult result) {
-        // TODO consider treatment of an empty resource object (e.g. by creating a fake name containing identifier values)
         ObjectTypeUtil.recordFetchError(resourceObject, result);
+        if (resourceObject.asObjectable().getName() == null) {
+            resourceObject.asObjectable().setName(PolyStringType.fromOrig(connectorObject.getUid().getUidValue()));
+        }
         return resourceObject;
     }
 }

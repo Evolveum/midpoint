@@ -29,13 +29,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskException;
-import com.evolveum.midpoint.task.api.TaskRunResult;
-import com.evolveum.midpoint.task.api.util.TaskExceptionHandlingUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 /**
  * Auxiliary methods for synchronization tasks (Live Sync, Async Update, and maybe others).
@@ -90,10 +87,14 @@ public class SyncTaskHelper {
         public SynchronizationObjectsFilterImpl getObjectFilter(Task task) {
             return ModelImplUtils.determineSynchronizationObjectsFilter(objectClassDefinition, task);
         }
+
+        public String getContextDescription() {
+            return String.valueOf(resource); // TODO something more human friendly
+        }
     }
 
     @NotNull
-    public TargetInfo getTargetInfo(Trace LOGGER, Task task, OperationResult opResult, String ctx) throws TaskException, MaintenanceException {
+    public TargetInfo getTargetInfo(Trace logger, Task task, OperationResult opResult, String ctx) throws TaskException, MaintenanceException {
         String resourceOid = getResourceOid(task);
         ResourceType resource = getResource(resourceOid, task, opResult);
         RefinedResourceSchema refinedSchema = getRefinedResourceSchema(resource);
@@ -105,12 +106,15 @@ public class SyncTaskHelper {
             throw new TaskException("Schema error", FATAL_ERROR, PERMANENT_ERROR, e);
         }
         if (objectClass == null) {
-            LOGGER.debug("{}: Processing all object classes", ctx);
+            logger.debug("{}: Processing all object classes", ctx);
         }
 
-        return new TargetInfo(
+        TargetInfo targetInfo = new TargetInfo(
                 new ResourceShadowDiscriminator(resourceOid, objectClass == null ? null : objectClass.getTypeName()),
                 resource, refinedSchema, objectClass);
+
+        logger.trace("target info: {}", targetInfo);
+        return targetInfo;
     }
 
     @NotNull
@@ -178,17 +182,5 @@ public class SyncTaskHelper {
             throw new TaskException("No refined schema defined. Probably some configuration problem.", FATAL_ERROR,
                     PERMANENT_ERROR);
         }
-    }
-
-    TaskException convertException(Throwable t, TaskPartitionDefinitionType partition) {
-        return TaskExceptionHandlingUtil.convertException(t, partition);
-    }
-
-    TaskRunResult processFinish(TaskRunResult runResult) {
-        return TaskExceptionHandlingUtil.processFinish(runResult);
-    }
-
-    TaskRunResult processTaskException(TaskException e, Trace logger, String ctx, TaskRunResult runResult) {
-        return TaskExceptionHandlingUtil.processTaskException(e, logger, ctx, runResult);
     }
 }

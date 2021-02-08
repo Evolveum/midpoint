@@ -8,6 +8,9 @@ package com.evolveum.midpoint.model.impl.trigger;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -45,10 +48,12 @@ public class TriggerScannerTaskHandler
 
     public static final String HANDLER_URI = ModelPublicConstants.TRIGGER_SCANNER_TASK_HANDLER_URI;
 
+    private static final Trace LOGGER = TraceManager.getTrace(TriggerScannerTaskHandler.class);
+
     @Autowired private TriggerHandlerRegistry triggerHandlerRegistry;
 
     public TriggerScannerTaskHandler() {
-        super("Trigger scan", OperationConstants.TRIGGER_SCAN);
+        super(LOGGER, "Trigger scan", OperationConstants.TRIGGER_SCAN);
     }
 
     @PostConstruct

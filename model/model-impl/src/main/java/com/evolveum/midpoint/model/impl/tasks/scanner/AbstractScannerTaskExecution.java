@@ -12,7 +12,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskExecution;
+import com.evolveum.midpoint.repo.common.task.AbstractTaskExecution;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 public class AbstractScannerTaskExecution
         <TH extends AbstractScannerTaskHandler<TH, TE>,
                 TE extends AbstractScannerTaskExecution<TH, TE>>
-        extends AbstractSearchIterativeTaskExecution<TH, TE> {
+        extends AbstractTaskExecution<TH, TE> {
 
     protected XMLGregorianCalendar lastScanTimestamp;
     protected XMLGregorianCalendar thisScanTimestamp;

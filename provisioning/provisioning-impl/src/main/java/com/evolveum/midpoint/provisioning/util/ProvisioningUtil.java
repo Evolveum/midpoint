@@ -321,22 +321,17 @@ public class ProvisioningUtil {
 
     public static boolean isProtectedShadow(Collection<ResourceObjectPattern> protectedAccountPatterns, PrismObject<ShadowType> shadow,
             MatchingRuleRegistry matchingRuleRegistry, RelationRegistry relationRegistry) throws SchemaException {
-        boolean isProtected;
-        if (protectedAccountPatterns == null) {
-            isProtected = false;
-        } else {
-            isProtected = ResourceObjectPattern.matches(shadow, protectedAccountPatterns, matchingRuleRegistry, relationRegistry);
-        }
+        boolean isProtected = protectedAccountPatterns != null &&
+                ResourceObjectPattern.matches(shadow, protectedAccountPatterns, matchingRuleRegistry, relationRegistry);
         LOGGER.trace("isProtectedShadow: {} = {}", shadow, isProtected);
         return isProtected;
     }
 
-
-    public static void setProtectedFlag(ProvisioningContext ctx, PrismObject<ShadowType> resourceObject,
+    public static void setProtectedFlag(ProvisioningContext ctx, PrismObject<ShadowType> resourceObjectOrShadow,
             MatchingRuleRegistry matchingRuleRegistry, RelationRegistry relationRegistry, ExpressionFactory factory, OperationResult result) throws SchemaException,
             ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, SecurityViolationException {
-        if (isProtectedShadow(ctx.getProtectedAccountPatterns(factory, result), resourceObject, matchingRuleRegistry, relationRegistry)) {
-            resourceObject.asObjectable().setProtectedObject(true);
+        if (isProtectedShadow(ctx.getProtectedAccountPatterns(factory, result), resourceObjectOrShadow, matchingRuleRegistry, relationRegistry)) {
+            resourceObjectOrShadow.asObjectable().setProtectedObject(true);
         }
     }
 

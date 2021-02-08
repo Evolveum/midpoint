@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskExecution;
+import com.evolveum.midpoint.repo.common.task.AbstractTaskExecution;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskPartExecution;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -54,7 +54,7 @@ import java.util.List;
  * Responsible for creation of task parts, as given by the context: all three of them, or only a specified one.
  */
 public class ReconciliationTaskExecution
-        extends AbstractSearchIterativeTaskExecution<ReconciliationTaskHandler, ReconciliationTaskExecution> {
+        extends AbstractTaskExecution<ReconciliationTaskHandler, ReconciliationTaskExecution> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ReconciliationTaskExecution.class);
 
@@ -110,7 +110,7 @@ public class ReconciliationTaskExecution
         super.initialize(opResult);
 
         // TODO Consider adding objectFilter to targetInfo
-        targetInfo = taskHandler.syncTaskHelper.getTargetInfo(LOGGER, localCoordinatorTask, opResult, taskHandler.taskTypeName);
+        targetInfo = taskHandler.syncTaskHelper.getTargetInfo(LOGGER, localCoordinatorTask, opResult, taskHandler.getTaskTypeName());
         objectsFilter = ModelImplUtils.determineSynchronizationObjectsFilter(targetInfo.getObjectClassDefinition(),
                 localCoordinatorTask);
 

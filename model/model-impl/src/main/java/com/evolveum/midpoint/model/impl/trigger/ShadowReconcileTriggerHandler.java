@@ -104,11 +104,11 @@ public class ShadowReconcileTriggerHandler implements SingleTriggerHandler {
                 .addParam("attemptNumber", getNumber(trigger))
                 .build();
         try {
-            PrismObject<ShadowType> fullShadow = provisioningService.getObject(ShadowType.class, shadowOid, null, task, result);
-            PrismObject<ResourceType> resource = getResource(fullShadow, task, result);
+            PrismObject<ShadowType> shadowizedResourceObject = provisioningService.getObject(ShadowType.class, shadowOid, null, task, result);
+            PrismObject<ResourceType> resource = getResource(shadowizedResourceObject, task, result);
 
             ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
-            change.setCurrentShadow(fullShadow);
+            change.setCurrentShadow(shadowizedResourceObject);
             change.setResource(resource);
             change.setSourceChannel(SchemaConstants.CHANNEL_RECON_URI); // to be reconsidered later
 

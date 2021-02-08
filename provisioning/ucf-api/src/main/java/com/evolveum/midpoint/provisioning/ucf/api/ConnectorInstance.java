@@ -11,7 +11,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncChangeListener;
+import com.evolveum.midpoint.provisioning.ucf.api.async.UcfAsyncUpdateChangeListener;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -297,9 +297,9 @@ public interface ConnectorInstance {
     /**
      * Token may be null. That means "from the beginning of history".
      */
-    void fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
+    UcfFetchChangesResult fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
             AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter,
-            LiveSyncChangeListener changeHandler, OperationResult parentResult)
+            @NotNull UcfLiveSyncChangeListener changeHandler, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException,
             ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException;
 
@@ -327,14 +327,15 @@ public interface ConnectorInstance {
      * threads to listen and/or to execute changeListener in. But the control should return back to the caller after the
      * listening is over.
      *
-     * In the future we could create a similar method that would simply start the listening process and return the control
-     * immediately -- if needed.
+     * This method should be called only in a single thread per the connector instance.
      *
      * @param changeListener Listener to invoke when a change arrives
      * @param canRunSupplier Supplier of "canRun" information. If it returns false we should stop listening.
      * @param parentResult Operation result to use for listening for changes.
+     *
+     * @throws IllegalStateException If another listener is already present (or was successfully started in parallel).
      */
-    default void listenForChanges(@NotNull AsyncChangeListener changeListener, @NotNull Supplier<Boolean> canRunSupplier,
+    default void listenForChanges(@NotNull UcfAsyncUpdateChangeListener changeListener, @NotNull Supplier<Boolean> canRunSupplier,
             @NotNull OperationResult parentResult) throws SchemaException {
         throw new UnsupportedOperationException();
     }

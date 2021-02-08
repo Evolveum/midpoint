@@ -112,7 +112,7 @@
     <logger name="com.evolveum.midpoint.security" level="DEBUG" />
     <logger name="com.evolveum.midpoint.security.enforcer.impl.SecurityEnforcerImpl" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.security" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskHandler" level="DEBUG" />
+    <!-- TODO set DEBUG for specific sync task handlers -->
     <logger name="com.evolveum.midpoint.model.impl.sync.SynchronizationServiceImpl" level="TRACE" />
     <logger name="com.evolveum.midpoint.model.impl.tasks.RecomputeTaskHandler" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.tasks.scanner.FocusValidityScannerTaskHandler" level="DEBUG" />

@@ -62,6 +62,9 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
     // Used to make sure that the connector is cached
     @Autowired protected ResourceManager resourceManager;
 
+    @Autowired protected MockLiveSyncTaskHandler mockLiveSyncTaskHandler;
+    @Autowired protected MockAsyncUpdateTaskHandler mockAsyncUpdateTaskHandler;
+
     // Values used to check if something is unchanged or changed properly
     private Long lastResourceVersion = null;
     private ConnectorInstance lastConfiguredConnectorInstance = null;

@@ -17,12 +17,17 @@ import java.lang.annotation.Target;
 /**
  * Denotes task part execution implementation class for given search-iterative task.
  * Usable only for single-part tasks.
+ *
+ * Requirements:
+ *
+ * 1. The class and its constructor must be public
+ * 2. ...
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Experimental
 public @interface PartExecutionClass {
 
-    Class<? extends AbstractSearchIterativeTaskPartExecution<?, ?, ?, ?, ?>> value();
+    Class<? extends AbstractIterativeTaskPartExecution<?, ?, ?, ?, ?>> value();
 
 }

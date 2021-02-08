@@ -279,10 +279,11 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
     }
 
     @Override
-    public void fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
+    public UcfFetchChangesResult fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
             AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter,
-            LiveSyncChangeListener changeHandler, OperationResult parentResult) {
+            @NotNull UcfLiveSyncChangeListener changeHandler, OperationResult parentResult) {
         // not supported
+        return null;
     }
 
     @Override

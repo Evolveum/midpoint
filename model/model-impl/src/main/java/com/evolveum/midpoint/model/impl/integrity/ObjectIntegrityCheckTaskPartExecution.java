@@ -8,40 +8,51 @@
 package com.evolveum.midpoint.model.impl.integrity;
 
 import java.util.Collection;
+import java.util.Map;
 
-import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.model.impl.tasks.AbstractSearchIterativeModelTaskPartExecution;
+import com.evolveum.midpoint.model.impl.tasks.AbstractIterativeModelTaskPartExecution;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.task.DefaultHandledObjectType;
-import com.evolveum.midpoint.repo.common.task.ResultHandlerClass;
+import com.evolveum.midpoint.repo.common.task.ItemProcessorClass;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.task.api.TaskException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-@ResultHandlerClass(ObjectIntegrityCheckResultHandler.class)
+@ItemProcessorClass(ObjectIntegrityCheckItemProcessor.class)
 @DefaultHandledObjectType(ObjectType.class)
 public class ObjectIntegrityCheckTaskPartExecution
-        extends AbstractSearchIterativeModelTaskPartExecution
+        extends AbstractIterativeModelTaskPartExecution
         <ObjectType,
                 ObjectIntegrityCheckTaskHandler,
                 ObjectIntegrityCheckTaskHandler.TaskExecution,
-                ObjectIntegrityCheckTaskPartExecution, ObjectIntegrityCheckResultHandler> {
+                ObjectIntegrityCheckTaskPartExecution, ObjectIntegrityCheckItemProcessor> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ObjectIntegrityCheckTaskPartExecution.class);
+    private static final int HISTOGRAM_COLUMNS = 80;
+
+    final ObjectStatistics objectStatistics = new ObjectStatistics();
 
     ObjectIntegrityCheckTaskPartExecution(ObjectIntegrityCheckTaskHandler.TaskExecution taskExecution) {
         super(taskExecution);
+        setRequiresDirectRepositoryAccess();
+    }
+
+    @Override
+    protected void initialize(OperationResult opResult)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+            SecurityViolationException, ExpressionEvaluationException, TaskException {
+        super.initialize(opResult);
+
+        ensureNoWorkerThreads();
+        logger.info("Object integrity check is starting");
     }
 
     @Override
     protected ObjectQuery createQuery(OperationResult opResult) throws SchemaException {
         ObjectQuery query = createQueryFromTask();
-        LOGGER.info("Using query:\n{}", query.debugDump());
+        logger.info("Using query:\n{}", query.debugDump());
         return query;
     }
 
@@ -53,7 +64,24 @@ public class ObjectIntegrityCheckTaskPartExecution
     }
 
     @Override
-    protected boolean requiresDirectRepositoryAccess(OperationResult opResult) {
-        return true;
+    protected void finish(OperationResult opResult) throws SchemaException {
+        super.finish(opResult);
+        logger.info("Object integrity check finished.");
+        dumpStatistics();
+    }
+
+    private void dumpStatistics() {
+        Map<String, ObjectTypeStatistics> map = objectStatistics.getStatisticsMap();
+        if (map.isEmpty()) {
+            logger.info("(no objects were found)");
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for (Map.Entry<String, ObjectTypeStatistics> entry : map.entrySet()) {
+                sb.append("\n\n**************************************** Statistics for ").append(entry.getKey()).append(" ****************************************\n\n");
+                sb.append(entry.getValue().dump(HISTOGRAM_COLUMNS));
+            }
+            logger.info("{}", sb.toString());
+        }
+        logger.info("Objects processed with errors: {}", objectStatistics.getErrors());
     }
 }

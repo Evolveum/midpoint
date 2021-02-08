@@ -20,15 +20,17 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectAsyncChange;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectAsyncChangeListener;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectLiveSyncChangeListener;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectLiveSyncChange;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
-import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncChangeListener;
+import com.evolveum.midpoint.provisioning.ucf.api.async.UcfAsyncUpdateChangeListener;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
@@ -190,9 +192,9 @@ public class ResourceObjectConverter {
                     throw new ObjectNotFoundException("No object found for secondary identifier "+secondaryIdentifier);
                 }
                 PrismObject<ShadowType> shadow = shadowHolder.getValue();
-                PrismObject<ShadowType> finalShadow = postProcessResourceObjectRead(ctx, shadow, true, parentResult);
-                LOGGER.trace("Located resource object {}", finalShadow);
-                return finalShadow;
+                postProcessResourceObjectRead(ctx, shadow, true, parentResult);
+                LOGGER.trace("Located resource object {}", shadow);
+                return shadow;
             } catch (GenericFrameworkException e) {
                 throw new GenericConnectorException(e.getMessage(), e);
             }
@@ -1314,7 +1316,7 @@ public class ResourceObjectConverter {
 
                                 OperationResult objResult = resultBuilder.build();
                                 try {
-                                    shadow = postProcessResourceObjectRead(ctx, shadow, fetchAssociations, objResult);
+                                    postProcessResourceObjectRead(ctx, shadow, fetchAssociations, objResult);
                                     Validate.notNull(shadow, "null shadow");
                                     return resultHandler.handle(shadow, objResult);
                                 } catch (Throwable t) {
@@ -1438,7 +1440,7 @@ public class ResourceObjectConverter {
     }
 
 
-    private PrismObject<ShadowType> fetchResourceObject(ProvisioningContext ctx,
+    public PrismObject<ShadowType> fetchResourceObject(ProvisioningContext ctx,
             Collection<? extends ResourceAttribute<?>> identifiers,
             AttributesToReturn attributesToReturn,
             boolean fetchAssociations,
@@ -1446,7 +1448,8 @@ public class ResourceObjectConverter {
             CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 
         PrismObject<ShadowType> resourceObject = resourceObjectReferenceResolver.fetchResourceObject(ctx, identifiers, attributesToReturn, parentResult);
-        return postProcessResourceObjectRead(ctx, resourceObject, fetchAssociations, parentResult);
+        postProcessResourceObjectRead(ctx, resourceObject, fetchAssociations, parentResult);
+        return resourceObject;
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -1828,8 +1831,9 @@ public class ResourceObjectConverter {
         return ShadowType.F_ATTRIBUTES.equivalent(itemDelta.getParentPath());
     }
 
-    public void fetchChanges(ProvisioningContext ctx, @NotNull PrismProperty<?> initialToken, LiveSyncChangeListener upstreamListener,
-            OperationResult parentResult) throws SchemaException, CommunicationException, ConfigurationException,
+    public UcfFetchChangesResult fetchChanges(ProvisioningContext ctx, @NotNull PrismProperty<?> initialToken,
+            ResourceObjectLiveSyncChangeListener outerListener,
+            OperationResult gResult) throws SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, GenericFrameworkException, ObjectNotFoundException, ExpressionEvaluationException {
 
         LOGGER.trace("START fetch changes from {}, objectClass: {}", initialToken, ctx.getObjectClassDefinition());
@@ -1840,17 +1844,16 @@ public class ResourceObjectConverter {
             attrsToReturn = ProvisioningUtil.createAttributesToReturn(ctx);
         }
 
-        ConnectorInstance connector = ctx.getConnector(LiveSyncCapabilityType.class, parentResult);
+        ConnectorInstance connector = ctx.getConnector(LiveSyncCapabilityType.class, gResult);
         Integer maxChanges = getMaxChanges(ctx);
 
-        Holder<Boolean> allChangesFetchedHolder = new Holder<>();           // for diag purposes
-        Holder<PrismProperty<?>> finalTokenHolder = new Holder<>();         // for diag purposes
-
         AtomicInteger processed = new AtomicInteger(0);
-        LiveSyncChangeListener localListener = new LiveSyncChangeListener() {
+        UcfLiveSyncChangeListener localListener = new UcfLiveSyncChangeListener() {
             @Override
-            public boolean onChange(Change change, OperationResult parentResult) {
+            public boolean onChange(UcfLiveSyncChange ucfChange, OperationResult lParentResult) {
                 int changeNumber = processed.getAndIncrement();
+
+                ResourceObjectLiveSyncChange change = new ResourceObjectLiveSyncChange(ucfChange);
 
                 Task task = ctx.getTask();
                 boolean requestedTracingHere;
@@ -1859,45 +1862,38 @@ public class ResourceObjectConverter {
                                 (RunningTask) task, changeNumber,
                                 TracingRootType.LIVE_SYNC_CHANGE_PROCESSING);
                 try {
-                    OperationResultBuilder resultBuilder = parentResult.subresult(OPERATION_HANDLE_CHANGE)
+                    OperationResultBuilder resultBuilder = lParentResult.subresult(OPERATION_HANDLE_CHANGE)
                             .setMinor()
                             .addParam("number", changeNumber)
-                            .addParam("localSequenceNumber", change.getLocalSequenceNumber())
-                            .addArbitraryObjectAsParam("primaryIdentifier", change.getPrimaryIdentifierRealValue())
-                            .addArbitraryObjectAsParam("token", change.getToken());
+                            .addParam("localSequenceNumber", ucfChange.getLocalSequenceNumber())
+                            .addArbitraryObjectAsParam("primaryIdentifier", ucfChange.getPrimaryIdentifierRealValue())
+                            .addArbitraryObjectAsParam("token", ucfChange.getToken());
 
                     // Here we request tracing if configured to do so. Note that this is only a partial solution: for multithreaded
                     // livesync we currently do not trace the "worker" part of the processing.
                     boolean tracingRequested;
                     try {
                         tracingRequested = setTracingInOperationResultIfRequested(resultBuilder,
-                                TracingRootType.LIVE_SYNC_CHANGE_PROCESSING, task, parentResult);
-                    } catch (Throwable t) {
-                        return upstreamListener.onChangePreparationError(change.getToken(), change, t, parentResult);
+                                TracingRootType.LIVE_SYNC_CHANGE_PROCESSING, task, lParentResult);
+                    } catch (Exception e) {
+                        change.setSkipFurtherProcessing(e);
+                        tracingRequested = false;
                     }
-                    OperationResult result = resultBuilder.build();
-
+                    OperationResult lResult = resultBuilder.build();
                     try {
                         try {
-                            if (!preprocessChange(ctx, attrsToReturn, connector, change, result)) {
-                                result.addReturn("status", "stopped in pre-processing");
-                                return true;
-                            }
-                        } catch (Throwable t) {
-                            result.addReturn("status", "failed: " + t);
-                            return upstreamListener.onChangePreparationError(change.getToken(), change, t, result);
+                            change.preprocess(ResourceObjectConverter.this, ctx, attrsToReturn, lResult);
+                        } catch (Exception e) {
+                            change.setSkipFurtherProcessing(e);
                         }
-                        boolean cont = upstreamListener.onChange(change, result);
-                        result.addReturn("status", "handled with continue=" + cont);
-
-                        return cont;
+                        return outerListener.onChange(change, lResult);
                     } catch (Throwable t) {
-                        result.recordFatalError(t);
+                        lResult.recordFatalError(t);
                         throw t;
                     } finally {
-                        result.computeStatusIfUnknown();
+                        lResult.computeStatusIfUnknown();
                         if (tracingRequested) {
-                            tracer.storeTrace(task, result, parentResult);
+                            tracer.storeTrace(task, lResult, lParentResult);
                         }
                     }
                 } finally {
@@ -1908,26 +1904,25 @@ public class ResourceObjectConverter {
             }
 
             @Override
-            public boolean onChangePreparationError(PrismProperty<?> token, @Nullable Change change,
-                    @NotNull Throwable exception, @NotNull OperationResult result) {
-                return upstreamListener.onChangePreparationError(token, change, exception, result);
-            }
-
-            @Override
-            public void onAllChangesFetched(PrismProperty<?> finalToken, OperationResult result) {
-                allChangesFetchedHolder.setValue(true);
-                finalTokenHolder.setValue(finalToken);
-                upstreamListener.onAllChangesFetched(finalToken, result);
+            public boolean onError(int localSequentialNumber, @NotNull Object primaryIdentifierRealValue,
+                    @NotNull PrismProperty<?> token, @NotNull Throwable throwable, @NotNull OperationResult result) {
+                // We want to propagate failed change to upper layers for reporting/error-handling purposes (marked as 'skip')
+                ResourceObjectLiveSyncChange change = new ResourceObjectLiveSyncChange(localSequentialNumber,
+                        primaryIdentifierRealValue, token, throwable);
+                return outerListener.onChange(change, result);
             }
         };
 
         // get changes from the connector
-        connector.fetchChanges(ctx.getObjectClassDefinition(), initialToken, attrsToReturn, maxChanges, ctx, localListener, parentResult);
+        UcfFetchChangesResult fetchChangesResult = connector.fetchChanges(ctx.getObjectClassDefinition(), initialToken,
+                attrsToReturn, maxChanges, ctx, localListener, gResult);
 
-        computeResultStatus(parentResult);
+        computeResultStatus(gResult);
 
         LOGGER.trace("END fetch changes ({} changes); interrupted = {}; all fetched = {}, final token = {}", processed.get(),
-                !ctx.canRun(), allChangesFetchedHolder.getValue(), finalTokenHolder.getValue());
+                !ctx.canRun(), fetchChangesResult.isAllChangesFetched(), fetchChangesResult.getFinalToken());
+
+        return fetchChangesResult;
     }
 
     @Nullable
@@ -1949,72 +1944,6 @@ public class ResourceObjectConverter {
         }
     }
 
-    /**
-     * @return false if this change should be skipped
-     */
-    private boolean preprocessChange(ProvisioningContext ctx, AttributesToReturn attrsToReturn, ConnectorInstance connector,
-            Change change, OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException, SecurityViolationException, GenericFrameworkException {
-
-        LOGGER.trace("Original change:\n{}", change.debugDumpLazily());
-        ObjectClassComplexTypeDefinition changeObjectClassDefinition = change.getObjectClassDefinition();
-        if (changeObjectClassDefinition == null && (!ctx.isWildcard() || change.getObjectDelta() == null || !change.getObjectDelta().isDelete())) {
-            throw new SchemaException("No object class definition in change "+change);
-        }
-        ProvisioningContext shadowCtx;
-        AttributesToReturn shadowAttrsToReturn;
-        if (ctx.isWildcard() && changeObjectClassDefinition != null) {
-            shadowCtx = ctx.spawn(changeObjectClassDefinition.getTypeName());
-            if (shadowCtx.isWildcard()) {
-                throw new SchemaException(
-                        "Unknown object class "+changeObjectClassDefinition.getTypeName()+" found in synchronization delta");
-            }
-            change.setObjectClassDefinition(shadowCtx.getObjectClassDefinition());
-            shadowAttrsToReturn = ProvisioningUtil.createAttributesToReturn(shadowCtx);
-        } else {
-            shadowCtx = ctx;
-            shadowAttrsToReturn = attrsToReturn;
-        }
-
-        if (change.getObjectDelta() == null || !change.getObjectDelta().isDelete()) {
-            if (change.getCurrentResourceObject() == null) {
-                // There is no current shadow in a change. Add it by fetching it explicitly.
-                try {
-                    // TODO maybe we can postpone this fetch to ShadowCache.preProcessChange where it is implemented [pmed]
-                    LOGGER.trace("Re-fetching object {} because it is not in the change", change.getIdentifiers());
-                    PrismObject<ShadowType> currentShadow = fetchResourceObject(shadowCtx,
-                            change.getIdentifiers(), shadowAttrsToReturn, true, result);    // todo consider whether it is always necessary to fetch the entitlements
-                    change.setCurrentResourceObject(currentShadow);
-                } catch (ObjectNotFoundException ex) {
-                    result.recordHandledError(
-                            "Object detected in change log no longer exist on the resource. Skipping processing this object.", ex);
-                    LOGGER.warn("Object detected in change log no longer exist on the resource. Skipping processing this object "
-                            + ex.getMessage());
-                    return false;    // TODO: Maybe change to DELETE instead of skipping this sync delta?
-                }
-            } else {
-                PrismObject<ShadowType> currentShadow;
-                if (ctx.isWildcard() && !MiscUtil.equals(shadowAttrsToReturn, attrsToReturn)) {
-                    // re-fetch the shadow if necessary (if attributesToGet does not match)
-                    ResourceObjectIdentification identification = ResourceObjectIdentification.create(
-                            shadowCtx.getObjectClassDefinition(), change.getIdentifiers());
-                    identification.validatePrimaryIdenfiers();
-                    LOGGER.trace("Re-fetching object {} because of attrsToReturn", identification);
-                    currentShadow = connector.fetchObject(identification, shadowAttrsToReturn, ctx, result);
-                } else {
-                    currentShadow = change.getCurrentResourceObject();
-                }
-
-                PrismObject<ShadowType> processedCurrentShadow = postProcessResourceObjectRead(shadowCtx, currentShadow,
-                        true, result);
-                change.setCurrentResourceObject(processedCurrentShadow);
-            }
-        }
-        LOGGER.trace("Processed change\n:{}", change.debugDumpLazily());
-        return true;
-    }
-
     private void checkMaxChanges(Integer maxChangesFromTask, String reason) {
         if (maxChangesFromTask != null && maxChangesFromTask > 0) {
             throw new IllegalArgumentException("Cannot apply " + SchemaConstants.MODEL_EXTENSION_LIVE_SYNC_BATCH_SIZE.getLocalPart() +
@@ -2023,44 +1952,29 @@ public class ResourceObjectConverter {
     }
 
     public void listenForAsynchronousUpdates(@NotNull ProvisioningContext ctx,
-            @NotNull AsyncChangeListener outerListener, @NotNull OperationResult parentResult) throws SchemaException,
+            @NotNull ResourceObjectAsyncChangeListener outerListener, @NotNull OperationResult parentResult) throws SchemaException,
             CommunicationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
 
         LOGGER.trace("Listening for async updates, objectClass: {}", ctx.getObjectClassDefinition());
         ConnectorInstance connector = ctx.getConnector(AsyncUpdateCapabilityType.class, parentResult);
 
-        AsyncChangeListener innerListener = (change, listenerTask, listenerResult) -> {
-            try {
-                LOGGER.trace("Start processing change:\n{}", change.debugDumpLazily());
-                setResourceOidIfMissing(change, ctx.getResourceOid());
-                ProvisioningContext shadowCtx = ctx;
-                ObjectClassComplexTypeDefinition changeObjectClassDefinition = change.getObjectClassDefinition();
-                if (changeObjectClassDefinition == null) {
-                    if (!ctx.isWildcard() || change.getObjectDelta() == null || !change.getObjectDelta().isDelete()) {
-                        throw new SchemaException("No object class definition in change "+change);
-                    }
+        UcfAsyncUpdateChangeListener innerListener = new UcfAsyncUpdateChangeListener() {
+            @Override
+            public void onChange(UcfAsyncUpdateChange ucfChange, Task listenerTask, OperationResult listenerResult) {
+                ResourceObjectAsyncChange change = new ResourceObjectAsyncChange(ucfChange);
+                try {
+                    change.preprocess(ResourceObjectConverter.this, ctx, listenerTask, listenerResult);
+                } catch (Exception e) {
+                    change.setSkipFurtherProcessing(e);
                 }
-                if (ctx.isWildcard() && changeObjectClassDefinition != null) {
-                    shadowCtx = ctx.spawn(changeObjectClassDefinition.getTypeName());
-                    if (shadowCtx.isWildcard()) {
-                        String message = "Unknown object class " + changeObjectClassDefinition.getTypeName()
-                                + " found in synchronization delta";
-                        throw new SchemaException(message);
-                    }
-                    change.setObjectClassDefinition(shadowCtx.getObjectClassDefinition());
-                }
+                outerListener.onChange(change, listenerResult);
+            }
 
-                if (change.getCurrentResourceObject() != null) {
-                    shadowCaretaker.applyAttributesDefinition(ctx, change.getCurrentResourceObject());
-                    PrismObject<ShadowType> processedCurrentShadow = postProcessResourceObjectRead(shadowCtx,
-                            change.getCurrentResourceObject(), true, listenerResult);
-                    change.setCurrentResourceObject(processedCurrentShadow);
-                } else {
-                    // we will fetch current resource object later
-                }
-                return outerListener.onChange(change, listenerTask, listenerResult);
-            } catch (Throwable t) {
-                throw new SystemException("Couldn't process async update: " + t.getMessage(), t);
+            @Override
+            public void onError(int localSequentialNumber, @NotNull Throwable throwable, @NotNull AcknowledgementSink acknowledgeable, OperationResult result) {
+                // We want to propagate failed change to upper layers for reporting/error-handling purposes (marked as 'skip')
+                ResourceObjectAsyncChange change = new ResourceObjectAsyncChange(localSequentialNumber, throwable, acknowledgeable);
+                outerListener.onChange(change, result);
             }
         };
         connector.listenForChanges(innerListener, ctx::canRun, parentResult);
@@ -2068,35 +1982,21 @@ public class ResourceObjectConverter {
         LOGGER.trace("Finished listening for async updates");
     }
 
-    private void setResourceOidIfMissing(Change change, String resourceOid) {
-        setResourceOidIfMissing(change.getOldRepoShadow(), resourceOid);
-        setResourceOidIfMissing(change.getCurrentResourceObject(), resourceOid);
-        if (change.getObjectDelta() != null) {
-            setResourceOidIfMissing(change.getObjectDelta().getObjectToAdd(), resourceOid);
-        }
-    }
-
-    private void setResourceOidIfMissing(PrismObject<ShadowType> object, String resourceOid) {
-        if (object != null && object.asObjectable().getResourceRef() == null && resourceOid != null) {
-            object.asObjectable().setResourceRef(ObjectTypeUtil.createObjectRef(resourceOid, ObjectTypes.RESOURCE));
-        }
-    }
-
     /**
      * Process simulated activation, credentials and other properties that are added to the object by midPoint.
      */
-    private PrismObject<ShadowType> postProcessResourceObjectRead(ProvisioningContext ctx,
-            PrismObject<ShadowType> resourceObject, boolean fetchAssociations,
-            OperationResult parentResult) throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public void postProcessResourceObjectRead(ProvisioningContext ctx, PrismObject<ShadowType> resourceObject,
+            boolean fetchAssociations, OperationResult parentResult) throws SchemaException, CommunicationException,
+            ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         if (resourceObject == null) {
-            return null;
+            return;
         }
-        ShadowType resourceObjectType = resourceObject.asObjectable();
+        ShadowType resourceObjectBean = resourceObject.asObjectable();
 
         ProvisioningUtil.setProtectedFlag(ctx, resourceObject, matchingRuleRegistry, relationRegistry, expressionFactory, parentResult);
 
-        if (resourceObjectType.isExists() != Boolean.FALSE) {
-            resourceObjectType.setExists(true);
+        if (resourceObjectBean.isExists() == null) {
+            resourceObjectBean.setExists(true);
         }
 
         completeActivation(ctx, resourceObject, parentResult);
@@ -2105,8 +2005,6 @@ public class ResourceObjectConverter {
         if (fetchAssociations) {
             entitlementConverter.postProcessEntitlementsRead(ctx, resourceObject, parentResult);
         }
-
-        return resourceObject;
     }
 
     /**
@@ -2710,5 +2608,7 @@ public class ResourceObjectConverter {
         }
     }
 
-
+    public ShadowCaretaker getShadowCaretaker() {
+        return shadowCaretaker;
+    }
 }

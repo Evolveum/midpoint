@@ -11,9 +11,10 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfAsyncUpdateChange;
 import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncUpdateMessageListener;
-import com.evolveum.midpoint.provisioning.ucf.api.Change;
-import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncChangeListener;
+import com.evolveum.midpoint.provisioning.ucf.api.async.UcfAsyncUpdateChangeListener;
+import com.evolveum.midpoint.schema.AcknowledgementSink;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -60,14 +61,15 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 
     private static final String VAR_MESSAGE = "message";
 
-    @NotNull private final AsyncChangeListener changeListener;
+    @NotNull private final UcfAsyncUpdateChangeListener changeListener;
     @Nullable private final Authentication authentication;
     @NotNull private final AsyncUpdateConnectorInstance connectorInstance;
 
     private final AtomicInteger messagesSeen = new AtomicInteger(0);
     private final AtomicInteger changesProduced = new AtomicInteger(0);
 
-    TransformationalAsyncUpdateMessageListener(@NotNull AsyncChangeListener changeListener, @Nullable Authentication authentication,
+    TransformationalAsyncUpdateMessageListener(@NotNull UcfAsyncUpdateChangeListener changeListener,
+            @Nullable Authentication authentication,
             @NotNull AsyncUpdateConnectorInstance connectorInstance) {
         this.changeListener = changeListener;
         this.authentication = authentication;
@@ -75,7 +77,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
     }
 
     @Override
-    public boolean onMessage(AsyncUpdateMessageType message) throws SchemaException {
+    public boolean onMessage(AsyncUpdateMessageType message, AcknowledgementSink acknowledgementSink) throws SchemaException {
         int messageNumber = messagesSeen.getAndIncrement();
         LOGGER.trace("Got message number {}: {}", messageNumber, message);
 
@@ -136,17 +138,21 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
                         ConfigurationException | ExpressionEvaluationException e) {
                     throw new SystemException("Couldn't evaluate message transformation expression: " + e.getMessage(), e);
                 }
-                boolean ok = true;
+                AcknowledgementSink aggregatedAcknowledgementSink = createAggregatingAcknowledgeSink(acknowledgementSink, changeBeans.size());
                 for (UcfChangeType changeBean : changeBeans) {
                     // For this to work reliably, we have to run in a single thread. But that's ok.
                     // If we receive messages in multiple threads, there is no message ordering.
                     int changeSequentialNumber = changesProduced.incrementAndGet();
                     // intentionally in this order - to process changes even after failure
                     // (if listener wants to fail fast, it can throw an exception)
-                    ok = changeListener.onChange(createChange(changeBean, result, changeSequentialNumber), task, result) && ok;
+                    UcfAsyncUpdateChange change = createChange(changeBean, result, changeSequentialNumber, aggregatedAcknowledgementSink);
+                    changeListener.onChange(change, task, result);
                 }
-                return ok;
+                // We need asynchronous message confirmation.
+                return true; // FIXME message confirmation
             } catch (Throwable t) {
+                int changeSequentialNumber = changesProduced.incrementAndGet();
+                changeListener.onError(changeSequentialNumber, t, acknowledgementSink, result);
                 result.recordFatalError(t.getMessage(), t);
                 throw t;
             } finally {
@@ -158,6 +164,14 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 
         } finally {
             securityContextManager.setupPreAuthenticatedSecurityContext(oldAuthentication);
+        }
+    }
+
+    private AcknowledgementSink createAggregatingAcknowledgeSink(AcknowledgementSink sink, int expectedReplies) {
+        if (expectedReplies > 1) {
+            return new AggregatingAcknowledgeSink(sink, expectedReplies);
+        } else {
+            return sink; // this is the usual case
         }
     }
 
@@ -184,7 +198,8 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
         }
     }
 
-    private Change createChange(UcfChangeType changeBean, OperationResult result, int changeSequentialNumber) throws SchemaException {
+    private UcfAsyncUpdateChange createChange(UcfChangeType changeBean, OperationResult result, int changeSequentialNumber,
+            AcknowledgementSink acknowledgeSink) throws SchemaException {
         QName objectClassName = changeBean.getObjectClass();
         if (objectClassName == null) {
             throw new SchemaException("Object class name is null in " + changeBean);
@@ -208,12 +223,12 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
         setFromDefaults(changeBean.getObject(), objectClassName);
         Holder<Object> primaryIdentifierRealValueHolder = new Holder<>();
         Collection<ResourceAttribute<?>> identifiers = getIdentifiers(changeBean, objectClassDef, primaryIdentifierRealValueHolder);
-        Change change = new Change(primaryIdentifierRealValueHolder.getValue(), identifiers, asPrismObject(changeBean.getObject()), delta, changeSequentialNumber);
-        change.setObjectClassDefinition(objectClassDef);
-        if (change.getCurrentResourceObject() == null && change.getObjectDelta() == null) {
-            change.setNotificationOnly(true);
-        }
-        return change;
+        boolean notificationOnly = changeBean.getObject() == null && delta == null;
+        return new UcfAsyncUpdateChange(
+                changeSequentialNumber, primaryIdentifierRealValueHolder.getValue(),
+                objectClassDef, identifiers,
+                delta, asPrismObject(changeBean.getObject()),
+                notificationOnly, acknowledgeSink);
     }
 
     private void setFromDefaults(ShadowType object, QName objectClassName) {
@@ -224,6 +239,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
         }
     }
 
+    @NotNull
     private Collection<ResourceAttribute<?>> getIdentifiers(UcfChangeType changeBean, ObjectClassComplexTypeDefinition ocDef,
             Holder<Object> primaryIdentifierRealValueHolder) throws SchemaException {
         Collection<ResourceAttribute<?>> rv = new ArrayList<>();
@@ -275,12 +291,15 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
             }
         }
         if (primaryIdentifierRealValues.isEmpty()) {
-            LOGGER.warn("No primary identifier real value in {}", changeBean);
-        } else if (primaryIdentifierRealValues.size() > 1) {
-            LOGGER.warn("More than one primary identifier real value in {}: {}", changeBean, primaryIdentifierRealValues);
-        } else {
-            primaryIdentifierRealValueHolder.setValue(primaryIdentifierRealValues.iterator().next());
+            throw new SchemaException("No primary identifier real value in " + changeBean);
         }
+
+        primaryIdentifierRealValueHolder.setValue(primaryIdentifierRealValues.iterator().next());
+        if (primaryIdentifierRealValues.size() > 1) {
+            LOGGER.warn("More than one primary identifier real value in {}: {}. Using the first one: {}", changeBean,
+                    primaryIdentifierRealValues, primaryIdentifierRealValueHolder.getValue());
+        }
+
         return rv;
     }
 

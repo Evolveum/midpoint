@@ -21,6 +21,8 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import org.apache.wicket.model.Model;
+
 /**
  * @author skublik
  */
@@ -78,6 +80,6 @@ public class ProjectionDisplayNamePanel extends DisplayNamePanel<ShadowType> {
         if (getModelObject() == null) {
             return super.createTypeImagePanel(idTypeImage);
         }
-        return new CompositedIconPanel(idTypeImage, WebComponentUtil.createAccountIcon(getModelObject(), getPageBase(), false));
+        return new CompositedIconPanel(idTypeImage, Model.of(WebComponentUtil.createAccountIcon(getModelObject(), getPageBase(), false)));
     }
 }

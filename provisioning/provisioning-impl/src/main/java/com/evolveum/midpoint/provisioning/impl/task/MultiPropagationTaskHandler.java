@@ -8,12 +8,15 @@ package com.evolveum.midpoint.provisioning.impl.task;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.provisioning.impl.ShadowCache;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskExecution;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskHandler;
+import com.evolveum.midpoint.repo.common.task.AbstractTaskExecution;
+import com.evolveum.midpoint.repo.common.task.AbstractTaskHandler;
 import com.evolveum.midpoint.repo.common.task.PartExecutionClass;
 import com.evolveum.midpoint.repo.common.task.TaskExecutionClass;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -42,8 +45,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 @TaskExecutionClass(MultiPropagationTaskHandler.TaskExecution.class)
 @PartExecutionClass(MultiPropagationTaskPartExecution.class)
 public class MultiPropagationTaskHandler
-        extends AbstractSearchIterativeTaskHandler
+        extends AbstractTaskHandler
         <MultiPropagationTaskHandler, MultiPropagationTaskHandler.TaskExecution> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(MultiPropagationTaskHandler.class);
 
     public static final String HANDLER_URI = SchemaConstants.NS_PROVISIONING_TASK + "/propagation/multi-handler-3";
 
@@ -55,7 +60,7 @@ public class MultiPropagationTaskHandler
     @Autowired private ShadowCache shadowCache;
 
     public MultiPropagationTaskHandler() {
-        super("Provisioning propagation (multi)", OperationConstants.PROVISIONING_PROPAGATION);
+        super(LOGGER, "Provisioning propagation (multi)", OperationConstants.PROVISIONING_PROPAGATION);
         reportingOptions.setPreserveStatistics(false);
         reportingOptions.setEnableSynchronizationStatistics(false);
         reportingOptions.setSkipWritingOperationExecutionRecords(true); // to avoid resource change (invalidates the caches)
@@ -82,7 +87,7 @@ public class MultiPropagationTaskHandler
 
     /** Just to make Java compiler happy. */
     protected static class TaskExecution
-            extends AbstractSearchIterativeTaskExecution<MultiPropagationTaskHandler, MultiPropagationTaskHandler.TaskExecution> {
+            extends AbstractTaskExecution<MultiPropagationTaskHandler, TaskExecution> {
 
         public TaskExecution(MultiPropagationTaskHandler taskHandler,
                 RunningTask localCoordinatorTask, WorkBucketType workBucket,
