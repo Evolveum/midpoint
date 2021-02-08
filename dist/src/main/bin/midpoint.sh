@@ -23,6 +23,7 @@ BASE_DIR=$(cd "${SCRIPT_DIR}/.." && pwd -P)
 
 mkdir -p "${MIDPOINT_HOME}/log"
 
+# shellcheck disable=SC2034  # ORIG_JAVA_OPTS can be used used in setenv.sh lower
 ORIG_JAVA_OPTS="${JAVA_OPTS:-}"
 JAVA_OPTS="${JAVA_OPTS:-}
 -Xms2048M
@@ -129,11 +130,18 @@ if [[ "$1" == "start" ]]; then
   # can't use &>> here because of bash 3.2 support
   "${_RUNJAVA}" -version >>"${BOOT_OUT}" 2>&1
 
+  # location for additional JARs (e.g. non-distributable JDBC drivers)
+  MPHOME_LIB="${MIDPOINT_HOME}/lib/"
+  # on Windows we must use windows path to additional lib
+  [[ "${OSTYPE}" == "msys" ]] && MPHOME_LIB=$(cygpath.exe -w "${MIDPOINT_HOME}")\\lib\\
+
+  # loader.path argument is double-quoted so that $MPHOME_LIB value is not eval-ed (removes \)
+  # ' is inside " so it's not interpreted and does not prevent $MPHOME_LIB expansion to value
   # shellcheck disable=SC2086
   eval "${_NOHUP}" "\"${_RUNJAVA}\"" \
     ${LOGGING_MANAGER} ${JAVA_OPTS} -Dmidpoint.home=${MIDPOINT_HOME} \
     -cp "${BASE_DIR}/lib/midpoint.war" \
-    -Dloader.path=WEB-INF/classes,WEB-INF/lib,WEB-INF/lib-provided,${MIDPOINT_HOME}/lib/ \
+    "'-Dloader.path=WEB-INF/classes,WEB-INF/lib,WEB-INF/lib-provided,${MPHOME_LIB}'" \
     org.springframework.boot.loader.PropertiesLauncher \
     "$@" \
     "&" >>"${BOOT_OUT}" 2>&1
