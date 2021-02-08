@@ -13,8 +13,14 @@ import com.evolveum.midpoint.web.security.filter.MidpointRequestHeaderAuthentica
 import com.evolveum.midpoint.web.security.module.configuration.HttpHeaderModuleWebSecurityConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 /**
  * @author skublik
@@ -42,8 +48,19 @@ public class HttpHeaderModuleWebSecurityConfig<C extends HttpHeaderModuleWebSecu
         filter.setExceptionIfHeaderMissing(false);
         filter.setAuthenticationManager(authenticationManager);
         filter.setAuthenticationFailureHandler(new MidpointAuthenticationFauileHandler());
-        filter.setAuthenticationSuccessHandler(getObjectPostProcessor().postProcess(
-                new MidPointAuthenticationSuccessHandler().setPrefix(getConfiguration().getPrefix())));
+
+        MidPointAuthenticationSuccessHandler successHandler = new MidPointAuthenticationSuccessHandler(){
+            @Override
+            public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
+                    throws ServletException, IOException {
+                if (getRequestCache().getRequest(request, response) == null) {
+                    getRequestCache().saveRequest(request, response);
+                }
+                super.onAuthenticationSuccess(request, response, authentication);
+            }
+        };
+        successHandler.setPrefix(getConfiguration().getPrefix());
+        filter.setAuthenticationSuccessHandler(getObjectPostProcessor().postProcess(successHandler));
         filter.setSessionRegistry(getSessionRegistry());
 
         return filter;
