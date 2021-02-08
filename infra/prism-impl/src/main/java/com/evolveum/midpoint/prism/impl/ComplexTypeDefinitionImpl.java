@@ -11,7 +11,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.*;
-import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.jetbrains.annotations.NotNull;
@@ -32,6 +31,8 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
     private static final Trace LOGGER = TraceManager.getTrace(ComplexTypeDefinitionImpl.class);
 
     private static final long serialVersionUID = -9142629126376258513L;
+
+    // FIXME: This should be probably Map
     @NotNull private final List<ItemDefinition> itemDefinitions = new ArrayList<>();
     private boolean referenceMarker;
     private boolean containerMarker;
@@ -50,6 +51,8 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
     // temporary/experimental - to avoid trimming "standard" definitions
     // we reset this flag when cloning
     protected boolean shared = true;
+
+    private final @NotNull Map<QName, ItemDefinition<?>> substitutions = new HashMap<QName, ItemDefinition<?>>();
 
     public ComplexTypeDefinitionImpl(@NotNull QName typeName, @NotNull PrismContext prismContext) {
         super(typeName, prismContext);
@@ -95,6 +98,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
         return extensionForType;
     }
 
+    @Override
     public void setExtensionForType(QName extensionForType) {
         checkMutable();
         this.extensionForType = extensionForType;
@@ -105,6 +109,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
         return referenceMarker;
     }
 
+    @Override
     public void setReferenceMarker(boolean referenceMarker) {
         checkMutable();
         this.referenceMarker = referenceMarker;
@@ -115,6 +120,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
         return containerMarker;
     }
 
+    @Override
     public void setContainerMarker(boolean containerMarker) {
         checkMutable();
         this.containerMarker = containerMarker;
@@ -130,15 +136,18 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
         return xsdAnyMarker;
     }
 
+    @Override
     public void setXsdAnyMarker(boolean xsdAnyMarker) {
         checkMutable();
         this.xsdAnyMarker = xsdAnyMarker;
     }
 
+    @Override
     public boolean isListMarker() {
         return listMarker;
     }
 
+    @Override
     public void setListMarker(boolean listMarker) {
         checkMutable();
         this.listMarker = listMarker;
@@ -149,6 +158,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
         return defaultNamespace;
     }
 
+    @Override
     public void setDefaultNamespace(String defaultNamespace) {
         checkMutable();
         this.defaultNamespace = defaultNamespace;
@@ -160,11 +170,13 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
         return ignoredNamespaces;
     }
 
+    @Override
     public void setIgnoredNamespaces(@NotNull List<String> ignoredNamespaces) {
         checkMutable();
         this.ignoredNamespaces = ignoredNamespaces;
     }
 
+    @Override
     public void setObjectMarker(boolean objectMarker) {
         checkMutable();
         this.objectMarker = objectMarker;
@@ -173,6 +185,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
     //endregion
 
     //region Creating definitions
+    @Override
     public PrismPropertyDefinitionImpl createPropertyDefinition(QName name, QName typeName) {
         PrismPropertyDefinitionImpl propDef = new PrismPropertyDefinitionImpl(name, typeName, prismContext);
         add(propDef);
@@ -188,6 +201,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
         return propDef;
     }
 
+    @Override
     public PrismPropertyDefinitionImpl createPropertyDefinition(String localName, QName typeName) {
         QName name = new QName(getSchemaNamespace(), localName);
         return createPropertyDefinition(name, typeName);
@@ -276,6 +290,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
     }
 
     // path starts with NamedItemPathSegment
+    @Override
     public <ID extends ItemDefinition> ID findNamedItemDefinition(@NotNull QName firstName, @NotNull ItemPath rest, @NotNull Class<ID> clazz) {
         ID found = null;
         for (ItemDefinition def : getDefinitions()) {
@@ -524,6 +539,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
     /**
      * Return a human readable name of this class suitable for logs.
      */
+    @Override
     protected String getDebugDumpClassName() {
         return "CTD";
     }
@@ -571,5 +587,20 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
     public void performFreeze() {
         itemDefinitions.forEach(Freezable::freeze);
         super.performFreeze();
+    }
+
+    @Override
+    public void addSubstitution(ItemDefinition<?> itemDef, ItemDefinition<?> maybeSubst) {
+        substitutions.put(maybeSubst.getItemName(),maybeSubst);
+    }
+
+    @Override
+    public Optional<ItemDefinition<?>> substitution(QName name) {
+        return Optional.ofNullable(substitutions.get(name));
+    }
+
+    @Override
+    public boolean hasSubstitutions() {
+        return !substitutions.isEmpty();
     }
 }

@@ -16,6 +16,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.google.common.collect.Multimap;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -54,6 +56,7 @@ public class LayerRefinedResourceSchemaImpl implements LayerRefinedResourceSchem
         return layer;
     }
 
+    @Override
     public List<? extends RefinedObjectClassDefinition> getRefinedDefinitions(ShadowKindType kind) {
         return LayerRefinedObjectClassDefinitionImpl
                 .wrapCollection(refinedResourceSchema.getRefinedDefinitions(kind), layer);
@@ -153,6 +156,7 @@ public class LayerRefinedResourceSchemaImpl implements LayerRefinedResourceSchem
                 .wrap(refinedResourceSchema.getDefaultRefinedDefinition(kind), layer);
     }
 
+    @Override
     public LayerRefinedObjectClassDefinition findRefinedDefinitionByObjectClassQName(ShadowKindType kind, QName objectClass) {
         return LayerRefinedObjectClassDefinitionImpl
                 .wrap(refinedResourceSchema.findRefinedDefinitionByObjectClassQName(kind, objectClass), layer);
@@ -264,6 +268,11 @@ public class LayerRefinedResourceSchemaImpl implements LayerRefinedResourceSchem
     @Override
     public boolean isImmutable() {
         return refinedResourceSchema.isImmutable();
+    }
+
+    @Override
+    public Multimap<QName, ItemDefinition<?>> getSubstitutions() {
+        return refinedResourceSchema.getSubstitutions();
     }
 
     @Override
