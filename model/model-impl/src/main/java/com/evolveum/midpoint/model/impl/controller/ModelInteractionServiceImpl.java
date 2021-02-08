@@ -646,6 +646,26 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         }
     }
 
+    @Override
+    public SecurityPolicyType getSecurityPolicy(RefinedObjectClassDefinition rOCDef, Task task, OperationResult parentResult)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException {
+        OperationResult result = parentResult.createMinorSubresult(GET_SECURITY_POLICY);
+        try {
+            SecurityPolicyType securityPolicyType = securityHelper.locateProjectionSecurityPolicy(rOCDef, task, result);
+            if (securityPolicyType == null) {
+                result.recordNotApplicableIfUnknown();
+                return null;
+            }
+
+            return securityPolicyType;
+        } catch (Throwable e) {
+            result.recordFatalError(e);
+            throw e;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
+
     @NotNull
     public CompiledGuiProfile getCompiledGuiProfile(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         MidPointPrincipal principal = null;
@@ -1265,8 +1285,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         if (object == null) {
             return null;
         }
-        if (object.canRepresent(UserType.class)) {
-            return new FocusValuePolicyOriginResolver<>((PrismObject<UserType>) object, objectResolver);
+        if (object.canRepresent(FocusType.class)) {
+            return new FocusValuePolicyOriginResolver<>((PrismObject<FocusType>) object, objectResolver);
         }
         if (object.canRepresent(ShadowType.class)) {
             return new ShadowValuePolicyOriginResolver((PrismObject<ShadowType>) object, objectResolver);

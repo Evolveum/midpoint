@@ -7,12 +7,26 @@
 package com.evolveum.midpoint.web.page.self.component;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.page.admin.home.dto.AssignmentItemDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.model.api.ProgressInformation;
+import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.web.component.data.column.*;
+import com.evolveum.midpoint.web.component.progress.ProgressReportActivityDto;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -33,16 +47,13 @@ import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.data.column.ImagePanel;
 import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPropagationUserControlType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
+import org.apache.wicket.util.visit.IVisitor;
 
 /**
  * @author Kate Honchar
@@ -67,6 +78,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
     private LoadableModel<MyPasswordsDto> model;
     private boolean midpointAccountSelected = true;
     private boolean oldPasswordVisible = false;
+    private Map<String, List<StringLimitationResult>> limitationsByPolicyOid = new HashMap<>();
 
     public ChangePasswordPanel(String id, boolean oldPasswordVisible) {
         super(id);
@@ -116,7 +128,22 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
         });
 
         PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, new PropertyModel<>(model, MyPasswordsDto.F_PASSWORD),
-                model.getObject().getFocus(), getPageBase());
+                model.getObject().getFocus(), getPageBase()){
+            @Override
+            protected <F extends FocusType> ValuePolicyType getValuePolicy(PrismObject<F> object) {
+                return model.getObject().getFocusPolicy();
+            }
+
+            @Override
+            protected void updatePasswordValidation(AjaxRequestTarget target) {
+                super.updatePasswordValidation(target);
+                limitationsByPolicyOid.clear();
+                getTable().visitChildren(PasswordPolicyValidationPanel.class,
+                        (IVisitor<PasswordPolicyValidationPanel, PasswordPolicyValidationPanel>) (panel, iVisit) -> {
+                            panel.refreshValidationPopup(target);
+                });
+            }
+        };
         passwordPanel.getBaseFormComponent().add(new AttributeModifier("autofocus", ""));
         add(passwordPanel);
 
@@ -128,25 +155,21 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
         TablePanel accounts = new TablePanel(ID_ACCOUNTS_TABLE, provider, columns);
         accounts.setItemsPerPage(30);
         accounts.setShowPaging(false);
-        if (model.getObject().getPropagation() != null && model.getObject().getPropagation()
-                .equals(CredentialsPropagationUserControlType.MAPPING)){
-            accountContainer.setVisible(false);
-        }
         accountContainer.add(accounts);
 
-        AjaxLink<Void> help = new AjaxLink<Void>(ID_BUTTON_HELP) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                showHelpPerformed(target);
-            }
-
-
-        };
-
-        accountContainer.add(help);
+//        AjaxLink<Void> help = new AjaxLink<Void>(ID_BUTTON_HELP) {
+//
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                showHelpPerformed(target);
+//            }
+//
+//
+//        };
+//
+//        accountContainer.add(help);
         accountContainer.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
@@ -236,6 +259,16 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                     }
                 });
             }
+
+            @Override
+            public Component getHeader(String componentId) {
+                Label help = new Label(componentId);
+                IModel<String> helpModel = createStringResource("ChangePasswordPanel.helpInfo",
+                        WebComponentUtil.getMidpointCustomSystemName(getPageBase(), "midpoint.default.system.name"));
+                help.add(AttributeModifier.replace("title", helpModel));
+                help.add(new InfoTooltipBehavior());
+                return help;
+            }
         };
         columns.add(column);
 
@@ -261,10 +294,108 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                 PasswordAccountDto.F_RESOURCE_NAME);
         columns.add(column);
 
-        CheckBoxColumn enabled = new CheckBoxColumn(createStringResource("ChangePasswordPanel.enabled"),
-                PasswordAccountDto.F_ENABLED);
-        enabled.setEnabled(false);
+        IconColumn enabled = new IconColumn<PasswordAccountDto>(createStringResource("ChangePasswordPanel.enabled")){
+
+            @Override
+            protected DisplayType getIconDisplayType(IModel<PasswordAccountDto> rowModel) {
+                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().isEnabled()) {
+                    return WebComponentUtil.createDisplayType(
+                            GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_APPROVED_COLORED);
+                }
+                return WebComponentUtil.createDisplayType(
+                        GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_REJECTED_COLORED);
+            }
+
+            @Override
+            public String getCssClass() {
+                return "col-lg-3";
+            }
+        };
         columns.add(enabled);
+
+        columns.add(new AbstractColumn<PasswordAccountDto, String>(createStringResource("ChangePasswordPanel.passwordValidation")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<PasswordAccountDto>> cellItem, String componentId, IModel<PasswordAccountDto> rowModel) {
+                IModel<List<StringLimitationResult>> limitationsModel = () -> {
+                    String policyOid = rowModel.getObject().getPasswordValuePolicyOid();
+                    if (StringUtils.isEmpty(policyOid) || !getModelObject().getPasswordPolicies().containsKey(policyOid)) {
+                        return new ArrayList<>();
+                    }
+                    if (limitationsByPolicyOid.containsKey(policyOid)) {
+                        return limitationsByPolicyOid.get(policyOid);
+                    }
+
+                    ValuePolicyType policyType = getModelObject().getPasswordPolicies().get(policyOid);
+                    PrismObject<? extends ObjectType> object = rowModel.getObject().getObject();
+                    return getPasswordPanel().getLimitationsForActualPassword(policyType, object);
+                };
+                PasswordPolicyValidationPanel validationPanel = new PasswordPolicyValidationPanel(componentId, limitationsModel);
+                validationPanel.add(new VisibleEnableBehaviour() {
+                    @Override
+                    public boolean isVisible() {
+                        return !limitationsModel.getObject().isEmpty();
+                    }
+                });
+                cellItem.add(validationPanel);
+            }
+
+            @Override
+            public String getCssClass() {
+                return "col-lg-3";
+            }
+        });
+
+        columns.add(new AbstractColumn<PasswordAccountDto, String>(createStringResource("ChangePasswordPanel.propagationResult")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<PasswordAccountDto>> cellItem, String componentId, IModel<PasswordAccountDto> rowModel) {
+                LoadableModel<OperationResult> resultStatusModel = new LoadableModel<OperationResult>() {
+                    @Override
+                    protected OperationResult load() {
+                        if (getModelObject().getProgress() == null
+                                || getModelObject().getProgress().getProgressReportActivities().isEmpty()) {
+                            return null;
+                        }
+
+                        for (ProgressReportActivityDto progressActivity : getModelObject().getProgress().getProgressReportActivities()) {
+                            if (progressActivity.getStatus() != null && rowModel.getObject().isMidpoint()
+                                    && (ProgressInformation.ActivityType.FOCUS_OPERATION.equals(progressActivity.getActivityType())
+                                    || (ProgressInformation.ActivityType.PROJECTOR.equals(progressActivity.getActivityType())
+                                    && !OperationResultStatusType.SUCCESS.equals(progressActivity.getStatus())))) {
+                                return progressActivity.getOperationResult();
+                            } else if (progressActivity.getStatus() != null && !rowModel.getObject().isMidpoint()
+                                    && ProgressInformation.ActivityType.RESOURCE_OBJECT_OPERATION.equals(progressActivity.getActivityType())
+                                            && progressActivity.getResourceOperationResultList() != null
+                                            && !progressActivity.getResourceOperationResultList().isEmpty()) {
+                                String resourceOid = rowModel.getObject().getResourceOid();
+                                if (StringUtils.isNotEmpty(resourceOid) && progressActivity.getResourceShadowDiscriminator() != null
+                                        && resourceOid.equals(progressActivity.getResourceShadowDiscriminator().getResourceOid())) {
+                                    return progressActivity.getOperationResult();
+                                }
+
+                            }
+                        }
+                        return null;
+                    }
+                };
+                ColumnResultPanel resultPanel = new ColumnResultPanel(componentId, resultStatusModel){
+                    @Override
+                    protected boolean isProjectionResult() {
+                        return !rowModel.getObject().isMidpoint();
+                    }
+                };
+                resultPanel.setOutputMarkupId(true);
+                cellItem.add(resultPanel);
+            }
+
+            @Override
+            public String getCssClass() {
+                return "col-lg-3";
+            }
+        });
 
         return columns;
     }
@@ -288,5 +419,23 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
 
             }
         }, target);
+    }
+
+    public void updateResultColumnOfTable(AjaxRequestTarget target) {
+        getTable().visitChildren(ColumnResultPanel.class,
+                (IVisitor<ColumnResultPanel, ColumnResultPanel>) (panel, iVisit) -> {
+            if (panel.getModel() instanceof LoadableModel) {
+                ((LoadableModel)panel.getModel()).reset();
+            }
+                    target.add(panel);
+                });
+    }
+
+    private PasswordPanel getPasswordPanel(){
+        return (PasswordPanel) get(ID_PASSWORD_PANEL);
+    }
+
+    private TablePanel getTable() {
+        return (TablePanel) get(getPageBase().createComponentPath(ID_ACCOUNTS_CONTAINER, ID_ACCOUNTS_TABLE));
     }
 }

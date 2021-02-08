@@ -7,6 +7,14 @@
 
 package com.evolveum.midpoint.web.page.admin.home.dto;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismObject;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.web.component.util.Selectable;
@@ -21,12 +29,13 @@ public class PasswordAccountDto extends Selectable<PasswordAccountDto>
     public static final String F_RESOURCE_NAME = "resourceName";
     public static final String F_ENABLED = "enabled";
 
-    private final String oid;
+    private PrismObject<? extends ObjectType> object;
     private final String displayName;
     private final String resourceName;
     private final boolean enabled;
 
     private String cssClass = "";
+    private String passwordValuePolicyOid;
     private boolean passwordOutbound;
     private boolean passwordCapabilityEnabled;
     /**
@@ -34,15 +43,22 @@ public class PasswordAccountDto extends Selectable<PasswordAccountDto>
      */
     private final boolean midpoint;
 
-    public PasswordAccountDto(String oid, String displayName, String resourceName, boolean enabled) {
-        this(oid, displayName, resourceName, enabled, false);
+    /**
+     * contain resourceOid when it is shadow account
+     */
+    private String resourceOid;
+
+    public PasswordAccountDto(@NotNull PrismObject<ShadowType> shadow, String resourceName, String resourceOid) {
+        this(shadow, WebComponentUtil.getName(shadow), resourceName,
+                WebComponentUtil.isActivationEnabled(shadow, ActivationType.F_ADMINISTRATIVE_STATUS), false);
+        this.resourceOid = resourceOid;
     }
 
-    public PasswordAccountDto(String oid, String displayName, String resourceName, boolean enabled, boolean midpoint) {
+    public PasswordAccountDto(@NotNull PrismObject<?extends ObjectType> object, String displayName, String resourceName, boolean enabled, boolean midpoint) {
         this.displayName = displayName;
         this.resourceName = resourceName;
         this.enabled = enabled;
-        this.oid = oid;
+        this.object = object;
         this.midpoint = midpoint;
     }
 
@@ -59,7 +75,11 @@ public class PasswordAccountDto extends Selectable<PasswordAccountDto>
     }
 
     public String getOid() {
-        return oid;
+        return object.getOid();
+    }
+
+    public PrismObject<? extends ObjectType> getObject() {
+        return object;
     }
 
     public boolean isMidpoint() {
@@ -82,12 +102,24 @@ public class PasswordAccountDto extends Selectable<PasswordAccountDto>
         this.cssClass = cssClass;
     }
 
+    public String getPasswordValuePolicyOid() {
+        return passwordValuePolicyOid;
+    }
+
+    public void setPasswordValuePolicyOid(String passwordValuePolicyOid) {
+        this.passwordValuePolicyOid = passwordValuePolicyOid;
+    }
+
     public boolean isPasswordCapabilityEnabled() {
         return passwordCapabilityEnabled;
     }
 
     public void setPasswordCapabilityEnabled(boolean passwordCapabilityEnabled) {
         this.passwordCapabilityEnabled = passwordCapabilityEnabled;
+    }
+
+    public String getResourceOid() {
+        return resourceOid;
     }
 
     @Override

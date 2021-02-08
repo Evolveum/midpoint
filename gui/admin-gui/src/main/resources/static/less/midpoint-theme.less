@@ -1856,14 +1856,14 @@ th.composited-icon {
     }
 }
 
-#password-validator-popover {
+.password-validator-popover {
     position: absolute;
     z-index: 1000;
     display: none;
-    max-width: 100%;
+    min-width: 300px;
 
     .arrow-up {
-        left: 32px;
+        left: 19px;
         position: absolute;
         top: 0px;
         background-color: white;
@@ -1883,6 +1883,7 @@ th.composited-icon {
         border-radius: 2px;
         background-color: white;
         border: 1px solid #d2d6de;
+        white-space: nowrap;
     }
 
     .list-group {

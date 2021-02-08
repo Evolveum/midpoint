@@ -65,7 +65,7 @@ public class PageResetPassword extends PageAbstractSelfCredentials{
     }
 
     @Override
-    protected void finishChangePassword(final OperationResult result, AjaxRequestTarget target) {
+    protected void finishChangePassword(final OperationResult result, AjaxRequestTarget target, boolean showFeedback) {
 
 
         if (result.getStatus() == OperationResultStatus.SUCCESS) {
@@ -94,9 +94,11 @@ public class PageResetPassword extends PageAbstractSelfCredentials{
             }
 
             SecurityContextHolder.getContext().setAuthentication(null);
+            showResult(result);
+            target.add(getFeedbackPanel());
+        } else if (showFeedback) {
+            showResult(result);
         }
-
-        showResult(result);
         target.add(getFeedbackPanel());
 //        get(ID_MAIN_FORM).setVisible(false);
 

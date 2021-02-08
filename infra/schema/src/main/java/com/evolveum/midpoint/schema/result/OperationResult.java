@@ -515,6 +515,20 @@ public class OperationResult
         return null;
     }
 
+    public List<OperationResult> findSubresultsInSubTree(String operation) {
+        List<OperationResult> found = new ArrayList<>();
+        if (subresults == null) {
+            return found;
+        }
+        for (OperationResult subResult : getSubresults()) {
+            List<OperationResult> foundedSubresults = subResult.findSubresultsInSubTree(operation);
+            if (!foundedSubresults.isEmpty()) {
+                found.addAll(foundedSubresults);
+            }
+        }
+        return found;
+    }
+
     public List<OperationResult> findSubresults(String operation) {
         List<OperationResult> found = new ArrayList<>();
         if (subresults == null) {
