@@ -2,8 +2,8 @@
   "@context" : {
     "": "http://incorrect",
     "foo": "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd",
-    "q": "http://prism.evolveum.com/xml/ns/public/types-3",
-    "t": "http://prism.evolveum.com/xml/ns/public/query-3"
+    "t": "http://prism.evolveum.com/xml/ns/public/types-3",
+    "q": "http://prism.evolveum.com/xml/ns/public/query-3"
   },
   "foo:object" : {
     "@type" : "foo:UserType",
