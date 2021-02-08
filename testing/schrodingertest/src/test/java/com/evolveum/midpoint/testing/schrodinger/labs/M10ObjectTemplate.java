@@ -103,6 +103,11 @@ public class M10ObjectTemplate extends AbstractLabTest{
 
     @Test
     public void mod10test01SimpleObjectTemplate() throws IOException {
+        importObject(ARCHETYPE_EMPLOYEE_FILE, true, true);
+        importObject(ARCHETYPE_ORG_FUNCTIONAL_FILE, true, true);
+        importObject(ARCHETYPE_ORG_COMPANY_FILE, true, true);
+        importObject(ARCHETYPE_ORG_GROUP_FILE, true, true);
+        importObject(ARCHETYPE_ORG_GROUP_LIST_FILE, true, true);
         importObject(OBJECT_TEMPLATE_USER_FILE, true, true);
         importObject(KIRK_USER_TIBERIUS_FILE, true, true);
         importObject(ORG_EXAMPLE_FILE, true, true);
@@ -179,13 +184,6 @@ public class M10ObjectTemplate extends AbstractLabTest{
                 .selectTabBasic()
                     .form()
                         .assertInputAttributeValueMatches("fullName", "John Smith");
-
-
-        importObject(ARCHETYPE_EMPLOYEE_FILE, true, true);
-        importObject(ARCHETYPE_ORG_FUNCTIONAL_FILE, true, true);
-        importObject(ARCHETYPE_ORG_COMPANY_FILE, true, true);
-        importObject(ARCHETYPE_ORG_GROUP_FILE, true, true);
-        importObject(ARCHETYPE_ORG_GROUP_LIST_FILE, true, true);
 
         FileUtils.copyFile(HR_SOURCE_FILE_10_1, hrTargetFile);
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
