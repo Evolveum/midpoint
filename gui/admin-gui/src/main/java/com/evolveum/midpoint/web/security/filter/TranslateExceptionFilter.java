@@ -22,9 +22,9 @@ import java.io.IOException;
  * @author skublik
  */
 
-public class TranslateExeptionFilter extends OncePerRequestFilter {
+public class TranslateExceptionFilter extends OncePerRequestFilter {
 
-    private static final Trace LOGGER = TraceManager.getTrace(TranslateExeptionFilter.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TranslateExceptionFilter.class);
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
