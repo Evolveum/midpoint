@@ -72,8 +72,8 @@ class JsonReadingContext {
     }
 
 
-    public @NotNull DefinitionContext replaceDefinition(@NotNull DefinitionContext definition, QName typeName) {
+    public @NotNull DefinitionContext definition(QName itemName, QName typeName) {
         TypeDefinition typeDef = schemaRegistry.findTypeDefinitionByType(typeName);
-        return DefinitionContext.awareFromType(definition.getName(), typeDef);
+        return DefinitionContext.awareFromType(itemName, typeDef);
     }
 }

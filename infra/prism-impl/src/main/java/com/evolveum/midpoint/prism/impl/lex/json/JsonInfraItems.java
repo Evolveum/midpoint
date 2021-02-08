@@ -20,9 +20,7 @@ public class JsonInfraItems {
      *
      * @see #PROP_CONTEXT
      */
-    @Deprecated
     public static final String PROP_NAMESPACE = "@ns";
-    @Deprecated
     public static final QName PROP_NAMESPACE_QNAME = new QName(PROP_NAMESPACE);
     /**
      * Explicit type information
@@ -38,9 +36,18 @@ public class JsonInfraItems {
     /**
      * Explicit item name definition for heterolists
      *
+     * @deprecated Use {@link #PROP_ITEM} instead
      */
+    @Deprecated
     public static final String PROP_ELEMENT = "@element";
+    @Deprecated
     public static final QName PROP_ELEMENT_QNAME = new QName(PROP_ELEMENT);
+
+
+
+    public static final String PROP_ITEM = "@item";
+    public static final QName PROP_ITEM_QNAME = new QName(PROP_ITEM);
+
     /**
      * Alias for value, usually used when other infra item is needed.
      *

@@ -92,6 +92,8 @@ class JsonObjectTokenReader {
 
     private @NotNull DefinitionContext definition;
 
+    private final DefinitionContext parentDefinition;
+
     private static final Map<QName, ItemProcessor> PROCESSORS = ImmutableMap.<QName, ItemProcessor>builder()
             // Namespace definition processing
             .put(PROP_NAMESPACE_QNAME, JsonObjectTokenReader::processNamespaceDeclaration)
@@ -104,15 +106,18 @@ class JsonObjectTokenReader {
 
             .put(PROP_METADATA_QNAME, namespaceSensitive(JsonObjectTokenReader::processMetadataValue))
             .put(PROP_ELEMENT_QNAME, namespaceSensitive(JsonObjectTokenReader::processElementNameDeclaration))
+            .put(PROP_ITEM_QNAME, namespaceSensitive(JsonObjectTokenReader::processElementNameDeclaration))
+
             .build();
 
     private static final ItemProcessor STANDARD_PROCESSOR = namespaceSensitive(JsonObjectTokenReader::processStandardFieldValue);
 
-    JsonObjectTokenReader(@NotNull JsonReadingContext ctx, PrismNamespaceContext parentContext, @NotNull DefinitionContext definition) {
+    JsonObjectTokenReader(@NotNull JsonReadingContext ctx, PrismNamespaceContext parentContext, @NotNull DefinitionContext definition, @NotNull DefinitionContext parentDefinition) {
         this.ctx = ctx;
         this.parser = ctx.parser;
         this.parentContext = parentContext;
         this.definition = definition;
+        this.parentDefinition = parentDefinition;
     }
 
     /**
@@ -172,8 +177,8 @@ class JsonObjectTokenReader {
 
     }
 
-    private XNodeImpl readValue(DefinitionContext name) throws IOException, SchemaException {
-        return new JsonOtherTokenReader(ctx,namespaceContext().inherited(), name).readValue();
+    private XNodeImpl readValue(DefinitionContext fieldDef) throws IOException, SchemaException {
+        return new JsonOtherTokenReader(ctx,namespaceContext().inherited(), fieldDef, definition).readValue();
     }
 
     private PrismNamespaceContext namespaceContext() {
@@ -245,7 +250,14 @@ class JsonObjectTokenReader {
             warnOrThrow("Element name defined more than once");
         }
         String nsName = getCurrentFieldStringValue(name, value);
+        @NotNull
+        DefinitionContext maybeDefinition = parentDefinition.resolve(nsName, namespaceContext());
         elementName = resolveQName(nsName);
+        replaceDefinition(maybeDefinition);
+    }
+
+    private void replaceDefinition(@NotNull DefinitionContext maybeDefinition) {
+        definition = definition.moreSpecific(maybeDefinition);
     }
 
     /**
@@ -260,8 +272,8 @@ class JsonObjectTokenReader {
         }
         String stringValue = getCurrentFieldStringValue(name, value);
         // TODO: Compat: WE tread default prefixes as empty namespace, not default namespace
-        typeName = definition.unaware().resolve(stringValue, namespaceContext().childDefaultNamespace("")).getName();
-        definition = ctx.replaceDefinition(definition,typeName);
+        typeName = DefinitionContext.resolveQName(stringValue, namespaceContext());
+        replaceDefinition(ctx.definition(definition.getName(),typeName));
     }
 
     private void processNamespaceDeclaration(QName name, XNodeImpl value) throws SchemaException {

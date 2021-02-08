@@ -14,6 +14,7 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismNamespaceContext;
+import com.evolveum.midpoint.prism.impl.lex.json.DefinitionContext;
 import com.evolveum.midpoint.prism.impl.lex.json.JsonValueParser;
 import com.evolveum.midpoint.prism.impl.xnode.*;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -30,13 +31,16 @@ class RootObjectReader {
 
     private final PrismNamespaceContext nsContext;
 
+    private DefinitionContext def;
+
     RootObjectReader(@NotNull JsonReadingContext ctx, PrismNamespaceContext context) {
         this.ctx = ctx;
         this.nsContext = context;
+        this.def = ctx.rootDefinition();
     }
 
     void read() throws SchemaException, IOException {
-        XNodeImpl xnode = new JsonOtherTokenReader(ctx, nsContext, ctx.rootDefinition()).readValue();
+        XNodeImpl xnode = new JsonOtherTokenReader(ctx, nsContext, def, def).readValue();
         RootXNodeImpl root = postProcessValueToRoot(xnode, null);
         if (!ctx.objectHandler.handleData(root)) {
             ctx.setAborted();

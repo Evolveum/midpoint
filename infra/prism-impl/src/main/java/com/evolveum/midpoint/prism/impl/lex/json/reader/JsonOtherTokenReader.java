@@ -43,11 +43,14 @@ class JsonOtherTokenReader {
 
     private final DefinitionContext def;
 
-    JsonOtherTokenReader(JsonReadingContext ctx, PrismNamespaceContext context, DefinitionContext def) {
+    private @NotNull DefinitionContext parentDef;
+
+    JsonOtherTokenReader(JsonReadingContext ctx, PrismNamespaceContext context, DefinitionContext def, @NotNull DefinitionContext parentDef) {
         this.ctx = ctx;
         this.parser = ctx.parser;
         this.parentContext = context;
         this.def = def;
+        this.parentDef = parentDef;
     }
 
     @NotNull XNodeImpl readValue() throws IOException, SchemaException {
@@ -55,7 +58,7 @@ class JsonOtherTokenReader {
 
         switch (currentToken) {
             case START_OBJECT:
-                return new JsonObjectTokenReader(ctx, parentContext, def).read();
+                return new JsonObjectTokenReader(ctx, parentContext, def, parentDef).read();
             case START_ARRAY:
                 return parseToList();
             case VALUE_STRING:

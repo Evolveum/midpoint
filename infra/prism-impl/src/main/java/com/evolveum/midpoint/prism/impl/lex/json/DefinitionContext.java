@@ -13,7 +13,6 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismNamespaceContext;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.TypeDefinition;
@@ -55,6 +54,10 @@ public abstract class DefinitionContext {
 
     public @NotNull DefinitionContext resolve(@NotNull String name, @NotNull PrismNamespaceContext namespaceContext) throws SchemaException {
         if (isInfra(name)) {
+            if(JsonInfraItems.PROP_VALUE.equals(name)) {
+                return valueContext();
+            }
+
             // Infra properties are unqualified for now
             // TODO: We could return definition for infra properties later
             return unawareFrom(new QName(name));
@@ -88,6 +91,10 @@ public abstract class DefinitionContext {
         return toContext(result.name);
     }
 
+    private @NotNull DefinitionContext valueContext() {
+        return new Value(this);
+    }
+
     private boolean isInfra(@NotNull String name) {
         return name.startsWith("@");
     }
@@ -114,8 +121,9 @@ public abstract class DefinitionContext {
 
         public Root(SchemaRegistry reg) {
             super(new QName(""));
-            this.registry = reg;
+            registry = reg;
         }
+
 
         @Override
         protected DefinitionContext resolveLocally(String localName) {
@@ -124,7 +132,10 @@ public abstract class DefinitionContext {
 
         @Override
         protected DefinitionContext resolveLocally(QName name) {
-            PrismObjectDefinition<?> def = registry.findObjectDefinitionByElementName(name);
+            ItemDefinition<?> def = registry.findObjectDefinitionByElementName(name);
+            if(def == null) {
+                def = registry.findItemDefinitionByElementName(name);
+            }
             return awareFrom(name, def);
         }
     }
@@ -150,11 +161,26 @@ public abstract class DefinitionContext {
         @Override
         protected DefinitionContext resolveLocally(String localName) {
             QName proposed = new QName(definition.getTypeName().getNamespaceURI(),localName);
-            ItemDefinition def = findDefinition(proposed);
+            ItemDefinition<?> def = findDefinition(proposed);
             if(def != null) {
                 return awareFrom(proposed, def);
             }
             return null;
+        }
+
+        @Override
+        public @NotNull DefinitionContext moreSpecific(@NotNull DefinitionContext other) {
+            if(other instanceof ComplexTypeAware) {
+                ComplexTypeDefinition localType = this.definition;
+                ComplexTypeDefinition otherType = ((ComplexTypeAware) other).definition;
+                if(localType == otherType) {
+                    return other;
+                }
+                if (localType.getTypeName().equals(otherType.getSuperType())) {
+                    return other;
+                }
+            }
+            return this;
         }
     }
 
@@ -166,20 +192,7 @@ public abstract class DefinitionContext {
 
         @Override
         protected ItemDefinition<?> findDefinition(QName name) {
-            ItemDefinition<?> directHit = super.findDefinition(name);
-            if(directHit != null) {
-                return directHit;
-            }
-            for(ItemDefinition potential : definition.getPrismContext().getSchemaRegistry().findItemDefinitionsByElementName(name)) {
-                QName substitutionHead = potential.getSubstitutionHead();
-                if(substitutionHead != null) {
-                    ItemDefinition<?> head = super.findDefinition(substitutionHead);
-                    if(head != null) {
-                        return potential;
-                    }
-                }
-            }
-            return null;
+            return definition.itemOrSubstitution(name).orElse(null);
         }
     }
 
@@ -203,6 +216,27 @@ public abstract class DefinitionContext {
         public @NotNull DefinitionContext unaware() {
             return this;
         }
+    }
+
+    public class Value extends DefinitionContext {
+
+        DefinitionContext delegate;
+
+        public Value(DefinitionContext delegate) {
+            super(JsonInfraItems.PROP_VALUE_QNAME);
+            this.delegate = delegate;
+        }
+
+        @Override
+        protected @Nullable DefinitionContext resolveLocally(@NotNull String localName) {
+            return delegate.resolveLocally(localName);
+        }
+
+        @Override
+        protected @Nullable DefinitionContext resolveLocally(@NotNull QName name) {
+            return delegate.resolveLocally(name);
+        }
+
     }
 
     public static DefinitionContext awareFrom(QName name, ItemDefinition<?> definition) {
@@ -232,25 +266,13 @@ public abstract class DefinitionContext {
         // FIXME: We can add special hadling here
         if(definition instanceof ComplexTypeDefinition) {
             ComplexTypeDefinition complex = (ComplexTypeDefinition) definition;
-            if(hasSubstitutions(complex)) {
+            if(complex.hasSubstitutions()) {
                 return new ComplexTypeWithSubstitutions(name, complex);
             }
             return new ComplexTypeAware(name, complex);
         }
         return unawareFrom(name);
 
-    }
-
-    /**
-     *
-     *  FIXME: This should perform actual check on complex type.
-     *  Ideal solution is for complex type to carry information about
-     *  potential substitution groups.
-     * @param complex
-     * @return
-     */
-    private static boolean hasSubstitutions(ComplexTypeDefinition complex) {
-        return complex.findLocalItemDefinition(FILTER_CLAUSE) != null;
     }
 
     public static DefinitionContext unawareFrom(QName name) {
@@ -264,5 +286,13 @@ public abstract class DefinitionContext {
     @Override
     public String toString() {
         return Objects.toString(getName());
+    }
+
+    public @NotNull DefinitionContext moreSpecific(@NotNull DefinitionContext other) {
+        // Prefer type aware
+        if(other instanceof ComplexTypeAware) {
+            return other;
+        }
+        return this;
     }
 }
