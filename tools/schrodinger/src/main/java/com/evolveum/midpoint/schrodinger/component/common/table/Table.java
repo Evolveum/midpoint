@@ -121,7 +121,7 @@ public class Table<T> extends Component<T> {
         if (rowIndex > rows.size()) {
             return null;
         }
-        SelenideElement element = rows.get(rowIndex).find("td:nth-child(" + (columnIndex - 1) + ")");
+        SelenideElement element = rows.get(rowIndex -1).find("td:nth-child(" + (columnIndex) + ")");
         if (element == null) {
             return null;
         }

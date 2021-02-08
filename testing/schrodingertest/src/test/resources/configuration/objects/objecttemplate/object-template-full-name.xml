@@ -11,7 +11,7 @@ xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
 xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
 oid="10000000-9999-9999-0000-a000fe000001">
-    <name>ExAmPLE User Template</name>
+    <name>Full name template</name>
     <mapping>
         <name>ExAmPLE, Inc. User Template: Fullname</name>
         <description>Generate fullname (enforcing, no weak mapping)</description>

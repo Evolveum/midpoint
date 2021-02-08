@@ -68,14 +68,32 @@ public class ObjectTemplateTests extends AbstractSchrodingerTest {
                         .assertTableContainsColumnWithValue("UserType.fullName", "Emil Happyman");
     }
 
-    @Test (dependsOnMethods = {"test00100createUserWithObjectTemplateTest"})
+    @Test (dependsOnMethods = {"test00100addObjectTemplateCreateUser"})
     public void test00200deleteObjectTemplateCreateUser() {
+        basicPage
+                .listRepositoryObjects()
+                    .table()
+                        .deleteObject("Object template", "Full name template");
+        showUser("userWithoutFullname");
+        showUser("userWithFullname");
 
+        addObjectFromFile(SYSTEM_CONFIGURATION_INITIAL_FILE, true);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+
+        Map<String, String> attributesMap = new HashMap<>();
+        attributesMap.put("Name", "userWithoutFullname2");
+        attributesMap.put("Given name", "John");
+        attributesMap.put("Family name", "Johnson");
+        createUser(attributesMap);
+        showUser("userWithoutFullname2")
+                .selectTabBasic()
+                    .form()
+                        .assertInputAttributeValueMatches("Full name", "");
     }
 
-    @Test
-    public void test00300createArchetypeObjectTemplateExists() {
-
-    }
+//    @Test
+//    public void test00300createArchetypeObjectTemplateExists() {
+//
+//    }
 
 }
