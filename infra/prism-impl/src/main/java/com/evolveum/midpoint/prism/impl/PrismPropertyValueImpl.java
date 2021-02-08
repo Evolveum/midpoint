@@ -73,7 +73,7 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
     }
 
     public PrismPropertyValueImpl(T value, PrismContext prismContext, OriginType type, Objectable source, ExpressionWrapper expression) {
-        super(type, source);
+        super(prismContext, type, source, null);
         if (value instanceof PrismPropertyValue) {
             throw new IllegalArgumentException("Probably problem somewhere, encapsulating property " +
                     "value object to another property value.");
@@ -84,7 +84,7 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
     }
 
     /**
-     * Private constructor just for clonning.
+     * Private constructor just for cloning.
      */
     private PrismPropertyValueImpl(OriginType type, Objectable source) {
         super(type,source);
