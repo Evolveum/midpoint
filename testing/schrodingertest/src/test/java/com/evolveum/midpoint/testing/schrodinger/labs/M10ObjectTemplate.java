@@ -63,6 +63,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
     private static final File CSV_3_RESOURCE_FILE_10 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-10.xml");
     private static final File HR_RESOURCE_FILE_10 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-hr.xml");
     private static final File HR_SYNCHRONIZATION_TASK_FILE = new File(LAB_OBJECTS_DIRECTORY + "tasks/task-opendj-livesync-full.xml");
+    private static final File HR_IMPORT_TASK_FILE = new File(LAB_OBJECTS_DIRECTORY + "tasks/task-hr-import.xml");
     private static final File OBJECT_TEMPLATE_USER_SIMPLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "objecttemplate/object-template-example-user-simple.xml");
     private static final File CSV_2_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-2-canteen-10.xml");
 
@@ -119,6 +120,12 @@ public class M10ObjectTemplate extends AbstractLabTest{
         importObject(HR_RESOURCE_FILE_10, true);
         changeResourceAttribute(HR_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, hrTargetFile.getAbsolutePath(), true);
 
+        importObject(HR_IMPORT_TASK_FILE);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        showTask("Initial import from HR")
+                .clickRunNow();
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
+
         importObject(HR_SYNCHRONIZATION_TASK_FILE);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
 
@@ -135,13 +142,13 @@ public class M10ObjectTemplate extends AbstractLabTest{
         importObject(CSV_1_RESOURCE_FILE, true);
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
 
-        importObject(INTERNAL_EMPLOYEE_ROLE_FILE, true, true);
-
         importObject(CSV_2_RESOURCE_FILE, true);
         changeResourceAttribute(CSV_2_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv2TargetFile.getAbsolutePath(), true);
 
         importObject(CSV_3_RESOURCE_FILE_10, true);
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
+
+        importObject(INTERNAL_EMPLOYEE_ROLE_FILE, true, true);
 
         basicPage.listResources()
                 .table()
@@ -233,7 +240,6 @@ public class M10ObjectTemplate extends AbstractLabTest{
         AssignmentsTab<UserPage> tab = accountTab.table()
                 .clickOnOwnerByName("X001212")
                 .selectTabAssignments();
-        Selenide.screenshot("M10_assignmentsTab");
         tab.assertAssignmentsWithRelationExist("Member", "Human Resources",
                 "Active Employees", "Internal Employee")
                 .assertAssignmentsWithRelationExist("Manager", "Human Resources");
@@ -327,7 +333,12 @@ public class M10ObjectTemplate extends AbstractLabTest{
     public void mod10test04FinishingManagerMapping() {
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
         showTask("User Recomputation Task").clickRunNow();
+        Selenide.screenshot("Taskrun");
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
+        Selenide.screenshot("Taskrun1");
+
+        showUser("John Wicks").selectTabAssignments();
+        Selenide.screenshot("John_Wicks");
 
         OrgRootTab rootTab = basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure");
