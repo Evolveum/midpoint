@@ -135,6 +135,7 @@ class JsonObjectTokenReader {
         Object typeId = parser.getTypeId();
         if (typeId != null) {
             typeName = ctx.yamlTagResolver.tagToTypeName(typeId, ctx);
+            definition = definition.withType(typeName);
         }
     }
 
@@ -273,7 +274,7 @@ class JsonObjectTokenReader {
         String stringValue = getCurrentFieldStringValue(name, value);
         // TODO: Compat: WE tread default prefixes as empty namespace, not default namespace
         typeName = DefinitionContext.resolveQName(stringValue, namespaceContext());
-        replaceDefinition(ctx.definition(definition.getName(),typeName));
+        definition = definition.withType(typeName);
     }
 
     private void processNamespaceDeclaration(QName name, XNodeImpl value) throws SchemaException {

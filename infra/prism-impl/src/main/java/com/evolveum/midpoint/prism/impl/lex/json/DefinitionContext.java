@@ -11,11 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismNamespaceContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.TypeDefinition;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.QNameUtil.PrefixedName;
@@ -35,13 +31,15 @@ public abstract class DefinitionContext {
         this.name = name;
     }
 
-    public static DefinitionContext root(@NotNull SchemaRegistry schemaRegistry) {
-        return new Root(schemaRegistry);
+    public static Root root(@NotNull SchemaRegistry schemaRegistry) {
+        return new SchemaRoot(schemaRegistry);
     }
 
-    public static DefinitionContext empty() {
+    public static Root empty() {
         return EMPTY;
     }
+
+    protected abstract DefinitionContext unawareFrom(QName name);
 
     public static QName resolveQName(String name, PrismNamespaceContext context) throws SchemaException {
         return empty().resolve(name, context.withoutDefault()).getName();
@@ -52,12 +50,16 @@ public abstract class DefinitionContext {
         return name;
     }
 
+    public abstract Optional<QName> getType();
+
     public @NotNull DefinitionContext resolve(@NotNull String name, @NotNull PrismNamespaceContext namespaceContext) throws SchemaException {
         if (isInfra(name)) {
-            if(JsonInfraItems.PROP_VALUE.equals(name)) {
+            if (JsonInfraItems.PROP_VALUE.equals(name)) {
                 return valueContext();
             }
-
+            if (JsonInfraItems.PROP_METADATA.equals(name)) {
+                return metadataDef();
+            }
             // Infra properties are unqualified for now
             // TODO: We could return definition for infra properties later
             return unawareFrom(new QName(name));
@@ -66,12 +68,12 @@ public abstract class DefinitionContext {
             PrefixedName prefixed = QNameUtil.parsePrefixedName(name);
             if (prefixed.prefix().isEmpty()) {
                 DefinitionContext resolved = resolveLocally(name);
-                if(resolved != null) {
+                if (resolved != null) {
                     return resolved;
                 }
             }
             Optional<String> ns = namespaceContext.namespaceFor(prefixed.prefix());
-            if(ns.isPresent()) {
+            if (ns.isPresent()) {
                 return toContext(new QName(ns.get(), prefixed.localName()));
             } else if (!prefixed.prefix().isEmpty()) {
                 warnOrThrow("Undeclared prefix '%s'", prefixed.prefix());
@@ -91,6 +93,26 @@ public abstract class DefinitionContext {
         return toContext(result.name);
     }
 
+    public @NotNull DefinitionContext unaware() {
+        return unawareFrom(getName());
+    }
+
+    public @NotNull DefinitionContext moreSpecific(@NotNull DefinitionContext other) {
+        // Prefer type aware
+        if(other instanceof ComplexTypeAware) {
+            return other;
+        }
+        return this;
+    }
+
+    public DefinitionContext child(QName name) {
+        DefinitionContext maybe = resolveLocally(name);
+        if(maybe != null) {
+            return maybe;
+        }
+        return unawareFrom(name);
+    }
+
     private @NotNull DefinitionContext valueContext() {
         return new Value(this);
     }
@@ -103,8 +125,13 @@ public abstract class DefinitionContext {
         throw new SchemaException(Strings.lenientFormat(string, prefix));
     }
 
-    protected abstract @Nullable DefinitionContext resolveLocally(@NotNull String localName);
-    protected abstract @Nullable DefinitionContext resolveLocally(@NotNull QName name);
+    protected @Nullable DefinitionContext resolveLocally(@NotNull String localName) {
+        return null;
+    }
+
+    protected @Nullable DefinitionContext resolveLocally(@NotNull QName name) {
+        return null;
+    }
 
     private @NotNull DefinitionContext toContext(QName name) {
         DefinitionContext ret = resolveLocally(name);
@@ -114,14 +141,94 @@ public abstract class DefinitionContext {
         return unawareFrom(name);
     }
 
+    private abstract static class SchemaAware extends DefinitionContext {
 
-    private static class Root extends DefinitionContext {
+        protected final SchemaRoot root;
+        private final boolean inherited;
+
+        public SchemaAware(QName name, SchemaRoot root, boolean inherited) {
+            super(name);
+            this.inherited = inherited;
+            this.root = root;
+        }
+
+        @Override
+        public boolean definedInParent() {
+            return inherited;
+        }
+
+        protected DefinitionContext awareFrom(QName name, ItemDefinition<?> definition, boolean inherited) {
+            return root.awareFrom(name, definition, inherited);
+        }
+
+        @Override
+        public @NotNull DefinitionContext withType(QName typeName) {
+            return root.fromType(getName(), typeName, inherited);
+        }
+
+        @Override
+        protected DefinitionContext unawareFrom(QName name) {
+            return root.unawareFrom(name);
+        }
+
+        @Override
+        public DefinitionContext metadataDef() {
+            return root.metadataDef();
+        }
+
+    }
+
+    public abstract static class Root extends DefinitionContext {
+
+        protected Root(QName name) {
+            super(name);
+        }
+
+        @Override
+        public abstract DefinitionContext metadataDef();
+
+    }
+
+    private static class SchemaRoot extends Root {
 
         private SchemaRegistry registry;
 
-        public Root(SchemaRegistry reg) {
+        public SchemaRoot(SchemaRegistry reg) {
             super(new QName(""));
             registry = reg;
+        }
+
+
+        public @NotNull DefinitionContext fromType(@NotNull QName name, QName typeName, boolean inherited) {
+            var definition = Optional.ofNullable(registry.findComplexTypeDefinitionByType(typeName));
+            return awareFrom(name, typeName, definition, inherited);
+        }
+
+
+        DefinitionContext awareFrom(QName name, ItemDefinition<?> definition, boolean inherited) {
+            if(definition != null) {
+                return awareFrom(definition.getItemName(), definition.getTypeName(),definition.structuredType(), inherited);
+            }
+            // FIXME: Maybe we should retain schema?
+            return unawareFrom(name);
+        }
+
+        private DefinitionContext awareFrom(QName name, @NotNull QName typeName,
+                Optional<ComplexTypeDefinition> structuredType, boolean inherited) {
+            if(structuredType.isPresent()) {
+                var complex = structuredType.get();
+                if(complex.hasSubstitutions()) {
+                    return new ComplexTypeWithSubstitutions(name, complex, this, inherited);
+                }
+                return new ComplexTypeAware(name, complex, this, inherited);
+            }
+            return new SimpleType(name, typeName, inherited, this);
+        }
+
+
+        @Override
+        public @NotNull DefinitionContext withType(QName typeName) {
+            return fromType(getName(), typeName, false);
         }
 
 
@@ -134,24 +241,50 @@ public abstract class DefinitionContext {
         protected DefinitionContext resolveLocally(QName name) {
             ItemDefinition<?> def = registry.findObjectDefinitionByElementName(name);
             if(def == null) {
-                def = registry.findItemDefinitionByElementName(name);
+                try {
+                    def = registry.findItemDefinitionByElementName(name);
+                } catch (IllegalStateException e) {
+                    return unawareFrom(name);
+                }
             }
-            return awareFrom(name, def);
+            return awareFrom(name, def, false);
         }
+
+        @Override
+        public Optional<QName> getType() {
+            return Optional.empty();
+        }
+
+        @Override
+        protected DefinitionContext unawareFrom(QName name) {
+            return new SimpleType(name, null, false, this);
+        }
+
+        @Override
+        public DefinitionContext metadataDef() {
+            var def = registry.getValueMetadataDefinition();
+            return awareFrom(JsonInfraItems.PROP_METADATA_QNAME, def.getTypeName(), def.structuredType(), true);
+        }
+
     }
 
-    private static class ComplexTypeAware extends DefinitionContext {
+    private static class ComplexTypeAware extends SchemaAware {
 
         protected final ComplexTypeDefinition definition;
 
-        public ComplexTypeAware(QName name, ComplexTypeDefinition definition) {
-            super(name);
+        public ComplexTypeAware(QName name, ComplexTypeDefinition definition, SchemaRoot root, boolean inherited) {
+            super(name, root, inherited);
             this.definition = definition;
         }
 
         @Override
+        public Optional<QName> getType() {
+            return Optional.of(definition.getTypeName());
+        }
+
+        @Override
         protected DefinitionContext resolveLocally(QName name) {
-            return awareFrom(name, findDefinition(name));
+            return awareFrom(name, findDefinition(name), true);
         }
 
         protected ItemDefinition<?> findDefinition(QName name) {
@@ -162,8 +295,11 @@ public abstract class DefinitionContext {
         protected DefinitionContext resolveLocally(String localName) {
             QName proposed = new QName(definition.getTypeName().getNamespaceURI(),localName);
             ItemDefinition<?> def = findDefinition(proposed);
+            if(def == null) {
+                def = findDefinition(new QName(localName));
+            }
             if(def != null) {
-                return awareFrom(proposed, def);
+                return awareFrom(proposed, def, true);
             }
             return null;
         }
@@ -182,12 +318,13 @@ public abstract class DefinitionContext {
             }
             return this;
         }
+
     }
 
     private static class ComplexTypeWithSubstitutions extends ComplexTypeAware {
 
-        public ComplexTypeWithSubstitutions(QName name, ComplexTypeDefinition definition) {
-            super(name, definition);
+        public ComplexTypeWithSubstitutions(QName name, ComplexTypeDefinition definition, SchemaRoot root, boolean inherited) {
+            super(name, definition, root, inherited);
         }
 
         @Override
@@ -196,29 +333,40 @@ public abstract class DefinitionContext {
         }
     }
 
-    private static class SchemaIgnorant extends DefinitionContext {
+    private static class SchemaIgnorant extends Root {
 
         public SchemaIgnorant(QName name) {
             super(name);
         }
 
         @Override
-        protected DefinitionContext resolveLocally(QName name) {
-            return null;
-        }
-
-        @Override
-        protected DefinitionContext resolveLocally(String localName) {
-            return null;
-        }
-
-        @Override
         public @NotNull DefinitionContext unaware() {
             return this;
         }
+
+        @Override
+        public Optional<QName> getType() {
+            return Optional.empty();
+        }
+
+        @Override
+        public @NotNull DefinitionContext withType(QName typeName) {
+            return this;
+        }
+
+        @Override
+        protected DefinitionContext unawareFrom(QName name) {
+            return new SchemaIgnorant(name);
+        }
+
+        @Override
+        public DefinitionContext metadataDef() {
+            return new SchemaIgnorant(JsonInfraItems.PROP_METADATA_QNAME);
+        }
+
     }
 
-    public class Value extends DefinitionContext {
+    private static class Value extends DefinitionContext {
 
         DefinitionContext delegate;
 
@@ -237,50 +385,42 @@ public abstract class DefinitionContext {
             return delegate.resolveLocally(name);
         }
 
-    }
-
-    public static DefinitionContext awareFrom(QName name, ItemDefinition<?> definition) {
-        if(name.getLocalPart().equals("filter")) {
-            name.toString();
+        @Override
+        public Optional<QName> getType() {
+            return delegate.getType();
         }
 
-        if (definition instanceof PrismContainerDefinition<?>) {
-            // Should we return item name?
-            return awareFromType(definition.getItemName(), ((PrismContainerDefinition<?>) definition).getComplexTypeDefinition());
-        }
-        if (definition instanceof PrismPropertyDefinition<?>) {
-            // Properties with structured contents
-            Optional<ComplexTypeDefinition> structured = ((PrismPropertyDefinition<?>) definition).structuredType();
-            return awareFromType(name, structured.orElse(null));
-        }
-        if (definition instanceof PrismReferenceDefinition) {
-            // Properties with structured contents
-            Optional<ComplexTypeDefinition> structured = ((PrismReferenceDefinition) definition).structuredType();
-            return awareFromType(name, structured.orElse(null));
+        @Override
+        public @NotNull DefinitionContext withType(QName typeName) {
+            return new Value(delegate.withType(typeName));
         }
 
-        return unawareFrom(name);
-    }
-
-    public static DefinitionContext awareFromType(QName name, @Nullable TypeDefinition definition) {
-        // FIXME: We can add special hadling here
-        if(definition instanceof ComplexTypeDefinition) {
-            ComplexTypeDefinition complex = (ComplexTypeDefinition) definition;
-            if(complex.hasSubstitutions()) {
-                return new ComplexTypeWithSubstitutions(name, complex);
-            }
-            return new ComplexTypeAware(name, complex);
+        @Override
+        protected DefinitionContext unawareFrom(QName name) {
+            return delegate.unawareFrom(name);
         }
-        return unawareFrom(name);
+
+        @Override
+        public DefinitionContext metadataDef() {
+            return delegate.metadataDef();
+        }
 
     }
 
-    public static DefinitionContext unawareFrom(QName name) {
-        return new SchemaIgnorant(name);
-    }
+    private static class SimpleType extends SchemaAware {
 
-    public @NotNull DefinitionContext unaware() {
-        return unawareFrom(getName());
+        public SimpleType(QName name, QName type, boolean inherited, SchemaRoot root) {
+            super(name, root, inherited);
+            this.type = type;
+        }
+
+        private final QName type;
+
+        @Override
+        public Optional<QName> getType() {
+            return Optional.ofNullable(type);
+        }
+
     }
 
     @Override
@@ -288,11 +428,12 @@ public abstract class DefinitionContext {
         return Objects.toString(getName());
     }
 
-    public @NotNull DefinitionContext moreSpecific(@NotNull DefinitionContext other) {
-        // Prefer type aware
-        if(other instanceof ComplexTypeAware) {
-            return other;
-        }
-        return this;
+    public boolean definedInParent() {
+        return false;
     }
+
+    public abstract @NotNull DefinitionContext withType(QName typeName);
+
+    public abstract DefinitionContext metadataDef();
+
 }

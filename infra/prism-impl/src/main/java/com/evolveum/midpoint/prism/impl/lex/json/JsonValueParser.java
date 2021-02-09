@@ -45,16 +45,19 @@ public class JsonValueParser<T> implements ValueParser<T> {
 
     @Override
     public T parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
-        Class<?> clazz = XsdTypeMapper.toJavaType(typeName);
-        if(ItemPathType.class.isAssignableFrom(clazz)) {
+        Class<?> clazz = XsdTypeMapper.toJavaTypeIfKnown(typeName);
+
+        if(clazz == null) {
+            throw new SchemaException("No mapping", typeName);
+        }
+
+        if (ItemPathType.class.isAssignableFrom(clazz)) {
             return (T) new ItemPathType(parseItemPath());
         } else if(ItemPath.class.isAssignableFrom(clazz)) {
             return (T) parseItemPath();
         } if(QName.class.isAssignableFrom(clazz)) {
             return (T) DefinitionContext.resolveQName(getStringValue(), context);
         }
-
-
         ObjectReader r = mapper.readerFor(clazz);
 
         try {
@@ -94,12 +97,13 @@ public class JsonValueParser<T> implements ValueParser<T> {
 
     @Override
     public Map<String, String> getPotentiallyRelevantNamespaces() {
-        return null;                // TODO implement
+        return context.allPrefixes();
     }
 
     @Override
     public ValueParser<T> freeze() {
-        return this;        // TODO implement
+        // Value parser is effectivelly immutable
+        return this;
     }
 
     public Element asDomElement() throws IOException {

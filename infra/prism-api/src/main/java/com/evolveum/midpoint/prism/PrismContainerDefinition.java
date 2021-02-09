@@ -76,6 +76,6 @@ public interface PrismContainerDefinition<C extends Containerable> extends ItemD
 
     @Override
     default Optional<ComplexTypeDefinition> structuredType() {
-        return Optional.of(getComplexTypeDefinition());
+        return Optional.ofNullable(getComplexTypeDefinition());
     }
 }

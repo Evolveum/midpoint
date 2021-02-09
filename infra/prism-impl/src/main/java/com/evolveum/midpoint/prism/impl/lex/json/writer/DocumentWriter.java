@@ -9,6 +9,7 @@ package com.evolveum.midpoint.prism.impl.lex.json.writer;
 
 import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.SerializationOptions;
+import com.evolveum.midpoint.prism.impl.lex.json.DefinitionContext;
 import com.evolveum.midpoint.prism.impl.lex.json.JsonInfraItems;
 import com.evolveum.midpoint.prism.impl.marshaller.ItemPathSerialization;
 import com.evolveum.midpoint.prism.impl.xnode.*;
@@ -18,8 +19,10 @@ import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.MetadataAware;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.google.common.base.Strings;
 
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -41,9 +44,15 @@ class DocumentWriter {
 
     @NotNull private final JsonGenerator generator;
 
-    DocumentWriter(WritingContext<?> ctx) {
+    private DefinitionContext.Root schema;
+
+    private DefinitionContext metadataDef;
+
+    DocumentWriter(WritingContext<?> ctx, DefinitionContext.Root schema) {
         this.ctx = ctx;
         this.generator = ctx.generator;
+        this.schema = schema;
+        this.metadataDef = schema.metadataDef();
     }
 
     void writeListAsSeparateDocuments(@NotNull ListXNodeImpl root) throws IOException {
@@ -61,23 +70,26 @@ class DocumentWriter {
     public void write(XNodeImpl xnode) throws IOException {
         // FIXME: Use actual namespace context
         if (xnode instanceof RootXNodeImpl) {
-            write(((RootXNodeImpl) xnode).toMapXNode(), PrismNamespaceContext.EMPTY, false);
+            write(((RootXNodeImpl) xnode).toMapXNode(), PrismNamespaceContext.EMPTY, false, schema);
         } else {
-            write(xnode, PrismNamespaceContext.EMPTY, false);
+            write(xnode, PrismNamespaceContext.EMPTY, false, schema);
         }
     }
 
-    private void write(XNodeImpl xnode, PrismNamespaceContext currentNamespace, boolean wrappingValue) throws IOException {
+    private void write(XNodeImpl xnode, PrismNamespaceContext currentNamespace, boolean wrappingValue, DefinitionContext itemDef) throws IOException {
         if (xnode == null) {
             writeNull();
-        } else if (xnode instanceof MapXNodeImpl) {
-            writeMap((MapXNodeImpl) xnode, currentNamespace);
+            return;
+        }
+        itemDef = moreSpecificDefinition(xnode, itemDef);
+        if (xnode instanceof MapXNodeImpl) {
+            writeMap((MapXNodeImpl) xnode, currentNamespace, itemDef);
         } else if (!wrappingValue && needsValueWrapping(xnode)) {
-            writeWithValueWrapped(xnode, currentNamespace);
+            writeWithValueWrapped(xnode, currentNamespace, itemDef);
         } else if (xnode instanceof ListXNodeImpl) {
-            writeList((ListXNodeImpl) xnode, currentNamespace);
+            writeList((ListXNodeImpl) xnode, currentNamespace, itemDef);
         } else if (xnode instanceof PrimitiveXNodeImpl) {
-            writePrimitive((PrimitiveXNodeImpl<?>) xnode, currentNamespace);
+            writePrimitive((PrimitiveXNodeImpl<?>) xnode, currentNamespace, itemDef);
         } else if (xnode instanceof SchemaXNodeImpl) {
             writeSchema((SchemaXNodeImpl) xnode);
         } else if (xnode instanceof IncompleteMarkerXNodeImpl) {
@@ -85,6 +97,19 @@ class DocumentWriter {
         } else {
             throw new UnsupportedOperationException("Cannot write " + xnode);
         }
+    }
+
+    private DefinitionContext moreSpecificDefinition(XNodeImpl xnode, DefinitionContext itemDef) {
+        var xnodeType = xnode.getTypeQName();
+        var xnodeName = xnode.getElementName();
+        if(xnodeType != null && xnode.isExplicitTypeDeclaration()) {
+            itemDef = itemDef.withType(xnodeType);
+        }
+        /*
+        if (xnodeName != null) {
+            itemDef = itemDef.withName(xnodeName);
+        }*/
+        return itemDef;
     }
 
     private boolean needsValueWrapping(XNodeImpl xnode) {
@@ -97,18 +122,18 @@ class DocumentWriter {
         generator.writeNull();
     }
 
-    private void writeWithValueWrapped(XNodeImpl xnode, PrismNamespaceContext currentNamespace) throws IOException {
+    private void writeWithValueWrapped(XNodeImpl xnode, PrismNamespaceContext currentNamespace, DefinitionContext itemDef) throws IOException {
         assert !(xnode instanceof MapXNode);
         generator.writeStartObject();
         ctx.resetInlineTypeIfPossible();
         writeElementAndTypeIfNeeded(xnode, currentNamespace);
         generator.writeFieldName(JsonInfraItems.PROP_VALUE);
-        write(xnode, currentNamespace, true);
+        write(xnode, currentNamespace, true, itemDef);
         writeMetadataIfNeeded(xnode, currentNamespace);
         generator.writeEndObject();
     }
 
-    private void writeMap(MapXNodeImpl map, PrismNamespaceContext parentNamespace) throws IOException {
+    private void writeMap(MapXNodeImpl map, PrismNamespaceContext parentNamespace, DefinitionContext itemDef) throws IOException {
         writeInlineTypeIfNeeded(map);
         generator.writeStartObject();
         ctx.resetInlineTypeIfPossible();
@@ -116,32 +141,45 @@ class DocumentWriter {
         //PrismNamespaceContext nsContext = map.namespaceContext();
         //
 
-        PrismNamespaceContext localNamespace = determineSerializationNamespaceContext(map, parentNamespace);
+        PrismNamespaceContext localNamespace = determineSerializationNamespaceContext(map, parentNamespace, itemDef);
         writeNamespaceContextIfNeeded(localNamespace);
 
         writeElementAndTypeIfNeeded(map, localNamespace);
         writeMetadataIfNeeded(map, localNamespace);
         for (Map.Entry<QName, XNodeImpl> entry : map.entrySet()) {
             if (entry.getValue() != null) {
-                generator.writeFieldName(createKeyUri(entry, localNamespace));
-                write(entry.getValue(), localNamespace, false);
+                DefinitionContext entryDef = itemDef.child(entry.getKey());
+                generator.writeFieldName(createKeyUri(entry, localNamespace, entryDef));
+                write(entry.getValue(), localNamespace, false, entryDef);
             }
         }
         generator.writeEndObject();
     }
 
-    private void writeList(ListXNodeImpl list, PrismNamespaceContext currentNamespace) throws IOException {
+    private void writeList(ListXNodeImpl list, PrismNamespaceContext currentNamespace, DefinitionContext itemDef) throws IOException {
         writeInlineTypeIfNeeded(list);
         generator.writeStartArray();
         ctx.resetInlineTypeIfPossible();
         for (XNodeImpl item : list) {
-            write(item, currentNamespace, false);
+            write(item, currentNamespace, false, itemDef);
         }
         generator.writeEndArray();
     }
 
-    private <T> void writePrimitive(PrimitiveXNodeImpl<T> primitive, PrismNamespaceContext context) throws IOException {
+    private <T> void writePrimitive(PrimitiveXNodeImpl<T> primitive, PrismNamespaceContext context, DefinitionContext def) throws IOException {
         writeInlineTypeIfNeeded(primitive);
+
+        var schemaType = def.getType();
+        if (!primitive.isParsed() && schemaType.isPresent()) {
+            // Node is unparsed, but we know type, so we can reparse it
+            try {
+                primitive.getParsedValue(schemaType.get(), Object.class);
+            } catch (SchemaException e) {
+                // We will fail silently and continue writing with unparsed value
+                e.toString();
+            }
+        }
+
         if (primitive.isParsed()) {
             Object value = primitive.getValue();
             if(value instanceof ItemPathType) {
@@ -149,26 +187,49 @@ class DocumentWriter {
             }
             if(value instanceof ItemPath) {
                 writeItemPath((ItemPath) value, context);
+            } else if (value instanceof QName) {
+                writeQName((QName) value, context);
+
             } else {
-                // FIXME: WE should probably special-case QName also
                 generator.writeObject(value);
             }
         } else {
-            generator.writeObject(primitive.getStringValue());
+            // we asume content is namespace sensitive
+            Map<String, String> maybeNamespaces = primitive.getRelevantNamespaceDeclarations();
+            writeNamespaceSensitive(primitive.getStringValue(), context.childContext(maybeNamespaces));
         }
+    }
+
+    private void writeQName(QName value, PrismNamespaceContext context) throws IOException {
+
+        if (!Strings.isNullOrEmpty(value.getNamespaceURI())) {
+            Optional<String> prefix = context.withoutDefault().prefixFor(value.getNamespaceURI());
+            if(prefix.isPresent()) {
+                generator.writeString(prefix.get() + ":" + value.getLocalPart());
+                return;
+            }
+        }
+        // Legacy serialization of value
+        generator.writeObject(value);
+
     }
 
     private void writeItemPath(ItemPath value, PrismNamespaceContext context) throws IOException {
         ItemPathSerialization serialization = ItemPathSerialization.serialize(UniformItemPath.from(value), context, true);
         // FIXME: We could serialize undeclared prefixes as local namespace context
         PrismNamespaceContext localContext = context.childContext(serialization.undeclaredPrefixes());
-        if(!localContext.isLocalEmpty()) {
+        writeNamespaceSensitive(serialization.getXPathWithoutDeclarations(), localContext);
+
+    }
+
+    private void writeNamespaceSensitive(String value, PrismNamespaceContext localContext) throws IOException {
+        if (!localContext.isLocalEmpty()) {
             generator.writeStartObject();
             writeNamespaceContextIfNeeded(localContext);
             generator.writeFieldName(JsonInfraItems.PROP_VALUE);
         }
-        generator.writeString(serialization.getXPathWithoutDeclarations());
-        if(!localContext.isLocalEmpty()) {
+        generator.writeString(value);
+        if (!localContext.isLocalEmpty()) {
             generator.writeEndObject();
         }
     }
@@ -206,11 +267,11 @@ class DocumentWriter {
             if (!metadataNodes.isEmpty()) {
                 generator.writeFieldName(JsonInfraItems.PROP_METADATA);
                 if (metadataNodes.size() == 1) {
-                    writeMap((MapXNodeImpl) metadataNodes.get(0), currentNamespace);
+                    writeMap((MapXNodeImpl) metadataNodes.get(0), currentNamespace, metadataDef);
                 } else {
                     generator.writeStartArray();
                     for (MapXNode metadataNode : metadataNodes) {
-                        writeMap((MapXNodeImpl) metadataNode, currentNamespace);
+                        writeMap((MapXNodeImpl) metadataNode, currentNamespace, metadataDef);
                     }
                     generator.writeEndArray();
                 }
@@ -218,22 +279,23 @@ class DocumentWriter {
         }
     }
 
-    private PrismNamespaceContext determineSerializationNamespaceContext(MapXNodeImpl map, PrismNamespaceContext current) throws IOException {
+    private PrismNamespaceContext determineSerializationNamespaceContext(MapXNodeImpl map, PrismNamespaceContext current, DefinitionContext itemDef) throws IOException {
         SerializationOptions opts = ctx.prismSerializationContext.getOptions();
         if (!SerializationOptions.isUseNsProperty(opts) || map.isEmpty()) {
             return PrismNamespaceContext.EMPTY;
         }
-        PrismNamespaceContext nodeLocal = map.namespaceContext();
-        if(nodeLocal.isEmpty()) {
-            String currentNamespace = current.defaultNamespace().orElse("");
-            String namespace = determineNewCurrentNamespace(map, currentNamespace);
-            if (namespace != null && !StringUtils.equals(namespace, currentNamespace)) {
-                return current.childDefaultNamespace(namespace);
-            }
-            return current.inherited();
+        // Ignore local serialization context?
+        // PrismNamespaceContext nodeLocal = map.namespaceContext();
+        //if(nodeLocal.isEmpty()) {
+        String currentNamespace = current.defaultNamespace().orElse("");
+        String namespace = determineNewCurrentNamespace(map, currentNamespace, itemDef);
+        if (namespace != null && !StringUtils.equals(namespace, currentNamespace)) {
+            return current.childDefaultNamespace(namespace);
         }
+        return current.inherited();
+        //}
         // Use node local if non empty
-        return nodeLocal.rebasedOn(current);
+        //return nodeLocal.rebasedOn(current);
     }
 
     /**
@@ -261,11 +323,13 @@ class DocumentWriter {
         }
     }
 
-    private String determineNewCurrentNamespace(MapXNodeImpl map, String currentNamespace) {
+    private String determineNewCurrentNamespace(MapXNodeImpl map, String currentNamespace, DefinitionContext itemDef) {
         Map<String,Integer> counts = new HashMap<>();
         for (QName childName : map.keySet()) {
             String childNs = childName.getNamespaceURI();
-            if (StringUtils.isEmpty(childNs)) {
+            // We do not need to redeclare namespace for already defined items
+            var childDef = itemDef.child(childName);
+            if (StringUtils.isEmpty(childNs) || childDef.definedInParent()) {
                 continue;
             }
             if (childNs.equals(currentNamespace)) {
@@ -291,9 +355,13 @@ class DocumentWriter {
         counts.put(childNs, c != null ? c+1 : 1);
     }
 
-    private String createKeyUri(Map.Entry<QName, XNodeImpl> entry, PrismNamespaceContext context) {
+    private String createKeyUri(Map.Entry<QName, XNodeImpl> entry, PrismNamespaceContext context, DefinitionContext entryDef) {
         QName key = entry.getKey();
-        // FIXME: Do prefix resolution
+        if(entryDef.definedInParent()) {
+            // TODO: Maybe other key could conflict in extensions
+            return key.getLocalPart();
+        }
+
         String localNamespace = context.defaultNamespace().orElse("");
         if (namespaceMatch(localNamespace, key.getNamespaceURI())) {
             return key.getLocalPart();

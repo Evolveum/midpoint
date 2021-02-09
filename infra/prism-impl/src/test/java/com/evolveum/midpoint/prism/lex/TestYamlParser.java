@@ -41,7 +41,7 @@ public class TestYamlParser extends DelegatingLexicalProcessorTest {
     protected LexicalProcessor<String> createLexicalProcessor() {
         return new DelegatingLexicalProcessor(
                 new YamlReader(PrismTestUtil.getSchemaRegistry()),
-                new YamlWriter());
+                new YamlWriter(PrismTestUtil.getSchemaRegistry()));
     }
 
     @Override

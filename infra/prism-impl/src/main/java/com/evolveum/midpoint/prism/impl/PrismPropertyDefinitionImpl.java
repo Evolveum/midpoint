@@ -66,6 +66,9 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
 
     public PrismPropertyDefinitionImpl(QName elementName, QName typeName, PrismContext prismContext) {
         super(elementName, typeName, prismContext);
+        this.structuredType = Lazy.from(() ->
+            Optional.ofNullable(getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByType(getTypeName()))
+        );
     }
 
     public PrismPropertyDefinitionImpl(QName elementName, QName typeName, PrismContext prismContext, Collection<? extends DisplayableValue<T>> allowedValues, T defaultValue) {

@@ -7,16 +7,11 @@
 
 package com.evolveum.midpoint.prism.impl.lex.json.reader;
 
-import com.evolveum.midpoint.prism.TypeDefinition;
 import com.evolveum.midpoint.prism.impl.ParsingContextImpl;
 import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
 import com.evolveum.midpoint.prism.impl.lex.json.DefinitionContext;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.fasterxml.jackson.core.JsonParser;
-
-import java.util.Optional;
-
-import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -31,7 +26,7 @@ class JsonReadingContext {
     @NotNull final AbstractReader.YamlTagResolver yamlTagResolver;
 
     private boolean aborted;
-    private @NotNull SchemaRegistry schemaRegistry;
+    private final DefinitionContext.Root rootContext;
 
     JsonReadingContext(@NotNull JsonParser parser, @NotNull ParsingContextImpl prismParsingContext,
             @NotNull LexicalProcessor.RootXNodeHandler objectHandler, @NotNull AbstractReader.YamlTagResolver yamlTagResolver,
@@ -40,7 +35,7 @@ class JsonReadingContext {
         this.prismParsingContext = prismParsingContext;
         this.objectHandler = objectHandler;
         this.yamlTagResolver = yamlTagResolver;
-        this.schemaRegistry = schemaRegistry;
+        this.rootContext = DefinitionContext.root(schemaRegistry);
     }
 
 
@@ -61,19 +56,10 @@ class JsonReadingContext {
         return " At: " + getPositionSuffix();
     }
 
-
-    public Optional<TypeDefinition> resolveType(QName typeName) {
-        return Optional.ofNullable(schemaRegistry.findTypeDefinitionByType(typeName));
+    public DefinitionContext.Root rootDefinition() {
+        return rootContext;
     }
 
 
-    public DefinitionContext rootDefinition() {
-        return DefinitionContext.root(schemaRegistry);
-    }
 
-
-    public @NotNull DefinitionContext definition(QName itemName, QName typeName) {
-        TypeDefinition typeDef = schemaRegistry.findTypeDefinitionByType(typeName);
-        return DefinitionContext.awareFromType(itemName, typeDef);
-    }
 }

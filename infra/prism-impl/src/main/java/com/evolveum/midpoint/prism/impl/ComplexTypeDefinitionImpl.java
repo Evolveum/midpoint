@@ -592,6 +592,9 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
     @Override
     public void addSubstitution(ItemDefinition<?> itemDef, ItemDefinition<?> maybeSubst) {
         substitutions.put(maybeSubst.getItemName(),maybeSubst);
+        // Also with default namespace to allow search in local
+        substitutions.put(new QName(maybeSubst.getItemName().getLocalPart()), maybeSubst);
+
     }
 
     @Override

@@ -81,23 +81,30 @@ public class TestPrismParsingJson extends TestPrismParsing {
         MapXNode accountRef = get(MapXNode.class, mapNode, "object", "accountRef");
 
 
-
         PrimitiveXNode<ItemPath> pathNode = get(PrimitiveXNode.class, mapNode, "object", "accountRef", "filter", "equal", "path");
-
 
         ItemPathType path = pathNode.getParsedValue(ItemPathType.COMPLEX_TYPE, ItemPathType.class);
         assertNotNull(path);
         assertEquals(path.getItemPath().firstName(), UserType.F_NAME);
 
-        JsonWriter serializer = new JsonWriter();
+        JsonWriter serializer = new JsonWriter(getPrismContext().getSchemaRegistry());
         @NotNull
-        String output = serializer.write(rootXNode, null);
-        display(output);
+        String xnodeOutput = serializer.write(rootXNode, null);
+        display("Direct XNode serialization");
+        display(xnodeOutput);
         @NotNull
         PrismObject<Objectable> jackOriginal = getPrismContext().parserFor(rootXNode).parse();
         @NotNull
-        PrismObject<Objectable> jackSerialized = getPrismContext().parserFor(output).language(getOutputFormat()).parse();
-        assertEquals(jackSerialized, jackOriginal);
+        PrismObject<Objectable> jackXnodeSerialized = getPrismContext().parserFor(xnodeOutput).language(getOutputFormat()).parse();
+        assertEquals(jackXnodeSerialized, jackOriginal);
+
+        String prismOutput = getPrismContext().serializerFor(getOutputFormat()).serialize(jackOriginal);
+
+        display("Prism serialization");
+        display(prismOutput);
+
+        PrismObject<Objectable> jackPrismSerialized = getPrismContext().parserFor(prismOutput).language(getOutputFormat()).parse();
+        assertEquals(jackPrismSerialized, jackOriginal);
 
     }
 
