@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
@@ -37,11 +36,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
-
-/**
- * @author lazyman
- * @author mederly
- */
 
 @JaxbType(type = AccessCertificationCaseType.class)
 @Entity
@@ -250,39 +244,6 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         this.fullObject = fullObject;
     }
 
-    /* TODO: remove in 2021 if no problem apears
-    // Notes to equals/hashCode: don't include trans nor owner
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (!(o instanceof RAccessCertificationCase)) { return false; }
-        RAccessCertificationCase that = (RAccessCertificationCase) o;
-        return Arrays.equals(fullObject, that.fullObject) &&
-                Objects.equals(ownerOid, that.ownerOid) &&
-                Objects.equals(id, that.id) &&
-                Objects.equals(workItems, that.workItems) &&
-                Objects.equals(objectRef, that.objectRef) &&
-                Objects.equals(targetRef, that.targetRef) &&
-                Objects.equals(tenantRef, that.tenantRef) &&
-                Objects.equals(orgRef, that.orgRef) &&
-                Objects.equals(activation, that.activation) &&
-                Objects.equals(reviewRequestedTimestamp, that.reviewRequestedTimestamp) &&
-                Objects.equals(reviewDeadline, that.reviewDeadline) &&
-                Objects.equals(remediedTimestamp, that.remediedTimestamp) &&
-                currentStageOutcome == that.currentStageOutcome &&
-                Objects.equals(iteration, that.iteration) &&
-                Objects.equals(stageNumber, that.stageNumber) &&
-                Objects.equals(outcome, that.outcome);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(fullObject, ownerOid, id, workItems, objectRef, targetRef, tenantRef, orgRef, activation,
-                reviewRequestedTimestamp, reviewDeadline, remediedTimestamp, currentStageOutcome, iteration, stageNumber,
-                outcome);
-    }
-    */
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -338,8 +299,8 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         return rCase;
     }
 
-    private static RAccessCertificationCase toRepo(RAccessCertificationCase rCase,
-            AccessCertificationCaseType case1, RepositoryContext context) throws DtoTranslationException {
+    private static void toRepo(RAccessCertificationCase rCase, AccessCertificationCaseType case1,
+            RepositoryContext context) throws DtoTranslationException {
         rCase.setTransient(null); // we don't try to advise hibernate - let it do its work, even if it would cost some SELECTs
         rCase.setId(RUtil.toInteger(case1.getId()));
         rCase.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getObjectRef(), context.relationRegistry));
@@ -348,7 +309,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         rCase.setOrgRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getOrgRef(), context.relationRegistry));
         if (case1.getActivation() != null) {
             RActivation activation = new RActivation();
-            RActivation.fromJaxb(case1.getActivation(), activation, context);
+            RActivation.fromJaxb(case1.getActivation(), activation);
             rCase.setActivation(activation);
         }
         for (AccessCertificationWorkItemType workItem : case1.getWorkItem()) {
@@ -361,6 +322,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         rCase.setIteration(norm(case1.getIteration()));
         rCase.setStageNumber(case1.getStageNumber());
         rCase.setOutcome(case1.getOutcome());
+        //noinspection unchecked
         PrismContainerValue<AccessCertificationCaseType> cvalue = case1.asPrismContainerValue();
         String serializedForm;
         try {
@@ -373,8 +335,6 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         LOGGER.trace("RAccessCertificationCase full object\n{}", serializedForm);
         byte[] fullObject = RUtil.getBytesFromSerializedForm(serializedForm, false);
         rCase.setFullObject(fullObject);
-
-        return rCase;
     }
 
     public AccessCertificationCaseType toJAXB(PrismContext prismContext) throws SchemaException {

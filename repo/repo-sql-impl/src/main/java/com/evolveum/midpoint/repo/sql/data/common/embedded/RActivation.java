@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.data.common.embedded;
 
 import java.util.Objects;
@@ -18,7 +17,6 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RTimeIntervalStatus;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
@@ -182,8 +180,8 @@ public class RActivation {
         return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 
-    public static void fromJaxb(ActivationType jaxb, RActivation repo, RepositoryContext repositoryContext) throws
-            DtoTranslationException {
+    public static void fromJaxb(ActivationType jaxb, RActivation repo)
+            throws DtoTranslationException {
         Objects.requireNonNull(jaxb, "JAXB object must not be null.");
         Objects.requireNonNull(repo, "Repo object must not be null.");
 

@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.query;
 
 import java.util.*;
@@ -44,6 +43,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
 /**
@@ -197,10 +197,8 @@ public class QueryInterpreter {
             return GetCertificationWorkItemResult.RESULT_STYLE;
         } else if (CaseWorkItemType.class.equals(context.getType())) {
             return GetContainerableIdOnlyResult.RESULT_STYLE;
-        /* TODO MID-6799
         } else if (AssignmentType.class.equals(context.getType())) {
-            return GetContainerableIdOnlyResult.RESULT_STYLE;
-        */
+            return GetAssignmentResult.RESULT_STYLE;
         } else {
             throw new QueryException("Unsupported type: " + context.getType());
         }
@@ -453,9 +451,11 @@ public class QueryInterpreter {
     }
 
     public <T> Matcher<T> findMatcher(T value) {
+        //noinspection unchecked
         return findMatcher(value != null ? (Class<T>) value.getClass() : null);
     }
 
+    @SuppressWarnings("unchecked")
     public <T> Matcher<T> findMatcher(Class<T> type) {
         Matcher<T> matcher = AVAILABLE_MATCHERS.get(type);
         if (matcher == null) {

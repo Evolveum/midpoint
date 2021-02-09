@@ -346,7 +346,6 @@ public class CertificationCaseHelper {
                     .and().id(caseId)
                     .build();
             RQuery caseQuery = engine.interpret(query, AccessCertificationCaseType.class, null, false, session);
-            @SuppressWarnings({ "raw", "unchecked" })
             List<GetContainerableResult> cases = caseQuery.list();
             if (cases.size() > 1) {
                 throw new IllegalStateException(
