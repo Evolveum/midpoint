@@ -50,8 +50,8 @@ public class PageSelfCredentials extends PageAbstractSelfCredentials{
             }
             target.add(getFeedbackPanel());
         } else {
-            showResult(result);
-            setResponsePage(getMidpointApplication().getHomePage());
+
+            target.add(getFeedbackPanel());
         }
     }
 }

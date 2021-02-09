@@ -298,12 +298,15 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
 
             @Override
             protected DisplayType getIconDisplayType(IModel<PasswordAccountDto> rowModel) {
-                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().isEnabled()) {
-                    return WebComponentUtil.createDisplayType(
-                            GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_APPROVED_COLORED);
+                String cssClass = GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_UNKNOWN_COLORED;
+                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().isEnabled() != null) {
+                    if (rowModel.getObject().isEnabled()) {
+                        cssClass = GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_APPROVED_COLORED;
+                    } else {
+                        cssClass = GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_REJECTED_COLORED;
+                    }
                 }
-                return WebComponentUtil.createDisplayType(
-                        GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_REJECTED_COLORED);
+                return WebComponentUtil.createDisplayType(cssClass);
             }
 
             @Override

@@ -43,14 +43,15 @@ public class PasswordPolicyValidationPanel extends BasePanel<List<StringLimitati
 
     private void initLayout() {
         IModel<DisplayType> displayModel = (IModel) () -> {
-            OperationResultStatusPresentationProperties status = OperationResultStatusPresentationProperties.SUCCESS;
+            String status = "fa-fw " + GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_SUCCESS_COLORED + " fa-lg";
+            String titleKey = "PasswordPolicyValidationPanel.valid";
             for (StringLimitationResult limitation : getModelObject()) {
                 if (!limitation.isSuccess()){
-                    status = OperationResultStatusPresentationProperties.FATAL_ERROR;
+                    status = "fa-fw " + GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_FATAL_ERROR_COLORED + " fa-lg";
+                    titleKey = "PasswordPolicyValidationPanel.invalid";
                 }
             }
-            return WebComponentUtil.createDisplayType(status.getIcon() + " fa-lg", "",
-                    getPageBase().createStringResource(status.getStatusLabelKey()).getString());
+            return WebComponentUtil.createDisplayType(status, "", getPageBase().createStringResource(titleKey).getString());
         };
         ImagePanel resultIcon = new ImagePanel(ID_RESULT_ICON, displayModel);
         resultIcon.setOutputMarkupId(true);
