@@ -506,7 +506,12 @@ public class PrismForm<T> extends Component<T> {
     }
 
     public PrismForm<T> assertPropertyEnabled(String propertyName) {
-        Assert.assertTrue(isPropertyEnabled(propertyName), "Property " + propertyName + " is disabled.");
+        Assert.assertTrue(isPropertyEnabled(propertyName), "Property " + propertyName + " should be enabled.");
+        return this;
+    }
+
+    public PrismForm<T> assertPropertyDisabled(String propertyName) {
+        Assert.assertFalse(isPropertyEnabled(propertyName), "Property " + propertyName + " should be disabled.");
         return this;
     }
 

@@ -318,9 +318,9 @@ public class M10ObjectTemplate extends AbstractLabTest{
         form.addAttributeValue("familyName", "kirk2");
         form.and().and().feedback().assertError();
         form
-                .assertPropertyWithTitleTextExist("telephoneNumber", "Primary telephone number of the user, org. unit, etc.")
+                .assertPropertyWithTitleTextDoesntExist("telephoneNumber", "Primary telephone number of the user, org. unit, etc.")
                 .assertPropertyWithTitleTextExist("telephoneNumber", "Mobile Telephone Number")
-                .assertPropertyEnabled("honorificSuffix");
+                .assertPropertyDisabled("honorificSuffix");
     }
 
     @Test(dependsOnMethods = {"mod10test03LookupTablesAndAttributeOverrides"})
