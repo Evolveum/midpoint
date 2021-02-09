@@ -17,9 +17,12 @@ public class ObjectTemplateTests extends AbstractSchrodingerTest {
     private static final String COMPONENT_OBJECTS_DIRECTORY = "./src/test/resources/configuration/objects/";
     private static final String COMPONENT_OBJECT_TEMPLATE = COMPONENT_OBJECTS_DIRECTORY + "objecttemplate/";
     private static final String COMPONENT_SYSTEM_CONFIGURATION = COMPONENT_OBJECTS_DIRECTORY + "systemconfig/";
+    private static final String COMPONENT_ARCHETYPE = COMPONENT_OBJECTS_DIRECTORY + "archetypes/";
     private static final File FULL_NAME_OBJECT_TEMPLATE_FILE = new File(COMPONENT_OBJECT_TEMPLATE + "object-template-full-name.xml");
     private static final File SYSTEM_CONFIGURATION_WITH_OBJ_TEMPLATE_FILE = new File(COMPONENT_SYSTEM_CONFIGURATION + "system-configuration-with-object-template.xml");
     private static final File SYSTEM_CONFIGURATION_INITIAL_FILE = new File(COMPONENT_SYSTEM_CONFIGURATION + "system-configuration-initial.xml");
+    private static final File SYSTEM_CONFIGURATION_WITH_EMPLOYEE_ARCHETYPE = new File(COMPONENT_SYSTEM_CONFIGURATION + "system-configuration-with-employee-archetype.xml");
+    private static final File EMPLOYEE_ARCHETYPE_FILE = new File(COMPONENT_ARCHETYPE + "archetype-employee.xml");
 
     @Test
     public void test00100addObjectTemplateCreateUser() {
@@ -45,9 +48,9 @@ public class ObjectTemplateTests extends AbstractSchrodingerTest {
         addObjectFromFile(SYSTEM_CONFIGURATION_WITH_OBJ_TEMPLATE_FILE, true);
         Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
 
-        basicPage.loggedUser().logout();
-        FormLoginPage loginPage = midPoint.formLogin();
-        loginPage.login(getUsername(), getPassword());
+//        basicPage.loggedUser().logout();
+//        FormLoginPage loginPage = midPoint.formLogin();
+//        loginPage.login(getUsername(), getPassword());
 
         attributesMap.clear();
         attributesMap.put("Name", "userWithFullname");
@@ -74,8 +77,8 @@ public class ObjectTemplateTests extends AbstractSchrodingerTest {
                 .listRepositoryObjects()
                     .table()
                         .deleteObject("Object template", "Full name template");
-        showUser("userWithoutFullname");
-        showUser("userWithFullname");
+//        showUser("userWithoutFullname");
+//        showUser("userWithFullname");
 
         addObjectFromFile(SYSTEM_CONFIGURATION_INITIAL_FILE, true);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
@@ -91,9 +94,71 @@ public class ObjectTemplateTests extends AbstractSchrodingerTest {
                         .assertInputAttributeValueMatches("Full name", "");
     }
 
-//    @Test
-//    public void test00300createArchetypeObjectTemplateExists() {
-//
-//    }
+    @Test (dependsOnMethods = {"test00200deleteObjectTemplateCreateUser"})
+    public void test00300createArchetypeObjectTemplateExists() {
+        addObjectFromFile(EMPLOYEE_ARCHETYPE_FILE, true);
+        addObjectFromFile(SYSTEM_CONFIGURATION_WITH_EMPLOYEE_ARCHETYPE, true);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+
+        basicPage.loggedUser().logout();
+        FormLoginPage loginPage = midPoint.formLogin();
+        loginPage.login(getUsername(), getPassword());
+
+        basicPage
+                .listUsers("Employees")
+                    .newUser()
+                        .selectTabBasic()
+                            .form()
+                                .addAttributeValue("Name", "employeeTestUser")
+                                .addAttributeValue("Given name", "Kevin")
+                                .addAttributeValue("Family name", "Black")
+                            .and()
+                        .and()
+                    .clickSave()
+                        .feedback()
+                            .assertSuccess();
+
+        basicPage
+                .listUsers()
+                    .table()
+                        .search()
+                            .byName()
+                            .inputValue("employeeTestUser")
+                            .updateSearch()
+                        .and()
+                        .assertTableContainsColumnWithValue("UserType.givenName", "Kevin")
+                        .assertTableContainsColumnWithValue("UserType.familyName", "Black")
+                        .assertTableColumnValueIsEmpty("UserType.fullName");
+
+        addObjectFromFile(FULL_NAME_OBJECT_TEMPLATE_FILE, true);
+        addObjectFromFile(SYSTEM_CONFIGURATION_WITH_OBJ_TEMPLATE_FILE, true);
+        Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
+
+        basicPage
+                .listUsers("Employees")
+                    .newUser()
+                        .selectTabBasic()
+                            .form()
+                                .addAttributeValue("Name", "employeeTestUserWithFullname")
+                                .addAttributeValue("Given name", "Oskar")
+                                .addAttributeValue("Family name", "White")
+                            .and()
+                        .and()
+                    .clickSave()
+                        .feedback()
+                            .assertSuccess();
+
+        basicPage
+                .listUsers()
+                    .table()
+                        .search()
+                            .byName()
+                            .inputValue("employeeTestUserWithFullname")
+                            .updateSearch()
+                        .and()
+                        .assertTableContainsColumnWithValue("UserType.givenName", "Oskar")
+                        .assertTableContainsColumnWithValue("UserType.familyName", "White")
+                        .assertTableContainsColumnWithValue("UserType.fullName", "Oskar White");
+    }
 
 }
