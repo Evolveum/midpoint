@@ -32,7 +32,7 @@ public class PasswordAccountDto extends Selectable<PasswordAccountDto>
     private PrismObject<? extends ObjectType> object;
     private final String displayName;
     private final String resourceName;
-    private final boolean enabled;
+    private final Boolean enabled;
 
     private String cssClass = "";
     private String passwordValuePolicyOid;
@@ -54,7 +54,7 @@ public class PasswordAccountDto extends Selectable<PasswordAccountDto>
         this.resourceOid = resourceOid;
     }
 
-    public PasswordAccountDto(@NotNull PrismObject<?extends ObjectType> object, String displayName, String resourceName, boolean enabled, boolean midpoint) {
+    public PasswordAccountDto(@NotNull PrismObject<?extends ObjectType> object, String displayName, String resourceName, Boolean enabled, boolean midpoint) {
         this.displayName = displayName;
         this.resourceName = resourceName;
         this.enabled = enabled;
@@ -70,7 +70,7 @@ public class PasswordAccountDto extends Selectable<PasswordAccountDto>
         return displayName;
     }
 
-    public boolean isEnabled() {
+    public Boolean isEnabled() {
         return enabled;
     }
 
