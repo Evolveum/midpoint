@@ -36,8 +36,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * @author skublik
@@ -47,6 +45,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
 
     protected static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M10/";
     private static final File OBJECT_TEMPLATE_USER_FILE_10_3 = new File(LAB_OBJECTS_DIRECTORY + "objecttemplate/object-template-example-user-10-3.xml");
+    private static final File OBJECT_TEMPLATE_USER_FILE = new File(LAB_OBJECTS_DIRECTORY + "objecttemplate/object-template-example-user.xml");
     private static final File LOOKUP_EMP_STATUS_FILE = new File(LAB_OBJECTS_DIRECTORY + "lookuptables/lookup-emp-status.xml");
     private static final File CSV_3_RESOURCE_FILE_10_4 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-10-4.xml");
     private static final File SYSTEM_CONFIGURATION_FILE_10 = new File(LAB_OBJECTS_DIRECTORY + "systemconfiguration/system-configuration-10.xml");
@@ -64,7 +63,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
     private static final File CSV_3_RESOURCE_FILE_10 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-10.xml");
     private static final File HR_RESOURCE_FILE_10 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-hr.xml");
     private static final File HR_SYNCHRONIZATION_TASK_FILE = new File(LAB_OBJECTS_DIRECTORY + "tasks/task-opendj-livesync-full.xml");
-    private static final File OBJECT_TEMPLATE_USER_FILE = new File(LAB_OBJECTS_DIRECTORY + "objecttemplate/object-template-example-user-simple.xml");
+    private static final File OBJECT_TEMPLATE_USER_SIMPLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "objecttemplate/object-template-example-user-simple.xml");
     private static final File CSV_2_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-2-canteen-10.xml");
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextBeforeTestClass" })
@@ -108,7 +107,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
         importObject(ARCHETYPE_ORG_COMPANY_FILE, true, true);
         importObject(ARCHETYPE_ORG_GROUP_FILE, true, true);
         importObject(ARCHETYPE_ORG_GROUP_LIST_FILE, true, true);
-        importObject(OBJECT_TEMPLATE_USER_FILE, true, true);
+        importObject(OBJECT_TEMPLATE_USER_SIMPLE_FILE, true, true);
         importObject(KIRK_USER_TIBERIUS_FILE, true, true);
         importObject(ORG_EXAMPLE_FILE, true, true);
         importObject(ORG_SECRET_OPS_FILE, true, true);
@@ -214,8 +213,8 @@ public class M10ObjectTemplate extends AbstractLabTest{
 
     @Test(dependsOnMethods = {"mod10test01SimpleObjectTemplate"})
     public void mod10test02AutomaticAssignments() throws IOException {
-        importObject(ORG_EXAMPLE_FILE, true);
-        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        importObject(OBJECT_TEMPLATE_USER_FILE, true);
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         ResourceAccountsTab<ViewResourcePage> accountTab = basicPage.listResources()
                 .table()
