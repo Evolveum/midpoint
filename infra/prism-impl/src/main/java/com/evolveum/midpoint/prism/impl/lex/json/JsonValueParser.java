@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.impl.marshaller.ItemPathHolder;
+import com.evolveum.midpoint.prism.impl.xnode.XNodeDefinition;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
@@ -56,7 +57,7 @@ public class JsonValueParser<T> implements ValueParser<T> {
         } else if(ItemPath.class.isAssignableFrom(clazz)) {
             return (T) parseItemPath();
         } if(QName.class.isAssignableFrom(clazz)) {
-            return (T) DefinitionContext.resolveQName(getStringValue(), context);
+            return (T) XNodeDefinition.resolveQName(getStringValue(), context);
         }
         ObjectReader r = mapper.readerFor(clazz);
 

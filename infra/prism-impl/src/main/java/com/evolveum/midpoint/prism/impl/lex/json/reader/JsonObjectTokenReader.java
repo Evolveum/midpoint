@@ -32,7 +32,6 @@ import com.google.common.collect.ImmutableMap.Builder;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismNamespaceContext;
-import com.evolveum.midpoint.prism.impl.lex.json.DefinitionContext;
 import com.evolveum.midpoint.prism.impl.lex.json.JsonInfraItems;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -90,9 +89,9 @@ class JsonObjectTokenReader {
 
     private boolean namespaceSensitiveStarted = false;
 
-    private @NotNull DefinitionContext definition;
+    private @NotNull XNodeDefinition definition;
 
-    private final DefinitionContext parentDefinition;
+    private final XNodeDefinition parentDefinition;
 
     private static final Map<QName, ItemProcessor> PROCESSORS = ImmutableMap.<QName, ItemProcessor>builder()
             // Namespace definition processing
@@ -112,7 +111,7 @@ class JsonObjectTokenReader {
 
     private static final ItemProcessor STANDARD_PROCESSOR = namespaceSensitive(JsonObjectTokenReader::processStandardFieldValue);
 
-    JsonObjectTokenReader(@NotNull JsonReadingContext ctx, PrismNamespaceContext parentContext, @NotNull DefinitionContext definition, @NotNull DefinitionContext parentDefinition) {
+    JsonObjectTokenReader(@NotNull JsonReadingContext ctx, PrismNamespaceContext parentContext, @NotNull XNodeDefinition definition, @NotNull XNodeDefinition parentDefinition) {
         this.ctx = ctx;
         this.parser = ctx.parser;
         this.parentContext = parentContext;
@@ -140,7 +139,7 @@ class JsonObjectTokenReader {
     }
 
     private void processFields() throws IOException, SchemaException {
-        DefinitionContext currentField = null;
+        XNodeDefinition currentField = null;
         while (!ctx.isAborted()) {
             JsonToken token = parser.nextToken();
             if (token == null) {
@@ -158,7 +157,7 @@ class JsonObjectTokenReader {
         }
     }
 
-    private @NotNull DefinitionContext processFieldName(DefinitionContext currentFieldName) throws IOException, SchemaException {
+    private @NotNull XNodeDefinition processFieldName(XNodeDefinition currentFieldName) throws IOException, SchemaException {
         String newFieldName = parser.getCurrentName();
         if (currentFieldName != null) {
             warnOrThrow("Two field names in succession: " + currentFieldName.getName() + " and " + newFieldName);
@@ -171,14 +170,14 @@ class JsonObjectTokenReader {
     }
 
 
-    private void processFieldValue(DefinitionContext name) throws IOException, SchemaException {
+    private void processFieldValue(XNodeDefinition name) throws IOException, SchemaException {
         assert name != null;
         XNodeImpl value = readValue(name);
         PROCESSORS.getOrDefault(name.getName(), STANDARD_PROCESSOR).apply(this, name.getName(), value);
 
     }
 
-    private XNodeImpl readValue(DefinitionContext fieldDef) throws IOException, SchemaException {
+    private XNodeImpl readValue(XNodeDefinition fieldDef) throws IOException, SchemaException {
         return new JsonOtherTokenReader(ctx,namespaceContext().inherited(), fieldDef, definition).readValue();
     }
 
@@ -252,12 +251,12 @@ class JsonObjectTokenReader {
         }
         String nsName = getCurrentFieldStringValue(name, value);
         @NotNull
-        DefinitionContext maybeDefinition = parentDefinition.resolve(nsName, namespaceContext());
+        XNodeDefinition maybeDefinition = parentDefinition.resolve(nsName, namespaceContext());
         elementName = resolveQName(nsName);
         replaceDefinition(maybeDefinition);
     }
 
-    private void replaceDefinition(@NotNull DefinitionContext maybeDefinition) {
+    private void replaceDefinition(@NotNull XNodeDefinition maybeDefinition) {
         definition = definition.moreSpecific(maybeDefinition);
     }
 
@@ -273,7 +272,7 @@ class JsonObjectTokenReader {
         }
         String stringValue = getCurrentFieldStringValue(name, value);
         // TODO: Compat: WE tread default prefixes as empty namespace, not default namespace
-        typeName = DefinitionContext.resolveQName(stringValue, namespaceContext());
+        typeName = XNodeDefinition.resolveQName(stringValue, namespaceContext());
         definition = definition.withType(typeName);
     }
 

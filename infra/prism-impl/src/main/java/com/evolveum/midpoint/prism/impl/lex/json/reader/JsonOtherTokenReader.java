@@ -18,11 +18,11 @@ import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismNamespaceContext;
-import com.evolveum.midpoint.prism.impl.lex.json.DefinitionContext;
 import com.evolveum.midpoint.prism.impl.lex.json.JsonNullValueParser;
 import com.evolveum.midpoint.prism.impl.lex.json.JsonValueParser;
 import com.evolveum.midpoint.prism.impl.xnode.ListXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.PrimitiveXNodeImpl;
+import com.evolveum.midpoint.prism.impl.xnode.XNodeDefinition;
 import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
 import com.evolveum.midpoint.prism.xnode.ValueParser;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -41,11 +41,11 @@ class JsonOtherTokenReader {
 
     private final PrismNamespaceContext parentContext;
 
-    private final DefinitionContext def;
+    private final XNodeDefinition def;
 
-    private @NotNull DefinitionContext parentDef;
+    private @NotNull XNodeDefinition parentDef;
 
-    JsonOtherTokenReader(JsonReadingContext ctx, PrismNamespaceContext context, DefinitionContext def, @NotNull DefinitionContext parentDef) {
+    JsonOtherTokenReader(JsonReadingContext ctx, PrismNamespaceContext context, XNodeDefinition def, @NotNull XNodeDefinition parentDef) {
         this.ctx = ctx;
         this.parser = ctx.parser;
         this.parentContext = context;

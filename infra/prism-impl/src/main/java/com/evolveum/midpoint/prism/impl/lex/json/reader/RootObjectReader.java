@@ -14,7 +14,6 @@ import javax.xml.namespace.QName;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismNamespaceContext;
-import com.evolveum.midpoint.prism.impl.lex.json.DefinitionContext;
 import com.evolveum.midpoint.prism.impl.lex.json.JsonValueParser;
 import com.evolveum.midpoint.prism.impl.xnode.*;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -31,7 +30,7 @@ class RootObjectReader {
 
     private final PrismNamespaceContext nsContext;
 
-    private DefinitionContext def;
+    private XNodeDefinition def;
 
     RootObjectReader(@NotNull JsonReadingContext ctx, PrismNamespaceContext context) {
         this.ctx = ctx;

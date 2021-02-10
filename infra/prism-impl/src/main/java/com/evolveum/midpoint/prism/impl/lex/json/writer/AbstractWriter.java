@@ -17,9 +17,9 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.SerializationContext;
 import com.evolveum.midpoint.prism.impl.lex.LexicalUtils;
-import com.evolveum.midpoint.prism.impl.lex.json.DefinitionContext;
 import com.evolveum.midpoint.prism.impl.xnode.ListXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.RootXNodeImpl;
+import com.evolveum.midpoint.prism.impl.xnode.XNodeDefinition;
 import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
@@ -32,13 +32,13 @@ import com.evolveum.midpoint.util.exception.SystemException;
  */
 abstract public class AbstractWriter {
 
-    private DefinitionContext.Root schema;
+    private XNodeDefinition.Root schema;
 
     public AbstractWriter(@NotNull SchemaRegistry schemaRegistry) {
-        schema = schemaRegistry != null ? DefinitionContext.root(schemaRegistry) : DefinitionContext.empty();
+        schema = schemaRegistry != null ? XNodeDefinition.root(schemaRegistry) : XNodeDefinition.empty();
     }
 
-    public DefinitionContext getSchema() {
+    public XNodeDefinition getSchema() {
         return schema;
     }
 

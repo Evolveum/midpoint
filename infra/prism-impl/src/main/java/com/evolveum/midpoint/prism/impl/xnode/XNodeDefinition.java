@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.prism.impl.lex.json;
+package com.evolveum.midpoint.prism.impl.xnode;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismNamespaceContext;
+import com.evolveum.midpoint.prism.impl.lex.json.JsonInfraItems;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.QNameUtil.PrefixedName;
@@ -19,7 +20,7 @@ import com.evolveum.midpoint.util.QNameUtil.QNameInfo;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.google.common.base.Strings;
 
-public abstract class DefinitionContext {
+public abstract class XNodeDefinition {
 
     private static final SchemaIgnorant EMPTY = new SchemaIgnorant(new QName(""));
 
@@ -27,7 +28,7 @@ public abstract class DefinitionContext {
 
     private final @NotNull QName name;
 
-    protected DefinitionContext(QName name) {
+    protected XNodeDefinition(QName name) {
         this.name = name;
     }
 
@@ -39,7 +40,7 @@ public abstract class DefinitionContext {
         return EMPTY;
     }
 
-    protected abstract DefinitionContext unawareFrom(QName name);
+    protected abstract XNodeDefinition unawareFrom(QName name);
 
     public static QName resolveQName(String name, PrismNamespaceContext context) throws SchemaException {
         return empty().resolve(name, context.withoutDefault()).getName();
@@ -52,7 +53,7 @@ public abstract class DefinitionContext {
 
     public abstract Optional<QName> getType();
 
-    public @NotNull DefinitionContext resolve(@NotNull String name, @NotNull PrismNamespaceContext namespaceContext) throws SchemaException {
+    public @NotNull XNodeDefinition resolve(@NotNull String name, @NotNull PrismNamespaceContext namespaceContext) throws SchemaException {
         if (isInfra(name)) {
             if (JsonInfraItems.PROP_VALUE.equals(name)) {
                 return valueContext();
@@ -67,7 +68,7 @@ public abstract class DefinitionContext {
         if (!QNameUtil.isUriQName(name)) {
             PrefixedName prefixed = QNameUtil.parsePrefixedName(name);
             if (prefixed.prefix().isEmpty()) {
-                DefinitionContext resolved = resolveLocally(name);
+                XNodeDefinition resolved = resolveLocally(name);
                 if (resolved != null) {
                     return resolved;
                 }
@@ -93,11 +94,11 @@ public abstract class DefinitionContext {
         return toContext(result.name);
     }
 
-    public @NotNull DefinitionContext unaware() {
+    public @NotNull XNodeDefinition unaware() {
         return unawareFrom(getName());
     }
 
-    public @NotNull DefinitionContext moreSpecific(@NotNull DefinitionContext other) {
+    public @NotNull XNodeDefinition moreSpecific(@NotNull XNodeDefinition other) {
         // Prefer type aware
         if(other instanceof ComplexTypeAware) {
             return other;
@@ -105,15 +106,15 @@ public abstract class DefinitionContext {
         return this;
     }
 
-    public DefinitionContext child(QName name) {
-        DefinitionContext maybe = resolveLocally(name);
+    public XNodeDefinition child(QName name) {
+        XNodeDefinition maybe = resolveLocally(name);
         if(maybe != null) {
             return maybe;
         }
         return unawareFrom(name);
     }
 
-    private @NotNull DefinitionContext valueContext() {
+    private @NotNull XNodeDefinition valueContext() {
         return new Value(this);
     }
 
@@ -125,23 +126,23 @@ public abstract class DefinitionContext {
         throw new SchemaException(Strings.lenientFormat(string, prefix));
     }
 
-    protected @Nullable DefinitionContext resolveLocally(@NotNull String localName) {
+    protected @Nullable XNodeDefinition resolveLocally(@NotNull String localName) {
         return null;
     }
 
-    protected @Nullable DefinitionContext resolveLocally(@NotNull QName name) {
+    protected @Nullable XNodeDefinition resolveLocally(@NotNull QName name) {
         return null;
     }
 
-    private @NotNull DefinitionContext toContext(QName name) {
-        DefinitionContext ret = resolveLocally(name);
+    private @NotNull XNodeDefinition toContext(QName name) {
+        XNodeDefinition ret = resolveLocally(name);
         if(ret != null) {
             return ret;
         }
         return unawareFrom(name);
     }
 
-    private abstract static class SchemaAware extends DefinitionContext {
+    private abstract static class SchemaAware extends XNodeDefinition {
 
         protected final SchemaRoot root;
         private final boolean inherited;
@@ -157,35 +158,35 @@ public abstract class DefinitionContext {
             return inherited;
         }
 
-        protected DefinitionContext awareFrom(QName name, ItemDefinition<?> definition, boolean inherited) {
+        protected XNodeDefinition awareFrom(QName name, ItemDefinition<?> definition, boolean inherited) {
             return root.awareFrom(name, definition, inherited);
         }
 
         @Override
-        public @NotNull DefinitionContext withType(QName typeName) {
+        public @NotNull XNodeDefinition withType(QName typeName) {
             return root.fromType(getName(), typeName, inherited);
         }
 
         @Override
-        protected DefinitionContext unawareFrom(QName name) {
+        protected XNodeDefinition unawareFrom(QName name) {
             return root.unawareFrom(name);
         }
 
         @Override
-        public DefinitionContext metadataDef() {
+        public XNodeDefinition metadataDef() {
             return root.metadataDef();
         }
 
     }
 
-    public abstract static class Root extends DefinitionContext {
+    public abstract static class Root extends XNodeDefinition {
 
         protected Root(QName name) {
             super(name);
         }
 
         @Override
-        public abstract DefinitionContext metadataDef();
+        public abstract XNodeDefinition metadataDef();
 
     }
 
@@ -199,13 +200,13 @@ public abstract class DefinitionContext {
         }
 
 
-        public @NotNull DefinitionContext fromType(@NotNull QName name, QName typeName, boolean inherited) {
+        public @NotNull XNodeDefinition fromType(@NotNull QName name, QName typeName, boolean inherited) {
             var definition = Optional.ofNullable(registry.findComplexTypeDefinitionByType(typeName));
             return awareFrom(name, typeName, definition, inherited);
         }
 
 
-        DefinitionContext awareFrom(QName name, ItemDefinition<?> definition, boolean inherited) {
+        XNodeDefinition awareFrom(QName name, ItemDefinition<?> definition, boolean inherited) {
             if(definition != null) {
                 return awareFrom(definition.getItemName(), definition.getTypeName(),definition.structuredType(), inherited);
             }
@@ -213,7 +214,7 @@ public abstract class DefinitionContext {
             return unawareFrom(name);
         }
 
-        private DefinitionContext awareFrom(QName name, @NotNull QName typeName,
+        private XNodeDefinition awareFrom(QName name, @NotNull QName typeName,
                 Optional<ComplexTypeDefinition> structuredType, boolean inherited) {
             if(structuredType.isPresent()) {
                 var complex = structuredType.get();
@@ -227,18 +228,18 @@ public abstract class DefinitionContext {
 
 
         @Override
-        public @NotNull DefinitionContext withType(QName typeName) {
+        public @NotNull XNodeDefinition withType(QName typeName) {
             return fromType(getName(), typeName, false);
         }
 
 
         @Override
-        protected DefinitionContext resolveLocally(String localName) {
+        protected XNodeDefinition resolveLocally(String localName) {
             return null;
         }
 
         @Override
-        protected DefinitionContext resolveLocally(QName name) {
+        protected XNodeDefinition resolveLocally(QName name) {
             ItemDefinition<?> def = registry.findObjectDefinitionByElementName(name);
             if(def == null) {
                 try {
@@ -256,12 +257,12 @@ public abstract class DefinitionContext {
         }
 
         @Override
-        protected DefinitionContext unawareFrom(QName name) {
+        protected XNodeDefinition unawareFrom(QName name) {
             return new SimpleType(name, null, false, this);
         }
 
         @Override
-        public DefinitionContext metadataDef() {
+        public XNodeDefinition metadataDef() {
             var def = registry.getValueMetadataDefinition();
             return awareFrom(JsonInfraItems.PROP_METADATA_QNAME, def.getTypeName(), def.structuredType(), true);
         }
@@ -283,7 +284,7 @@ public abstract class DefinitionContext {
         }
 
         @Override
-        protected DefinitionContext resolveLocally(QName name) {
+        protected XNodeDefinition resolveLocally(QName name) {
             return awareFrom(name, findDefinition(name), true);
         }
 
@@ -292,7 +293,7 @@ public abstract class DefinitionContext {
         }
 
         @Override
-        protected DefinitionContext resolveLocally(String localName) {
+        protected XNodeDefinition resolveLocally(String localName) {
             QName proposed = new QName(definition.getTypeName().getNamespaceURI(),localName);
             ItemDefinition<?> def = findDefinition(proposed);
             if(def == null) {
@@ -305,7 +306,7 @@ public abstract class DefinitionContext {
         }
 
         @Override
-        public @NotNull DefinitionContext moreSpecific(@NotNull DefinitionContext other) {
+        public @NotNull XNodeDefinition moreSpecific(@NotNull XNodeDefinition other) {
             if(other instanceof ComplexTypeAware) {
                 ComplexTypeDefinition localType = this.definition;
                 ComplexTypeDefinition otherType = ((ComplexTypeAware) other).definition;
@@ -340,7 +341,7 @@ public abstract class DefinitionContext {
         }
 
         @Override
-        public @NotNull DefinitionContext unaware() {
+        public @NotNull XNodeDefinition unaware() {
             return this;
         }
 
@@ -350,38 +351,38 @@ public abstract class DefinitionContext {
         }
 
         @Override
-        public @NotNull DefinitionContext withType(QName typeName) {
+        public @NotNull XNodeDefinition withType(QName typeName) {
             return this;
         }
 
         @Override
-        protected DefinitionContext unawareFrom(QName name) {
+        protected XNodeDefinition unawareFrom(QName name) {
             return new SchemaIgnorant(name);
         }
 
         @Override
-        public DefinitionContext metadataDef() {
+        public XNodeDefinition metadataDef() {
             return new SchemaIgnorant(JsonInfraItems.PROP_METADATA_QNAME);
         }
 
     }
 
-    private static class Value extends DefinitionContext {
+    private static class Value extends XNodeDefinition {
 
-        DefinitionContext delegate;
+        XNodeDefinition delegate;
 
-        public Value(DefinitionContext delegate) {
+        public Value(XNodeDefinition delegate) {
             super(JsonInfraItems.PROP_VALUE_QNAME);
             this.delegate = delegate;
         }
 
         @Override
-        protected @Nullable DefinitionContext resolveLocally(@NotNull String localName) {
+        protected @Nullable XNodeDefinition resolveLocally(@NotNull String localName) {
             return delegate.resolveLocally(localName);
         }
 
         @Override
-        protected @Nullable DefinitionContext resolveLocally(@NotNull QName name) {
+        protected @Nullable XNodeDefinition resolveLocally(@NotNull QName name) {
             return delegate.resolveLocally(name);
         }
 
@@ -391,17 +392,17 @@ public abstract class DefinitionContext {
         }
 
         @Override
-        public @NotNull DefinitionContext withType(QName typeName) {
+        public @NotNull XNodeDefinition withType(QName typeName) {
             return new Value(delegate.withType(typeName));
         }
 
         @Override
-        protected DefinitionContext unawareFrom(QName name) {
+        protected XNodeDefinition unawareFrom(QName name) {
             return delegate.unawareFrom(name);
         }
 
         @Override
-        public DefinitionContext metadataDef() {
+        public XNodeDefinition metadataDef() {
             return delegate.metadataDef();
         }
 
@@ -432,8 +433,8 @@ public abstract class DefinitionContext {
         return false;
     }
 
-    public abstract @NotNull DefinitionContext withType(QName typeName);
+    public abstract @NotNull XNodeDefinition withType(QName typeName);
 
-    public abstract DefinitionContext metadataDef();
+    public abstract XNodeDefinition metadataDef();
 
 }

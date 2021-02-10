@@ -9,7 +9,6 @@ package com.evolveum.midpoint.prism.impl.lex.json.writer;
 
 import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.SerializationOptions;
-import com.evolveum.midpoint.prism.impl.lex.json.DefinitionContext;
 import com.evolveum.midpoint.prism.impl.lex.json.JsonInfraItems;
 import com.evolveum.midpoint.prism.impl.marshaller.ItemPathSerialization;
 import com.evolveum.midpoint.prism.impl.xnode.*;
@@ -44,11 +43,11 @@ class DocumentWriter {
 
     @NotNull private final JsonGenerator generator;
 
-    private DefinitionContext.Root schema;
+    private XNodeDefinition.Root schema;
 
-    private DefinitionContext metadataDef;
+    private XNodeDefinition metadataDef;
 
-    DocumentWriter(WritingContext<?> ctx, DefinitionContext.Root schema) {
+    DocumentWriter(WritingContext<?> ctx, XNodeDefinition.Root schema) {
         this.ctx = ctx;
         this.generator = ctx.generator;
         this.schema = schema;
@@ -76,7 +75,7 @@ class DocumentWriter {
         }
     }
 
-    private void write(XNodeImpl xnode, PrismNamespaceContext currentNamespace, boolean wrappingValue, DefinitionContext itemDef) throws IOException {
+    private void write(XNodeImpl xnode, PrismNamespaceContext currentNamespace, boolean wrappingValue, XNodeDefinition itemDef) throws IOException {
         if (xnode == null) {
             writeNull();
             return;
@@ -99,7 +98,7 @@ class DocumentWriter {
         }
     }
 
-    private DefinitionContext moreSpecificDefinition(XNodeImpl xnode, DefinitionContext itemDef) {
+    private XNodeDefinition moreSpecificDefinition(XNodeImpl xnode, XNodeDefinition itemDef) {
         var xnodeType = xnode.getTypeQName();
         var xnodeName = xnode.getElementName();
         if(xnodeType != null && xnode.isExplicitTypeDeclaration()) {
@@ -122,7 +121,7 @@ class DocumentWriter {
         generator.writeNull();
     }
 
-    private void writeWithValueWrapped(XNodeImpl xnode, PrismNamespaceContext currentNamespace, DefinitionContext itemDef) throws IOException {
+    private void writeWithValueWrapped(XNodeImpl xnode, PrismNamespaceContext currentNamespace, XNodeDefinition itemDef) throws IOException {
         assert !(xnode instanceof MapXNode);
         generator.writeStartObject();
         ctx.resetInlineTypeIfPossible();
@@ -133,7 +132,7 @@ class DocumentWriter {
         generator.writeEndObject();
     }
 
-    private void writeMap(MapXNodeImpl map, PrismNamespaceContext parentNamespace, DefinitionContext itemDef) throws IOException {
+    private void writeMap(MapXNodeImpl map, PrismNamespaceContext parentNamespace, XNodeDefinition itemDef) throws IOException {
         writeInlineTypeIfNeeded(map);
         generator.writeStartObject();
         ctx.resetInlineTypeIfPossible();
@@ -148,7 +147,7 @@ class DocumentWriter {
         writeMetadataIfNeeded(map, localNamespace);
         for (Map.Entry<QName, XNodeImpl> entry : map.entrySet()) {
             if (entry.getValue() != null) {
-                DefinitionContext entryDef = itemDef.child(entry.getKey());
+                XNodeDefinition entryDef = itemDef.child(entry.getKey());
                 generator.writeFieldName(createKeyUri(entry, localNamespace, entryDef));
                 write(entry.getValue(), localNamespace, false, entryDef);
             }
@@ -156,7 +155,7 @@ class DocumentWriter {
         generator.writeEndObject();
     }
 
-    private void writeList(ListXNodeImpl list, PrismNamespaceContext currentNamespace, DefinitionContext itemDef) throws IOException {
+    private void writeList(ListXNodeImpl list, PrismNamespaceContext currentNamespace, XNodeDefinition itemDef) throws IOException {
         writeInlineTypeIfNeeded(list);
         generator.writeStartArray();
         ctx.resetInlineTypeIfPossible();
@@ -166,7 +165,7 @@ class DocumentWriter {
         generator.writeEndArray();
     }
 
-    private <T> void writePrimitive(PrimitiveXNodeImpl<T> primitive, PrismNamespaceContext context, DefinitionContext def) throws IOException {
+    private <T> void writePrimitive(PrimitiveXNodeImpl<T> primitive, PrismNamespaceContext context, XNodeDefinition def) throws IOException {
         writeInlineTypeIfNeeded(primitive);
 
         var schemaType = def.getType();
@@ -279,7 +278,7 @@ class DocumentWriter {
         }
     }
 
-    private PrismNamespaceContext determineSerializationNamespaceContext(MapXNodeImpl map, PrismNamespaceContext current, DefinitionContext itemDef) throws IOException {
+    private PrismNamespaceContext determineSerializationNamespaceContext(MapXNodeImpl map, PrismNamespaceContext current, XNodeDefinition itemDef) throws IOException {
         SerializationOptions opts = ctx.prismSerializationContext.getOptions();
         if (!SerializationOptions.isUseNsProperty(opts) || map.isEmpty()) {
             return PrismNamespaceContext.EMPTY;
@@ -323,7 +322,7 @@ class DocumentWriter {
         }
     }
 
-    private String determineNewCurrentNamespace(MapXNodeImpl map, String currentNamespace, DefinitionContext itemDef) {
+    private String determineNewCurrentNamespace(MapXNodeImpl map, String currentNamespace, XNodeDefinition itemDef) {
         Map<String,Integer> counts = new HashMap<>();
         for (QName childName : map.keySet()) {
             String childNs = childName.getNamespaceURI();
@@ -355,7 +354,7 @@ class DocumentWriter {
         counts.put(childNs, c != null ? c+1 : 1);
     }
 
-    private String createKeyUri(Map.Entry<QName, XNodeImpl> entry, PrismNamespaceContext context, DefinitionContext entryDef) {
+    private String createKeyUri(Map.Entry<QName, XNodeImpl> entry, PrismNamespaceContext context, XNodeDefinition entryDef) {
         QName key = entry.getKey();
         if(entryDef.definedInParent()) {
             // TODO: Maybe other key could conflict in extensions

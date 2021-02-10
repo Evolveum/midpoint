@@ -9,7 +9,7 @@ package com.evolveum.midpoint.prism.impl.lex.json.reader;
 
 import com.evolveum.midpoint.prism.impl.ParsingContextImpl;
 import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
-import com.evolveum.midpoint.prism.impl.lex.json.DefinitionContext;
+import com.evolveum.midpoint.prism.impl.xnode.XNodeDefinition;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.fasterxml.jackson.core.JsonParser;
 
@@ -26,7 +26,7 @@ class JsonReadingContext {
     @NotNull final AbstractReader.YamlTagResolver yamlTagResolver;
 
     private boolean aborted;
-    private final DefinitionContext.Root rootContext;
+    private final XNodeDefinition.Root rootContext;
 
     JsonReadingContext(@NotNull JsonParser parser, @NotNull ParsingContextImpl prismParsingContext,
             @NotNull LexicalProcessor.RootXNodeHandler objectHandler, @NotNull AbstractReader.YamlTagResolver yamlTagResolver,
@@ -35,7 +35,7 @@ class JsonReadingContext {
         this.prismParsingContext = prismParsingContext;
         this.objectHandler = objectHandler;
         this.yamlTagResolver = yamlTagResolver;
-        this.rootContext = DefinitionContext.root(schemaRegistry);
+        this.rootContext = XNodeDefinition.root(schemaRegistry);
     }
 
 
@@ -56,7 +56,7 @@ class JsonReadingContext {
         return " At: " + getPositionSuffix();
     }
 
-    public DefinitionContext.Root rootDefinition() {
+    public XNodeDefinition.Root rootDefinition() {
         return rootContext;
     }
 
