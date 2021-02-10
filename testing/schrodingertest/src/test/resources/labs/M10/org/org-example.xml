@@ -470,4 +470,41 @@ xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
         <displayName>IT Administration Department</displayName>
         <identifier>0212</identifier>
     </org>
+    <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" oid="d204ad20-f73b-42c6-9f3d-e0ec5cbb4311" version="1">
+        <name>0919</name>
+        <parentOrgRef oid="86dc5220-2c2f-11e6-a94f-3c970e44b9e2" relation="org:default" type="c:OrgType">
+            <!-- 0910 -->
+        </parentOrgRef>
+        <assignment id="1">
+            <targetRef oid="86dc5220-2c2f-11e6-a94f-3c970e44b9e2" relation="org:default" type="c:OrgType">
+                <!-- 0910 -->
+            </targetRef>
+            <activation>
+                <effectiveStatus>enabled</effectiveStatus>
+            </activation>
+        </assignment>
+        <assignment id="2">
+            <targetRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="dc18c532-6022-11e9-ae4b-53f281ce01f4" relation="org:default" type="tns:ArchetypeType">
+                <!-- Organization -->
+            </targetRef>
+            <activation>
+                <effectiveStatus>enabled</effectiveStatus>
+            </activation>
+        </assignment>
+        <iteration>0</iteration>
+        <iterationToken/>
+        <archetypeRef oid="dc18c532-6022-11e9-ae4b-53f281ce01f4" relation="org:default" type="c:ArchetypeType">
+            <!-- Organization -->
+        </archetypeRef>
+        <roleMembershipRef oid="86dc5220-2c2f-11e6-a94f-3c970e44b9e2" relation="org:default" type="c:OrgType">
+            <!-- 0910 -->
+        </roleMembershipRef>
+        <roleMembershipRef oid="dc18c532-6022-11e9-ae4b-53f281ce01f4" relation="org:default" type="c:ArchetypeType">
+            <!-- Organization -->
+        </roleMembershipRef>
+        <activation>
+            <effectiveStatus>enabled</effectiveStatus>
+        </activation>
+        <displayName>Warp Speed Research</displayName>
+    </org>
 </objects>
