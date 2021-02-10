@@ -50,6 +50,7 @@ class DomReader {
     private final Element root;
     private final QName rootElementName;
     private final SchemaRegistry schemaRegistry;
+    private final XNodeDefinition.Root schema;
     private final PrismNamespaceContext rootContext;
 
     @NotNull private final QName valueElementName;
@@ -62,6 +63,7 @@ class DomReader {
         this.valueElementName = new QName(schemaRegistry.getDefaultNamespace(), VALUE_LOCAL_PART);
         this.metadataElementName = new QName(schemaRegistry.getDefaultNamespace(), DomReader.METADATA_LOCAL_PART);
         this.rootContext = rootContext;
+        this.schema = XNodeDefinition.root(schemaRegistry);
     }
 
     DomReader(Document document, SchemaRegistry schemaRegistry) {
@@ -88,7 +90,7 @@ class DomReader {
 
     @NotNull RootXNodeImpl read() throws SchemaException {
         RootXNodeImpl xroot = new RootXNodeImpl(rootElementName, rootContext);
-        XNodeImpl xnode = readElementContent(root, rootElementName, rootContext, false);
+        XNodeImpl xnode = readElementContent(root, null, schema, rootContext, false);
         xroot.setSubnode(xnode);
         return xroot;
     }
@@ -105,11 +107,16 @@ class DomReader {
      * @param parentContext
      */
     @NotNull
-    private XNodeImpl readElementContent(@NotNull Element element, QName knownElementName, PrismNamespaceContext parentContext, boolean storeElementName) throws SchemaException {
+    private XNodeImpl readElementContent(@NotNull Element element, @Nullable XNodeDefinition itemDef, @NotNull XNodeDefinition parentDef, PrismNamespaceContext parentContext, boolean storeElementName) throws SchemaException {
         XNodeImpl node;
+        // If definition is not resolved already, resolve it
+        itemDef = itemDef != null ? itemDef : parentDef.child(DOMUtil.getQName(element));
 
         QName xsiType = DOMUtil.resolveXsiType(element);
-        QName elementName = knownElementName != null ? knownElementName : DOMUtil.getQName(element);
+        if(xsiType != null) {
+            itemDef = itemDef.withType(xsiType);
+        }
+        QName elementName = itemDef.getName();
 
         // FIXME: read namespaces
         Map<String, String> localNamespaces = DOMUtil.getNamespaceDeclarationsNonNull(element);
@@ -117,12 +124,12 @@ class DomReader {
 
         Element valueChild = DOMUtil.getMatchingChildElement(element, valueElementName);
         if (valueChild != null) {
-            node = readElementContent(valueChild, elementName, localNsCtx, false);
+            node = readElementContent(valueChild, itemDef.valueDef(), parentDef, localNsCtx, false);
         } else if (DOMUtil.hasChildElements(element) || DOMUtil.hasApplicationAttributes(element)) {
-            if (isList(element, elementName, xsiType)) {
-                node = readElementContentToList(element, localNsCtx);
+            if (isList(element, itemDef, xsiType)) {
+                node = readElementContentToList(element, itemDef, localNsCtx);
             } else {
-                node = readElementContentToMap(element, localNsCtx);
+                node = readElementContentToMap(element, itemDef, localNsCtx);
             }
         } else if (DOMUtil.isMarkedAsIncomplete(element)) {
             // Note that it is of no use to check for "incomplete" on non-leaf elements. In XML the incomplete attribute
@@ -141,7 +148,7 @@ class DomReader {
     private void readMetadata(@NotNull Element element, XNodeImpl node, PrismNamespaceContext parentNsContext) throws SchemaException {
         List<Element> metadataChildren = DOMUtil.getMatchingChildElements(element, metadataElementName);
         for (Element metadataChild : metadataChildren) {
-            XNodeImpl metadata = readElementContent(metadataChild, null, parentNsContext, false);
+            XNodeImpl metadata = readElementContent(metadataChild, schema.metadataDef(), schema, parentNsContext, false);
             if (metadata instanceof MapXNode) {
                 if (node instanceof MetadataAware) {
                     ((MetadataAware) node).addMetadataNode((MapXNode) metadata);
@@ -190,14 +197,14 @@ class DomReader {
     }
 
     // all the sub-elements should be compatible (this is not enforced here, however)
-    private ListXNodeImpl readElementContentToList(Element element, PrismNamespaceContext parentNsContext) throws SchemaException {
+    private ListXNodeImpl readElementContentToList(Element element, XNodeDefinition parentDef, PrismNamespaceContext parentNsContext) throws SchemaException {
         if (DOMUtil.hasApplicationAttributes(element)) {
             throw new SchemaException("List should have no application attributes: " + element);
         }
-        return parseElementList(DOMUtil.listChildElements(element), null, true, parentNsContext);
+        return parseElementList(DOMUtil.listChildElements(element), null, parentDef, parentNsContext, true);
     }
 
-    private MapXNodeImpl readElementContentToMap(Element element, PrismNamespaceContext localNsContext) throws SchemaException {
+    private MapXNodeImpl readElementContentToMap(Element element, @NotNull XNodeDefinition parentDef, PrismNamespaceContext localNsContext) throws SchemaException {
         MapXNodeImpl xmap = new MapXNodeImpl(localNsContext);
 
         // Attributes
@@ -208,25 +215,25 @@ class DomReader {
         }
 
         // Sub-elements
-        QName lastElementName = null;
+        QName lastName = null;
         List<Element> lastElements = null;
         for (Element childElement : DOMUtil.listChildElements(element)) {
             QName childName = DOMUtil.getQName(childElement);
             if (QNameUtil.match(childName, metadataElementName)) {
                 continue;
             }
-            if (!match(childName, lastElementName)) {
-                parseSubElementsGroupAsMapEntry(xmap, lastElementName, lastElements, localNsContext);
-                lastElementName = childName;
+            if (!match(childName, lastName)) {
+                parseSubElementsGroupAsMapEntry(xmap, lastElements, lastName, parentDef, localNsContext);
+                lastName = childName;
                 lastElements = new ArrayList<>();
             }
             lastElements.add(childElement);
         }
-        parseSubElementsGroupAsMapEntry(xmap, lastElementName, lastElements, localNsContext);
+        parseSubElementsGroupAsMapEntry(xmap, lastElements, lastName, parentDef, localNsContext);
         return xmap;
     }
 
-    private boolean isList(@NotNull Element element, @NotNull QName elementName, @Nullable QName xsiType) {
+    private boolean isList(@NotNull Element element, @NotNull @Nullable XNodeDefinition itemDef, @Nullable QName xsiType) {
         String isListAttribute = DOMUtil.getAttribute(element, DOMUtil.IS_LIST_ATTRIBUTE_NAME);
         if (StringUtils.isNotEmpty(isListAttribute)) {
             return Boolean.parseBoolean(isListAttribute);
@@ -236,7 +243,7 @@ class DomReader {
 //            return false;
 //        }
 
-        SchemaRegistry.IsList fromSchema = schemaRegistry.isList(xsiType, elementName);
+        SchemaRegistry.IsList fromSchema = schemaRegistry.isList(xsiType, itemDef.getName());
         if (fromSchema != SchemaRegistry.IsList.MAYBE) {
             return fromSchema == SchemaRegistry.IsList.YES;
         }
@@ -282,25 +289,27 @@ class DomReader {
     }
 
     // All elements share the same elementName
-    private void parseSubElementsGroupAsMapEntry(MapXNodeImpl xmap, QName elementName, List<Element> elements, PrismNamespaceContext parentNsContext) throws SchemaException {
+    private void parseSubElementsGroupAsMapEntry(MapXNodeImpl xmap, List<Element> elements, QName itemName, @NotNull XNodeDefinition parentDef, PrismNamespaceContext parentNsContext) throws SchemaException {
         if (elements == null || elements.isEmpty()) {
             return;
         }
         XNodeImpl xsub;
+        XNodeDefinition itemDef = parentDef.child(itemName);
+
         // We really want to have equals here, not match
         // we want to be very explicit about namespace here
-        if (elementName.equals(SCHEMA_ELEMENT_QNAME)) {
+        if (itemDef.getName().equals(SCHEMA_ELEMENT_QNAME)) {
             if (elements.size() == 1) {
                 xsub = parseSchemaElement(elements.iterator().next(), parentNsContext);
             } else {
                 throw new SchemaException("Too many schema elements");
             }
         } else if (elements.size() == 1) {
-            xsub = readElementContent(elements.get(0), elementName, parentNsContext, false);
+            xsub = readElementContent(elements.get(0), itemDef, parentDef, parentNsContext, false);
         } else {
-            xsub = parseElementList(elements, elementName, false, parentNsContext);
+            xsub = parseElementList(elements, itemDef, parentDef, parentNsContext, false);
         }
-        xmap.merge(elementName, xsub);
+        xmap.merge(itemDef.getName(), xsub);
     }
 
     /**
@@ -308,16 +317,17 @@ class DomReader {
      * <p>
      * Either they have the same element name, or they are stored as a sub-elements of "list" parent element.
      * @param parentNsContext
+     * @param parentDef
      */
     @NotNull
     @Contract("!null, null, false -> fail")
-    private ListXNodeImpl parseElementList(List<Element> elements, QName elementName, boolean storeElementNames, PrismNamespaceContext parentNsContext) throws SchemaException {
-        if (!storeElementNames && elementName == null) {
+    private ListXNodeImpl parseElementList(List<Element> elements, @Nullable XNodeDefinition itemDef, @NotNull XNodeDefinition parentDef, PrismNamespaceContext parentNsContext, boolean storeElementNames) throws SchemaException {
+        if (!storeElementNames && itemDef == null) {
             throw new IllegalArgumentException("When !storeElementNames the element name must be specified");
         }
         ListXNodeImpl xlist = new ListXNodeImpl(parentNsContext);
         for (Element element : elements) {
-            xlist.add(readElementContent(element, elementName, parentNsContext, storeElementNames));
+            xlist.add(readElementContent(element, itemDef, parentDef, parentNsContext, storeElementNames));
         }
         return xlist;
     }

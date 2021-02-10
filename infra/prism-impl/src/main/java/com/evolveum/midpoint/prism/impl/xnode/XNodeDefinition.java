@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismNamespaceContext;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.impl.lex.json.JsonInfraItems;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -207,6 +208,19 @@ public abstract class XNodeDefinition {
 
 
         XNodeDefinition awareFrom(QName name, ItemDefinition<?> definition, boolean inherited) {
+            if(definition instanceof PrismReferenceDefinition) {
+                var refDef = ((PrismReferenceDefinition) definition);
+                QName compositeName = refDef.getCompositeObjectElementName();
+                // FIXME: MID-6818 We use lastName in xmaps, because references returns accountRef even for account
+                // where these two are really different types - accountRef is strict reference
+                // account is composite reference (probably should be different types altogether)
+                if(QNameUtil.match(name, compositeName)) {
+                    // Return composite item definition
+                    return fromType(compositeName, refDef.getTargetTypeName(), inherited);
+                }
+
+            }
+
             if(definition != null) {
                 return awareFrom(definition.getItemName(), definition.getTypeName(),definition.structuredType(), inherited);
             }
@@ -436,5 +450,9 @@ public abstract class XNodeDefinition {
     public abstract @NotNull XNodeDefinition withType(QName typeName);
 
     public abstract XNodeDefinition metadataDef();
+
+    public XNodeDefinition valueDef() {
+        return valueContext();
+    }
 
 }
