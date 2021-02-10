@@ -1,22 +1,20 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.prism.query.builder;
+
+import java.util.Collection;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.RefFilter;
 
-import javax.xml.namespace.QName;
-import java.util.Collection;
-
-/**
- * @author mederly
- */
 public interface S_ConditionEntry {
     S_MatchingRuleEntry eq(Object... values);
     <T> S_MatchingRuleEntry eq(PrismProperty<T> property);            // TODO implement something like itemAs(property) to copy the property definition, path, and values into filter
@@ -47,8 +45,16 @@ public interface S_ConditionEntry {
     S_AtomicFilterExit ref(Collection<PrismReferenceValue> values, boolean nullTypeAsAny);                          // beware, nullTypeAsAny=false is supported only by built-in match(..) method
     S_AtomicFilterExit ref(Collection<PrismReferenceValue> values, boolean nullOidAsAny, boolean nullTypeAsAny);    // beware, nullTypeAsAny=false and nullOidAsAny=false are supported only by built-in match(..) method
     S_AtomicFilterExit ref(RefFilter filter);
-    S_AtomicFilterExit ref(String... oid);          // TODO define semantics for oid == null
-    S_AtomicFilterExit ref(String oid, QName targetTypeName);       // TODO define semantics for oid == null
-    S_AtomicFilterExit isNull();
 
+    /**
+     * Creates filter matching any of provided OIDs; works like {@link #isNull()} with no/null OID.
+     */
+    S_AtomicFilterExit ref(String... oid);
+
+    /**
+     * Creates filter matching oid and/or targetTypeName, any of them optional.
+     * If both are null the result is the same like {@link #isNull()} (null ref OID matches).
+     */
+    S_AtomicFilterExit ref(@Nullable String oid, @Nullable QName targetTypeName);
+    S_AtomicFilterExit isNull();
 }
