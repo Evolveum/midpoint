@@ -148,7 +148,7 @@ class DocumentWriter {
         for (Map.Entry<QName, XNodeImpl> entry : map.entrySet()) {
             if (entry.getValue() != null) {
                 XNodeDefinition entryDef = itemDef.child(entry.getKey());
-                generator.writeFieldName(createKeyUri(entry, localNamespace, entryDef));
+                generator.writeFieldName(createKeyUri(entry, localNamespace, entryDef, itemDef));
                 write(entry.getValue(), localNamespace, false, entryDef);
             }
         }
@@ -169,13 +169,13 @@ class DocumentWriter {
         writeInlineTypeIfNeeded(primitive);
 
         var schemaType = def.getType();
+
         if (!primitive.isParsed() && schemaType.isPresent()) {
             // Node is unparsed, but we know type, so we can reparse it
             try {
                 primitive.getParsedValue(schemaType.get(), Object.class);
             } catch (SchemaException e) {
                 // We will fail silently and continue writing with unparsed value
-                e.toString();
             }
         }
 
@@ -354,24 +354,23 @@ class DocumentWriter {
         counts.put(childNs, c != null ? c+1 : 1);
     }
 
-    private String createKeyUri(Map.Entry<QName, XNodeImpl> entry, PrismNamespaceContext context, XNodeDefinition entryDef) {
+    private String createKeyUri(Map.Entry<QName, XNodeImpl> entry, PrismNamespaceContext context, XNodeDefinition entryDef, XNodeDefinition itemDef) {
         QName key = entry.getKey();
         if(entryDef.definedInParent()) {
-            // TODO: Maybe other key could conflict in extensions
             return key.getLocalPart();
         }
 
         String localNamespace = context.defaultNamespace().orElse("");
-        if (namespaceMatch(localNamespace, key.getNamespaceURI())) {
+        if (namespaceMatch(localNamespace, key.getNamespaceURI())
+                && !itemDef.child(new QName(key.getLocalPart())).definedInParent()) {
             return key.getLocalPart();
         }
         if(StringUtils.isNotEmpty(key.getNamespaceURI())) {
-            Optional<String> prefix = context.prefixFor(key.getNamespaceURI());
+            Optional<String> prefix = context.withoutDefault().prefixFor(key.getNamespaceURI());
             if(prefix.isPresent()) {
                 return prefix.get() + ":" + key.getLocalPart();
             }
         }
-
         // items with no namespace should be written as such (starting with '#')
         // items with no namespace can be written in plain
         return QNameUtil.qNameToUri(key, StringUtils.isNotEmpty(localNamespace) && !isAttribute(entry.getValue()));
