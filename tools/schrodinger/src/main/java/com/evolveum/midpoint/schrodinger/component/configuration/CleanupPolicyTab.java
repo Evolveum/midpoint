@@ -27,6 +27,10 @@ public class CleanupPolicyTab extends TabWithContainerWrapper<SystemPage> {
         return getCleanupIntervalValueByContainerResourceKey("CleanupPoliciesType.auditRecords");
     }
 
+    public String getAuditRecordsMaxRecordsToKeep() {
+        return getMaxRecordsToKeepValueByContainerResourceKey("CleanupPoliciesType.auditRecords");
+    }
+
     public CleanupPolicyTab closedCertificationCampaignsCleanupInterval(String interval) {
         setCleanupIntervalValueByContainerResourceKey("CleanupPoliciesType.closedCertificationCampaigns", interval);
         return this;
@@ -39,6 +43,10 @@ public class CleanupPolicyTab extends TabWithContainerWrapper<SystemPage> {
 
     public String getClosedCertificationCampaignsCleanupInterval() {
         return getCleanupIntervalValueByContainerResourceKey("CleanupPoliciesType.closedCertificationCampaigns");
+    }
+
+    public String getClosedCertificationCampaignsMaxRecordsToKeep() {
+        return getMaxRecordsToKeepValueByContainerResourceKey("CleanupPoliciesType.closedCertificationCampaigns");
     }
 
     public CleanupPolicyTab closedTasksCleanupInterval(String interval) {
@@ -55,6 +63,10 @@ public class CleanupPolicyTab extends TabWithContainerWrapper<SystemPage> {
         return getCleanupIntervalValueByContainerResourceKey("CleanupPoliciesType.closedTasks");
     }
 
+    public String getClosedTasksMaxRecordsToKeep() {
+        return getMaxRecordsToKeepValueByContainerResourceKey("CleanupPoliciesType.closedTasks");
+    }
+
     public CleanupPolicyTab closedCasesCleanupInterval(String interval) {
         setCleanupIntervalValueByContainerResourceKey("CleanupPoliciesType.closedCases", interval);
         return this;
@@ -67,6 +79,10 @@ public class CleanupPolicyTab extends TabWithContainerWrapper<SystemPage> {
 
     public String getClosedCasesCleanupInterval() {
         return getCleanupIntervalValueByContainerResourceKey("CleanupPoliciesType.closedCases");
+    }
+
+    public String getClosedCasesMaxRecordsToKeep() {
+        return getMaxRecordsToKeepValueByContainerResourceKey("CleanupPoliciesType.closedCases");
     }
 
     public CleanupPolicyTab outputReportsCleanupInterval(String interval) {
@@ -83,6 +99,10 @@ public class CleanupPolicyTab extends TabWithContainerWrapper<SystemPage> {
         return getCleanupIntervalValueByContainerResourceKey("CleanupPoliciesType.outputReports");
     }
 
+    public String getOutputReportsMaxRecordsToKeep() {
+        return getMaxRecordsToKeepValueByContainerResourceKey("CleanupPoliciesType.outputReports");
+    }
+
     public CleanupPolicyTab objectResultsCleanupInterval(String interval) {
         setCleanupIntervalValueByContainerResourceKey("CleanupPoliciesType.objectResults", interval);
         return this;
@@ -95,6 +115,10 @@ public class CleanupPolicyTab extends TabWithContainerWrapper<SystemPage> {
 
     public String getObjectResultsCleanupInterval() {
         return getCleanupIntervalValueByContainerResourceKey("CleanupPoliciesType.objectResults");
+    }
+
+    public String getObjectResultsMaxRecordsToKeep() {
+        return getMaxRecordsToKeepValueByContainerResourceKey("CleanupPoliciesType.objectResults");
     }
 
     private void setCleanupIntervalValueByContainerResourceKey(String containerResourceKey, String interval) {

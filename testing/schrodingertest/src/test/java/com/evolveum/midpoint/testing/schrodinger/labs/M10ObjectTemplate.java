@@ -36,6 +36,8 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author skublik
@@ -57,6 +59,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
     private static final File KIRK_USER_TIBERIUS_FILE = new File("./src/test/resources/labs/objects/users/kirk-tiberius-user.xml");
     private static final File INTERNAL_EMPLOYEE_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-internal-employee.xml");
     private static final File ORG_EXAMPLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "org/org-example.xml");
+    private static final File ORG_WARP_SPEED_RESEARCH_FILE = new File(LAB_OBJECTS_DIRECTORY + "org/warp-speed-research.xml");
     private static final File ORG_SECRET_OPS_FILE = new File(LAB_OBJECTS_DIRECTORY + "org/org-secret-ops.xml");
     private static final File NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE = new File(LAB_OBJECTS_DIRECTORY + "valuepolicies/numeric-pin-first-nonzero-policy.xml");
     private static final File CSV_1_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-10.xml");
@@ -95,24 +98,26 @@ public class M10ObjectTemplate extends AbstractLabTest{
         super.beforeClass();
     }
 
-//    @Override
-//    protected List<File> getObjectListToImport(){
-//        return Arrays.asList(OBJECT_TEMPLATE_USER_FILE, ARCHETYPE_EMPLOYEE_FILE, ARCHETYPE_ORG_FUNCTIONAL_FILE, ARCHETYPE_ORG_COMPANY_FILE, ARCHETYPE_ORG_GROUP_FILE,
-//                ARCHETYPE_ORG_GROUP_LIST_FILE, KIRK_USER_TIBERIUS_FILE, INTERNAL_EMPLOYEE_ROLE_FILE, ORG_EXAMPLE_FILE, ORG_SECRET_OPS_FILE);
-//    }
+    @Override
+    protected List<File> getObjectListToImport(){
+        return Arrays.asList(ARCHETYPE_EMPLOYEE_FILE, ARCHETYPE_ORG_FUNCTIONAL_FILE, ARCHETYPE_ORG_COMPANY_FILE, ARCHETYPE_ORG_GROUP_FILE,
+                ARCHETYPE_ORG_GROUP_LIST_FILE, OBJECT_TEMPLATE_USER_SIMPLE_FILE, KIRK_USER_TIBERIUS_FILE,
+                ORG_EXAMPLE_FILE, ORG_SECRET_OPS_FILE, ORG_WARP_SPEED_RESEARCH_FILE, NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE);
+    }
 
     @Test
     public void mod10test01SimpleObjectTemplate() throws IOException {
-        importObject(ARCHETYPE_EMPLOYEE_FILE, true, true);
-        importObject(ARCHETYPE_ORG_FUNCTIONAL_FILE, true, true);
-        importObject(ARCHETYPE_ORG_COMPANY_FILE, true, true);
-        importObject(ARCHETYPE_ORG_GROUP_FILE, true, true);
-        importObject(ARCHETYPE_ORG_GROUP_LIST_FILE, true, true);
-        importObject(OBJECT_TEMPLATE_USER_SIMPLE_FILE, true, true);
-        importObject(KIRK_USER_TIBERIUS_FILE, true, true);
-        importObject(ORG_EXAMPLE_FILE, true, true);
-        importObject(ORG_SECRET_OPS_FILE, true, true);
-        importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE, true, true);
+//        importObject(ARCHETYPE_EMPLOYEE_FILE, true, true);
+//        importObject(ARCHETYPE_ORG_FUNCTIONAL_FILE, true, true);
+//        importObject(ARCHETYPE_ORG_COMPANY_FILE, true, true);
+//        importObject(ARCHETYPE_ORG_GROUP_FILE, true, true);
+//        importObject(ARCHETYPE_ORG_GROUP_LIST_FILE, true, true);
+//        importObject(OBJECT_TEMPLATE_USER_SIMPLE_FILE, true, true);
+//        importObject(KIRK_USER_TIBERIUS_FILE, true, true);
+//        importObject(ORG_EXAMPLE_FILE, true, true);
+//        importObject(ORG_SECRET_OPS_FILE, true, true);
+//        importObject(ORG_WARP_SPEED_RESEARCH_FILE, true);
+//        importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE, true, true);
 
         hrTargetFile = new File(getTestTargetDir(), HR_FILE_SOURCE_NAME);
         FileUtils.copyFile(HR_SOURCE_FILE_7_4_PART_4, hrTargetFile);
