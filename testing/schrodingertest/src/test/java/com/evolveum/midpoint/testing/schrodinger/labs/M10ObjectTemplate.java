@@ -120,16 +120,6 @@ public class M10ObjectTemplate extends AbstractLabTest{
         importObject(HR_RESOURCE_FILE_10, true);
         changeResourceAttribute(HR_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, hrTargetFile.getAbsolutePath(), true);
 
-        importObject(HR_IMPORT_TASK_FILE);
-        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
-        showTask("Initial import from HR")
-                .clickRunNow();
-        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
-
-        importObject(HR_SYNCHRONIZATION_TASK_FILE);
-        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
-
-
         csv3TargetFile = new File(getTestTargetDir(), CSV_3_FILE_SOURCE_NAME);
         FileUtils.copyFile(CSV_3_SOURCE_FILE, csv3TargetFile);
 
@@ -149,6 +139,15 @@ public class M10ObjectTemplate extends AbstractLabTest{
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
 
         importObject(INTERNAL_EMPLOYEE_ROLE_FILE, true, true);
+
+        importObject(HR_IMPORT_TASK_FILE);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        showTask("Initial import from HR")
+                .clickRunNow();
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
+
+        importObject(HR_SYNCHRONIZATION_TASK_FILE);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
 
         basicPage.listResources()
                 .table()
@@ -295,6 +294,28 @@ public class M10ObjectTemplate extends AbstractLabTest{
 
     @Test(dependsOnMethods = {"mod10test02AutomaticAssignments"})
     public void mod10test03LookupTablesAndAttributeOverrides() {
+        showUser("kirk").selectTabAssignments()
+                .clickAddAssignemnt("New Organization type assignment with Member relation")
+                    .table()
+                        .paging()
+                        .next()
+                        .and()
+                    .and()
+                    .table()
+                        .search()
+                            .byName()
+                            .inputValue("0919")
+                            .updateSearch()
+                        .and()
+                        .rowByColumnLabel("Name", "0919")
+                        .clickCheckBox()
+                        .and()
+                    .and()
+                    .clickAdd()
+                .and()
+                .clickSave()
+                    .feedback()
+                        .isSuccess();
 
         PrismForm<AssignmentHolderBasicTab<UserPage>> form = showUser("kirk")
                 .selectTabBasic()
@@ -333,12 +354,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
     public void mod10test04FinishingManagerMapping() {
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
         showTask("User Recomputation Task").clickRunNow();
-        Selenide.screenshot("Taskrun");
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
-        Selenide.screenshot("Taskrun1");
-
-        showUser("John Wicks").selectTabAssignments();
-        Selenide.screenshot("John_Wicks");
 
         OrgRootTab rootTab = basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure");
@@ -348,7 +364,6 @@ public class M10ObjectTemplate extends AbstractLabTest{
                 .selectOrgInTree("IT Administration Department")
                 .and()
                 .getManagerPanel();
-        Selenide.screenshot("managersPanel");
         managerPanel
                 .assertContainsManager("John Wicks");
 
