@@ -21,6 +21,7 @@ import com.querydsl.core.types.dsl.ComparableExpressionBase;
 import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -308,6 +309,10 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
 
     public SqlRepoContext sqlRepoContext() {
         return sqlRepoContext;
+    }
+
+    public PrismContext prismContext() {
+        return transformerContext.prismContext();
     }
 
     public abstract <T> Class<? extends T> qNameToSchemaClass(@NotNull QName qName);
