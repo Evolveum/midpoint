@@ -23,10 +23,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -1130,25 +1127,69 @@ public class SearchTest extends BaseSQLRepoTest {
         assertNotNull("Null createTimestamp", workItems.get(0).getCreateTimestamp());
     }
 
-    // TODO WIP MID-6799
+    // MID-6799, MID-6393
     @Test
-    public void test920Assignment() throws SchemaException {
-        given();
+    public void test920AssignmentsForOwner() throws SchemaException {
+        given("query for assignments of a specified owner");
         ObjectQuery query = prismContext.queryFor(AssignmentType.class)
                 .ownerId(x00002Oid)
                 .build();
         OperationResult result = new OperationResult("search");
 
-        when();
+        when("executing container search");
         SearchResultList<AssignmentType> assignments =
                 repositoryService.searchContainers(AssignmentType.class, query, null, result);
         result.recomputeStatus();
-        // TODO + target ref type
 
-        then();
+        then("all assignments of that owner are returned");
         assertThat(result.isSuccess()).isTrue();
         assertThat(assignments).hasSize(3);
-        // TODO asserts
+    }
+
+    @Test
+    public void test921AssignmentsOfSomeType() throws SchemaException {
+        given("query for assignments with target ref type of Role");
+        ObjectQuery query = prismContext.queryFor(AssignmentType.class)
+                .item(AssignmentType.F_TARGET_REF).ref(null, RoleType.COMPLEX_TYPE)
+                .and().ownerId(x00002Oid)
+                .build();
+        OperationResult result = new OperationResult("search");
+
+        when("executing container search");
+        SearchResultList<AssignmentType> assignments =
+                repositoryService.searchContainers(AssignmentType.class, query, null, result);
+        result.recomputeStatus();
+
+        then("only assignment with target ref type equal to Role"
+                + " (with default relation which is implied) is returned");
+        assertThat(result.isSuccess()).isTrue();
+        assertThat(assignments).hasSize(1);
+        assertThat(assignments.get(0).getTargetRef().getType()).isEqualTo(RoleType.COMPLEX_TYPE);
+    }
+
+    @Test
+    public void test922AssignmentsWithSpecifiedTargetName() throws SchemaException {
+        given("query for assignment to organization with specified name");
+        ObjectQuery query = prismContext.queryFor(AssignmentType.class)
+                .item(AssignmentType.F_TARGET_REF).ref(null, OrgType.COMPLEX_TYPE)
+                .and()
+                .item(AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, F_NAME)
+                .eq("F0085")
+                // skipping owner this time, although this is fishy as it is not currently in the returned values
+                .asc(AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, F_NAME)
+                .build();
+        OperationResult result = new OperationResult("search");
+
+        when("executing container search");
+        SearchResultList<AssignmentType> assignments =
+                repositoryService.searchContainers(AssignmentType.class, query, null, result);
+        result.recomputeStatus();
+
+        then("only assignment to the specified organization is returned");
+        assertThat(result.isSuccess()).isTrue();
+        assertThat(assignments).hasSize(1);
+        // this OID in object.xml matches the F0085 name, the name itself is not in fetched data
+        assertThat(assignments.get(0).getTargetRef().getOid()).isEqualTo("00000000-8888-6666-0000-100000000085");
     }
 
     /**

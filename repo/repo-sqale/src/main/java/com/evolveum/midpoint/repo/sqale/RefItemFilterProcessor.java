@@ -88,6 +88,7 @@ public class RefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
             predicate = ExpressionUtils.and(predicate,
                     predicateWithNotTreated(relationIdPath, relationIdPath.eq(relationId)));
         } else if (!filter.isRelationNullAsAny()) {
+            // TODO add support for Q_ANY and use default relation by default instead of null
             predicate = ExpressionUtils.and(predicate, relationIdPath.isNull());
         }
         if (ref.getTargetType() != null) {
