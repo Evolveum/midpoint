@@ -493,6 +493,15 @@ public class PrismForm<T> extends Component<T> {
         return new PrismContainerPanel<PrismForm<T>>(this, containerPanel);
     }
 
+    public PrismContainerPanel<PrismForm<T>> getPrismContainerPanelByResourceKey(String resourceKey) {
+        SelenideElement containerPanel = getParentElement().$(Schrodinger.byDataResourceKey(resourceKey))
+                .parent()
+                .parent()
+                .parent();
+        containerPanel.scrollTo();
+        return new PrismContainerPanel<PrismForm<T>>(this, containerPanel);
+    }
+
     public PrismForm<T> assertPropertyWithTitleTextExist(String propertyName, String text) {
         Assert.assertTrue(propertyWithTitleTextExists(propertyName, text),
                 "Property " + propertyName + " with title text '" + text + "' doesn't exist.");
