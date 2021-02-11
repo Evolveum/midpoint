@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.prism.impl.lex.json;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
@@ -21,9 +22,10 @@ import com.evolveum.midpoint.prism.xnode.ValueParser;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.node.ValueNode;
+
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
@@ -32,13 +34,16 @@ import org.w3c.dom.Element;
 /**
  * TODO what about thread safety?
  */
-public class JsonValueParser<T> implements ValueParser<T> {
+public class JsonValueParser<T> implements ValueParser<T> , Serializable {
+
+
+    private static final long serialVersionUID = -5646889977104413611L;
 
     @NotNull private final ObjectMapper mapper;
-    private final JsonNode node;
+    private final ValueNode node;
     private final PrismNamespaceContext context;
 
-    public JsonValueParser(@NotNull JsonParser parser, JsonNode node, PrismNamespaceContext context) {
+    public JsonValueParser(@NotNull JsonParser parser, ValueNode node, PrismNamespaceContext context) {
         this.mapper = (ObjectMapper) parser.getCodec();
         this.node = node;
         this.context = context;
