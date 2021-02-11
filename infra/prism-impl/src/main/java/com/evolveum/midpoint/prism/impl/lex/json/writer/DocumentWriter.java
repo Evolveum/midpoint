@@ -358,6 +358,11 @@ class DocumentWriter {
 
     private String createKeyUri(Map.Entry<QName, XNodeImpl> entry, PrismNamespaceContext context, XNodeDefinition entryDef, XNodeDefinition itemDef) {
         QName key = entry.getKey();
+        XNodeImpl node = entry.getValue();
+        if (isAttribute(node) && QNameUtil.match(XNodeImpl.KEY_CONTAINER_ID, key)) {
+            return JsonInfraItems.PROP_ID;
+        }
+
         if(entryDef.definedInParent()) {
             return key.getLocalPart();
         }

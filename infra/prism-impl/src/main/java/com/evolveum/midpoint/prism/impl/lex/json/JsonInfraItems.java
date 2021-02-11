@@ -66,4 +66,10 @@ public class JsonInfraItems {
     public static final String PROP_CONTEXT = "@context";
     public static final QName PROP_CONTEXT_QNAME = new QName(PROP_CONTEXT);
 
+    /**
+     *
+     */
+    public static final String PROP_ID = "@id";
+    public static final QName PROP_ID_QNAME = new QName(PROP_ID);
+
 }

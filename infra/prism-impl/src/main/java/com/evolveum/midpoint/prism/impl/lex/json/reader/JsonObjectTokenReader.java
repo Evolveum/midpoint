@@ -93,6 +93,8 @@ class JsonObjectTokenReader {
 
     private final XNodeDefinition parentDefinition;
 
+    private XNodeImpl containerId;
+
     private static final Map<QName, ItemProcessor> PROCESSORS = ImmutableMap.<QName, ItemProcessor>builder()
             // Namespace definition processing
             .put(PROP_NAMESPACE_QNAME, JsonObjectTokenReader::processNamespaceDeclaration)
@@ -107,6 +109,7 @@ class JsonObjectTokenReader {
             .put(PROP_ELEMENT_QNAME, namespaceSensitive(JsonObjectTokenReader::processElementNameDeclaration))
             .put(PROP_ITEM_QNAME, namespaceSensitive(JsonObjectTokenReader::processElementNameDeclaration))
 
+            .put(PROP_ID_QNAME, JsonObjectTokenReader::processId)
             .build();
 
     private static final ItemProcessor STANDARD_PROCESSOR = namespaceSensitive(JsonObjectTokenReader::processStandardFieldValue);
@@ -256,6 +259,13 @@ class JsonObjectTokenReader {
         replaceDefinition(maybeDefinition);
     }
 
+    private void processId(QName name, XNodeImpl value) {
+        if(value instanceof PrimitiveXNodeImpl<?>) {
+            ((PrimitiveXNodeImpl) value).setAttribute(true);
+        }
+        containerId = value;
+    }
+
     private void replaceDefinition(@NotNull XNodeDefinition maybeDefinition) {
         definition = definition.moreSpecific(maybeDefinition);
     }
@@ -309,10 +319,17 @@ class JsonObjectTokenReader {
                 ret = map; // map can be empty here
             }
         }
+        addIdTo(ret);
         addTypeNameTo(ret);
         addElementNameTo(ret);
         addMetadataTo(ret);
         return ret;
+    }
+
+    private void addIdTo(XNodeImpl ret) {
+        if(containerId != null && ret instanceof MapXNodeImpl) {
+            ((MapXNodeImpl) ret).put(XNodeImpl.KEY_CONTAINER_ID, containerId);
+        }
     }
 
     private void addMetadataTo(XNodeImpl rv) throws SchemaException {
