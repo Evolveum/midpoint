@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.impl.lex.json.JsonInfraItems;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.QNameUtil.PrefixedName;
 import com.evolveum.midpoint.util.QNameUtil.QNameInfo;
@@ -56,15 +57,7 @@ public abstract class XNodeDefinition {
 
     public @NotNull XNodeDefinition resolve(@NotNull String name, @NotNull PrismNamespaceContext namespaceContext) throws SchemaException {
         if (isInfra(name)) {
-            if (JsonInfraItems.PROP_VALUE.equals(name)) {
-                return valueContext();
-            }
-            if (JsonInfraItems.PROP_METADATA.equals(name)) {
-                return metadataDef();
-            }
-            // Infra properties are unqualified for now
-            // TODO: We could return definition for infra properties later
-            return unawareFrom(new QName(name));
+            return infra(name);
         }
         if (!QNameUtil.isUriQName(name)) {
             PrefixedName prefixed = QNameUtil.parsePrefixedName(name);
@@ -78,7 +71,7 @@ public abstract class XNodeDefinition {
             if (ns.isPresent()) {
                 return toContext(new QName(ns.get(), prefixed.localName()));
             } else if (!prefixed.prefix().isEmpty()) {
-                warnOrThrow("Undeclared prefix '%s'", prefixed.prefix());
+                warnOrThrow("Undeclared prefix '%s' , name: %s", prefixed.prefix(), name);
             } else {
                 return toContext(new QName(prefixed.localName()));
             }
@@ -93,6 +86,18 @@ public abstract class XNodeDefinition {
             }
         }
         return toContext(result.name);
+    }
+
+    private @NotNull XNodeDefinition infra(@NotNull String name) {
+        if (JsonInfraItems.PROP_VALUE.equals(name)) {
+            return valueContext();
+        }
+        if (JsonInfraItems.PROP_METADATA.equals(name)) {
+            return metadataDef();
+        }
+        // Infra properties are unqualified for now
+        // TODO: We could return definition for infra properties later
+        return unawareFrom(new QName(name));
     }
 
     public @NotNull XNodeDefinition unaware() {
@@ -123,7 +128,7 @@ public abstract class XNodeDefinition {
         return name.startsWith("@");
     }
 
-    private void warnOrThrow(String string, String prefix) throws SchemaException {
+    private void warnOrThrow(String string, Object... prefix) throws SchemaException {
         throw new SchemaException(Strings.lenientFormat(string, prefix));
     }
 
@@ -218,13 +223,13 @@ public abstract class XNodeDefinition {
                     // Return composite item definition
                     return fromType(compositeName, refDef.getTargetTypeName(), inherited);
                 }
-
+                // TODO: This could allow special handling of object reference attributes
+                //return new ObjectReference(name, definition.structuredType().get(), this, inherited);
             }
 
             if(definition != null) {
                 return awareFrom(definition.getItemName(), definition.getTypeName(),definition.structuredType(), inherited);
             }
-            // FIXME: Maybe we should retain schema?
             return unawareFrom(name);
         }
 
@@ -436,6 +441,27 @@ public abstract class XNodeDefinition {
             return Optional.ofNullable(type);
         }
 
+    }
+
+    private static class ObjectReference extends ComplexTypeAware {
+
+        public ObjectReference(QName name, ComplexTypeDefinition definition, SchemaRoot root, boolean inherited) {
+            super(name, definition, root, inherited);
+        }
+
+        @Override
+        protected XNodeDefinition resolveLocally(QName name) {
+            if (PrismConstants.ATTRIBUTE_OID_LOCAL_NAME.equals(name.getLocalPart())) {
+                return new SimpleType(new QName(name.getLocalPart()), DOMUtil.XSD_STRING, true, root);
+            }
+            if (PrismConstants.ATTRIBUTE_REF_TYPE_LOCAL_NAME.equals(name.getLocalPart())) {
+                return new SimpleType(new QName(name.getLocalPart()), DOMUtil.XSD_QNAME, true, root);
+            }
+            if (PrismConstants.ATTRIBUTE_RELATION_LOCAL_NAME.equals(name.getLocalPart())) {
+                return new SimpleType(new QName(name.getLocalPart()), DOMUtil.XSD_QNAME, true, root);
+            }
+            return super.resolveLocally(name);
+        }
     }
 
     @Override
