@@ -15,8 +15,10 @@ import java.util.function.Function;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 
 import org.jetbrains.annotations.NotNull;
@@ -35,14 +37,11 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -50,182 +49,78 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 /**
  * Single execution of a given search-iterative task part.
  *
- * TODO
+ * Takes care of preparing and issuing the search query.
+ *
+ * *TODO finish cleanup*
  */
 public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectType,
-        TH extends AbstractSearchIterativeTaskHandler<TH, TE>,
-        TE extends AbstractSearchIterativeTaskExecution<TH, TE>,
+        TH extends AbstractTaskHandler<TH, TE>,
+        TE extends AbstractTaskExecution<TH, TE>,
         PE extends AbstractSearchIterativeTaskPartExecution<O, TH, TE, PE, RH>,
-        RH extends AbstractSearchIterativeResultHandler<O, TH, TE, PE, RH>> {
-
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeTaskPartExecution.class);
-
-    /**
-     * The task handler. Used to access e.g. necessary Spring beans.
-     */
-    @NotNull protected final TH taskHandler;
-
-    /**
-     * Task execution. Maintains objects (e.g. resource definition, scan timestamps, and so on) common to all task parts.
-     */
-    @NotNull protected final TE taskExecution;
-
-    /**
-     * The persistent task that carries out the work.
-     * It can have lightweight asynchronous worker tasks (threads), hence the name.
-     *
-     * TODO better name
-     */
-    @NotNull protected final RunningTask localCoordinatorTask;
+        RH extends AbstractSearchIterativeItemProcessor<O, TH, TE, PE, RH>>
+    extends AbstractIterativeTaskPartExecution<PrismObject<O>, TH, TE, PE, RH> {
 
     /**
      * Current bucket that is being processed.
+     * It is used to narrow the search query.
      */
     @Nullable protected final WorkBucketType workBucket;
 
-    /**
-     * Definition of the task part that is being processed.
-     */
-    @Nullable protected final TaskPartitionDefinitionType partDefinition;
-
-    /**
-     * Result of the processing of previous work bucket. TODO what's the reason for this?
-     */
-    @Nullable protected final TaskWorkBucketProcessingResult previousRunResult;
-
-    /**
-     * Result of the processing of the current bucket in the current task part.
-     */
-    @NotNull protected final TaskWorkBucketProcessingResult runResult;
-
-    /**
-     * Result handler responsible for processing individual objects found.
-     */
-    protected RH resultHandler;
-
+    /** Object type provided when counting and retrieving objects. Set up in {@link #prepareItemSource(OperationResult)}. */
     protected Class<O> objectType;
 
+    /** Object query specifying what objects to process. Set up in {@link #prepareItemSource(OperationResult)}. */
     protected ObjectQuery query;
 
+    /** Options to be used during counting and searching. Set up in {@link #prepareItemSource(OperationResult)}. */
     protected Collection<SelectorOptions<GetOperationOptions>> searchOptions;
 
+    /**
+     * Whether we want to use repository directly when counting/searching. Set up in {@link #prepareItemSource(OperationResult)}.
+     * Can be "built-in" in the task (see {@link #requiresDirectRepositoryAccess}), or requested explicitly by the user.
+     * In the latter case the raw authorization is checked.
+     */
     protected boolean useRepository;
 
+    /**
+     * In some situations (e.g. because provisioning service does not allow searches without specifying resource
+     * or objectclass/kind) we need to use repository directly for some specific tasks or task parts.
+     */
+    private boolean requiresDirectRepositoryAccess;
+
     public AbstractSearchIterativeTaskPartExecution(TE taskExecution) {
-        this.taskHandler = taskExecution.taskHandler;
-        this.taskExecution = taskExecution;
-        this.localCoordinatorTask = taskExecution.localCoordinatorTask;
+        super(taskExecution);
         this.workBucket = taskExecution.workBucket;
-        this.partDefinition = taskExecution.partDefinition;
-        this.previousRunResult = taskExecution.previousRunResult;
-        this.runResult = taskExecution.getCurrentRunResult();
     }
 
-    public @NotNull TaskWorkBucketProcessingResult run(OperationResult opResult) throws SchemaException, ObjectNotFoundException,
-            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            TaskException, ObjectAlreadyExistsException, ThresholdPolicyViolationException {
-        LOGGER.trace("{} run starting: local coordinator task {}, bucket {}, previous run result {}",
-                taskHandler.taskTypeName, localCoordinatorTask, workBucket, previousRunResult);
-
-        checkTaskPersistence();
-
-        initialize(opResult);
-
+    @Override
+    protected void prepareItemSource(OperationResult opResult) throws TaskException, CommunicationException,
+            ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
+            ExpressionEvaluationException, ObjectAlreadyExistsException {
         objectType = determineObjectType();
-
-        resultHandler = setupHandler(opResult);
-
         query = prepareQuery(opResult);
         searchOptions = prepareSearchOptions(opResult);
         useRepository = prepareUseRepositoryFlag(opResult);
 
-        LOGGER.trace("{}: searching for {} with options {} (use repo directly: {}) and query:\n{}",
+        logger.trace("{}: searching for {} with options {} (use repo directly: {}) and query:\n{}",
                 getTaskTypeName(), objectType, searchOptions, useRepository, DebugUtil.debugDumpLazily(query));
 
-        // counting objects can be within try-catch block, because the handling is similar to handling errors within searchIterative
-        Long expectedTotal = computeExpectedTotalIfApplicable(opResult);
-        setExpectedTotal(expectedTotal, opResult);
-
-        resultHandler.createWorkerThreads();
-        try {
-            searchIterative(opResult);
-        } finally {
-            resultHandler.completeProcessing(localCoordinatorTask, opResult);
-        }
-
-        // TODO
-        Throwable exceptionEncountered = resultHandler.getExceptionEncountered();
-        if (exceptionEncountered != null) {
-            // FIXME this is a temporary hack
-            if (exceptionEncountered instanceof ThresholdPolicyViolationException) {
-                throw (ThresholdPolicyViolationException) exceptionEncountered;
-            } else {
-                return logErrorAndSetResult(runResult, opResult, resultHandler, exceptionEncountered.getMessage(), exceptionEncountered,
-                        FATAL_ERROR, PERMANENT_ERROR);
-            }
-        }
-
-        if (resultHandler.getErrors() > 0) {
-            opResult.setStatus(PARTIAL_ERROR);
-        } else {
-            opResult.setStatus(SUCCESS);
-        }
-        // TODO: check last handler status
-
-        runResult.setProgress(runResult.getProgress() + resultHandler.getProgress());     // TODO ?
-        runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
-
-        if (taskHandler.getReportingOptions().isLogFinishInfo()) {
-            logFinishInfo(opResult);
-        }
-
-        finish(opResult);
-
-        LOGGER.trace("{} run finished (task {}, run result {})", getTaskTypeName(), localCoordinatorTask, runResult);
-        runResult.setBucketComplete(localCoordinatorTask.canRun()); // TODO
-        runResult.setShouldContinue(localCoordinatorTask.canRun()); // TODO
-        return runResult;
     }
 
-    private void setExpectedTotal(Long expectedTotal, OperationResult opResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    @Override
+    protected void setProgressAndExpectedItems(OperationResult opResult) throws CommunicationException, ObjectNotFoundException,
+            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException,
+            ObjectAlreadyExistsException {
+        Long expectedTotal = computeExpectedTotalIfApplicable(opResult);
+        setProgressAndExpectedTotal(expectedTotal, opResult);
+    }
+
+    private void setProgressAndExpectedTotal(Long expectedTotal, OperationResult opResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         localCoordinatorTask.setProgress(runResult.getProgress());
         if (expectedTotal != null) {
             localCoordinatorTask.setExpectedTotal(expectedTotal);
         }
         localCoordinatorTask.flushPendingModifications(opResult);
-    }
-
-    private void logFinishInfo(OperationResult opResult) {
-        String finishMessage = "Finished " + getTaskTypeName() + " (" + localCoordinatorTask + "). ";
-        String statistics =
-                "Processed " + resultHandler.getProgress() + " objects in " + resultHandler.getWallTime() / 1000
-                        + " seconds, got " + resultHandler.getErrors() + " errors.";
-        if (resultHandler.getProgress() > 0) {
-            statistics += " Average time for one object: " + resultHandler.getAverageTime() + " milliseconds" +
-                    " (wall clock time average: " + resultHandler.getWallAverageTime() + " ms).";
-        }
-        if (!localCoordinatorTask.canRun()) {
-            statistics += " Task was interrupted during processing.";
-        }
-
-        opResult.createSubresult(getTaskOperationPrefix() + ".statistics")
-                .recordStatus(OperationResultStatus.SUCCESS, statistics);
-        TaskHandlerUtil.appendLastFailuresInformation(getTaskOperationPrefix(), localCoordinatorTask, opResult);
-
-        LOGGER.info("{}", finishMessage + statistics);
-    }
-
-    private void checkTaskPersistence() {
-        if (localCoordinatorTask.getOid() == null) {
-            throw new IllegalArgumentException(
-                    "Transient tasks cannot be run by " + AbstractSearchIterativeTaskHandler.class + ": "
-                            + localCoordinatorTask);
-        }
-    }
-
-    private RH setupHandler(OperationResult opResult) throws CommunicationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        return createHandler(opResult);
     }
 
     private boolean prepareUseRepositoryFlag(OperationResult opResult) throws CommunicationException, ObjectNotFoundException,
@@ -263,7 +158,7 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
     @Nullable
     private Long computeExpectedTotalIfApplicable(OperationResult opResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        if (!taskHandler.getReportingOptions().isCountObjectsOnStart()) {
+        if (!getReportingOptions().isCountObjectsOnStart()) {
             return null;
         } else if (TaskWorkStateTypeUtil.hasLimitations(workBucket)) {
             // We avoid computing expected total if we are processing a bucket -- actually we could but we should
@@ -283,23 +178,19 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
         return taskHandler.getTaskTypeName();
     }
 
-    private String getTaskOperationPrefix() {
-        return taskHandler.getTaskOperationPrefix();
-    }
-
     private ObjectQuery prepareQuery(OperationResult opResult) throws TaskException {
 
         try {
             ObjectQuery queryFromHandler = createQuery(opResult); // TODO better name
 
-            LOGGER.trace("{}: using a query (before applying work bucket and evaluating expressions):\n{}", getTaskTypeName(),
+            logger.trace("{}: using a query (before applying work bucket and evaluating expressions):\n{}", getTaskTypeName(),
                     DebugUtil.debugDumpLazily(queryFromHandler));
 
             ObjectQuery bucketNarrowedQuery = getTaskManager().narrowQueryForWorkBucket(queryFromHandler, objectType,
                     createItemDefinitionProvider(), localCoordinatorTask,
                     workBucket, opResult);
 
-            LOGGER.trace("{}: using a query (after applying work bucket, before evaluating expressions):\n{}", getTaskTypeName(),
+            logger.trace("{}: using a query (after applying work bucket, before evaluating expressions):\n{}", getTaskTypeName(),
                     DebugUtil.debugDumpLazily(bucketNarrowedQuery));
 
             return preProcessQuery(bucketNarrowedQuery, opResult);
@@ -318,7 +209,7 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
         return null;
     }
 
-    public static Function<ItemPath, ItemDefinition<?>> createItemDefinitionProviderForAttributes(
+    protected final Function<ItemPath, ItemDefinition<?>> createItemDefinitionProviderForAttributes(
             ObjectClassComplexTypeDefinition objectClass) {
         return itemPath -> {
             if (itemPath.startsWithName(ShadowType.F_ATTRIBUTES)) {
@@ -345,6 +236,12 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
         return getRepositoryService().countObjects(objectType, query, searchOptions, opResult);
     }
 
+    @Override
+    protected void processItems(OperationResult opResult) throws CommunicationException, ObjectNotFoundException,
+            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        searchIterative(opResult);
+    }
+
     /**
      * Used to search using model or any similar higher-level interface. Defaults to search using repository.
      */
@@ -354,7 +251,8 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
     }
 
     protected final void searchIterativeInRepository(OperationResult opResult) throws SchemaException {
-        getRepositoryService().searchObjectsIterative(objectType, query, resultHandler, searchOptions, true, opResult);
+        getRepositoryService().searchObjectsIterative(objectType, query,
+                createSearchResultHandler(), searchOptions, true, opResult);
     }
 
     /**
@@ -364,21 +262,6 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         return query;
-    }
-
-    // TODO fix/remove
-    private TaskWorkBucketProcessingResult logErrorAndSetResult(TaskWorkBucketProcessingResult runResult, OperationResult opResult, RH resultHandler, String message, Throwable e,
-            OperationResultStatus opStatus, TaskRunResult.TaskRunResultStatus status) {
-        LOGGER.error("{}: {}: {}", getTaskTypeName(), message, e.getMessage(), e);
-        opResult.recordStatus(opStatus, message + ": " + e.getMessage(), e);
-        runResult.setRunResultStatus(status);
-        if (resultHandler != null) {
-            runResult.setProgress(resultHandler.getProgress());     // TODO ???
-        }
-        return runResult;
-    }
-
-    protected void finish(OperationResult opResult) throws SchemaException {
     }
 
     /**
@@ -398,10 +281,20 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
         return createSearchOptionsFromTask();
     }
 
-    // as provisioning service does not allow searches without specifying resource or objectclass/kind, we need to be able to contact repository directly
-    // for some specific tasks
+    /**
+     * Returns true if the task processing requires direct access to the repository "by design". In such cases,
+     * the "raw" authorization is not checked.
+     *
+     * The default implementation relies on the value of the corresponding field.
+     * In theory, subclasses can plug their own "dynamic" implementation here.
+     */
+    @SuppressWarnings({ "WeakerAccess", "unused" })
     protected boolean requiresDirectRepositoryAccess(OperationResult opResult) {
-        return false;
+        return requiresDirectRepositoryAccess;
+    }
+
+    protected void setRequiresDirectRepositoryAccess() {
+        this.requiresDirectRepositoryAccess = true;
     }
 
     protected Class<O> determineObjectType() {
@@ -426,29 +319,6 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
     }
 
     /**
-     * Creates result handler. This method should not do anything more. For initialization,
-     * there are other methods.
-     */
-    protected @NotNull RH createHandler(OperationResult opResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        return createHandlerFromAnnotation();
-    }
-
-    private @NotNull RH createHandlerFromAnnotation() {
-        try {
-            ResultHandlerClass annotation =
-                    java.util.Objects.requireNonNull(this.getClass().getAnnotation(ResultHandlerClass.class),
-                            "The @ResultHandlerClass annotation is missing.");
-
-            //noinspection unchecked
-            return (RH) InstantiationUtil.instantiate(annotation.value(), this, this);
-        } catch (Throwable t) {
-            throw new SystemException("Cannot create result handler from annotation of " +
-                    this.getClass() + ": " + t.getMessage(), t);
-        }
-    }
-
-    /**
      * Ready-made implementation of createQuery - gets and parses objectQuery extension property.
      */
     @NotNull
@@ -463,18 +333,18 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
                 getPrismContext());
     }
 
-    protected Boolean getUseRepositoryDirectlyFromTask() {
+    private Boolean getUseRepositoryDirectlyFromTask() {
         return getTaskPropertyRealValue(SchemaConstants.MODEL_EXTENSION_USE_REPOSITORY_DIRECTLY);
     }
 
     protected final ObjectQuery createQueryFromTaskIfExists() throws SchemaException {
         Class<? extends ObjectType> objectType = determineObjectType();
-        LOGGER.trace("Object type = {}", objectType);
+        logger.trace("Object type = {}", objectType);
 
         QueryType queryFromTask = getObjectQueryTypeFromTask(localCoordinatorTask);
         if (queryFromTask != null) {
             ObjectQuery query = getPrismContext().getQueryConverter().createObjectQuery(objectType, queryFromTask);
-            LOGGER.trace("Using object query from the task:\n{}", query.debugDumpLazily(1));
+            logger.trace("Using object query from the task:\n{}", query.debugDumpLazily(1));
             return query;
         } else {
             return null;
@@ -512,23 +382,9 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
                 : null;
     }
 
-//    public static void logPreviousResultIfNeeded(Task task, TaskWorkBucketProcessingResult previousRunResult, Trace logger) {
-//        OperationResult previousOpResult = previousRunResult.getOperationResult();
-//        if (previousOpResult != null) {
-//            previousOpResult.computeStatusIfUnknown();
-//            if (!previousOpResult.isSuccess()) {
-//                logger.warn("Last work bucket finished with status other than SUCCESS in {}:\n{}", task, previousOpResult.debugDump());
-//            }
-//        }
-//    }
-
     protected ExpressionProfile getExpressionProfile() {
         // TODO Determine from task object archetype
         return MiscSchemaUtil.getExpressionProfile();
-    }
-
-    public Long heartbeat() {
-        return resultHandler != null ? resultHandler.heartbeat() : null;
     }
 
     public PrismContext getPrismContext() {
@@ -547,20 +403,37 @@ public abstract class AbstractSearchIterativeTaskPartExecution<O extends ObjectT
         return taskHandler;
     }
 
-    protected void initialize(OperationResult opResult) throws SchemaException, ConfigurationException, ObjectNotFoundException,
-            CommunicationException, SecurityViolationException, ExpressionEvaluationException, TaskException {
-    }
-
-    protected void processPermanentError(OperationResult opResult, Throwable t) {
-        opResult.recordFatalError(t);
-        runResult.setRunResultStatus(PERMANENT_ERROR);
-    }
-
-    protected <X> X getTaskPropertyRealValue(ItemName propertyName) {
+    private <X> X getTaskPropertyRealValue(ItemName propertyName) {
         return taskExecution.getTaskPropertyRealValue(propertyName);
     }
 
-    public @NotNull TE getTaskExecution() {
-        return taskExecution;
+    /**
+     * Passes all objects found into the processing coordinator.
+     * (Which processes them directly or queues them for the worker threads.)
+     */
+    protected final ResultHandler<O> createSearchResultHandler() {
+        return (object, parentResult) -> {
+            ItemProcessingRequest<PrismObject<O>> request = new ObjectProcessingRequest<>(object, itemProcessor);
+            return coordinator.submit(request, parentResult);
+        };
+    }
+
+    @Override
+    public boolean providesTracingAndDynamicProfiling() {
+        // This is a temporary solution
+        return !isNonScavengingWorker();
+    }
+
+    private boolean isNonScavengingWorker() {
+        return localCoordinatorTask.getWorkManagement() != null &&
+                localCoordinatorTask.getWorkManagement().getTaskKind() == TaskKindType.WORKER &&
+                !Boolean.TRUE.equals(localCoordinatorTask.getWorkManagement().isScavenger());
+    }
+
+    @Override
+    protected ErrorHandlingStrategyExecutor.@NotNull Action getDefaultErrorAction() {
+        // This is the default for search-iterative tasks. It is a legacy behavior, and also the most logical:
+        // we do not need to stop on error, because there's always possible to re-run the whole task.
+        return ErrorHandlingStrategyExecutor.Action.CONTINUE;
     }
 }

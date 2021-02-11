@@ -15,13 +15,6 @@
 
     <extension>
         <ext:objectclass>ri:AccountObjectClass</ext:objectclass>
-        <ext:liveSyncErrorHandlingStrategy>
-            <entry>
-                <reaction>
-                    <stop/>
-                </reaction>
-            </entry>
-        </ext:liveSyncErrorHandlingStrategy>
     </extension>
 
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
@@ -30,4 +23,12 @@
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
     <objectRef oid="a20bb7b7-c5e9-4bbb-94e0-79e7866362e6" type="ResourceType"/>     <!-- errors-source-precise -->
     <recurrence>single</recurrence>
+
+    <errorHandlingStrategy>
+        <entry>
+            <reaction>
+                <stop/>
+            </reaction>
+        </entry>
+    </errorHandlingStrategy>
 </task>

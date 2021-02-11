@@ -298,22 +298,23 @@ function showPassword(iconElement) {
 }
 
 !function($) {
-    $.fn.passwordValidatorPopover = function(inputId, popover, isPopoverVisible) {
+    $.fn.passwordFieldValidatorPopover = function(inputId, popover) {
         return this.each(function() {
 
+            var parent = $(this).parent();
+
             var showPopover=function(){
-                $(inputId).each(function() {
+                parent.find(inputId).each(function() {
                     var itemH=$(this).innerHeight() + 18;
-                    popover.fadeIn(300).css({top:itemH, left:0}).css("display", "block");
+                    parent.find(popover).fadeIn(300).css({top:itemH, left:0}).css("display", "block");
                 });
             }
-            if (isPopoverVisible) {
-                showPopover();
-            }
+
+            showPopover();
             $(this).on("focus", function(){showPopover();});
 
             var deletePopover=function(){
-        	    popover.fadeIn(300).css("display", "none");
+        	    parent.find(popover).fadeIn(300).css("display", "none");
             };
 
             $(this).on("blur", function(){
@@ -321,4 +322,37 @@ function showPassword(iconElement) {
             });
         });
     };
+
+    $.fn.passwordValidatorPopover = function(inputId, popover) {
+            return this.each(function() {
+
+                var parent = $(this).parent();
+
+                var showPopover=function(){
+                    if (parent.find(inputId + ":hover").length != 0) {
+                        parent.find(inputId).each(function() {
+                            var itemH=$(this).innerHeight() + 10;
+                            parent.find(popover).fadeIn(300).css({top:itemH, left:0}).css("display", "block");
+                        });
+                    }
+                }
+
+                $(this).on("mouseenter", function(){showPopover();});
+
+                var deletePopover=function(){
+                    parent.find(popover).fadeIn(300).css("display", "none");
+                };
+
+                $(this).on("mouseleave", function(){
+                    if (parent.find(popover + ":hover").length == 0) {
+            	        deletePopover();
+            	    }
+                });
+                parent.find(popover).on("mouseleave", function(){
+                    if (parent.find(inputId + ":hover").length == 0) {
+                        deletePopover();
+                    }
+               });
+            });
+        };
 }(window.jQuery);

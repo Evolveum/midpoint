@@ -43,7 +43,9 @@ public class MockAsyncUpdateSource implements PassiveAsyncUpdateSource {
     public boolean getNextUpdate(AsyncUpdateMessageListener listener) throws SchemaException {
         AsyncUpdateMessageType message = messages.poll();
         if (message != null) {
-            listener.onMessage(message);
+            listener.onMessage(message, (processed, result) -> {
+                // nothing to do, the message is already gone
+            });
             return true;
         } else {
             return false;

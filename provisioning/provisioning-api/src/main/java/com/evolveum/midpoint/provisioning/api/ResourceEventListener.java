@@ -12,7 +12,6 @@ import com.evolveum.midpoint.util.exception.*;
 
 public interface ResourceEventListener extends ProvisioningListener {
 
-    void notifyEvent(ResourceEventDescription eventDescription, Task task, OperationResult parentResult) throws SchemaException,
-            CommunicationException, ConfigurationException, SecurityViolationException, ObjectNotFoundException,
-            GenericConnectorException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException;
+    void notifyEvent(ResourceEventDescription eventDescription, Task task, OperationResult parentResult)
+            throws CommonException, GenericConnectorException;
 }

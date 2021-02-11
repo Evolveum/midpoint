@@ -57,7 +57,7 @@ public abstract class AbstractSpringTest extends AbstractTestNGSpringContextTest
 
     @BeforeClass
     public void displayTestClassTitle() {
-        displayTestTitle("Initializing TEST CLASS: " + getClass().getName());
+        displayTestTitle("Starting TEST CLASS: " + getClass().getName());
     }
 
     @AfterClass

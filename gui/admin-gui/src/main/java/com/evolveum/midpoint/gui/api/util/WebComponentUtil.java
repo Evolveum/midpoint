@@ -1825,18 +1825,18 @@ public final class WebComponentUtil {
         }
     }
 
-    public static boolean isActivationEnabled(PrismObject object, ItemPath propertyName) {
+    public static Boolean isActivationEnabled(PrismObject object, ItemPath propertyName) {
         Validate.notNull(object);
 
         PrismContainer<ActivationType> activation = object.findContainer(UserType.F_ACTIVATION); // this is equal to account activation...
         if (activation == null) {
-            return false;
+            return null;
         }
 
         ActivationStatusType status = activation
                 .getPropertyRealValue(propertyName, ActivationStatusType.class);
         if (status == null) {
-            return false;
+            return null;
         }
 
         return ActivationStatusType.ENABLED.equals(status);

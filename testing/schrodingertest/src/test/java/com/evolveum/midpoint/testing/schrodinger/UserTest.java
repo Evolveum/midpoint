@@ -9,7 +9,9 @@ package com.evolveum.midpoint.testing.schrodinger;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.testng.annotations.Test;
 
@@ -43,15 +45,11 @@ public class UserTest extends AbstractSchrodingerTest {
     public void test0010createUser() {
 
         //@formatter:off
-        UserPage user = basicPage.newUser();
-        user.selectTabBasic()
-                .form()
-                    .addAttributeValue("name", "jdoe222323")
-                    .addAttributeValue(UserType.F_GIVEN_NAME, "john")
-                    .addAttributeValue(UserType.F_FAMILY_NAME, "doe")
-                    .and()
-                .and()
-            .clickSave();
+        Map<String, String> attr = new HashMap<>();
+        attr.put("name", "jdoe222323");
+        attr.put(UserType.F_GIVEN_NAME.getLocalPart(), "john");
+        attr.put(UserType.F_FAMILY_NAME.getLocalPart(), "doe");
+        createUser(attr);
 
         ListUsersPage usersPage = basicPage.listUsers();
         usersPage

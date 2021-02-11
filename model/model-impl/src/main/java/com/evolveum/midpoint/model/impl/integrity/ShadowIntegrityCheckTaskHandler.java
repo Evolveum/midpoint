@@ -8,12 +8,8 @@
 package com.evolveum.midpoint.model.impl.integrity;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
-import com.evolveum.midpoint.model.impl.tasks.AbstractSearchIterativeModelTaskHandler;
-import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskExecution;
+import com.evolveum.midpoint.model.impl.tasks.AbstractModelTaskHandler;
+import com.evolveum.midpoint.repo.common.task.AbstractTaskExecution;
 import com.evolveum.midpoint.repo.common.task.PartExecutionClass;
 import com.evolveum.midpoint.repo.common.task.TaskExecutionClass;
 import com.evolveum.midpoint.schema.result.OperationConstants;
@@ -21,12 +17,13 @@ import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskWorkBucketProcessingResult;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -49,13 +46,15 @@ import javax.annotation.PostConstruct;
 @TaskExecutionClass(ShadowIntegrityCheckTaskHandler.TaskExecution.class)
 @PartExecutionClass(ShadowIntegrityCheckTaskPartExecution.class)
 public class ShadowIntegrityCheckTaskHandler
-        extends AbstractSearchIterativeModelTaskHandler
+        extends AbstractModelTaskHandler
         <ShadowIntegrityCheckTaskHandler, ShadowIntegrityCheckTaskHandler.TaskExecution> {
 
     public static final String HANDLER_URI = ModelPublicConstants.SHADOW_INTEGRITY_CHECK_TASK_HANDLER_URI;
 
+    private static final Trace LOGGER = TraceManager.getTrace(ShadowIntegrityCheckTaskHandler.class);
+
     public ShadowIntegrityCheckTaskHandler() {
-        super("Shadow integrity check", OperationConstants.CHECK_SHADOW_INTEGRITY);
+        super(LOGGER, "Shadow integrity check", OperationConstants.CHECK_SHADOW_INTEGRITY);
         reportingOptions.setPreserveStatistics(false);
         reportingOptions.setLogErrors(false); // we do log errors ourselves
         reportingOptions.setSkipWritingOperationExecutionRecords(true); // because of performance
@@ -78,7 +77,7 @@ public class ShadowIntegrityCheckTaskHandler
 
     /** Just to make Java compiler happy. */
     public static class TaskExecution
-            extends AbstractSearchIterativeTaskExecution<ShadowIntegrityCheckTaskHandler, ShadowIntegrityCheckTaskHandler.TaskExecution> {
+            extends AbstractTaskExecution<ShadowIntegrityCheckTaskHandler, TaskExecution> {
 
         public TaskExecution(ShadowIntegrityCheckTaskHandler taskHandler,
                 RunningTask localCoordinatorTask, WorkBucketType workBucket,

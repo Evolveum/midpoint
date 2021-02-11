@@ -71,7 +71,7 @@ public class IterativeTaskInfoAsserter<RA> extends AbstractAsserter<RA> {
         return getDetails();
     }
 
-    public IterativeTaskInfoAsserter display() {
+    public IterativeTaskInfoAsserter<RA> display() {
         IntegrationTestTools.display(desc(), IterativeTaskInformation.format(information));
         return this;
     }

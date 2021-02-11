@@ -11,7 +11,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskPartExecution;
 import com.evolveum.midpoint.repo.common.task.HandledObjectType;
-import com.evolveum.midpoint.repo.common.task.ResultHandlerClass;
+import com.evolveum.midpoint.repo.common.task.ItemProcessorClass;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -20,7 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * Execution of a propagation task. It has always a single part, so the resource can be stored here.
  */
-@ResultHandlerClass(PropagationResultHandler.class)
+@ItemProcessorClass(PropagationItemProcessor.class)
 @HandledObjectType(ShadowType.class)
 public class PropagationTaskPartExecution
         extends AbstractSearchIterativeTaskPartExecution
@@ -28,12 +28,13 @@ public class PropagationTaskPartExecution
                 PropagationTaskHandler,
                 PropagationTaskHandler.TaskExecution,
                 PropagationTaskPartExecution,
-                PropagationResultHandler> {
+                PropagationItemProcessor> {
 
     private PrismObject<ResourceType> resource;
 
     public PropagationTaskPartExecution(PropagationTaskHandler.TaskExecution taskExecution) {
         super(taskExecution);
+        setContextDescription("to " + resource);
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,8 +9,7 @@ package com.evolveum.midpoint.repo.sql;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
-import static com.evolveum.midpoint.prism.PrismConstants.T_ID;
-import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
+import static com.evolveum.midpoint.prism.PrismConstants.*;
 import static com.evolveum.midpoint.prism.query.OrderDirection.ASCENDING;
 import static com.evolveum.midpoint.prism.query.OrderDirection.DESCENDING;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createDistinct;
@@ -54,12 +53,12 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
 import com.evolveum.midpoint.repo.sql.query.QueryEngine;
-import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
 import com.evolveum.midpoint.repo.sql.query.RQueryImpl;
 import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -2325,7 +2324,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test162QueryObjectypeByTypeOrgAndLocality() throws Exception {
+    public void test162QueryObjectTypeByTypeOrgAndLocality() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
@@ -2353,7 +2352,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test164QueryObjectypeByTypeAndExtensionAttribute() throws Exception {
+    public void test164QueryObjectTypeByTypeAndExtensionAttribute() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
@@ -2381,7 +2380,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test166QueryObjectypeByTypeAndReference() throws Exception {
+    public void test166QueryObjectTypeByTypeAndReference() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
@@ -2410,7 +2409,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test170QueryObjectypeByTypeComplex() throws Exception {
+    public void test170QueryObjectTypeByTypeComplex() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
@@ -2458,7 +2457,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test171QueryObjectypeByTwoAbstractTypes() throws Exception {
+    public void test171QueryObjectTypeByTwoAbstractTypes() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
@@ -3172,6 +3171,130 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     + "    left join a.owner o\n"
                     + "where\n"
                     + "    o.ownerOid in :ownerOid\n");
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test320AssignmentQuery() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = prismContext.queryFor(AssignmentType.class)
+                    .ownerId("1", "2").build();
+
+            String real = getInterpretedQuery(session, AssignmentType.class, query, false);
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
+                    + "  a.ownerOid,\n"
+                    + "  a.id,\n"
+                    + "  a.order,\n"
+                    + "  a.lifecycleState,\n"
+                    + "  a.activation,\n"
+                    + "  a.targetRef,\n"
+                    + "  a.tenantRef,\n"
+                    + "  a.orgRef,\n"
+                    + "  a.resourceRef,\n"
+                    + "  a.createTimestamp,\n"
+                    + "  a.creatorRef,\n"
+                    + "  a.createChannel,\n"
+                    + "  a.modifyTimestamp,\n"
+                    + "  a.modifierRef,\n"
+                    + "  a.modifyChannel\n"
+                    + "from\n"
+                    + "  RAssignment a\n"
+                    + "where\n"
+                    + "  a.ownerOid in (:ownerOid)");
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test321AssignmentQueryWithRoleTypeAndAnyRelation() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = prismContext.queryFor(AssignmentType.class)
+                    .item(AssignmentType.F_TARGET_REF).ref(prismContext.itemFactory()
+                            .createReferenceValue(null, RoleType.COMPLEX_TYPE)
+                            // any skips the relation condition, otherwise default is implied
+                            .relation(Q_ANY))
+                    .and().ownerId("1", "2")
+                    .build();
+
+            String real = getInterpretedQuery(session, AssignmentType.class, query, false);
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
+                    + "  a.ownerOid,\n"
+                    + "  a.id,\n"
+                    + "  a.order,\n"
+                    + "  a.lifecycleState,\n"
+                    + "  a.activation,\n"
+                    + "  a.targetRef,\n"
+                    + "  a.tenantRef,\n"
+                    + "  a.orgRef,\n"
+                    + "  a.resourceRef,\n"
+                    + "  a.createTimestamp,\n"
+                    + "  a.creatorRef,\n"
+                    + "  a.createChannel,\n"
+                    + "  a.modifyTimestamp,\n"
+                    + "  a.modifierRef,\n"
+                    + "  a.modifyChannel\n"
+                    + "from\n"
+                    + "  RAssignment a\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    a.targetRef.targetType = :targetType and\n"
+                    + "    a.ownerOid in (:ownerOid)\n"
+                    + "  )");
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test322AssignmentQueryByTargetName() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = prismContext.queryFor(AssignmentType.class)
+                    .item(AssignmentType.F_TARGET_REF).ref(prismContext.itemFactory()
+                            .createReferenceValue(null, RoleType.COMPLEX_TYPE)
+                            // any skips the relation condition, otherwise default is implied
+                            .relation(Q_ANY))
+                    .and().item(AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, F_NAME)
+                    .eq("objectname")
+                    .and().ownerId("1", "2")
+                    .asc(AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, F_NAME)
+                    .build();
+
+            String real = getInterpretedQuery(session, AssignmentType.class, query, false);
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
+                    + "  a.ownerOid,\n"
+                    + "  a.id,\n"
+                    + "  a.order,\n"
+                    + "  a.lifecycleState,\n"
+                    + "  a.activation,\n"
+                    + "  a.targetRef,\n"
+                    + "  a.tenantRef,\n"
+                    + "  a.orgRef,\n"
+                    + "  a.resourceRef,\n"
+                    + "  a.createTimestamp,\n"
+                    + "  a.creatorRef,\n"
+                    + "  a.createChannel,\n"
+                    + "  a.modifyTimestamp,\n"
+                    + "  a.modifierRef,\n"
+                    + "  a.modifyChannel\n"
+                    + "from\n"
+                    + "  RAssignment a\n"
+                    + "    left join a.targetRef.target t\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    a.targetRef.targetType = :targetType and\n"
+                    + "    (\n"
+                    + "      t.name.orig = :orig and\n"
+                    + "      t.name.norm = :norm\n"
+                    + "    ) and\n"
+                    + "    a.ownerOid in (:ownerOid)\n"
+                    + "  )\n"
+                    + "order by t.name.orig asc");
         } finally {
             close(session);
         }

@@ -22,7 +22,7 @@ import java.util.List;
 
 public class TestAsyncUpdateNoCaching extends TestAsyncUpdate {
 
-    static final File RESOURCE_ASYNC_NO_CACHING_FILE = new File(TEST_DIR, "resource-async-no-caching.xml");
+    private static final File RESOURCE_ASYNC_NO_CACHING_FILE = new File(TEST_DIR, "resource-async-no-caching.xml");
 
     protected static DummyResource dummyResource;
     protected static DummyResourceContoller dummyResourceCtl;

@@ -7,10 +7,15 @@
 
 package com.evolveum.midpoint.model.impl.integrity;
 
+import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.impl.tasks.AbstractSearchIterativeModelTaskHandler;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskExecution;
+import com.evolveum.midpoint.model.impl.tasks.AbstractModelTaskHandler;
+import com.evolveum.midpoint.repo.common.task.AbstractTaskExecution;
 import com.evolveum.midpoint.repo.common.task.PartExecutionClass;
 import com.evolveum.midpoint.repo.common.task.TaskExecutionClass;
 import com.evolveum.midpoint.schema.result.OperationConstants;
@@ -18,15 +23,11 @@ import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskWorkBucketProcessingResult;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 
 /**
  * Task handler for "Object integrity check" task.
@@ -39,11 +40,12 @@ import javax.annotation.PostConstruct;
 @TaskExecutionClass(ObjectIntegrityCheckTaskHandler.TaskExecution.class)
 @PartExecutionClass(ObjectIntegrityCheckTaskPartExecution.class)
 public class ObjectIntegrityCheckTaskHandler
-        extends AbstractSearchIterativeModelTaskHandler
-        <ObjectIntegrityCheckTaskHandler,
-                ObjectIntegrityCheckTaskHandler.TaskExecution> {
+        extends AbstractModelTaskHandler
+        <ObjectIntegrityCheckTaskHandler, ObjectIntegrityCheckTaskHandler.TaskExecution> {
 
     public static final String HANDLER_URI = ModelPublicConstants.OBJECT_INTEGRITY_CHECK_TASK_HANDLER_URI;
+
+    private static final Trace LOGGER = TraceManager.getTrace(ObjectIntegrityCheckTaskHandler.class);
 
     // WARNING! This task handler is efficiently singleton!
      // It is a spring bean and it is supposed to handle all search task instances
@@ -53,7 +55,7 @@ public class ObjectIntegrityCheckTaskHandler
     @Autowired SystemObjectCache systemObjectCache;
 
     public ObjectIntegrityCheckTaskHandler() {
-        super("Object integrity check", OperationConstants.CHECK_OBJECT_INTEGRITY);
+        super(LOGGER, "Object integrity check", OperationConstants.CHECK_OBJECT_INTEGRITY);
         reportingOptions.setPreserveStatistics(false);
         reportingOptions.setLogErrors(false); // we do log errors ourselves
         reportingOptions.setSkipWritingOperationExecutionRecords(true); // because of performance
@@ -76,7 +78,7 @@ public class ObjectIntegrityCheckTaskHandler
 
     /** Just to make Java compiler happy. */
     protected static class TaskExecution
-            extends AbstractSearchIterativeTaskExecution<ObjectIntegrityCheckTaskHandler, ObjectIntegrityCheckTaskHandler.TaskExecution> {
+            extends AbstractTaskExecution<ObjectIntegrityCheckTaskHandler, TaskExecution> {
 
         public TaskExecution(ObjectIntegrityCheckTaskHandler taskHandler,
                 RunningTask localCoordinatorTask, WorkBucketType workBucket,

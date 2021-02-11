@@ -40,8 +40,8 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
     protected static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M7/";
     private static final Logger LOG = LoggerFactory.getLogger(M7SynchronizationFlavours.class);
     private static final File ARCHETYPE_EMPLOYEE_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-employee.xml");
-    private static final File SYSTEM_CONFIGURATION_FILE_7 = new File(LAB_OBJECTS_DIRECTORY + "systemConfiguration/system-configuration-7.xml");
-    private static final File NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE = new File(LAB_OBJECTS_DIRECTORY + "valuePolicies/numeric-pin-first-nonzero-policy.xml");
+    private static final File SYSTEM_CONFIGURATION_FILE_7 = new File(LAB_OBJECTS_DIRECTORY + "systemconfiguration/system-configuration-7.xml");
+    private static final File NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE = new File(LAB_OBJECTS_DIRECTORY + "valuepolicies/numeric-pin-first-nonzero-policy.xml");
     private static final File HR_NO_EXTENSION_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-hr-noextension.xml");
     private static final File CSV_1_RESOURCE_FILE_7 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-7.xml");
     private static final File CSV_2_RESOURCE_FILE_7 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-2-canteen-7.xml");

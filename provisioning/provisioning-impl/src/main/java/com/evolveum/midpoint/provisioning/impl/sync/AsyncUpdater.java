@@ -7,25 +7,27 @@
 
 package com.evolveum.midpoint.provisioning.impl.sync;
 
-import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
-import com.evolveum.midpoint.provisioning.impl.ResourceObjectConverter;
-import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncChangeListener;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.internals.InternalCounters;
-import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import org.jetbrains.annotations.NotNull;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
+import com.evolveum.midpoint.provisioning.api.AsyncUpdateEvent;
+import com.evolveum.midpoint.provisioning.api.AsyncUpdateEventHandler;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
+import com.evolveum.midpoint.provisioning.impl.ResourceObjectConverter;
+import com.evolveum.midpoint.provisioning.impl.adoption.AdoptedAsyncChange;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectAsyncChangeListener;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Implements Async Update functionality. (Currently not much, but this might change as we'll implement multi-threading.
@@ -37,109 +39,51 @@ public class AsyncUpdater {
     @SuppressWarnings("unused")
     private static final Trace LOGGER = TraceManager.getTrace(AsyncUpdater.class);
 
-    private static final long WAIT_FOR_REQUEST_COMPLETION = 10000L;
-
     @Autowired private ProvisioningContextFactory ctxFactory;
     @Autowired private ResourceObjectConverter resourceObjectConverter;
-    @Autowired private ChangeProcessor changeProcessor;
+    @Autowired private ChangeProcessingBeans changeProcessingBeans;
 
-    public void processAsynchronousUpdates(ResourceShadowDiscriminator shadowCoordinates, Task callerTask, OperationResult callerResult)
+    public void processAsynchronousUpdates(ResourceShadowDiscriminator shadowCoordinates, AsyncUpdateEventHandler handler,
+            Task callerTask, OperationResult callerResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             ExpressionEvaluationException {
         InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
 
         ProvisioningContext globalContext = ctxFactory.create(shadowCoordinates, callerTask, callerResult);
 
-        ChangeProcessingCoordinator coordinator = new ChangeProcessingCoordinator(globalContext::canRun, changeProcessor,
-                callerTask, null);
+        // This is a bit of hack to propagate information about async update channel to upper layers
+        // e.g. to implement MID-5853. TODO fix this hack
+        globalContext.setChannelOverride(SchemaConstants.CHANNEL_ASYNC_UPDATE_URI);
 
-        AsyncChangeListener listener = (change, listenerTask, listenerResult) -> {
-            /*
-             * This code can execute in arbitrary thread. It can be the caller one (e.g. for passive sources)
-             * or provider-created one (e.g. for AMQP client library).
-             *
-             * But we need to execute the requests in the context of the caller task or its working threads (LATs).
-             * This is necessary e.g. to correctly report low-level statistics that are stored in thread-local structures.
-             */
-            ProcessChangeRequest request = new ProcessChangeRequest(change, globalContext, false) {
+        IndividualEventsAcknowledgeGate<AsyncUpdateEvent> acknowledgeGate = new IndividualEventsAcknowledgeGate<>();
+
+        ResourceObjectAsyncChangeListener listener = (resourceObjectChange, opResult) -> {
+
+            AdoptedAsyncChange change = new AdoptedAsyncChange(resourceObjectChange, changeProcessingBeans);
+            change.preprocess(opResult);
+
+            AsyncUpdateEvent event = new AsyncUpdateEventImpl(change) {
                 @Override
-                public void setDone(boolean done) {
-                    super.setDone(done);
-                    synchronized (this) {
-                        notifyAll();
-                    }
-                }
-
-                @Override
-                public void onCompletion(@NotNull Task workerTask, Task coordinatorTask, @NotNull OperationResult result) {
-                    if (workerTask instanceof RunningTask) {
-                        ((RunningTask) workerTask).incrementProgressAndStoreStatsIfNeeded();
-
-                        if (coordinatorTask instanceof RunningTask) {
-                            //noinspection SynchronizationOnLocalVariableOrMethodParameter
-                            synchronized (coordinatorTask) {
-                                // TODO factor out progress computation to RunningTaskQuartzImpl
-                                Collection<? extends RunningTask> subtasks = ((RunningTask) coordinatorTask)
-                                        .getLightweightAsynchronousSubtasks();
-                                long totalProgress = 0;
-                                for (RunningTask subtask : subtasks) {
-                                    totalProgress += subtask.getProgress();
-                                }
-                                coordinatorTask.setProgress(totalProgress);
-
-                                // todo report current op result?
-                                // FIXME this probably should not be called from the worker task! Or can it be?
-                                ((RunningTask) coordinatorTask).storeOperationStatsIfNeeded();  // includes flushPendingModifications
-                            }
-                        }
-                    }
-                }
-
-                @Override
-                public void onProcessingError(Throwable t, OperationResult result) {
-                    super.onProcessingError(t, result);
-                    LoggingUtils.logUnexpectedException(LOGGER, "Exception while processing async update. Change: {}", t, change);
+                public void acknowledge(boolean release, OperationResult result) {
+                    LOGGER.trace("Acknowledgement (release={}) sent for {}", release, this);
+                    change.acknowledge(release, result);
+                    acknowledgeGate.acknowledgeIssuedEvent(this);
                 }
             };
 
-            /*
-             * IMPORTANT! Do not manipulate with coordinator nor worker tasks in this method. This code is executed in
-             * a more or less random thread. Use overridden methods in the request object.
-             */
-
+            acknowledgeGate.registerIssuedEvent(event);
             try {
-                /*
-                 * Let us submit the request for processing. We assume there are working threads set for the task, so
-                 * the request will be processed asynchronously - in some of the workers.
-                 *
-                 * Note that even if this method works synchronously (i.e. there are no working threads configured for the task),
-                 * it's not a big problem: the whole execution will occur in the context of wrong thread. So the reporting
-                 * will not be accurate. But there should be no other negative effects.
-                 */
-                LOGGER.trace("Submitting request for processing: {}", request);
-                coordinator.submit(request, listenerResult);
-
-                /*
-                 * Let's wait for the request completion.
-                 */
-                LOGGER.trace("Waiting for the request to be done: {}", request);
-                //noinspection SynchronizationOnLocalVariableOrMethodParameter
-                synchronized (request) {
-                    while (!request.isDone()) {
-                        request.wait(WAIT_FOR_REQUEST_COMPLETION);
-                    }
-                }
-                LOGGER.trace("Request done: {}", request);
-            } catch (InterruptedException e) {
-                LOGGER.warn("Execution was interrupted in {} (caller task: {})", listenerTask, callerTask);
-                return false;
+                handler.handle(event, opResult);
+            } catch (Throwable t) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Got unexpected exception while handling an async update event", t);
+                acknowledgeGate.acknowledgeIssuedEvent(event);
             }
-            return request.isSuccessfullyProcessed();
         };
+
         resourceObjectConverter.listenForAsynchronousUpdates(globalContext, listener, callerResult);
 
-        // We expect no more messages (either we got the last one, or the task is going down, or whatever).
-        // So we want the worker threads to stop.
-        coordinator.setAllItemsSubmitted();
+        // There may be some events in processing - for example, if the async update task is suspended while
+        // receiving a lot of events.
+        acknowledgeGate.waitForIssuedEventsAcknowledge(callerResult);
     }
 }

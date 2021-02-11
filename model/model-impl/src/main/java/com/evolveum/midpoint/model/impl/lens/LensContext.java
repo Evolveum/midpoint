@@ -76,6 +76,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      */
     private String requestIdentifier = null;
 
+    /**
+     * Identifier of the current "item processing". Set by iterative tasks.
+     * Should not be propagated to any other lens context!
+     */
+    @Experimental // maybe will be removed later
+    private String itemProcessingIdentifier;
+
     private ModelState state = ModelState.INITIAL;
 
     private transient ConflictWatcher focusConflictWatcher;
@@ -269,6 +276,14 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     public void setRequestIdentifier(String requestIdentifier) {
         this.requestIdentifier = requestIdentifier;
+    }
+
+    public String getItemProcessingIdentifier() {
+        return itemProcessingIdentifier;
+    }
+
+    public void setItemProcessingIdentifier(String itemProcessingIdentifier) {
+        this.itemProcessingIdentifier = itemProcessingIdentifier;
     }
 
     public void generateRequestIdentifierIfNeeded() {

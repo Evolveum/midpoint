@@ -62,4 +62,8 @@ public class SystemPage extends AssignmentHolderDetailsPage {
         return new InternalsConfigurationTab(this, getTabSelenideElement("pageSystemConfiguration.internals.title"));
     }
 
+    public CleanupPolicyTab cleanupPolicyTab() {
+        return new CleanupPolicyTab(this, getTabSelenideElement("pageSystemConfiguration.cleanupPolicy.title"));
+    }
+
 }

@@ -366,6 +366,11 @@ public class BasicPage {
         return new SystemPage().roleManagementTab();
     }
 
+    public CleanupPolicyTab cleanupPolicy() {
+        clickConfigurationMenu("PageAdmin.menu.top.configuration.basic", "PageAdmin.menu.top.configuration.cleanupPolicy");
+        return new SystemPage().cleanupPolicyTab();
+    }
+
     public InternalsConfigurationPage internalsConfiguration() {
         clickConfigurationMenu("PageAdmin.menu.top.configuration.internals", null, 1);
         return new InternalsConfigurationPage();

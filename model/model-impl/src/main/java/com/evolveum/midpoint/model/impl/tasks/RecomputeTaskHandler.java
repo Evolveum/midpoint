@@ -54,7 +54,7 @@ public class RecomputeTaskHandler
     private static final Trace LOGGER = TraceManager.getTrace(RecomputeTaskHandler.class);
 
     public RecomputeTaskHandler() {
-        super("Recompute", OperationConstants.RECOMPUTE);
+        super(LOGGER, "Recompute", OperationConstants.RECOMPUTE);
         reportingOptions.setPreserveStatistics(false);
     }
 

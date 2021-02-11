@@ -12,15 +12,16 @@ import java.util.function.Function;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
 import com.evolveum.midpoint.model.impl.sync.tasks.Synchronizer;
-import com.evolveum.midpoint.model.impl.tasks.AbstractSearchIterativeModelTaskPartExecution;
+import com.evolveum.midpoint.model.impl.tasks.AbstractIterativeModelTaskPartExecution;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
+import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeItemProcessor;
 import com.evolveum.midpoint.repo.common.task.HandledObjectType;
-import com.evolveum.midpoint.repo.common.task.ResultHandlerClass;
+import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
+import com.evolveum.midpoint.repo.common.task.ItemProcessorClass;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -35,20 +36,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * Searches for resource objects and imports them. (By delegating to Synchronizer class.)
  */
-@ResultHandlerClass(ImportFromResourceTaskPartExecution.Handler.class)
+@ItemProcessorClass(ImportFromResourceTaskPartExecution.ItemProcessor.class)
 @HandledObjectType(ShadowType.class)
 public class ImportFromResourceTaskPartExecution
-        extends AbstractSearchIterativeModelTaskPartExecution
+        extends AbstractIterativeModelTaskPartExecution
         <ShadowType,
                 ImportFromResourceTaskHandler,
                 ImportFromResourceTaskExecution,
                 ImportFromResourceTaskPartExecution,
-                ImportFromResourceTaskPartExecution.Handler> {
+                ImportFromResourceTaskPartExecution.ItemProcessor> {
 
     private final Synchronizer synchronizer;
 
     public ImportFromResourceTaskPartExecution(ImportFromResourceTaskExecution taskExecution) {
         super(taskExecution);
+        setContextDescription("from " + taskExecution.getTargetInfo().getContextDescription());
         synchronizer = createSynchronizer();
     }
 
@@ -59,7 +61,6 @@ public class ImportFromResourceTaskPartExecution
                 targetInfo.getObjectClassDefinition(),
                 taskExecution.getObjectsFilter(),
                 taskHandler.getObjectChangeListener(),
-                taskHandler.taskTypeName,
                 SchemaConstants.CHANNEL_IMPORT,
                 taskExecution.partDefinition,
                 true);
@@ -110,22 +111,22 @@ public class ImportFromResourceTaskPartExecution
         return createItemDefinitionProviderForAttributes(taskExecution.getTargetInfo().getObjectClassDefinition());
     }
 
-    public class Handler
-            extends AbstractSearchIterativeResultHandler
+    public class ItemProcessor
+            extends AbstractSearchIterativeItemProcessor
             <ShadowType,
                     ImportFromResourceTaskHandler,
                     ImportFromResourceTaskExecution,
                     ImportFromResourceTaskPartExecution,
-                    Handler> {
+                    ItemProcessor> {
 
-        public Handler(ImportFromResourceTaskPartExecution taskExecution) {
+        public ItemProcessor(ImportFromResourceTaskPartExecution taskExecution) {
             super(taskExecution);
         }
 
         @Override
-        protected boolean handleObject(PrismObject<ShadowType> object, RunningTask workerTask,
-                OperationResult result) throws CommonException, PreconditionViolationException {
-            synchronizer.handleObject(object, workerTask, result);
+        protected boolean processObject(PrismObject<ShadowType> object, ItemProcessingRequest<PrismObject<ShadowType>> request,
+                RunningTask workerTask, OperationResult result) throws CommonException, PreconditionViolationException {
+            synchronizer.synchronize(object, request.getIdentifier(), workerTask, result);
             return true;
         }
     }

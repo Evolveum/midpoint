@@ -206,6 +206,8 @@ public interface ModelInteractionService {
 
     <F extends FocusType> SecurityPolicyType getSecurityPolicy(PrismObject<F> focus, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
+    SecurityPolicyType getSecurityPolicy(RefinedObjectClassDefinition rOCDef, Task task, OperationResult parentResult) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException;
+
     /**
      * Returns an authentications policies as defined in the system configuration security policy. This method is designed to be used
      * during registration process or reset password process.

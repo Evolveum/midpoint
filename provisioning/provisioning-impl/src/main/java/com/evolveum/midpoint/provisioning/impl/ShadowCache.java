@@ -2007,11 +2007,11 @@ public class ShadowCache {
 
     public SearchResultMetadata searchObjectsIterative(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<ShadowType> handler,
-            boolean readFromRepository, Task task, OperationResult parentResult)
+            boolean updateRepository, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         ProvisioningContext ctx = createContextForSearch(query, options, task, parentResult);
-        return searchObjectsIterative(ctx, query, options, handler, readFromRepository, parentResult);
+        return searchObjectsIterative(ctx, query, options, handler, updateRepository, parentResult);
     }
 
     private ProvisioningContext createContextForSearch(ObjectQuery query,
@@ -2037,7 +2037,7 @@ public class ShadowCache {
 
     public SearchResultMetadata searchObjectsIterative(ProvisioningContext ctx, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<ShadowType> handler,
-            boolean readFromRepository, OperationResult parentResult)
+            boolean updateRepository, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         applyDefinition(ctx, query);
@@ -2046,13 +2046,13 @@ public class ShadowCache {
         if (ProvisioningUtil.shouldDoRepoSearch(rootOptions)) {
             return searchObjectsIterativeRepository(ctx, query, options, handler, parentResult);
         } else {
-            return searchObjectIterativeResource(ctx, query, options, handler, readFromRepository, parentResult, rootOptions);
+            return searchObjectIterativeResource(ctx, query, options, handler, updateRepository, parentResult, rootOptions);
         }
     }
 
     private SearchResultMetadata searchObjectIterativeResource(ProvisioningContext ctx, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<ShadowType> handler,
-            boolean readFromRepository, OperationResult parentResult, GetOperationOptions rootOptions)
+            boolean updateRepository, OperationResult parentResult, GetOperationOptions rootOptions)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException {
 
@@ -2072,7 +2072,7 @@ public class ShadowCache {
 
             if (!ObjectTypeUtil.hasFetchError(resourceObject)) {
                 try {
-                    resultShadow = treatObjectFound(ctx, readFromRepository, isDoDiscovery, resourceObject, objResult);
+                    resultShadow = treatObjectFound(ctx, updateRepository, isDoDiscovery, resourceObject, objResult);
                 } catch (Throwable t) {
                     objResult.recordFatalError(t.getMessage(), t);
                     if (errorReportingMethod == EXCEPTION) {
@@ -2082,6 +2082,7 @@ public class ShadowCache {
                         resultShadow = resourceObject;
                         LOGGER.error("An error occurred while processing resource object {}. Recording it into object fetch result: {}",
                                 resourceObject, t.getMessage(), t);
+                        setShadowNameInEmergency(resultShadow);
                         ObjectTypeUtil.recordFetchError(resultShadow, objResult);
                     } else {
                         // This is the default (4.2 and before) behavior: we silently skip the problematic object and stop.
@@ -2127,6 +2128,19 @@ public class ShadowCache {
                 throw (RuntimeException) cause;
             } else {
                 throw new SystemException(cause.getMessage(), cause);
+            }
+        }
+    }
+
+    private void setShadowNameInEmergency(PrismObject<ShadowType> shadow) {
+        if (shadow.asObjectable().getName() == null) {
+            try {
+                PolyString name = ShadowUtil.determineShadowName(shadow);
+                if (name != null) {
+                    shadow.asObjectable().setName(new PolyStringType(name));
+                }
+            } catch (SchemaException e) {
+                LOGGER.warn("Couldn't determine the name for {}", shadow, e);
             }
         }
     }

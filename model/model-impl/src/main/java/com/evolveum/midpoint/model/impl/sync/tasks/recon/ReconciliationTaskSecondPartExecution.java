@@ -12,45 +12,44 @@ import java.util.function.Function;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
 import com.evolveum.midpoint.model.impl.sync.tasks.Synchronizer;
-import com.evolveum.midpoint.model.impl.tasks.AbstractSearchIterativeModelTaskPartExecution;
+import com.evolveum.midpoint.model.impl.tasks.AbstractIterativeModelTaskPartExecution;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
+import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeItemProcessor;
 import com.evolveum.midpoint.repo.common.task.HandledObjectType;
-import com.evolveum.midpoint.repo.common.task.ResultHandlerClass;
+import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
+import com.evolveum.midpoint.repo.common.task.ItemProcessorClass;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Execution of resource objects reconciliation (the main part of reconciliation).
  */
-@ResultHandlerClass(ReconciliationTaskSecondPartExecution.Handler.class)
+@ItemProcessorClass(ReconciliationTaskSecondPartExecution.ItemProcessor.class)
 @HandledObjectType(ShadowType.class)
 class ReconciliationTaskSecondPartExecution
-        extends AbstractSearchIterativeModelTaskPartExecution
+        extends AbstractIterativeModelTaskPartExecution
         <ShadowType,
                 ReconciliationTaskHandler,
                 ReconciliationTaskExecution,
                 ReconciliationTaskSecondPartExecution,
-                ReconciliationTaskSecondPartExecution.Handler> {
-
-    private static final Trace LOGGER = TraceManager.getTrace(ReconciliationTaskHandler.class);
+                ReconciliationTaskSecondPartExecution.ItemProcessor> {
 
     private final Synchronizer synchronizer;
 
     ReconciliationTaskSecondPartExecution(ReconciliationTaskExecution taskExecution) {
         super(taskExecution);
+        setProcessShortNameCapitalized("Reconciliation (on resource)");
+        setContextDescription("on " + taskExecution.getTargetInfo().getContextDescription());
         this.synchronizer = createSynchronizer();
     }
 
@@ -61,7 +60,6 @@ class ReconciliationTaskSecondPartExecution
                 targetInfo.getObjectClassDefinition(),
                 taskExecution.getObjectsFilter(),
                 taskHandler.getObjectChangeListener(),
-                taskHandler.taskTypeName,
                 SchemaConstants.CHANNEL_RECON,
                 taskExecution.partDefinition,
                 false);
@@ -75,6 +73,9 @@ class ReconciliationTaskSecondPartExecution
 
     @Override
     protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptions(OperationResult opResult) {
+        // This is necessary to give ItemProcessingGatekeeper a chance to "see" errors in preprocessing.
+        // At the same time, it ensures that an exception in preprocessing does not kill the whole searchObjectsIterative call.
+        // TODO generalize
         return taskHandler.schemaHelper.getOperationOptionsBuilder()
                 .errorReportingMethod(FetchErrorReportingMethodType.FETCH_RESULT)
                 .build();
@@ -87,26 +88,23 @@ class ReconciliationTaskSecondPartExecution
 
     @Override
     protected void finish(OperationResult opResult) throws SchemaException {
-        taskExecution.reconResult.setResourceReconCount(resultHandler.getProgress());
-        taskExecution.reconResult.setResourceReconErrors(resultHandler.getErrors());
+        super.finish(opResult);
+        taskExecution.reconResult.setResourceReconCount(statistics.getItemsProcessed());
+        taskExecution.reconResult.setResourceReconErrors(statistics.getErrors());
     }
 
-    protected class Handler
-            extends AbstractSearchIterativeResultHandler
-            <ShadowType,
-                    ReconciliationTaskHandler,
-                    ReconciliationTaskExecution,
-                    ReconciliationTaskSecondPartExecution,
-                    ReconciliationTaskSecondPartExecution.Handler> {
+    protected class ItemProcessor
+            extends AbstractSearchIterativeItemProcessor
+            <ShadowType, ReconciliationTaskHandler, ReconciliationTaskExecution, ReconciliationTaskSecondPartExecution, ItemProcessor> {
 
-        public Handler(ReconciliationTaskSecondPartExecution partExecution) {
+        public ItemProcessor(ReconciliationTaskSecondPartExecution partExecution) {
             super(partExecution);
         }
 
         @Override
-        protected boolean handleObject(PrismObject<ShadowType> object, RunningTask workerTask, OperationResult result)
-                throws CommonException, PreconditionViolationException {
-            synchronizer.handleObject(object, workerTask, result);
+        protected boolean processObject(PrismObject<ShadowType> object, ItemProcessingRequest<PrismObject<ShadowType>> request,
+                RunningTask workerTask, OperationResult result) throws CommonException, PreconditionViolationException {
+            synchronizer.synchronize(object, request.getIdentifier(), workerTask, result);
             return true;
         }
     }

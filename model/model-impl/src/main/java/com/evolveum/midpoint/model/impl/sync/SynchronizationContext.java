@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl.sync;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nullable;
@@ -44,7 +46,10 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationContext.class);
 
+    /** TODO */
     private final PrismObject<ShadowType> applicableShadow;
+
+    /** TODO */
     private final PrismObject<ShadowType> currentShadow;
 
     /**
@@ -80,9 +85,13 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     private final PrismContext prismContext;
     private final ExpressionFactory expressionFactory;
 
+    /** TODO maybe will be removed */
+    @Experimental
+    private final String itemProcessingIdentifier;
+
     public SynchronizationContext(PrismObject<ShadowType> applicableShadow, PrismObject<ShadowType> currentShadow,
             ObjectDelta<ShadowType> resourceObjectDelta, PrismObject<ResourceType> resource, String channel,
-            PrismContext prismContext, ExpressionFactory expressionFactory, Task task) {
+            PrismContext prismContext, ExpressionFactory expressionFactory, Task task, String itemProcessingIdentifier) {
         this.applicableShadow = applicableShadow;
         this.currentShadow = currentShadow;
         this.resourceObjectDelta = resourceObjectDelta;
@@ -92,6 +101,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         this.prismContext = prismContext;
         this.expressionFactory = expressionFactory;
         this.expressionProfile = MiscSchemaUtil.getExpressionProfile();
+        this.itemProcessingIdentifier = itemProcessingIdentifier;
     }
 
     public boolean isSynchronizationEnabled() {
@@ -283,11 +293,6 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return null;
     }
 
-    //TODO obejctClass???
-//    public QName getObjectClass() {
-//        if (objectSynchronization.getObjectClass() != )
-//    }
-
     public PrismObject<ShadowType> getApplicableShadow() {
         return applicableShadow;
     }
@@ -423,6 +428,10 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 
     public void setForceIntentChange(boolean forceIntentChange) {
         this.forceIntentChange = forceIntentChange;
+    }
+
+    public String getItemProcessingIdentifier() {
+        return itemProcessingIdentifier;
     }
 
     public RefinedObjectClassDefinition findRefinedObjectClassDefinition() throws SchemaException {

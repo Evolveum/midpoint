@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -97,6 +97,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
 
     @PostConstruct
     public void initialize() throws Exception {
+        displayTestTitle("Initializing TEST CLASS: " + getClass().getName());
         super.initialize();
         workStateManager.setFreeBucketWaitIntervalOverride(1000L);
         DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
@@ -207,7 +208,7 @@ public class TestWorkDistribution extends AbstractTaskManagerTest {
             displayValue("1st obtained bucket", bucket1);
             displayValue("2nd obtained bucket", bucket2);
             standalone = taskManager.getTaskPlain(standalone.getOid(), result);
-            displayDumpable("task after 2xget", standalone);
+            displayDumpable("task after 2x get", standalone);
 
             assertNumericBucket(bucket1, WorkBucketStateType.READY, 1, 0, 100);
             assertNumericBucket(bucket2, WorkBucketStateType.READY, 1, 0, 100);     // should be the same

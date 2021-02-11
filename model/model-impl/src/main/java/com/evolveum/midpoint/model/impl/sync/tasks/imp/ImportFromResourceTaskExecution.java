@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.impl.sync.tasks.imp;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
 import com.evolveum.midpoint.model.impl.sync.tasks.SynchronizationObjectsFilterImpl;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskExecution;
+import com.evolveum.midpoint.repo.common.task.AbstractTaskExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskException;
@@ -29,7 +29,7 @@ import javax.xml.namespace.QName;
  * Currently contains just generic synchronization-related information (resource, object class, kind, intent).
  */
 public class ImportFromResourceTaskExecution
-        extends AbstractSearchIterativeTaskExecution<ImportFromResourceTaskHandler, ImportFromResourceTaskExecution> {
+        extends AbstractTaskExecution<ImportFromResourceTaskHandler, ImportFromResourceTaskExecution> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ImportFromResourceTaskHandler.class);
 
@@ -48,8 +48,8 @@ public class ImportFromResourceTaskExecution
     protected void initialize(OperationResult opResult) throws TaskException, CommunicationException, SchemaException,
             ObjectNotFoundException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         super.initialize(opResult);
-        targetInfo = taskHandler.syncTaskHelper.getTargetInfo(LOGGER, localCoordinatorTask,
-                opResult, taskHandler.taskTypeName);
+        targetInfo = taskHandler.getSyncTaskHelper().getTargetInfo(LOGGER, localCoordinatorTask,
+                opResult, taskHandler.getTaskTypeName());
         objectsFilter = targetInfo.getObjectFilter(localCoordinatorTask);
     }
 

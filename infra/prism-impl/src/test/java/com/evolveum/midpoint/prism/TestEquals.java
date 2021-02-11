@@ -1,39 +1,38 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism;
 
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.constructInitializedPrismContext;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
-import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
-
-import com.evolveum.midpoint.prism.impl.PrismContextImpl;
-import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
-import com.evolveum.midpoint.prism.impl.PrismValueImpl;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import org.testng.annotations.Test;
-
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.foo.AssignmentType;
-import com.evolveum.midpoint.prism.foo.UserType;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.constructInitializedPrismContext;
 
 import java.util.Comparator;
 
+import org.testng.annotations.Test;
+
+import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.foo.AssignmentType;
+import com.evolveum.midpoint.prism.foo.UserType;
+import com.evolveum.midpoint.prism.impl.PrismContextImpl;
+import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
 /**
- * @author semancik
  * @see TestCompare
  */
 public class TestEquals extends AbstractPrismTest {
 
     @Test
     public void testContainsEquivalentValue01() throws Exception {
-        // GIVEN
-
+        given();
+        //noinspection unchecked
         ObjectDelta<UserType> userDelta = getPrismContext().deltaFactory().object()
                 .createModificationDeleteContainer(UserType.class, USER_FOO_OID,
                         UserType.F_ASSIGNMENT,
@@ -47,11 +46,11 @@ public class TestEquals extends AbstractPrismTest {
 
         PrismContainer<AssignmentType> assignmentContainer = user.findContainer(UserType.F_ASSIGNMENT);
 
-        // WHEN, THEN
         when();
         Comparator<PrismContainerValue<AssignmentType>> comparator =
                 EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS.prismValueComparator();
 
+        then();
         // This is no longer true. Original method containsEquivalentValue took care for container ID equality.
 //        assertTrue(ASSIGNMENT_PATLAMA_ID + ":null",
 //                ItemCollectionsUtil.containsEquivalentValue(assignmentContainer, createAssignmentValue(ASSIGNMENT_PATLAMA_ID, null), comparator));
@@ -64,9 +63,9 @@ public class TestEquals extends AbstractPrismTest {
                 ItemCollectionsUtil.containsEquivalentValue(assignmentContainer, createAssignmentValue(null, "never ever never"), comparator));
     }
 
-    @Test(enabled = false)                // normalization no longer removes empty values
+    @Test(enabled = false) // normalization no longer removes empty values TODO and what about test? remove? different asserts?
     public void testEqualsBrokenAssignmentActivation() throws Exception {
-        // GIVEN
+        given();
         PrismObjectDefinition<UserType> userDef = PrismInternalTestUtil.getUserTypeDefinition();
         PrismContainerDefinition<AssignmentType> assignmentDef = userDef.findContainerDefinition(UserType.F_ASSIGNMENT);
         PrismContainer<AssignmentType> goodAssignment = assignmentDef.instantiate(UserType.F_ASSIGNMENT);
@@ -76,8 +75,8 @@ public class TestEquals extends AbstractPrismTest {
         PrismContainerValue<AssignmentType> emptyValue = getPrismContext().itemFactory().createContainerValue();
         brokenAssignment.add(emptyValue);
 
-        // WHEN
-        assertFalse("Unexpected equals", goodAssignment.equals(brokenAssignment));
+        then();
+        assertThat(goodAssignment).isNotEqualTo(brokenAssignment);
 
         brokenAssignment.normalize();
         assertEquals("Not equals after normalize(bad)", goodAssignment, brokenAssignment);
@@ -89,28 +88,25 @@ public class TestEquals extends AbstractPrismTest {
 
     @Test
     public void testEqualsProtectedStringTypePrismValue() throws Exception {
-        // GIVEN
-        PrismContext prismContext = constructInitializedPrismContext();
+        PrismContextImpl prismContext = constructInitializedPrismContext();
         Protector protector = PrismInternalTestUtil.createProtector(Protector.XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC);
-        ((PrismContextImpl)prismContext).setDefaultProtector(protector);
+        prismContext.setDefaultProtector(protector);
 
+        given("protected strings 1 and 3 have the same clear value, but 2 has different one");
         ProtectedStringType p1 = new ProtectedStringType();
         p1.setClearValue("a");
-        PrismPropertyValueImpl pv1 = new PrismPropertyValueImpl(p1, prismContext);
+        PrismPropertyValueImpl<?> pv1 = new PrismPropertyValueImpl<>(p1, prismContext);
 
         ProtectedStringType p2 = new ProtectedStringType();
         p2.setClearValue("b");
-        PrismPropertyValueImpl pv2 = new PrismPropertyValueImpl(p2, prismContext);
+        PrismPropertyValueImpl<?> pv2 = new PrismPropertyValueImpl<>(p2, prismContext);
 
         ProtectedStringType p3 = new ProtectedStringType();
         p3.setClearValue("a");
-        PrismPropertyValueImpl pv3 = new PrismPropertyValueImpl(p3, prismContext);
+        PrismPropertyValueImpl<?> pv3 = new PrismPropertyValueImpl<>(p3, prismContext);
 
-        // WHEN, THEN
-        boolean result1 = pv1.equals(pv2);
-        boolean result2 = pv1.equals(pv3);
-
-        assertFalse(result1);
-        assertTrue(result2);
+        expect("protected string pv1 is considered equal to pv3, but not to pv2");
+        assertThat(pv1).isEqualTo(pv3);
+        assertThat(pv1).isNotEqualTo(pv2);
     }
 }

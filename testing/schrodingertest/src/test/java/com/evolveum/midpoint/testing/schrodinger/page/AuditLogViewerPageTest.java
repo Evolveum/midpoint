@@ -9,14 +9,7 @@ public class AuditLogViewerPageTest extends AbstractSchrodingerTest {
 
     @Test
     public void test00100returnBackToAuditLogDetails() {
-        basicPage
-                .newUser()
-                    .selectTabBasic()
-                        .form()
-                            .addAttributeValue("name", "auditLogViewerTestUser")
-                            .and()
-                        .and()
-                        .clickSave();
+        createUser("auditLogViewerTestUser");
         basicPage
                 .listUsers()
                     .table()

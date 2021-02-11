@@ -9,12 +9,14 @@ package com.evolveum.midpoint.test.asserter;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType.*;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
+import com.evolveum.midpoint.schema.util.SyncSituationUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -53,7 +55,29 @@ public class SynchronizationInfoAsserter<RA> extends AbstractAsserter<RA> {
         return assertCounter(F_COUNT_DELETED, expectedBefore, expectedAfter);
     }
 
-    @SuppressWarnings("WeakerAccess")
+    public SynchronizationInfoAsserter<RA> assertTransition(SynchronizationSituationType onProcessingStart,
+            SynchronizationSituationType onSyncStart, SynchronizationSituationType onSyncEnd,
+            SynchronizationExclusionReasonType exclusionReason, int success, int error, int skip) {
+        SynchronizationSituationTransitionType matching = SyncSituationUtil.findMatchingTransition(information, onProcessingStart,
+                onSyncStart, onSyncEnd, exclusionReason);
+        if (matching == null) {
+            if (success != 0 || error != 0 || skip != 0) {
+                fail("Expected transition for " + onProcessingStart + "->" + onSyncStart + "->" + onSyncEnd + " (" +
+                        exclusionReason + ") was not found in " + information);
+            }
+        } else {
+            assertThat(matching.getCountSuccess()).isEqualTo(success);
+            assertThat(matching.getCountError()).isEqualTo(error);
+            assertThat(matching.getCountSkip()).isEqualTo(skip);
+        }
+        return this;
+    }
+
+    public SynchronizationInfoAsserter<RA> assertTransitions(int count) {
+        assertThat(information.getTransition()).hasSize(count);
+        return this;
+    }
+
     public SynchronizationInfoAsserter<RA> assertCounter(ItemName name, int expectedBefore, int expectedAfter) {
         assertCounterBefore(name, expectedBefore);
         assertCounterAfter(name, expectedAfter);

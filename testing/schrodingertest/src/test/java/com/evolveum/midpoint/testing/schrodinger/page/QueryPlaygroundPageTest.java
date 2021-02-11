@@ -19,26 +19,8 @@ public class QueryPlaygroundPageTest extends AbstractSchrodingerTest {
 
     @Test //covers MID-5346
     public void test001useInObjectListOptionTest() {
-        UserPage user = basicPage.newUser();
-
-        user.selectTabBasic()
-                        .form()
-                        .addAttributeValue("name", "a_start")
-                        .and()
-                        .and()
-                        .clickSave()
-                        .feedback()
-                        .assertSuccess();
-
-        user = basicPage.newUser();
-        user.selectTabBasic()
-                        .form()
-                        .addAttributeValue("name", "b_start")
-                        .and()
-                        .and()
-                        .clickSave()
-                        .feedback()
-                        .assertSuccess();
+        createUser("a_start");
+        createUser("b_start");
 
         QueryPlaygroundPage queryPlaygroundPage = basicPage.queryPlayground();
         queryPlaygroundPage

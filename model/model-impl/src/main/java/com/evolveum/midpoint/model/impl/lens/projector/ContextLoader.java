@@ -1534,7 +1534,7 @@ public class ContextLoader implements ProjectorProcessor {
     }
 
     public <F extends ObjectType> void refreshContextAfterShadowNotFound(LensContext<F> context, LensProjectionContext projCtx, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        if (projCtx.isDelete()){
+        if (projCtx.isDelete()) {
             //this is OK, shadow was deleted, but we will continue in processing with old shadow..and set it as full so prevent from other full loading
             projCtx.setFullShadow(true);
             return;

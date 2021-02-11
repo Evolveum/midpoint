@@ -60,16 +60,16 @@ public class TestThresholdsReconSimulate extends TestThresholds {
         dumpSynchronizationInformation(syncInfo);
 
         // user4, user5, user6, user7, user8
-        assertEquals(syncInfo.getCountUnmatched(), 5);
-        assertEquals(syncInfo.getCountDeleted(), 0);
+        assertEquals((Object) syncInfo.getCountUnmatched(), 5);
+        assertEquals((Object) syncInfo.getCountDeleted(), 0);
         // jgibbs, hbarbossa, jbeckett, user1, user2, user3
-        assertEquals(syncInfo.getCountLinked(), getDefaultUsers());
-        assertEquals(syncInfo.getCountUnlinked(), 0);
+        assertEquals((Object) syncInfo.getCountLinked(), getDefaultUsers());
+        assertEquals((Object) syncInfo.getCountUnlinked(), 0);
 
-        assertEquals(syncInfo.getCountUnmatchedAfter(), 5);
-        assertEquals(syncInfo.getCountDeletedAfter(), 0);
-        assertEquals(syncInfo.getCountLinkedAfter(), getDefaultUsers());
-        assertEquals(syncInfo.getCountUnlinkedAfter(), 0);
+        assertEquals((Object) syncInfo.getCountUnmatchedAfter(), 5);
+        assertEquals((Object) syncInfo.getCountDeletedAfter(), 0);
+        assertEquals((Object) syncInfo.getCountLinkedAfter(), getDefaultUsers());
+        assertEquals((Object) syncInfo.getCountUnlinkedAfter(), 0);
     }
 
     /* (non-Javadoc)
@@ -84,16 +84,16 @@ public class TestThresholdsReconSimulate extends TestThresholds {
         dumpSynchronizationInformation(syncInfo);
 
         // user4, user5, user6, user7, user8
-        assertEquals(syncInfo.getCountUnmatched(), 5);
-        assertEquals(syncInfo.getCountDeleted(), 0);
+        assertEquals((Object) syncInfo.getCountUnmatched(), 5);
+        assertEquals((Object) syncInfo.getCountDeleted(), 0);
         // jgibbs, hbarbossa, jbeckett, user1, user2, user3
-        assertEquals(syncInfo.getCountLinked(), getDefaultUsers() + getProcessedUsers());
-        assertEquals(syncInfo.getCountUnlinked(), 0);
+        assertEquals((Object) syncInfo.getCountLinked(), getDefaultUsers() + getProcessedUsers());
+        assertEquals((Object) syncInfo.getCountUnlinked(), 0);
 
-        assertEquals(syncInfo.getCountUnmatchedAfter(), 5);
-        assertEquals(syncInfo.getCountDeletedAfter(), 0);
-        assertEquals(syncInfo.getCountLinkedAfter(), getDefaultUsers() + getProcessedUsers());
-        assertEquals(syncInfo.getCountUnlinkedAfter(), 0);
+        assertEquals((Object) syncInfo.getCountUnmatchedAfter(), 5);
+        assertEquals((Object) syncInfo.getCountDeletedAfter(), 0);
+        assertEquals((Object) syncInfo.getCountLinkedAfter(), getDefaultUsers() + getProcessedUsers());
+        assertEquals((Object) syncInfo.getCountUnlinkedAfter(), 0);
     }
 
     @Override
@@ -104,16 +104,16 @@ public class TestThresholdsReconSimulate extends TestThresholds {
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
         dumpSynchronizationInformation(syncInfo);
 
-        assertEquals(syncInfo.getCountUnmatched(), 0);
-        assertEquals(syncInfo.getCountDeleted(), 0);
+        assertEquals((Object) syncInfo.getCountUnmatched(), 0);
+        assertEquals((Object) syncInfo.getCountDeleted(), 0);
         // jgibbs, hbarbossa, jbeckett, user1 (disabled-#1), user2 (disabled-#2), user3 (disabled-#3-fails)
-        assertEquals(syncInfo.getCountLinked(), getDefaultUsers() + getProcessedUsers());
-        assertEquals(syncInfo.getCountUnlinked(), 0);
+        assertEquals((Object) syncInfo.getCountLinked(), getDefaultUsers() + getProcessedUsers());
+        assertEquals((Object) syncInfo.getCountUnlinked(), 0);
 
-        assertEquals(syncInfo.getCountUnmatchedAfter(), 0);
-        assertEquals(syncInfo.getCountDeleted(), 0);
+        assertEquals((Object) syncInfo.getCountUnmatchedAfter(), 0);
+        assertEquals((Object) syncInfo.getCountDeleted(), 0);
         // jgibbs, hbarbossa, jbeckett, user1 (disabled-#1), user2 (disabled-#2), user3 (disabled-#3-fails)
-        assertEquals(syncInfo.getCountLinked(), getDefaultUsers() + getProcessedUsers());
-        assertEquals(syncInfo.getCountUnlinked(), 0);
+        assertEquals((Object) syncInfo.getCountLinked(), getDefaultUsers() + getProcessedUsers());
+        assertEquals((Object) syncInfo.getCountUnlinked(), 0);
     }
 }

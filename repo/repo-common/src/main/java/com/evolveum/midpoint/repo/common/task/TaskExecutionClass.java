@@ -26,6 +26,6 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 @Experimental
 public @interface TaskExecutionClass {
 
-    Class<? extends AbstractSearchIterativeTaskExecution> value();
+    Class<? extends AbstractTaskExecution> value();
 
 }

@@ -20,6 +20,8 @@ public class CompositedIcon implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    public static final String F_LAYER_ICONS = "layerIcons";
+
     private final String basicIcon;
     private final List<LayerIcon> layerIcons;
 
