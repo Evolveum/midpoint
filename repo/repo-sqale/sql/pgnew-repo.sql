@@ -154,6 +154,7 @@ CREATE TABLE m_uri (
     id SERIAL NOT NULL PRIMARY KEY,
     uri VARCHAR(255) NOT NULL UNIQUE
 );
+-- TODO pre-fill with various PrismConstants?
 -- endregion
 
 -- region custom enum types

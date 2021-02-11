@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import java.util.HashSet;
@@ -39,7 +38,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 @JaxbType(type = AssignmentType.class)
 @Entity
 @IdClass(RContainerId.class)
-// TODO prefix last 4 index names with "iAssignment" (some day)
 @Table(name = "m_assignment", indexes = {
         @Index(name = "iAssignmentAdministrative", columnList = "administrativeStatus"),
         @Index(name = "iAssignmentEffective", columnList = "effectiveStatus"),
@@ -349,52 +347,6 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
         this.resourceRef = resourceRef;
     }
 
-    /*
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
-
-        RAssignment that = (RAssignment) o;
-
-        if (activation != null ? !activation.equals(that.activation) : that.activation != null) { return false; }
-        if (extension != null ? !extension.equals(that.extension) : that.extension != null) { return false; }
-        if (targetRef != null ? !targetRef.equals(that.targetRef) : that.targetRef != null) { return false; }
-        if (assignmentOwner != null ? !assignmentOwner.equals(that.assignmentOwner) : that.assignmentOwner != null) {
-            return false;
-        }
-        if (order != null ? !order.equals(that.order) : that.order != null) { return false; }
-        if (tenantRef != null ? !tenantRef.equals(that.tenantRef) : that.tenantRef != null) { return false; }
-        if (orgRef != null ? !orgRef.equals(that.orgRef) : that.orgRef != null) { return false; }
-        if (resourceRef != null ? !resourceRef.equals(that.resourceRef) : that.resourceRef != null) { return false; }
-        if (lifecycleState != null ? !lifecycleState.equals(that.lifecycleState) : that.lifecycleState != null) { return false; }
-        if (policySituation != null ? !policySituation.equals(that.policySituation) : that.policySituation != null) {
-            return false;
-        }
-
-        if (!MetadataFactory.equals(this, that)) { return false; }
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (activation != null ? activation.hashCode() : 0);
-        result = 31 * result + (order != null ? order.hashCode() : 0);
-
-        result = 31 * result + (createTimestamp != null ? createTimestamp.hashCode() : 0);
-        result = 31 * result + (creatorRef != null ? creatorRef.hashCode() : 0);
-        result = 31 * result + (createChannel != null ? createChannel.hashCode() : 0);
-        result = 31 * result + (modifyTimestamp != null ? modifyTimestamp.hashCode() : 0);
-        result = 31 * result + (modifierRef != null ? modifierRef.hashCode() : 0);
-        result = 31 * result + (modifyChannel != null ? modifyChannel.hashCode() : 0);
-        result = 31 * result + (lifecycleState != null ? lifecycleState.hashCode() : 0);
-
-        return result;
-    }
-    */
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -451,7 +403,7 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
 
         if (jaxb.getActivation() != null) {
             RActivation activation = new RActivation();
-            RActivation.fromJaxb(jaxb.getActivation(), activation, repositoryContext);
+            RActivation.fromJaxb(jaxb.getActivation(), activation);
             repo.setActivation(activation);
         }
 

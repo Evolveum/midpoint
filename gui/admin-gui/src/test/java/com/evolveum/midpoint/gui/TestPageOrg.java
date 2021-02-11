@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui;
 
 import static org.testng.Assert.assertNotNull;
 
+import com.evolveum.midpoint.web.page.admin.orgs.PageOrgs;
+
 import org.apache.wicket.Page;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.tester.FormTester;
@@ -93,6 +95,11 @@ public class TestPageOrg extends AbstractInitializedGuiIntegrationTest {
         PrismObject<OrgType> newOrg = findObjectByName(OrgType.class, NEW_ORG_NAME);
         assertNotNull(newOrgChild, "New org not created.");
         assertAssignedOrg(newOrgChild, newOrg.getOid());
+    }
+
+    @Test
+    public void test005testPageOrgList() {
+        renderPage(PageOrgs.class);
     }
 
     private void renderPage(Class<? extends Page> expectedRenderedPageClass) {

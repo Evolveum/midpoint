@@ -3,6 +3,7 @@ package com.evolveum.midpoint.testing.schrodinger.scenarios;
 import com.codeborne.selenide.Selenide;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.component.user.UsersPageTable;
 import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 
@@ -77,8 +78,6 @@ public class ObjectTemplateTests extends AbstractSchrodingerTest {
                 .listRepositoryObjects()
                     .table()
                         .deleteObject("Object template", "Full name template");
-//        showUser("userWithoutFullname");
-//        showUser("userWithFullname");
 
         addObjectFromFile(SYSTEM_CONFIGURATION_INITIAL_FILE, true);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
@@ -118,9 +117,10 @@ public class ObjectTemplateTests extends AbstractSchrodingerTest {
                         .feedback()
                             .assertSuccess();
 
-        basicPage
+        UsersPageTable table = basicPage
                 .listUsers()
-                    .table()
+                    .table();
+        table
                         .search()
                             .byName()
                             .inputValue("employeeTestUser")
@@ -129,7 +129,8 @@ public class ObjectTemplateTests extends AbstractSchrodingerTest {
                         .assertTableContainsColumnWithValue("UserType.givenName", "Kevin")
                         .assertTableContainsColumnWithValue("UserType.familyName", "Black")
                         .assertTableColumnValueIsEmpty("UserType.fullName");
-
+        table.clickByName("employeeTestUser")
+                .selectTabBasic();
         addObjectFromFile(FULL_NAME_OBJECT_TEMPLATE_FILE, true);
         addObjectFromFile(SYSTEM_CONFIGURATION_WITH_OBJ_TEMPLATE_FILE, true);
         Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
@@ -149,7 +150,7 @@ public class ObjectTemplateTests extends AbstractSchrodingerTest {
                             .assertSuccess();
 
         basicPage
-                .listUsers()
+                .listUsers("Employees")
                     .table()
                         .search()
                             .byName()
@@ -159,6 +160,35 @@ public class ObjectTemplateTests extends AbstractSchrodingerTest {
                         .assertTableContainsColumnWithValue("UserType.givenName", "Oskar")
                         .assertTableContainsColumnWithValue("UserType.familyName", "White")
                         .assertTableContainsColumnWithValue("UserType.fullName", "Oskar White");
+    }
+
+    @Test (dependsOnMethods = {"test00300createArchetypeObjectTemplateExists"})
+    public void test00400deleteObjectTemplateCreateEmployee() {
+        basicPage
+                .listRepositoryObjects()
+                .table()
+                .deleteObject("Object template", "Full name template");
+
+        addObjectFromFile(SYSTEM_CONFIGURATION_INITIAL_FILE, true);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+
+        basicPage
+                .listUsers("Employees")
+                    .newUser()
+                        .selectTabBasic()
+                            .form()
+                            .addAttributeValue("Name", "employeeAfterObjTemplRemove")
+                            .addAttributeValue("Given name", "David")
+                            .addAttributeValue("Family name", "Davidson")
+                            .and()
+                        .and()
+                        .clickSave()
+                        .feedback()
+                            .assertSuccess();
+       showUser("employeeAfterObjTemplRemove")
+                .selectTabBasic()
+                    .form()
+                    .assertInputAttributeValueMatches("Full name", "");
     }
 
 }
