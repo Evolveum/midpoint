@@ -44,4 +44,9 @@ public class IncompleteMarkerXNodeImpl extends XNodeImpl implements IncompleteMa
         sb.append("Incomplete");
         return sb.toString();
     }
+
+    @Override
+    public XNode copy() {
+        return this;
+    }
 }
