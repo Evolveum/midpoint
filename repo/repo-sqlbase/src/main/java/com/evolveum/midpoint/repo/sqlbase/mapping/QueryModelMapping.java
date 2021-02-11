@@ -25,6 +25,7 @@ import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.ItemSqlMapper;
+import com.evolveum.midpoint.repo.sqlbase.mapping.item.RelationSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -35,11 +36,18 @@ import com.evolveum.midpoint.util.QNameUtil;
  * See {@link #addItemMapping(QName, ItemSqlMapper)} for details about mapping mechanism.
  * See {@link #addDetailFetchMapper(ItemName, SqlDetailFetchMapper)} for more about mapping
  * related to-many detail tables.
- * <p>
+ *
  * The main goal of this type is to map object query conditions and ORDER BY to SQL.
  * Transformation between schema/prism objects and repository objects (row beans or tuples) is
  * delegated to {@link SqlTransformer}.
  * Objects of various {@link QueryModelMapping} subclasses are factories for the transformer.
+ *
+ * Other important functions of mapping:
+ *
+ * * It allows creating "aliases" (entity path instances) {@link #newAlias(String)}.
+ * * It knows how to traverse to other related entities, defined by {@link #addRelationMapping}
+ *
+ * TODO: possible future use is to help with item delta applications (objectModify)
  *
  * @param <S> schema type
  * @param <Q> type of entity path
@@ -58,6 +66,7 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
     private final Map<String, ColumnMetadata> extensionColumns = new LinkedHashMap<>();
 
     private final Map<QName, ItemSqlMapper> itemFilterProcessorMapping = new LinkedHashMap<>();
+    private final Map<QName, RelationSqlMapper<Q, ?, ?>> itemRelationMapping = new HashMap<>();
     private final Map<QName, SqlDetailFetchMapper<R, ?, ?, ?>> detailFetchMappers = new HashMap<>();
 
     private Q defaultAlias;
@@ -109,6 +118,14 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
         itemFilterProcessorMapping.put(itemName, itemMapper);
     }
 
+    public final <DQ extends FlexibleRelationalPathBase<DR>, DR> void addRelationMapping(
+            @NotNull ItemName itemName,
+            @NotNull Class<DQ> targetQueryType,
+            @NotNull BiFunction<Q, DQ, Predicate> joinOnPredicate) {
+        itemRelationMapping.put(itemName,
+                new RelationSqlMapper<>(targetQueryType, joinOnPredicate));
+    }
+
     /**
      * Fetcher/mappers for detail tables take care of loading to-many details related to
      * this mapped entity (master).
@@ -145,7 +162,8 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     /**
-     * Helping lambda "wrapper" that helps with the type inference (namely the current Q type).
+     * Lambda "wrapper" that helps with the type inference (namely the current Q type).
+     * Returned bi-function returns {@code ON} condition predicate for two entity paths.
      */
     protected <DQ extends EntityPath<DR>, DR> BiFunction<Q, DQ, Predicate> joinOn(
             BiFunction<Q, DQ, Predicate> joinOnPredicateFunction) {
@@ -159,7 +177,8 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
         return itemMapping(itemName).createFilterProcessor(context);
     }
 
-    public final @Nullable Path<?> primarySqlPath(ItemName itemName, SqlQueryContext<?, ?, ?> context)
+    public final @Nullable Path<?> primarySqlPath(
+            ItemName itemName, SqlQueryContext<?, ?, ?> context)
             throws QueryException {
         return itemMapping(itemName).itemPrimaryPath(context.path());
     }
@@ -167,10 +186,20 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
     public final @NotNull ItemSqlMapper itemMapping(ItemName itemName) throws QueryException {
         ItemSqlMapper itemMapping = QNameUtil.getByQName(itemFilterProcessorMapping, itemName);
         if (itemMapping == null) {
-            throw new QueryException("Missing mapping for " + itemName
+            throw new QueryException("Missing item mapping for " + itemName
                     + " in mapping " + getClass().getSimpleName());
         }
         return itemMapping;
+    }
+
+    public final @NotNull RelationSqlMapper<Q, ?, ?> relationMapping(ItemName itemName)
+            throws QueryException {
+        RelationSqlMapper<Q, ?, ?> mapping = QNameUtil.getByQName(itemRelationMapping, itemName);
+        if (mapping == null) {
+            throw new QueryException("Missing relation mapping for " + itemName
+                    + " in mapping " + getClass().getSimpleName());
+        }
+        return mapping;
     }
 
     public String tableName() {
@@ -192,6 +221,11 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
         return queryType;
     }
 
+    /**
+     * Creates new alias (entity path instance) with a defined name.
+     * You can also use {@link #defaultAlias()} if one alias in a query is enough.
+     * Entity path instance returned by this call is already enhanced by extension columns.
+     */
     public Q newAlias(String alias) {
         Q entityPath = newAliasInstance(alias);
         for (Map.Entry<String, ColumnMetadata> entry : extensionColumns.entrySet()) {
@@ -234,8 +268,15 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
     /**
      * Returns {@link SqlDetailFetchMapper} registered for the specified {@link ItemName}.
      */
-    public final SqlDetailFetchMapper<R, ?, ?, ?> detailFetchMapper(ItemName itemName) {
-        return detailFetchMappers.get(itemName);
+    public final SqlDetailFetchMapper<R, ?, ?, ?> detailFetchMapper(ItemName itemName)
+            throws QueryException {
+        SqlDetailFetchMapper<R, ?, ?, ?> mapper =
+                QNameUtil.getByQName(detailFetchMappers, itemName);
+        if (mapper == null) {
+            throw new QueryException("Missing detail fetch mapping for " + itemName
+                    + " in mapping " + getClass().getSimpleName());
+        }
+        return mapper;
     }
 
     /**

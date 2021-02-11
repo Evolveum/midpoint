@@ -42,7 +42,7 @@ public class QLookupTableRow extends FlexibleRelationalPathBase<MLookupTableRow>
     public static final ColumnMetadata LAST_CHANGE_TIMESTAMP =
             ColumnMetadata.named("lastChangeTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
 
-    public UuidPath ownerOid = createUuid("", OWNER_OID);
+    public UuidPath ownerOid = createUuid("ownerOid", OWNER_OID);
     public NumberPath<Integer> rowId = createInteger("rowId", ROW_ID);
     public StringPath rowKey = createString("rowKey", ROW_KEY);
     public StringPath labelNorm = createString("labelNorm", LABEL_NORM);

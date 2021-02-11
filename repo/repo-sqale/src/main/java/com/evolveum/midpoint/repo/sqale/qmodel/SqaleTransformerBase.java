@@ -53,6 +53,11 @@ public abstract class SqaleTransformerBase<S, Q extends FlexibleRelationalPathBa
         this.mapping = mapping;
     }
 
+    @Override
+    public S toSchemaObject(R row) {
+        throw new UnsupportedOperationException("Use toSchemaObject(Tuple,...)");
+    }
+
     /**
      * Transforms row Tuple containing {@link R} under entity path and extension columns.
      */

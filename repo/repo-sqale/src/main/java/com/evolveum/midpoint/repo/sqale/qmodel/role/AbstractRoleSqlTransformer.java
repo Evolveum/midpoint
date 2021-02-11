@@ -8,14 +8,14 @@ package com.evolveum.midpoint.repo.sqale.qmodel.role;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.object.ObjectSqlTransformer;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.FocusSqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 
 public class AbstractRoleSqlTransformer<
         S extends AbstractRoleType, Q extends QAbstractRole<R>, R extends MAbstractRole>
-        extends ObjectSqlTransformer<S, Q, R> {
+        extends FocusSqlTransformer<S, Q, R> {
 
     public AbstractRoleSqlTransformer(
             SqlTransformerContext transformerContext, QAbstractRoleMapping<S, Q, R> mapping) {
