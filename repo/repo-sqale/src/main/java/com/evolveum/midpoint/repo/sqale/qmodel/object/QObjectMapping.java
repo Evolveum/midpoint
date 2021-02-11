@@ -17,6 +17,8 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleModelMapping;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -71,5 +73,16 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     protected Q newAliasInstance(String alias) {
         //noinspection unchecked
         return (Q) new QObject<>(MObject.class, alias);
+    }
+
+    @Override
+    public SqlTransformer<S, Q, R> createTransformer(SqlTransformerContext sqlTransformerContext) {
+        return new ObjectSqlTransformer<>(sqlTransformerContext, this);
+    }
+
+    @Override
+    public R newRowObject() {
+        //noinspection unchecked
+        return (R) new MObject();
     }
 }

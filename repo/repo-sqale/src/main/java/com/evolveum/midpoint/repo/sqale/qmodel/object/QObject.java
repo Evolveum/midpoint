@@ -134,11 +134,12 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
 
     /**
      * Class representing generic {@code QObject<MObject>.class} which is otherwise impossible.
-     * There should be no need to instantiate this, so the class is private and final.
+     * There should be no need to instantiate this, so the class is final with private constructor.
      */
     public static final class QObjectReal extends QObject<MObject> {
-        public QObjectReal(String variable) {
-            super(MObject.class, variable);
+        private QObjectReal() {
+            super(MObject.class, "unused");
+            throw new AssertionError("type only for type inference");
         }
     }
 }

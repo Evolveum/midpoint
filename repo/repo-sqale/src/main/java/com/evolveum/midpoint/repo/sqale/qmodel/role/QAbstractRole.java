@@ -13,14 +13,14 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocus;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QAbstractRole<T extends MAbstractRole> extends QObject<T> {
+public class QAbstractRole<T extends MAbstractRole> extends QFocus<T> {
 
     private static final long serialVersionUID = 8559628642680237808L;
 
@@ -70,11 +70,12 @@ public class QAbstractRole<T extends MAbstractRole> extends QObject<T> {
 
     /**
      * Class representing generic {@code QAbstractRole<MAbstractRole>.class} which is otherwise impossible.
-     * There should be no need to instantiate this, so the class is private and final.
+     * There should be no need to instantiate this, so the class is final with private constructor.
      */
     public static final class QAbstractRoleReal extends QAbstractRole<MAbstractRole> {
-        public QAbstractRoleReal(String variable) {
-            super(MAbstractRole.class, variable);
+        private QAbstractRoleReal() {
+            super(MAbstractRole.class, "unused");
+            throw new AssertionError("type only for type inference");
         }
     }
 }

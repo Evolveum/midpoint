@@ -74,6 +74,7 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
     @Override
     public @NotNull Path<?>[] selectExpressions(
             Q entity, Collection<SelectorOptions<GetOperationOptions>> options) {
+        // TODO process photo option
         return new Path[] { entity.oid, entity.fullObject };
     }
 
@@ -88,5 +89,11 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
     public FocusSqlTransformer<S, Q, R> createTransformer(
             SqlTransformerContext transformerContext) {
         return new FocusSqlTransformer<>(transformerContext, this);
+    }
+
+    @Override
+    public R newRowObject() {
+        //noinspection unchecked
+        return (R) new MFocus();
     }
 }
