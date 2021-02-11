@@ -23,7 +23,7 @@ public class TestXmlJsonRoundtrip extends AbstractSchemaTest {
 
     @DataProvider(name = "xmlJsonFiles")
     public static Object[][] testFiles() {
-        String[] files = TEST_FOLDER.list((d,n) -> n.endsWith(".xml"));
+        String[] files = TEST_FOLDER.list((d,n) -> n.endsWith(".xml") && !n.endsWith(".skip.xml"));
         Object[][] ret = new Object[files.length][];
         int o = 0;
         for(String name: files) {
@@ -38,6 +38,11 @@ public class TestXmlJsonRoundtrip extends AbstractSchemaTest {
 
     @Test(dataProvider = "xmlJsonFiles")
     void testFile(File name) throws SchemaException, IOException {
+        doubleSerialization(name);
+
+    }
+
+    private @NotNull PrismObject<Objectable> doubleSerialization(File name) throws SchemaException, IOException {
         PrismContext context = getPrismContext();
         PrismObject<Objectable> xmlObject = context.parserFor(name).language("xml").parse();
         assertNotNull(xmlObject);
@@ -53,7 +58,18 @@ public class TestXmlJsonRoundtrip extends AbstractSchemaTest {
         String json2String = context.jsonSerializer().serialize(jsonObject);
         var json2Object = context.parserFor(json2String).language("json").parse();
         assertObjectEquals(jsonObject, json2Object);
+        return json2Object;
+    }
 
+
+    @Test
+    void testDummyFilter() throws SchemaException, IOException {
+        testFile(new File(TEST_FOLDER, "task-reconcile-dummy-filter.skip.xml"));
+    }
+
+    @Test
+    void testDeleteTask() throws SchemaException, IOException {
+        testFile(new File(TEST_FOLDER, "task-delete-dummy-shadows.skip.xml"));
     }
 
     private void assertObjectEquals(@NotNull PrismObject<Objectable> jsonObject, PrismObject<Objectable> xmlObject) {
