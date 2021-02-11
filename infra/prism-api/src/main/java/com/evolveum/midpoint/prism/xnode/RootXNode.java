@@ -18,4 +18,7 @@ public interface RootXNode extends XNode {
     XNode getSubnode();
 
     MapXNode toMapXNode();
+
+    @Override
+    RootXNode copy();
 }

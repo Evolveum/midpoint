@@ -13,7 +13,8 @@ import javax.xml.namespace.QName;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ValueNode;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
@@ -110,10 +111,10 @@ class JsonOtherTokenReader {
             // as xsd:string, even if the schema would expect e.g. timestamp.
         }
 
-        JsonNode jn = parser.readValueAs(JsonNode.class);
+        ValueNode jn = parser.readValueAs(ValueNode.class);
         ValueParser<T> vp = new JsonValueParser<>(parser, jn, parentContext);
         primitive.setValueParser(vp);
-
+        // FIXME: Materialize when possible
         return primitive;
     }
 
@@ -123,21 +124,4 @@ class JsonOtherTokenReader {
         return primitive;
     }
 
-//    @SuppressWarnings("unused") // TODO remove if not needed
-//    private QName getCurrentTypeName(JsonReadingContext ctx) throws IOException, SchemaException {
-//        switch (parser.currentToken()) {
-//            case VALUE_NUMBER_INT:
-//            case VALUE_NUMBER_FLOAT:
-//                return AbstractReader.determineNumberType(parser.getNumberType());
-//            case VALUE_FALSE:
-//            case VALUE_TRUE:
-//                return DOMUtil.XSD_BOOLEAN;
-//            case VALUE_STRING:
-//                return DOMUtil.XSD_STRING;
-//            case VALUE_NULL:
-//                return null;            // TODO?
-//            default:
-//                throw new SchemaException("Unexpected current token type: " + parser.currentToken() + "/" + parser.getText() + " at " + ctx.getPositionSuffix());
-//        }
-//    }
 }

@@ -177,4 +177,14 @@ public class RootXNodeImpl extends XNodeImpl implements RootXNode {
         }
         super.performFreeze();
     }
+
+    @Override
+    public RootXNode copy() {
+        if(isImmutable()) {
+            return this;
+        }
+        RootXNodeImpl ret = new RootXNodeImpl(rootElementName, namespaceContext());
+        copyCommonTo(ret).setSubnode((XNodeImpl) getSubnode().copy());
+        return ret;
+    }
 }

@@ -14,6 +14,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.AbstractFreezable;
 import com.evolveum.midpoint.prism.PrismNamespaceContext;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -278,5 +279,18 @@ public abstract class XNodeImpl extends AbstractFreezable implements XNode {
     @Override
     public PrismNamespaceContext namespaceContext() {
         return namespaceContext;
+    }
+
+    protected <T extends XNodeImpl> T copyCommonTo(T target) {
+        target.setComment(getComment());
+        target.setElementName(getElementName());
+        target.setExplicitTypeDeclaration(isExplicitTypeDeclaration());
+        target.setLineNumber(getLineNumber());
+        target.setMaxOccurs(getMaxOccurs());
+        target.setOriginDescription(getOriginDescription());
+        target.setOriginFile(getOriginFile());
+        target.setParserData(CloneUtil.clone(getParserData()));
+        target.setTypeQName(getTypeQName());
+        return target;
     }
 }

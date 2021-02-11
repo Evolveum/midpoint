@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.prism.impl.xnode;
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
@@ -385,5 +386,23 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
     @Override
     public void setMetadataNodes(@NotNull List<MapXNode> metadataNodes) {
         this.metadataNodes = metadataNodes;
+    }
+
+    @Override
+    public MapXNode copy() {
+        if(isImmutable()) {
+            return this;
+        }
+        MapXNodeImpl ret = new MapXNodeImpl(namespaceContext());
+        for(Entry<QName, XNodeImpl> node : subnodes.entrySet()) {
+            ret.put(node.getKey(), node.getValue().clone());
+        }
+
+        List<MapXNode> metadata = new ArrayList<>(metadataNodes.size());
+        for (MapXNode mapXNode : metadataNodes) {
+            metadata.add(mapXNode.copy());
+        }
+        ret.setMetadataNodes(metadata);
+        return ret;
     }
 }

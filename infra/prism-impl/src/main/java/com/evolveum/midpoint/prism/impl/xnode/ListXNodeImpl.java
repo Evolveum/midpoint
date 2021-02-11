@@ -218,4 +218,17 @@ public class ListXNodeImpl extends XNodeImpl implements List<XNodeImpl>, ListXNo
         }
         super.performFreeze();
     }
+
+    @Override
+    public ListXNode copy() {
+        if(isImmutable()) {
+            return this;
+        }
+        ListXNodeImpl ret = new ListXNodeImpl(namespaceContext());
+        copyCommonTo(ret);
+        for (XNodeImpl xNodeImpl : ret.subnodes) {
+            ret.add((XNodeImpl) xNodeImpl.copy());
+        }
+        return ret;
+    }
 }

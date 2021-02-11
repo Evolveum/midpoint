@@ -420,6 +420,22 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
     }
 
     @Override
+    public PrimitiveXNode<T> copy() {
+        if(isImmutable()) {
+            return this;
+        }
+        PrimitiveXNodeImpl<T> ret = new PrimitiveXNodeImpl<>(namespaceContext());
+        copyCommonTo(ret);
+        if (value != null) {
+            ret.setValue(CloneUtil.clone(getValue()), getTypeQName());
+        }
+        if (valueParser != null) {
+            ret.setValueParser(getValueParser().freeze());
+        }
+        return ret;
+    }
+
+    @Override
     public @NotNull List<MapXNode> getMetadataNodes() {
         return metadata;
     }

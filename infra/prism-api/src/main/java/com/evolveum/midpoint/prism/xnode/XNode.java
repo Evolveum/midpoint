@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.prism.xnode;
 
+import com.evolveum.midpoint.prism.Copyable;
 import com.evolveum.midpoint.prism.Freezable;
 import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.Visitable;
@@ -19,7 +20,7 @@ import java.io.Serializable;
 /**
  *
  */
-public interface XNode extends DebugDumpable, Visitable<XNode>, Cloneable, Serializable, Freezable {
+public interface XNode extends DebugDumpable, Visitable<XNode>, Cloneable, Copyable<XNode>, Serializable, Freezable {
 
     boolean isEmpty();
 
@@ -31,6 +32,9 @@ public interface XNode extends DebugDumpable, Visitable<XNode>, Cloneable, Seria
 
     @NotNull
     XNode clone();
+
+    @Override
+    XNode copy();
 
     Integer getMaxOccurs();
 
