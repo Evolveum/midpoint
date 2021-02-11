@@ -111,12 +111,12 @@ public class BasicPage {
     }
 
     public OrgTreePage orgStructure() {
-        clickAdministrationMenu("PageAdmin.menu.top.users.org", "PageAdmin.menu.top.users.org.tree");
+        clickAdministrationMenu("PageAdmin.menu.top.orgs", "PageAdmin.menu.top.orgs.tree");
         return new OrgTreePage();
     }
 
     public OrgPage newOrgUnit() {
-        clickAdministrationMenu("PageAdmin.menu.top.users.org", "PageAdmin.menu.top.users.org.new");
+        clickAdministrationMenu("PageAdmin.menu.top.orgs", "PageAdmin.menu.top.orgs.new");
         return new OrgPage();
     }
 

@@ -18,13 +18,12 @@ import org.springframework.test.context.ActiveProfiles;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
+import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
+import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 

@@ -53,8 +53,8 @@ import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.server.PageNodes;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.PageTasksCertScheduling;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
+import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
+import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAttorneySelection;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItemsAttorney;
 import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingCart;
@@ -272,17 +272,15 @@ public class LeftMenuPanel extends BasePanel<Void> {
 
     //TODO AuthorizationConstants.AUTZ_UI_ORG_STRUCT_URL
     private MainMenuItem createOrganizationsMenu() {
-        MainMenuItem organizationMenu = createMainMenuItem("PageAdmin.menu.top.users.org", GuiStyleConstants.CLASS_OBJECT_ORG_ICON_COLORED
+        MainMenuItem organizationMenu = createMainMenuItem("PageAdmin.menu.top.orgs", GuiStyleConstants.CLASS_OBJECT_ORG_ICON_COLORED
         );
 
-        MenuItem orgTree = new MenuItem("PageAdmin.menu.top.users.org.tree",
+        MenuItem orgTree = new MenuItem("PageAdmin.menu.top.orgs.tree",
                 GuiStyleConstants.CLASS_OBJECT_ORG_ICON, PageOrgTree.class);
         organizationMenu.addMenuItem(orgTree);
-        //todo should we have org list page for collection/archetype view?
-//        addCollectionsMenuItems(item.getItems(), OrgType.COMPLEX_TYPE);
 
-        createFocusPageNewEditMenu(organizationMenu, "PageAdmin.menu.top.users.org.new",
-                "PageAdmin.menu.top.users.org.edit", PageOrgUnit.class);
+        createBasicAssignmentHolderMenuItems(organizationMenu, OrgType.COMPLEX_TYPE, PageTypes.ORG, true);
+
         return organizationMenu;
 
     }

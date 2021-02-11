@@ -30,7 +30,7 @@ import com.evolveum.midpoint.web.page.admin.home.component.SystemInfoPanel;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
+import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 
 /**

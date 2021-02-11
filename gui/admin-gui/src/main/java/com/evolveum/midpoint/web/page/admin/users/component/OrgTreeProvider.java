@@ -22,7 +22,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
+import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import org.apache.wicket.Component;

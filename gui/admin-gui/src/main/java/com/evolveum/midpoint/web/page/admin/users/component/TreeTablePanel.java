@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -38,7 +36,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -58,8 +55,8 @@ import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
 import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
+import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
+import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
 import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
