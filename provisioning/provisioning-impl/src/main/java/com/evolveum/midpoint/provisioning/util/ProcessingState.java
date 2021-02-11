@@ -46,6 +46,13 @@ public class ProcessingState implements Serializable {
      */
     private boolean initialized;
 
+    /**
+     * Was the initialization skipped?
+     *
+     * TODO better name
+     */
+    private boolean initializationSkipped;
+
     public ProcessingState() {
     }
 
@@ -101,6 +108,7 @@ public class ProcessingState implements Serializable {
                 "skipFurtherProcessing=" + skipFurtherProcessing +
                 ", e=" + exceptionEncountered +
                 ", initialized=" + initialized +
+                ", initializationSkipped=" + initializationSkipped +
                 '}';
     }
 
@@ -114,7 +122,24 @@ public class ProcessingState implements Serializable {
         this.initialized = true;
     }
 
+    public boolean isInitializationSkipped() {
+        return initializationSkipped;
+    }
+
+    // TODO better name
+    public boolean isAfterInitialization() {
+        return initialized || initializationSkipped;
+    }
+
+    public void setInitializationSkipped() {
+        this.initializationSkipped = true;
+    }
+
     public Throwable getExceptionEncountered() {
         return exceptionEncountered;
+    }
+
+    public boolean isError() {
+        return exceptionEncountered != null;
     }
 }

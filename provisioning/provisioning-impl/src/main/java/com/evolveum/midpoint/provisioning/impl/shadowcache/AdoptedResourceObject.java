@@ -104,6 +104,15 @@ public class AdoptedResourceObject implements InitializableMixin {
         }
     }
 
+    /**
+     * The object is somehow flawed. However, we should try to create some shadow.
+     */
+    @Override
+    public void skipInitialization(Task task, OperationResult result) throws CommonException, SkipProcessingException,
+            EncryptionException {
+        // TODO create the shadow!
+    }
+
     @NotNull
     private PrismObject<ShadowType> connectAndUpdateRepositoryShadow(ProvisioningContext estimatedShadowCtx,
             OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException,

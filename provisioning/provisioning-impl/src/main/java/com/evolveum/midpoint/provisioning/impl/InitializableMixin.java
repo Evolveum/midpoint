@@ -15,6 +15,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 
 /**
@@ -40,6 +41,7 @@ public interface InitializableMixin extends DebugDumpable {
             if (getProcessingState().isSkipFurtherProcessing()) {
                 getLogger().trace("Skipping initialization because skipFurtherProcessing is true.");
                 skipInitialization(task, result);
+                getProcessingState().setInitializationSkipped();
             } else {
                 initializeInternal(task, result);
                 getProcessingState().setInitialized();
@@ -74,5 +76,5 @@ public interface InitializableMixin extends DebugDumpable {
 
     ProcessingState getProcessingState();
 
-    void checkConsistence();
+    void checkConsistence() throws SchemaException;
 }

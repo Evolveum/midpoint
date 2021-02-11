@@ -61,12 +61,14 @@ import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.PrismQueryLanguageParser;
 import com.evolveum.midpoint.prism.query.OrgFilter.Scope;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableMap;
+
+import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
 
 public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
 
@@ -453,12 +455,6 @@ public class PrismQueryLanguageParserImpl implements PrismQueryLanguageParser {
         }
         // FIXME: Workaround for
         return  parent.getComplexTypeDefinition().findItemDefinition(path,type);
-    }
-
-    static void schemaCheck(boolean condition, String template, Object... arguments) throws SchemaException {
-        if (!condition) {
-            throw new SchemaException(Strings.lenientFormat(template, arguments));
-        }
     }
 
     private ObjectFilter createItemFilter(ItemFilterFactory factory, PrismContainerDefinition<?> parent, ItemPath path,

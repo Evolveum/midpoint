@@ -9,6 +9,8 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -51,8 +53,11 @@ public class ExternalResourceObjectChange extends ResourceObjectChange {
     }
 
     @Override
-    public void initializeInternal(Task task, OperationResult result) {
+    public void initializeInternal(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
         this.context = this.ctx;
+        updateRefinedObjectClass();
+        completeIdentifiers();
     }
 
     @Override

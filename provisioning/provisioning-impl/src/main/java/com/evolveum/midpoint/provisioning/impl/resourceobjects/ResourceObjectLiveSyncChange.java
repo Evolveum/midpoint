@@ -56,11 +56,14 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
             ExpressionEvaluationException, SecurityViolationException, SkipProcessingException {
 
         determineProvisioningContext(initializationContext.originalCtx, null);
+        updateRefinedObjectClass();
 
         if (!isDelete()) {
             postProcessOrFetchResourceObject(initializationContext.converter, initializationContext.originalCtx,
                     initializationContext.originalAttrsToReturn, result);
         }
+
+        completeIdentifiers();
     }
 
     private void postProcessOrFetchResourceObject(ResourceObjectConverter converter, ProvisioningContext originalCtx,

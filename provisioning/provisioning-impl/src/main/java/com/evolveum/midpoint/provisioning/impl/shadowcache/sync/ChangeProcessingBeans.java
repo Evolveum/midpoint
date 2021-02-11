@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadowcache.sync;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,7 @@ import com.evolveum.midpoint.schema.SchemaHelper;
 @Component
 public class ChangeProcessingBeans {
 
+    @Autowired public PrismContext prismContext;
     @Autowired public ShadowCaretaker shadowCaretaker;
     @Autowired public ShadowManager shadowManager;
     @Autowired public ShadowCache shadowCache;

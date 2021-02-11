@@ -47,11 +47,13 @@ public class ResourceObjectAsyncChange extends ResourceObjectChange implements A
             CommunicationException, ConfigurationException, ExpressionEvaluationException, SecurityViolationException {
 
         determineProvisioningContext(initializationContext.originalCtx, task);
+        updateRefinedObjectClass();
         setResourceRefIfMissing(context.getResourceOid()); // TODO why not in other kinds of changes (LS, EXT)?
-        postProcessResourceObjectIfAny(initializationContext.converter, result);
+        postProcessResourceObjectIfPresent(initializationContext.converter, result);
+        completeIdentifiers();
     }
 
-    private void postProcessResourceObjectIfAny(ResourceObjectConverter converter, OperationResult result)
+    private void postProcessResourceObjectIfPresent(ResourceObjectConverter converter, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             ExpressionEvaluationException, SecurityViolationException {
         if (resourceObject != null) {

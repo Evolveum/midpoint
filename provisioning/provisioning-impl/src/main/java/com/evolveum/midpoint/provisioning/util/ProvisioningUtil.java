@@ -51,10 +51,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -731,18 +728,10 @@ public class ProvisioningUtil {
     }
 
     public static boolean isDoDiscovery(ResourceType resource) {
-        if (resource == null) {
-            return true;
-        }
-        if (resource.getConsistency() == null) {
-            return true;
-        }
-
-        if (resource.getConsistency().isDiscovery() == null) {
-            return true;
-        }
-
-        return resource.getConsistency().isDiscovery();
+        return resource == null
+                || resource.getConsistency() == null
+                || resource.getConsistency().isDiscovery() == null
+                || resource.getConsistency().isDiscovery();
     }
 
     public static OperationResultStatus postponeModify(ProvisioningContext ctx,
@@ -868,5 +857,17 @@ public class ProvisioningUtil {
         if (InternalsConfig.encryptionChecks) {
             CryptoUtil.checkEncrypted(shadow);
         }
+    }
+
+    public static Collection<ResourceAttribute<?>> selectPrimaryIdentifiers(Collection<ResourceAttribute<?>> identifiers,
+            ObjectClassComplexTypeDefinition ocDef) {
+
+        Collection<ItemName> primaryIdentifiers = ocDef.getPrimaryIdentifiers().stream()
+                .map(ItemDefinition::getItemName)
+                .collect(Collectors.toSet());
+
+        return identifiers.stream()
+                .filter(attr -> QNameUtil.matchAny(attr.getElementName(), primaryIdentifiers))
+                .collect(Collectors.toList());
     }
 }

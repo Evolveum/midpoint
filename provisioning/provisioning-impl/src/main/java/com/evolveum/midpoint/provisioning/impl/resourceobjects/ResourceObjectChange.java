@@ -7,9 +7,19 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
+import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.selectPrimaryIdentifiers;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 
+import static com.evolveum.midpoint.util.MiscUtil.*;
+
+import static java.util.Collections.emptySet;
+
 import java.util.Collection;
+import java.util.Collections;
+
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+
+import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -61,18 +71,29 @@ public abstract class ResourceObjectChange implements InitializableMixin {
      * Definition of the object class. Can be missing for delete deltas.
      *
      * See {@link UcfChange#objectClassDefinition}.
+     *
+     * Can be updated during initialization. TODO or should we keep it fixed?
      */
     protected ObjectClassComplexTypeDefinition objectClassDefinition;
 
     /**
+     * Refined object class definition as determined from the provisioning context.
+     * Kept here e.g. to avoid having to check for exceptions when obtaining from the context.
+     */
+    protected RefinedObjectClassDefinition refinedObjectClassDefinition;
+
+    /**
      * All identifiers of the object.
      *
-     * The collection is unmodifiable. The elements should not be modified as well,
-     * although this is not enforced yet.
+     * The collection is unmodifiable after this object is initialized.
+     * The elements should not be modified as well, although this is not enforced yet.
      *
      * See {@link UcfChange#identifiers}.
+     *
+     * After initialization it should contain either "real" identifiers, or an artificially crafted
+     * one (from {@link #primaryIdentifierRealValue} - if possible. See {@link #checkConsistence()}.
      */
-    @NotNull protected final Collection<ResourceAttribute<?>> identifiers;
+    @NotNull protected Collection<ResourceAttribute<?>> identifiers;
 
     /**
      * Delta from the resource - if known.
@@ -222,6 +243,11 @@ public abstract class ResourceObjectChange implements InitializableMixin {
         }
     }
 
+    protected void updateRefinedObjectClass() throws SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException {
+        refinedObjectClassDefinition = context.getObjectClassDefinition();
+    }
+
     private ProvisioningContext spawnContextForNewTaskIfNeeded(ProvisioningContext originalCtx, Task taskToSet) {
         if (taskToSet != null && taskToSet != originalCtx.getTask()) {
             return originalCtx.spawn(taskToSet);
@@ -278,8 +304,78 @@ public abstract class ResourceObjectChange implements InitializableMixin {
 
     protected abstract void debugDumpExtra(StringBuilder sb, int indent);
 
+    protected void completeIdentifiers() throws SchemaException {
+        if (processingState.isError()) {
+            // We do not want to mess with identifiers if the state is not an error.
+            addFakePrimaryIdentifierIfNeeded();
+        }
+        identifiers = Collections.unmodifiableCollection(identifiers);
+    }
+
+    private void addFakePrimaryIdentifierIfNeeded() throws SchemaException {
+        if (primaryIdentifierRealValue != null && hasObjectClassDefinition()) {
+            if (getPrimaryIdentifiers().isEmpty()) {
+                identifiers.add(createFakePrimaryIdentifier());
+            }
+        }
+    }
+
+    /**
+     * @return The most precise object class definition known at this moment.
+     */
+    public ObjectClassComplexTypeDefinition getCurrentObjectClassDefinition() {
+        if (refinedObjectClassDefinition != null) {
+            return refinedObjectClassDefinition;
+        } else {
+            return objectClassDefinition;
+        }
+    }
+
+    public boolean hasObjectClassDefinition() {
+        return getCurrentObjectClassDefinition() != null;
+    }
+
+    /**
+     * @return Primary identifiers selected from the list of all identifiers known for this change.
+     */
+    public Collection<ResourceAttribute<?>> getPrimaryIdentifiers() {
+        ObjectClassComplexTypeDefinition objectClassDefinition = getCurrentObjectClassDefinition();
+        if (objectClassDefinition != null) {
+            return selectPrimaryIdentifiers(identifiers, objectClassDefinition);
+        } else {
+            return emptySet(); // Or should we throw an exception?
+        }
+    }
+
+    public ResourceAttribute<?> getPrimaryIdentifierRequired() throws SchemaException {
+        return MiscUtil.extractSingletonRequired(getPrimaryIdentifiers(),
+                () -> new SchemaException("Multiple primary identifiers in " + this),
+                () -> new SchemaException("No primary identifier in " + this));
+    }
+
+    private ResourceAttribute<?> createFakePrimaryIdentifier() throws SchemaException {
+        Collection<? extends RefinedAttributeDefinition<?>> primaryIdDefs = refinedObjectClassDefinition.getPrimaryIdentifiers();
+        RefinedAttributeDefinition<?> primaryIdDef = MiscUtil.extractSingletonRequired(primaryIdDefs,
+                () -> new SchemaException("Multiple primary identifier definitions in " + refinedObjectClassDefinition),
+                () -> new SchemaException("No primary identifier definition in " + refinedObjectClassDefinition));
+        ResourceAttribute<?> primaryId = primaryIdDef.instantiate();
+        //noinspection unchecked
+        ((ResourceAttribute<Object>) primaryId).setRealValue(primaryIdentifierRealValue);
+        return primaryId;
+    }
+
     @Override
-    public void checkConsistence() {
-        // TODO
+    public void checkConsistence() throws SchemaException {
+        if (!getProcessingState().isAfterInitialization()) {
+            return;
+        }
+
+        stateCheck(isDelete() || hasObjectClassDefinition(), "No object class definition for non-delete change");
+
+        checkCollectionImmutable(identifiers);
+
+        if (primaryIdentifierRealValue != null && hasObjectClassDefinition()) {
+            schemaCheck(!identifiers.isEmpty(), "No identifiers in the container but primary id value is known");
+        }
     }
 }

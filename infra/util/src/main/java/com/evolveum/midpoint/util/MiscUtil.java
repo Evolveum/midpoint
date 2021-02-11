@@ -36,6 +36,7 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.google.common.base.Strings;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -959,6 +960,27 @@ public class MiscUtil {
             return value;
         } else {
             throw new SchemaException(messageSupplier.get());
+        }
+    }
+
+    public static void checkCollectionImmutable(Collection<?> collection) {
+        try {
+            collection.add(null);
+            throw new IllegalStateException("Collection is mutable");
+        } catch (UnsupportedOperationException e) {
+            // This is expected.
+        }
+    }
+
+    public static void schemaCheck(boolean condition, String template, Object... arguments) throws SchemaException {
+        if (!condition) {
+            throw new SchemaException(Strings.lenientFormat(template, arguments));
+        }
+    }
+
+    public static void stateCheck(boolean condition, String template, Object... arguments) {
+        if (!condition) {
+            throw new IllegalStateException(Strings.lenientFormat(template, arguments));
         }
     }
 }

@@ -30,7 +30,6 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.impl.ShadowState;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectChange;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.*;
@@ -178,20 +177,6 @@ public class ShadowManager {
             PrismObject<ShadowType> shadowToAdd, OperationResult result) throws SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
         return shadowFinder.searchForPreviousDeadShadows(ctx, shadowToAdd, result);
-    }
-
-    /**
-     * Acquires (i.e. looks up or creates) a shadow from a non-deletion change.
-     *
-     * TODO We should not deal with ResourceObjectChange directly. Maybe we should move part of the logic
-     *  into AdoptedChange class (from where we are called).
-     */
-    @NotNull
-    public PrismObject<ShadowType> acquireShadowFromChange(ProvisioningContext ctx, ResourceObjectChange change,
-            OperationResult result) throws SchemaException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, EncryptionException {
-        assert !change.isDelete();
-        return shadowCreator.acquireShadowFromChange(ctx, change, result);
     }
 
     /**

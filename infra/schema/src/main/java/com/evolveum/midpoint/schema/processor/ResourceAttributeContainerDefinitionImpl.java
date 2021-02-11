@@ -72,7 +72,6 @@ public class ResourceAttributeContainerDefinitionImpl extends PrismContainerDefi
      * @throws IllegalStateException
      *             if there is no definition for the referenced attributed
      */
-    // TODO: rename to getPrimaryIdentifiers
     @Override
     public Collection<? extends ResourceAttributeDefinition> getPrimaryIdentifiers() {
         return getComplexTypeDefinition().getPrimaryIdentifiers();

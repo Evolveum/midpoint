@@ -9,12 +9,14 @@ package com.evolveum.midpoint.provisioning.impl.shadowcache;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.provisioning.impl.InitializableMixin;
 import com.evolveum.midpoint.provisioning.impl.shadowcache.sync.ChangeProcessingBeans;
 import com.evolveum.midpoint.provisioning.impl.shadowcache.sync.SkipProcessingException;
 
 import com.evolveum.midpoint.provisioning.util.ProcessingState;
 
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.task.api.Task;
 
 import com.evolveum.midpoint.util.DebugUtil;
@@ -49,6 +51,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingStategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
+import javax.xml.namespace.QName;
+
+import static java.util.Objects.requireNonNull;
+
 /**
  * Change that was "adopted" at the level of ShadowCache.
  *
@@ -78,7 +84,9 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements Initiali
 
     @NotNull protected final ProcessingState processingState;
 
-    protected final ChangeProcessingBeans beans;
+    @NotNull protected final ChangeProcessingBeans beans;
+
+    @NotNull protected final LocalBeans localBeans;
 
     // TODO ???
     protected final ObjectDelta<ShadowType> objectDelta;
@@ -111,6 +119,7 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements Initiali
         this.context = resourceObjectChange.getContext();
         this.simulate = simulate;
         this.beans = beans;
+        this.localBeans = beans.shadowCache.getLocalBeans();
         this.objectDelta = CloneUtil.clone(resourceObjectChange.getObjectDelta());
         this.currentResourceObject = CloneUtil.clone(resourceObjectChange.getResourceObject());
     }
@@ -120,10 +129,10 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements Initiali
             throws CommonException, SkipProcessingException, EncryptionException {
 
         if (isDelete()) {
-            findRepoShadow(result);
+            lookupShadow(result);
             updateProvisioningContextFromRepoShadow();
         } else {
-            findOrCreateRepoShadow(result);
+            acquireShadow(result);
         }
 
         assert repoShadow != null;
@@ -242,7 +251,8 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements Initiali
         }
     }
 
-    private void findRepoShadow(OperationResult result)
+    // For delete deltas we don't bother with creating a shadow if it does not exist.
+    private void lookupShadow(OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException,
             ExpressionEvaluationException, SkipProcessingException {
         assert isDelete();
@@ -259,9 +269,43 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements Initiali
         }
     }
 
-    private void findOrCreateRepoShadow(OperationResult result) throws SchemaException, CommunicationException,
+    private void acquireShadow(OperationResult result) throws SchemaException, CommunicationException,
             ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, EncryptionException {
-        repoShadow = beans.shadowManager.acquireShadowFromChange(context, resourceObjectChange, result);
+        assert !isDelete();
+
+        PrismProperty<?> primaryIdentifier = resourceObjectChange.getPrimaryIdentifierRequired();
+        QName objectClass = getObjectClassDefinition().getTypeName();
+        repoShadow = localBeans.adoptionHelper.acquireRepoShadow(context, primaryIdentifier, objectClass,
+                this::createResourceObjectFromChange, result);
+    }
+
+    @NotNull
+    private PrismObject<ShadowType> createResourceObjectFromChange() throws SchemaException {
+        if (resourceObjectChange.getResourceObject() != null) {
+            return resourceObjectChange.getResourceObject();
+        } else if (resourceObjectChange.isAdd()) {
+            return requireNonNull(resourceObjectChange.getObjectDelta().getObjectToAdd());
+        } else if (!resourceObjectChange.getIdentifiers().isEmpty()) {
+            return createIdentifiersOnlyFakeResourceObject();
+        } else {
+            throw new IllegalStateException("Could not create shadow from change description. Neither current resource object"
+                    + " nor its identifiers exist.");
+        }
+    }
+
+    private PrismObject<ShadowType> createIdentifiersOnlyFakeResourceObject() throws SchemaException {
+        if (resourceObjectChange.getObjectClassDefinition() == null) {
+            throw new IllegalStateException("Could not create shadow from change description. Object class is not specified.");
+        }
+        ShadowType fakeResourceObject = new ShadowType(beans.prismContext);
+        fakeResourceObject.setObjectClass(resourceObjectChange.getObjectClassDefinition().getTypeName());
+        ResourceAttributeContainer attributeContainer = resourceObjectChange.getObjectClassDefinition()
+                .toResourceAttributeContainerDefinition().instantiate();
+        fakeResourceObject.asPrismObject().add(attributeContainer);
+        for (ResourceAttribute<?> identifier : resourceObjectChange.getIdentifiers()) {
+            attributeContainer.add(identifier.clone());
+        }
+        return fakeResourceObject.asPrismObject();
     }
 
     public boolean isDelete() {
@@ -269,7 +313,7 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements Initiali
     }
 
     public ObjectClassComplexTypeDefinition getObjectClassDefinition() {
-        return resourceObjectChange.getObjectClassDefinition();
+        return resourceObjectChange.getCurrentObjectClassDefinition();
     }
 
 
