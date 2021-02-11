@@ -155,8 +155,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
             if (QNameUtil.match(key, entry.getKey())) {
                 iterator.remove();
                 unqualifiedSubnodeNames.remove(key.getLocalPart());
-                throw new IllegalStateException("Removing unqualified: " + key);
-                //return entry.getValue();
+                return entry.getValue();
             }
         }
         return null;
@@ -277,8 +276,18 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
             return false;
         }
         MapXNodeImpl other = (MapXNodeImpl) o;
-        return MiscUtil.unorderedCollectionEquals(this.subnodes.entrySet(), other.subnodes.entrySet()) &&
+
+        return MiscUtil.unorderedCollectionEquals(this.subnodes.entrySet(), other.subnodes.entrySet(), MapXNodeImpl::equals) &&
                 metadataEquals(this.metadataNodes, other.metadataNodes);
+    }
+
+    static boolean equals(Map.Entry<QName, XNodeImpl> left, Map.Entry<QName, XNodeImpl> right) {
+        QName leftName = left.getKey();
+        QName rightName = right.getKey();
+        if(!QNameUtil.match(leftName, rightName)) {
+            return false;
+        }
+        return left.getValue().equals(right.getValue());
     }
 
     @Override
