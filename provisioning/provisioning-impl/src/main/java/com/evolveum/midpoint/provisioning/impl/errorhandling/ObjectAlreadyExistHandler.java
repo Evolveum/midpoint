@@ -57,6 +57,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.selectLiveShadow;
+
 @Component
 public class ObjectAlreadyExistHandler extends HardErrorHandler {
 
@@ -117,39 +119,29 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
             Exception cause, OperationResult failedOperationResult, Task task, OperationResult parentResult)
                     throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SecurityViolationException {
 
-        // TODO: this probably should NOT be a subresult of parentResult. We probably want new result (and maybe also task) here.
         OperationResult result = parentResult.createSubresult(OP_DISCOVERY);
         try {
 
             ObjectQuery query = createQueryBySecondaryIdentifier(newShadow.asObjectable(), prismContext);
 
             final List<PrismObject<ShadowType>> conflictingRepoShadows = findConflictingShadowsInRepo(query, task, result);
-            PrismObject<ShadowType> oldShadow = shadowManager.eliminateDeadShadows(conflictingRepoShadows, result);
+            PrismObject<ShadowType> oldShadow = selectLiveShadow(conflictingRepoShadows);
             if (oldShadow != null) {
                 shadowCaretaker.applyAttributesDefinition(ctx, oldShadow);
             }
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("DISCOVERY: looking for conflicting shadow for {}", ShadowUtil.shortDumpShadow(newShadow));
-            }
+            LOGGER.trace("DISCOVERY: looking for conflicting shadow for {}", ShadowUtil.shortDumpShadowLazily(newShadow));
 
             final List<PrismObject<ShadowType>> conflictingResourceShadows = findConflictingShadowsOnResource(query, task, result);
-            PrismObject<ShadowType> conflictingShadow = shadowManager.eliminateDeadShadows(conflictingResourceShadows, result);
+            PrismObject<ShadowType> conflictingShadow = selectLiveShadow(conflictingResourceShadows);
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("DISCOVERY: found conflicting shadow for {}:\n{}", newShadow, conflictingShadow==null?"  no conflicting shadow":conflictingShadow.debugDump(1));
-            }
-
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("DISCOVERY: discovered new shadow {}", ShadowUtil.shortDumpShadow(conflictingShadow));
-            }
-
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Processing \"already exists\" error for shadow:\n{}\nConflicting repo shadow:\n{}\nConflicting resource shadow:\n{}",
-                        newShadow.debugDump(1),
-                        oldShadow==null ? "  null" : oldShadow.debugDump(1),
-                        conflictingShadow==null ? "  null" : conflictingShadow.debugDump(1));
-            }
+            LOGGER.trace("DISCOVERY: found conflicting shadow for {}:\n{}", newShadow,
+                    conflictingShadow==null?"  no conflicting shadow":conflictingShadow.debugDumpLazily(1));
+            LOGGER.debug("DISCOVERY: discovered new shadow {}", ShadowUtil.shortDumpShadowLazily(conflictingShadow));
+            LOGGER.trace("Processing \"already exists\" error for shadow:\n{}\nConflicting repo shadow:\n{}\nConflicting resource shadow:\n{}",
+                    newShadow.debugDumpLazily(1),
+                    oldShadow==null ? "  null" : oldShadow.debugDumpLazily(1),
+                    conflictingShadow==null ? "  null" : conflictingShadow.debugDumpLazily(1));
 
             if (conflictingShadow != null) {
                 // Original object and found object share the same object class, therefore they must

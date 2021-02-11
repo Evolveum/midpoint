@@ -15,6 +15,9 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.provisioning.impl.shadowcache.ConstraintsChecker;
+import com.evolveum.midpoint.provisioning.impl.shadowcache.ShadowCache;
+
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,9 +40,9 @@ import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.*;
-import com.evolveum.midpoint.provisioning.impl.sync.AsyncUpdater;
-import com.evolveum.midpoint.provisioning.impl.sync.LiveSynchronizer;
-import com.evolveum.midpoint.provisioning.impl.sync.SynchronizationOperationResult;
+import com.evolveum.midpoint.provisioning.impl.shadowcache.sync.AsyncUpdater;
+import com.evolveum.midpoint.provisioning.impl.shadowcache.sync.LiveSynchronizer;
+import com.evolveum.midpoint.provisioning.impl.shadowcache.sync.SynchronizationOperationResult;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -249,8 +252,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             try {
                 // calling shadow cache to add object
                 //noinspection unchecked
-                oid = shadowCache.addShadow((PrismObject<ShadowType>) object, scripts,
-                        null, options, task, result);
+                oid = shadowCache.addResourceObject((PrismObject<ShadowType>) object, scripts, options, task, result);
                 LOGGER.trace("Added shadow object {}", oid);
                 // Status might be set already (e.g. by consistency mechanism)
                 result.computeStatusIfUnknown();
@@ -1104,7 +1106,6 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".checkConstraints");
         try {
             ConstraintsChecker checker = new ConstraintsChecker();
-            checker.setRepositoryService(cacheRepositoryService);
             checker.setCacheConfigurationManager(cacheConfigurationManager);
             checker.setShadowCache(shadowCache);
             checker.setShadowObjectOld(shadowObjectOld);

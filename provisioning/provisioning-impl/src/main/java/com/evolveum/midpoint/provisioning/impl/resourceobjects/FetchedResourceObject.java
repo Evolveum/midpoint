@@ -11,13 +11,10 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.impl.InitializableMixin;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.ResourceObjectConverter;
 import com.evolveum.midpoint.provisioning.ucf.api.FetchedUcfObject;
 import com.evolveum.midpoint.provisioning.util.ProcessingState;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -27,17 +24,14 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
 /**
  * Represents a resource object (e.g. an account) fetched by an UCF operation like
- * {@link com.evolveum.midpoint.provisioning.impl.ResourceObjectConverter#searchResourceObjects(ProvisioningContext, ResultHandler, ObjectQuery, boolean, FetchErrorReportingMethodType, OperationResult)}
- * or (in future) {@link com.evolveum.midpoint.provisioning.impl.ResourceObjectConverter#getResourceObject(ProvisioningContext, Collection, boolean, OperationResult)}.
+ * {@link ResourceObjectConverter#searchResourceObjects(ProvisioningContext, ResultHandler, ObjectQuery, boolean, FetchErrorReportingMethodType, OperationResult)}
+ * or (in future) {@link ResourceObjectConverter#getResourceObject(ProvisioningContext, Collection, boolean, OperationResult)}.
  */
 @SuppressWarnings("JavadocReference")
 @Experimental
@@ -97,6 +91,11 @@ public class FetchedResourceObject implements InitializableMixin {
     }
 
     @Override
+    public void checkConsistence() {
+        // TODO
+    }
+
+    @Override
     public String toString() {
         return "FetchedResourceObject{" +
                 "resourceObject=" + resourceObject +
@@ -127,28 +126,6 @@ public class FetchedResourceObject implements InitializableMixin {
             this.converter = converter;
             this.ctx = ctx;
             this.fetchAssociations = fetchAssociations;
-        }
-    }
-
-    // TEMPORARY (for migration)
-    public PrismObject<ShadowType> getResourceObjectWithFetchResult() {
-        if (processingState.isInitialized()) {
-            return resourceObject;
-        } else {
-            PrismObject<ShadowType> clone = resourceObject.clone();
-            if (CollectionUtils.isEmpty(ShadowUtil.getPrimaryIdentifiers(resourceObject))) {
-                // HACK HACK HACK
-                clone.asObjectable().setName(PolyStringType.fromOrig(String.valueOf(primaryIdentifierValue)));
-            }
-            OperationResult result = new OperationResult("fetchObject"); // TODO HACK HACK HACK
-            Throwable exceptionEncountered = processingState.getExceptionEncountered();
-            if (exceptionEncountered != null) {
-                result.recordFatalError(exceptionEncountered);
-            } else {
-                result.recordFatalError(new IllegalStateException("Object was not initialized")); // TODO HACK HACK
-            }
-            ObjectTypeUtil.recordFetchError(clone, result);
-            return clone;
         }
     }
 }

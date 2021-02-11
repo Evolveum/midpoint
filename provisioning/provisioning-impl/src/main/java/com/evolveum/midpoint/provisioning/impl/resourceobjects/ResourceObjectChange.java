@@ -29,8 +29,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -42,8 +40,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 @SuppressWarnings("JavadocReference")
 public abstract class ResourceObjectChange implements InitializableMixin {
-
-    private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectChange.class);
 
     /**
      * Sequence number that is local to the current live sync or async update operation.
@@ -281,4 +277,9 @@ public abstract class ResourceObjectChange implements InitializableMixin {
     }
 
     protected abstract void debugDumpExtra(StringBuilder sb, int indent);
+
+    @Override
+    public void checkConsistence() {
+        // TODO
+    }
 }

@@ -61,6 +61,7 @@ public class DeltaConvertor {
         return objectDelta;
     }
 
+    @NotNull
     public static <T extends Objectable> ObjectDelta<T> createObjectDelta(ObjectDeltaType objectDeltaType,
             PrismContext prismContext, boolean allowRawValues) throws SchemaException {
         Validate.notNull(prismContext, "No prismContext in DeltaConvertor.createObjectDelta call");
@@ -99,10 +100,10 @@ public class DeltaConvertor {
 
     }
 
+    @NotNull
     public static <T extends Objectable> ObjectDelta<T> createObjectDelta(ObjectDeltaType objectDeltaType,
             PrismContext prismContext) throws SchemaException {
         return createObjectDelta(objectDeltaType, prismContext, false);
-
     }
 
     public static ObjectDeltaOperation createObjectDeltaOperation(ObjectDeltaOperationType objectDeltaOperationType,

@@ -29,6 +29,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ObjectUtils;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -381,6 +382,7 @@ public class ShadowUtil {
      * Returns intent from the shadow. Backwards compatible with older accountType. May also adjust for default
      * intent if necessary.
      */
+    @Contract("null -> null")
     public static String getIntent(ShadowType shadow) {
         if (shadow == null) {
             return null;
@@ -392,6 +394,7 @@ public class ShadowUtil {
         return shadow != null ? getKind(shadow.asObjectable()) : null;
     }
 
+    @Contract("!null -> !null; null -> null")
     public static ShadowKindType getKind(ShadowType shadow) {
         if (shadow == null) {
             return null;
@@ -500,6 +503,10 @@ public class ShadowUtil {
         return isDead(shadow.asObjectable());
     }
 
+    public static boolean isNotDead(PrismObject<ShadowType> shadow) {
+        return !isDead(shadow);
+    }
+
     public static boolean isExists(ShadowType shadow) {
         Boolean exists = shadow.isExists();
         return exists == null || exists;
@@ -594,6 +601,10 @@ public class ShadowUtil {
         return ResourceShadowDiscriminator.equalsIntent(shadow1.getIntent(), shadow2.getIntent());
     }
 
+    public static Object getHumanReadableNameLazily(PrismObject<? extends ShadowType> shadow) {
+        return DebugUtil.lazy(() -> getHumanReadableName(shadow));
+    }
+
     public static String getHumanReadableName(PrismObject<? extends ShadowType> shadow) {
         if (shadow == null) {
             return "null";
@@ -621,7 +632,7 @@ public class ShadowUtil {
             sb.append("[");
         }
         sb.append("]");
-        return shadow.toString(); // TODO probably sb.toString() here
+        return sb.toString();
     }
 
     public static String getHumanReadableName(ShadowType shadowType) {
@@ -644,17 +655,12 @@ public class ShadowUtil {
         return determineShadowName(shadow.asPrismObject());
     }
 
-    public static <T extends ShadowType> PolyString determineShadowName(PrismObject<T> shadow)
-            throws SchemaException {
+    public static <T extends ShadowType> PolyString determineShadowName(PrismObject<T> shadow) throws SchemaException {
         String stringName = determineShadowStringName(shadow);
-        if (stringName == null) {
-            return null;
-        }
-        return new PolyString(stringName);
+        return stringName != null ? PolyString.fromOrig(stringName) : null;
     }
 
-    public static <T extends ShadowType> String determineShadowStringName(PrismObject<T> shadow)
-            throws SchemaException {
+    public static <T extends ShadowType> String determineShadowStringName(PrismObject<T> shadow) throws SchemaException {
         ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
         if (attributesContainer == null) {
             return null;
@@ -702,8 +708,6 @@ public class ShadowUtil {
         }
 
         return value.getValue();
-        // return
-        // attributesContainer.getNamingAttribute().getValue().getValue();
     }
 
     public static ResourceObjectIdentification getResourceObjectIdentification(

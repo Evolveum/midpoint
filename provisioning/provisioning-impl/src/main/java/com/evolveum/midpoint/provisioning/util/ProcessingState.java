@@ -7,16 +7,18 @@
 
 package com.evolveum.midpoint.provisioning.util;
 
-import com.evolveum.midpoint.provisioning.impl.sync.SkipProcessingException;
+import com.evolveum.midpoint.provisioning.impl.shadowcache.sync.SkipProcessingException;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfErrorState;
 import com.evolveum.midpoint.util.annotation.Experimental;
+
+import java.io.Serializable;
 
 /**
  * Represents state of processing of given internal provisioning object: a change or a fetched object - at
  * both "resource objects" or "shadow cache" levels.
  */
 @Experimental
-public class ProcessingState {
+public class ProcessingState implements Serializable {
 
     /**
      * True if no further processing (in provisioning module) should be done with this item.
@@ -47,12 +49,6 @@ public class ProcessingState {
     public ProcessingState() {
     }
 
-    public ProcessingState(ProcessingState processingState) {
-        this.skipFurtherProcessing = processingState.skipFurtherProcessing;
-        this.exceptionEncountered = processingState.exceptionEncountered;
-        this.initialized = false;
-    }
-
     public static ProcessingState success() {
         return new ProcessingState();
     }
@@ -70,6 +66,14 @@ public class ProcessingState {
         } else {
             return ProcessingState.success();
         }
+    }
+
+    public static ProcessingState fromLowerLevelState(ProcessingState processingState) {
+        ProcessingState state = new ProcessingState();
+        state.skipFurtherProcessing = processingState.skipFurtherProcessing;
+        state.exceptionEncountered = processingState.exceptionEncountered;
+        state.initialized = false;
+        return state;
     }
 
     public void recordException(Throwable t) {
@@ -98,12 +102,6 @@ public class ProcessingState {
                 ", e=" + exceptionEncountered +
                 ", initialized=" + initialized +
                 '}';
-    }
-
-    public void checkSkipProcessing() throws SkipProcessingException {
-        if (skipFurtherProcessing) {
-            throw new SkipProcessingException();
-        }
     }
 
     public boolean isInitialized() {

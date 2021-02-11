@@ -17,15 +17,16 @@ import javax.annotation.PreDestroy;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 
+import com.evolveum.midpoint.provisioning.impl.shadowcache.ShadowCache;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.*;
-import com.evolveum.midpoint.provisioning.impl.adoption.AdoptedExternalChange;
+import com.evolveum.midpoint.provisioning.impl.shadowcache.AdoptedExternalChange;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExternalResourceObjectChange;
-import com.evolveum.midpoint.provisioning.impl.sync.ChangeProcessingBeans;
+import com.evolveum.midpoint.provisioning.impl.shadowcache.sync.ChangeProcessingBeans;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -95,7 +96,7 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
         resourceObjectChange.initialize(task, result);
 
         AdoptedExternalChange adoptedChange = new AdoptedExternalChange(resourceObjectChange, false, changeProcessingBeans);
-        adoptedChange.initialize(result);
+        adoptedChange.initialize(task, result);
 
         if (adoptedChange.isPreprocessed()) {
             ResourceObjectShadowChangeDescription shadowChangeDescription = adoptedChange.getShadowChangeDescription();

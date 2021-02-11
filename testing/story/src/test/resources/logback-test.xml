@@ -72,7 +72,7 @@
     <logger name="com.evolveum.midpoint.provisioning" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.ConnectorManager" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.provisioning.impl.ShadowCache" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.provisioning.impl.shadowcache.ShadowCache" level="DEBUG" />
     <logger name="com.evolveum.midpoint.expression" level="DEBUG" />
     <logger name="com.evolveum.midpoint.security" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.common.expression" level="DEBUG" />

@@ -953,4 +953,12 @@ public class MiscUtil {
     public static String getSimpleClassName(Object o) {
         return o != null ? o.getClass().getSimpleName() : null;
     }
+
+    public static <T> T requireNonNull(T value, Supplier<String> messageSupplier) throws SchemaException {
+        if (value != null) {
+            return value;
+        } else {
+            throw new SchemaException(messageSupplier.get());
+        }
+    }
 }

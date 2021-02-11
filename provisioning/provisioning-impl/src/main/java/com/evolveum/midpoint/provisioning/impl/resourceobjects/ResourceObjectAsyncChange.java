@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.ResourceObjectConverter;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfAsyncUpdateChange;
 import com.evolveum.midpoint.schema.AcknowledgementSink;
 import com.evolveum.midpoint.schema.result.OperationResult;
