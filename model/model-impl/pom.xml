@@ -222,13 +222,13 @@
         <!--
         Excluding javax.annotation-api coming via:
         org.springframework.boot:spring-boot-starter-amqp -> org.springframework.amqp:spring-rabbit
-        -> org.springframework.amqp:spring-amqp -> org.springframework.retry:spring-retry:jar:1.3.0:runtime
+        -> org.springframework.amqp:spring-amqp -> org.springframework.retry:spring-retry:jar:1.3.1:runtime
         -> javax.annotation:javax.annotation-api
         -->
         <dependency>
             <groupId>org.springframework.retry</groupId>
             <artifactId>spring-retry</artifactId>
-            <version>1.3.0</version>
+            <version>1.3.1</version>
             <scope>runtime</scope>
             <exclusions>
                 <exclusion>
