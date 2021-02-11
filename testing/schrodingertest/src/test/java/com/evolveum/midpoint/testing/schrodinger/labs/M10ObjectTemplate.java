@@ -154,6 +154,24 @@ public class M10ObjectTemplate extends AbstractLabTest{
         importObject(HR_SYNCHRONIZATION_TASK_FILE);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
 
+        //user kirk should have projection with CSV-3 resource
+        showUser("kirk")
+                .selectTabProjections()
+                    .clickAddProjection()
+                        .table()
+                            .search()
+                            .byName()
+                            .inputValue(CSV_3_RESOURCE_NAME)
+                            .updateSearch()
+                            .and()
+                        .selectCheckboxByName(CSV_3_RESOURCE_NAME)
+                        .and()
+                    .clickAdd()
+                    .and()
+                        .clickSave()
+                            .feedback()
+                            .isSuccess();
+
         basicPage.listResources()
                 .table()
                     .search()
