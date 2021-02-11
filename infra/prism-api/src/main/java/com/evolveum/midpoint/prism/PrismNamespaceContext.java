@@ -524,4 +524,9 @@ public abstract class PrismNamespaceContext implements Serializable {
         return childDefaultNamespace("");
     }
 
+    @Override
+    public String toString() {
+        return new StringBuilder(this.getClass().getSimpleName()).append(allPrefixes().toString()).toString();
+    }
+
 }
