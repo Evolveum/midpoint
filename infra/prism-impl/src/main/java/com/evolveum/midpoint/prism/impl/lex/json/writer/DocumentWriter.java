@@ -18,7 +18,6 @@ import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.MetadataAware;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.common.base.Strings;
@@ -170,6 +169,9 @@ class DocumentWriter {
 
         var schemaType = def.getType();
 
+        /**
+         *
+         * FIMXE: We can not materialize types here, because of anyType
         if (!primitive.isParsed() && schemaType.isPresent()) {
             // Node is unparsed, but we know type, so we can reparse it
             try {
@@ -178,7 +180,7 @@ class DocumentWriter {
                 // We will fail silently and continue writing with unparsed value
             }
         }
-
+        **/
         if (primitive.isParsed()) {
             Object value = primitive.getValue();
             if(value instanceof ItemPathType) {

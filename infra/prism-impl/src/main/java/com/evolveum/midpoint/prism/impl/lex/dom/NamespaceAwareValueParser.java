@@ -51,7 +51,9 @@ class NamespaceAwareValueParser<T> implements ValueParser<T>, Serializable {
                     return (T) XmlTypeConverter.toJavaValue(textContent, visibleNamespaceDeclarations.allPrefixes(), javaType);
                 } else if (DOMUtil.XSD_ANYTYPE.equals(typeName)) {
                     //noinspection unchecked
-                    return (T) textContent;                // if parsing primitive as xsd:anyType, we can safely parse it as string
+                    // if parsing primitive as xsd:anyType, we can safely parse it as string
+                    // but we loose namespace declarations
+                    return (T) textContent;
                 } else {
                     throw new SchemaException("Cannot convert element/attribute '" + textContent + "' to " + typeName);
                 }
