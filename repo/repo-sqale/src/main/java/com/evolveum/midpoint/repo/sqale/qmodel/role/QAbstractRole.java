@@ -24,6 +24,13 @@ public class QAbstractRole<T extends MAbstractRole> extends QFocus<T> {
 
     private static final long serialVersionUID = 8559628642680237808L;
 
+    /**
+     * If {@code QAbstractRole.class} is not enough because of generics,
+     * try {@code QAbstractRole.CLASS}.
+     */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public static final Class<QAbstractRole<MAbstractRole>> CLASS = (Class) QAbstractRole.class;
+
     public static final String TABLE_NAME = "m_abstract_role";
 
     public static final ColumnMetadata APPROVAL_PROCESS =
@@ -66,16 +73,5 @@ public class QAbstractRole<T extends MAbstractRole> extends QFocus<T> {
 
     public QAbstractRole(Class<? extends T> type, String variable, String schema, String table) {
         super(type, variable, schema, table);
-    }
-
-    /**
-     * Class representing generic {@code QAbstractRole<MAbstractRole>.class} which is otherwise impossible.
-     * There should be no need to instantiate this, so the class is final with private constructor.
-     */
-    public static final class QAbstractRoleReal extends QAbstractRole<MAbstractRole> {
-        private QAbstractRoleReal() {
-            super(MAbstractRole.class, "unused");
-            throw new AssertionError("type only for type inference");
-        }
     }
 }

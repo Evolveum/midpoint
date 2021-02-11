@@ -41,11 +41,6 @@ public class ObjectSqlTransformer<S extends ObjectType, Q extends QObject<R>, R 
     }
 
     @Override
-    public S toSchemaObject(R row) {
-        throw new UnsupportedOperationException("Use toSchemaObject(Tuple,...)");
-    }
-
-    @Override
     public S toSchemaObject(Tuple row, Q entityPath,
             Collection<SelectorOptions<GetOperationOptions>> options)
             throws SchemaException {

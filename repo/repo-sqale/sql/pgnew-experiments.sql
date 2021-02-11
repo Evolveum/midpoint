@@ -74,7 +74,7 @@ SHOW session_replication_role;
 -- delete from m_object;
 -- delete from m_object_oid;
 select count(*) from m_object_oid;
-explain
+EXPLAIN (ANALYZE, VERBOSE, BUFFERS)
 select count(*) from m_user;
 -- vacuum full analyze; -- this requires exclusive lock on processed table and can be very slow, with 1M rows it takes 10s
 vacuum analyze; -- this is normal operation version (can run in parallel, ~25s/25m rows)
@@ -118,13 +118,13 @@ where oid<'812c5e7a-8a94-4bd1-944d-389e7294b831'
 order by oid;
 
 -- EXPLAIN selects
-EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
+EXPLAIN (ANALYZE, VERBOSE, BUFFERS)
 SELECT *
 FROM m_object
 where oid='cf72947b-f7b5-4b44-a2b1-07452b9056cc'
 ;
 
-EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
+EXPLAIN (ANALYZE, VERBOSE, BUFFERS)
 SELECT count(*)
 -- SELECT *
 FROM m_focus
@@ -143,7 +143,7 @@ CREATE INDEX m_user_ext_hired2_idx ON m_user ((ext ->> 'hired')) WHERE ext ? 'hi
 -- set jit=on; -- JIT can sometimes be slower when planner guesses wrong
 
 -- see also https://www.postgresql.org/docs/13/functions-json.html some stuff is only for JSONB
-EXPLAIN --(ANALYZE, BUFFERS, FORMAT TEXT)
+EXPLAIN (ANALYZE, VERBOSE, BUFFERS)
 -- select count(*)
 select oid, name_norm, ext
 from m_user
@@ -153,15 +153,15 @@ from m_user
 --     where ext->>'hobbies' is not null -- seq-scan
 ;
 
-EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
+EXPLAIN (ANALYZE, VERBOSE, BUFFERS)
 select ext->>'hobbies' from m_user where ext ? 'hobbies'; -- return values of ext as text (or number), uses GIN index
 
-EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
+EXPLAIN (ANALYZE, VERBOSE, BUFFERS)
 -- contains in [] or as value directly, but use GIN index on (ext)
 -- it would use GIN index on ext->'hobbies' though
 select count(*) from m_user where ext->'hobbies' @> '"video"';
 
-EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
+EXPLAIN (ANALYZE, VERBOSE, BUFFERS)
 -- select *
 select count(*)
 from m_user
@@ -186,7 +186,7 @@ analyse;
 -- limit 500
 ;
 
-EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
+EXPLAIN (ANALYZE, VERBOSE, BUFFERS)
 -- select count(*)
 -- select * -- "select *" with big bytea stuff can dominate the total cost
 select oid, length(fullobject) -- much faster than *
@@ -240,6 +240,11 @@ order by relpages desc;
 
 -- find sequence name for serial column (e.g. to alter its value later)
 select pg_get_serial_sequence('m_qname', 'id');
+
+-- optional, little overhead, adds visibility, reqiures postgresql.conf change:
+-- shared_preload_libraries = 'pg_stat_statements' + restart
+-- create extension pg_stat_statements; -- is this necessary?
+select * from pg_stat_statements; -- this fails without the pg.conf change + restart
 
 -- PRACTICAL UTILITY FUNCTIONS
 

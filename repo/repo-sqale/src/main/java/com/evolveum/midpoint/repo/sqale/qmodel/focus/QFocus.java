@@ -26,7 +26,8 @@ public class QFocus<T extends MFocus> extends QObject<T> {
     private static final long serialVersionUID = -535915621882761789L;
 
     /** If {@code QFocus.class} is not enough because of generics, try {@code QFocus.CLASS}. */
-    public static final Class<? extends QFocus<MFocus>> CLASS = QFocusReal.class;
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public static final Class<QFocus<MFocus>> CLASS = (Class) QFocus.class;
 
     public static final String TABLE_NAME = "m_focus";
 
@@ -114,16 +115,5 @@ public class QFocus<T extends MFocus> extends QObject<T> {
 
     public QFocus(Class<? extends T> type, String variable, String schema, String table) {
         super(type, variable, schema, table);
-    }
-
-    /**
-     * Class representing generic {@code QFocus<MFocus>.class} which is otherwise impossible.
-     * There should be no need to instantiate this, so the class is final with private constructor.
-     */
-    public static final class QFocusReal extends QFocus<MFocus> {
-        private QFocusReal() {
-            super(MFocus.class, "unused");
-            throw new AssertionError("type only for type inference");
-        }
     }
 }

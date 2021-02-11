@@ -21,6 +21,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocus;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTable;
 import com.evolveum.midpoint.repo.sqale.qmodel.node.QNode;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping.QAssignmentHolder;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReport;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportOutput;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public enum MObjectTypeMapping {
 
+    // mapping of codes and schema types must be unique, but one Q-class can serve multiple types
     CONNECTOR(0, QConnector.class, ConnectorType.class),
     CONNECTOR_HOST(1, QConnectorHost.class, ConnectorHostType.class),
     GENERIC_OBJECT(2, null, GenericObjectType.class),
@@ -55,7 +57,7 @@ public enum MObjectTypeMapping {
     ORG(16, null, OrgType.class),
     ABSTRACT_ROLE(17, QAbstractRole.CLASS, AbstractRoleType.class),
     FOCUS(18, QFocus.CLASS, FocusType.class),
-    ASSIGNMENT_HOLDER(19, null, AssignmentHolderType.class), // TODO introduce mapping class?
+    ASSIGNMENT_HOLDER(19, QAssignmentHolder.class, AssignmentHolderType.class),
     SECURITY_POLICY(20, QSecurityPolicy.class, SecurityPolicyType.class),
     LOOKUP_TABLE(21, QLookupTable.class, LookupTableType.class),
     ACCESS_CERTIFICATION_DEFINITION(22, null, AccessCertificationDefinitionType.class),
@@ -92,8 +94,14 @@ public enum MObjectTypeMapping {
 
     static {
         for (MObjectTypeMapping value : values()) {
-            CODE_TO_ENUM.put(value.code, value);
-            SCHEMA_TYPE_TO_ENUM.put(value.schemaType, value);
+            if (CODE_TO_ENUM.put(value.code, value) != null) {
+                throw new IllegalArgumentException("MObjectTypeMapping value " + value
+                        + " uses duplicate code: " + value.code);
+            }
+            if (SCHEMA_TYPE_TO_ENUM.put(value.schemaType, value) != null) {
+                throw new IllegalArgumentException("MObjectTypeMapping value " + value
+                        + " uses duplicate schema type: " + value.schemaType);
+            }
         }
     }
 

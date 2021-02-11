@@ -30,7 +30,8 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
     private static final long serialVersionUID = -4174420892574422778L;
 
     /** If {@code QObject.class} is not enough because of generics, try {@code QObject.CLASS}. */
-    public static final Class<? extends QObject<MObject>> CLASS = QObjectReal.class;
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public static final Class<QObject<MObject>> CLASS = (Class) QObject.class;
 
     public static final String TABLE_NAME = "m_object";
 
@@ -130,16 +131,5 @@ public class QObject<T extends MObject> extends FlexibleRelationalPathBase<T> {
 
     public QObject(Class<? extends T> type, String variable, String schema, String table) {
         super(type, variable, schema, table);
-    }
-
-    /**
-     * Class representing generic {@code QObject<MObject>.class} which is otherwise impossible.
-     * There should be no need to instantiate this, so the class is final with private constructor.
-     */
-    public static final class QObjectReal extends QObject<MObject> {
-        private QObjectReal() {
-            super(MObject.class, "unused");
-            throw new AssertionError("type only for type inference");
-        }
     }
 }

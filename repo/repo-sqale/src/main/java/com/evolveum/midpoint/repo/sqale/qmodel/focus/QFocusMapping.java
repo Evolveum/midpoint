@@ -28,12 +28,9 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
 
     public static final String DEFAULT_ALIAS_NAME = "f";
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    public static final Class<QFocus<MFocus>> CLASS = (Class) QFocus.class;
-
     public static final QFocusMapping<FocusType, QFocus<MFocus>, MFocus> INSTANCE =
             new QFocusMapping<>(QFocus.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                    FocusType.class, CLASS);
+                    FocusType.class, QFocus.CLASS);
 
     protected QFocusMapping(
             @NotNull String tableName,

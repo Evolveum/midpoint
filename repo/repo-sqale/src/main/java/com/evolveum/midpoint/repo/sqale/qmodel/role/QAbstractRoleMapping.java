@@ -10,16 +10,11 @@ import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterPr
 import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.stringMapper;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType.*;
 
-import java.util.Collection;
-
-import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.PolyStringItemFilterProcessor;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 
 /**
@@ -31,13 +26,10 @@ public class QAbstractRoleMapping<
 
     public static final String DEFAULT_ALIAS_NAME = "ar";
 
-    public static final Class<? extends QAbstractRole<?>> CLASS =
-            QAbstractRole.QAbstractRoleReal.class;
-
-    public static final QAbstractRoleMapping<
-            AbstractRoleType, QAbstractRole.QAbstractRoleReal, MAbstractRole> INSTANCE =
+    public static final
+    QAbstractRoleMapping<AbstractRoleType, QAbstractRole<MAbstractRole>, MAbstractRole> INSTANCE =
             new QAbstractRoleMapping<>(QAbstractRole.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                    AbstractRoleType.class, QAbstractRole.QAbstractRoleReal.class);
+                    AbstractRoleType.class, QAbstractRole.CLASS);
 
     protected QAbstractRoleMapping(
             @NotNull String tableName,

@@ -28,6 +28,7 @@ public class RefFilterProcessor implements FilterProcessor<RefFilter> {
         ItemName itemName = filterPath.firstName();
         // TODO: value count and other attributes checks?
         if (!filterPath.isSingleName()) {
+//            context.mapping().relationMapping(itemName); // TODO this way
             throw new QueryException("Filter with non-single path is not supported YET: " + filterPath);
         }
         if (filter.getRightHandSidePath() != null) {
