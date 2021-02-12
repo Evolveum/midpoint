@@ -120,10 +120,10 @@ public class ShadowCache {
 
     public SearchResultMetadata searchObjectsIterative(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<ShadowType> handler,
-            boolean updateRepository, Task task, OperationResult result)
+            Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        return searchHelper.searchObjectsIterative(query, options, handler, updateRepository, task, result);
+        return searchHelper.searchObjectsIterative(query, options, handler, task, result);
     }
 
     @NotNull
@@ -136,10 +136,10 @@ public class ShadowCache {
 
     public SearchResultMetadata searchObjectsIterative(ProvisioningContext ctx, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<ShadowType> handler,
-            boolean updateRepository, OperationResult result)
+            OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        return searchHelper.searchObjectsIterative(ctx, query, options, handler, updateRepository, result);
+        return searchHelper.searchObjectsIterative(ctx, query, options, handler, result);
     }
 
     @NotNull

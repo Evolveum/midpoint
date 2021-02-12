@@ -853,7 +853,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
             try {
 
-                metadata = shadowCache.searchObjectsIterative(query, options, (ResultHandler<ShadowType>) handler, true, task, result);
+                metadata = shadowCache.searchObjectsIterative(query, options, (ResultHandler<ShadowType>) handler, task, result);
 
                 result.computeStatus();
                 result.cleanupResult();

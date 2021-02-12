@@ -160,9 +160,9 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements Initiali
 
         if (isDelete()) {
             markRepoShadowTombstone(result);
-            adoptedObject = getAdoptedObjectOnDeletion(result);
+            adoptedObject = constructAdoptedObjectForDeletion(result);
         } else {
-            adoptedObject = getAdoptedObject(result);
+            adoptedObject = constructAdoptedObject(result);
         }
 
         shadowChangeDescription = createResourceShadowChangeDescription();
@@ -369,12 +369,16 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements Initiali
 
     private void updateRepoShadow(OperationResult result) throws SchemaException, ConfigurationException,
             ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+
         // TODO why this?
         ProvisioningUtil.setProtectedFlag(context, repoShadow, beans.matchingRuleRegistry,
                 beans.relationRegistry, beans.expressionFactory, result);
 
         // TODO: shadowState MID-5834
-        beans.shadowManager.updateShadow(context, currentResourceObject, objectDelta, repoShadow, null, result);
+
+        if (!isDelete()) {
+            beans.shadowManager.updateShadow(context, currentResourceObject, objectDelta, repoShadow, null, result);
+        }
     }
 
     private void markRepoShadowTombstone(OperationResult result) throws SchemaException {
@@ -383,11 +387,12 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements Initiali
         }
     }
 
-    private PrismObject<ShadowType> getAdoptedObject(OperationResult result)
+    private PrismObject<ShadowType> constructAdoptedObject(OperationResult result)
             throws CommunicationException, EncryptionException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+
         assert !isDelete() && currentResourceObject != null;
-        return getAdoptionHelper().constructReturnedObject(context, repoShadow, currentResourceObject, result);
+        return getAdoptionHelper().constructAdoptedObject(context, repoShadow, currentResourceObject, result);
     }
 
     /**
@@ -397,7 +402,7 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements Initiali
      *
      * So until clarified, we provide here the shadow object, with properly applied definitions.
      */
-    private PrismObject<ShadowType> getAdoptedObjectOnDeletion(OperationResult result) throws SchemaException,
+    private PrismObject<ShadowType> constructAdoptedObjectForDeletion(OperationResult result) throws SchemaException,
             ExpressionEvaluationException, ConfigurationException, CommunicationException, SkipProcessingException,
             ObjectNotFoundException {
         PrismObject<ShadowType> currentShadow;

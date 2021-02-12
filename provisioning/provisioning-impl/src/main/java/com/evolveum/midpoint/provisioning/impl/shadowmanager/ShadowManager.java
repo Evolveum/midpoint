@@ -115,6 +115,15 @@ public class ShadowManager {
         return repositoryService.searchObjects(ShadowType.class, repoQuery, options, parentResult);
     }
 
+    /** Simply counts the shadows in repository. */
+    public int countShadows(ProvisioningContext ctx, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException,
+            CommunicationException, ExpressionEvaluationException {
+
+        ObjectQuery repoQuery = queryHelper.applyMatchingRules(query, ctx.getObjectClassDefinition());
+        return repositoryService.countObjects(ShadowType.class, repoQuery, options, result);
+    }
+
     /**
      * Looks up a live shadow by primary identifier. Differences from other methods:
      *

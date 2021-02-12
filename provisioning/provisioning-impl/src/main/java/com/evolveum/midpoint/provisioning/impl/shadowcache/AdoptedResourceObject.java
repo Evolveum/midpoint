@@ -38,6 +38,9 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  * The extension to objects retrieved by `getObject` will require some tweaks: such objects are referenced by shadow OID,
  * so we first obtain a shadow, then resource object, and only after that we update the shadow.
+ *
+ * TODO reconsider naming: Currently we use the term "adopted [resource] object" for both this structure
+ *  and embedded PrismObject of ShadowType (holding resource object + shadow combination).
  */
 public class AdoptedResourceObject implements InitializableMixin {
 
@@ -62,12 +65,11 @@ public class AdoptedResourceObject implements InitializableMixin {
     /** Information used to initialize this object. */
     @NotNull private final InitializationContext ictx;
 
-    public AdoptedResourceObject(FetchedResourceObject fetchedResourceObject, LocalBeans localBeans, ProvisioningContext ctx,
-            boolean updateRepository) {
+    public AdoptedResourceObject(FetchedResourceObject fetchedResourceObject, LocalBeans localBeans, ProvisioningContext ctx) {
         this.resourceObject = fetchedResourceObject.getResourceObject();
         this.primaryIdentifierValue = fetchedResourceObject.getPrimaryIdentifierValue();
         this.processingState = ProcessingState.fromLowerLevelState(fetchedResourceObject.getProcessingState());
-        this.ictx = new InitializationContext(localBeans, ctx, updateRepository);
+        this.ictx = new InitializationContext(localBeans, ctx);
     }
 
     @Override
@@ -94,12 +96,11 @@ public class AdoptedResourceObject implements InitializableMixin {
 
     /**
      * Contains processing of an object that has been found on a resource before it is passed to the caller-provided handler.
-     * We do basically four things:
+     * We do basically the following:
      *
      * 1. apply definitions,
-     * 2. update repo shadow,
-     * 3. complete the shadow,
-     * 4. notify resource object change listeners in order to get kind+intent (if needed).
+     * 2. acquire and update repo shadow (includes classification),
+     * 3. construct resulting adopted object.
      */
 
     @Override
@@ -110,9 +111,7 @@ public class AdoptedResourceObject implements InitializableMixin {
         // But at least locate the definition using object classes.
         ProvisioningContext estimatedShadowCtx = ictx.localBeans.shadowCaretaker.reapplyDefinitions(ictx.ctx, resourceObject);
 
-        if (ictx.updateRepository) {
-            adoptedObject = connectAndUpdateRepositoryShadow(estimatedShadowCtx, result);
-        }
+        adoptedObject = adoptResourceObject(estimatedShadowCtx, result);
     }
 
     /**
@@ -125,7 +124,7 @@ public class AdoptedResourceObject implements InitializableMixin {
     }
 
     @NotNull
-    private PrismObject<ShadowType> connectAndUpdateRepositoryShadow(ProvisioningContext estimatedShadowCtx,
+    private PrismObject<ShadowType> adoptResourceObject(ProvisioningContext estimatedShadowCtx,
             OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException,
             CommunicationException, ExpressionEvaluationException, EncryptionException, SecurityViolationException {
 
@@ -141,7 +140,7 @@ public class AdoptedResourceObject implements InitializableMixin {
 
         // TODO do we want also to futurize the shadow like in getObject?
 
-        return adoptionHelper.constructReturnedObject(shadowCtx, updatedRepoShadow, resourceObject, result);
+        return adoptionHelper.constructAdoptedObject(shadowCtx, updatedRepoShadow, resourceObject, result);
     }
 
     private ShadowManager getShadowManager() {
@@ -234,12 +233,10 @@ public class AdoptedResourceObject implements InitializableMixin {
 
         private final LocalBeans localBeans;
         private final ProvisioningContext ctx;
-        private final boolean updateRepository;
 
-        private InitializationContext(LocalBeans localBeans, ProvisioningContext ctx, boolean updateRepository) {
+        private InitializationContext(LocalBeans localBeans, ProvisioningContext ctx) {
             this.localBeans = localBeans;
             this.ctx = ctx;
-            this.updateRepository = updateRepository;
         }
     }
 }

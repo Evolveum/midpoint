@@ -129,7 +129,7 @@ class ResourceObjectReferenceResolver {
             return true;
         };
 
-        shadowCache.searchObjectsIterative(subctx, query, null, handler, true, result);
+        shadowCache.searchObjectsIterative(subctx, query, null, handler, result);
 
         // TODO: implement storage of OID (ONCE search frequency)
 

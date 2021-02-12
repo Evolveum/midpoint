@@ -51,9 +51,9 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  * Instantiated separately for each shadow that is being completed.
  */
-public class ReturnedObjectConstruction {
+public class AdoptedObjectConstruction {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ReturnedObjectConstruction.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AdoptedObjectConstruction.class);
 
     /**
      * Existing repository shadow. Usually contains only a subset of attributes.
@@ -92,7 +92,7 @@ public class ReturnedObjectConstruction {
 
     @NotNull private final LocalBeans localBeans;
 
-    private ReturnedObjectConstruction(@NotNull ProvisioningContext ctx, @NotNull PrismObject<ShadowType> repoShadow,
+    private AdoptedObjectConstruction(@NotNull ProvisioningContext ctx, @NotNull PrismObject<ShadowType> repoShadow,
             @NotNull PrismObject<ShadowType> resourceObject, @NotNull CommonBeans beans) {
         this.ctx = ctx;
         this.resourceObject = resourceObject;
@@ -104,9 +104,9 @@ public class ReturnedObjectConstruction {
         this.localBeans = beans.shadowCache.getLocalBeans();
     }
 
-    public static ReturnedObjectConstruction create(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
+    public static AdoptedObjectConstruction create(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
             PrismObject<ShadowType> resourceObject, CommonBeans commonBeans) {
-        return new ReturnedObjectConstruction(ctx, repoShadow, resourceObject, commonBeans);
+        return new AdoptedObjectConstruction(ctx, repoShadow, resourceObject, commonBeans);
     }
 
     @NotNull

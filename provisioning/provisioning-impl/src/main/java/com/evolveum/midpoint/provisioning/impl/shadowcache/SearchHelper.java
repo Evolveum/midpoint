@@ -6,6 +6,7 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.isMaxStaleness;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +37,6 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
@@ -70,11 +70,11 @@ class SearchHelper {
 
     public SearchResultMetadata searchObjectsIterative(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<ShadowType> handler,
-            boolean updateRepository, Task task, OperationResult parentResult)
+            Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         ProvisioningContext ctx = createContextForSearch(query, options, task, parentResult);
-        return searchObjectsIterative(ctx, query, options, handler, updateRepository, parentResult);
+        return searchObjectsIterative(ctx, query, options, handler, parentResult);
     }
 
     private ProvisioningContext createContextForSearch(ObjectQuery query,
@@ -100,7 +100,7 @@ class SearchHelper {
 
     public SearchResultMetadata searchObjectsIterative(ProvisioningContext ctx, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<ShadowType> handler,
-            boolean updateRepository, OperationResult parentResult)
+            OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         definitionsHelper.applyDefinition(ctx, query);
@@ -109,13 +109,13 @@ class SearchHelper {
         if (ProvisioningUtil.shouldDoRepoSearch(rootOptions)) {
             return searchShadowsInRepositoryIteratively(ctx, query, options, handler, parentResult);
         } else {
-            return searchObjectIterativeResource(ctx, query, options, handler, updateRepository, parentResult, rootOptions);
+            return searchObjectIterativeResource(ctx, query, options, handler, parentResult, rootOptions);
         }
     }
 
     private SearchResultMetadata searchObjectIterativeResource(ProvisioningContext ctx, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<ShadowType> handler,
-            boolean updateRepository, OperationResult parentResult, GetOperationOptions rootOptions)
+            OperationResult parentResult, GetOperationOptions rootOptions)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException {
 
@@ -128,7 +128,7 @@ class SearchHelper {
 
         ResourceObjectHandler resultHandler = (FetchedResourceObject fetchedObject, OperationResult objResult) -> {
 
-            AdoptedResourceObject adopted = new AdoptedResourceObject(fetchedObject, localBeans, ctx, updateRepository);
+            AdoptedResourceObject adopted = new AdoptedResourceObject(fetchedObject, localBeans, ctx);
             adopted.initialize(ctx.getTask(), objResult);
             PrismObject<ShadowType> resultShadow = adopted.getResultingObject(ucfErrorReportingMethod);
 
@@ -148,24 +148,8 @@ class SearchHelper {
             return resourceObjectConverter.searchResourceObjects(ctx, resultHandler, attributeQuery,
                     fetchAssociations, ucfErrorReportingMethod, parentResult);
         } catch (TunnelException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof ObjectNotFoundException) {
-                throw (ObjectNotFoundException) cause;
-            } else if (cause instanceof SchemaException) {
-                throw (SchemaException) cause;
-            } else if (cause instanceof CommunicationException) {
-                throw (CommunicationException) cause;
-            } else if (cause instanceof ConfigurationException) {
-                throw (ConfigurationException) cause;
-            } else if (cause instanceof SecurityViolationException) {
-                throw (SecurityViolationException) cause;
-            } else if (cause instanceof ExpressionEvaluationException) {
-                throw (ExpressionEvaluationException) cause;
-            } else if (cause instanceof RuntimeException) {
-                throw (RuntimeException) cause;
-            } else {
-                throw new SystemException(cause.getMessage(), cause);
-            }
+            unwrapAndThrowSearchingTunnelException(e);
+            throw new AssertionError();
         }
     }
 
@@ -281,7 +265,7 @@ class SearchHelper {
             return searchShadowsInRepository(ctx, query, options, parentResult);
         } else {
             SearchResultList<PrismObject<ShadowType>> rv = new SearchResultList<>();
-            SearchResultMetadata metadata = searchObjectsIterative(ctx, query, options, (s, opResult) -> rv.add(s), true,
+            SearchResultMetadata metadata = searchObjectsIterative(ctx, query, options, (s, opResult) -> rv.add(s),
                     parentResult);
             rv.setMetadata(metadata);
             return rv;
@@ -345,21 +329,6 @@ class SearchHelper {
                             "Configured count object capability to be simulated using a paged search but paged search capability is not present");
                 }
 
-                final Holder<Integer> countHolder = new Holder<>(0);
-
-                final ResultHandler<ShadowType> handler = new ResultHandler<>() {
-                    @Override
-                    public boolean handle(PrismObject<ShadowType> shadow, OperationResult objResult) {
-                        countHolder.setValue(countHolder.getValue() + 1);
-                        return true;
-                    }
-
-                    @Override
-                    public String toString() {
-                        return "(ShadowCache simulated counting handler)";
-                    }
-                };
-
                 query = query.clone();
                 ObjectPaging paging = prismContext.queryFactory().createPaging();
                 // Explicitly set offset. This makes a difference for some resources.
@@ -373,18 +342,18 @@ class SearchHelper {
                 Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
                         .item(ShadowType.F_ASSOCIATION).dontRetrieve()
                         .build();
-                SearchResultMetadata resultMetadata;
+                int count;
                 try {
-                    resultMetadata = searchObjectsIterative(query, options, handler, false, task, result);
+                    count = countObjects(query, options, CountMethod.METADATA, task, result);
                 } catch (SchemaException | ObjectNotFoundException | ConfigurationException
                         | SecurityViolationException e) {
                     result.recordFatalError(e);
                     throw e;
                 }
+
                 result.computeStatus();
                 result.cleanupResult();
-
-                return resultMetadata.getApproxNumberOfAllResults();
+                return count;
 
             } else if (simulate == CountObjectsSimulateType.SEQUENTIAL_SEARCH) {
                 //fix for MID-5204. as sequentialSearch option causes to fetch all resource objects,
@@ -392,23 +361,16 @@ class SearchHelper {
                 query = query.clone();
                 query.setPaging(null);
                 LOGGER.trace("countObjects: simulating counting with sequential search (likely performance impact)");
-                // traditional way of counting objects (i.e. counting them one by one)
-                final Holder<Integer> countHolder = new Holder<>(0);
-
-                final ResultHandler<ShadowType> handler = (shadow, objResult) -> {
-                    countHolder.setValue(countHolder.getValue() + 1);
-                    return true;
-                };
 
                 Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
                         .item(ShadowType.F_ASSOCIATION).dontRetrieve()
                         .build();
 
-                searchObjectsIterative(query, options, handler, false, task, result);
+                int count = countObjects(query, options, CountMethod.COUNTING, task, result);
                 // TODO: better error handling
                 result.computeStatus();
                 result.cleanupResult();
-                return countHolder.getValue();
+                return count;
 
             } else {
                 throw new IllegalArgumentException("Unknown count capability simulate type " + simulate);
@@ -488,4 +450,72 @@ class SearchHelper {
         }
     }
 
+    public int countObjects(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
+            CountMethod countMethod, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        ProvisioningContext ctx = createContextForSearch(query, options, task, parentResult);
+        definitionsHelper.applyDefinition(ctx, query);
+
+        GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+        if (ProvisioningUtil.shouldDoRepoSearch(rootOptions)) {
+            return shadowManager.countShadows(ctx, query, options, parentResult);
+        } else {
+            return countResourceObjects(ctx, query, countMethod, parentResult);
+        }
+    }
+
+    private int countResourceObjects(ProvisioningContext ctx, ObjectQuery query, CountMethod countMethod,
+            OperationResult result)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException, SecurityViolationException {
+
+        InternalMonitor.recordCount(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
+
+        AtomicInteger counter = new AtomicInteger(0);
+        ResourceObjectHandler resultHandler = (FetchedResourceObject fetchedObject, OperationResult objResult) -> {
+            counter.incrementAndGet();
+            return true;
+        };
+
+        ObjectQuery attributeQuery = createAttributeQuery(query);
+        try {
+            SearchResultMetadata searchResultMetadata = resourceObjectConverter.searchResourceObjects(ctx, resultHandler,
+                    attributeQuery, false, FetchErrorReportingMethodType.FETCH_RESULT, result);
+            if (countMethod == CountMethod.METADATA) {
+                return searchResultMetadata.getApproxNumberOfAllResults();
+            } else {
+                return counter.get();
+            }
+        } catch (TunnelException e) {
+            unwrapAndThrowSearchingTunnelException(e);
+            throw new AssertionError();
+        }
+    }
+
+    private void unwrapAndThrowSearchingTunnelException(TunnelException e) throws ObjectNotFoundException, SchemaException,
+            CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        Throwable cause = e.getCause();
+        if (cause instanceof ObjectNotFoundException) {
+            throw (ObjectNotFoundException) cause;
+        } else if (cause instanceof SchemaException) {
+            throw (SchemaException) cause;
+        } else if (cause instanceof CommunicationException) {
+            throw (CommunicationException) cause;
+        } else if (cause instanceof ConfigurationException) {
+            throw (ConfigurationException) cause;
+        } else if (cause instanceof SecurityViolationException) {
+            throw (SecurityViolationException) cause;
+        } else if (cause instanceof ExpressionEvaluationException) {
+            throw (ExpressionEvaluationException) cause;
+        } else if (cause instanceof RuntimeException) {
+            throw (RuntimeException) cause;
+        } else {
+            throw new SystemException(cause.getMessage(), cause);
+        }
+    }
+
+    private enum CountMethod {
+        METADATA, COUNTING
+    }
 }

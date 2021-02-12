@@ -25,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * Helps with the resource object adoption process (acquiring repo shadows, shadow completion).
  *
- * Currently it delegates these activities to dedicated classes: {@link ShadowAcquisition}, {@link ReturnedObjectConstruction}.
+ * Currently it delegates these activities to dedicated classes: {@link ShadowAcquisition}, {@link AdoptedObjectConstruction}.
  */
 @Experimental
 @Component
@@ -77,13 +77,13 @@ class AdoptionHelper {
      * are filled (e.g name, resourceRef, ...) Also transforms the shadow with
      * respect to simulated capabilities. Also shadowRefs are added to associations.
      */
-    @NotNull PrismObject<ShadowType> constructReturnedObject(@NotNull ProvisioningContext ctx,
+    @NotNull PrismObject<ShadowType> constructAdoptedObject(@NotNull ProvisioningContext ctx,
             @NotNull PrismObject<ShadowType> repoShadow, @NotNull PrismObject<ShadowType> resourceObject,
             @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             SecurityViolationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
 
-        return ReturnedObjectConstruction.create(ctx, repoShadow, resourceObject, commonBeans)
+        return AdoptedObjectConstruction.create(ctx, repoShadow, resourceObject, commonBeans)
                 .construct(result);
     }
 
