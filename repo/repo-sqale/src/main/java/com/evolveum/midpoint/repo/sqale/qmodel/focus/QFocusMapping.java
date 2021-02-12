@@ -28,12 +28,9 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
 
     public static final String DEFAULT_ALIAS_NAME = "f";
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    public static final Class<QFocus<MFocus>> CLASS = (Class) QFocus.class;
-
     public static final QFocusMapping<FocusType, QFocus<MFocus>, MFocus> INSTANCE =
             new QFocusMapping<>(QFocus.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                    FocusType.class, CLASS);
+                    FocusType.class, QFocus.CLASS);
 
     protected QFocusMapping(
             @NotNull String tableName,
@@ -74,6 +71,7 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
     @Override
     public @NotNull Path<?>[] selectExpressions(
             Q entity, Collection<SelectorOptions<GetOperationOptions>> options) {
+        // TODO process photo option
         return new Path[] { entity.oid, entity.fullObject };
     }
 
@@ -88,5 +86,11 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
     public FocusSqlTransformer<S, Q, R> createTransformer(
             SqlTransformerContext transformerContext) {
         return new FocusSqlTransformer<>(transformerContext, this);
+    }
+
+    @Override
+    public R newRowObject() {
+        //noinspection unchecked
+        return (R) new MFocus();
     }
 }

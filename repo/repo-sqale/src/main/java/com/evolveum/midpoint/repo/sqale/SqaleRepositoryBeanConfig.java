@@ -27,6 +27,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTableMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.lookuptable.QLookupTableRowMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.node.QNodeMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.report.QReportOutputMapping;
@@ -96,6 +97,7 @@ public class SqaleRepositoryBeanConfig {
                 // ordered alphabetically here
                 .register(AbstractRoleType.COMPLEX_TYPE, QAbstractRoleMapping.INSTANCE)
                 .register(ArchetypeType.COMPLEX_TYPE, QArchetypeMapping.INSTANCE)
+                .register(AssignmentHolderType.COMPLEX_TYPE, QObjectMapping.INSTANCE)
                 .register(DashboardType.COMPLEX_TYPE, QDashboardMapping.INSTANCE)
                 .register(FocusType.COMPLEX_TYPE, QFocusMapping.INSTANCE)
                 .register(ConnectorType.COMPLEX_TYPE, QConnectorMapping.INSTANCE)
@@ -103,7 +105,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(LookupTableType.COMPLEX_TYPE, QLookupTableMapping.INSTANCE)
                 .register(LookupTableRowType.COMPLEX_TYPE, QLookupTableRowMapping.INSTANCE)
                 .register(NodeType.COMPLEX_TYPE, QNodeMapping.INSTANCE)
-                .register(ObjectType.COMPLEX_TYPE, QObjectMapping.INSTANCE)
+                .register(ObjectType.COMPLEX_TYPE, QAssignmentHolderMapping.INSTANCE)
                 .register(ObjectCollectionType.COMPLEX_TYPE, QObjectCollectionMapping.INSTANCE)
                 .register(ReportType.COMPLEX_TYPE, QReportMapping.INSTANCE)
                 .register(ReportDataType.COMPLEX_TYPE, QReportOutputMapping.INSTANCE)

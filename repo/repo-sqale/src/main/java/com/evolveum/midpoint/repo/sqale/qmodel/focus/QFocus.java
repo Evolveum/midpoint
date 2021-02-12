@@ -25,6 +25,10 @@ public class QFocus<T extends MFocus> extends QObject<T> {
 
     private static final long serialVersionUID = -535915621882761789L;
 
+    /** If {@code QFocus.class} is not enough because of generics, try {@code QFocus.CLASS}. */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public static final Class<QFocus<MFocus>> CLASS = (Class) QFocus.class;
+
     public static final String TABLE_NAME = "m_focus";
 
     public static final ColumnMetadata ROLE_TYPE =
