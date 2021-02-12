@@ -13,9 +13,9 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sqale.qbean.MObject;
-import com.evolveum.midpoint.repo.sqale.qmapping.SqaleModelMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.QObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.SqaleModelMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
@@ -51,7 +51,7 @@ public class SqaleQueryContext<S, Q extends QObject<R>, R extends MObject>
 
     @Override
     protected SqlTransformer<S, Q, R> createTransformer() {
-        return mapping.createTransformer(transformerContext, sqlConfiguration());
+        return mapping.createTransformer(transformerContext);
     }
 
     @Override

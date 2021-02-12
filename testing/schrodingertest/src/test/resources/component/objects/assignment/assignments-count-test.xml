@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+~ Copyright (c) 2010-2020 Evolveum and contributors
+~
+~ This work is dual-licensed under the Apache License 2.0
+~ and European Union Public License. See LICENSE file for details.
+-->
+<objects>
+    <user oid="d1fb0392-625a-4b27-85ca-82bf32bfb670" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        <name>assignmentsCountTest</name>
+        <assignment>
+            <targetRef oid="00000000-0000-0000-0000-000000000300" relation="org:default" type="c:ArchetypeType">
+                <!-- System user -->
+            </targetRef>
+        </assignment>
+        <assignment>
+            <targetRef oid="00000000-0000-0000-0000-000000000008" relation="org:default" type="c:RoleType">
+                <!-- End user -->
+            </targetRef>
+        </assignment>
+       <roleMembershipRef oid="00000000-0000-0000-0000-000000000008" relation="org:default" type="c:RoleType">
+            <!-- End user -->
+        </roleMembershipRef>
+        <archetypeRef oid="00000000-0000-0000-0000-000000000300" relation="org:default" type="c:ArchetypeType">
+            <!-- System user -->
+        </archetypeRef>
+        <roleMembershipRef oid="00000000-0000-0000-0000-000000000300" relation="org:default" type="c:ArchetypeType">
+            <!-- System user -->
+        </roleMembershipRef>
+    </user>
+
+    <user xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+          oid="6d5c670a-014e-47b9-9cfc-38b6d4ba0074"
+          version="1">
+        <name>userForDelegation</name>
+        <assignment>
+            <targetRef oid="d1fb0392-625a-4b27-85ca-82bf32bfb670" relation="org:deputy" type="c:UserType">
+            </targetRef>
+            <activation>
+                <effectiveStatus>enabled</effectiveStatus>
+            </activation>
+            <limitOtherPrivileges>
+                <approvalWorkItems>
+                    <all>true</all>
+                </approvalWorkItems>
+                <certificationWorkItems>
+                    <all>true</all>
+                </certificationWorkItems>
+            </limitOtherPrivileges>
+        </assignment>
+        <delegatedRef oid="d1fb0392-625a-4b27-85ca-82bf32bfb670" relation="org:deputy" type="c:UserType">
+        </delegatedRef>
+    </user>
+</objects>

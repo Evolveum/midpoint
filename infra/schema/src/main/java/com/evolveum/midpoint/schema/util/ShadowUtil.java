@@ -369,9 +369,12 @@ public class ShadowUtil {
 
     public static PrismObjectDefinition<ShadowType> applyObjectClass(PrismObjectDefinition<ShadowType> shadowDefinition,
             ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
-        PrismObjectDefinition<ShadowType> shadowDefClone = shadowDefinition.cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES,
+        return shadowDefinition.cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES,
                 objectClassDefinition.toResourceAttributeContainerDefinition());
-        return shadowDefClone;
+    }
+
+    public static String getIntent(PrismObject<ShadowType> shadow) {
+        return shadow != null ? getIntent(shadow.asObjectable()) : null;
     }
 
     /**
@@ -383,6 +386,10 @@ public class ShadowUtil {
             return null;
         }
         return shadow.getIntent();
+    }
+
+    public static ShadowKindType getKind(PrismObject<ShadowType> shadow) {
+        return shadow != null ? getKind(shadow.asObjectable()) : null;
     }
 
     public static ShadowKindType getKind(ShadowType shadow) {

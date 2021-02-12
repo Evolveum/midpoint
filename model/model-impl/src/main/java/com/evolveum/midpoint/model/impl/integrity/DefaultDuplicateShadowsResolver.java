@@ -23,7 +23,7 @@ import java.util.List;
  */
 public class DefaultDuplicateShadowsResolver implements DuplicateShadowsResolver {
 
-    static final Trace LOGGER = TraceManager.getTrace(DefaultDuplicateShadowsResolver.class);
+    private static final Trace LOGGER = TraceManager.getTrace(DefaultDuplicateShadowsResolver.class);
 
     @Override
     public DuplicateShadowsTreatmentInstruction determineDuplicateShadowsTreatment(Collection<PrismObject<ShadowType>> shadows) {
@@ -40,14 +40,14 @@ public class DefaultDuplicateShadowsResolver implements DuplicateShadowsResolver
             if (shadowType.getSynchronizationSituation() == SynchronizationSituationType.LINKED) {
                 score += 10;
             }
-            List owners = (List) shadow.getUserData(ShadowIntegrityCheckResultHandler.KEY_OWNERS);
+            List owners = (List) shadow.getUserData(ShadowIntegrityCheckItemProcessor.KEY_OWNERS);
             if (owners != null && !owners.isEmpty()) {
                 score += 10;
             }
             if (shadowType.getIntent() != null && !shadowType.getIntent().isEmpty()) {
                 score += 8;
             }
-            if (shadow.getUserData(ShadowIntegrityCheckResultHandler.KEY_EXISTS_ON_RESOURCE) != null) { // filled in only if checkFetch is true
+            if (shadow.getUserData(ShadowIntegrityCheckItemProcessor.KEY_EXISTS_ON_RESOURCE) != null) { // filled in only if checkFetch is true
                 score += 50;
             }
             LOGGER.trace("Shadow {} has score of {}; best is {}", ObjectTypeUtil.toShortString(shadow), score, bestScore);

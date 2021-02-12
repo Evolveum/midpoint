@@ -17,7 +17,9 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.codeborne.selenide.Selenide.screenshot;
 
@@ -61,15 +63,10 @@ public class UsersTest extends AbstractSchrodingerTest {
     @Test
     public void test002SearchWithLookupTable() {
 
-        UserPage user = basicPage.newUser();
-        user.selectTabBasic()
-                .form()
-                .addAttributeValue("name", "searchUser")
-                .addAttributeValue("title", "PhD.")
-                .and()
-                .and()
-                .clickSave();
-
+        Map<String, String> attr = new HashMap<>();
+        attr.put("name", "searchUser");
+        attr.put("title", "PhD.");
+        createUser(attr);
 
         ListUsersPage users = basicPage.listUsers();
 
@@ -109,15 +106,5 @@ public class UsersTest extends AbstractSchrodingerTest {
                     .and()
                 .assertCurrentTableDoesntContain("searchUser");
 
-    }
-
-    private void addUser(String name) {
-        UserPage user = basicPage.newUser();
-        user.selectTabBasic()
-                .form()
-                .addAttributeValue("name", name)
-                .and()
-                .and()
-                .clickSave();
     }
 }

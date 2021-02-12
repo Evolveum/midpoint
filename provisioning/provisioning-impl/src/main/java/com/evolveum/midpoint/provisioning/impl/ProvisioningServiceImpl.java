@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
+import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.checkNotInMaintenance;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -53,7 +55,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -293,8 +294,10 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     }
 
     @Override
-    public int synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, TaskPartitionDefinitionType taskPartition, OperationResult parentResult) throws ObjectNotFoundException,
-            CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
+    public @NotNull SynchronizationResult synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task,
+            TaskPartitionDefinitionType taskPartition, LiveSyncEventHandler handler, OperationResult parentResult)
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
 
         Validate.notNull(shadowCoordinates, "Coordinates oid must not be null.");
         String resourceOid = shadowCoordinates.getResourceOid();
@@ -309,22 +312,12 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         SynchronizationOperationResult liveSyncResult;
 
         try {
-            // Resolve resource
-            PrismObject<ResourceType> resource = getObject(ResourceType.class, resourceOid, null, task, result);
-            ResourceType resourceType = resource.asObjectable();
+            PrismObject<ResourceType> resource = getResource(resourceOid, task, result); // TODO avoid double fetching the resource
 
-            if (ResourceTypeUtil.isInMaintenance(resourceType)) {
-                throw new MaintenanceException("Resource " + resource + " is in the maintenance");
-            }
-
-            LOGGER.trace("Start synchronization of resource {} ", resourceType);
-
-            liveSyncResult = liveSynchronizer.synchronize(shadowCoordinates, task, taskPartition, result);
+            LOGGER.debug("Start synchronization of {}", resource);
+            liveSyncResult = liveSynchronizer.synchronize(shadowCoordinates, task, taskPartition, handler, result);
             LOGGER.debug("Synchronization of {} done, result: {}", resource, liveSyncResult);
 
-        } catch (MaintenanceException e) {
-            result.recordHandledError(e.getMessage(), e);
-            throw e;
         } catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
             ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
             result.summarize(true);
@@ -339,33 +332,20 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             result.summarize(true);
             throw new GenericConnectorException(e.getMessage(), e);
         }
+        // TODO clean up the above exception and operation result processing
 
-        if (liveSyncResult.isSuspendEncountered()) {
-            // FIXME Very dirty "solution". We want to make sure the task will be suspended/closed.
-            throw new SystemException("Object could not be processed and error handling strategy directed the task to suspend/close");
-        } else if (liveSyncResult.isHaltingErrorEncountered()) {
-            // TODO MID-5514
-            result.recordPartialError("Object could not be processed and error handling strategy directed the task to stop (but continue trying later)");
-        } else if (liveSyncResult.getErrors() > 0) {
-            result.recordPartialError("Errors while processing: " + liveSyncResult.getErrors() + " out of " + liveSyncResult.getChangesProcessed());
-        } else {
-            result.recordSuccess();
-        }
-        result.cleanupResult();
+        return new SynchronizationResult(liveSyncResult.getChangesProcessed());
+    }
 
-        // This is a brutal hack for thresholds in LiveSync tasks: it propagates ThresholdPolicyViolationException to upper layers.
-        // FIXME Get rid of this as soon as possible! MID-5940
-        // TODO reconcile thresholds and error handling strategy stopAfter property
-        if (liveSyncResult.getExceptionEncountered() instanceof ThresholdPolicyViolationException) {
-            throw (ThresholdPolicyViolationException) liveSyncResult.getExceptionEncountered();
-        }
-
-        return liveSyncResult.getChangesProcessed();
+    private PrismObject<ResourceType> getResource(String resourceOid, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        PrismObject<ResourceType> resource = getObject(ResourceType.class, resourceOid, null, task, result);
+        checkNotInMaintenance(resource);
+        return resource;
     }
 
     @Override
-    public void processAsynchronousUpdates(@NotNull ResourceShadowDiscriminator shadowCoordinates, @NotNull Task task,
-            @NotNull OperationResult parentResult)
+    public void processAsynchronousUpdates(@NotNull ResourceShadowDiscriminator shadowCoordinates,
+            @NotNull AsyncUpdateEventHandler handler, @NotNull Task task, @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
         String resourceOid = shadowCoordinates.getResourceOid();
@@ -377,7 +357,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         try {
             LOGGER.trace("Starting processing async updates for {}", shadowCoordinates);
-            asyncUpdater.processAsynchronousUpdates(shadowCoordinates, task, result);
+            asyncUpdater.processAsynchronousUpdates(shadowCoordinates, handler, task, result);
             result.recordSuccess();
         } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
             ProvisioningUtil.recordFatalError(LOGGER, result, null, e);

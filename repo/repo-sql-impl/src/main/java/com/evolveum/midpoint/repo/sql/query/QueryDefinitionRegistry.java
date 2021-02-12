@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.query;
 
+import java.util.Objects;
 import java.util.*;
 import javax.xml.namespace.QName;
 
@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationWorkItem;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.container.RCaseWorkItem;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.definition.ClassDefinitionParser;
@@ -28,10 +29,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author lazyman
@@ -68,7 +66,6 @@ public final class QueryDefinitionRegistry implements DebugDumpable {
                 definitionsByClass.put(definition.getJpaClass(), definition);
             }
 
-            // TODO fix this hack
             JpaEntityDefinition caseDefinition = classDefinitionParser.parseRootClass(RAccessCertificationCase.class);
             definitionsByClass.put(RAccessCertificationCase.class, caseDefinition);
             map.put(AccessCertificationCaseType.COMPLEX_TYPE, caseDefinition);
@@ -78,6 +75,9 @@ public final class QueryDefinitionRegistry implements DebugDumpable {
             JpaEntityDefinition caseWorkItemDefinition = classDefinitionParser.parseRootClass(RCaseWorkItem.class);
             definitionsByClass.put(RCaseWorkItem.class, caseWorkItemDefinition);
             map.put(CaseWorkItemType.COMPLEX_TYPE, caseWorkItemDefinition);
+            JpaEntityDefinition assignmentDefinition = classDefinitionParser.parseRootClass(RAssignment.class);
+            definitionsByClass.put(RAssignment.class, assignmentDefinition);
+            map.put(AssignmentType.COMPLEX_TYPE, assignmentDefinition);
 
             // link parents (maybe not needed at all, we'll see) and referenced entity definitions
             // sort definitions
@@ -168,14 +168,17 @@ public final class QueryDefinitionRegistry implements DebugDumpable {
 
     public <T extends Containerable> QName getQNameForType(Class<T> type) throws QueryException {
         if (ObjectType.class.isAssignableFrom(type)) {
-            return ObjectTypes.getObjectType((Class) type).getTypeQName();
+            //noinspection unchecked
+            return ObjectTypes.getObjectType((Class<? extends ObjectType>) type).getTypeQName();
         }
-        if (AccessCertificationCaseType.class.equals(type)) {           // TODO generalize
+        if (AccessCertificationCaseType.class.equals(type)) {
             return AccessCertificationCaseType.COMPLEX_TYPE;
-        } else if (AccessCertificationWorkItemType.class.equals(type)) {           // TODO generalize
+        } else if (AccessCertificationWorkItemType.class.equals(type)) {
             return AccessCertificationWorkItemType.COMPLEX_TYPE;
-        } else if (CaseWorkItemType.class.equals(type)) {           // TODO generalize
+        } else if (CaseWorkItemType.class.equals(type)) {
             return CaseWorkItemType.COMPLEX_TYPE;
+        } else if (AssignmentType.class.equals(type)) {
+            return AssignmentType.COMPLEX_TYPE;
         }
         throw new QueryException("Unsupported type " + type);
     }

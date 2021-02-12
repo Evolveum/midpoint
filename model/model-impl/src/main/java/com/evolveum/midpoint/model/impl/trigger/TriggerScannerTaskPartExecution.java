@@ -13,14 +13,14 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType.F
 import com.evolveum.midpoint.model.impl.tasks.scanner.AbstractScannerTaskPartExecution;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.task.DefaultHandledObjectType;
-import com.evolveum.midpoint.repo.common.task.ResultHandlerClass;
+import com.evolveum.midpoint.repo.common.task.ItemProcessorClass;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Single execution of a trigger scanner task part.
  */
-@ResultHandlerClass(TriggerScannerResultHandler.class)
+@ItemProcessorClass(TriggerScannerItemProcessor.class)
 @DefaultHandledObjectType(ObjectType.class)
 public class TriggerScannerTaskPartExecution
         extends AbstractScannerTaskPartExecution
@@ -28,7 +28,7 @@ public class TriggerScannerTaskPartExecution
                 TriggerScannerTaskHandler,
                 TriggerScannerTaskHandler.TaskExecution,
                 TriggerScannerTaskPartExecution,
-                TriggerScannerResultHandler> {
+                TriggerScannerItemProcessor> {
 
     public TriggerScannerTaskPartExecution(TriggerScannerTaskHandler.TaskExecution taskExecution) {
         super(taskExecution);

@@ -417,6 +417,7 @@ public class AuditLogViewerPanel extends BasePanel {
                 } catch (SchemaException e) {
                     throw new SystemException("Couldn't adopt event record: " + e, e);
                 }
+                getAuditLogViewerStorage().setAuditRecord(record);
                 getPageBase().navigateToNext(new PageAuditLogDetails(record));
             }
         };

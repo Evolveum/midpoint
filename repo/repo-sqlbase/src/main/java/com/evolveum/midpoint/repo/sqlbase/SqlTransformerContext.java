@@ -21,8 +21,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public class SqlTransformerContext {
 
-    private final SchemaHelper schemaService;
-    private final SqlRepoContext sqlRepoContext;
+    protected final SchemaHelper schemaService;
+    protected final SqlRepoContext sqlRepoContext;
 
     public SqlTransformerContext(SchemaHelper schemaService, SqlRepoContext sqlRepoContext) {
         this.schemaService = schemaService;
@@ -67,6 +67,10 @@ public class SqlTransformerContext {
      */
     public PrismContext prismContext() {
         return schemaService.getPrismContext();
+    }
+
+    public SqlRepoContext sqlRepoContext() {
+        return sqlRepoContext;
     }
 
     public static class ParseResult<T extends Objectable> {

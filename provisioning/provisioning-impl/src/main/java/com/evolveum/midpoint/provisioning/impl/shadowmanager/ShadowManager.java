@@ -13,6 +13,8 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectChange;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +47,6 @@ import com.evolveum.midpoint.provisioning.impl.ConstraintsChecker;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.impl.ShadowState;
-import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.schema.*;
@@ -207,10 +208,8 @@ public class ShadowManager {
                 if (liveShadow == null) {
                     liveShadow = shadow;
                 } else {
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("More than one live conflicting shadow found {} and {}:\n{}",
-                                liveShadow, shadow, DebugUtil.debugDump(shadows, 1));
-                    }
+                    LOGGER.trace("More than one live conflicting shadow found {} and {}:\n{}",
+                            liveShadow, shadow, DebugUtil.debugDumpLazily(shadows, 1));
                     // TODO: handle "more than one shadow" case MID-4490
                     String msg = "Found more than one live conflicting shadows: " + liveShadow + " and " + shadow;
                     result.recordFatalError(msg);
@@ -226,7 +225,7 @@ public class ShadowManager {
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 
         @SuppressWarnings("unchecked")
-        ObjectQuery query = createSearchShadowQuery(ctx, (Collection) identifierContainer.getValue().getItems(), false, prismContext, parentResult);
+        ObjectQuery query = createSearchShadowQuery(ctx, (Collection) identifierContainer.getValue().getItems(), false, prismContext);
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Searching for shadow using filter (repo):\n{}",
                     query.debugDump());
@@ -410,103 +409,107 @@ public class ShadowManager {
 
     }
 
-    /**
-     * Returns null if there's no existing (relevant) shadow and the change is DELETE.
-     */
-    public PrismObject<ShadowType> findOrAddShadowFromChange(ProvisioningContext ctx, Change change,
+    public PrismObject<ShadowType> findShadowFromDeleteChange(ProvisioningContext ctx, ResourceObjectChange change,
+            OperationResult parentResult) throws SchemaException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
+
+        assert change.isDelete();
+
+        List<PrismObject<ShadowType>> matchingShadows = searchShadowByIdentifiers(ctx, change.getIdentifiers(), parentResult);
+        PrismObject<ShadowType> liveShadow = eliminateDeadShadows(matchingShadows, parentResult);
+        if (liveShadow != null) {
+            return liveShadow;
+        } else if (matchingShadows.isEmpty()) {
+            return null;
+        } else {
+            // We ignore the possibility of conflicting information in shadows.
+            return matchingShadows.get(0);
+        }
+    }
+
+    @NotNull
+    public PrismObject<ShadowType> findOrCreateShadowFromChange(ProvisioningContext ctx, ResourceObjectChange change,
             OperationResult parentResult) throws SchemaException, CommunicationException,
             ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, EncryptionException {
 
+        assert !change.isDelete();
+
         // Try to locate existing shadow in the repository
-        List<PrismObject<ShadowType>> accountList = searchShadowByIdentifiers(ctx, change, parentResult);
+        List<PrismObject<ShadowType>> matchingShadows = searchShadowByIdentifiers(ctx, change.getIdentifiers(), parentResult);
 
         // We normally do not want dead shadows here. Normally we should not receive any change notifications about dead
         // shadows anyway. And dead shadows may get into the way. E.g. account is deleted and then it is quickly re-created.
         // In that case we will get ADD change notification and there is a dead shadow in repo. But we do not want to use that
         // dead shadow. The notification is about a new (re-create) account. We want to create new shadow.
-        PrismObject<ShadowType> foundLiveShadow = eliminateDeadShadows(accountList, parentResult);
-
-        if (foundLiveShadow == null) {
-            // account was not found in the repository, create it now
-
-            if (change.isDelete()) {
-                if (accountList.isEmpty()) {
-                    // Delete. No shadow is OK here.
-                    return null;
-                } else {
-                    // Delete of shadow that is already dead.
-                    return accountList.get(0);
-                }
-
-            } else {
-
-                foundLiveShadow = createNewShadowFromChange(ctx, change, parentResult);
-
-                try {
-                    ConstraintsChecker.onShadowAddOperation(foundLiveShadow.asObjectable());
-                    String oid = repositoryService.addObject(foundLiveShadow, null, parentResult);
-                    foundLiveShadow.setOid(oid);
-                    if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
-                        change.getObjectDelta().setOid(oid);
-                    }
-                } catch (ObjectAlreadyExistsException e) {
-                    parentResult.recordFatalError("Can't add " + foundLiveShadow + " to the repository. Reason: " + e.getMessage(), e);
-                    throw new IllegalStateException(e.getMessage(), e);
-                }
-                LOGGER.debug("Added new shadow (from change): {}", foundLiveShadow);
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Added new shadow (from change):\n{}", foundLiveShadow.debugDump(1));
-                }
-            }
+        PrismObject<ShadowType> liveShadow = eliminateDeadShadows(matchingShadows, parentResult);
+        if (liveShadow != null) {
+            return liveShadow;
         }
 
-        return foundLiveShadow;
+        // account was not found in the repository, create it now
+        PrismObject<ShadowType> newShadow = createNewShadowFromChange(ctx, change);
+
+        try {
+            ConstraintsChecker.onShadowAddOperation(newShadow.asObjectable());
+            String oid = repositoryService.addObject(newShadow, null, parentResult);
+            newShadow.setOid(oid);
+            if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
+                change.getObjectDelta().setOid(oid);
+            }
+        } catch (ObjectAlreadyExistsException e) {
+            parentResult.recordFatalError("Can't add " + newShadow + " to the repository. Reason: " + e.getMessage(), e);
+            throw new IllegalStateException(e.getMessage(), e);
+        }
+        LOGGER.debug("Added new shadow (from change): {}", newShadow);
+        LOGGER.trace("Added new shadow (from change):\n{}", newShadow.debugDumpLazily(1));
+
+        return newShadow;
     }
 
-    private PrismObject<ShadowType> createNewShadowFromChange(ProvisioningContext ctx, Change change,
-            OperationResult parentResult) throws SchemaException, CommunicationException, ConfigurationException,
-            ObjectNotFoundException, ExpressionEvaluationException, EncryptionException {
+    private PrismObject<ShadowType> createNewShadowFromChange(ProvisioningContext ctx, ResourceObjectChange change)
+            throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException,
+            ExpressionEvaluationException, EncryptionException {
 
         assert !change.isDelete();
 
-        PrismObject<ShadowType> shadow = change.getCurrentResourceObject();
-
-        if (shadow == null) {
-            if (change.isAdd()) {
-                shadow = change.getObjectDelta().getObjectToAdd();
-                assert shadow != null;
-            } else if (change.getIdentifiers() != null && !change.getIdentifiers().isEmpty()) {
-                if (change.getObjectClassDefinition() == null) {
-                    throw new IllegalStateException("Could not create shadow from change description. Object class is not specified.");
-                }
-                ShadowType newShadow = new ShadowType(prismContext);
-                newShadow.setObjectClass(change.getObjectClassDefinition().getTypeName());
-                ResourceAttributeContainer attributeContainer = change.getObjectClassDefinition()
-                        .toResourceAttributeContainerDefinition().instantiate();
-                newShadow.asPrismObject().add(attributeContainer);
-                for (ResourceAttribute<?> identifier : change.getIdentifiers()) {
-                    attributeContainer.add(identifier.clone());
-                }
-                shadow = newShadow.asPrismObject();
-            } else {
-                throw new IllegalStateException("Could not create shadow from change description. Neither current shadow, nor delta containing shadow, nor identifiers exists.");
-            }
+        @NotNull PrismObject<ShadowType> resourceObject;
+        if (change.getResourceObject() != null) {
+            resourceObject = change.getResourceObject();
+        } else if (change.isAdd()) {
+            resourceObject = Objects.requireNonNull(change.getObjectDelta().getObjectToAdd());
+        } else if (!change.getIdentifiers().isEmpty()) {
+            resourceObject = createIdentifiersOnlyFakeResourceObject(change);
+        } else {
+            throw new IllegalStateException("Could not create shadow from change description. Neither current resource object"
+                    + " nor its identifiers exist.");
         }
 
         try {
-            shadow = createRepositoryShadow(ctx, shadow);
+            return createRepositoryShadow(ctx, resourceObject);
         } catch (SchemaException ex) {
             throw new SchemaException("Can't create shadow from identifiers: " + change.getIdentifiers());
         }
-
-        return shadow;
     }
 
-    private List<PrismObject<ShadowType>> searchShadowByIdentifiers(ProvisioningContext ctx, Change change, OperationResult parentResult)
+    private PrismObject<ShadowType> createIdentifiersOnlyFakeResourceObject(ResourceObjectChange change) throws SchemaException {
+        if (change.getObjectClassDefinition() == null) {
+            throw new IllegalStateException("Could not create shadow from change description. Object class is not specified.");
+        }
+        ShadowType fakeResourceObject = new ShadowType(prismContext);
+        fakeResourceObject.setObjectClass(change.getObjectClassDefinition().getTypeName());
+        ResourceAttributeContainer attributeContainer = change.getObjectClassDefinition()
+                .toResourceAttributeContainerDefinition().instantiate();
+        fakeResourceObject.asPrismObject().add(attributeContainer);
+        for (ResourceAttribute<?> identifier : change.getIdentifiers()) {
+            attributeContainer.add(identifier.clone());
+        }
+        return fakeResourceObject.asPrismObject();
+    }
+
+    private List<PrismObject<ShadowType>> searchShadowByIdentifiers(ProvisioningContext ctx, Collection<ResourceAttribute<?>> identifiers, OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 
-        Collection<ResourceAttribute<?>> identifiers = change.getIdentifiers();
-        ObjectQuery query = createSearchShadowQuery(ctx, identifiers, true, prismContext, parentResult);
+        ObjectQuery query = createSearchShadowQuery(ctx, identifiers, true, prismContext);
 
         List<PrismObject<ShadowType>> accountList;
         try {
@@ -522,8 +525,9 @@ public class ShadowManager {
         return accountList;
     }
 
-    private ObjectQuery createSearchShadowQuery(ProvisioningContext ctx, Collection<ResourceAttribute<?>> identifiers, boolean primaryIdentifiersOnly,
-            PrismContext prismContext, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+    private ObjectQuery createSearchShadowQuery(ProvisioningContext ctx, Collection<ResourceAttribute<?>> identifiers,
+            boolean primaryIdentifiersOnly, PrismContext prismContext) throws SchemaException, ConfigurationException,
+            ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 
         S_AtomicFilterEntry q = prismContext.queryFor(ShadowType.class);
 
@@ -674,9 +678,9 @@ public class ShadowManager {
 
     // Used when new resource object is discovered
     public PrismObject<ShadowType> addDiscoveredRepositoryShadow(ProvisioningContext ctx,
-            PrismObject<ShadowType> resourceShadow, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, EncryptionException {
-        LOGGER.trace("Adding new shadow from resource object:\n{}", resourceShadow.debugDumpLazily(1));
-        PrismObject<ShadowType> repoShadow = createRepositoryShadow(ctx, resourceShadow);
+            PrismObject<ShadowType> resourceObject, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, EncryptionException {
+        LOGGER.trace("Adding new shadow from resource object:\n{}", resourceObject.debugDumpLazily(1));
+        PrismObject<ShadowType> repoShadow = createRepositoryShadow(ctx, resourceObject);
         ConstraintsChecker.onShadowAddOperation(repoShadow.asObjectable());
         String oid = repositoryService.addObject(repoShadow, null, parentResult);
         repoShadow.setOid(oid);

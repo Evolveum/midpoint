@@ -131,7 +131,6 @@ import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
@@ -163,7 +162,7 @@ import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
+import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.valuePolicy.PageValuePolicy;
@@ -1825,18 +1824,18 @@ public final class WebComponentUtil {
         }
     }
 
-    public static boolean isActivationEnabled(PrismObject object, ItemPath propertyName) {
+    public static Boolean isActivationEnabled(PrismObject object, ItemPath propertyName) {
         Validate.notNull(object);
 
         PrismContainer<ActivationType> activation = object.findContainer(UserType.F_ACTIVATION); // this is equal to account activation...
         if (activation == null) {
-            return false;
+            return null;
         }
 
         ActivationStatusType status = activation
                 .getPropertyRealValue(propertyName, ActivationStatusType.class);
         if (status == null) {
-            return false;
+            return null;
         }
 
         return ActivationStatusType.ENABLED.equals(status);

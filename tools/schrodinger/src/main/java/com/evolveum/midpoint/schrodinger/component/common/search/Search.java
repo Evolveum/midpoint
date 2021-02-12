@@ -14,11 +14,15 @@ import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.component.common.InputBox;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
+import com.evolveum.midpoint.schrodinger.util.Utils;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.interactions.Actions;
 import org.testng.Assert;
 
 import static com.codeborne.selenide.Selectors.byText;
+import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$x;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -175,7 +179,7 @@ public class Search<T> extends Component<T> {
     }
 
     private SelenideElement getDisplayedPopover() {
-        return getParentElement().$x(".//div[@data-s-id='popover']").waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+        return $(By.className("search-popover")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
     }
 
 

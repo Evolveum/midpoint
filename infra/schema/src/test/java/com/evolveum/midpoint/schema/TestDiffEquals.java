@@ -1,16 +1,16 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.schema;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
-import static com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy.LITERAL;
 import static com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy.DATA;
+import static com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy.LITERAL;
 
 import java.io.File;
 import java.util.Arrays;
@@ -38,9 +38,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-/**
- * @author lazyman
- */
 public class TestDiffEquals extends AbstractSchemaTest {
 
     public static final File TEST_DIR = new File("src/test/resources/diff");
@@ -60,7 +57,7 @@ public class TestDiffEquals extends AbstractSchemaTest {
         PrismTestUtil.getPrismContext().adopt(userType1);
         PrismTestUtil.getPrismContext().adopt(userType2);
 
-        ObjectDelta delta = userType1.asPrismObject().diff(userType2.asPrismObject());
+        ObjectDelta<?> delta = userType1.asPrismObject().diff(userType2.asPrismObject());
         assertNotNull(delta);
         assertEquals(0, delta.getModifications().size());
 
@@ -92,84 +89,72 @@ public class TestDiffEquals extends AbstractSchemaTest {
     }
 
     @Test
-    public void testAssignmentEquals1() throws Exception {
+    public void testAssignmentEquals1() {
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
-        AssignmentType a1a = new AssignmentType();
-        prismContext.adopt(a1a);
-        a1a.setDescription("descr1");
+        when();
+        AssignmentType a1a = new AssignmentType(prismContext).description("descr1");
+        AssignmentType a1b = new AssignmentType(prismContext).description("descr1");
+        AssignmentType a1e = new AssignmentType(prismContext).description("descr1")
+                .activation(new ActivationType().effectiveStatus(ActivationStatusType.ENABLED));
+        AssignmentType a1m = new AssignmentType(prismContext).description("descr1")
+                .metadata(new MetadataType().createTimestamp(
+                        XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis())));
 
-        AssignmentType a2 = new AssignmentType();
-        prismContext.adopt(a2);
-        a2.setDescription("descr2");
+        AssignmentType a2 = new AssignmentType(prismContext).description("descr2");
 
-        AssignmentType a1b = new AssignmentType();
-        prismContext.adopt(a1b);
-        a1b.setDescription("descr1");
+        then("None of a1 equals to a2 (and vice versa)");
+        assertThat(a1a).isNotEqualTo(a2);
+        assertThat(a1b).isNotEqualTo(a2);
+        assertThat(a1m).isNotEqualTo(a2);
+        assertThat(a1e).isNotEqualTo(a2);
+        assertThat(a2).isNotEqualTo(a1a);
+        assertThat(a2).isNotEqualTo(a1b);
+        assertThat(a2).isNotEqualTo(a1m);
+        assertThat(a2).isNotEqualTo(a1e);
 
-        AssignmentType a1m = new AssignmentType();
-        prismContext.adopt(a1m);
-        a1m.setDescription("descr1");
-        MetadataType metadata1m = new MetadataType();
-        metadata1m.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
-        a1m.setMetadata(metadata1m);
+        and("each object is equal to itself");
+        assertThat(a1a).isEqualTo(a1a);
+        assertThat(a1b).isEqualTo(a1b);
+        assertThat(a1m).isEqualTo(a1m);
+        assertThat(a1e).isEqualTo(a1e);
+        assertThat(a2).isEqualTo(a2);
 
-        AssignmentType a1e = new AssignmentType();
-        prismContext.adopt(a1e);
-        a1e.setDescription("descr1");
-        ActivationType activation1e = new ActivationType();
-        activation1e.setEffectiveStatus(ActivationStatusType.ENABLED);
-        a1e.setActivation(activation1e);
-
-        // WHEN
-        assertFalse(a1a.equals(a2));
-        assertFalse(a1b.equals(a2));
-        assertFalse(a1m.equals(a2));
-        assertFalse(a1e.equals(a2));
-        assertFalse(a2.equals(a1a));
-        assertFalse(a2.equals(a1b));
-        assertFalse(a2.equals(a1m));
-        assertFalse(a2.equals(a1e));
-
-        assertTrue(a1a.equals(a1a));
-        assertTrue(a1b.equals(a1b));
-        assertTrue(a1m.equals(a1m));
-        assertTrue(a1e.equals(a1e));
-        assertTrue(a2.equals(a2));
-
-        assertTrue(a1a.equals(a1b));
-        assertTrue(a1b.equals(a1a));
-        assertTrue(a1a.equals(a1m));
-        assertTrue(a1b.equals(a1m));
-        assertTrue(a1m.equals(a1a));
-        assertTrue(a1m.equals(a1b));
-        assertTrue(a1m.equals(a1e));
-        assertTrue(a1a.equals(a1e));
-        assertTrue(a1b.equals(a1e));
-        assertTrue(a1e.equals(a1a));
-        assertTrue(a1e.equals(a1b));
-        assertTrue(a1e.equals(a1m));
+        and("each a1 object is equal to all other a1 objects (default equals strategy ignores metadata and activation)");
+        assertThat(a1a).isEqualTo(a1b);
+        assertThat(a1a).isEqualTo(a1e);
+        assertThat(a1a).isEqualTo(a1m);
+        assertThat(a1b).isEqualTo(a1a);
+        assertThat(a1b).isEqualTo(a1e);
+        assertThat(a1b).isEqualTo(a1m);
+        assertThat(a1e).isEqualTo(a1a);
+        assertThat(a1e).isEqualTo(a1b);
+        assertThat(a1e).isEqualTo(a1m);
+        assertThat(a1m).isEqualTo(a1a);
+        assertThat(a1m).isEqualTo(a1b);
+        assertThat(a1m).isEqualTo(a1e);
     }
 
     @Test(enabled = false) // MID-3966
     public void testAssignmentEquals2() throws Exception {
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
+        when("a1 and a2 are with the same role and a3 is with different");
         PrismObject<RoleType> roleCompare = prismContext.parseObject(ROLE_COMPARE_FILE);
         PrismContainer<AssignmentType> inducementContainer = roleCompare.findContainer(RoleType.F_INDUCEMENT);
         AssignmentType a1 = inducementContainer.findValue(1L).asContainerable();
         AssignmentType a2 = inducementContainer.findValue(2L).asContainerable();
         AssignmentType a3 = inducementContainer.findValue(3L).asContainerable();
 
-        // WHEN
-        assertFalse(a1.equals(a3));
-        assertFalse(a2.equals(a3));
+        then("assignments a1 and a2 are equal, but a3 is not equal with them");
+        assertThat(a1).isNotEqualTo(a3);
+        assertThat(a2).isNotEqualTo(a3);
 
-        assertTrue(a1.equals(a1));
-        assertTrue(a1.equals(a2));
-        assertTrue(a2.equals(a1));
-        assertTrue(a2.equals(a2));
-        assertTrue(a3.equals(a3));
+        assertThat(a1).isEqualTo(a1);
+        assertThat(a1).isEqualTo(a2);
+        assertThat(a2).isEqualTo(a1);
+        assertThat(a2).isEqualTo(a2);
+        assertThat(a3).isEqualTo(a3);
     }
 
     @Test

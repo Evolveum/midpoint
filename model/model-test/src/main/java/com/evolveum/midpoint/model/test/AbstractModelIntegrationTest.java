@@ -5690,7 +5690,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         displayValue("Password of " + user, password);
         PrismObject<ValuePolicyType> passwordPolicy = repositoryService.getObject(ValuePolicyType.class, passwordPolicyOid, null, result);
         List<LocalizableMessage> messages = new ArrayList<>();
-        boolean valid = valuePolicyProcessor.validateValue(password, passwordPolicy.asObjectable(), createUserOriginResolver(user), messages, "validating password of " + user, task, result);
+        valuePolicyProcessor.validateValue(password, passwordPolicy.asObjectable(), createUserOriginResolver(user), messages, "validating password of " + user, task, result);
+        boolean valid = result.isAcceptable();
         if (!valid) {
             fail("Password for " + user + " does not comply with password policy: " + messages);
         }

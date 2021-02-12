@@ -44,28 +44,25 @@ public class TestNotifyChange extends AbstractInitializedModelIntegrationTest {
 
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "async/notify-change");
 
-    protected static final File RESOURCE_GROUPER_FILE = new File(TEST_DIR, "resource-grouper.xml");
-    protected static final String RESOURCE_GROUPER_ID = "Grouper";
-    protected static final String RESOURCE_GROUPER_OID = "bbb9900a-b53d-4453-b60b-908725e3950e";
+    private static final File RESOURCE_GROUPER_FILE = new File(TEST_DIR, "resource-grouper.xml");
+    private static final String RESOURCE_GROUPER_ID = "Grouper";
+    private static final String RESOURCE_GROUPER_OID = "bbb9900a-b53d-4453-b60b-908725e3950e";
 
-    public static final String BANDERSON_USERNAME = "banderson";
-    public static final String JLEWIS685_USERNAME = "jlewis685";
-    public static final String ALUMNI_NAME = "ref:alumni";
-    public static final String STAFF_NAME = "ref:staff";
+    private static final String BANDERSON_USERNAME = "banderson";
+    private static final String JLEWIS685_USERNAME = "jlewis685";
+    private static final String ALUMNI_NAME = "ref:alumni";
+    private static final String STAFF_NAME = "ref:staff";
 
-    public static final String GROUPER_USER_INTENT = "subject";
-    public static final String GROUPER_GROUP_INTENT = "group";
+    private static final String GROUPER_USER_INTENT = "subject";
+    private static final String GROUPER_GROUP_INTENT = "group";
 
-    protected static DummyResource dummyResourceGrouper;
-    protected static DummyResourceContoller dummyResourceCtlGrouper;
-    protected ResourceType resourceDummyGrouperType;
-    protected PrismObject<ResourceType> resourceDummyGrouper;
+    private PrismObject<ResourceType> resourceDummyGrouper;
 
-    protected static final File SHADOW_BANDERSON_FILE = new File(TEST_DIR, "shadow-banderson.xml");
-    protected static final File SHADOW_BANDERSON_WITH_GROUPS_FILE = new File(TEST_DIR, "shadow-banderson-with-groups.xml");
-    protected static final File SHADOW_JLEWIS685_FILE = new File(TEST_DIR, "shadow-jlewis685.xml");
-    protected static final File SHADOW_ALUMNI_FILE = new File(TEST_DIR, "shadow-alumni.xml");
-    protected static final File SHADOW_STAFF_FILE = new File(TEST_DIR, "shadow-staff.xml");
+    private static final File SHADOW_BANDERSON_FILE = new File(TEST_DIR, "shadow-banderson.xml");
+    private static final File SHADOW_BANDERSON_WITH_GROUPS_FILE = new File(TEST_DIR, "shadow-banderson-with-groups.xml");
+    private static final File SHADOW_JLEWIS685_FILE = new File(TEST_DIR, "shadow-jlewis685.xml");
+    private static final File SHADOW_ALUMNI_FILE = new File(TEST_DIR, "shadow-alumni.xml");
+    private static final File SHADOW_STAFF_FILE = new File(TEST_DIR, "shadow-staff.xml");
 
     private String lewisShadowOid;
 
@@ -74,13 +71,12 @@ public class TestNotifyChange extends AbstractInitializedModelIntegrationTest {
         super.initSystem(initTask, initResult);
 
         // Resources
-        dummyResourceCtlGrouper = DummyResourceContoller.create(RESOURCE_GROUPER_ID, resourceDummyGrouper);
-        dummyResourceGrouper = dummyResourceCtlGrouper.getDummyResource();
+        DummyResourceContoller dummyResourceCtlGrouper = DummyResourceContoller.create(RESOURCE_GROUPER_ID, resourceDummyGrouper);
+        DummyResource dummyResourceGrouper = dummyResourceCtlGrouper.getDummyResource();
         dummyResourceGrouper.setSyncStyle(DummySyncStyle.SMART);
         dummyResourceGrouper.populateWithDefaultSchema();
 
         resourceDummyGrouper = importAndGetObjectFromFile(ResourceType.class, RESOURCE_GROUPER_FILE, RESOURCE_GROUPER_OID, initTask, initResult);
-        resourceDummyGrouperType = resourceDummyGrouper.asObjectable();
         dummyResourceCtlGrouper.setResource(resourceDummyGrouper);
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -56,6 +56,7 @@ public class CacheInvalidationPerformanceTest extends AbstractSpringTest impleme
 
     @PostConstruct
     public void initialize() throws SchemaException, ObjectAlreadyExistsException {
+        displayTestTitle("Initializing TEST CLASS: " + getClass().getName());
         OperationResult initResult = new OperationResult(CLASS_DOT + "setup");
         repositoryCache.postInit(initResult);
     }

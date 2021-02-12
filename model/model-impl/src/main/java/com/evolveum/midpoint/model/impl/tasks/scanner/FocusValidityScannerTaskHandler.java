@@ -8,6 +8,9 @@ package com.evolveum.midpoint.model.impl.tasks.scanner;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -29,11 +32,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 public class FocusValidityScannerTaskHandler
         extends AbstractScannerTaskHandler<FocusValidityScannerTaskHandler, FocusValidityScannerTaskExecution> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(FocusValidityScannerTaskHandler.class);
+
     @Autowired protected ContextFactory contextFactory;
     @Autowired protected Clockwork clockwork;
 
     public FocusValidityScannerTaskHandler() {
-        super("Focus validity scan", OperationConstants.FOCUS_VALIDITY_SCAN);
+        super(LOGGER, "Focus validity scan", OperationConstants.FOCUS_VALIDITY_SCAN);
     }
 
     @PostConstruct

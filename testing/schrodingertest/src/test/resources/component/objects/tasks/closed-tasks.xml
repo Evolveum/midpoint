@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<objects>
+    <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" oid="10335c7c-8322-11e8-33a6-4b1dd0ab58e4" version="168">
+        <name>ClosedTask1</name>
+        <extension xmlns:gen930="http://midpoint.evolveum.com/xml/ns/public/provisioning/liveSync-3" xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+            <mext:objectclass>ri:AccountObjectClass</mext:objectclass>
+            <gen930:token xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:string">1612471320167</gen930:token>
+        </extension>
+        <metadata>
+            <requestTimestamp>2020-02-04T21:37:01.724+01:00</requestTimestamp>
+            <requestorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </requestorRef>
+            <createTimestamp>2020-02-04T21:37:01.738+01:00</createTimestamp>
+            <creatorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </creatorRef>
+            <createChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</createChannel>
+        </metadata>
+        <iteration>0</iteration>
+        <iterationToken/>
+        <taskIdentifier>10335c7c-8322-11e8-33a6-4b1dd0ab58e4</taskIdentifier>
+        <ownerRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="tns:UserType">
+            <!-- administrator -->
+        </ownerRef>
+        <channel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#liveSync</channel>
+        <executionStatus>closed</executionStatus>
+        <stateBeforeSuspend>runnable</stateBeforeSuspend>
+        <category>LiveSynchronization</category>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
+        <objectRef oid="10000000-9999-9999-0000-a000ff000001" relation="org:default" type="c:ResourceType">
+        </objectRef>
+        <lastRunStartTimestamp>2020-02-04T21:42:05.745+01:00</lastRunStartTimestamp>
+        <lastRunFinishTimestamp>2020-02-04T21:42:06.000+01:00</lastRunFinishTimestamp>
+        <recurrence>recurring</recurrence>
+        <binding>tight</binding>
+        <schedule>
+            <interval>5</interval>
+        </schedule>
+    </task>
+
+    <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" oid="22235c7c-8322-11e8-33a6-4b1dd0ab58e4" version="168">
+        <name>ClosedTask2</name>
+        <extension xmlns:gen930="http://midpoint.evolveum.com/xml/ns/public/provisioning/liveSync-3" xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+            <mext:objectclass>ri:AccountObjectClass</mext:objectclass>
+            <gen930:token xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:string">1612471320167</gen930:token>
+        </extension>
+        <metadata>
+            <requestTimestamp>2021-02-04T21:37:01.724+01:00</requestTimestamp>
+            <requestorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </requestorRef>
+            <createTimestamp>2021-02-04T21:37:01.738+01:00</createTimestamp>
+            <creatorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+                <!-- administrator -->
+            </creatorRef>
+            <createChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</createChannel>
+        </metadata>
+        <iteration>0</iteration>
+        <iterationToken/>
+        <taskIdentifier>22235c7c-8322-11e8-33a6-4b1dd0ab58e4</taskIdentifier>
+        <ownerRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="tns:UserType">
+            <!-- administrator -->
+        </ownerRef>
+        <channel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#liveSync</channel>
+        <executionStatus>closed</executionStatus>
+        <stateBeforeSuspend>runnable</stateBeforeSuspend>
+        <category>LiveSynchronization</category>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
+        <objectRef oid="10000000-9999-9999-0000-a000ff000001" relation="org:default" type="c:ResourceType">
+        </objectRef>
+        <lastRunStartTimestamp>2021-02-04T21:42:05.745+01:00</lastRunStartTimestamp>
+        <lastRunFinishTimestamp>2021-02-04T21:42:06.000+01:00</lastRunFinishTimestamp>
+        <recurrence>recurring</recurrence>
+        <binding>tight</binding>
+        <schedule>
+            <interval>5</interval>
+        </schedule>
+    </task>
+
+</objects>

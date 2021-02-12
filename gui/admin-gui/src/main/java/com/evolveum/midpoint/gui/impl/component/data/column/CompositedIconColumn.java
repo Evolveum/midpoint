@@ -39,7 +39,7 @@ public abstract class CompositedIconColumn<T> extends AbstractColumn<T, String> 
 
     @Override
     public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId, IModel<T> rowModel) {
-        cellItem.add(new CompositedIconPanel(componentId, getCompositedIcon(rowModel)));
+        cellItem.add(new CompositedIconPanel(componentId, Model.of(getCompositedIcon(rowModel))));
     }
 
     protected abstract CompositedIcon getCompositedIcon(final IModel<T> rowModel);

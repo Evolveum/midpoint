@@ -68,6 +68,7 @@ public class ProgressReporter implements ProgressListener {
     private int refreshInterval;
     private boolean asynchronousExecution;
     private boolean abortEnabled;
+    private boolean writeOpResultForProgressActivity;
 
     public ProgressReporter(MidPointApplication application) {
         this.application = application;
@@ -87,6 +88,14 @@ public class ProgressReporter implements ProgressListener {
 
     public boolean isAbortEnabled() {
         return abortEnabled;
+    }
+
+    private boolean isWriteOpResultForProgressActivity(){
+        return writeOpResultForProgressActivity;
+    }
+
+    public void setWriteOpResultForProgressActivity(boolean writeOpResultForProgressActivity) {
+        this.writeOpResultForProgressActivity = writeOpResultForProgressActivity;
     }
 
     public ModelContext<? extends ObjectType> getPreviewResult() {
@@ -234,6 +243,9 @@ public class ProgressReporter implements ProgressListener {
                 OperationResultStatus status = result.getStatus();
                 if (status == OperationResultStatus.UNKNOWN) {
                     status = result.getComputeStatus();
+                }
+                if (isWriteOpResultForProgressActivity()) {
+                    si.setOperationResult(result);
                 }
                 si.setStatus(status.createStatusType());
             } else {

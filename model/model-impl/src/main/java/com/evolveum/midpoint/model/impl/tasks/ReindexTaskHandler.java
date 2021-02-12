@@ -10,6 +10,9 @@ import static java.util.Collections.emptyList;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
@@ -43,8 +46,10 @@ public class ReindexTaskHandler
 
     public static final String HANDLER_URI = ModelPublicConstants.REINDEX_TASK_HANDLER_URI;
 
+    private static final Trace LOGGER = TraceManager.getTrace(ReindexTaskHandler.class);
+
     public ReindexTaskHandler() {
-        super("Reindex", OperationConstants.REINDEX);
+        super(LOGGER, "Reindex", OperationConstants.REINDEX);
         reportingOptions.setPreserveStatistics(false);
         reportingOptions.setSkipWritingOperationExecutionRecords(false); // because of performance
     }

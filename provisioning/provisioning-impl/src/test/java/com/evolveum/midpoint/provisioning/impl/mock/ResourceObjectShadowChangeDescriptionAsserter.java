@@ -63,7 +63,7 @@ public class ResourceObjectShadowChangeDescriptionAsserter {
     }
 
     public ResourceObjectShadowChangeDescriptionAsserter assertNoOldShadow() {
-        assertNull("Unexpected old shadow in change notificaiton", changeDesc.getOldShadow());
+        assertNull("Unexpected old shadow in change notification", changeDesc.getOldShadow());
         return this;
     }
 

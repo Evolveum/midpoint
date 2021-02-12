@@ -159,7 +159,7 @@ public class ObjectRetriever {
 
         GetObjectResult fullObject = null;
         if (!lockForUpdate) {
-            Query query = session.getNamedQuery("get.object");
+            Query<?> query = session.getNamedQuery("get.object");
             query.setParameter("oid", oid);
             query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
             query.setLockOptions(lockOptions);
@@ -171,13 +171,13 @@ public class ObjectRetriever {
             // this just loads object to hibernate session, probably will be removed later. Merge after this get
             // will be faster. Read and use object only from fullObject column.
             // todo remove this later [lazyman]
-            Class clazz = ClassMapper.getHQLTypeClass(type);
+            Class<?> clazz = ClassMapper.getHQLTypeClass(type);
 
             CriteriaBuilder cb = session.getCriteriaBuilder();
-            CriteriaQuery cq = cb.createQuery(clazz);
+            CriteriaQuery<?> cq = cb.createQuery(clazz);
             cq.where(cb.equal(cq.from(clazz).get("oid"), oid));
 
-            Query query = session.createQuery(cq);
+            Query<?> query = session.createQuery(cq);
             query.setLockOptions(lockOptions);
 
             RObject obj = (RObject) query.uniqueResult();
@@ -213,10 +213,10 @@ public class ObjectRetriever {
         return baseHelper.getConfiguration();
     }
 
-    private <T extends ObjectType> PrismObject<T> throwObjectNotFoundException(Class<T> type, String oid)
-            throws ObjectNotFoundException {
-        throw new ObjectNotFoundException("Object of type '" + type.getSimpleName() + "' with oid '" + oid
-                + "' was not found.", null, oid);
+    private <T extends ObjectType> PrismObject<T> throwObjectNotFoundException(
+            Class<T> type, String oid) throws ObjectNotFoundException {
+        throw new ObjectNotFoundException("Object of type '" + type.getSimpleName()
+                + "' with oid '" + oid + "' was not found.", oid);
     }
 
     public <F extends FocusType> PrismObject<F> searchShadowOwnerAttempt(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
@@ -279,7 +279,7 @@ public class ObjectRetriever {
                 QueryEngine engine = new QueryEngine(getConfiguration(), extItemDictionary, prismContext, relationRegistry);
                 rQuery = engine.interpret(query, type, options, true, session);
 
-                longCount = (Number) rQuery.uniqueResult();
+                longCount = rQuery.uniqueResult();
             }
             LOGGER.trace("Found {} objects.", longCount);
             count = longCount != null ? longCount.intValue() : 0;
@@ -327,7 +327,7 @@ public class ObjectRetriever {
 
             QueryEngine engine = new QueryEngine(getConfiguration(), extItemDictionary, prismContext, relationRegistry);
             RQuery rQuery = engine.interpret(query, type, options, true, session);
-            Number longCount = (Number) rQuery.uniqueResult();
+            Number longCount = rQuery.uniqueResult();
             LOGGER.trace("Found {} objects.", longCount);
 
             session.getTransaction().commit();
@@ -401,11 +401,14 @@ public class ObjectRetriever {
     public <C extends Containerable> SearchResultList<C> searchContainersAttempt(Class<C> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
 
+        boolean assignments = AssignmentType.class.equals(type);
         boolean cases = AccessCertificationCaseType.class.equals(type);
         boolean workItems = AccessCertificationWorkItemType.class.equals(type);
         boolean caseWorkItems = CaseWorkItemType.class.equals(type);
-        if (!cases && !workItems && !caseWorkItems) {
-            throw new UnsupportedOperationException("Only AccessCertificationCaseType or AccessCertificationWorkItemType or CaseWorkItemType is supported here now.");
+        if (!cases && !workItems && !caseWorkItems && !assignments) {
+            throw new UnsupportedOperationException(
+                    "Only AccessCertificationCaseType or AccessCertificationWorkItemType"
+                            + " or CaseWorkItemType or Assignments is supported here now.");
         }
 
         LOGGER_PERFORMANCE.debug("> search containers {}", type.getSimpleName());
@@ -417,7 +420,9 @@ public class ObjectRetriever {
             QueryEngine engine = new QueryEngine(getConfiguration(), extItemDictionary, prismContext, relationRegistry);
             RQuery rQuery = engine.interpret(query, type, options, false, session);
 
-            if (cases) {
+            if (assignments) {
+                processAssignmentsQuery(list, rQuery);
+            } else if (cases) {
                 @SuppressWarnings({ "unchecked", "raw" })
                 List<GetContainerableResult> items = rQuery.list();
                 LOGGER.trace("Found {} items (cases), translating to JAXB.", items.size());
@@ -434,7 +439,6 @@ public class ObjectRetriever {
                 Map<String, PrismContainerValue<AccessCertificationCaseType>> casesCache = new HashMap<>();
                 Map<String, PrismObject<AccessCertificationCampaignType>> campaignsCache = new HashMap<>();
                 for (GetCertificationWorkItemResult item : items) {
-                    //LOGGER.trace("- {}", item);
                     @SuppressWarnings({ "raw", "unchecked" })
                     C value = (C) caseHelper.updateLoadedCertificationWorkItem(item, casesCache, campaignsCache, options, engine, session, result);
                     list.add(value);
@@ -460,7 +464,7 @@ public class ObjectRetriever {
             nameResolutionHelper.resolveNamesIfRequested(session, PrismContainerValue.asPrismContainerValues(list), options);
 
             session.getTransaction().commit();
-        } catch (QueryException | RuntimeException ex) {
+        } catch (QueryException | DtoTranslationException | RuntimeException ex) {
             baseHelper.handleGeneralException(ex, session, result);
         } finally {
             baseHelper.cleanupSessionAndResult(session, result);
@@ -468,6 +472,18 @@ public class ObjectRetriever {
 
         list.forEach(c -> ObjectTypeUtil.normalizeAllRelations(c.asPrismContainerValue(), relationRegistry));
         return new SearchResultList<>(list);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <C extends Containerable> void processAssignmentsQuery(List<C> list, RQuery rQuery)
+            throws DtoTranslationException {
+        List<GetAssignmentResult> items = rQuery.list();
+        for (GetAssignmentResult row : items) {
+            AssignmentType assignmentType = row.createAssignmentType(prismContext);
+            list.add((C) assignmentType);
+
+            // MID-6799, currently we don't need/want to enhance the resulting list
+        }
     }
 
     /**
@@ -1031,7 +1047,7 @@ public class ObjectRetriever {
 
             final String implementationLevelQuery;
             final Map<String, RepositoryQueryDiagResponse.ParameterValue> implementationLevelQueryParameters;
-            final org.hibernate.Query query;
+            final Query<?> query;
             final boolean isMidpointQuery = request.getImplementationLevelQuery() == null;
             if (isMidpointQuery) {
                 QueryEngine engine = new QueryEngine(getConfiguration(), extItemDictionary, prismContext, relationRegistry);

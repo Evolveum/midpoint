@@ -14,6 +14,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ErrorSelectorType;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 /**
  * @author Radovan Semancik
  *
@@ -45,36 +47,28 @@ public class ExceptionUtil {
             return defaultValue;
         }
         if (exception instanceof CommunicationException) {
-            return getCriticality(selector.getNetwork(), defaultValue);
+            return defaultIfNull(selector.getNetwork(), defaultValue);
         }
         if (exception instanceof SecurityViolationException) {
-            return getCriticality(selector.getSecurity(), defaultValue);
+            return defaultIfNull(selector.getSecurity(), defaultValue);
         }
         if (exception instanceof PolicyViolationException) {
-            return getCriticality(selector.getPolicy(), defaultValue);
+            return defaultIfNull(selector.getPolicy(), defaultValue);
         }
         if (exception instanceof SchemaException) {
-            return getCriticality(selector.getSchema(), defaultValue);
+            return defaultIfNull(selector.getSchema(), defaultValue);
         }
         if (exception instanceof ConfigurationException || exception instanceof ExpressionEvaluationException) {
-            return getCriticality(selector.getConfiguration(), defaultValue);
+            return defaultIfNull(selector.getConfiguration(), defaultValue);
         }
         if (exception instanceof UnsupportedOperationException) {
-            return getCriticality(selector.getUnsupported(), defaultValue);
+            return defaultIfNull(selector.getUnsupported(), defaultValue);
         }
-        return getCriticality(selector.getGeneric(), defaultValue);
-    }
-
-    private static CriticalityType getCriticality(CriticalityType value, CriticalityType defaultValue) {
-        if (value == null) {
-            return defaultValue;
-        } else {
-            return value;
-        }
+        return defaultIfNull(selector.getGeneric(), defaultValue);
     }
 
     public static boolean isFatalCriticality(CriticalityType value, CriticalityType defaultValue) {
-        return getCriticality(value,defaultValue) == CriticalityType.FATAL;
+        return defaultIfNull(value, defaultValue) == CriticalityType.FATAL;
     }
 
     public static LocalizableMessage getUserFriendlyMessage(Throwable cause) {

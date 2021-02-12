@@ -35,7 +35,7 @@ public class RepoCommonUtils {
                 LOGGER.debug("Exception {} criticality set as FATAL in {}, stopping evaluation; exception message: {}", e.getClass().getSimpleName(), object, e.getMessage());
                 LOGGER.error("Fatal error while processing projection on {}: {}", object, e.getMessage(), e);
                 throwException(e, result);
-                break; // not reached
+                throw new AssertionError("not reached");
             case PARTIAL:
                 LOGGER.debug("Exception {} criticality set as PARTIAL in {}, continuing evaluation; exception message: {}", e.getClass().getSimpleName(), object, e.getMessage());
                 if (result != null) {

@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.test.ldap;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -302,6 +301,12 @@ public class OpenDJController extends AbstractResourceController {
      * template.
      */
     public InternalClientConnection startCleanServer(String templateName) throws IOException, URISyntaxException {
+        if (isRunning()) {
+            LOGGER.warn("OpenDJ is still running - stopping now."
+                    + "Did previous test failed to call OpenDJController.stop()?");
+            stop();
+        }
+
         refreshFromTemplate(templateName);
         return start();
     }
@@ -501,14 +506,14 @@ public class OpenDJController extends AbstractResourceController {
 
     public static String getAttributeValue(Entry response, String name, String option) {
         List<Attribute> attrs = response.getAttribute(name.toLowerCase());
-        Attribute attribute = findAttribute(name, option, attrs);
+        Attribute attribute = findAttribute(option, attrs);
         if (attribute == null) {
             return null;
         }
         return getAttributeValue(attribute);
     }
 
-    private static Attribute findAttribute(String name, String option, List<Attribute> attributes) {
+    private static Attribute findAttribute(String option, List<Attribute> attributes) {
         if (attributes == null || attributes.size() == 0) {
             return null;
         }
@@ -909,9 +914,7 @@ public class OpenDJController extends AbstractResourceController {
     }
 
     private void ident(StringBuilder sb, int indent) {
-        for (int i = 0; i < indent; i++) {
-            sb.append("  ");
-        }
+        sb.append("  ".repeat(indent));
     }
 
     public String toHumanReadableLdifoid(Entry entry) {

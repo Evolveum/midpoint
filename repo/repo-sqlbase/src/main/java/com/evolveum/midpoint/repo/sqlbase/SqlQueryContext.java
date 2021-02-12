@@ -21,6 +21,7 @@ import com.querydsl.core.types.dsl.ComparableExpressionBase;
 import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -180,7 +181,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
                     .map(t -> t.get(entity))
                     .collect(Collectors.toList());
             for (SqlDetailFetchMapper<R, ?, ?, ?> fetcher : mapping().detailFetchMappers()) {
-                fetcher.execute(sqlConfiguration(), () -> sqlConfiguration().newQuery(conn), dataEntities);
+                fetcher.execute(sqlRepoContext, () -> sqlRepoContext.newQuery(conn), dataEntities);
             }
         }
 
@@ -209,7 +210,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         // getClass returns Class<?> but it is really Class<DQ>, just suppressing the warning here
         //noinspection unchecked
         Class<DQ> aClass = (Class<DQ>) newPath.getClass();
-        QueryModelMapping<?, DQ, DR> mapping = sqlConfiguration().getMappingByQueryType(aClass);
+        QueryModelMapping<?, DQ, DR> mapping = sqlRepoContext.getMappingByQueryType(aClass);
         return deriveNew(newPath, mapping);
     }
 
@@ -306,8 +307,12 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         return notFilterUsed;
     }
 
-    public SqlRepoContext sqlConfiguration() {
+    public SqlRepoContext sqlRepoContext() {
         return sqlRepoContext;
+    }
+
+    public PrismContext prismContext() {
+        return transformerContext.prismContext();
     }
 
     public abstract <T> Class<? extends T> qNameToSchemaClass(@NotNull QName qName);

@@ -67,7 +67,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         try {
             openDJController.stop();
         } catch (Exception ex) {
-            logger.trace("Exeception during stopping already stopped LDAP (probably harmless)", ex);
+            logger.trace("Exception during stopping already stopped LDAP (probably harmless)", ex);
         }
     }
 
@@ -321,7 +321,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 
         try {
 
-            provisioningService.synchronize(coords, task, null, result);
+            mockLiveSyncTaskHandler.synchronize(coords, task, task, result);
 
             AssertJUnit.fail("addObject succeeded unexpectedly");
         } catch (CommunicationException e) {
@@ -592,8 +592,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 
         try {
 
-            provisioningService.synchronize(coords,
-                    task, null, result);
+            mockLiveSyncTaskHandler.synchronize(coords, task, task, result);
 
             AssertJUnit.fail("addObject succeeded unexpectedly");
         } catch (CommunicationException e) {

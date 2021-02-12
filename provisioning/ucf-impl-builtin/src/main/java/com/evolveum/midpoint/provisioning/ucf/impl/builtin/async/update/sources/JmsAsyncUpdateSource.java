@@ -83,7 +83,9 @@ public class JmsAsyncUpdateSource implements ActiveAsyncUpdateSource {
                 MessageConsumer consumer = session.createConsumer(destination);
                 consumer.setMessageListener(message -> {
                     try {
-                        boolean successful = listener.onMessage(createAsyncUpdateMessage(message));
+                        boolean successful = listener.onMessage(createAsyncUpdateMessage(message), (processed, result) -> {
+                            // TODO acknowledge or reject the message -- BEWARE, it has to be done in the correct thread!
+                        });
                         if (successful) {
                             message.acknowledge();
                         } else {

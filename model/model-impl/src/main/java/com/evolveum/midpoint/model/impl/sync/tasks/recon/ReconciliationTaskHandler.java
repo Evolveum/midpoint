@@ -12,7 +12,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.impl.sync.tasks.SyncTaskHelper;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -20,7 +19,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.ModelConstants;
-import com.evolveum.midpoint.model.impl.tasks.AbstractSearchIterativeModelTaskHandler;
+import com.evolveum.midpoint.model.impl.tasks.AbstractModelTaskHandler;
 import com.evolveum.midpoint.model.impl.util.AuditHelper;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -32,7 +31,6 @@ import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -58,7 +56,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @Component
 @TaskExecutionClass(ReconciliationTaskExecution.class)
 public class ReconciliationTaskHandler
-        extends AbstractSearchIterativeModelTaskHandler
+        extends AbstractModelTaskHandler
         <ReconciliationTaskHandler, ReconciliationTaskExecution> {
 
     /**
@@ -82,7 +80,8 @@ public class ReconciliationTaskHandler
     private static final Trace LOGGER = TraceManager.getTrace(ReconciliationTaskHandler.class);
 
     protected ReconciliationTaskHandler() {
-        super("Reconciliation", OperationConstants.RECONCILIATION);
+        super(LOGGER, "Reconciliation", OperationConstants.RECONCILIATION);
+        reportingOptions.setPreserveStatistics(false);
         reportingOptions.setEnableSynchronizationStatistics(true);
     }
 
@@ -100,16 +99,6 @@ public class ReconciliationTaskHandler
         taskManager.registerAdditionalHandlerUri(ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI_1, this);
         taskManager.registerAdditionalHandlerUri(ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI_2, this);
         taskManager.registerAdditionalHandlerUri(ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI_3, this);
-    }
-
-    @NotNull
-    @Override
-    public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
-        return new StatisticsCollectionStrategy()
-                .fromZero()
-                .maintainIterationStatistics()
-                .maintainSynchronizationStatistics()
-                .maintainActionsExecutedStatistics();
     }
 
 //    public TaskWorkBucketProcessingResult run000(RunningTask localCoordinatorTask, WorkBucketType workBucket,
@@ -393,16 +382,6 @@ public class ReconciliationTaskHandler
 //        result.recordFatalError(t);
 //        // TODO: store error in the shadow?
 //    }
-
-    @Override
-    public Long heartbeat(Task task) {
-        return null;
-    }
-
-    @Override
-    public void refreshStatus(Task task) {
-        // Do nothing. Everything is fresh already.
-    }
 
     @Override
     public String getCategoryName(Task task) {

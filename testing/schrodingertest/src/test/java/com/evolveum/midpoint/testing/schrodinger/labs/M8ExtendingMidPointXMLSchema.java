@@ -35,7 +35,7 @@ public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
 
     protected static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M8/";
     private static final File INTERNAL_EMPLOYEE_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-internal-employee.xml");
-    private static final File NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE = new File(LAB_OBJECTS_DIRECTORY + "valuePolicies/numeric-pin-first-nonzero-policy.xml");
+    private static final File NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE = new File(LAB_OBJECTS_DIRECTORY + "valuepolicies/numeric-pin-first-nonzero-policy.xml");
     private static final File HR_RESOURCE_FILE_8_1 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-hr.xml");
     private static final File CSV_1_RESOURCE_FILE_8 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-8.xml");
     private static final File CSV_2_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-2-canteen-8.xml");
@@ -63,7 +63,11 @@ public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
     @Override
     protected void springTestContextPrepareTestInstance() throws Exception {
         String home = System.getProperty("midpoint.home");
+        File mpHomeDir = new File(home);
         File schemaDir = new File(home, "schema");
+        if (!mpHomeDir.exists()) {
+            super.springTestContextPrepareTestInstance();
+        }
 
         if (!schemaDir.mkdir()) {
             if (schemaDir.exists()) {

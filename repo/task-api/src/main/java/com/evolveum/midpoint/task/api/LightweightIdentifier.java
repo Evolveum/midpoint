@@ -16,7 +16,7 @@ import java.util.Objects;
  * for more purposes, such as creating identifiers for tasks or audit records.
  * Lightweight identifiers are used instead.
  *
- * @see https://wiki.evolveum.com/display/midPoint/Lightweight+Identifier
+ * See https://wiki.evolveum.com/display/midPoint/Lightweight+Identifier
  *
  * @author semancik
  */
@@ -24,16 +24,16 @@ public class LightweightIdentifier implements Serializable {
 
     private static final String SEPARATOR = "-";
 
-    private long timestamp;
-    private int hostIdentifier;
-    private int sequenceNumber;
-    private String string;
+    private final long timestamp;
+    private final int hostIdentifier;
+    private final int sequenceNumber;
+    private final String string;
 
     public LightweightIdentifier(long timestamp, int hostIdentifier, int sequenceNumber) {
         this.timestamp = timestamp;
         this.hostIdentifier = hostIdentifier;
         this.sequenceNumber = sequenceNumber;
-        formatString();
+        this.string = formatString();
     }
 
     public long getTimestamp() {
@@ -48,14 +48,12 @@ public class LightweightIdentifier implements Serializable {
         return sequenceNumber;
     }
 
-    private void formatString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(timestamp);
-        sb.append(SEPARATOR);
-        sb.append(hostIdentifier);
-        sb.append(SEPARATOR);
-        sb.append(sequenceNumber);
-        string = sb.toString();
+    private String formatString() {
+        return timestamp
+                + SEPARATOR
+                + hostIdentifier
+                + SEPARATOR
+                + sequenceNumber;
     }
 
     @Override

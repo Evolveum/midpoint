@@ -2984,6 +2984,17 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="errorHandlingStrategy" type="tns:TaskErrorHandlingStrategyType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Error handling strategy for this task. EXPERIMENTAL.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:experimental>true</a:experimental>
+                                <a:since>4.3</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -6445,6 +6456,10 @@
                                 instance-specific resource schema or for other
                                 purposes. If not set a default namespace is assumed.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>4.3</a:deprecatedSince>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element ref="tns:schema" minOccurs="0">
@@ -11848,6 +11863,71 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:simpleType name="SynchronizationExclusionReasonType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.3</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="synchronized">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Resource object was synchronized - either successfully or not.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SYNCHRONIZED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="protected">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Resource object was excluded from synchronization because it is protected.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PROTECTED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="noSynchronizationPolicy">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Resource object was excluded from synchronization because because no synchronization policy was found.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NO_SYNCHRONIZATION_POLICY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="synchronizationDisabled">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Resource object was excluded from synchronization because because synchronization is disabled for it.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SYNCHRONIZATION_DISABLED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="notApplicableForTask">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Resource object was excluded form synchronization because it is not applicable for the task.
+                        (So it is skipped.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NOT_APPLICABLE_FOR_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:complexType name="SynchronizationReactionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -16089,6 +16169,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="name" type="t:PolyStringType" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="minOccurs" type="xsd:int" default="0" minOccurs="0" maxOccurs="1"/>
@@ -16154,6 +16235,17 @@
                           Message that will be displayed to user when the expression check fails.
                         </p>
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Display properties of the CheckExpressionType objects.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>CheckExpressionType.display</a:displayName>
+                        <a:since>4.3</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <!-- TODO: success message? -->
@@ -25173,26 +25265,51 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="countProtected" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countNoSynchronizationPolicy" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countSynchronizationDisabled" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countNotApplicableForTask" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countDeleted" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countDisputed" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countLinked" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countUnlinked" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countUnmatched" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countProtectedAfter" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countNoSynchronizationPolicyAfter" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countSynchronizationDisabledAfter" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countNotApplicableForTaskAfter" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countDeletedAfter" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countDisputedAfter" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countLinkedAfter" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countUnlinkedAfter" type="xsd:int" minOccurs="1" />
-            <xsd:element name="countUnmatchedAfter" type="xsd:int" minOccurs="1" />
+            <xsd:element name="transition" type="tns:SynchronizationSituationTransitionType" minOccurs="0" maxOccurs="unbounded" />
+
+            <xsd:element name="countProtected" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countNoSynchronizationPolicy" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countSynchronizationDisabled" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countNotApplicableForTask" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countDeleted" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countDisputed" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countLinked" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countUnlinked" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countUnmatched" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countProtectedAfter" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countNoSynchronizationPolicyAfter" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countSynchronizationDisabledAfter" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countNotApplicableForTaskAfter" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countDeletedAfter" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countDisputedAfter" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countLinkedAfter" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countUnlinkedAfter" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countUnmatchedAfter" type="xsd:int" minOccurs="0" />
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:complexType name="SynchronizationSituationTransitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>false</a:container> <!-- parent is not a container yet -->
+                <a:experimental>true</a:experimental>
+                <a:since>4.3</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="onProcessingStart" type="tns:SynchronizationSituationType" minOccurs="0" />
+            <xsd:element name="onSynchronizationStart" type="tns:SynchronizationSituationType" minOccurs="0" />
+            <xsd:element name="onSynchronizationEnd" type="tns:SynchronizationSituationType" minOccurs="0" />
+            <xsd:element name="exclusionReason" type="tns:SynchronizationExclusionReasonType" minOccurs="0" />
+            <xsd:element name="countSuccess" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countError" type="xsd:int" minOccurs="0" />
+            <xsd:element name="countSkip" type="xsd:int" minOccurs="0" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="synchronizationSituationTransition" type="tns:SynchronizationSituationTransitionType"/>
 
     <xsd:complexType name="ActionsExecutedInformationType">
         <xsd:annotation>
@@ -28464,6 +28581,17 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="redirection" type="tns:OperationExecutionRecordRedirectionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Information about operation execution record redirection: the fact that the record
+                        belongs to object other than its current holder.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.3</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -28557,6 +28685,47 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+
+    <xsd:complexType name="OperationExecutionRecordRedirectionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about operation execution record redirection: the fact that the record
+                belongs to object other than its current holder.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.3</a:since>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="redirected" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        True if the operation execution record belongs to object other than the current one.
+                        (Actually this flag exists solely to allow easy query formulation and implementation.
+                        TODO: reconsider it.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="objectType" type="xsd:QName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of the proper record holder (if known).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="identification" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Identification of the proper record holder. Free-form, using
+                        any relevant data that is available. An example: connector object UID.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="operationExecutionRecordRedirection" type="tns:OperationExecutionRecordRedirectionType"/>
 
     <xsd:complexType name="LocalizableMessageType" abstract="true">
         <xsd:annotation>
@@ -28986,10 +29155,10 @@
     </xsd:complexType>
     <xsd:element name="triggerCreation" type="tns:TriggerCreationType" />
 
-    <xsd:complexType name="LiveSyncErrorHandlingStrategyType">
+    <xsd:complexType name="TaskErrorHandlingStrategyType">
         <xsd:annotation>
             <xsd:documentation>
-                Specifies a strategy for handling errors during Live Synchronization.
+                Specifies a strategy for handling errors during iterative tasks.
                 TEMPORARY. EXPERIMENTAL.
             </xsd:documentation>
             <xsd:appinfo>
@@ -28999,7 +29168,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="entry" type="tns:LiveSyncErrorHandlingStrategyEntryType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="entry" type="tns:TaskErrorHandlingStrategyEntryType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         A single entry of the strategy: describes a reaction on particular error situation.
@@ -29008,12 +29177,12 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="liveSyncErrorHandlingStrategy" type="tns:LiveSyncErrorHandlingStrategyEntryType"/>
+    <xsd:element name="taskErrorHandlingStrategy" type="tns:TaskErrorHandlingStrategyType"/>
 
-    <xsd:complexType name="LiveSyncErrorHandlingStrategyEntryType">
+    <xsd:complexType name="TaskErrorHandlingStrategyEntryType">
         <xsd:annotation>
             <xsd:documentation>
-                Specifies a reaction when a given error during Live Synchronization occurs.
+                Specifies a reaction when a given error during task execution occurs.
                 TEMPORARY. EXPERIMENTAL.
             </xsd:documentation>
             <xsd:appinfo>
@@ -29023,14 +29192,14 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="situation" type="tns:LiveSyncErrorSituationSelectorType" minOccurs="0">
+            <xsd:element name="situation" type="tns:TaskErrorSituationSelectorType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         A situation that can occur.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="reaction" type="tns:LiveSyncErrorReactionType" minOccurs="0">
+            <xsd:element name="reaction" type="tns:TaskErrorReactionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Reaction to the situation.
@@ -29039,9 +29208,9 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="liveSyncErrorHandlingStrategyEntry" type="tns:LiveSyncErrorHandlingStrategyEntryType"/>
+    <xsd:element name="taskErrorHandlingStrategyEntry" type="tns:TaskErrorHandlingStrategyEntryType"/>
 
-    <xsd:complexType name="LiveSyncErrorSituationSelectorType">
+    <xsd:complexType name="TaskErrorSituationSelectorType">
         <xsd:annotation>
             <xsd:documentation>
                 Description of an error condition to act on.
@@ -29065,12 +29234,12 @@
             <!-- Maybe better specification e.g. exception class can be added here? -->
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="liveSyncErrorSituationSelector" type="tns:LiveSyncErrorSituationSelectorType"/>
+    <xsd:element name="taskErrorSituationSelector" type="tns:TaskErrorSituationSelectorType"/>
 
-    <xsd:complexType name="LiveSyncErrorReactionType">
+    <xsd:complexType name="TaskErrorReactionType">
         <xsd:annotation>
             <xsd:documentation>
-                What should live sync task when an error of given type is encountered?
+                What should a task do when an error of given type is encountered?
                 Only some combinations of values are allowed: ignore (+ stopAfter),
                 retryLater (+ stopAfter), stop.
                 TEMPORARY. EXPERIMENTAL.
@@ -29082,25 +29251,25 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="ignore" type="tns:LiveSyncIgnoreErrorReactionType" minOccurs="0"/>
-            <xsd:element name="stop" type="tns:LiveSyncStopProcessingReactionType" minOccurs="0"/>
-            <xsd:element name="retryLater" type="tns:LiveSyncRetryLaterReactionType" minOccurs="0"/>
+            <xsd:element name="ignore" type="tns:IgnoreErrorReactionType" minOccurs="0"/>
+            <xsd:element name="stop" type="tns:StopProcessingReactionType" minOccurs="0"/>
+            <xsd:element name="retryLater" type="tns:RetryLaterReactionType" minOccurs="0"/>
             <xsd:element name="stopAfter" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Live sync process is stopped after seeing this number of errors.
+                        Task is stopped after seeing this number of errors.
                         TEMPORARY. Most probably will be replaced by the thresholds mechanism.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="liveSyncErrorReaction" type="tns:LiveSyncErrorReactionType"/>
+    <xsd:element name="taskErrorReaction" type="tns:TaskErrorReactionType"/>
 
-    <xsd:complexType name="LiveSyncIgnoreErrorReactionType">
+    <xsd:complexType name="IgnoreErrorReactionType">
         <xsd:annotation>
             <xsd:documentation>
-                Error should be ignored. The token is advanced to the next one.
+                Error should be ignored. E.g. for live sync tasks, the token is advanced to the next item.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.3</a:since>
@@ -29109,12 +29278,12 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:complexType>
-    <xsd:element name="liveSyncIgnoreErrorReaction" type="tns:LiveSyncIgnoreErrorReactionType"/>
+    <xsd:element name="ignoreErrorReaction" type="tns:IgnoreErrorReactionType"/>
 
-    <xsd:complexType name="LiveSyncStopProcessingReactionType">
+    <xsd:complexType name="StopProcessingReactionType">
         <xsd:annotation>
             <xsd:documentation>
-                The processing should be stopped. This is the default strategy.
+                The processing should be stopped. This is the default strategy for live sync and async update tasks.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.3</a:since>
@@ -29123,9 +29292,9 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:complexType>
-    <xsd:element name="liveSyncStopProcessingReaction" type="tns:LiveSyncStopProcessingReactionType"/>
+    <xsd:element name="stopProcessingReaction" type="tns:StopProcessingReactionType"/>
 
-    <xsd:complexType name="LiveSyncRetryLaterReactionType">
+    <xsd:complexType name="RetryLaterReactionType">
         <xsd:annotation>
             <xsd:documentation>
                 Processing of the specified account should be retried later.
@@ -29160,7 +29329,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="liveSyncRetryLaterReaction" type="tns:LiveSyncStopProcessingReactionType"/>
+    <xsd:element name="retryLaterReaction" type="tns:RetryLaterReactionType"/>
 
     <xsd:complexType name="PlannedOperationAttemptType">
         <xsd:annotation>

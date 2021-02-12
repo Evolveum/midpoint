@@ -7,14 +7,15 @@
 
 package com.evolveum.midpoint.model.impl.tasks.simple;
 
-import com.evolveum.midpoint.model.impl.tasks.AbstractSearchIterativeModelTaskHandler;
-import com.evolveum.midpoint.model.impl.tasks.AbstractSearchIterativeModelTaskPartExecution;
+import com.evolveum.midpoint.model.impl.tasks.AbstractModelTaskHandler;
+import com.evolveum.midpoint.model.impl.tasks.AbstractIterativeModelTaskPartExecution;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskExecution;
+import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeItemProcessor;
+import com.evolveum.midpoint.repo.common.task.AbstractTaskExecution;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskPartExecution;
+import com.evolveum.midpoint.repo.common.task.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -22,6 +23,7 @@ import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskException;
 import com.evolveum.midpoint.task.api.TaskWorkBucketProcessingResult;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
@@ -47,11 +49,11 @@ import java.util.List;
  * TODO TODO TODO finish this description
  */
 public abstract class SimpleIterativeTaskHandler<O extends ObjectType, EC extends ExecutionContext, P extends Processing<O, EC>>
-        extends AbstractSearchIterativeModelTaskHandler
+        extends AbstractModelTaskHandler
         <SimpleIterativeTaskHandler<O, EC, P>, SimpleIterativeTaskHandler<O, EC, P>.TaskExecution> {
 
-    protected SimpleIterativeTaskHandler(String taskName, String taskOperationPrefix) {
-        super(taskName, taskOperationPrefix);
+    protected SimpleIterativeTaskHandler(Trace logger, String taskName, String taskOperationPrefix) {
+        super(logger, taskName, taskOperationPrefix);
     }
 
     @Override
@@ -67,9 +69,9 @@ public abstract class SimpleIterativeTaskHandler<O extends ObjectType, EC extend
     protected abstract P createProcessing(EC ctx);
 
     protected class TaskExecution
-            extends AbstractSearchIterativeTaskExecution
+            extends AbstractTaskExecution
             <SimpleIterativeTaskHandler<O, EC, P>,
-                    SimpleIterativeTaskHandler<O, EC, P>.TaskExecution> {
+                                            TaskExecution> {
 
         private final EC executionContext;
 
@@ -95,9 +97,9 @@ public abstract class SimpleIterativeTaskHandler<O extends ObjectType, EC extend
     }
 
     protected class PartExecution
-            extends AbstractSearchIterativeModelTaskPartExecution
+            extends AbstractIterativeModelTaskPartExecution
             <O, SimpleIterativeTaskHandler<O, EC, P>,
-                                TaskExecution, PartExecution, ResultHandler> {
+                                            TaskExecution, PartExecution, ItemProcessor> {
 
         private final P processing;
 
@@ -107,10 +109,10 @@ public abstract class SimpleIterativeTaskHandler<O extends ObjectType, EC extend
         }
 
         @Override
-        protected @NotNull ResultHandler createHandler(OperationResult opResult)
+        protected @NotNull SimpleIterativeTaskHandler.ItemProcessor createItemProcessor(OperationResult opResult)
                 throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
                 CommunicationException, ConfigurationException {
-            return new ResultHandler(this);
+            return new ItemProcessor(this);
         }
 
         @Override
@@ -135,17 +137,18 @@ public abstract class SimpleIterativeTaskHandler<O extends ObjectType, EC extend
         }
     }
 
-    protected class ResultHandler
-            extends AbstractSearchIterativeResultHandler
-            <O, SimpleIterativeTaskHandler<O, EC, P>,
-                    TaskExecution, PartExecution, ResultHandler> {
+    protected class ItemProcessor
+            extends AbstractSearchIterativeItemProcessor
+            <O, SimpleIterativeTaskHandler<O, EC, P>, TaskExecution, PartExecution, ItemProcessor> {
 
-        public ResultHandler(PartExecution partExecution) {
+        ItemProcessor(PartExecution partExecution) {
             super(partExecution);
         }
 
         @Override
-        protected boolean handleObject(PrismObject<O> object, RunningTask workerTask, OperationResult result)
+        protected boolean processObject(PrismObject<O> object,
+                ItemProcessingRequest<PrismObject<O>> request,
+                RunningTask workerTask, OperationResult result)
                 throws CommonException, PreconditionViolationException {
             partExecution.processing.handleObject(object, workerTask, result);
             return true;

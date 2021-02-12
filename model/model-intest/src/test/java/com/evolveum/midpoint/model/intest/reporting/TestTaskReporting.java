@@ -24,6 +24,8 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.LINKED;
+
 /**
  * Tests reporting of task state, progress, and errors.
  */
@@ -130,7 +132,12 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
             assertTask(importTask, "import task after")
                     .display()
                     .assertFatalError()
-                    .assertClosed();
+                    .assertClosed()
+                    .iterativeTaskInformation()
+                        .display()
+                        .end()
+                    .synchronizationInformation()
+                        .display();
 
         } finally {
             account.setName(MALFORMED_SHADOW_NAME);
@@ -151,7 +158,12 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
         stabilize();
         assertTask(importTask, "import task after")
                 .display()
-                .assertSuccess();
+                .assertSuccess()
+                .iterativeTaskInformation()
+                    .display()
+                    .end()
+                .synchronizationInformation()
+                    .display();
 
         assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
                 .display();
@@ -183,9 +195,16 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .display()
                     .assertSuccessCount(9)
                     .assertFailureCount(1)
-                    .assertLastFailureObjectName(null) // TODO it should be reported in a better way
+                    .assertLastFailureObjectName("u-000001")
+                    .end()
+                .synchronizationInformation()
+                    .display()
+                    .assertTransition(LINKED, LINKED, LINKED, null, 9, 0, 0) // Those 9 records were already linked and remain so.
+                    .assertTransition(null, null, null, null, 0, 1, 0) // Malformed account has no shadow, so no situation
+                    .assertTransitions(2)
                     .end();
-        // TODO the error should be somehow reported in the task (currently it is not)
+
+        // TODO assert redirected errors in the task
     }
 
     @Test
@@ -211,8 +230,14 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .display()
                     .assertSuccessCount(8)
                     .assertFailureCount(2)
-                    .end();
-        // TODO the error should be somehow reported in the task (currently it is not)
+                    .end()
+                .synchronizationInformation()
+                    .display()
+                    .assertTransition(LINKED, LINKED, LINKED, null, 8, 1, 0) // Those 9 records were already linked and remain so.
+                    .assertTransition(null, null, null, null, 0, 1, 0) // Malformed account has no shadow, so no situation
+                    .assertTransitions(2);
+
+        // TODO assert redirected errors in the task
 
         assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
                 .display();
@@ -239,16 +264,24 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                 .displayOperationResult()
                 .assertPartialError()
                 .assertClosed()
-                .assertProgress(11) // may change in the future
+                .assertProgress(1) // may change in the future
                 .iterativeTaskInformation()
                     .display()
                     .assertSuccessCount(8)
                     .assertFailureCount(3) // u-000003 failed once in 2nd part, and once in 3rd part
                     .assertLastFailureObjectName(MALFORMED_SHADOW_NAME)
-                    .end();
+                    .end()
+                .synchronizationInformation()
+                    .display()
+                    .assertTransition(LINKED, LINKED, LINKED, null, 8, 1, 0) // Those 9 records were already linked and remain so.
+                    .assertTransition(null, null, null, null, 0, 1, 0) // Malformed account has no shadow, so no situation
+                    ;
+        //.assertTransitions(2);
+
         assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
                 .display();
         assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.getResource())
                 .display();
+        // TODO assert redirected errors in the task
     }
 }

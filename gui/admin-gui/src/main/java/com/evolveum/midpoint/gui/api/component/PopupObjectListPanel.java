@@ -125,7 +125,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
     @Override
     protected List<IColumn<SelectableBean<O>, String>> createDefaultColumns() {
         List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<>();
-        columns.addAll(ColumnUtils.getDefaultColumns(getType()));
+        columns.addAll(ColumnUtils.getDefaultColumns(getType(), getPageBase()));
         return columns;
     }
 

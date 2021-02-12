@@ -20,11 +20,6 @@ import java.util.Collections;
 import java.util.List;
 import javax.annotation.PostConstruct;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-
-import com.evolveum.midpoint.schema.constants.Channel;
-
 import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
 import org.quartz.SchedulerException;
@@ -35,12 +30,18 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -98,6 +99,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
     @PostConstruct
     public void initialize() throws Exception {
+        displayTestTitle("Initializing TEST CLASS: " + getClass().getName());
         super.initialize();
         addObjectFromFile(TASK_OWNER_FILENAME);
         addObjectFromFile(TASK_OWNER2_FILENAME);
@@ -115,7 +117,6 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
     /**
      * Here we only test setting various task properties.
      */
-
     @Test
     public void test003GetProgress() throws Exception {
         OperationResult result = createOperationResult();
@@ -593,11 +594,6 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         // The progress should be more than 0
         AssertJUnit.assertTrue("Task has not reported any progress", task.getProgress() > 0);
-
-//        Thread.sleep(200);        // give the scheduler a chance to release the task
-
-//        task.refresh(result);
-//        AssertJUnit.assertEquals("Task is not released", TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
     }
 
     @Test
@@ -642,18 +638,12 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         AssertJUnit.assertTrue("Task is not stopped", stopped);
 
         AssertJUnit.assertEquals(TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
-//        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
 
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
         assertFalse(task.getLastRunStartTimestamp() == 0);
         AssertJUnit.assertNotNull(task.getLastRunFinishTimestamp());
         assertFalse(task.getLastRunFinishTimestamp() == 0);
         AssertJUnit.assertTrue(task.getProgress() > 0);
-
-//        Thread.sleep(200);        // give the scheduler a chance to release the task
-//        task.refresh(result);
-//        AssertJUnit.assertEquals("Task is not released", TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
-
     }
 
     @Test
@@ -686,7 +676,6 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         assertFalse("Task is stopped (it should be running for now)", stopped);
 
         AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
-//        AssertJUnit.assertEquals("Task should be still claimed, as it is not definitely stopped", TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
 
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
         assertFalse(task.getLastRunStartTimestamp() == 0);
@@ -708,10 +697,6 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         AssertJUnit.assertNotNull("Last run finish time is null", task.getLastRunStartTimestamp());
         assertFalse("Last run finish time is zero", task.getLastRunStartTimestamp() == 0);
         AssertJUnit.assertTrue("Progress is not reported", task.getProgress() > 0);
-
-//        Thread.sleep(200);        // give the scheduler a chance to release the task
-//        task.refresh(result);
-//        AssertJUnit.assertEquals("Task is not released", TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
     }
 
     @Test
@@ -1070,6 +1055,7 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
                 System.out.println("Done. Status = " + task.getExecutionStatus());
                 break;
             }
+            //noinspection BusyWait
             Thread.sleep(checkInterval);
         }
     }

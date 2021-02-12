@@ -10,13 +10,8 @@ package com.evolveum.midpoint.schema.statistics;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -52,17 +47,19 @@ public interface StatisticsCollector {
 
     void recordIterativeOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid);
 
+    default void recordIterativeOperationStart(IterationItemInformation info) {
+        recordIterativeOperationStart(info.getObjectName(), info.getObjectDisplayName(), info.getObjectType(), info.getObjectOid());
+    }
+
     void recordIterativeOperationStart(ShadowType shadow);
 
     void recordIterativeOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started, Throwable exception);
 
+    default void recordIterativeOperationEnd(IterationItemInformation info, long started, Throwable exception) {
+        recordIterativeOperationEnd(info.getObjectName(), info.getObjectDisplayName(), info.getObjectType(), info.getObjectOid(), started, exception);
+    }
+
     void recordIterativeOperationEnd(ShadowType shadow, long started, Throwable exception);
-
-    void recordSynchronizationOperationEnd(ShadowType shadow, long started,
-            Throwable exception, SynchronizationInformation.Record originalStateIncrement, SynchronizationInformation.Record newStateIncrement);
-
-    void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started,
-            Throwable exception, SynchronizationInformation.Record originalStateIncrement, SynchronizationInformation.Record newStateIncrement);
 
     /**
      * Records information about repository (focal) events.
@@ -92,4 +89,5 @@ public interface StatisticsCollector {
     @NotNull
     @Experimental
     List<String> getLastFailures();
+
 }

@@ -40,7 +40,8 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.repo.sql.helpers.*;
-import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
+import com.evolveum.midpoint.repo.sqlbase.ConflictWatcherImpl;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -100,7 +101,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @Autowired private OrgClosureManager closureManager;
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
 
-    private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal = new ThreadLocal<>();
+    private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal =
+            ThreadLocal.withInitial(ArrayList::new);
 
     private FullTextSearchConfigurationType fullTextSearchConfiguration;
 
@@ -1201,9 +1203,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @Override
     public ConflictWatcher createAndRegisterConflictWatcher(@NotNull String oid) {
         List<ConflictWatcherImpl> watchers = conflictWatchersThreadLocal.get();
-        if (watchers == null) {
-            conflictWatchersThreadLocal.set(watchers = new ArrayList<>());
-        }
         if (watchers.size() >= MAX_CONFLICT_WATCHERS) {
             throw new IllegalStateException("Conflicts watchers leaking: reached limit of "
                     + MAX_CONFLICT_WATCHERS + ": " + watchers);

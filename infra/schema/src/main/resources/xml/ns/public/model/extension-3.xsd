@@ -139,16 +139,19 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="liveSyncErrorHandlingStrategy" type="c:LiveSyncErrorHandlingStrategyType">
+    <xsd:element name="liveSyncErrorHandlingStrategy" type="c:TaskErrorHandlingStrategyType">
         <xsd:annotation>
             <xsd:documentation>
                 Specifies a strategy for handling errors during Live Synchronization.
+                DEPRECATED. Use task.errorHandlingStrategy instead.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:displayName>TaskExtension.liveSyncErrorHandlingStrategy</a:displayName>
                 <a:displayOrder>801</a:displayOrder>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
+                <a:deprecated>true</a:deprecated>
+                <a:deprecatedSince>4.3</a:deprecatedSince>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>

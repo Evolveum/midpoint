@@ -8,10 +8,12 @@ package com.evolveum.midpoint.provisioning.impl.task;
 
 import javax.annotation.PostConstruct;
 
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskExecution;
+import com.evolveum.midpoint.repo.common.task.AbstractTaskExecution;
 import com.evolveum.midpoint.repo.common.task.PartExecutionClass;
 import com.evolveum.midpoint.repo.common.task.TaskExecutionClass;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +21,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ShadowCache;
-import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskHandler;
+import com.evolveum.midpoint.repo.common.task.AbstractTaskHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 
@@ -33,11 +35,12 @@ import com.evolveum.midpoint.schema.result.OperationConstants;
 @Component
 @TaskExecutionClass(PropagationTaskHandler.TaskExecution.class)
 @PartExecutionClass(PropagationTaskPartExecution.class)
-public class PropagationTaskHandler
-        extends AbstractSearchIterativeTaskHandler
+public class PropagationTaskHandler extends AbstractTaskHandler
         <PropagationTaskHandler, PropagationTaskHandler.TaskExecution> {
 
     public static final String HANDLER_URI = SchemaConstants.NS_PROVISIONING_TASK + "/propagation/handler-3";
+
+    private static final Trace LOGGER = TraceManager.getTrace(PropagationTaskHandler.class);
 
     // WARNING! This task handler is efficiently singleton!
     // It is a spring bean and it is supposed to handle all search task instances
@@ -49,7 +52,7 @@ public class PropagationTaskHandler
     @Autowired ShadowCache shadowCache;
 
     public PropagationTaskHandler() {
-        super("Provisioning propagation", OperationConstants.PROVISIONING_PROPAGATION);
+        super(LOGGER, "Provisioning propagation", OperationConstants.PROVISIONING_PROPAGATION);
         reportingOptions.setPreserveStatistics(false);
         reportingOptions.setEnableSynchronizationStatistics(false);
     }
@@ -75,7 +78,7 @@ public class PropagationTaskHandler
 
     /** Just to make Java compiler happy. */
     protected static class TaskExecution
-            extends AbstractSearchIterativeTaskExecution<PropagationTaskHandler, PropagationTaskHandler.TaskExecution> {
+            extends AbstractTaskExecution<PropagationTaskHandler, TaskExecution> {
 
         public TaskExecution(PropagationTaskHandler taskHandler,
                 RunningTask localCoordinatorTask, WorkBucketType workBucket,

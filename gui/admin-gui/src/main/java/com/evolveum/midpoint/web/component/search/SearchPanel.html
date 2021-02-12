@@ -40,12 +40,14 @@
             </div>
         </div>
 
-        <div class="form-group has-feedback" wicket:id="advancedGroup" style="float:right; padding-right: 5px;">
-            <label class="control-label" style="vertical-align: top; float:left; padding-right: 5px;">
-                <i class="fa fa-lg" wicket:id="advancedCheck"/>
-            </label>
+        <div class="form-group has-feedback col-lg-11 col-sm-10 col-xs-9" wicket:id="advancedGroup" style="float:right; padding-right: 5px;">
             <textarea class="form-control input-sm" rows="2" wicket:id="advancedArea"
                     style="width: 220px; height: 60px; overflow: hidden; float:right;"></textarea>
+            <input wicket:id="queryDslField" type="text" class="form-control input-sm"
+                    style="width: 91.6666667%; min-width: 300px; float:right;">
+            <label class="control-label col-lg-1" style="vertical-align: top; float:right; padding-right: 5px;">
+                <i class="fa fa-lg" wicket:id="advancedCheck"/>
+            </label>
             <span class="help-block" wicket:id="advancedError" style="float:right"/>
         </div>
 
