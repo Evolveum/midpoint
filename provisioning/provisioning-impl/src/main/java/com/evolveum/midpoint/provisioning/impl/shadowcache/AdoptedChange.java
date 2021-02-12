@@ -302,12 +302,13 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements Initiali
     }
 
     private PrismObject<ShadowType> createIdentifiersOnlyFakeResourceObject() throws SchemaException {
-        if (resourceObjectChange.getObjectClassDefinition() == null) {
+        ObjectClassComplexTypeDefinition objectClassDefinition = getObjectClassDefinition();
+        if (objectClassDefinition == null) {
             throw new IllegalStateException("Could not create shadow from change description. Object class is not specified.");
         }
         ShadowType fakeResourceObject = new ShadowType(beans.prismContext);
-        fakeResourceObject.setObjectClass(resourceObjectChange.getObjectClassDefinition().getTypeName());
-        ResourceAttributeContainer attributeContainer = resourceObjectChange.getObjectClassDefinition()
+        fakeResourceObject.setObjectClass(objectClassDefinition.getTypeName());
+        ResourceAttributeContainer attributeContainer = objectClassDefinition
                 .toResourceAttributeContainerDefinition().instantiate();
         fakeResourceObject.asPrismObject().add(attributeContainer);
         for (ResourceAttribute<?> identifier : resourceObjectChange.getIdentifiers()) {

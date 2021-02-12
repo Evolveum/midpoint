@@ -168,10 +168,6 @@ public abstract class ResourceObjectChange implements InitializableMixin {
         return processingState;
     }
 
-    public ObjectClassComplexTypeDefinition getObjectClassDefinition() {
-        return objectClassDefinition;
-    }
-
     public boolean isDelete() {
         return ObjectDelta.isDelete(objectDelta);
     }
