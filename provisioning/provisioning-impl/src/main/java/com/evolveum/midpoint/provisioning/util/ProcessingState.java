@@ -83,18 +83,24 @@ public class ProcessingState implements Serializable {
         return state;
     }
 
-    public void recordException(Throwable t) {
+    /**
+     * Returns a cause. (Or null if there is none.)
+     */
+    public Throwable recordException(Throwable t) {
         skipFurtherProcessing = true;
         if (t instanceof SkipProcessingException) {
             if (t.getCause() != null) {
                 exceptionEncountered = t.getCause();
+                return exceptionEncountered;
             } else {
                 // "Success" skipping. The item is simply not applicable. For example, the object has been deleted
                 // in the meanwhile. We probably want to increase counters, but we do not want to process this as an error.
                 // BEWARE: Be sure not to clear the exception. It can be set from earlier processing!
+                return null;
             }
         } else {
             exceptionEncountered = t;
+            return exceptionEncountered;
         }
     }
 

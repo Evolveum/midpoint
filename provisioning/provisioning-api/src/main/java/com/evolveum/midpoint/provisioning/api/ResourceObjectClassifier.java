@@ -25,6 +25,8 @@ public interface ResourceObjectClassifier {
     /**
      * Classifies the resource object. The object may or may not be adopted (i.e. connected to its repository shadow).
      *
+     * TODO clarify resourceObject vs. repoShadow -- currently we send there "combined" resource object plus shadow
+     *
      * @param resourceObject Resource object that we want to classify
      * @param resource Resource on which the resource object was found
      * @param repoShadow The current repository shadow associated with the resource object.

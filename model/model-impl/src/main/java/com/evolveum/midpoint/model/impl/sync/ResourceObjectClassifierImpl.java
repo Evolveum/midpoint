@@ -47,6 +47,8 @@ public class ResourceObjectClassifierImpl implements ResourceObjectClassifier {
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
 
+        // TODO clarify resourceObject vs. repoShadow -- currently we send there "combined" resource object plus shadow
+
         OperationResult result = parentResult.subresult(OP_CLASSIFY)
                 .addParam("resourceObject", resourceObject)
                 .addParam("repoShadow", repoShadow)

@@ -211,13 +211,13 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
     @Override
     public <F extends FocusType> SynchronizationContext<F> loadSynchronizationContext(PrismObject<ShadowType> applicableShadow,
-            PrismObject<ShadowType> currentShadow, ObjectDelta<ShadowType> resourceObjectDelta,
+            PrismObject<ShadowType> resourceObject, ObjectDelta<ShadowType> resourceObjectDelta,
             PrismObject<ResourceType> resource, String sourceChanel,
             String itemProcessingIdentifier, PrismObject<SystemConfigurationType> configuration, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 
-        SynchronizationContext<F> syncCtx = new SynchronizationContext<>(applicableShadow, currentShadow, resourceObjectDelta,
+        SynchronizationContext<F> syncCtx = new SynchronizationContext<>(applicableShadow, resourceObject, resourceObjectDelta,
                 resource, sourceChanel, prismContext, expressionFactory, task, itemProcessingIdentifier);
         syncCtx.setSystemConfiguration(configuration);
 
@@ -929,7 +929,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
      */
     private <F extends FocusType> void saveSyncMetadata(SynchronizationContext<F> syncCtx,
             ResourceObjectShadowChangeDescription change, boolean full, XMLGregorianCalendar now, OperationResult result) {
-        PrismObject<ShadowType> shadow = syncCtx.getCurrentShadow();
+        PrismObject<ShadowType> shadow = syncCtx.getApplicableShadow();
         if (shadow == null) {
             return;
         }
@@ -937,13 +937,13 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         Task task = syncCtx.getTask();
 
         try {
-            ShadowType shadowType = shadow.asObjectable();
+            ShadowType shadowBean = shadow.asObjectable();
             // new situation description
             List<PropertyDelta<?>> deltas = SynchronizationUtils
                     .createSynchronizationSituationAndDescriptionDelta(shadow, syncCtx.getSituation(),
                             change.getSourceChannel(), full, now, prismContext);
 
-            if (shadowType.getKind() == null || ShadowKindType.UNKNOWN == shadowType.getKind()) {
+            if (ShadowUtil.isNotKnown(shadowBean.getKind())) {
                 PropertyDelta<ShadowKindType> kindDelta = prismContext.deltaFactory().property().createReplaceDelta(shadow.getDefinition(),
                         ShadowType.F_KIND, syncCtx.getKind());
                 deltas.add(kindDelta);
@@ -955,13 +955,13 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                 deltas.add(intentDelta);
             }
 
-            if (shadowType.getTag() == null && syncCtx.getTag() != null) {
+            if (shadowBean.getTag() == null && syncCtx.getTag() != null) {
                 PropertyDelta<String> tagDelta = prismContext.deltaFactory().property().createReplaceDelta(shadow.getDefinition(),
                         ShadowType.F_TAG, syncCtx.getTag());
                 deltas.add(tagDelta);
             }
 
-            repositoryService.modifyObject(shadowType.getClass(), shadow.getOid(), deltas, result);
+            repositoryService.modifyObject(shadowBean.getClass(), shadow.getOid(), deltas, result);
             ItemDeltaCollectionsUtil.applyTo(deltas, shadow);
             task.recordObjectActionExecuted(shadow, ChangeType.MODIFY, null);
         } catch (ObjectNotFoundException ex) {
@@ -991,7 +991,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     }
 
     private <F extends FocusType> boolean shouldSaveIntent(SynchronizationContext<F> syncCtx) throws SchemaException {
-        ShadowType shadow = syncCtx.getCurrentShadow().asObjectable();
+        ShadowType shadow = syncCtx.getApplicableShadow().asObjectable();
         if (shadow.getIntent() == null) {
             return true;
         }

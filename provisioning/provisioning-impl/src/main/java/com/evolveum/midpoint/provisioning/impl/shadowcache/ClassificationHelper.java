@@ -7,6 +7,7 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectClassifier;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectClassifier.Classification;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -63,7 +64,12 @@ class ClassificationHelper {
 
         argCheck(shadow.getOid() != null, "Shadow has no OID");
 
-        Classification classification = classifier.classify(resourceObject, ctx.getResource().asPrismObject(), shadow,
+        // The classifier code does not quite distinguish between resourceObject and the shadow.
+        // As an ugly hack let us create "combined" version of the two, and present that to the classifier.
+
+        PrismObject<ShadowType> combinedObject = combine(resourceObject, shadow);
+
+        Classification classification = classifier.classify(combinedObject, ctx.getResource().asPrismObject(), combinedObject,
                 ctx.getTask(), result);
 
         if (isDifferent(classification, shadow)) {
@@ -72,6 +78,24 @@ class ClassificationHelper {
         } else {
             LOGGER.trace("No change in classification of {}: {}", shadow, classification);
         }
+    }
+
+    /**
+     * The combination simply takes attributes and associations from the resource object, and the rest from the shadow.
+     * It is much simplified version of what is done in {@link AdoptedObjectConstruction}. We hope if will suffice for now.
+     * In particular, we hope that the object class is roughly OK, and things like entitlement, credentials, and so on
+     * are not needed.
+     */
+    private PrismObject<ShadowType> combine(PrismObject<ShadowType> resourceObject, PrismObject<ShadowType> shadow)
+            throws SchemaException {
+        PrismObject<ShadowType> combined = shadow.clone();
+        ResourceAttributeContainer fullAttributes = ShadowUtil.getAttributesContainer(resourceObject);
+        if (fullAttributes != null) {
+            combined.removeContainer(ShadowType.F_ATTRIBUTES);
+            combined.add(fullAttributes.clone());
+        }
+        LOGGER.trace("Combined object:\n{}", combined.debugDumpLazily(1));
+        return combined;
     }
 
     private void updateShadowClassification(PrismObject<ShadowType> shadow, Classification classification, OperationResult result)

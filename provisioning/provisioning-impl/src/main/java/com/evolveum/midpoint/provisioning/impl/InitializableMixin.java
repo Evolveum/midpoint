@@ -68,8 +68,16 @@ public interface InitializableMixin extends DebugDumpable {
 
     default void processException(Throwable t, OperationResult result) {
         getLogger().warn("Got an exception, skipping further processing in {}", this, t); // TODO change to debug
-        getProcessingState().recordException(t);
-        result.recordFatalError(t); // TODO ok?
+        Throwable cause = getProcessingState().recordException(t);
+        recordIntoResult(result, cause);
+    }
+
+    private void recordIntoResult(OperationResult result, Throwable cause) {
+        if (cause != null) {
+            result.recordFatalError(cause);
+        } else {
+            result.recordNotApplicable();
+        }
     }
 
     Trace getLogger();
