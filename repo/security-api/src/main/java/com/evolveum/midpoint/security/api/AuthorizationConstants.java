@@ -74,10 +74,10 @@ public class AuthorizationConstants {
     public static final String AUTZ_GUI_ALL_LABEL = "Authorization.constants.guiAll.label";
     public static final String AUTZ_GUI_ALL_DESCRIPTION = "Authorization.constants.guiAll.description";
 
-    @Deprecated
-    public static final QName AUTZ_GUI_ALL_DEPRECATED_QNAME = new QName(NS_AUTHORIZATION, "guiAll");
-    @Deprecated
-    public static final String AUTZ_GUI_ALL_DEPRECATED_URL = QNameUtil.qNameToUri(AUTZ_GUI_ALL_DEPRECATED_QNAME);
+//    @Deprecated
+//    public static final QName AUTZ_GUI_ALL_DEPRECATED_QNAME = new QName(NS_AUTHORIZATION, "guiAll");
+//    @Deprecated
+//    public static final String AUTZ_GUI_ALL_DEPRECATED_URL = QNameUtil.qNameToUri(AUTZ_GUI_ALL_DEPRECATED_QNAME);
 
 
     // Following constants are ugly ... but they have to be.
@@ -121,18 +121,6 @@ public class AuthorizationConstants {
 
     public static final QName AUTZ_UI_MERGE_OBJECTS_QNAME = new QName(NS_AUTHORIZATION_UI, "mergeObjects");
     public static final String AUTZ_UI_MERGE_OBJECTS_URL = NS_AUTHORIZATION_UI + "#mergeObjects";
-
-    public static final QName AUTZ_UI_ORG_STRUCT_QNAME = new QName(NS_AUTHORIZATION_UI, "orgStruct");
-    public static final String AUTZ_UI_ORG_STRUCT_URL = NS_AUTHORIZATION_UI + "#orgStruct";
-
-    public static final QName AUTZ_UI_ORG_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "orgAll");
-    public static final String AUTZ_UI_ORG_ALL_URL = NS_AUTHORIZATION_UI + "#orgAll";
-
-    public static final QName AUTZ_UI_ORG_TREE_QNAME = new QName(NS_AUTHORIZATION_UI, "orgTree");
-    public static final String AUTZ_UI_ORG_TREE_URL = NS_AUTHORIZATION_UI + "#orgTree";
-
-    public static final QName AUTZ_UI_ORG_UNIT_QNAME = new QName(NS_AUTHORIZATION_UI, "orgUnit");
-    public static final String AUTZ_UI_ORG_UNIT_URL = NS_AUTHORIZATION_UI + "#orgUnit";
 
     public static final QName AUTZ_UI_SERVICES_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "servicesAll");
     public static final String AUTZ_UI_SERVICES_ALL_URL = NS_AUTHORIZATION_UI + "#servicesAll";
@@ -249,6 +237,22 @@ public class AuthorizationConstants {
 
     public static final QName AUTZ_UI_ROLE_DETAILS_QNAME = new QName(NS_AUTHORIZATION_UI, "roleDetails");
     public static final String AUTZ_UI_ROLE_DETAILS_URL = NS_AUTHORIZATION_UI + "#roleDetails";
+
+    //Orgs
+    public static final QName AUTZ_UI_ORG_STRUCT_QNAME = new QName(NS_AUTHORIZATION_UI, "orgStruct");
+    public static final String AUTZ_UI_ORG_STRUCT_URL = NS_AUTHORIZATION_UI + "#orgStruct";
+
+    public static final QName AUTZ_UI_ORG_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "orgAll");
+    public static final String AUTZ_UI_ORG_ALL_URL = NS_AUTHORIZATION_UI + "#orgAll";
+
+    public static final QName AUTZ_UI_ORGS_QNAME = new QName(NS_AUTHORIZATION_UI, "orgs");
+    public static final String AUTZ_UI_ORGS_URL = NS_AUTHORIZATION_UI + "#orgs";
+
+    public static final QName AUTZ_UI_ORG_TREE_QNAME = new QName(NS_AUTHORIZATION_UI, "orgTree");
+    public static final String AUTZ_UI_ORG_TREE_URL = NS_AUTHORIZATION_UI + "#orgTree";
+
+    public static final QName AUTZ_UI_ORG_UNIT_QNAME = new QName(NS_AUTHORIZATION_UI, "orgUnit");
+    public static final String AUTZ_UI_ORG_UNIT_URL = NS_AUTHORIZATION_UI + "#orgUnit";
 
     //Approvals (workflows)
     public static final String AUTZ_UI_APPROVALS_ALL_URL = NS_AUTHORIZATION_UI + "#approvalsAll";
@@ -487,6 +491,9 @@ public class AuthorizationConstants {
 
     public static final QName AUTZ_UI_SERVICES_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "servicesView");
     public static final String AUTZ_UI_SERVICES_VIEW_URL = NS_AUTHORIZATION_UI + "#servicesView";
+
+    public static final QName AUTZ_UI_ORGS_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "orgsView");
+    public static final String AUTZ_UI_ORGS_VIEW_URL = NS_AUTHORIZATION_UI + "#orgsView";
 
     public static final QName AUTZ_UI_ARCHETYPES_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "archetypesView");
     public static final String AUTZ_UI_ARCHETYPES_VIEW_URL = NS_AUTHORIZATION_UI + "#archetypesView";

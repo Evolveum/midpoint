@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.sql.util;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
+import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 /**
@@ -70,7 +70,7 @@ public abstract class TemporaryTableDialect {
      * @throws SystemException if temporary tables are not supported
      */
     public static @NotNull TemporaryTableDialect getTempTableDialect(
-            @NotNull SqlRepositoryConfiguration.Database database) {
+            @NotNull SupportedDatabase database) {
         switch (database) {
             case H2:
                 return new H2TempTableDialect();

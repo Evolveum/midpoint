@@ -10,6 +10,8 @@ package com.evolveum.midpoint.web.component.data;
 import java.util.List;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
@@ -54,34 +56,30 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     private boolean showPaging;
     private String additionalBoxCssClasses = null;
     private boolean isRefreshEnabled;
+    private List<IColumn<T, String>> columns;
+    private ISortableDataProvider provider;
 
     //interval in seconds
     private static final int DEFAULT_REFRESH_INTERVAL = 60;
 
     public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns) {
-        this(id, provider, columns, null, UserProfileStorage.DEFAULT_PAGING_SIZE);
+        this(id, provider, columns, null);
     }
 
     public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
             UserProfileStorage.TableId tableId) {
-        this(id, provider, columns, tableId, UserProfileStorage.DEFAULT_PAGING_SIZE);
+        this(id, provider, columns, tableId, false);
     }
 
     public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
-                           UserProfileStorage.TableId tableId, int pageSize) {
-        this(id, provider, columns, tableId, pageSize, false);
-    }
-
-    public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
-            UserProfileStorage.TableId tableId, int pageSize, boolean isRefreshEnabled) {
+            UserProfileStorage.TableId tableId, boolean isRefreshEnabled) {
         super(id);
         this.tableId = tableId;
         this.isRefreshEnabled = isRefreshEnabled;
-
-        initLayout(columns, provider, pageSize);
+        initLayout(columns, provider);
     }
 
-    private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider provider, int pageSize) {
+    private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider provider) {
         setOutputMarkupId(true);
         WebMarkupContainer box = new WebMarkupContainer(ID_BOX);
         box.add(new AttributeAppender("class", new IModel<String>() {
@@ -102,6 +100,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         WebMarkupContainer tableContainer = new WebMarkupContainer(ID_TABLE_CONTAINER);
         tableContainer.setOutputMarkupId(true);
 
+        int pageSize = getItemsPerPage(tableId);
         DataTable<T, String> table = new SelectableDataTable<T>(ID_TABLE, columns, provider, pageSize) {
             private static final long serialVersionUID = 1L;
 
@@ -179,6 +178,11 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     }
 
     @Override
+    public boolean enableSavePageSize() {
+        return true;
+    }
+
+    @Override
     public void setItemsPerPage(int size) {
         getDataTable().setItemsPerPage(size);
     }
@@ -186,6 +190,15 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     @Override
     public int getItemsPerPage() {
         return (int) getDataTable().getItemsPerPage();
+    }
+
+    private int getItemsPerPage(UserProfileStorage.TableId tableId) {
+        if (tableId == null) {
+            return UserProfileStorage.DEFAULT_PAGING_SIZE;
+        }
+        MidPointAuthWebSession session = (MidPointAuthWebSession) getSession();
+        UserProfileStorage userProfile = session.getSessionStorage().getUserProfile();
+        return userProfile.getPagingSize(tableId);
     }
 
     @Override
@@ -196,7 +209,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         if (!show) {
             setItemsPerPage(Integer.MAX_VALUE);
         } else {
-            setItemsPerPage(10);
+            setItemsPerPage(UserProfileStorage.DEFAULT_PAGING_SIZE);
         }
     }
 
@@ -284,8 +297,8 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
                 @Override
                 protected boolean isCountingDisabled(){
-                    if (dataTable.getDataProvider() instanceof SelectableBeanObjectDataProvider){
-                        return !((SelectableBeanObjectDataProvider)dataTable.getDataProvider()).isUseObjectCounting();
+                    if (dataTable.getDataProvider() instanceof SelectableBeanContainerDataProvider){
+                        return !((SelectableBeanContainerDataProvider)dataTable.getDataProvider()).isUseObjectCounting();
                     }
                     return super.isCountingDisabled();
                 }
@@ -299,9 +312,8 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
                     Table table = findParent(Table.class);
                     UserProfileStorage.TableId tableId = table.getTableId();
 
-                    if (tableId != null) {
-                        PageBase page = (PageBase) getPage();
-                        Integer pageSize = page.getSessionStorage().getUserProfile().getPagingSize(tableId);
+                    if (tableId != null && table.enableSavePageSize()) {
+                        Integer pageSize = (int) getPageBase().getItemsPerPage(tableId);
 
                         table.setItemsPerPage(pageSize);
                     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,24 +8,8 @@ package com.evolveum.midpoint.gui.api.component;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.RelationTypes;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -39,16 +23,31 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> implements Popupable{
+public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> implements Popupable {
 
     private static final long serialVersionUID = 1L;
 
@@ -81,15 +80,16 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
     private static final Trace LOGGER = TraceManager.getTrace(TypedAssignablePanel.class);
     private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
 
-    protected IModel<ObjectTypes> typeModel;
-    private IModel<Boolean> orgTreeViewModel;
-    private IModel<String> intentValueModel;
-    private LoadableModel<List<String>> intentValues;
-    String intent;
+    private final IModel<Boolean> orgTreeViewModel;
+    private final IModel<String> intentValueModel;
+    private final LoadableModel<List<String>> intentValues;
+    private final IModel<ObjectTypes> typeModel;
+
+    private String intent;
 
     public TypedAssignablePanel(String id, final Class<T> type) {
         super(id);
-        typeModel = new LoadableModel<ObjectTypes>(false) {
+        typeModel = new LoadableModel<>(false) {
 
             private static final long serialVersionUID = 1L;
 
@@ -103,13 +103,13 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
             }
         };
         orgTreeViewModel = Model.of(false);
-        intentValues =  getIntentAvailableValuesModel();
-        intentValueModel = new IModel<String>() {
+        intentValues = getIntentAvailableValuesModel();
+        intentValueModel = new IModel<>() {
             @Override
             public String getObject() {
                 return intent != null ? intent :
                         (intentValues.getObject().size() > 0 ?
-                        intentValues.getObject().get(0) : "default");
+                                intentValues.getObject().get(0) : "default");
             }
 
             @Override
@@ -148,15 +148,16 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
             @Override
             protected void assignSelectedOrgPerformed(List<OrgType> selectedOrgs, AjaxRequestTarget target) {
-                TypedAssignablePanel.this.assignButtonClicked(target, (List<T>)selectedOrgs);
+                //noinspection unchecked
+                TypedAssignablePanel.this.assignButtonClicked(target, (List<T>) selectedOrgs);
             }
         };
         orgTreePanel.setOutputMarkupId(true);
-        orgTreePanel.add(new VisibleEnableBehaviour(){
+        orgTreePanel.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return OrgType.COMPLEX_TYPE.equals(typeModel.getObject().getTypeQName()) && isOrgTreeViewSelected();
             }
         });
@@ -166,7 +167,6 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
         //after org tree panel is added
 //        WebMarkupContainer countContainer = createCountContainer();
 //        add(countContainer);
-
 
         AjaxButton addButton = new AjaxButton(ID_BUTTON_ASSIGN,
                 createStringResource("userBrowserDialog.button.addButton")) {
@@ -192,11 +192,11 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
         add(addButton);
     }
 
-    private void assignButtonClicked(AjaxRequestTarget target, List<T> selectedOrgs){
+    private void assignButtonClicked(AjaxRequestTarget target, List<T> selectedOrgs) {
         List<T> selected = getSelectedData(ID_ROLE_TABLE);
         selected.addAll(getSelectedData(ID_RESOURCE_TABLE));
         selected.addAll(getSelectedData(ID_SERVICE_TABLE));
-        if (isOrgTreeViewSelected()){
+        if (isOrgTreeViewSelected()) {
             selected.addAll(selectedOrgs);
         } else {
             selected.addAll(getSelectedData(ID_ORG_TABLE));
@@ -204,8 +204,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
         addPerformed(target, selected, getSelectedRelation(), getKind(), getIntent());
     }
 
-
-    protected void initAssignmentParametersPanel(){
+    protected void initAssignmentParametersPanel() {
         DropDownChoicePanel<ObjectTypes> typeSelect = new DropDownChoicePanel<>(
                 ID_TYPE, typeModel, Model.ofList(getObjectTypesList()), new EnumChoiceRenderer<>());
         typeSelect.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
@@ -221,9 +220,8 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
         typeSelect.setOutputMarkupId(true);
         add(typeSelect);
 
-
         WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATION_CONTAINER);
-        relationContainer.add(new VisibleEnableBehaviour(){
+        relationContainer.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -244,7 +242,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
         relationContainer.add(relationSelector);
 
         WebMarkupContainer kindContainer = new WebMarkupContainer(ID_KIND_CONTAINER);
-        kindContainer.add(new VisibleEnableBehaviour(){
+        kindContainer.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -256,13 +254,13 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
         add(kindContainer);
 
         DropDownChoicePanel kindSelector = WebComponentUtil.createEnumPanel(ShadowKindType.class, ID_KIND,
-                WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class), Model.of(ShadowKindType.ACCOUNT),TypedAssignablePanel.this, false);
+                WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class), Model.of(ShadowKindType.ACCOUNT), TypedAssignablePanel.this, false);
         kindSelector.setOutputMarkupId(true);
-        kindSelector.getBaseFormComponent().add(new VisibleEnableBehaviour(){
+        kindSelector.getBaseFormComponent().add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isEnabled(){
+            public boolean isEnabled() {
                 return ResourceType.COMPLEX_TYPE.equals(typeModel.getObject().getTypeQName()) && getSelectedResourceCount() > 0;
             }
         });
@@ -278,7 +276,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
         kindContainer.add(kindSelector);
 
         WebMarkupContainer intentContainer = new WebMarkupContainer(ID_INTENT_CONTAINER);
-        intentContainer.add(new VisibleEnableBehaviour(){
+        intentContainer.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -289,7 +287,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
         intentContainer.setOutputMarkupId(true);
         add(intentContainer);
 
-        DropDownChoicePanel intentSelector = new DropDownChoicePanel(ID_INTENT,
+        DropDownChoicePanel<?> intentSelector = new DropDownChoicePanel<>(ID_INTENT,
                 intentValueModel, intentValues);
         intentSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         intentSelector.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
@@ -302,11 +300,11 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
         intentSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         intentSelector.setOutputMarkupId(true);
         intentSelector.setOutputMarkupPlaceholderTag(true);
-        intentSelector.getBaseFormComponent().add(new VisibleEnableBehaviour(){
+        intentSelector.getBaseFormComponent().add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isEnabled(){
+            public boolean isEnabled() {
                 return ResourceType.COMPLEX_TYPE.equals(typeModel.getObject().getTypeQName()) && getSelectedResourceCount() > 0;
             }
         });
@@ -314,12 +312,12 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
         WebMarkupContainer orgTreeViewContainer = new WebMarkupContainer(ID_ORG_TREE_VIEW_CONTAINER);
         orgTreeViewContainer.setOutputMarkupId(true);
-        orgTreeViewContainer.add(new VisibleEnableBehaviour(){
+        orgTreeViewContainer.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isVisible(){
-                boolean res= OrgType.COMPLEX_TYPE.equals(typeModel.getObject().getTypeQName());
+            public boolean isVisible() {
+                boolean res = OrgType.COMPLEX_TYPE.equals(typeModel.getObject().getTypeQName());
                 return res;
             }
         });
@@ -338,17 +336,20 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
     }
 
-    private boolean isOrgTreeViewSelected(){
+    private boolean isOrgTreeViewSelected() {
         CheckBox checkPanel = (CheckBox) TypedAssignablePanel.this.get(ID_ORG_TREE_VIEW_CONTAINER).get(ID_ORG_TREE_VIEW);
         return checkPanel.getModel().getObject();
     }
 
-    private List<T> getSelectedData(String id){
-        return ((ObjectListPanel) get(createComponentPath(ID_TABLES_CONTAINER, id))).getSelectedObjects();
+    private List<T> getSelectedData(String id) {
+        //noinspection unchecked
+        return ((ObjectListPanel<T>) get(createComponentPath(ID_TABLES_CONTAINER, id))).getSelectedRealObjects();
     }
 
-    private QName getSelectedRelation(){
-        DropDownChoicePanel<RelationTypes> relationPanel = (DropDownChoicePanel<RelationTypes>) get(ID_RELATION_CONTAINER).get(ID_RELATION);
+    private QName getSelectedRelation() {
+        //noinspection unchecked
+        DropDownChoicePanel<RelationTypes> relationPanel =
+                (DropDownChoicePanel<RelationTypes>) get(ID_RELATION_CONTAINER).get(ID_RELATION);
         RelationTypes relation = relationPanel.getModel().getObject();
         if (relation == null) {
             return WebComponentUtil.getDefaultRelationOrFail();
@@ -356,7 +357,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
         return relation.getRelation();
     }
 
-    private ShadowKindType getKind(){
+    private ShadowKindType getKind() {
         DropDownChoicePanel<ShadowKindType> kindPanel = getKindDropdownComponent();
         ShadowKindType kind = kindPanel.getModel().getObject();
         if (kind == null) {
@@ -365,24 +366,24 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
         return kind;
     }
 
-    private String getIntent(){
+    private String getIntent() {
         DropDownChoicePanel<String> intentPanel = getIntentDropdownComponent();
         String intent = intentPanel.getBaseFormComponent().getModelObject();
-        return intent == null  ? "default" : intent;
+        return intent == null ? "default" : intent;
     }
 
-    private WebMarkupContainer createCountContainer(){
+    private WebMarkupContainer createCountContainer() {
         WebMarkupContainer countContainer = new WebMarkupContainer(ID_COUNT_CONTAINER);
         countContainer.setOutputMarkupId(true);
-        countContainer.add(createCountLabel(ID_SELECTED_ORGS, (PopupObjectListPanel<T>)get(createComponentPath(ID_TABLES_CONTAINER, ID_ORG_TABLE))));
-        countContainer.add(createCountLabel(ID_SELECTED_RESOURCES, (PopupObjectListPanel<T>)get(createComponentPath(ID_TABLES_CONTAINER, ID_RESOURCE_TABLE))));
-        countContainer.add(createCountLabel(ID_SELECTED_ROLES, (PopupObjectListPanel<T>)get(createComponentPath(ID_TABLES_CONTAINER, ID_ROLE_TABLE))));
-        countContainer.add(createCountLabel(ID_SELECTED_SERVICES, (PopupObjectListPanel<T>)get(createComponentPath(ID_TABLES_CONTAINER, ID_SERVICE_TABLE))));
+        countContainer.add(createCountLabel(ID_SELECTED_ORGS, (PopupObjectListPanel<T>) get(createComponentPath(ID_TABLES_CONTAINER, ID_ORG_TABLE))));
+        countContainer.add(createCountLabel(ID_SELECTED_RESOURCES, (PopupObjectListPanel<T>) get(createComponentPath(ID_TABLES_CONTAINER, ID_RESOURCE_TABLE))));
+        countContainer.add(createCountLabel(ID_SELECTED_ROLES, (PopupObjectListPanel<T>) get(createComponentPath(ID_TABLES_CONTAINER, ID_ROLE_TABLE))));
+        countContainer.add(createCountLabel(ID_SELECTED_SERVICES, (PopupObjectListPanel<T>) get(createComponentPath(ID_TABLES_CONTAINER, ID_SERVICE_TABLE))));
         return countContainer;
     }
 
-    private Label  createCountLabel(String id, ObjectListPanel panel){
-        Label label = new Label(id, panel.getSelectedObjects().size());
+    private Label createCountLabel(String id, ObjectListPanel panel) {
+        Label label = new Label(id, panel.getSelectedRealObjects().size());
         label.setOutputMarkupId(true);
         return label;
     }
@@ -397,7 +398,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
     }
 
     private PopupObjectListPanel<T> createObjectListPanel(String id, final String countId, final ObjectTypes type) {
-        PopupObjectListPanel<T> listPanel = new PopupObjectListPanel<T>(id, (Class) type.getClassDefinition(), true, getPageBase()) {
+        PopupObjectListPanel<T> listPanel = new PopupObjectListPanel<T>(id, type.getClassDefinition(), true) {
 
             private static final long serialVersionUID = 1L;
 
@@ -410,7 +411,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
             }
 
             @Override
-            protected IModel<Boolean> getCheckBoxEnableModel(IModel<SelectableBean<T>> rowModel){
+            protected IModel<Boolean> getCheckBoxEnableModel(IModel<SelectableBean<T>> rowModel) {
                 if (type.equals(ObjectTypes.RESOURCE)) {
                     return new LoadableModel<Boolean>() {
                         private static final long serialVersionUID = 1L;
@@ -427,18 +428,16 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
             }
 
             @Override
-            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
-                if (type.equals(RoleType.COMPLEX_TYPE)) {
+            protected ObjectQuery getCustomizeContentQuery() {
+                ObjectQuery query = null;
+                if (type.equals(ObjectTypes.ROLE)) {
                     LOGGER.debug("Loading roles which the current user has right to assign");
                     Task task = TypedAssignablePanel.this.getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);
                     OperationResult result = task.getResult();
 
                     ObjectFilter filter = WebComponentUtil.getAssignableRolesFilter(SecurityUtils.getPrincipalUser().getFocus().asPrismObject(), AbstractRoleType.class,
                             WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, TypedAssignablePanel.this.getPageBase());
-                    if (query == null){
-                        query = getPrismContext().queryFactory().createQuery();
-                    }
-                    query.addFilter(filter);
+                    query = getPrismContext().queryFactory().createQuery(filter);
                 }
                 return query;
             }
@@ -451,7 +450,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
             @Override
             public boolean isVisible() {
-                if (typeModel.getObject().getTypeQName().equals(OrgType.COMPLEX_TYPE)){
+                if (typeModel.getObject().getTypeQName().equals(OrgType.COMPLEX_TYPE)) {
                     return type.equals(typeModel.getObject()) && !isOrgTreeViewSelected();
                 }
                 return type.equals(typeModel.getObject());
@@ -479,12 +478,12 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
     }
 
     @Override
-    public String getWidthUnit(){
+    public String getWidthUnit() {
         return "px";
     }
 
     @Override
-    public String getHeightUnit(){
+    public String getHeightUnit() {
         return "px";
     }
 
@@ -498,15 +497,15 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
         return this;
     }
 
-    private LoadableModel<List<String>> getIntentAvailableValuesModel(){
-        return new LoadableModel<List<String>>(true){
+    private LoadableModel<List<String>> getIntentAvailableValuesModel() {
+        return new LoadableModel<>(true) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected List<String> load(){
+            protected List<String> load() {
                 List<String> availableIntentValues = new ArrayList<>();
                 if (getResourceTable() != null) {
-                    List<T> selectedResources = getResourceTable().getSelectedObjects();
+                    List<T> selectedResources = getResourceTable().getSelectedRealObjects();
                     if (selectedResources != null && selectedResources.size() > 0) {
                         ResourceType selectedResource = (ResourceType) selectedResources.get(0);
 
@@ -530,23 +529,27 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
         };
     }
 
-    private DropDownChoicePanel getKindDropdownComponent(){
-        return (DropDownChoicePanel)get(ID_KIND_CONTAINER).get(ID_KIND);
+    private <P> DropDownChoicePanel<P> getKindDropdownComponent() {
+        //noinspection unchecked
+        return (DropDownChoicePanel<P>) get(ID_KIND_CONTAINER).get(ID_KIND);
     }
 
-    private DropDownChoicePanel getIntentDropdownComponent(){
-        return (DropDownChoicePanel)get(ID_INTENT_CONTAINER).get(ID_INTENT);
+    private <P> DropDownChoicePanel<P> getIntentDropdownComponent() {
+        //noinspection unchecked
+        return (DropDownChoicePanel<P>) get(ID_INTENT_CONTAINER).get(ID_INTENT);
     }
 
-    private PopupObjectListPanel<T> getResourceTable(){
-        return (PopupObjectListPanel<T>)get(createComponentPath(ID_TABLES_CONTAINER, ID_RESOURCE_TABLE));
+    private PopupObjectListPanel<T> getResourceTable() {
+        //noinspection unchecked
+        return (PopupObjectListPanel<T>) get(createComponentPath(ID_TABLES_CONTAINER, ID_RESOURCE_TABLE));
     }
-    private int getSelectedResourceCount(){
+
+    private int getSelectedResourceCount() {
         return getResourceTable().getSelectedObjectsCount();
 
     }
 
-    protected List<ObjectTypes> getObjectTypesList(){
+    protected List<ObjectTypes> getObjectTypesList() {
         return WebComponentUtil.createAssignableTypesList();
     }
 }

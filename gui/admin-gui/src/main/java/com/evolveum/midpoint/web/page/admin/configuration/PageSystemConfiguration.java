@@ -160,7 +160,7 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
             @Override
             public WebMarkupContainer getPanel(String panelId) {
                 PrismContainerWrapperModel<SystemConfigurationType, ObjectPolicyConfigurationType> model = createModel(getObjectModel(), SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION);
-                return new ObjectPolicyConfigurationTabPanel<>(panelId, model);
+                return new ObjectPolicyConfigurationTabPanel(panelId, model);
             }
         });
 
@@ -215,7 +215,7 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
             @Override
             public WebMarkupContainer getPanel(String panelId) {
                 PrismContainerWrapperModel<SystemConfigurationType, LoggingConfigurationType> model = createModel(getObjectModel(), SystemConfigurationType.F_LOGGING);
-                return new LoggingConfigurationTabPanel<>(panelId, model);
+                return new LoggingConfigurationTabPanel(panelId, model);
             }
         });
 

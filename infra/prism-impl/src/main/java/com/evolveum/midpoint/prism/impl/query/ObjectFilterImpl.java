@@ -7,14 +7,16 @@
 
 package com.evolveum.midpoint.prism.impl.query;
 
+import com.evolveum.midpoint.prism.AbstractFreezable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.Visitor;
 
-public abstract class ObjectFilterImpl implements ObjectFilter {
+public abstract class ObjectFilterImpl extends AbstractFreezable implements ObjectFilter {
 
     protected transient PrismContext prismContext;
 
+    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
@@ -24,6 +26,7 @@ public abstract class ObjectFilterImpl implements ObjectFilter {
         this.prismContext = prismContext;
     }
 
+    @Override
     public PrismContext getPrismContext() {
         return prismContext;
     }
@@ -31,6 +34,9 @@ public abstract class ObjectFilterImpl implements ObjectFilter {
     public void setPrismContext(PrismContext prismContext) {
         this.prismContext = prismContext;
     }
+
+    @Override
+    protected abstract void performFreeze();
 
     @Override
     public abstract ObjectFilterImpl clone();

@@ -11,7 +11,6 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.FocusTableWithChoosableElements;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
-import com.evolveum.midpoint.util.aspect.MidpointInterceptor;
 
 import org.openqa.selenium.By;
 
@@ -56,7 +55,8 @@ public class FocusSetAssignmentsModal<T> extends ModalBox<T> {
     }
 
     public FocusTableWithChoosableElements<FocusSetAssignmentsModal<T>> table() {
-        SelenideElement resourcesBox = getParentElement().$x(".//div[@class='box boxed-table']");
+        SelenideElement resourcesBox = getParentElement().$x(".//div[@class='box boxed-table']")
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new FocusTableWithChoosableElements<FocusSetAssignmentsModal<T>>(this, resourcesBox){
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -170,8 +170,9 @@ public enum ObjectTypes {
     }
 
     @NotNull
-    public Class<? extends ObjectType> getClassDefinition() {
-        return classDefinition;
+    public <O extends ObjectType> Class<O> getClassDefinition() {
+        //noinspection unchecked
+        return (Class<O>) classDefinition;
     }
 
     @NotNull
@@ -248,13 +249,20 @@ public enum ObjectTypes {
 
     @NotNull
     public static <O extends ObjectType> Class<O> getObjectTypeClass(QName typeName) {
+        Class<O> rv = getObjectTypeClassIfKnown(typeName);
+        if (rv == null) {
+            throw new IllegalArgumentException("Unsupported object type " + typeName);
+        }
+        return rv;
+    }
+
+    public static <O extends ObjectType> Class<O> getObjectTypeClassIfKnown(QName typeName) {
         for (ObjectTypes type : values()) {
             if (QNameUtil.match(type.getTypeQName(), typeName)) {
-                //noinspection unchecked
-                return (Class<O>) type.getClassDefinition();
+                return type.getClassDefinition();
             }
         }
-        throw new IllegalArgumentException("Unsupported object type " + typeName);
+        return null;
     }
 
     @NotNull

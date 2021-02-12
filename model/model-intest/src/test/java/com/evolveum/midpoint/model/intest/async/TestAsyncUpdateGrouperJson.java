@@ -19,10 +19,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -38,19 +37,19 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
 
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "async/grouper-amqp091");
 
-    protected static final File RESOURCE_GROUPER_FILE = new File(TEST_DIR, "resource-grouper-amqp091.xml");
+    private static final File RESOURCE_GROUPER_FILE = new File(TEST_DIR, "resource-grouper-amqp091.xml");
     protected static final String RESOURCE_GROUPER_ID = "Grouper";
-    protected static final String RESOURCE_GROUPER_OID = "bbb9900a-b53d-4453-b60b-908725e3950e";
+    private static final String RESOURCE_GROUPER_OID = "bbb9900a-b53d-4453-b60b-908725e3950e";
 
-    public static final String BANDERSON_USERNAME = "banderson";
-    public static final String JLEWIS685_USERNAME = "jlewis685";
-    public static final String ALUMNI_NAME = "ref:alumni";
-    public static final String STAFF_NAME = "ref:staff";
+    private static final String BANDERSON_USERNAME = "banderson";
+    private static final String JLEWIS685_USERNAME = "jlewis685";
+    private static final String ALUMNI_NAME = "ref:alumni";
+    private static final String STAFF_NAME = "ref:staff";
 
     public static final String GROUPER_USER_INTENT = "subject";
     public static final String GROUPER_GROUP_INTENT = "group";
 
-    protected PrismObject<ResourceType> resourceGrouper;
+    private static final TestResource<TaskType> TASK_ASYNC_UPDATE = new TestResource<>(TEST_DIR, "task-async-update.xml", "3a4d7734-1082-4290-812b-37b6fc7f7f47");
 
     private static final File CHANGE_100 = new File(TEST_DIR, "change-100-banderson-add-supergroup.json");
     private static final File CHANGE_110 = new File(TEST_DIR, "change-110-alumni-add.json");
@@ -67,10 +66,9 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        resourceGrouper = importAndGetObjectFromFile(ResourceType.class, RESOURCE_GROUPER_FILE, RESOURCE_GROUPER_OID,
-                initTask, initResult);
+        importAndGetObjectFromFile(ResourceType.class, RESOURCE_GROUPER_FILE, RESOURCE_GROUPER_OID, initTask, initResult);
 
-        setGlobalTracingOverride(createModelAndProvisioningLoggingTracingProfile());
+        addObject(TASK_ASYNC_UPDATE, initTask, initResult);
     }
 
     @Test
@@ -96,8 +94,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
 
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 
@@ -142,8 +139,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
 
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 
@@ -186,8 +182,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
 
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 
@@ -224,8 +219,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
 
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 
@@ -262,8 +256,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
 
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 
@@ -300,8 +293,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
 
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 
@@ -338,8 +330,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
 
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 
@@ -376,8 +367,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
 
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 
@@ -416,8 +406,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
 
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 

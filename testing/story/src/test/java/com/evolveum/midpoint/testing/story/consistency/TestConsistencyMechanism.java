@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -22,8 +22,6 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-
 import org.apache.commons.lang3.StringUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.util.EmbeddedUtils;
@@ -36,6 +34,7 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -47,7 +46,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -72,7 +70,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
@@ -170,6 +167,9 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
     private static final String USER_DISCOVERY_FILENAME = TEST_DIR + "user-discovery.xml";
     private static final String USER_DISCOVERY_OID = "c0c010c0-d34d-b33f-f00d-111112226666";
+
+    private static final String USER_TRAINEE_FILENAME = TEST_DIR + "user-trainee.xml";
+    private static final String USER_TRAINEE_OID = "c0c010c0-0000-b33f-f00d-111112226666";
 
     private static final String USER_ABOMBA_FILENAME = TEST_DIR + "user-abomba.xml";
     private static final String USER_ABOMBA_OID = "c0c010c0-d34d-b33f-f00d-016016111111";
@@ -1096,7 +1096,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         when();
         XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
-        executeChanges(delta, null, task, parentResult);
+        executeChanges(delta, ModelExecuteOptions.create(prismContext).reconcile(), task, parentResult);
         XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
 
         //THEN
@@ -2128,6 +2128,51 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         //TODO: check on user if it was processed successfully (add this check also to previous (30) test..
     }
 
+    @Test
+    public void test300addAccountTrainee() throws Exception {
+        given();
+        openDJController.assumeRunning();
+
+        when();
+        addObject(new File(USER_TRAINEE_FILENAME));
+
+        then();
+        PrismObject<UserType> userAfter = getUser(USER_TRAINEE_OID);
+        assertUser(userAfter, " After ").assertName("trainee").assertLinks(1);
+
+    }
+
+    //MID-6742
+    @Test
+    public void test310modifyAccountTraineeCommunicationProblem() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        openDJController.assumeStopped();
+
+        when();
+        modifyObjectReplaceProperty(UserType.class, USER_TRAINEE_OID, UserType.F_NAME, ModelExecuteOptions.create(prismContext).reconcile(), task, result, createPolyString("trainee01"));
+
+        then();
+//        assertResultStatus(result, OperationResultStatus.IN_PROGRESS);
+        PrismObject<UserType> userAfter = getUser(USER_TRAINEE_OID);
+        assertUser(userAfter, " After ").assertName("trainee01");
+
+        String accountOid = assertOneAccountRef(userAfter);
+
+        assertRepoShadow(accountOid)
+                .hasUnfinishedPendingOperations()
+                .pendingOperations()
+                .assertOperations(1)
+                .modifyOperation()
+                .display()
+                .assertAttemptNumber(1)
+                .delta()
+                .assertModify()
+                .assertHasModification(ItemPath.create(ShadowType.F_ATTRIBUTES, LDAP_ATTRIBUTE_DN));
+    }
+
     //TODO: enable after notify failure will be implemented..
     @Test(enabled = false)
     public void test400GetDiscoveryAddCommunicationProblemAlreadyExists() throws Exception {
@@ -2870,7 +2915,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         // Too much noise
 //        displayJaxb("shadow from the repository: ", failedAccountType, ShadowType.COMPLEX_TYPE);
         // TODO FIX THIS!!!
-//        assertEquals("Failed operation saved with account differt from  the expected value.",
+//        assertEquals("Failed operation saved with account different from the expected value.",
 //                failedOperation, failedAccountType.getFailedOperationType());
 //        assertNotNull("Result of failed shadow must not be null.", failedAccountType.getResult());
 //        assertNotNull("Shadow does not contain resource ref.", failedAccountType.getResourceRef());
@@ -2886,29 +2931,13 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         return checkPostponedAccountBasic(faieldAccount, modify, parentResult);
     }
 
-    // TODO found as unused in 2020
-    private Collection<ObjectDelta<? extends ObjectType>> createDeltas(
-            Class type, File requestFile, String objectOid)
-            throws IOException, SchemaException {
-
-        try {
-            ObjectDeltaType objectChange = unmarshalValueFromFile(requestFile);
-            objectChange.setOid(objectOid);
-
-            ObjectDelta<?> delta = DeltaConvertor.createObjectDelta(objectChange, prismContext);
-            return MiscSchemaUtil.createCollection(delta);
-        } catch (Exception ex) {
-            logger.error("ERROR while unmarshalling", ex);
-            throw ex;
-        }
-
-    }
-
     private void modifyResourceAvailabilityStatus(AvailabilityStatusType status, OperationResult parentResult) throws Exception {
-        PropertyDelta resourceStatusDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ItemPath.create(
-                ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS),
-                resourceTypeOpenDjrepo.asPrismObject().getDefinition(), status);
-        Collection<PropertyDelta> modifications = new ArrayList<>();
+        PropertyDelta<AvailabilityStatusType> resourceStatusDelta = prismContext.deltaFactory().property()
+                .createModificationReplaceProperty(
+                        ItemPath.create(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS),
+                        resourceTypeOpenDjrepo.asPrismObject().getDefinition(),
+                        status);
+        Collection<PropertyDelta<AvailabilityStatusType>> modifications = new ArrayList<>();
         modifications.add(resourceStatusDelta);
         repositoryService.modifyObject(ResourceType.class, resourceTypeOpenDjrepo.getOid(), modifications, parentResult);
     }
@@ -2925,7 +2954,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         ShadowType accountType = account.asObjectable();
         display("Shadow after discovery", account);
         // TODO FIX THIS!!!
-//        assertNull(name + "'s account after discovery must not have failed opertion.", accountType.getFailedOperationType());
+//        assertNull(name + "'s account after discovery must not have failed operation.", accountType.getFailedOperationType());
 //        assertNull(name + "'s account after discovery must not have result.", accountType.getResult());
 //        assertNotNull(name + "'s account must contain reference on the resource", accountType.getResourceRef());
 //        assertEquals(resourceTypeOpenDjrepo.getOid(), accountType.getResourceRef().getOid());

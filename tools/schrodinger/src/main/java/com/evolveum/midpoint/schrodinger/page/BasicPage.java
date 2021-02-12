@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.schrodinger.page;
 
+import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.$;
 
 import com.codeborne.selenide.Condition;
@@ -14,6 +15,9 @@ import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
 import com.codeborne.selenide.ex.ElementShould;
 
+import com.evolveum.midpoint.schrodinger.component.common.UserMenuPanel;
+import com.evolveum.midpoint.schrodinger.page.objectcollection.ListObjectCollectionsPage;
+import com.evolveum.midpoint.schrodinger.page.objectcollection.ObjectCollectionPage;
 import com.evolveum.midpoint.schrodinger.page.service.ServicePage;
 
 import org.apache.commons.lang3.StringUtils;
@@ -51,6 +55,8 @@ import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.ConstantsUtil;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+
+import org.testng.Assert;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -105,12 +111,12 @@ public class BasicPage {
     }
 
     public OrgTreePage orgStructure() {
-        clickAdministrationMenu("PageAdmin.menu.top.users.org", "PageAdmin.menu.top.users.org.tree");
+        clickAdministrationMenu("PageAdmin.menu.top.orgs", "PageAdmin.menu.top.orgs.tree");
         return new OrgTreePage();
     }
 
     public OrgPage newOrgUnit() {
-        clickAdministrationMenu("PageAdmin.menu.top.users.org", "PageAdmin.menu.top.users.org.new");
+        clickAdministrationMenu("PageAdmin.menu.top.orgs", "PageAdmin.menu.top.orgs.new");
         return new OrgPage();
     }
 
@@ -174,14 +180,14 @@ public class BasicPage {
         return new AllApprovalsPage();
     }
 
-    public MyItemsPage myItems() {
+    public MyWorkitemsPage myItems() {
         clickAdministrationMenu("PageAdmin.menu.top.workItems", "PageAdmin.menu.top.workItems.list");
-        return new MyItemsPage();
+        return new MyWorkitemsPage();
     }
 
-    public ItemsClaimableByMePage itemsClaimableByMe() {
+    public WorkitemsClaimableByMePage itemsClaimableByMe() {
         clickAdministrationMenu("PageAdmin.menu.top.workItems", "PageAdmin.menu.top.workItems.listClaimable");
-        return new ItemsClaimableByMePage();
+        return new WorkitemsClaimableByMePage();
     }
 
     public AttorneyItemsPage attorneyItems() {
@@ -189,9 +195,9 @@ public class BasicPage {
         return new AttorneyItemsPage();
     }
 
-    public AllItemsPage allItems() {
+    public AllWorkitemsPage allItems() {
         clickAdministrationMenu("PageAdmin.menu.top.workItems", "PageAdmin.menu.top.workItems.listAll");
-        return new AllItemsPage();
+        return new AllWorkitemsPage();
     }
 
     public MyRequestsPage myRequests() {
@@ -235,7 +241,7 @@ public class BasicPage {
 
     public ListTasksPage listTasks(String objectListMenuItemKey) {
         if (StringUtils.isEmpty(objectListMenuItemKey)) {
-            clickAdministrationMenu("PageAdmin.menu.top.serverTasks", "PageAdmin.menu.top.serverTasks.list");
+            clickAdministrationMenu("PageAdmin.menu.top.serverTasks", "PageAdmin.menu.top.tasks.list");
         } else {
             clickAdministrationMenu("PageAdmin.menu.top.serverTasks", objectListMenuItemKey);
         }
@@ -243,12 +249,20 @@ public class BasicPage {
     }
 
     public TaskPage newTask() {
-        clickAdministrationMenu("PageAdmin.menu.top.serverTasks", "PageAdmin.menu.top.serverTasks.new");
+        clickAdministrationMenu("PageAdmin.menu.top.serverTasks", "PageAdmin.menu.top.tasks.new");
         return new TaskPage();
     }
 
     public ListReportsPage listReports() {
-        clickAdministrationMenu("PageAdmin.menu.top.reports", "PageAdmin.menu.top.reports.list");
+        return listReports("");
+    }
+
+    public ListReportsPage listReports(String objectListMenuItemKey) {
+        if (StringUtils.isEmpty(objectListMenuItemKey)) {
+            clickAdministrationMenu("PageAdmin.menu.top.reports", "PageAdmin.menu.top.reports.list");
+        } else {
+            clickAdministrationMenu("PageAdmin.menu.top.reports", objectListMenuItemKey);
+        }
         return new ListReportsPage();
     }
 
@@ -265,6 +279,16 @@ public class BasicPage {
     public AuditLogViewerPage auditLogViewer() {
         clickAdministrationMenu("PageAdmin.menu.top.reports", "PageAuditLogViewer.menuName");
         return new AuditLogViewerPage();
+    }
+
+    public ListObjectCollectionsPage listObjectCollections() {
+        clickAdministrationMenu("PageAdmin.menu.top.objectCollections", "PageAdmin.menu.top.objectCollections.list");
+        return new ListObjectCollectionsPage();
+    }
+
+    public ObjectCollectionPage newObjectCollection() {
+        clickAdministrationMenu("PageAdmin.menu.top.objectCollections", "PageAdmin.menu.top.objectCollections.new");
+        return new ObjectCollectionPage();
     }
 
     public ImportResourceDefinitionPage importResourceDefinition() {
@@ -342,6 +366,11 @@ public class BasicPage {
         return new SystemPage().roleManagementTab();
     }
 
+    public CleanupPolicyTab cleanupPolicy() {
+        clickConfigurationMenu("PageAdmin.menu.top.configuration.basic", "PageAdmin.menu.top.configuration.cleanupPolicy");
+        return new SystemPage().cleanupPolicyTab();
+    }
+
     public InternalsConfigurationPage internalsConfiguration() {
         clickConfigurationMenu("PageAdmin.menu.top.configuration.internals", null, 1);
         return new InternalsConfigurationPage();
@@ -364,9 +393,11 @@ public class BasicPage {
         clickMenuItem(ConstantsUtil.ADMINISTRATION_MENU_ITEMS_SECTION_KEY, mainMenuKey, menuItemKey);
     }
 
-    public String getAdministrationMenuItemIconClass(String mainMenuKey, String menuItemKey){
+    public BasicPage assertAdministrationMenuItemIconClassEquals(String mainMenuKey, String menuItemKey, String expectedIconClass){
         SelenideElement menuItem = getMenuItemElement(ConstantsUtil.ADMINISTRATION_MENU_ITEMS_SECTION_KEY, mainMenuKey, menuItemKey);
-        return menuItem.parent().$(By.tagName("i")).getAttribute("class");
+        Assert.assertEquals(expectedIconClass, menuItem.parent().$(By.tagName("i")).getAttribute("class"),
+                "Menu item icon (menu item key is '" + menuItemKey + "') doesn't match to value '" + expectedIconClass + "'.");
+        return this;
     }
 
     private void clickConfigurationMenu(String mainMenuKey, String menuItemKey) {
@@ -459,4 +490,68 @@ public class BasicPage {
         url = url.split("\\?")[0];
         return url;
     }
+
+    public SelenideElement getMainHeaderPanelElement() {
+        return $(Schrodinger.byDataId("header", "mainHeader"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+    }
+
+    public BasicPage assertMainHeaderPanelStyleMatch(String styleToCompare) {
+        Assert.assertTrue(getMainHeaderPanelElement().getCssValue("background-color").equals(styleToCompare),
+                "Main header panel background color doesn't match to " + styleToCompare);
+        return this;
+    }
+
+    public SelenideElement getPageTitleElement() {
+        return $(Schrodinger.byDataId("span", "pageTitle"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+    }
+
+    public BasicPage assertPageTitleStartsWith(String titleStartText) {
+        Assert.assertTrue(getPageTitleElement().getText().startsWith(titleStartText), "Page title doesn't start with " + titleStartText);
+        return this;
+    }
+
+    public UserMenuPanel clickUserMenu() {
+        if(userMenuExists()) {
+            SelenideElement userMenu = $(".dropdown.user.user-menu").waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+            userMenu.$(By.cssSelector(".dropdown-toggle")).click();
+            SelenideElement userMenuPanel = userMenu.$(By.cssSelector(".user-footer")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+            return new UserMenuPanel(this, userMenuPanel);
+        }
+        return null;
+    }
+
+    public boolean userMenuExists() {
+        return $(".dropdown.user.user-menu").exists();
+    }
+
+    public BasicPage assertElementWithTextExists(String text) {
+        Assert.assertTrue($(byText(text)).exists(), "Element with text '" + text + "' doesn't exist on the page.");
+        return this;
+    }
+
+    public BasicPage assertUserMenuExist() {
+        Assert.assertTrue(userMenuExists(), "User should be logged in, user menu should be visible.");
+        return this;
+    }
+
+    public BasicPage assertUserMenuDoesntExist() {
+        Assert.assertFalse(userMenuExists(), "User should be logged out, user menu shouldn't be visible.");
+        return this;
+    }
+
+    public BasicPage assertMenuItemActive(SelenideElement menuItemElement) {
+        SelenideElement menuItemLi = menuItemElement.parent().parent();
+        Assert.assertTrue(menuItemLi.has(Condition.cssClass("active")), "Menu item should be active");
+        return this;
+    }
+
+    public BasicPage assertMenuItemDoesntActive(SelenideElement menuItemElement) {
+        SelenideElement menuItemLi = menuItemElement.parent().parent();
+        Assert.assertFalse(menuItemLi.has(Condition.cssClass("active")), "Menu item shouldn't be active");
+        return this;
+    }
+
+
 }

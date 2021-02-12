@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -26,8 +26,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
@@ -91,6 +89,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -115,6 +114,7 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -126,6 +126,7 @@ import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -142,7 +143,7 @@ import com.evolveum.prism.xml.ns._public.types_3.*;
  */
 public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 
-    protected static final int DEFAULT_TASK_WAIT_TIMEOUT = 25000;
+    protected static final int DEFAULT_TASK_WAIT_TIMEOUT = 250000;
     protected static final long DEFAULT_TASK_SLEEP_TIME = 200;
 
     protected static final String CONNECTOR_DUMMY_TYPE = "com.evolveum.icf.dummy.connector.DummyConnector";
@@ -2740,7 +2741,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 oldValue = focusPolicyType.asPrismContainerValue();
             }
         }
-        Collection<? extends ItemDelta> modifications = new ArrayList<>();
+        Collection<ContainerDelta<ObjectPolicyConfigurationType>> modifications = new ArrayList<>();
 
         if (oldValue != null) {
             ObjectPolicyConfigurationType oldPolicy = oldValue.asContainerable();
@@ -2751,9 +2752,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                     return;
                 }
             }
-            ContainerDelta<ObjectPolicyConfigurationType> deleteDelta = prismContext.deltaFactory().container().createModificationDelete(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION,
-                    SystemConfigurationType.class, oldValue.clone());
-            ((Collection) modifications).add(deleteDelta);
+            ContainerDelta<ObjectPolicyConfigurationType> deleteDelta =
+                    prismContext.deltaFactory().container().createModificationDelete(
+                            SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION,
+                            SystemConfigurationType.class, oldValue.clone());
+            modifications.add(deleteDelta);
         }
 
         if (objectTemplateOid != null) {
@@ -2774,7 +2777,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             ObjectReferenceType templateRef = new ObjectReferenceType();
             templateRef.setOid(objectTemplateOid);
             newFocusPolicyType.setObjectTemplateRef(templateRef);
-            ((Collection) modifications).add(addDelta);
+            modifications.add(addDelta);
         }
 
         modifySystemObjectInRepo(SystemConfigurationType.class,
@@ -2794,12 +2797,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 oldValue = focusPolicyType.asPrismContainerValue();
             }
         }
-        Collection<? extends ItemDelta> modifications = new ArrayList<>();
+        Collection<ContainerDelta<ObjectPolicyConfigurationType>> modifications = new ArrayList<>();
 
         if (oldValue != null) {
             ContainerDelta<ObjectPolicyConfigurationType> deleteDelta = prismContext.deltaFactory().container().createModificationDelete(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION,
                     SystemConfigurationType.class, oldValue.clone());
-            ((Collection) modifications).add(deleteDelta);
+            modifications.add(deleteDelta);
         }
 
         ObjectPolicyConfigurationType newFocusPolicyType = new ObjectPolicyConfigurationType();
@@ -2818,7 +2821,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .createModificationAdd(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION,
                         SystemConfigurationType.class, newFocusPolicyType);
 
-        ((Collection) modifications).add(addDelta);
+        modifications.add(addDelta);
 
         modifySystemObjectInRepo(SystemConfigurationType.class,
                 SystemObjectsType.SYSTEM_CONFIGURATION.value(), modifications, parentResult);
@@ -2836,10 +2839,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void setGlobalSecurityPolicy(String securityPolicyOid, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
-        Collection modifications = new ArrayList<>();
+        Collection<ReferenceDelta> modifications = new ArrayList<>();
 
-        ReferenceDelta refDelta = prismContext.deltaFactory().reference().createModificationReplace(SystemConfigurationType.F_GLOBAL_SECURITY_POLICY_REF,
-                SystemConfigurationType.class, securityPolicyOid);
+        ReferenceDelta refDelta = prismContext.deltaFactory().reference()
+                .createModificationReplace(SystemConfigurationType.F_GLOBAL_SECURITY_POLICY_REF,
+                        SystemConfigurationType.class, securityPolicyOid);
         modifications.add(refDelta);
 
         modifySystemObjectInRepo(SystemConfigurationType.class,
@@ -2848,7 +2852,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <O extends ObjectType> void modifySystemObjectInRepo(Class<O> type, String oid,
-            Collection<? extends ItemDelta> modifications, OperationResult parentResult)
+            Collection<? extends ItemDelta<?, ?>> modifications, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         display("Modifications of system object " + oid, modifications);
         repositoryService.modifyObject(type, oid, modifications, parentResult);
@@ -3117,8 +3121,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return waitForTaskFinish(taskOid, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
     }
 
-    protected Task waitForTaskFinish(String taskOid, boolean checkSubresult, Function<TaskFinishChecker.Builder, TaskFinishChecker.Builder> customizer) throws CommonException {
-        return waitForTaskFinish(taskOid, checkSubresult, 0, DEFAULT_TASK_WAIT_TIMEOUT, false, 0, customizer);
+    protected Task waitForTaskFinish(String taskOid, Function<TaskFinishChecker.Builder, TaskFinishChecker.Builder> customizer) throws CommonException {
+        return waitForTaskFinish(taskOid, false, 0, DEFAULT_TASK_WAIT_TIMEOUT, false, 0, customizer);
     }
 
     protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout) throws CommonException {
@@ -3427,6 +3431,48 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return taskResultHolder.getValue();
     }
 
+    // We assume the task is runnable/running.
+    @Experimental
+    protected Task waitForTaskProgress(String taskOid, long progressToReach, int timeout, OperationResult waitResult) throws Exception {
+        return waitForTaskProgress(taskOid, progressToReach, null, timeout, (int) DEFAULT_TASK_SLEEP_TIME, waitResult);
+    }
+
+    @Experimental
+    protected Task waitForTaskProgress(String taskOid, long progressToReach, CheckedProducer<Boolean> extraTest,
+            int timeout, int sleepTime, OperationResult waitResult) throws Exception {
+        Checker checker = new Checker() {
+            @Override
+            public boolean check() throws CommonException {
+                Task freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
+                RunningTask runningTask = taskManager.getLocallyRunningTaskByIdentifier(freshTask.getTaskIdentifier()); // ugly hack
+                long progress = runningTask != null ? runningTask.getProgress() : freshTask.getProgress();
+                boolean extraTestSuccess = extraTest != null && Boolean.TRUE.equals(extraTest.get());
+                return extraTestSuccess ||
+                        freshTask.getExecutionStatus() == TaskExecutionStatus.SUSPENDED ||
+                        freshTask.getExecutionStatus() == TaskExecutionStatus.CLOSED ||
+                        progress >= progressToReach;
+            }
+
+            @Override
+            public void timeout() {
+                try {
+                    Task freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
+                    OperationResult result = freshTask.getResult();
+                    logger.debug("Timed-out task:\n{}", freshTask.debugDump());
+                    assert false : "Timeout (" + timeout + ") while waiting for " + freshTask + " progress. Last result " + result;
+                } catch (ObjectNotFoundException | SchemaException e) {
+                    logger.error("Exception during task refresh: {}", e, e);
+                }
+            }
+        };
+        IntegrationTestTools.waitFor("Waiting for task " + taskOid + " progress reaching " + progressToReach,
+                checker, timeout, DEFAULT_TASK_SLEEP_TIME);
+
+        Task freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
+        logger.debug("Final task:\n{}", freshTask.debugDump());
+        return freshTask;
+    }
+
     protected OperationResult waitForTaskTreeNextFinishedRun(String rootTaskOid, int timeout) throws Exception {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskTreeNextFinishedRun");
         Task origRootTask = taskManager.getTaskWithResult(rootTaskOid, waitResult);
@@ -3576,9 +3622,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     private static OperationResult getSubresult(OperationResult result, boolean checkSubresult) {
-        if (checkSubresult) {
-            return result != null ? result.getLastSubresult() : null;
-        }
+        // FIXME
+//        if (checkSubresult) {
+//            return result != null ? result.getLastSubresult() : null;
+//        }
         return result;
     }
 
@@ -3719,6 +3766,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         long startTime = System.currentTimeMillis();
         restartTask(taskOid, result);
         return waitForTaskFinish(taskOid, true, startTime, DEFAULT_TASK_WAIT_TIMEOUT, false);
+    }
+
+    protected Task rerunTaskErrorsOk(String taskOid, OperationResult result) throws CommonException {
+        long startTime = System.currentTimeMillis();
+        restartTask(taskOid, result);
+        return waitForTaskFinish(taskOid, true, startTime, DEFAULT_TASK_WAIT_TIMEOUT, true);
     }
 
     protected void assertTaskExecutionStatus(String taskOid, TaskExecutionStatus expectedExecutionStatus) throws ObjectNotFoundException, SchemaException {
@@ -4778,7 +4831,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 }
             } else {
                 ObjectTypes focusType = ObjectTypes.getObjectTypeFromTypeQName(focusTypeQName);
-                if (type != focusType.getClassDefinition()) {
+                if (type != (Class<?>) focusType.getClassDefinition()) {
                     continue;
                 }
             }
@@ -5350,6 +5403,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertEquals("Wrong executionStatus in " + task, TaskExecutionStatus.CLOSED, task.getExecutionStatus());
     }
 
+    @Deprecated
     protected List<AuditEventRecord> getAllAuditRecords(Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         Map<String, Object> params = new HashMap<>();
         return modelAuditService.listRecords("select * from m_audit_event as aer order by aer.timestampValue asc", params, task, result);
@@ -5525,10 +5579,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected <F extends FocusType, P extends FocusType> PrismObject<P> assertLinkedPersona(PrismObject<F> focus, Class<P> personaClass, String subtype) throws ObjectNotFoundException, SchemaException {
+    protected <F extends FocusType, P extends FocusType> PrismObject<P> assertLinkedPersona(
+            PrismObject<F> focus, Class<P> personaClass, String subtype)
+            throws ObjectNotFoundException, SchemaException {
         OperationResult result = new OperationResult("assertLinkedPersona");
         for (ObjectReferenceType personaRef : focus.asObjectable().getPersonaRef()) {
-            PrismObject<P> persona = repositoryService.getObject((Class<P>) ObjectTypes.getObjectTypeFromTypeQName(personaRef.getType()).getClassDefinition(),
+            PrismObject<P> persona = repositoryService.getObject(
+                    ObjectTypes.getObjectTypeFromTypeQName(personaRef.getType()).getClassDefinition(),
                     personaRef.getOid(), null, result);
             if (isTypeAndSubtype(persona, personaClass, subtype)) {
                 return persona;
@@ -5633,7 +5690,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         displayValue("Password of " + user, password);
         PrismObject<ValuePolicyType> passwordPolicy = repositoryService.getObject(ValuePolicyType.class, passwordPolicyOid, null, result);
         List<LocalizableMessage> messages = new ArrayList<>();
-        boolean valid = valuePolicyProcessor.validateValue(password, passwordPolicy.asObjectable(), createUserOriginResolver(user), messages, "validating password of " + user, task, result);
+        valuePolicyProcessor.validateValue(password, passwordPolicy.asObjectable(), createUserOriginResolver(user), messages, "validating password of " + user, task, result);
+        boolean valid = result.isAcceptable();
         if (!valid) {
             fail("Password for " + user + " does not comply with password policy: " + messages);
         }
@@ -6165,7 +6223,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             Collection<SelectorOptions<GetOperationOptions>> options, int expectedResults) throws Exception {
         ObjectQuery originalQuery = query != null ? query.clone() : null;
         return assertSearch(type, query, options,
-                new SearchAssertion<O>() {
+                new SearchAssertion<>() {
 
                     @Override
                     public void assertObjects(String message, List<PrismObject<O>> objects) throws Exception {
@@ -6199,7 +6257,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, String... expectedOids) throws Exception {
         assertSearch(type, query, options,
-                new SearchAssertion<O>() {
+                new SearchAssertion<>() {
 
                     @Override
                     public void assertObjects(String message, List<PrismObject<O>> objects) throws Exception {

@@ -93,7 +93,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         IDataProvider provider = table.getDataProvider();
         if (!(provider instanceof BaseSortableDataProvider)) {
             LOGGER.debug("Select all checkbox work only with {} provider type. Current provider is type of {}.",
-                    new Object[]{BaseSortableDataProvider.class.getName(), provider.getClass().getName()});
+                    BaseSortableDataProvider.class.getName(), provider.getClass().getName());
         }
 
         //update selected flag in model dto objects based on select all header state

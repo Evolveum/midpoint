@@ -31,6 +31,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import static com.evolveum.midpoint.prism.PrismConstants.*;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 public abstract class ComparativeFilterImpl<T> extends PropertyValueFilterImpl<T> implements PropertyValueFilter<T> {
 
@@ -53,6 +54,7 @@ public abstract class ComparativeFilterImpl<T> extends PropertyValueFilterImpl<T
     }
 
     public void setEquals(boolean equals) {
+        checkMutable();
         this.equals = equals;
     }
 
@@ -86,7 +88,7 @@ public abstract class ComparativeFilterImpl<T> extends PropertyValueFilterImpl<T
     @Override
     public boolean match(PrismContainerValue object, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
         Collection<PrismValue> objectItemValues = getObjectItemValues(object);
-        Collection<PrismValue> filterItemValues = getFilterItemValues();
+        Collection<? extends PrismValue> filterItemValues = emptyIfNull(getValues());
         if (filterItemValues.isEmpty()) {
             throw new SchemaException("Couldn't evaluate the comparison: the value is missing");
         } else if (filterItemValues.size() > 1) {

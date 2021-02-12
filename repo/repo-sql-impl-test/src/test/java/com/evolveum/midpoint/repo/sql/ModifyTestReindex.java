@@ -1,11 +1,22 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql;
+
+import static java.util.Collections.emptySet;
+import static org.testng.AssertJUnit.assertEquals;
+
+import javax.xml.namespace.QName;
+
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.hibernate.query.Query;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -17,32 +28,19 @@ import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
-import org.hibernate.query.Query;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import javax.xml.namespace.QName;
-
-import static java.util.Collections.emptySet;
-import static org.testng.AssertJUnit.assertEquals;
 
 /**
- * The same as ModifyTest but with "executeIfNoChanges" (a.k.a. "reindex") option set.
+ * The same as ModifyTest but with {@link RepoModifyOptions#forceReindex forceReindex} option set.
  * Although this option should do no harm in objects other than certification cases and lookup tables,
  * it is better to check.
- *
- * @author mederly
  */
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ModifyTestReindex extends ModifyTest {
 
     @Override
     protected RepoModifyOptions getModifyOptions() {
-        return RepoModifyOptions.createExecuteIfNoChanges();
+        return RepoModifyOptions.createForceReindex();
     }
 
     @Test
@@ -72,7 +70,7 @@ public class ModifyTestReindex extends ModifyTest {
         assertEquals("Wrong # of objects found", 1, count);
     }
 
-    @Test   // MID-5112
+    @Test // MID-5112
     public void testReindexIndexOnlyItem() throws Exception {
         OperationResult result = createOperationResult();
 
@@ -106,7 +104,7 @@ public class ModifyTestReindex extends ModifyTest {
         assertEquals("Wrong # of objects found", 1, count);
     }
 
-    @Test   // MID-5112
+    @Test // MID-5112
     public void testReindexPhoto() throws Exception {
         OperationResult result = createOperationResult();
 
@@ -128,7 +126,7 @@ public class ModifyTestReindex extends ModifyTest {
         assertEquals("Missing or wrong photo", PHOTO, userAfter.getJpegPhoto());
     }
 
-    @Test   // MID-5112
+    @Test // MID-5112
     public void testReindexTaskResult() throws Exception {
         OperationResult result = createOperationResult();
 
@@ -150,7 +148,7 @@ public class ModifyTestReindex extends ModifyTest {
         assertEquals("Missing or wrong result", taskOperationResult, taskAfter.getResult());
     }
 
-    @Test   // MID-5112
+    @Test // MID-5112
     public void testReindexLookupTableRow() throws Exception {
         OperationResult result = createOperationResult();
 
@@ -174,7 +172,7 @@ public class ModifyTestReindex extends ModifyTest {
         assertEquals("Wrong row", row, tableAfter.getRow().get(0));
     }
 
-    @Test   // MID-5112
+    @Test // MID-5112
     public void testReindexCertificationCampaignCase() throws Exception {
         OperationResult result = createOperationResult();
 
@@ -199,7 +197,7 @@ public class ModifyTestReindex extends ModifyTest {
     }
 
     /**
-     *  MID-5128
+     * MID-5128
      */
     @Test
     public void testReindexShadow() throws Exception {
@@ -209,7 +207,7 @@ public class ModifyTestReindex extends ModifyTest {
         PrismObject<ShadowType> shadow = prismContext.createObjectable(ShadowType.class)
                 .name("unstable")
                 .beginMetadata()
-                    .modifyApproverRef(APPROVER_OID, UserType.COMPLEX_TYPE)
+                .modifyApproverRef(APPROVER_OID, UserType.COMPLEX_TYPE)
                 .<ShadowType>end()
                 .asPrismObject();
         MutablePrismPropertyDefinition<String> def = prismContext.definitionFactory().createPropertyDefinition(new QName("http://temp/", "attr1"), DOMUtil.XSD_STRING);
@@ -237,9 +235,9 @@ public class ModifyTestReindex extends ModifyTest {
         System.out.println("ext values: " + session.createQuery("from ROExtString").list());
 
         Transaction transaction = session.beginTransaction();
-        Query updateQuery = session.createQuery(
-                "update com.evolveum.midpoint.repo.sql.data.common.RObjectReference set targetType = null where ownerOid = '" + oid
-                        + "'");
+        Query<?> updateQuery = session.createQuery(
+                "update com.evolveum.midpoint.repo.sql.data.common.RObjectReference"
+                        + " set targetType = null where ownerOid = '" + oid + "'");
         System.out.println("records modified = " + updateQuery.executeUpdate());
         transaction.commit();
         session.close();
@@ -258,5 +256,4 @@ public class ModifyTestReindex extends ModifyTest {
         count = repositoryService.countObjects(ShadowType.class, query, null, result);
         assertEquals("Wrong # of objects found (after reindexing)", 1, count);
     }
-
 }

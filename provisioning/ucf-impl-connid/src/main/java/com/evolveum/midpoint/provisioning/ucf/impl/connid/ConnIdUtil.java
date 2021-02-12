@@ -67,6 +67,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.identityconnectors.framework.impl.api.remote.RemoteWrappedException;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Set of utility methods that work around some of the ConnId and connector problems.
@@ -574,7 +575,7 @@ public class ConnIdUtil {
         }
     }
 
-    public static Collection<ResourceAttribute<?>> convertToIdentifiers(Uid uid,
+    @NotNull public static Collection<ResourceAttribute<?>> convertToIdentifiers(Uid uid,
             ObjectClassComplexTypeDefinition ocDef, ResourceSchema resourceSchema) throws SchemaException {
         ObjectClassComplexTypeDefinition concreteObjectClassDefinition = getConcreteObjectClassDefinition(ocDef, resourceSchema);
         if (concreteObjectClassDefinition == null) {
@@ -616,7 +617,7 @@ public class ConnIdUtil {
             return new GuardedString(protector.decryptString(ps).toCharArray());
         } catch (EncryptionException e) {
             LOGGER.error("Unable to decrypt value of element {}: {}-{}",
-                    new Object[] { propertyName, e.getMessage(), e });
+                    propertyName, e.getMessage(), e);
             throw new SystemException("Unable to decrypt value of element " + propertyName + ": "
                     + e.getMessage(), e);
         } catch (RuntimeException e) {

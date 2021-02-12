@@ -64,7 +64,7 @@ public class TaskErrorsTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> 
 
     private void initLayout() {
 
-        SelectableBeanObjectDataProvider<? extends ObjectType> provider = new SelectableBeanObjectDataProvider<ObjectType>(this, ObjectType.class, null) {
+        SelectableBeanObjectDataProvider<? extends ObjectType> provider = new SelectableBeanObjectDataProvider<ObjectType>(this, null) {
 
             @Override
             public SelectableBean<ObjectType> createDataObjectWrapper(ObjectType obj) {
@@ -98,6 +98,11 @@ public class TaskErrorsTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> 
             @Override
             protected SelectableBean<ObjectType> getNewSelectableBean() {
                 return new TaskErrorSelectableBeanImpl<>();
+            }
+
+            @Override
+            public Class<ObjectType> getType() {
+                return ObjectType.class;
             }
         };
 

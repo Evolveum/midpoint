@@ -8,14 +8,13 @@ package com.evolveum.midpoint.provisioning.impl;
 
 /**
  * @author semancik
- *
  */
 public class ConfiguredConnectorCacheKey {
 
     private final String resourceOid;
     private final String connectorName;
 
-    public ConfiguredConnectorCacheKey(String resourceOid, String connectorName) {
+    ConfiguredConnectorCacheKey(String resourceOid, String connectorName) {
         super();
         this.resourceOid = resourceOid;
         this.connectorName = connectorName;
@@ -38,6 +37,7 @@ public class ConfiguredConnectorCacheKey {
         return result;
     }
 
+    @SuppressWarnings("RedundantIfStatement")
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
@@ -64,6 +64,4 @@ public class ConfiguredConnectorCacheKey {
     public String toString() {
         return "ConfiguredConnectorCacheKey(" + resourceOid + ":" + connectorName + ")";
     }
-
-
 }

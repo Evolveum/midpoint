@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
@@ -84,5 +85,13 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
     private String getTargetType(T referencable) {
         QName type = referencable.getType();
         return type != null ? type.getLocalPart() : "";
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = DebugUtil.createIndentedStringBuilder(indent);
+        sb.append(getNewValue().debugDump())
+                .append(" (").append(getStatus()).append(", old: ").append(getOldValue().debugDump()).append(")");
+        return sb.toString();
     }
 }

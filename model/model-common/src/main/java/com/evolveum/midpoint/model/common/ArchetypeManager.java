@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Evolveum and contributors
+ * Copyright (C) 2019-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -17,9 +17,8 @@ import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
-import com.evolveum.midpoint.repo.api.Cacheable;
+import com.evolveum.midpoint.repo.api.Cache;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -48,25 +47,34 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  * @author Radovan Semancik
  */
 @Component
-public class ArchetypeManager implements Cacheable {
+public class ArchetypeManager implements Cache {
 
     private static final Trace LOGGER = TraceManager.getTrace(ArchetypeManager.class);
     private static final Trace LOGGER_CONTENT = TraceManager.getTrace(ArchetypeManager.class.getName() + ".content");
+
+    /**
+     * Cache invalidation is invoked when an object of any of these classes is modified.
+     */
+    private static final Collection<Class<?>> INVALIDATION_RELATED_CLASSES = Arrays.asList(
+            ArchetypeType.class,
+            SystemConfigurationType.class,
+            ObjectTemplateType.class
+    );
 
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private PrismContext prismContext;
     @Autowired private CacheRegistry cacheRegistry;
 
-    private Map<String, ArchetypePolicyType> archetypePolicyCache = new ConcurrentHashMap<>();
+    private final Map<String, ArchetypePolicyType> archetypePolicyCache = new ConcurrentHashMap<>();
 
     @PostConstruct
-    public void registerCacheableService() {
-        cacheRegistry.registerCacheableService(this);
+    public void register() {
+        cacheRegistry.registerCache(this);
     }
 
     @PreDestroy
-    public void unregisterCacheableService() {
-        cacheRegistry.unregisterCacheableService(this);
+    public void unregister() {
+        cacheRegistry.unregisterCache(this);
     }
 
     public PrismObject<ArchetypeType> getArchetype(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
@@ -111,10 +119,7 @@ public class ArchetypeManager implements Cacheable {
         return assignments.stream()
                 .filter(a -> {
                     ObjectReferenceType target = a.getTargetRef();
-                    if (target == null) {
-                        return false;
-                    }
-                    return QNameUtil.match(ArchetypeType.COMPLEX_TYPE, target.getType());
+                    return target != null && QNameUtil.match(ArchetypeType.COMPLEX_TYPE, target.getType());
                 })
                 .map(AssignmentType::getTargetRef)
                 .collect(Collectors.toList());
@@ -301,7 +306,7 @@ public class ArchetypeManager implements Cacheable {
         List<VirtualContainersSpecificationType> mergedVirtualContainers = mergeVirtualContainers(currentObjectDetails, superObjectDetails);
         mergedObjectDetails.getContainer().clear();
         mergedObjectDetails.getContainer().addAll(mergedVirtualContainers);
-        //TODO savemethod, objectForm, relations
+        //TODO save method, objectForm, relations
 
         return mergedObjectDetails;
     }
@@ -309,7 +314,7 @@ public class ArchetypeManager implements Cacheable {
     private <C extends Containerable> List<C> mergeContainers(List<C> currentContainers, List<C> superContainers, Function<C, Predicate<C>> predicate, BiFunction<C, C, C> mergeFunction) {
         if (currentContainers.isEmpty()) {
             if (superContainers.isEmpty()) {
-                return Collections.EMPTY_LIST;
+                return Collections.emptyList();
             }
             return superContainers.stream().map(this::cloneComplex).collect(Collectors.toList());
         }
@@ -400,6 +405,7 @@ public class ArchetypeManager implements Cacheable {
     }
 
     private <C extends Containerable> C cloneComplex(C containerable) {
+        //noinspection unchecked
         PrismContainerValue<C> pcv = containerable.asPrismContainerValue().cloneComplex(CloneStrategy.REUSE);
         return pcv.asContainerable();
     }
@@ -542,7 +548,7 @@ public class ArchetypeManager implements Cacheable {
     private List<ItemConstraintType> mergeItemConstraints(List<ItemConstraintType> currentConstraints, List<ItemConstraintType> superConstraints) {
         return mergeContainers(currentConstraints, superConstraints,
                 this::createItemConstraintPredicate,
-                this::mergeItemContraint);
+                this::mergeItemConstraint);
     }
 
     private Predicate<ItemConstraintType> createItemConstraintPredicate(ItemConstraintType constraint) {
@@ -554,7 +560,7 @@ public class ArchetypeManager implements Cacheable {
         return supperPath != null && currentPath != null && supperPath.equivalent(currentPath);
     }
 
-    private ItemConstraintType mergeItemContraint(ItemConstraintType matchedConstraint, ItemConstraintType superConstraint) {
+    private ItemConstraintType mergeItemConstraint(ItemConstraintType matchedConstraint, ItemConstraintType superConstraint) {
         ItemConstraintType mergedConstraint = cloneComplex(matchedConstraint);
         if (matchedConstraint.getVisibility() == null) {
             mergedConstraint.setVisibility(superConstraint.getVisibility());
@@ -754,7 +760,7 @@ public class ArchetypeManager implements Cacheable {
         return resultPolicy;
     }
 
-    public <O extends ObjectType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
+    private <O extends ObjectType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
         if (object == null) {
             return null;
         }
@@ -777,7 +783,7 @@ public class ArchetypeManager implements Cacheable {
     /**
      * This has to remain static due to use from LensContext. Hopefully it will get refactored later.
      */
-    public static <O extends ObjectType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(PrismObject<O> object, SystemConfigurationType systemConfigurationType) throws ConfigurationException {
+    private static <O extends ObjectType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(PrismObject<O> object, SystemConfigurationType systemConfigurationType) throws ConfigurationException {
         List<String> subTypes = FocusTypeUtil.determineSubTypes(object);
         return determineObjectPolicyConfiguration(object.getCompileTimeClass(), subTypes, systemConfigurationType);
     }
@@ -825,7 +831,7 @@ public class ArchetypeManager implements Cacheable {
 
     @Override
     public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
-        if (type == null || ArchetypeType.class.equals(type)) {
+        if (type == null || INVALIDATION_RELATED_CLASSES.contains(type)) {
             archetypePolicyCache.clear();
         }
     }

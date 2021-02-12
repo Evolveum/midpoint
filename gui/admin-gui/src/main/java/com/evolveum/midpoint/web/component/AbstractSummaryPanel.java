@@ -411,11 +411,11 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         if (config != null) {
             return createFlexibleLabelModel(ObjectType.F_PARENT_ORG_REF, config);
         } else {
-            return getDefaltParentOrgModel();
+            return getDefaultParentOrgModel();
         }
     }
 
-    protected IModel<String> getDefaltParentOrgModel() {
+    protected IModel<String> getDefaultParentOrgModel() {
         return new Model<>(null);
     }
 

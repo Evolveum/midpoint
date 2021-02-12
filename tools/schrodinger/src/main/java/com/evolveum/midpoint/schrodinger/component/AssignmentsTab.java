@@ -18,6 +18,10 @@ import com.evolveum.midpoint.schrodinger.component.common.table.AbstractTableWit
 import com.evolveum.midpoint.schrodinger.component.table.DirectIndirectAssignmentTable;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import com.evolveum.midpoint.schrodinger.util.Utils;
+
+import org.openqa.selenium.By;
+import org.testng.Assert;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,52 +32,17 @@ import static com.codeborne.selenide.Selenide.$;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class AssignmentsTab<P extends AssignmentHolderDetailsPage> extends Component<P> {
+public class AssignmentsTab<P extends AssignmentHolderDetailsPage> extends TabWithTableAndPrismView<P> {
 
     public AssignmentsTab(P parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
 
-    public <A extends AssignmentsTab<P>> AbstractTableWithPrismView<A> table() {
-
-        SelenideElement tableBox = $(Schrodinger.byDataId("div", "assignmentsTable"));
-
-        return new AbstractTableWithPrismView<A>((A) this, tableBox) {
-            @Override
-            public PrismFormWithActionButtons<AbstractTableWithPrismView<A>> clickByName(String name) {
-
-                $(Schrodinger.byElementValue("span", "data-s-id", "label", name))
-                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
-                SelenideElement prismElement = $(Schrodinger.byDataId("div", "assignmentsContainer"))
-                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-                return new PrismFormWithActionButtons<>(this, prismElement);
-            }
-
-            @Override
-            public AbstractTableWithPrismView<A> selectCheckboxByName(String name) {
-
-                $(Schrodinger.byFollowingSiblingEnclosedValue("td", "class", "check", "data-s-id", "3", name))
-                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
-                return this;
-            }
-
-            public AbstractTableWithPrismView<A> removeByName(String name) {
-
-                $(Schrodinger.byAncestorPrecedingSiblingDescendantOrSelfElementEnclosedValue("button", "title", "Unassign", null, null, name))
-                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
-                return this;
-            }
-        };
-    }
 
     public <A extends AssignmentsTab<P>> FocusSetAssignmentsModal<A> clickAddAssignemnt() {
         $(Schrodinger.byElementAttributeValue("i", "class", "fe fe-assignment "))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         SelenideElement modalElement = getNewAssignmentModal();
 
         return new FocusSetAssignmentsModal<A>((A) this, modalElement);
@@ -82,15 +51,14 @@ public class AssignmentsTab<P extends AssignmentHolderDetailsPage> extends Compo
     public <A extends AssignmentsTab<P>> FocusSetAssignmentsModal<A> clickAddAssignemnt(String title) {
         $(Schrodinger.byElementAttributeValue("div", "title", title))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         SelenideElement modalElement = getNewAssignmentModal();
 
         return new FocusSetAssignmentsModal<A>((A) this, modalElement);
     }
 
     private SelenideElement getNewAssignmentModal() {
-        return $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Select object(s)"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+        return Utils.getModalWindowSelenideElement();
     }
 
 
@@ -152,5 +120,21 @@ public class AssignmentsTab<P extends AssignmentHolderDetailsPage> extends Compo
             }
         }
         return indirectAssignments.containsAll(Arrays.asList(expectedAssignments));
+    }
+
+    @Override
+    protected String getPrismViewPanelId() {
+        return "assignmentsContainer";
+    }
+
+    public AssignmentsTab<P> assertAssignmentsWithRelationExist(String relation, String... expectedAssignments) {
+        Assert.assertTrue(containsAssignmentsWithRelation(relation, expectedAssignments), "Assignments doesn't exist.");
+        return this;
+    }
+
+    public AssignmentsTab<P> assertAssignmentsCountLabelEquals(String expectedValue) {
+        SelenideElement el = $(By.partialLinkText("Assignments"));
+        Assert.assertEquals(el.$x(".//small[@data-s-id='count']").getText(), expectedValue, "Assignments count label doesn't equal to expected value");
+        return this;
     }
 }

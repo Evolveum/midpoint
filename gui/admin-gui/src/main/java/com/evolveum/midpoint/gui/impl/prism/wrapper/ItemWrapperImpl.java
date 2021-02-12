@@ -207,17 +207,23 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createIndentedStringBuilder(indent);
-        sb.append(toString());
-        sb.append("Original definition: ").append(newItem.getDefinition()).append("\n");
-        sb.append("Display nam: ").append(displayName).append("\n");
-        sb.append("Item status: ").append(status).append("\n");
-        sb.append("Read only: ").append(isReadOnly()).append("\n");
-        sb.append("New item: \n").append(newItem).append("\n");
-        sb.append("Old item: \n").append(oldItem).append("\n");
-        sb.append("Values: \n");
-        for (VW value : values) {
+        sb.append(getDisplayName())
+                .append(" (").append(getItemName()).append(", ")
+                .append(status).append(", ");
+        if (isReadOnly()) {
+            sb.append("readonly)");
+        } else {
+            sb.append("writable)");
+        }
+        sb.append("\n");
+
+        if (!values.isEmpty()) {
+            for (VW value : values) {
+                sb.append(value.debugDump(indent + 1)).append("\n");
+            }
+        } else {
             DebugUtil.indentDebugDump(sb, indent + 1);
-            sb.append(value.debugDump());
+            sb.append("NO VALUES \n");
         }
         return sb.toString();
 
@@ -739,8 +745,13 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
                 getItem().remove(valueWrapper.getNewValue());
                 break;
             case NOT_CHANGED:
-                getItem().remove(valueWrapper.getNewValue());
-                valueWrapper.setStatus(ValueStatus.DELETED);
+                if (isSingleValue()) {
+                    valueWrapper.setRealValue(null);
+                    valueWrapper.setStatus(ValueStatus.MODIFIED);
+                } else {
+                    getItem().remove(valueWrapper.getNewValue());
+                    valueWrapper.setStatus(ValueStatus.DELETED);
+                }
                 break;
         }
     }
@@ -750,8 +761,8 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     @Override
     public <PV extends PrismValue> void add(PV newValue, ModelServiceLocator locator) throws SchemaException {
         getItem().add(newValue);
-        VW newContainerValue = WebPrismUtil.createNewValueWrapper(this, newValue, locator);
-        values.add(newContainerValue);
+        VW newItemValue = WebPrismUtil.createNewValueWrapper(this, newValue, locator);
+        values.add(newItemValue);
     }
 
     private int countUsableValues(List<VW> values) {

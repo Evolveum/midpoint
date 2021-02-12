@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.schrodinger.page.configuration;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
@@ -14,7 +15,11 @@ import com.evolveum.midpoint.schrodinger.component.common.table.ReadOnlyTable;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import com.evolveum.midpoint.schrodinger.util.Utils;
+
+import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
+import org.testng.Assert;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,31 +36,37 @@ public class AboutPage extends BasicPage {
 
     public AboutPage repositorySelfTest() {
         $(Schrodinger.byDataResourceKey("PageAbout.button.testRepository")).click();
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return this;
     }
 
     public AboutPage checkAndRepairOrgClosureConsistency() {
         $(Schrodinger.byDataResourceKey("PageAbout.button.testRepositoryCheckOrgClosure")).click();
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return this;
     }
 
     public AboutPage reindexRepositoryObjects() {
         $(Schrodinger.byDataResourceKey("PageAbout.button.reindexRepositoryObjects")).click();
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return this;
     }
 
     public AboutPage provisioningSelfTest() {
         $(Schrodinger.byDataResourceKey("PageAbout.button.testProvisioning")).click();
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return this;
     }
 
     public AboutPage cleanupActivitiProcesses() {
         $(Schrodinger.byDataResourceKey("PageAbout.button.checkWorkflowProcesses")).click();
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return this;
     }
 
     public AboutPage clearCssJsCache() {
         $(Schrodinger.byDataResourceKey("PageAbout.button.clearCssJsCache")).click();
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return this;
     }
 
@@ -130,10 +141,8 @@ public class AboutPage extends BasicPage {
 
     public ConfirmationModal<FormLoginPage> clickSwitchToFactoryDefaults() {
         $(Schrodinger.byDataResourceKey("PageAbout.button.factoryDefault")).waitUntil(Condition.visible,MidPoint.TIMEOUT_DEFAULT_2_S).click();
-        SelenideElement confirmBox =$(Schrodinger.byElementAttributeValue("div","aria-labelledby","Confirm deletion"))
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new ConfirmationModal<>(new FormLoginPage(),confirmBox);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        return new ConfirmationModal<>(new FormLoginPage(), Utils.getModalWindowSelenideElement());
     }
 
     public String getSystemProperty(String propertyNameUserHome) {
@@ -142,5 +151,61 @@ public class AboutPage extends BasicPage {
         ReadOnlyTable readOnlyTable = new ReadOnlyTable(this,propertiesTable);
         return readOnlyTable.getParameterValue(propertyNameUserHome);
     }
+
+    public AboutPage assertVersionValueEquals(String expectedVersionValue) {
+        Assert.assertEquals(expectedVersionValue, version(), "Version value doesn't match");
+        return this;
+    }
+
+    public AboutPage assertGitDescribeValueEquals(String expectedGitDescribeValue) {
+        Assert.assertEquals(expectedGitDescribeValue, gitDescribe(), "Git describe value doesn't match");
+        return this;
+    }
+
+    public AboutPage assertGitDescribeValueIsNotEmpty() {
+        Assert.assertTrue(StringUtils.isNotEmpty(gitDescribe()), "Git describe value shouldn't be empty");
+        return this;
+    }
+
+    public AboutPage assertBuildAtValueEquals(String expectedBuildAtValue) {
+        Assert.assertEquals(expectedBuildAtValue, buildAt(), "Build at value doesn't match");
+        return this;
+    }
+
+    public AboutPage assertBuildAtValueIsNotEmpty() {
+        Assert.assertTrue(StringUtils.isNotEmpty(buildAt()), "Build at value shouldn't be empty");
+        return this;
+    }
+
+    public AboutPage assertHibernateDialectValueEquals(String expectedHibernateDialectValue) {
+        Assert.assertEquals(expectedHibernateDialectValue, hibernateDialect(), "Hibernate dialect value doesn't match");
+        return this;
+    }
+
+    public AboutPage assertConnIdVersionValueEquals(String expectedValue) {
+        Assert.assertEquals(expectedValue, connIdFrameworkVersion(), "Connid version value doesn't match");
+        return this;
+    }
+
+    public AboutPage assertJVMPropertyValueEquals(String propertyName, String expectedValue) {
+        Assert.assertEquals(expectedValue, getJVMproperty(propertyName), "JVM property " + propertyName + " value doesn't match");
+        return this;
+    }
+
+    public AboutPage assertJVMPropertyValueIsNotEmpty(String propertyName) {
+        Assert.assertTrue(StringUtils.isNotEmpty(getJVMproperty(propertyName)), "JVM property " + propertyName + " shouldn't be empty");
+        return this;
+    }
+
+    public AboutPage assertSystemPropertyValueEquals(String propertyName, String expectedValue) {
+        Assert.assertEquals(expectedValue, getSystemProperty(propertyName), "System property " + propertyName + " value doesn't match");
+        return this;
+    }
+
+    public AboutPage assertSystemPropertyValueIsNotEmpty(String propertyName) {
+        Assert.assertTrue(StringUtils.isNotEmpty(getSystemProperty(propertyName)), "System property " + propertyName + " shouldn't be empty");
+        return this;
+    }
+
 }
 

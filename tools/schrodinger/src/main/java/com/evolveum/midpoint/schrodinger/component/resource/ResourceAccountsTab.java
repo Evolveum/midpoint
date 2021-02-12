@@ -8,10 +8,10 @@ package com.evolveum.midpoint.schrodinger.component.resource;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
-import com.evolveum.midpoint.schrodinger.component.ProjectionsTab;
 import com.evolveum.midpoint.schrodinger.component.user.ProjectionsDropDown;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
@@ -81,12 +81,13 @@ public class ResourceAccountsTab<T> extends Component<T> {
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         $(Schrodinger.byDataId("a", "resourceSearch"))
                 .waitUntil(Condition.cssClass("active"), MidPoint.TIMEOUT_MEDIUM_6_S);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return this;
     }
 
     public ResourceShadowTable<ResourceAccountsTab<T>> table() {
 
-        SelenideElement element = $(By.cssSelector(".box.boxed-table.object-shadow-box"))
+        SelenideElement element = $(By.cssSelector(".box.boxed-table"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new ResourceShadowTable<>(this, element);

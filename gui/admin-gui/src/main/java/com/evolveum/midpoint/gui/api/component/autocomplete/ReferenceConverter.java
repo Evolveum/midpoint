@@ -46,13 +46,14 @@ public class ReferenceConverter implements IConverter<ObjectReferenceType> {
 
     @Override
     public ObjectReferenceType convertToObject(String value, Locale locale) throws ConversionException {
-        ObjectQuery query = pageBase.getPrismContext().queryFor(AbstractRoleType.class)
+        Class<ObjectType> type = getReferenceTargetObjectType();
+        ObjectQuery query = pageBase.getPrismContext().queryFor(type)
                 .item(ObjectType.F_NAME)
                 .eq(value)
                 .matchingOrig()
                 .build();
-        List<PrismObject<AbstractRoleType>> objectsList = WebModelServiceUtils.searchObjects(
-                AbstractRoleType.class, query, new OperationResult("searchObjects"), pageBase);
+        List<PrismObject<ObjectType>> objectsList = WebModelServiceUtils.searchObjects(
+                type, query, new OperationResult("searchObjects"), pageBase);
         if (CollectionUtils.isNotEmpty(objectsList)) {
             return ObjectTypeUtil.createObjectRefWithFullObject(
                     objectsList.get(0), pageBase.getPrismContext());
@@ -64,5 +65,9 @@ public class ReferenceConverter implements IConverter<ObjectReferenceType> {
     @Override
     public String convertToString(ObjectReferenceType ref, Locale arg1) {
         return ref != null ? WebComponentUtil.getName(ref) : "";
+    }
+
+    protected <O extends ObjectType> Class<O> getReferenceTargetObjectType() {
+        return (Class<O>) AbstractRoleType.class;
     }
 }

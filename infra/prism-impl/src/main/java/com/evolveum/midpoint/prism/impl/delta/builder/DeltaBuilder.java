@@ -33,8 +33,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * ItemDelta ::= 'ITEM(...)' ( ( 'ADD-VALUES(...)' 'DELETE-VALUES(...)'? ) | 'DELETE-VALUES(...)' | 'REPLACE-VALUES(...)' )
  * <p>
  * EXPERIMENTAL IMPLEMENTATION.
- *
- * @author mederly
  */
 @Experimental
 public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_MaybeDelete, S_ValuesEntry {
@@ -127,7 +125,7 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
     }
 
     @Override
-    public <T> S_ValuesEntry property(ItemPath path) {
+    public S_ValuesEntry property(ItemPath path) {
         PrismPropertyDefinition<T> definition = containerCTD.findPropertyDefinition(path);
         return property(path, definition);
     }

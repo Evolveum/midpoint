@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,6 +11,11 @@ import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObje
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
+
+import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -40,23 +45,27 @@ import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
-import com.evolveum.midpoint.schema.util.CaseTypeUtil;
-import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
+import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 public class ColumnUtils {
     private static final Trace LOGGER = TraceManager.getTrace(ColumnUtils.class);
@@ -110,7 +119,7 @@ public class ColumnUtils {
         };
     }
 
-    public static <O extends ObjectType> List<IColumn<SelectableBean<O>, String>> getDefaultColumns(Class<? extends O> type) {
+    public static <O extends ObjectType> List<IColumn<SelectableBean<O>, String>> getDefaultColumns(Class<? extends O> type, PageBase pageBase) {
         if (type == null) {
             return getDefaultUserColumns();
         }
@@ -120,7 +129,7 @@ public class ColumnUtils {
         } else if (RoleType.class.equals(type)) {
             return getDefaultRoleColumns();
         } else if (OrgType.class.equals(type)) {
-            return getDefaultOrgColumns();
+            return getDefaultOrgColumns(pageBase);
         } else if (ServiceType.class.equals(type)) {
             return getDefaultServiceColumns();
         } else if (type.equals(TaskType.class)) {
@@ -164,7 +173,7 @@ public class ColumnUtils {
     }
 
     public static <T extends ObjectType> String getIconColumnValue(T object, OperationResult result) {
-        Class<T> type = (Class<T>) object.getClass();
+        Class<?> type = object.getClass();
         if (type.equals(ObjectType.class)) {
             return WebComponentUtil.createDefaultIcon(object.asPrismObject());
         } else if (type.equals(UserType.class)) {
@@ -175,7 +184,7 @@ public class ColumnUtils {
             return WebComponentUtil.createOrgIcon();
         } else if (ServiceType.class.equals(type)) {
             return WebComponentUtil.createServiceIcon();
-        } else if (ShadowType.class.equals(type)) {
+        } else if (ShadowType.class.equals(type)) { // TODO: duplicated lower, this one is used
             if (object == null) {
                 return WebComponentUtil.createErrorIcon(result);
             } else {
@@ -191,7 +200,7 @@ public class ColumnUtils {
             return GuiStyleConstants.EVO_CASE_OBJECT_ICON;
         } else if (type.equals(CaseWorkItemType.class)) {
             return GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON;
-        } else if (ShadowType.class.equals(type)) {
+        } else if (ShadowType.class.equals(type)) { // TODO ignored, see above
             return GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON;
         }
 
@@ -371,11 +380,54 @@ public class ColumnUtils {
         return columns;
     }
 
-    public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultOrgColumns() {
+    public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultOrgColumns(PageBase pageBase) {
         List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
 
-        columns.addAll((Collection) getDefaultAbstractRoleColumns(true));
+        columns.addAll((Collection) getDefaultAbstractRoleColumns(false));
 
+
+        columns.add(new LinkColumn<>(createStringResource("ObjectType.parentOrgRef")){
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<T>>> cellItem, String componentId, IModel<SelectableBean<T>> rowModel) {
+                RepeatingView links = new RepeatingView(componentId);
+                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getValue() != null
+                        && rowModel.getObject().getValue().getParentOrgRef() != null && !rowModel.getObject().getValue().getParentOrgRef().isEmpty()) {
+                    for (ObjectReferenceType parentRef : rowModel.getObject().getValue().getParentOrgRef()) {
+                        if (parentRef.getOid() == null) {
+                            continue;
+                        }
+                        Model name = Model.of(WebModelServiceUtils.resolveReferenceName(parentRef, pageBase, true));
+                        if (name.getObject() == null) {
+                            continue;
+                        }
+                        links.add(new LinkPanel(links.newChildId(), name) {
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public void onClick() {
+                                PageParameters parameters = new PageParameters();
+                                parameters.add(OnePageParameterEncoder.PARAMETER, parentRef);
+                                pageBase.navigateToNext(PageOrgUnit.class, parameters);
+                            }
+
+                            @Override
+                            public boolean isEnabled() {
+                                return parentRef.getTargetName() != null;
+                            }
+                        });
+                    }
+                }
+                cellItem.add(links);
+            }
+
+            @Override
+            public void onClick(IModel<SelectableBean<T>> rowModel) {
+                super.onClick(rowModel);
+            }
+        });
+
+        columns.add((IColumn)getAbstractRoleColumnForProjection());
         return columns;
     }
 
@@ -416,29 +468,33 @@ public class ColumnUtils {
         List<IColumn<SelectableBean<T>, String>> columns = createColumns(columnsDefs);
 
         if (showAccounts) {
-            IColumn<SelectableBean<T>, String> column = new AbstractExportableColumn<SelectableBean<T>, String>(
-                    createStringResource("AbstractRole.projectionsColumn")) {
-
-                @Override
-                public void populateItem(Item<ICellPopulator<SelectableBean<T>>> cellItem,
-                        String componentId, IModel<SelectableBean<T>> model) {
-                    cellItem.add(new Label(componentId,
-                            model.getObject().getValue() != null ?
-                                    model.getObject().getValue().getLinkRef().size() : null));
-                }
-
-                @Override
-                public IModel<String> getDataModel(IModel<SelectableBean<T>> rowModel) {
-                    return Model.of(rowModel.getObject().getValue() != null ?
-                            Integer.toString(rowModel.getObject().getValue().getLinkRef().size()) : "");
-                }
-
-            };
-
-            columns.add(column);
+            columns.add(getAbstractRoleColumnForProjection());
         }
         return columns;
 
+    }
+
+    private static <T extends AbstractRoleType> IColumn<SelectableBean<T>, String> getAbstractRoleColumnForProjection() {
+        IColumn<SelectableBean<T>, String> column = new AbstractExportableColumn<SelectableBean<T>, String>(
+                createStringResource("AbstractRole.projectionsColumn")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<T>>> cellItem,
+                    String componentId, IModel<SelectableBean<T>> model) {
+                cellItem.add(new Label(componentId,
+                        model.getObject().getValue() != null ?
+                                model.getObject().getValue().getLinkRef().size() : null));
+            }
+
+            @Override
+            public IModel<String> getDataModel(IModel<SelectableBean<T>> rowModel) {
+                return Model.of(rowModel.getObject().getValue() != null ?
+                        Integer.toString(rowModel.getObject().getValue().getLinkRef().size()) : "");
+            }
+
+        };
+
+        return column;
     }
 
     public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultResourceColumns() {
@@ -791,10 +847,41 @@ public class ColumnUtils {
             columns.add(column);
         }
 
+        column = new CountIconColumn<SelectableBean<CaseType>>(createStringResource("CaseType.outcome")) {
+
+            @Override
+            protected Map<DisplayType, Integer> getIconDisplayType(IModel<SelectableBean<CaseType>> rowModel) {
+                Map<DisplayType, Integer> map = new HashMap<>();
+                CaseType caseType = rowModel.getObject().getValue();
+                if (ObjectTypeUtil.hasArchetype(caseType, SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value())) {
+                    ObjectQuery queryFilter = pageBase.getPrismContext().queryFor(CaseType.class)
+                            .item(CaseType.F_PARENT_REF)
+                            .ref(caseType.getOid())
+                            .build();
+                    List<PrismObject<CaseType>> childs =
+                            WebModelServiceUtils.searchObjects(CaseType.class, queryFilter, new OperationResult("search_case_child"), pageBase);
+
+                    for (PrismObject<CaseType> child : childs) {
+                        processCaseOutcome(child.asObjectable(), map, false);
+                    }
+                } else {
+                    processCaseOutcome(caseType, map, true);
+                }
+
+                return map;
+            }
+
+            @Override
+            public String getCssClass() {
+                return "col-lg-1";
+            }
+        };
+        columns.add(column);
+
         column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.state"), CaseType.F_STATE.getLocalPart(), "value.state") {
             @Override
             public String getCssClass() {
-                return isDashboard ? "col-md-1 col-sm-2" : super.getCssClass();
+                return "col-lg-1";
             }
 
             @Override
@@ -827,11 +914,69 @@ public class ColumnUtils {
                             Integer.toString(rowModel.getObject().getValue().getWorkItem().size()) : "");
                 }
 
+                @Override
+                public String getCssClass() {
+                    return "col-lg-1";
+                }
+
             };
             columns.add(column);
         }
 
         return columns;
+    }
+
+    private static void processCaseOutcome(CaseType caseType, Map<DisplayType, Integer> map, boolean useNullAsOne) {
+        if (caseType == null) {
+            return;
+        }
+        Integer one = null;
+        if (!useNullAsOne) {
+            one = 1;
+        }
+        if (CaseTypeUtil.isApprovalCase(caseType)) {
+            Boolean result = ApprovalUtils.approvalBooleanValueFromUri(caseType.getOutcome());
+            if (result == null) {
+                if (caseType.getCloseTimestamp() != null) {
+                    return;
+                } else {
+                    putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(ApprovalOutcomeIcon.IN_PROGRESS));
+                }
+            } else if (result) {
+                putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(ApprovalOutcomeIcon.APPROVED));
+            } else {
+                putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(ApprovalOutcomeIcon.REJECTED));
+            }
+            return;
+        }
+        if (CaseTypeUtil.isManualProvisioningCase(caseType)) {
+
+            if (StringUtils.isEmpty(caseType.getOutcome())) {
+                if (caseType.getCloseTimestamp() != null) {
+                    putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(OperationResultStatusPresentationProperties.UNKNOWN));
+                } else {
+                    putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(OperationResultStatusPresentationProperties.IN_PROGRESS));
+                }
+            } else {
+                OperationResultStatusType result;
+                try {
+                    result = OperationResultStatusType.fromValue(caseType.getOutcome());
+                } catch (IllegalArgumentException e) {
+                    putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(OperationResultStatusPresentationProperties.UNKNOWN));
+                    return;
+                }
+                OperationResultStatusPresentationProperties resultStatus = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result);
+                putDisplayTypeToMapWithCount(map, one, WebComponentUtil.createDisplayType(resultStatus));
+            }
+        }
+    }
+
+    private static void putDisplayTypeToMapWithCount(Map<DisplayType, Integer> map, Integer one, DisplayType caseDisplayType) {
+        if (map.containsKey(caseDisplayType)) {
+            map.merge(caseDisplayType, 1, Integer::sum);
+        } else {
+            map.put(caseDisplayType, one);
+        }
     }
 
     public static AbstractColumn<SelectableBean<CaseType>, String> createCaseActorsColumn(PageBase pageBase) {

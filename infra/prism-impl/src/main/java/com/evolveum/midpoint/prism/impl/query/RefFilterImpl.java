@@ -1,10 +1,21 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.impl.query;
+
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -13,21 +24,23 @@ import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
 
 public class RefFilterImpl extends ValueFilterImpl<PrismReferenceValue, PrismReferenceDefinition> implements RefFilter {
     private static final long serialVersionUID = 1L;
 
-    private boolean oidNullAsAny = true;                // "false" is not supported by repo
-    private boolean targetTypeNullAsAny = true;         // "true" to be consistent with the repo implementation; "false" is ignored by repo
-    private boolean relationNullAsAny = false;          // currently ignored
+    /**
+     * By default null OID means to match any value (no additional condition).
+     * Value {@code false} means to match only refs where OID is {@code null}.
+     * False is ignored by legacy SQL repo, but supported by Sqale repo.
+     */
+    private boolean oidNullAsAny = true;
+
+    /**
+     * By default null target type means to match any value (no additional condition).
+     * Value {@code false} means to match only refs where type is {@code null}.
+     * False is ignored by legacy SQL repo, but supported by Sqale repo.
+     */
+    private boolean targetTypeNullAsAny = true;
 
     private RefFilterImpl(@NotNull ItemPath fullPath, @Nullable PrismReferenceDefinition definition,
             @Nullable List<PrismReferenceValue> values, @Nullable ExpressionWrapper expression) {
@@ -54,27 +67,16 @@ public class RefFilterImpl extends ValueFilterImpl<PrismReferenceValue, PrismRef
 
     @Override
     public boolean match(PrismContainerValue objectValue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-
-        Item filterItem = getFilterItem();
         Collection<PrismValue> objectItemValues = getObjectItemValues(objectValue);
-
-        if (!super.match(objectValue, matchingRuleRegistry)) {
-            return false;
+        Collection<? extends PrismValue> filterValues = emptyIfNull(getValues());
+        if (objectItemValues.isEmpty()) {
+            return filterValues.isEmpty();
         }
-
-        boolean filterItemIsEmpty = getValues() == null || getValues().isEmpty();
-        boolean objectItemIsEmpty = objectItemValues.isEmpty();
-        if (filterItemIsEmpty && objectItemIsEmpty) {
-            return true;
-        }
-        assert !filterItemIsEmpty;    // if both are empty, the previous statement causes 'return true'
-        assert !objectItemIsEmpty;    // if only one of them is empty, the super.match() returned false
-
-        for (Object filterItemValue : filterItem.getValues()) {
-            checkPrismReferenceValue(filterItemValue);
-            for (Object objectItemValue : objectItemValues) {
+        for (PrismValue filterValue : filterValues) {
+            checkPrismReferenceValue(filterValue);
+            for (PrismValue objectItemValue : objectItemValues) {
                 checkPrismReferenceValue(objectItemValue);
-                if (valuesMatch(((PrismReferenceValue) filterItemValue), (PrismReferenceValue) objectItemValue)) {
+                if (valuesMatch(((PrismReferenceValue) filterValue), (PrismReferenceValue) objectItemValue)) {
                     return true;
                 }
             }
@@ -84,7 +86,8 @@ public class RefFilterImpl extends ValueFilterImpl<PrismReferenceValue, PrismRef
 
     private void checkPrismReferenceValue(Object value) {
         if (!(value instanceof PrismReferenceValue)) {
-            throw new IllegalArgumentException("Not supported prism value for ref filter. It must be an instance of PrismReferenceValue but it is " + value.getClass());
+            throw new IllegalArgumentException("Not supported prism value for ref filter."
+                    + " It must be an instance of PrismReferenceValue but it is " + value.getClass());
         }
     }
 
@@ -126,16 +129,16 @@ public class RefFilterImpl extends ValueFilterImpl<PrismReferenceValue, PrismRef
         return obj instanceof RefFilter && super.equals(obj, exact);
     }
 
+    @Override
     public void setOidNullAsAny(boolean oidNullAsAny) {
+        checkMutable();
         this.oidNullAsAny = oidNullAsAny;
     }
 
+    @Override
     public void setTargetTypeNullAsAny(boolean targetTypeNullAsAny) {
+        checkMutable();
         this.targetTypeNullAsAny = targetTypeNullAsAny;
-    }
-
-    public void setRelationNullAsAny(boolean relationNullAsAny) {
-        this.relationNullAsAny = relationNullAsAny;
     }
 
     @Override
@@ -149,16 +152,11 @@ public class RefFilterImpl extends ValueFilterImpl<PrismReferenceValue, PrismRef
     }
 
     @Override
-    public boolean isRelationNullAsAny() {
-        return relationNullAsAny;
-    }
-
-    @Override
     protected void debugDump(int indent, StringBuilder sb) {
         super.debugDump(indent, sb);
         sb.append("\n");
-        DebugUtil.debugDumpWithLabelLn(sb, "Null OID means any", oidNullAsAny, indent+1);
-        DebugUtil.debugDumpWithLabel(sb, "Null target type means any", targetTypeNullAsAny, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "Null OID means any", oidNullAsAny, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "Null target type means any", targetTypeNullAsAny, indent + 1);
         // relationNullAsAny is currently ignored anyway
     }
 }

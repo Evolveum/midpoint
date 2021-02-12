@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,27 +11,28 @@ import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database;
+import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
 
 /**
  * @author skublik
  */
+@Deprecated
 public class SelectQueryBuilder {
 
-    private final Database database;
+    private final SupportedDatabase database;
     private final Map<Integer, Object> parameters = new HashMap<>();
 
     private String query;
     private Integer firstResult = null;
     private Integer maxResult = null;
 
-    public SelectQueryBuilder(Database database, String query) {
+    public SelectQueryBuilder(SupportedDatabase database, String query) {
         Objects.requireNonNull(database, "Database is null");
         if (StringUtils.isBlank(query)) {
             throw new IllegalArgumentException("Query is empty");
         }
         this.database = database;
-        if (database.equals(Database.ORACLE)) {
+        if (database == SupportedDatabase.ORACLE) {
             int indexOfWhere = query.toLowerCase().indexOf("where");
             indexOfWhere = (indexOfWhere == -1) ? query.length() : indexOfWhere;
             String partOfQuery = query.substring(0, indexOfWhere);
@@ -47,22 +48,21 @@ public class SelectQueryBuilder {
         Objects.requireNonNull(database, "Database is null");
         StringBuilder sb = new StringBuilder();
         String queryWithoutStringValue = query.replaceAll("\".*?\"|'.*?'|`.*`", "");
-        if (Database.SQLSERVER.equals(database)) {
+        if (database == SupportedDatabase.SQLSERVER) {
             if (queryWithoutStringValue.toLowerCase().contains(" offset ") || queryWithoutStringValue.contains(" fetch ")) {
                 throw new IllegalArgumentException("query already contains offset or fetch");
             }
             sb.append(query)
                     .append(" OFFSET ").append(firstResult).append(" ROWS")
                     .append(" FETCH NEXT ").append(maxResult).append(" ROWS ONLY ");
-        } else if (Database.ORACLE.equals(database)) {
+        } else if (database == SupportedDatabase.ORACLE) {
             sb.append("SELECT * FROM" +
                     "( " +
                     "SELECT a.*, rownum r__ FROM (")
                     .append(query)
                     .append(") a WHERE rownum < ").append(firstResult + maxResult + 1)
                     .append(") WHERE r__ >= ").append(firstResult + 1).append(" ");
-        } else if (Database.H2.equals(database) || Database.MARIADB.equals(database)
-                || Database.MYSQL.equals(database) || Database.POSTGRESQL.equals(database)) {
+        } else if (database.supportsLimitOffset()) {
             if (queryWithoutStringValue.toLowerCase().contains(" limit ") || queryWithoutStringValue.contains(" offset ")) {
                 throw new IllegalArgumentException("query already contains offset or fetch");
             }
@@ -80,18 +80,17 @@ public class SelectQueryBuilder {
 
         StringBuilder sb = new StringBuilder();
         String queryWithoutStringValue = query.replaceAll("\".*?\"|'.*?'|`.*`", "");
-        if (Database.H2.equals(database) || Database.MARIADB.equals(database)
-                || Database.MYSQL.equals(database) || Database.POSTGRESQL.equals(database)) {
+        if (database.supportsLimitOffset()) {
             if (queryWithoutStringValue.contains(" offset ")) {
                 throw new IllegalArgumentException("query already contains offset");
             }
             sb.append(query).append(" OFFSET ").append(firstResult).append(" ");
-        } else if (Database.ORACLE.equals(database)) {
+        } else if (database == SupportedDatabase.ORACLE) {
             sb.append("SELECT * FROM" +
                     "( ")
                     .append(query)
                     .append(") WHERE rownum > ").append(firstResult).append(" ");
-        } else if (Database.SQLSERVER.equals(database)) {
+        } else if (database == SupportedDatabase.SQLSERVER) {
             if (queryWithoutStringValue.toLowerCase().contains(" offset ")) {
                 throw new IllegalArgumentException("query already contains offset");
             }
@@ -106,20 +105,19 @@ public class SelectQueryBuilder {
         Objects.requireNonNull(database, "Database is null");
         StringBuilder sb = new StringBuilder();
         String queryWithoutStringValue = query.replaceAll("\".*?\"|'.*?'|`.*`", "");
-        if (Database.H2.equals(database) || Database.MARIADB.equals(database)
-                || Database.MYSQL.equals(database) || Database.POSTGRESQL.equals(database)) {
+        if (database.supportsLimitOffset()) {
             if (queryWithoutStringValue.toLowerCase().contains(" limit ")) {
                 throw new IllegalArgumentException("query already contains limit");
             }
             sb.append(query).append(" LIMIT ").append(maxResult).append(" ");
-        } else if (Database.SQLSERVER.equals(database)) {
+        } else if (database == SupportedDatabase.SQLSERVER) {
             if (queryWithoutStringValue.toLowerCase().contains(" fetch ")) {
                 throw new IllegalArgumentException("query already contains fetch");
             }
             sb.append(query)
                     .append(" OFFSET 0 ROWS")           // looks like FETCH NEXT does not work without OFFSET clause
                     .append(" FETCH NEXT ").append(maxResult).append(" ROWS ONLY ");
-        } else if (Database.ORACLE.equals(database)) {
+        } else if (database == SupportedDatabase.ORACLE) {
             sb.append("SELECT * FROM" +
                     "( ")
                     .append(query)

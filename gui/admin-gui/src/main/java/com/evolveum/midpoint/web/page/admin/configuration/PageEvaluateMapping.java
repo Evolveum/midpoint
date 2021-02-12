@@ -15,6 +15,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -45,12 +47,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingEvaluationReq
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingEvaluationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
-@PageDescriptor(url = "/admin/config/evaluateMapping", action = {
+@PageDescriptor(url = "/admin/config/evaluateMapping",
+        action = {
         @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
                 label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_EVALUATE_MAPPING_URL,
                 label = "PageEvaluateMapping.auth.mapping.label", description = "PageEvaluateMapping.auth.mapping.description")
-})
+        }, experimental = true)
+@Experimental
 public class PageEvaluateMapping extends PageAdminConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageEvaluateMapping.class);

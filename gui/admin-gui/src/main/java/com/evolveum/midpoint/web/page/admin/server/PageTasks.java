@@ -83,32 +83,35 @@ public class PageTasks extends PageAdmin {
     public PageTasks(ObjectQuery predefinedQuery, PageParameters params) {
         super(params);
 
-        TaskTablePanel tablePanel = new TaskTablePanel(ID_TABLE, UserProfileStorage.TableId.TABLE_TASKS, createOperationOptions()) {
+        TaskTablePanel tablePanel = new TaskTablePanel(ID_TABLE, createOperationOptions()) {
+
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
+            protected ObjectQuery getCustomizeContentQuery() {
                 if (isCollectionViewPanel()) {
-                    return query;
+                    return null;
                 }
-                if (query == null) {
-                    query = getPrismContext().queryFactory().createQuery();
-                }
+                ObjectQuery query = getPrismContext().queryFor(TaskType.class)
+                        .item(TaskType.F_PARENT)
+                        .isNull()
+                        .build();
                 if (predefinedQuery != null) {
                     query.addFilter(predefinedQuery.getFilter());
                 }
-                query.addFilter(getPrismContext().queryFor(TaskType.class)
-                        .item(TaskType.F_PARENT)
-                        .isNull()
-                        .buildFilter());
                 return query;
             }
 
             @Override
-            protected List<IColumn<SelectableBean<TaskType>, String>> createColumns() {
-                List<IColumn<SelectableBean<TaskType>, String>> columns = super.createColumns();
+            protected List<IColumn<SelectableBean<TaskType>, String>> createDefaultColumns() {
+                List<IColumn<SelectableBean<TaskType>, String>> columns = super.createDefaultColumns();
                 addCustomColumns(columns);
                 return columns;
+            }
+
+            @Override
+            protected UserProfileStorage.TableId getTableId() {
+                return UserProfileStorage.TableId.TABLE_TASKS;
             }
         };
         add(tablePanel);

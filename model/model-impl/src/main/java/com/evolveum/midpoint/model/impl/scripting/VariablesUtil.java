@@ -1,11 +1,19 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.model.impl.scripting;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.StaticExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
@@ -26,28 +34,14 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingVariableDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingVariablesDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
-import java.util.*;
-
-/**
- * @author mederly
- */
 public class VariablesUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(VariablesUtil.class);
@@ -58,6 +52,7 @@ public class VariablesUtil {
         @NotNull final PrismContext prismContext;
         final ExpressionProfile expressionProfile;
         @NotNull final Task task;
+
         VariableResolutionContext(@NotNull ExpressionFactory expressionFactory,
                 @NotNull ObjectResolver objectResolver, @NotNull PrismContext prismContext, ExpressionProfile expressionProfile, @NotNull Task task) {
             this.expressionFactory = expressionFactory;
@@ -145,7 +140,7 @@ public class VariablesUtil {
         } else {
             value = unwrapPrismValues(resultingValues);
         }
-        return new TypedValue(value, outputDefinition);
+        return new TypedValue<>(value, outputDefinition);
     }
 
     // TODO shouldn't we unwrap collections of prism values in the same way as in ExpressionUtil.convertVariableValue ?
@@ -200,6 +195,7 @@ public class VariablesUtil {
 
     @Nullable
     public static <T> TypedValue<T> cloneIfNecessary(String name, TypedValue<T> valueAndDef) {
+        //noinspection unchecked
         T valueClone = (T) cloneIfNecessary(name, valueAndDef.getValue());
         if (valueClone == valueAndDef.getValue()) {
             return valueAndDef;
@@ -225,7 +221,6 @@ public class VariablesUtil {
             }
         }
     }
-
 
     public static <T> TypedValue<T> makeImmutable(TypedValue<T> valueAndDef) {
         T immutableValue = (T) makeImmutableValue(valueAndDef.getValue());

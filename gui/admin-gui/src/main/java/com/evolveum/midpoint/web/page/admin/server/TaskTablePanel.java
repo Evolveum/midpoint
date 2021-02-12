@@ -64,7 +64,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -79,7 +78,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_TASKS_URL,
                         label = "PageTasks.auth.tasks.label",
                         description = "PageTasks.auth.tasks.description") })
-public class TaskTablePanel extends MainObjectListPanel<TaskType> {
+public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskTablePanel.class);
 
@@ -98,8 +97,8 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
     public static final long WAIT_FOR_TASK_STOP = 2000L;
 
-    public TaskTablePanel(String id, UserProfileStorage.TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options) {
-        super(id, TaskType.class, tableId, options);
+    public TaskTablePanel(String id, Collection<SelectorOptions<GetOperationOptions>> options) {
+        super(id, TaskType.class, options);
     }
 
     @Override
@@ -113,7 +112,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     @Override
-    protected List<IColumn<SelectableBean<TaskType>, String>> createColumns() {
+    protected List<IColumn<SelectableBean<TaskType>, String>> createDefaultColumns() {
         return initTaskColumns();
     }
 
@@ -182,7 +181,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         showResult(result);
 
         // refresh feedback and table
-        refreshTable(TaskType.class, target);
+        refreshTable(target);
         target.add(getTable());
         clearCache();
     }
@@ -710,7 +709,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         showResult(result);
 
         //refresh feedback and table
-        refreshTable(TaskType.class, target);
+        refreshTable(target);
         clearCache();
     }
 
@@ -723,7 +722,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         showResult(result);
 
         //refresh feedback and table
-        refreshTable(TaskType.class, target);
+        refreshTable(target);
         clearCache();
 
     }
@@ -733,7 +732,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         if (selectedTask != null) {
             selectedTasks.add(selectedTask.getObject().getValue());
         } else {
-            selectedTasks = getSelectedObjects();
+            selectedTasks = getSelectedRealObjects();
         }
 
         if (selectedTasks.isEmpty()) {
@@ -764,7 +763,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         showResult(result);
 
         //refresh feedback and table
-        refreshTable(TaskType.class, target);
+        refreshTable(target);
         clearCache();
 
     }
@@ -792,7 +791,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         showResult(result);
 
         // refresh feedback and table
-        refreshTable(TaskType.class, target);
+        refreshTable(target);
         clearCache();
     }
 
@@ -812,7 +811,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         }
         showResult(result);
 
-        refreshTable(TaskType.class, target);
+        refreshTable(target);
         clearCache();
     }
 
@@ -829,7 +828,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         }
         showResult(result);
 
-        refreshTable(TaskType.class, target);
+        refreshTable(target);
         clearCache();
     }
 
@@ -845,7 +844,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         }
         showResult(result);
 
-        refreshTable(TaskType.class, target);
+        refreshTable(target);
         clearCache();
     }
 
@@ -862,7 +861,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         }
         showResult(result);
 
-        refreshTable(TaskType.class, target);
+        refreshTable(target);
         clearCache();
     }
 
@@ -887,7 +886,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         }
         showResult(result);
 
-        refreshTable(TaskType.class, target);
+        refreshTable(target);
         clearCache();
     }
 
@@ -926,12 +925,12 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
             return createStringResource("pageTasks.message.confirmationMessageForSingleTaskObject", actionName, objectName);
         }
 
-        if (CollectionUtils.isEmpty(getSelectedObjects())) {
+        if (CollectionUtils.isEmpty(getSelectedRealObjects())) {
             getSession().warn(getString("pageTasks.message.confirmationMessageForNoTaskObject", actionName));
             return null; //confirmation popup should not be shown
         }
 
-        return createStringResource("pageTasks.message.confirmationMessageForMultipleTaskObject", actionName, getSelectedObjects().size());
+        return createStringResource("pageTasks.message.confirmationMessageForMultipleTaskObject", actionName, getSelectedRealObjects().size());
     }
 
     // must be static, otherwise JVM crashes (probably because of some wicket serialization issues)

@@ -10,8 +10,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -19,7 +17,6 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -32,7 +29,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
-import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -185,8 +181,10 @@ public interface ProvisioningService {
      * @throws GenericConnectorException
      *             unknown connector framework error
      */
-    int synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, TaskPartitionDefinitionType taskPartition, OperationResult parentResult) throws ObjectNotFoundException,
-            CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException;
+    @NotNull SynchronizationResult synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, TaskPartitionDefinitionType taskPartition,
+            LiveSyncEventHandler handler, OperationResult parentResult) throws ObjectNotFoundException,
+            CommunicationException, SchemaException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException;
 
     /**
      * Processes asynchronous updates for a given resource.
@@ -205,7 +203,8 @@ public interface ProvisioningService {
      * Note that although it is possible to specify other parameters in addition to resource OID (e.g. objectClass), these
      * settings are not supported now.
      */
-    void processAsynchronousUpdates(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult)
+    void processAsynchronousUpdates(@NotNull ResourceShadowDiscriminator shadowCoordinates,
+            @NotNull AsyncUpdateEventHandler handler, @NotNull Task task, @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException;
 
@@ -264,7 +263,7 @@ public interface ProvisioningService {
      * @param handler
      *            result handler
      * @param task
-     *@param parentResult
+     * @param parentResult
      *            parent OperationResult (in/out)
      *  @throws IllegalArgumentException
      *             wrong object type
@@ -315,7 +314,7 @@ public interface ProvisioningService {
      * @throws ObjectAlreadyExistsException
      *             if resulting object would have name which already exists in another object of the same type
      */
-    <T extends ObjectType> String modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+    <T extends ObjectType> String modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta<?, ?>> modifications,
             OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
 
@@ -374,7 +373,7 @@ public interface ProvisioningService {
      * @throws ObjectAlreadyExistsException
      *             if resulting object would have name which already exists in another object of the same type
      */
-    <T extends ObjectType> Object executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
+    Object executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
 
     /**
@@ -465,7 +464,6 @@ public interface ProvisioningService {
     /**
      * Returns a diagnostic information.
      * @see com.evolveum.midpoint.schema.ProvisioningDiag
-     * @return
      */
     ProvisioningDiag getProvisioningDiag();
 

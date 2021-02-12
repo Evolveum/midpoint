@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.FullTextFilter;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,20 +47,32 @@ public final class FullTextFilterImpl extends ObjectFilterImpl implements FullTe
         return new FullTextFilterImpl(expression);
     }
 
+    @Override
     public Collection<String> getValues() {
         return values;
     }
 
+    @Override
     public void setValues(Collection<String> values) {
+        checkMutable();
         this.values = values;
     }
 
+    @Override
     public ExpressionWrapper getExpression() {
         return expression;
     }
 
+    @Override
     public void setExpression(ExpressionWrapper expression) {
+        checkMutable();
         this.expression = expression;
+    }
+
+    @Override
+    protected void performFreeze() {
+        values = ImmutableList.copyOf(values);
+        freeze(expression);
     }
 
     @Override

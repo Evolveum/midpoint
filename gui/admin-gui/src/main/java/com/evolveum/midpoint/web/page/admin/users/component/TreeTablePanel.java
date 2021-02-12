@@ -36,7 +36,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -56,8 +55,8 @@ import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
 import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
+import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
+import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
 import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -76,11 +75,6 @@ public class TreeTablePanel extends BasePanel<String> {
 
     private static final long serialVersionUID = 1L;
     private final PageBase parentPage;
-
-    @Override
-    public PageBase getPageBase() {
-        return parentPage;
-    }
 
     protected static final String DOT_CLASS = TreeTablePanel.class.getName() + ".";
     protected static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
@@ -103,7 +97,17 @@ public class TreeTablePanel extends BasePanel<String> {
         super(id, rootOid);
         this.parentPage = parentPage;
         setParent(parentPage);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
         initLayout(parentPage);
+    }
+
+    @Override
+    public PageBase getPageBase() {
+        return parentPage;
     }
 
     protected void initLayout(ModelServiceLocator serviceLocator) {
@@ -136,14 +140,14 @@ public class TreeTablePanel extends BasePanel<String> {
     }
 
     private OrgMemberPanel createMemberPanel(OrgType org) {
-        OrgMemberPanel memberPanel = new OrgMemberPanel(ID_MEMBER_PANEL, new Model<>(org)) {
+        OrgMemberPanel memberPanel = new OrgMemberPanel(ID_MEMBER_PANEL, new Model<>(org), getPageBase()) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             protected AvailableRelationDto getSupportedRelations() {
                 return new AvailableRelationDto(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, TreeTablePanel.this.getPageBase()),
-                        SchemaConstants.ORG_DEFAULT);
+                        getDefaultRelationConfiguration());
             }
         };
         memberPanel.setOutputMarkupId(true);

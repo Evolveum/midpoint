@@ -6,18 +6,25 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
+import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -58,6 +65,8 @@ public class ProvisioningContext extends StateReporter {
     private RefinedResourceSchema refinedSchema;
 
     private String channelOverride;
+
+    Collection<ResourceObjectPattern> protectedAccountPatterns;
 
     public ProvisioningContext(@NotNull ResourceManager resourceManager, OperationResult parentResult) {
         this.resourceManager = resourceManager;
@@ -176,6 +185,31 @@ public class ProvisioningContext extends StateReporter {
         return objectClassDefinition;
     }
 
+    public Collection<ResourceObjectPattern> getProtectedAccountPatterns(ExpressionFactory expressionFactory, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SecurityViolationException {
+        if (protectedAccountPatterns != null) {
+            return protectedAccountPatterns;
+        }
+
+        protectedAccountPatterns = new ArrayList<>();
+
+        RefinedObjectClassDefinition objectClassDefinition = getObjectClassDefinition();
+        Collection<ResourceObjectPattern> patterns = objectClassDefinition.getProtectedObjectPatterns();
+        for (ResourceObjectPattern pattern : patterns) {
+            ObjectFilter filter = pattern.getObjectFilter();
+            if (filter == null) {
+                continue;
+            }
+            ExpressionVariables variables = new ExpressionVariables();
+            variables.put(ExpressionConstants.VAR_RESOURCE, resource, ResourceType.class);
+            variables.put(ExpressionConstants.VAR_CONFIGURATION, resourceManager.getSystemConfiguration(), SystemConfigurationType.class);
+            ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(filter, variables, MiscSchemaUtil.getExpressionProfile(), expressionFactory, getPrismContext(), "protected filter", getTask(), result);
+            pattern.addFilter(evaluatedFilter);
+            protectedAccountPatterns.add(pattern);
+        }
+
+        return protectedAccountPatterns;
+    }
+
     // we don't use additionalAuxiliaryObjectClassQNames as we don't know if they are initialized correctly [med] TODO: reconsider this
     public CompositeRefinedObjectClassDefinition computeCompositeObjectClassDefinition(@NotNull Collection<QName> auxObjectClassQNames)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
@@ -238,6 +272,16 @@ public class ProvisioningContext extends StateReporter {
      */
     public ProvisioningContext spawn(QName objectClassQName, Task workerTask) {
         ProvisioningContext child = spawn(objectClassQName);
+        child.setTask(workerTask);
+        return child;
+    }
+
+    /**
+     * Creates an exact copy of the context but with different task.
+     */
+    public ProvisioningContext spawn(Task workerTask) {
+        ProvisioningContext child = spawnSameResource();
+        child.shadowCoordinates = shadowCoordinates; // todo clone?
         child.setTask(workerTask);
         return child;
     }

@@ -6,6 +6,11 @@
  */
 package com.evolveum.midpoint.web.component.data;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
@@ -18,11 +23,7 @@ import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.validation.validator.RangeValidator;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -124,7 +125,7 @@ public class TableConfigurationPanel extends BasePanel {
             public Integer getObject() {
                 Table tablePanel = findParent(Table.class);
                 UserProfileStorage.TableId tableId = tablePanel.getTableId();
-                if (tableId == null) {
+                if (tableId == null || !tablePanel.enableSavePageSize()) {
                     return tablePanel.getItemsPerPage();
                 }
 
@@ -135,7 +136,7 @@ public class TableConfigurationPanel extends BasePanel {
             public void setObject(Integer o) {
                 Table tablePanel = findParent(Table.class);
                 UserProfileStorage.TableId tableId = tablePanel.getTableId();
-                if (tableId == null) {
+                if (tableId == null || !tablePanel.enableSavePageSize()) {
                     tablePanel.setItemsPerPage(o);
                     return;
                 }

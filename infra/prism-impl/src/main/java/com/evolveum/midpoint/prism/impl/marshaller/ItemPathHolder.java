@@ -181,32 +181,24 @@ public final class ItemPathHolder {
             } else {
                 ns = explicitNamespaceDeclarations.get(prefix);
             }
-            if (ns != null) {
-                return ns;
-            }
+        }
+        if (ns != null) {
+            return ns;
         }
 
+        if(StringUtils.isEmpty(prefix)) {
+            // we don't want the default namespace declaration (xmlns="...") to propagate into path expressions
+            // so here we do not try to obtain the namespace from the document / namespace map
+            //
+            // Namespace map is used in domless parsing,
+            // element is used in dom aware parsing
+            return null;
+        }
+        // one of namespaceMap or domNode is always null.
         if (namespaceMap != null) {
-            if (prefix == null) {
-                ns = namespaceMap.get("");
-            } else {
-                ns = namespaceMap.get(prefix);
-            }
-            if (ns != null) {
-                return ns;
-            }
-        }
-
-        if (domNode != null) {
-            if (StringUtils.isNotEmpty(prefix)) {
-                ns = domNode.lookupNamespaceURI(prefix);
-            } else {
-                // we don't want the default namespace declaration (xmlns="...") to propagate into path expressions
-                // so here we do not try to obtain the namespace from the document
-            }
-            if (ns != null) {
-                return ns;
-            }
+            ns = namespaceMap.get(prefix);
+        } else if (domNode != null) {
+            ns = domNode.lookupNamespaceURI(prefix);
         }
 
         return ns;

@@ -14,6 +14,8 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -26,6 +28,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -365,9 +369,12 @@ public class ShadowUtil {
 
     public static PrismObjectDefinition<ShadowType> applyObjectClass(PrismObjectDefinition<ShadowType> shadowDefinition,
             ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
-        PrismObjectDefinition<ShadowType> shadowDefClone = shadowDefinition.cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES,
+        return shadowDefinition.cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES,
                 objectClassDefinition.toResourceAttributeContainerDefinition());
-        return shadowDefClone;
+    }
+
+    public static String getIntent(PrismObject<ShadowType> shadow) {
+        return shadow != null ? getIntent(shadow.asObjectable()) : null;
     }
 
     /**
@@ -378,24 +385,19 @@ public class ShadowUtil {
         if (shadow == null) {
             return null;
         }
-        String intent = shadow.getIntent();
-        if (intent != null) {
-            return intent;
-        }
-        return null;
+        return shadow.getIntent();
+    }
+
+    public static ShadowKindType getKind(PrismObject<ShadowType> shadow) {
+        return shadow != null ? getKind(shadow.asObjectable()) : null;
     }
 
     public static ShadowKindType getKind(ShadowType shadow) {
         if (shadow == null) {
             return null;
         }
-        ShadowKindType kind = shadow.getKind();
-        if (kind != null) {
-            return kind;
-        }
-        return ShadowKindType.ACCOUNT;
+        return ObjectUtils.defaultIfNull(shadow.getKind(), ShadowKindType.ACCOUNT);
     }
-
 
     public static <T> Collection<T> getAttributeValues(ShadowType shadow, QName attributeQname, Class<T> type) {
         ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
@@ -804,6 +806,10 @@ public class ShadowUtil {
         return passwd.getValue();
     }
 
+    public static Object shortDumpShadowLazily(PrismObject<ShadowType> shadow) {
+        return DebugUtil.lazy(() -> shortDumpShadow(shadow));
+    }
+
     public static String shortDumpShadow(PrismObject<ShadowType> shadow) {
         if (shadow == null) {
             return "null";
@@ -849,6 +855,4 @@ public class ShadowUtil {
             }
         }
     }
-
-
 }

@@ -14,8 +14,9 @@ import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuPanel;
+
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.*;
@@ -48,7 +49,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.CssResourceReference;
 import org.apache.wicket.resource.CoreLibrariesContributor;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
@@ -82,7 +82,6 @@ import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerValuePanel;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
@@ -92,9 +91,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryConverter;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.api.CounterManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -119,7 +116,6 @@ import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.CheckedProducer;
 import com.evolveum.midpoint.util.Holder;
@@ -129,7 +125,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
-import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.web.boot.Wro4jConfig;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
@@ -143,33 +138,6 @@ import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.web.page.admin.archetype.PageArchetype;
-import com.evolveum.midpoint.web.page.admin.archetype.PageArchetypes;
-import com.evolveum.midpoint.web.page.admin.cases.*;
-import com.evolveum.midpoint.web.page.admin.certification.*;
-import com.evolveum.midpoint.web.page.admin.configuration.*;
-import com.evolveum.midpoint.web.page.admin.home.PageDashboardConfigurable;
-import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
-import com.evolveum.midpoint.web.page.admin.objectCollection.PageObjectCollection;
-import com.evolveum.midpoint.web.page.admin.objectCollection.PageObjectCollections;
-import com.evolveum.midpoint.web.page.admin.reports.*;
-import com.evolveum.midpoint.web.page.admin.resources.*;
-import com.evolveum.midpoint.web.page.admin.roles.PageRole;
-import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
-import com.evolveum.midpoint.web.page.admin.server.PageNodes;
-import com.evolveum.midpoint.web.page.admin.server.PageTask;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.page.admin.server.PageTasksCertScheduling;
-import com.evolveum.midpoint.web.page.admin.services.PageService;
-import com.evolveum.midpoint.web.page.admin.services.PageServices;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
-import com.evolveum.midpoint.web.page.admin.workflow.PageAttorneySelection;
-import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItemsAttorney;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.*;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -179,10 +147,8 @@ import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.NewWindowNotifyingBehavior;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -333,9 +299,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     private boolean initialized = false;
 
-    private LoadableModel<Integer> workItemCountModel;
-    private LoadableModel<Integer> certWorkItemCountModel;
-
     // No need to store this in the session. Retrieval is cheap.
     private transient CompiledGuiProfile compiledGuiProfile;
 
@@ -355,9 +318,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MidPointAuthWebSession.getSession().setClientCustomization();
 
         add(new NewWindowNotifyingBehavior());
-
-        initializeModel();
-
     }
 
     @Override
@@ -376,58 +336,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         initialized = true;
 
         createBreadcrumb();
-    }
-
-    private void initializeModel() {
-        workItemCountModel = new LoadableModel<Integer>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected Integer load() {
-                try {
-                    Task task = createSimpleTask(OPERATION_LOAD_WORK_ITEM_COUNT);
-                    S_FilterEntryOrEmpty q = getPrismContext().queryFor(CaseWorkItemType.class);
-                    ObjectQuery query = QueryUtils.filterForAssignees(q, getPrincipal(),
-                            OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry())
-                            .and()
-                            .item(CaseWorkItemType.F_CLOSE_TIMESTAMP)
-                            .isNull()
-                            .build();
-                    return getModelService().countContainers(CaseWorkItemType.class, query, null, task, task.getResult());
-                } catch (Exception e) {
-                    LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load work item count", e);
-                    return null;
-                }
-            }
-        };
-        certWorkItemCountModel = new LoadableModel<Integer>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected Integer load() {
-                try {
-                    AccessCertificationService acs = getCertificationService();
-                    Task task = createSimpleTask(OPERATION_LOAD_CERT_WORK_ITEM_COUNT);
-                    OperationResult result = task.getResult();
-                    return acs.countOpenWorkItems(getPrismContext().queryFactory().createQuery(), true, null, task, result);
-                } catch (Exception e) {
-                    LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load certification work item count", e);
-                    return null;
-                }
-            }
-        };
-    }
-
-    public void resetWorkItemCountModel() {
-        if (workItemCountModel != null) {
-            workItemCountModel.reset();
-        }
-    }
-
-    public void resetCertWorkItemCountModel() {
-        if (certWorkItemCountModel != null) {
-            certWorkItemCountModel.reset();
-        }
     }
 
     protected void createBreadcrumb() {
@@ -489,10 +397,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return localizationService;
     }
 
-    public MidpointFunctions getMidpointFunctions() {
-        return midpointFunctions;
-    }
-
     public CounterManager getCounterManager() {
         return counterManager;
     }
@@ -508,10 +412,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public GetOperationOptionsBuilder getOperationOptionsBuilder() {
         return getSchemaHelper().getOperationOptionsBuilder();
-    }
-
-    public Collection<SelectorOptions<GetOperationOptions>> retrieveItemsNamed(Object... items) {
-        return getOperationOptionsBuilder().items(items).retrieve().build();
     }
 
     public QueryConverter getQueryConverter() {
@@ -556,10 +456,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public AuditService getAuditService() {
         return auditService;
-    }
-
-    public ClusterExecutionHelper getClusterExecutionHelper() {
-        return clusterExecutionHelper;
     }
 
     public AccessCertificationService getCertificationService() {
@@ -655,17 +551,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
     }
 
-    // TODO reconsider this method
-    public boolean isFullyAuthorized() {
-        try {
-            return isAuthorized(AuthorizationConstants.AUTZ_ALL_URL);
-        } catch (Throwable t) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check the authorization", t);
-            return false;
-        }
-    }
-
-    public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public boolean isAuthorized(String operationUrl) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         return isAuthorized(operationUrl, null, null, null, null, null);
     }
 
@@ -765,27 +651,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     @Override
-    public void renderHead(IHeaderResponse response) {
-        super.renderHead(response);
-
-        String skinCssString = CLASS_DEFAULT_SKIN;
-        DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
-        if (info != null && StringUtils.isNotEmpty(info.getSkin())) {
-            skinCssString = info.getSkin();
-        }
-
-        String skinCssPath = String.format("../../../../../../webjars/AdminLTE/2.4.18/dist/css/skins/%s.min.css", skinCssString);
-        response.render(CssHeaderItem.forReference(
-                new CssResourceReference(
-                        PageBase.class, skinCssPath)
-                )
-        );
-
-        // this attaches jquery.js as first header item, which is used in our scripts.
-        CoreLibrariesContributor.contribute(getApplication(), response);
-    }
-
-    @Override
     protected void onBeforeRender() {
         super.onBeforeRender();
         FeedbackMessages messages = getSession().getFeedbackMessages();
@@ -798,21 +663,20 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     private void initHeaderLayout(WebMarkupContainer container) {
         WebMarkupContainer menuToggle = new WebMarkupContainer(ID_MENU_TOGGLE);
-        menuToggle.add(createUserStatusBehaviour(true));
+        menuToggle.add(createUserStatusBehaviour());
         container.add(menuToggle);
 
         UserMenuPanel rightMenu = new UserMenuPanel(ID_RIGHT_MENU);
-        rightMenu.add(createUserStatusBehaviour(true));
+        rightMenu.add(createUserStatusBehaviour());
         container.add(rightMenu);
 
         LocalePanel locale = new LocalePanel(ID_LOCALE);
-//        locale.add(createUserStatusBehaviour(false));
         container.add(locale);
     }
 
     private void initTitleLayout(WebMarkupContainer mainHeader) {
         WebMarkupContainer pageTitleContainer = new WebMarkupContainer(ID_PAGE_TITLE_CONTAINER);
-        pageTitleContainer.add(createUserStatusBehaviour(true));
+        pageTitleContainer.add(createUserStatusBehaviour());
         pageTitleContainer.setOutputMarkupId(true);
         mainHeader.add(pageTitleContainer);
 
@@ -948,10 +812,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     private void initLayout() {
         TransparentWebMarkupContainer body = new TransparentWebMarkupContainer(ID_BODY);
-        body.add(new AttributeAppender("class", "hold-transition ", " "));
-        body.add(new AttributeAppender("class", "custom-hold-transition ", " "));
+//        body.add(new AttributeAppender("class", "hold-transition ", " "));
+//        body.add(new AttributeAppender("class", "custom-hold-transition ", " "));
 
-        body.add(new AttributeAppender("class", new IModel<String>() {
+        body.add(AttributeAppender.append("class", new IModel<String>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -1037,7 +901,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
             @Override
             protected void buildSrcAttribute(ComponentTag tag, IModel<?> srcModel) {
-                tag.put("src", WebComponentUtil.getIconUrlModel(logoModel != null ? logoModel.getObject() : (IconType) null).getObject());
+                tag.put("src", WebComponentUtil.getIconUrlModel(logoModel.getObject()).getObject());
             }
         };
         customLogoImgSrc.add(new VisibleBehaviour(() -> logoModel.getObject() != null && StringUtils.isEmpty(logoModel.getObject().getCssClass())));
@@ -1082,16 +946,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         initDebugBarLayout();
 
-        SideBarMenuPanel sidebarMenu = new SideBarMenuPanel(ID_SIDEBAR_MENU, new LoadableModel<List<SideBarMenuItem>>(false) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected List<SideBarMenuItem> load() {
-                return createMenuItems();
-            }
-        });
-        sidebarMenu.add(createUserStatusBehaviour(true));
+        LeftMenuPanel sidebarMenu = new LeftMenuPanel(ID_SIDEBAR_MENU);
+        sidebarMenu.add(createUserStatusBehaviour());
         add(sidebarMenu);
 
         WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
@@ -1122,6 +978,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     @Override
                     public String getObject() {
                         String subscriptionId = getSubscriptionId();
+                        if (StringUtils.isEmpty(subscriptionId)) {
+                            return "";
+                        }
                         if (!WebComponentUtil.isSubscriptionIdCorrect(subscriptionId)) {
                             return " " + createStringResource("PageBase.nonActiveSubscriptionMessage").getString();
                         }
@@ -1204,26 +1063,25 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
             @Override
             public boolean isVisible() {
-                return !isErrorPage() && isSideMenuVisible(true) &&
+                return !isErrorPage() && isSideMenuVisible() &&
                         (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SELF_REQUESTS_ASSIGNMENTS_URL, PageSelf.AUTH_SELF_ALL_URI));
             }
         };
     }
 
-    private VisibleEnableBehaviour createUserStatusBehaviour(final boolean visibleIfLoggedIn) {
+    private VisibleEnableBehaviour createUserStatusBehaviour() {
         return new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
-                return !isErrorPage() && isSideMenuVisible(visibleIfLoggedIn);
+                return !isErrorPage() && isSideMenuVisible();
             }
         };
     }
 
-    protected boolean isSideMenuVisible(boolean visibleIfLoggedIn) {
-        //noinspection SimplifiableConditionalExpression
-        return SecurityUtils.getPrincipalUser() != null ? visibleIfLoggedIn : !visibleIfLoggedIn;
+    protected boolean isSideMenuVisible() {
+        return SecurityUtils.getPrincipalUser() != null;
     }
 
     private void initDebugBarLayout() {
@@ -1288,65 +1146,38 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     protected IModel<String> createPageTitleModel() {
-        return new IModel<String>() {
-            @Override
-            public String getObject() {
-                BaseMenuItem activeMenu = getActiveMenu();
-                String pageTitleKey = null;
-                if (activeMenu != null) {
-                    pageTitleKey = activeMenu.getNameModel().getObject();
-                }
-
-                if (StringUtils.isEmpty(pageTitleKey)) {
-                    pageTitleKey = PageBase.this.getClass().getSimpleName() + ".title";
-                }
-                return createStringResource(pageTitleKey).getString();
+        return (IModel<String>) () -> {
+            BaseMenuItem activeMenu = getActiveMenu();
+            String pageTitleKey = null;
+            if (activeMenu != null) {
+                pageTitleKey = activeMenu.getNameModel();
             }
+
+            if (StringUtils.isEmpty(pageTitleKey)) {
+                pageTitleKey = PageBase.this.getClass().getSimpleName() + ".title";
+            }
+            return createStringResource(pageTitleKey).getString();
         };
     }
 
     private <MI extends BaseMenuItem> MI getActiveMenu() {
-        SideBarMenuPanel sideBarMenu = getSideBarMenuPanel();
+        LeftMenuPanel sideBarMenu = getSideBarMenuPanel();
         if (sideBarMenu == null || !sideBarMenu.isVisible()) {
             return null;
         }
 
-        List<SideBarMenuItem> sideMenuItems = sideBarMenu.getModelObject();
+        List<SideBarMenuItem> sideMenuItems = sideBarMenu.getItems();
         if (CollectionUtils.isEmpty(sideMenuItems)) {
             return null;
         }
 
-        MI activeMenu = null;
         for (SideBarMenuItem sideBarMenuItem : sideMenuItems) {
-            List<MainMenuItem> mainMenuItems = sideBarMenuItem.getItems();
-            activeMenu = (MI) getActiveMenu(mainMenuItems);
+            MI activeMenu = sideBarMenuItem.getActiveMenu(PageBase.this);
             if (activeMenu != null) {
                 return activeMenu;
             }
         }
 
-        return activeMenu;
-    }
-
-    private <MI extends BaseMenuItem> MI getActiveMenu(List<MI> mainMenuItems) {
-        if (CollectionUtils.isEmpty(mainMenuItems)) {
-            return null;
-        }
-        for (MI menuItem : mainMenuItems) {
-            if (menuItem.isMenuActive(PageBase.this)) {
-                return menuItem;
-            }
-
-            if (!(menuItem instanceof MainMenuItem)) {
-                continue;
-            }
-
-            List<MenuItem> menuItems = ((MainMenuItem) menuItem).getItems();
-            MI activeMenuItem = (MI) getActiveMenu(menuItems);
-            if (activeMenuItem != null) {
-                return activeMenuItem;
-            }
-        }
         return null;
     }
 
@@ -1665,806 +1496,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public long getItemsPerPage(UserProfileStorage.TableId tableId) {
+        return getItemsPerPage(tableId.name());
+    }
+
+    public long getItemsPerPage(String tableIdName) {
         UserProfileStorage userProfile = getSessionStorage().getUserProfile();
-        return userProfile.getPagingSize(tableId);
-    }
-
-    protected List<SideBarMenuItem> createMenuItems() {
-        List<SideBarMenuItem> menus = new ArrayList<>();
-
-        SideBarMenuItem menu = new SideBarMenuItem(createStringResource("PageAdmin.menu.selfService"));
-        menus.add(menu);
-        createSelfServiceMenu(menu);
-
-        menu = new SideBarMenuItem(createStringResource("PageAdmin.menu.mainNavigation"));
-        menus.add(menu);
-        List<MainMenuItem> items = menu.getItems();
-
-        menu = new SideBarMenuItem(createStringResource("PageAdmin.menu.top.configuration"));
-        menus.add(menu);
-        createConfigurationMenu(menu);
-
-        menu = new SideBarMenuItem(createStringResource("PageAdmin.menu.additional"));
-        menus.add(menu);
-        createAdditionalMenu(menu);
-
-        items.add(createHomeItems());
-        items.add(createUsersItems());
-        items.add(createOrganizationsMenu());
-        items.add(createRolesItems());
-        items.add(createServicesItems());
-        items.add(createResourcesItems());
-        if (getWorkflowManager().isEnabled()) {
-            items.add(createWorkItemsItems());
-        }
-        items.add(createCertificationItems());
-        items.add(createServerTasksItems());
-        items.add(createReportsItems());
-
-        return menus;
-    }
-
-    private void createConfigurationMenu(SideBarMenuItem item) {
-        item.getItems().add(createArchetypesItems());
-        item.getItems().add(createObjectsCollectionItems());
-        addMainMenuItem(item, "fa fa-bullseye", "PageAdmin.menu.top.configuration.bulkActions", PageBulkAction.class);
-        addMainMenuItem(item, "fa fa-upload", "PageAdmin.menu.top.configuration.importObject", PageImportObject.class);
-
-        MainMenuItem debugs = addMainMenuItem(item, "fa fa-file-text", "PageAdmin.menu.top.configuration.repositoryObjects", null,
-                new VisibleEnableBehaviour() {
-                    @Override
-                    public boolean isVisible() {
-                        return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL,
-                                AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUG_URL, AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUGS_URL,
-                                AuthorizationConstants.AUTZ_UI_CONFIGURATION_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                                AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL);
-                    }
-                });
-
-        addMenuItem(debugs, "PageAdmin.menu.top.configuration.repositoryObjectsList", PageDebugList.class);
-
-        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.repositoryObjectView"),
-                PageDebugView.class, null, createVisibleDisabledBehaviorForEditMenu(PageDebugView.class));
-        debugs.getItems().add(menu);
-
-        createSystemConfigurationMenu(item);
-
-        addMainMenuItem(item, "fa fa-archive", "PageAdmin.menu.top.configuration.internals", PageInternals.class);
-        addMainMenuItem(item, "fa fa-search", "PageAdmin.menu.top.configuration.repoQuery", PageRepositoryQuery.class);
-        if (WebModelServiceUtils.isEnableExperimentalFeature(this)) {
-            addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.evaluateMapping", PageEvaluateMapping.class);
-        }
-        addMainMenuItem(item, "fa fa-info-circle", "PageAdmin.menu.top.configuration.about", PageAbout.class);
-    }
-
-    private void createSystemConfigurationMenu(SideBarMenuItem item) {
-        MainMenuItem systemItemNew = addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.basic", null,
-                new VisibleEnableBehaviour() {
-                    @Override
-                    public boolean isVisible() {
-                        return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL,
-                                AuthorizationConstants.AUTZ_UI_CONFIGURATION_SYSTEM_CONFIG_URL, AuthorizationConstants.AUTZ_UI_CONFIGURATION_ALL_URL,
-                                AuthorizationConstants.AUTZ_GUI_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL);
-                    }
-                });
-
-        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.basic",
-                PageSystemConfiguration.CONFIGURATION_TAB_BASIC);
-        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.objectPolicy",
-                PageSystemConfiguration.CONFIGURATION_TAB_OBJECT_POLICY);
-        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.globalPolicyRule",
-                PageSystemConfiguration.CONFIGURATION_TAB_GLOBAL_POLICY_RULE);
-        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.globalAccountSynchronization",
-                PageSystemConfiguration.CONFIGURATION_TAB_GLOBAL_ACCOUNT_SYNCHRONIZATION);
-        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.cleanupPolicy",
-                PageSystemConfiguration.CONFIGURATION_TAB_CLEANUP_POLICY);
-        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.notifications",
-                PageSystemConfiguration.CONFIGURATION_TAB_NOTIFICATION);
-        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.logging",
-                PageSystemConfiguration.CONFIGURATION_TAB_LOGGING);
-        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.profiling",
-                PageSystemConfiguration.CONFIGURATION_TAB_PROFILING);
-        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.adminGui",
-                PageSystemConfiguration.CONFIGURATION_TAB_ADMIN_GUI);
-        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.workflow",
-                PageSystemConfiguration.CONFIGURATION_TAB_WORKFLOW);
-        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.roleManagement",
-                PageSystemConfiguration.CONFIGURATION_TAB_ROLE_MANAGEMENT);
-        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.internals",
-                PageSystemConfiguration.CONFIGURATION_TAB_INTERNALS);
-        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.deploymentInformation",
-                PageSystemConfiguration.CONFIGURATION_TAB_DEPLOYMENT_INFORMATION);
-        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.accessCertification",
-                PageSystemConfiguration.CONFIGURATION_TAB_ACCESS_CERTIFICATION);
-        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.infrastructure",
-                PageSystemConfiguration.CONFIGURATION_TAB_INFRASTRUCTURE);
-        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.fullTextSearch",
-                PageSystemConfiguration.CONFIGURATION_TAB_FULL_TEXT_SEARCH);
-    }
-
-    private void addSystemMenuItem(MainMenuItem mainItem, String key, int tabIndex) {
-        PageParameters params = new PageParameters();
-        params.add(PageSystemConfiguration.SELECTED_TAB_INDEX, tabIndex);
-        MenuItem menu = new MenuItem(createStringResource(key), PageSystemConfiguration.class, params, null) {
-
-            @Override
-            public boolean isMenuActive(WebPage page) {
-                if (!PageSystemConfiguration.class.equals(page.getClass())) {
-                    return false;
-                }
-
-                int index = getSelectedTabForConfiguration(page);
-                return tabIndex == index;
-            }
-        };
-        mainItem.getItems().add(menu);
-    }
-
-    private MainMenuItem addMainMenuItem(SideBarMenuItem item, String icon, String key, Class<? extends PageBase> page) {
-        return addMainMenuItem(item, icon, key, page, null);
-    }
-
-    private MainMenuItem addMainMenuItem(SideBarMenuItem item, String icon, String key, Class<? extends PageBase> page,
-            VisibleEnableBehaviour visibleEnableBehaviour) {
-        MainMenuItem mainItem = new MainMenuItem(icon, createStringResource(key), page, null, visibleEnableBehaviour);
-        item.getItems().add(mainItem);
-
-        return mainItem;
-    }
-
-    private void addMenuItem(MainMenuItem item, String key, Class<? extends PageBase> page) {
-        addMenuItem(item, key, "", page);
-    }
-
-    private void addMenuItem(MainMenuItem item, String key, String iconClass, Class<? extends PageBase> page) {
-        MenuItem menu = new MenuItem(createStringResource(key), iconClass, page);
-        item.getItems().add(menu);
-    }
-
-    private MainMenuItem createWorkItemsItems() {
-        VisibleEnableBehaviour visibleEnableBehaviour = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_MY_WORK_ITEMS_URL,
-                        AuthorizationConstants.AUTZ_UI_ATTORNEY_WORK_ITEMS_URL,
-                        AuthorizationConstants.AUTZ_UI_ALL_WORK_ITEMS_URL,
-                        AuthorizationConstants.AUTZ_UI_CLAIMABLE_WORK_ITEMS_URL,
-                        AuthorizationConstants.AUTZ_UI_WORK_ITEM_URL,
-                        AuthorizationConstants.AUTZ_UI_CASES_ALL_URL,
-                        AuthorizationConstants.AUTZ_UI_CASES_URL,
-                        AuthorizationConstants.AUTZ_UI_CASE_URL,
-                        AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
-                        AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                        AuthorizationConstants.AUTZ_UI_CASES_VIEW_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL);
-            }
-        };
-        MainMenuItem item = new MainMenuItem(GuiStyleConstants.EVO_CASE_OBJECT_ICON,
-                createStringResource("PageAdmin.menu.top.cases"), null, null, visibleEnableBehaviour) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getBubbleLabel() {
-                Integer workItemCount = workItemCountModel.getObject();
-                if (workItemCount == null || workItemCount == 0) {
-                    return null;
-                } else {
-                    return workItemCount.toString();
-                }
-            }
-        };
-
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CASES_ALL_URL, AuthorizationConstants.AUTZ_UI_CASES_URL,
-                AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
-            addObjectListPageMenuItem(item, "PageAdmin.menu.top.cases.listAll", GuiStyleConstants.EVO_CASE_OBJECT_ICON, PageCases.class);
-        }
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CASES_ALL_URL, AuthorizationConstants.AUTZ_UI_CASES_VIEW_URL,
-                AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
-            addCollectionsMenuItems(item.getItems(), CaseType.COMPLEX_TYPE, PageCases.class);
-        }
-
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ALL_WORK_ITEMS_URL, AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
-                AuthorizationConstants.AUTZ_UI_CASES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
-            addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.listAll", GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON, PageCaseWorkItemsAll.class);
-        }
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_MY_WORK_ITEMS_URL, AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
-                AuthorizationConstants.AUTZ_UI_CASES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
-            addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.list", PageCaseWorkItemsAllocatedToMe.class);
-        }
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ATTORNEY_WORK_ITEMS_URL, AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
-                AuthorizationConstants.AUTZ_UI_CASES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
-            addMenuItem(item, "PageAdmin.menu.top.workItems.selectAttorney", PageAttorneySelection.class);
-            createFocusPageViewMenu(item.getItems(), "PageAdmin.menu.top.workItems.listAttorney", PageWorkItemsAttorney.class);
-
-        }
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CLAIMABLE_WORK_ITEMS_URL, AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
-                AuthorizationConstants.AUTZ_UI_CASES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
-            addMenuItem(item, "PageWorkItemsClaimable.title", PageWorkItemsClaimable.class);
-        }
-        createFocusPageViewMenu(item.getItems(), "PageAdmin.menu.top.case.view", PageCase.class);
-        createFocusPageViewMenu(item.getItems(), "PageAdmin.menu.top.caseWorkItems.view", PageCaseWorkItem.class);
-
-        return item;
-    }
-
-    private MainMenuItem createServerTasksItems() {
-        VisibleEnableBehaviour visibleEnableBehaviour = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_TASKS_URL,
-                        AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                        AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL);
-            }
-        };
-        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_TASK_ICON_COLORED,
-                createStringResource("PageAdmin.menu.top.serverTasks"), null, null, visibleEnableBehaviour);
-
-        addObjectListPageMenuItem(item, "PageAdmin.menu.top.serverTasks.list", GuiStyleConstants.CLASS_SHADOW_ICON_GENERIC, PageTasks.class);
-
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                AuthorizationConstants.AUTZ_UI_TASKS_VIEW_URL)) {
-
-            addCollectionsMenuItems(item.getItems(), TaskType.COMPLEX_TYPE, PageTasks.class);
-        }
-
-        addMenuItem(item, "PageAdmin.menu.top.serverTasks.nodes", PageNodes.class);
-
-        createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.serverTasks.new", "PageAdmin.menu.top.serverTasks.edit",
-                PageTask.class, false);
-
-        return item;
-    }
-
-    private MainMenuItem createResourcesItems() {
-        VisibleEnableBehaviour visibleEnableBehaviour = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_RESOURCES_URL,
-                        AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                        AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL, AuthorizationConstants.AUTZ_UI_RESOURCE_URL,
-                        AuthorizationConstants.AUTZ_UI_RESOURCE_EDIT_URL, AuthorizationConstants.AUTZ_UI_RESOURCES_VIEW_URL);
-            }
-        };
-        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED,
-                createStringResource("PageAdmin.menu.top.resources"), null, null, visibleEnableBehaviour);
-
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_RESOURCES_URL,
-                AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
-            addObjectListPageMenuItem(item, "PageAdmin.menu.top.resources.list", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, PageResources.class);
-        }
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_RESOURCES_VIEW_URL,
-                AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
-            addCollectionsMenuItems(item.getItems(), ResourceType.COMPLEX_TYPE, PageResources.class);
-        }
-        createFocusPageViewMenu(item.getItems(), "PageAdmin.menu.top.resources.view", PageResource.class);
-        createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.resources.new",
-                "PageAdmin.menu.top.resources.edit", PageResourceWizard.class, false);
-
-        addMenuItem(item, "PageAdmin.menu.top.resources.import", PageImportResource.class);
-        addMenuItem(item, "PageAdmin.menu.top.connectorHosts.list", PageConnectorHosts.class);
-
-        return item;
-    }
-
-    private MainMenuItem createReportsItems() {
-        VisibleEnableBehaviour visibleEnableBehaviour = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_REPORTS_URL,
-                        AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL);
-            }
-        };
-        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_REPORT_ICON, createStringResource("PageAdmin.menu.top.reports"),
-                null, null, visibleEnableBehaviour);
-
-        addMenuItem(item, "PageAdmin.menu.top.reports.list", GuiStyleConstants.CLASS_REPORT_ICON, PageReports.class);
-
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                AuthorizationConstants.AUTZ_UI_REPORTS_VIEW_URL)) {
-
-            addCollectionsMenuItems(item.getItems(), ReportType.COMPLEX_TYPE, PageReports.class);
-        }
-
-        MenuItem edit = new MenuItem(createStringResource("PageAdmin.menu.top.reports.edit"),
-                PageReport.class, null, createVisibleDisabledBehaviorForEditMenu(PageReport.class));
-        item.getItems().add(edit);
-
-        MenuItem configure = new MenuItem(createStringResource("PageAdmin.menu.top.reports.configure"),
-                PageJasperReport.class, null, createVisibleDisabledBehaviorForEditMenu(PageJasperReport.class));
-        item.getItems().add(configure);
-
-        addMenuItem(item, "PageAdmin.menu.top.reports.created", PageCreatedReports.class);
-        addMenuItem(item, "PageAdmin.menu.top.reports.new", PageNewReport.class);
-
-        if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl())) {
-            addMenuItem(item, "PageAuditLogViewer.menuName", PageAuditLogViewer.class);
-        }
-
-        return item;
-    }
-
-    private MainMenuItem createCertificationItems() {
-        VisibleEnableBehaviour visibleEnableBehaviour = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CERTIFICATION_ALL_URL,
-                        AuthorizationConstants.AUTZ_UI_CERTIFICATION_DEFINITIONS_URL,
-                        AuthorizationConstants.AUTZ_UI_CERTIFICATION_NEW_DEFINITION_URL,
-                        AuthorizationConstants.AUTZ_UI_CERTIFICATION_CAMPAIGNS_URL,
-                        AuthorizationConstants.AUTZ_UI_CERTIFICATION_DECISIONS_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                        AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL);
-            }
-        };
-        MainMenuItem item = new MainMenuItem("fa fa-certificate",
-                createStringResource("PageAdmin.menu.top.certification"), null, null, visibleEnableBehaviour) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getBubbleLabel() {
-                Integer certWorkItemCount = certWorkItemCountModel.getObject();
-                if (certWorkItemCount == null || certWorkItemCount == 0) {
-                    return null;
-                } else {
-                    return certWorkItemCount.toString();
-                }
-            }
-        };
-
-        addMenuItem(item, "PageAdmin.menu.top.certification.definitions", PageCertDefinitions.class);
-        addMenuItem(item, "PageAdmin.menu.top.certification.campaigns", PageCertCampaigns.class);
-
-        PageParameters params = new PageParameters();
-        params.add(PageTasks.SELECTED_CATEGORY, TaskCategory.ACCESS_CERTIFICATION);
-        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.scheduling"),
-                PageTasksCertScheduling.class, params, null);
-        item.getItems().add(menu);
-
-        if (isFullyAuthorized()) {  // workaround for MID-5917
-            addMenuItem(item, "PageAdmin.menu.top.certification.allDecisions", PageCertDecisionsAll.class);
-        }
-        addMenuItem(item, "PageAdmin.menu.top.certification.decisions", PageCertDecisions.class);
-
-        MenuItem newCertificationMenu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.newDefinition"), GuiStyleConstants.CLASS_PLUS_CIRCLE, PageCertDefinition.class, null,
-                new VisibleEnableBehaviour());
-        item.getItems().add(newCertificationMenu);
-
-        return item;
-    }
-
-    private int getSelectedTabForConfiguration(WebPage page) {
-        PageParameters params = page.getPageParameters();
-        StringValue val = params.get(PageSystemConfiguration.SELECTED_TAB_INDEX);
-        String value = null;
-        if (val != null && !val.isNull()) {
-            value = val.toString();
-        }
-
-        return StringUtils.isNumeric(value) ? Integer.parseInt(value) : PageSystemConfiguration.CONFIGURATION_TAB_BASIC;
-    }
-
-    private void createSelfServiceMenu(SideBarMenuItem menu) {
-        addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_DASHBOARD, "PageAdmin.menu.selfDashboard",
-                PageSelfDashboard.class);
-        addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_PROFILE, "PageAdmin.menu.profile",
-                WebComponentUtil.resolveSelfPage());
-        addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_CREDENTIALS, "PageAdmin.menu.credentials",
-                PageSelfCredentials.class);
-        if (WebModelServiceUtils.getLoggedInFocus() instanceof UserType) {
-            addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_REQUEST, "PageAdmin.menu.request",
-                    PageAssignmentShoppingCart.class);
-        }
-
-        //GDPR feature.. temporary disabled MID-4281
-        if (WebModelServiceUtils.isEnableExperimentalFeature(this)) {
-            addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_CONSENT, "PageAdmin.menu.consent",
-                    PageSelfConsents.class);
-        }
-    }
-
-    private void createAdditionalMenu(SideBarMenuItem menu) {
-        CompiledGuiProfile userProfile = getCompiledGuiProfile();
-        List<RichHyperlinkType> menuList = userProfile.getAdditionalMenuLink();
-
-        Map<String, Class> urlClassMap = DescriptorLoader.getUrlClassMap();
-        if (menuList != null && menuList.size() > 0 && urlClassMap != null && urlClassMap.size() > 0) {
-            for (RichHyperlinkType link : menuList) {
-                if (link.getTargetUrl() != null && !link.getTargetUrl().trim().equals("")) {
-                    AdditionalMenuItem item = new AdditionalMenuItem(link.getIcon() == null ? "" : link.getIcon().getCssClass(),
-                            new Model<>(link.getLabel()),
-                            link.getTargetUrl(), urlClassMap.get(link.getTargetUrl()));
-                    menu.getItems().add(item);
-                }
-            }
-        }
-    }
-
-    private MainMenuItem createHomeItems() {
-        VisibleEnableBehaviour visibleEnableBehaviour = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
-                        AuthorizationConstants.AUTZ_UI_HOME_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                        AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL);
-            }
-        };
-        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_DASHBOARD_ICON,
-                createStringResource("PageAdmin.menu.dashboard"), null, null, visibleEnableBehaviour);
-
-        addMenuItem(item, "PageAdmin.menu.dashboard.info", PageDashboardInfo.class);
-
-        OperationResult result = new OperationResult("Search Dashboard");
-        List<PrismObject<DashboardType>> dashboards = WebModelServiceUtils.searchObjects(DashboardType.class, null, result, this);
-        dashboards.forEach(prismObject -> {
-            Validate.notNull(prismObject, "PrismObject<Dashboard> is null");
-            DashboardType dashboard = prismObject.getRealValue();
-            Validate.notNull(dashboard, "Dashboard object is null");
-
-            StringResourceModel label = createStringResourceDefault(WebComponentUtil.getTranslatedPolyString(dashboard.getName()),
-                    WebComponentUtil.getCollectionLabel(dashboard.getDisplay(), null, dashboard));
-//            if (dashboard.getDisplay() != null && dashboard.getDisplay().getLabel() != null) {
-//                label = createStringResource(dashboard.getDisplay().getLabel().getOrig());
-//            } else {
-//                label = createStringResource(dashboard.getName());
-//            }
-            PageParameters pageParameters = new PageParameters();
-            pageParameters.add(OnePageParameterEncoder.PARAMETER, dashboard.getOid());
-            MenuItem menu = new MenuItem(label, "", PageDashboardConfigurable.class, pageParameters, null, null) {
-                @Override
-                protected boolean isMenuActive() {
-                    StringValue dashboardOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-                    return dashboard.getOid().equals(dashboardOid.toString());
-                }
-
-                @Override
-                public VisibleEnableBehaviour getVisibleEnable() {
-                    return new VisibleEnableBehaviour() {
-                        @Override
-                        public boolean isVisible() {
-                            return WebComponentUtil.getElementVisibility(dashboard.getVisibility());
-                        }
-                    };
-                }
-            };
-            item.getItems().add(menu);
-        });
-
-        return item;
-    }
-
-    private MainMenuItem createUsersItems() {
-        VisibleEnableBehaviour visibleEnableBehaviour = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_URL,
-                        AuthorizationConstants.AUTZ_UI_USERS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                        AuthorizationConstants.AUTZ_UI_USERS_VIEW_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL);
-            }
-        };
-        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED,
-                createStringResource("PageAdmin.menu.top.users"), null, null, visibleEnableBehaviour);
-
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_URL,
-                AuthorizationConstants.AUTZ_UI_USERS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
-
-            addObjectListPageMenuItem(item, "PageAdmin.menu.top.users.list", GuiStyleConstants.CLASS_OBJECT_USER_ICON, PageUsers.class);
-        }
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                AuthorizationConstants.AUTZ_UI_USERS_VIEW_URL)) {
-
-            addCollectionsMenuItems(item.getItems(), UserType.COMPLEX_TYPE, PageUsers.class);
-        }
-        createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.users.new",
-                "PageAdmin.menu.top.users.edit", PageUser.class, true);
-        return item;
-    }
-
-    private void createFocusPageNewEditMenu(List<MenuItem> submenu, String newKey, String editKey,
-            final Class<? extends PageAdmin> newPageClass, boolean checkAuthorization) {
-        MenuItem edit = new MenuItem(createStringResource(editKey), newPageClass, null, new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isEnabled() {
-                return false;
-            }
-
-            @Override
-            public boolean isVisible() {
-                if (!getPage().getClass().equals(newPageClass)) {
-                    return false;
-                }
-
-                if (getPage() instanceof PageAdminObjectDetails) {
-                    PageAdminObjectDetails page = (PageAdminObjectDetails) getPage();
-                    return page.isOidParameterExists() || page.isEditingFocus();
-                } else if (getPage() instanceof PageResourceWizard) {
-                    PageResourceWizard page = (PageResourceWizard) getPage();
-                    return !page.isNewResource();
-                } else {
-                    return false;
-                }
-            }
-        });
-        submenu.add(edit);
-        MenuItem newMenu = new MenuItem(createStringResource(newKey),
-                GuiStyleConstants.CLASS_PLUS_CIRCLE, newPageClass, null,
-                new VisibleEnableBehaviour() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public boolean isVisible() {
-                        return !checkAuthorization || isMenuItemAuthorized(newPageClass);
-                    }
-                }) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected boolean isMenuActive() {
-                if (!PageBase.this.getPage().getClass().equals(newPageClass)) {
-                    return false;
-                }
-
-                if (PageBase.this.getPage() instanceof PageAdminObjectDetails) {
-                    PageAdminObjectDetails<?> page = (PageAdminObjectDetails<?>) PageBase.this.getPage();
-                    return !page.isOidParameterExists() && !page.isEditingFocus();
-                } else if (PageBase.this.getPage() instanceof PageResourceWizard) {
-                    PageResourceWizard page = (PageResourceWizard) PageBase.this.getPage();
-                    return page.isNewResource();
-                } else {
-                    return false;
-                }
-            }
-        };
-        submenu.add(newMenu);
-    }
-
-    private boolean isMenuItemAuthorized(Class<? extends PageAdmin> newPageClass) {
-        try {
-            ObjectType object = null;
-            if (PageOrgUnit.class.equals(newPageClass)) {
-                object = new OrgType(getPrismContext());
-            } else if (PageUser.class.equals(newPageClass)) {
-                object = new UserType(getPrismContext());
-            } else if (PageRole.class.equals(newPageClass)) {
-                object = new RoleType(getPrismContext());
-            } else if (PageService.class.equals(newPageClass)) {
-                object = new ServiceType(getPrismContext());
-            }
-
-            // TODO: the modify authorization here is probably wrong.
-            // It is a model autz. UI autz should be here instead?
-            return isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
-                    AuthorizationPhaseType.REQUEST, object == null ? null : object.asPrismObject(),
-                    null, null, null);
-        } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't solve authorization for New organization menu item", ex);
-        }
-        return false;
-    }
-
-    private void createFocusPageViewMenu(
-            List<MenuItem> submenu, String viewKey, final Class<? extends PageBase> newPageType) {
-        MenuItem view = new MenuItem(createStringResource(viewKey), newPageType, null, new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isEnabled() {
-                return false;
-            }
-
-            @Override
-            public boolean isVisible() {
-                if (!getPage().getClass().equals(newPageType)) {
-                    return false;
-                }
-
-                return true;
-            }
-        });
-        submenu.add(view);
-    }
-
-    private MainMenuItem createOrganizationsMenu() {
-        VisibleEnableBehaviour visibleEnableBehaviour = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ORG_STRUCT_URL,
-                        AuthorizationConstants.AUTZ_UI_ORG_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                        AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL);
-            }
-        };
-        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_ORG_ICON_COLORED,
-                createStringResource("PageAdmin.menu.top.users.org"), null, null, visibleEnableBehaviour);
-
-        MenuItem orgTree = new MenuItem(createStringResource("PageAdmin.menu.top.users.org.tree"),
-                GuiStyleConstants.CLASS_OBJECT_ORG_ICON, PageOrgTree.class);
-        item.getItems().add(orgTree);
-        //todo should we have org list page for collection/archetype view?
-//        addCollectionsMenuItems(item.getItems(), OrgType.COMPLEX_TYPE);
-
-        createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.users.org.new", "PageAdmin.menu.top.users.org.edit",
-                PageOrgUnit.class, true);
-
-        return item;
-    }
-
-    private MainMenuItem createRolesItems() {
-        VisibleEnableBehaviour visibleEnableBehaviour = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ROLES_URL,
-                        AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                        AuthorizationConstants.AUTZ_UI_ROLES_VIEW_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL);
-            }
-        };
-        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED,
-                createStringResource("PageAdmin.menu.top.roles"), null, null, visibleEnableBehaviour);
-
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ROLES_URL,
-                AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
-
-            addObjectListPageMenuItem(item, "PageAdmin.menu.top.roles.list", GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, PageRoles.class);
-        }
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                AuthorizationConstants.AUTZ_UI_ROLES_VIEW_URL)) {
-            addCollectionsMenuItems(item.getItems(), RoleType.COMPLEX_TYPE, PageRoles.class);
-        }
-
-        createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.roles.new", "PageAdmin.menu.top.roles.edit",
-                PageRole.class, true);
-
-        return item;
-    }
-
-    private MainMenuItem createServicesItems() {
-        VisibleEnableBehaviour visibleEnableBehaviour = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SERVICES_URL,
-                        AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                        AuthorizationConstants.AUTZ_UI_SERVICES_VIEW_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL);
-            }
-        };
-        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON_COLORED,
-                createStringResource("PageAdmin.menu.top.services"), null, null, visibleEnableBehaviour);
-
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SERVICES_URL,
-                AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
-            addObjectListPageMenuItem(item, "PageAdmin.menu.top.services.list", GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON, PageServices.class);
-        }
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                AuthorizationConstants.AUTZ_UI_SERVICES_VIEW_URL)) {
-            addCollectionsMenuItems(item.getItems(), ServiceType.COMPLEX_TYPE, PageServices.class);
-        }
-        createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.services.new", "PageAdmin.menu.top.services.edit",
-                PageService.class, true);
-
-        return item;
-    }
-
-    private MainMenuItem createArchetypesItems() {
-        VisibleEnableBehaviour visibleEnableBehaviour = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL,
-                        AuthorizationConstants.AUTZ_UI_CONFIGURATION_ALL_URL, AuthorizationConstants.AUTZ_UI_ARCHETYPES_URL,
-                        AuthorizationConstants.AUTZ_UI_ARCHETYPES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                        AuthorizationConstants.AUTZ_UI_ARCHETYPES_VIEW_URL);
-            }
-        };
-        MainMenuItem item = new MainMenuItem(GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON,
-                createStringResource("PageAdmin.menu.top.archetypes"), null, null, visibleEnableBehaviour);
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ARCHETYPES_URL,
-                AuthorizationConstants.AUTZ_UI_ARCHETYPES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
-            addObjectListPageMenuItem(item, "PageAdmin.menu.top.archetypes.list", GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON, PageArchetypes.class);
-        }
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ARCHETYPES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                AuthorizationConstants.AUTZ_UI_ARCHETYPES_VIEW_URL)) {
-            addCollectionsMenuItems(item.getItems(), ArchetypeType.COMPLEX_TYPE, PageArchetypes.class);
-        }
-
-        createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.archetypes.new", "PageAdmin.menu.top.archetypes.edit",
-                PageArchetype.class, true);
-
-        return item;
-    }
-
-    private MainMenuItem createObjectsCollectionItems() {
-        VisibleEnableBehaviour visibleEnableBehaviour = new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL,
-                        AuthorizationConstants.AUTZ_UI_CONFIGURATION_ALL_URL, AuthorizationConstants.AUTZ_UI_OBJECT_COLLECTIONS_URL,
-                        AuthorizationConstants.AUTZ_UI_OBJECT_COLLECTIONS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL);
-            }
-        };
-        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON,
-                createStringResource("PageAdmin.menu.top.objectCollections"), null, null, visibleEnableBehaviour);
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_OBJECT_COLLECTIONS_URL,
-                AuthorizationConstants.AUTZ_UI_OBJECT_COLLECTIONS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
-            addObjectListPageMenuItem(item, "PageAdmin.menu.top.objectCollections.list", GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON, PageObjectCollections.class);
-        }
-        createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.objectCollections.new", "PageAdmin.menu.top.objectCollections.edit",
-                PageObjectCollection.class, true);
-
-        return item;
-    }
-
-    private void addObjectListPageMenuItem(MainMenuItem item, String key, String iconClass, Class<? extends PageBase> menuItemPage) {
-        MenuItem menu = new MenuItem(createStringResource(key), iconClass, menuItemPage) {
-            @Override
-            public boolean isMenuActive(WebPage page) {
-                if (!page.getClass().equals(this.getPageClass()) || getPageParameters() != null && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME) != null
-                        && StringUtils.isNotEmpty(getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME).toString())
-                        && !getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME).toString().equals("null")) {
-                    return false;
-                } else {
-                    return super.isMenuActive(page);
-                }
-            }
-        };
-        item.getItems().add(menu);
-    }
-
-    private void addCollectionsMenuItems(List<MenuItem> menu, QName type, Class<? extends PageBase> redirectToPage) {
-        List<CompiledObjectCollectionView> objectViews = getCompiledGuiProfile().findAllApplicableObjectCollectionViews(type);
-        List<MenuItem> collectionMenuItems = new ArrayList<>(objectViews.size());
-        objectViews.forEach(objectView -> {
-            CollectionRefSpecificationType collectionRefSpec = objectView.getCollection();
-            if (collectionRefSpec == null) {
-                return;
-            }
-
-            ObjectReferenceType collectionRef = collectionRefSpec.getCollectionRef();
-            if (collectionRef == null) {
-                return;
-            }
-
-            OperationResult result = new OperationResult(OPERATION_LOAD_VIEW_COLLECTION_REF);
-            Task task = createSimpleTask(OPERATION_LOAD_VIEW_COLLECTION_REF);
-            PrismObject<? extends ObjectType> collectionObject = WebModelServiceUtils.resolveReferenceNoFetch(collectionRef, this,
-                    task, result);
-            if (collectionObject == null) {
-                return;
-            }
-            ObjectType objectType = collectionObject.asObjectable();
-            if (!(objectType instanceof ArchetypeType) && !(objectType instanceof ObjectCollectionType)) {
-                return;
-            }
-            DisplayType viewDisplayType = objectView.getDisplay();
-
-            PageParameters pageParameters = new PageParameters();
-            pageParameters.add(PARAMETER_OBJECT_COLLECTION_NAME, objectView.getViewIdentifier());
-
-            MenuItem userViewMenu = new MenuItem(
-                    createStringResourceDefault("MenuItem.noName", WebComponentUtil.getCollectionLabel(viewDisplayType, collectionRefSpec, objectType)),
-                    WebComponentUtil.getIconCssClass(viewDisplayType), redirectToPage, pageParameters, null) {
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public boolean isMenuActive(WebPage page) {
-                    PageParameters params = getPageParameters();
-                    if (params != null && params.get(PARAMETER_OBJECT_COLLECTION_NAME) != null) {
-                        StringValue collectionName = params.get(PARAMETER_OBJECT_COLLECTION_NAME);
-                        if (objectView.getViewIdentifier().equals(collectionName.toString())) {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-            };
-            userViewMenu.setDisplayOrder(objectView.getDisplayOrder());
-            collectionMenuItems.add(userViewMenu);
-        });
-
-        // We need to sort after we get all the collections. Only then we have correct collection labels.
-        // We do not want to determine the labels twice.
-
-        // TODO: can this be combined in a single sort?
-        collectionMenuItems.sort(Comparator.comparing(o -> o.getNameModel().getObject()));
-        collectionMenuItems.sort(Comparator.comparingInt(o -> ObjectUtils.defaultIfNull(o.getDisplayOrder(), Integer.MAX_VALUE)));
-        menu.addAll(collectionMenuItems);
+        return userProfile.getPagingSize(tableIdName);
     }
 
     public PrismObject<? extends FocusType> loadFocusSelf() {
@@ -2477,23 +1514,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         showResult(result, null, false);
 
         return focus;
-    }
-
-    private VisibleEnableBehaviour createVisibleDisabledBehaviorForEditMenu(final Class<? extends WebPage> page) {
-        return new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return getPage().getClass().equals(page);
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return false;
-            }
-        };
     }
 
     public boolean canRedirectBack() {
@@ -2611,12 +1631,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     protected void setTimeZone(PageBase page) {
-        PrismObject<? extends FocusType> focus = loadFocusSelf();
         String timeZone = null;
         GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();
-        if (focus != null && focus.asObjectable().getTimezone() != null) {
-            timeZone = focus.asObjectable().getTimezone();
-        } else if (principal != null && principal.getCompiledGuiProfile() != null) {
+        if (principal != null && principal.getCompiledGuiProfile() != null) {
             timeZone = principal.getCompiledGuiProfile().getDefaultTimezone();
         }
         if (timeZone != null) {
@@ -2825,8 +1842,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         Constructor<?> constructor;
         try {
             constructor = panelClass.getConstructor(String.class, IModel.class, ItemPanelSettings.class);
-            Panel panel = (Panel) constructor.newInstance(panelId, wrapperModel, itemPanelSettings);
-            return panel;
+            return (Panel) constructor.newInstance(panelId, wrapperModel, itemPanelSettings);
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
             throw new SystemException("Cannot instantiate " + panelClass, e);
         }
@@ -2847,8 +1863,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return clock;
     }
 
-    private SideBarMenuPanel getSideBarMenuPanel() {
-        return (SideBarMenuPanel) get(ID_SIDEBAR_MENU);
+    private LeftMenuPanel getSideBarMenuPanel() {
+        return (LeftMenuPanel) get(ID_SIDEBAR_MENU);
     }
 
     public ModelExecuteOptions executeOptions() {

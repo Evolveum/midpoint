@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -16,16 +16,11 @@ It fakes JNDI context with simple H2 file DataSource.
             http://www.springframework.org/schema/beans
             http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
-    <!--
-    Dependency on repositoryFactory is not strictly necessary here, we just keep it consistent
-    with the datasource that reads sqlConfiguration with SpEL below.
-    -->
     <bean id="sampleJNDIDataSource"
             class="com.zaxxer.hikari.HikariDataSource"
-            destroy-method="close"
-            depends-on="repositoryFactory">
+            destroy-method="close">
         <property name="driverClassName" value="org.h2.Driver"/>
-        <property name="jdbcUrl" value="jdbc:h2:file:target/midpoint-home/datasource;DB_CLOSE_ON_EXIT=FALSE;LOCK_MODE=1;LOCK_TIMEOUT=10000"/>
+        <property name="jdbcUrl" value="jdbc:h2:file:./target/midpoint-home/datasource;DB_CLOSE_ON_EXIT=FALSE;LOCK_MODE=1;LOCK_TIMEOUT=10000"/>
         <property name="username" value="sa"/>
         <property name="password" value=""/>
 
@@ -33,18 +28,13 @@ It fakes JNDI context with simple H2 file DataSource.
         <property name="maximumPoolSize" value="8"/>
     </bean>
 
-    <!--
-    Dependency on repositoryFactory is crucial because it is RepositoryFactory that calls init()
-    on testSqlRepositoryFactory bean, not Spring.
-    -->
     <bean id="sampleJNDIDataSourceFromConfig"
             class="com.zaxxer.hikari.HikariDataSource"
-            destroy-method="close"
-            depends-on="repositoryFactory">
-        <property name="driverClassName" value="#{testSqlRepositoryFactory.sqlConfiguration.driverClassName}"/>
-        <property name="jdbcUrl" value="#{testSqlRepositoryFactory.sqlConfiguration.jdbcUrl}"/>
-        <property name="username" value="#{testSqlRepositoryFactory.sqlConfiguration.jdbcUsername}"/>
-        <property name="password" value="#{testSqlRepositoryFactory.sqlConfiguration.jdbcPassword}"/>
+            destroy-method="close">
+        <property name="driverClassName" value="#{sqlRepositoryConfiguration.driverClassName}"/>
+        <property name="jdbcUrl" value="#{sqlRepositoryConfiguration.jdbcUrl}"/>
+        <property name="username" value="#{sqlRepositoryConfiguration.jdbcUsername}"/>
+        <property name="password" value="#{sqlRepositoryConfiguration.jdbcPassword}"/>
 
         <property name="minimumIdle" value="3"/>
         <property name="maximumPoolSize" value="8"/>

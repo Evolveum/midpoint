@@ -344,10 +344,10 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         assertNotNull("No last token", lastToken);
         assertNotNull("No last token value", lastToken.getRealValue());
 
-        CollectingChangeHandler handler = new CollectingChangeHandler();
+        CollectingChangeListener handler = new CollectingChangeListener();
         cc.fetchChanges(accountDefinition, lastToken, null, null, null, handler, result);
 
-        List<Change> changes = handler.getChanges();
+        List<UcfLiveSyncChange> changes = handler.getChanges();
         displayValue("Changes", changes);
 
         // No changes (token-only changes are gone in 4.0.1)
@@ -565,7 +565,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         OperationResult result = createOperationResult();
 
         // WHEN
-        cc.search(accountDefinition, null, handler, null, null, null, null, result);
+        cc.search(accountDefinition, null, handler, null, null, null, null, null, result);
 
         // THEN
 

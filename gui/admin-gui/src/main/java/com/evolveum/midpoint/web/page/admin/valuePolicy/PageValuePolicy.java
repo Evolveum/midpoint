@@ -237,7 +237,7 @@ public class PageValuePolicy extends PageAdmin {
                 getPrismContext().adopt(delta);
             }
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Computed value policy delta:\n{}", new Object[]{delta.debugDump(3)});
+                LOGGER.trace("Computed value policy delta:\n{}", delta.debugDump(3));
             }
 
             if (delta.isEmpty()) {

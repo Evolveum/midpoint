@@ -336,6 +336,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
         dummyAuditService.assertExecutionMessage();
 
+        //noinspection unchecked
         LensContext<UserType> lastLensContext = (LensContext) profilingModelInspectorManager.getLastLensContext();
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = lastLensContext.getExecutedDeltas();
         display("Executed deltas", executedDeltas);

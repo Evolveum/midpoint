@@ -145,7 +145,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
             }
 
             try {
-                LOGGER.debug("Found localization descriptor {}.", new Object[] { resource.getURL() });
+                LOGGER.debug("Found localization descriptor {}.", resource.getURL());
                 locales = loadLocaleDescriptors(resource);
 
                 break;
@@ -184,6 +184,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Autowired private ApplicationContext applicationContext;
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
     @Autowired private Clock clock;
+    @Autowired private AccessCertificationService certificationService;
 
     private WebApplicationConfiguration webApplicationConfiguration;
 
@@ -529,6 +530,10 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         return relationRegistry;
     }
 
+    public AccessCertificationService getCertificationService() {
+        return certificationService;
+    }
+
     public static boolean containsLocale(Locale locale) {
         if (locale == null) {
             return false;
@@ -601,10 +606,8 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         }
 
         @Override
-        public boolean update(@Nullable SystemConfigurationType value) {
+        public void update(@Nullable SystemConfigurationType value) {
             application.deploymentInfo = value != null ? value.getDeploymentInformation() : null;
-
-            return true;
         }
     }
 

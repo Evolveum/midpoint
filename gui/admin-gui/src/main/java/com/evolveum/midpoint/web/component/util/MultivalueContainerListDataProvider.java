@@ -11,6 +11,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.web.component.data.BaseSearchDataProvider;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
+
+import com.evolveum.midpoint.web.component.search.Search;
+
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.Validate;
@@ -27,23 +32,25 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author katkav
  */
-public class MultivalueContainerListDataProvider<C extends Containerable>
-        extends BaseSortableDataProvider<PrismContainerValueWrapper<C>> {
+public class MultivalueContainerListDataProvider<C extends Containerable> extends BaseSearchDataProvider<C, PrismContainerValueWrapper<C>>
+        implements ISelectableDataProvider<C, PrismContainerValueWrapper<C>> {
 
     private final IModel<List<PrismContainerValueWrapper<C>>> model;
     private final boolean sortable; // just to ensure backward compatibility with existing usages
 
     public MultivalueContainerListDataProvider(
-            Component component, IModel<List<PrismContainerValueWrapper<C>>> model) {
-        this(component, model, false);
+            Component component, @NotNull IModel<Search<C>> search, IModel<List<PrismContainerValueWrapper<C>>> model) {
+        this(component, search, model, false);
     }
 
     public MultivalueContainerListDataProvider(Component component,
-            IModel<List<PrismContainerValueWrapper<C>>> model, boolean sortable) {
-        super(component);
+            @NotNull IModel<Search<C>> search, IModel<List<PrismContainerValueWrapper<C>>> model, boolean sortable) {
+        super(component, search);
 
         Validate.notNull(model);
         this.model = model;
@@ -99,8 +106,14 @@ public class MultivalueContainerListDataProvider<C extends Containerable>
         return list.size();
     }
 
-    public List<PrismContainerValueWrapper<C>> getSelectedData() {
+    @Override
+    public List<PrismContainerValueWrapper<C>> getSelectedObjects() {
         return getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
+    }
+
+    @Override
+    public @NotNull List<C> getSelectedRealObjects() {
+        return getAvailableData().stream().filter(a -> a.isSelected()).map(w -> w.getRealValue()).collect(Collectors.toList());
     }
 
     protected List<PrismContainerValueWrapper<C>> searchThroughList() {
@@ -116,7 +129,7 @@ public class MultivalueContainerListDataProvider<C extends Containerable>
 
         List<PrismContainerValueWrapper<C>> filtered = list.stream().filter(a -> {
             try {
-                return ObjectQuery.match(a.getRealValue(), getQuery().getFilter(), getPage().getMatchingRuleRegistry());
+                return ObjectQuery.match(a.getRealValue(), getQuery().getFilter(), getPageBase().getMatchingRuleRegistry());
             } catch (SchemaException e) {
                 throw new TunnelException(e.getMessage());
             }

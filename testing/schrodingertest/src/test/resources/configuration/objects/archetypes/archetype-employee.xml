@@ -9,7 +9,7 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
-    <name>Employee</name>
+    <name>Employees</name>
     <archetypePolicy>
         <display>
             <label>Employee</label>

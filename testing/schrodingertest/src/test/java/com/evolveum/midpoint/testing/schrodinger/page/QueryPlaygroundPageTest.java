@@ -10,7 +10,6 @@ import com.evolveum.midpoint.schrodinger.page.configuration.QueryPlaygroundPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 /**
@@ -20,30 +19,8 @@ public class QueryPlaygroundPageTest extends AbstractSchrodingerTest {
 
     @Test //covers MID-5346
     public void test001useInObjectListOptionTest() {
-        UserPage user = basicPage.newUser();
-
-        Assert.assertTrue(
-                user.selectTabBasic()
-                        .form()
-                        .addAttributeValue("name", "a_start")
-                        .and()
-                        .and()
-                        .clickSave()
-                        .feedback()
-                        .isSuccess()
-        );
-
-        user = basicPage.newUser();
-        Assert.assertTrue(
-                user.selectTabBasic()
-                        .form()
-                        .addAttributeValue("name", "b_start")
-                        .and()
-                        .and()
-                        .clickSave()
-                        .feedback()
-                        .isSuccess()
-        );
+        createUser("a_start");
+        createUser("b_start");
 
         QueryPlaygroundPage queryPlaygroundPage = basicPage.queryPlayground();
         queryPlaygroundPage
@@ -51,18 +28,12 @@ public class QueryPlaygroundPageTest extends AbstractSchrodingerTest {
                 .useInObjectListButtonClick();
 
         ListUsersPage usersPage = basicPage.listUsers();
-        Assert.assertTrue(
-                usersPage
-                        .table()
-                        .containsLinkTextPartially("a_start")
-        );
+        usersPage
+                .table()
+                        .assertTableContainsLinkTextPartially("a_start");
 
-        Assert.assertFalse(
-                usersPage
-                        .table()
-                        .containsLinkTextPartially("b_start")
-        );
-
-
+        usersPage
+                .table()
+                        .assertTableDoesntContainLinkTextPartially("b_start");
     }
 }

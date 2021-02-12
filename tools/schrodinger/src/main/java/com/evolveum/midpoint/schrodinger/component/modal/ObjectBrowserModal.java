@@ -35,4 +35,11 @@ public class ObjectBrowserModal<T> extends ModalBox<T> {
         return new ObjectBrowserModalTable<T, ObjectBrowserModal<T>>(this, box);
     }
 
+    public T clickAddButton() {
+        $(Schrodinger.byDataId("addButton")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .click();
+        return getParent();
+    }
+
+
 }

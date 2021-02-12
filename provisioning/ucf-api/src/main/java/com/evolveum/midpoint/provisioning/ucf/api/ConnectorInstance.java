@@ -11,7 +11,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.provisioning.ucf.api.async.ChangeListener;
+import com.evolveum.midpoint.provisioning.ucf.api.async.UcfAsyncUpdateChangeListener;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import org.jetbrains.annotations.NotNull;
@@ -75,9 +76,9 @@ public interface ConnectorInstance {
      *
      * @param configuration new connector configuration (prism container value)
      * @param generateObjectClasses the list of the object classes which should be generated in schema
-     * @throws ConfigurationException
      */
-    void configure(PrismContainerValue<?> configuration, List<QName> generateObjectClasses, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
+    void configure(@NotNull PrismContainerValue<?> configuration, List<QName> generateObjectClasses, OperationResult parentResult)
+            throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
 
     ConnectorOperationalStatus getOperationalStatus() throws ObjectNotFoundException;
 
@@ -101,14 +102,9 @@ public interface ConnectorInstance {
      *       But some connectors may need it (e.g. CSV connector working with CSV file without a header).
      *
      * TODO: caseIgnoreAttributeNames is probably not correct here. It should be provided in schema or capabilities?
-     *
-     * @param caseIgnoreAttributeNames
-     * @param parentResult
-     * @throws CommunicationException
-     * @throws GenericFrameworkException
-     * @throws ConfigurationException
      */
-    void initialize(ResourceSchema previousResourceSchema, Collection<Object> previousCapabilities, boolean caseIgnoreAttributeNames, OperationResult parentResult)
+    void initialize(ResourceSchema previousResourceSchema, Collection<Object> previousCapabilities,
+            boolean caseIgnoreAttributeNames, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException;
 
     /**
@@ -124,12 +120,6 @@ public interface ConnectorInstance {
      * was specified in the configuration or not).
      *
      * It may return null. Such case means that the capabilities cannot be determined.
-     *
-     * @param parentResult
-     * @return
-     * @throws CommunicationException
-     * @throws GenericFrameworkException
-     * @throws ConfigurationException
      */
     Collection<Object> fetchCapabilities(OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException;
@@ -148,7 +138,6 @@ public interface ConnectorInstance {
      * @return Up-to-date resource schema.
      * @throws CommunicationException error in communication to the resource
      *                - nothing was fetched.
-     * @throws ConfigurationException
      */
     ResourceSchema fetchResourceSchema(OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException;
@@ -170,15 +159,14 @@ public interface ConnectorInstance {
      *
      * TODO: object not found error
      *
-     * @param objectClass objectClass of the object to fetch (QName).
-     * @param identifiers primary identifiers of the object.
+     * @param resourceObjectIdentification objectClass+identifiers of the object to fetch
      * @return object fetched from the resource (no schema)
      * @throws CommunicationException error in communication to the resource
      *                - nothing was fetched.
      * @throws SchemaException error converting object from native (connector) format
      */
-    PrismObject<ShadowType> fetchObject(ResourceObjectIdentification resourceObjectIdentification, AttributesToReturn attributesToReturn, StateReporter reporter,
-                                                             OperationResult parentResult)
+    PrismObject<ShadowType> fetchObject(ResourceObjectIdentification resourceObjectIdentification,
+            AttributesToReturn attributesToReturn, StateReporter reporter, OperationResult parentResult)
         throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
         SecurityViolationException, ConfigurationException;
 
@@ -187,23 +175,38 @@ public interface ConnectorInstance {
      *
      * This method will execute search operation on the resource and will pass
      * any objects that are found. A "handler" callback will be called for each
-     * of the objects found.
+     * of the objects found (depending also on the error reporting method).
      *
      * The call to this method will return only after all the callbacks were
      * called, therefore it is not asynchronous in a strict sense.
      *
      * If nothing is found the method should behave as if there is an empty result set
-     * (handler is never called) and the call should result in a success.
-     * The ObjectNotFoundException should be throws only if there is an error in search
-     * parameters, e.g. if search base points to an non-existent object.
+     * (handler is never called) and the call should result in a success. So the ObjectNotFoundException
+     * should be thrown only if there is an error in search parameters, e.g. if search base points to an non-existent object.
      *
-     * @throws SchemaException error converting object from the native (connector) format
-     * @throws ObjectNotFoundException if something from the search parameters refers non-existent object.
-     *                                     e.g. if search base points to an non-existent object.
+     * BEWARE: The implementation of the handler should be consistent with the value of errorReportingMethod parameter:
+     * if the method is FETCH_RESULT, the handler must be ready to process also incomplete/malformed objects (flagged
+     * by appropriate fetchResult).
+     *
+     * @param objectClassDefinition Definition of the object class of the objects being searched for.
+     * @param query Object query to be used.
+     * @param handler Handler that is called for each object found.
+     * @param attributesToReturn Attributes that are to be returned; TODO describe exact semantics
+     * @param pagedSearchConfiguration Configuration (capability) describing how paged searches are to be done.
+     * @param searchHierarchyConstraints Specifies in what parts of hierarchy the search should be executed.
+     * @param errorReportingMethod How should errors during processing individual objects be reported.
+     *                             If EXCEPTION (the default), an appropriate exception is thrown.
+     *                             If FETCH_RESULT, the error is reported within the shadow affected.
+     *
+     * @throws SchemaException if the search couldn't be executed because of a problem with the schema; or there is a schema
+     *                         problem with an object returned (and error reporting method is EXCEPTION).
+     * @throws ObjectNotFoundException if something from the search parameters refers non-existent object,
+     *                                 e.g. if search base points to an non-existent object.
      */
     SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
-            ShadowResultHandler handler, AttributesToReturn attributesToReturn, PagedSearchCapabilityType pagedSearchConfigurationType,
-            SearchHierarchyConstraints searchHierarchyConstraints, StateReporter reporter, OperationResult parentResult)
+            ShadowResultHandler handler, AttributesToReturn attributesToReturn, PagedSearchCapabilityType pagedSearchConfiguration,
+            SearchHierarchyConstraints searchHierarchyConstraints, FetchErrorReportingMethodType errorReportingMethod,
+            StateReporter reporter, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException,
                     ObjectNotFoundException;
 
@@ -214,22 +217,14 @@ public interface ConnectorInstance {
      * returning the "estimated objects count" information.
      *
      * If paging is not available, it throws an exception.
-     *
-     * @param objectClassDefinition
-     * @param query
-     * @param pagedSearchConfigurationType
-     * @param parentResult
-     * @throws CommunicationException
-     * @throws SchemaException
-     * @throws java.lang.UnsupportedOperationException
      */
-    int count(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query, PagedSearchCapabilityType pagedSearchConfigurationType, StateReporter reporter,
-                     OperationResult parentResult)
+    int count(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
+            PagedSearchCapabilityType pagedSearchConfigurationType, StateReporter reporter, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, UnsupportedOperationException;
 
     /**
      * TODO: This should return indication how the operation went, e.g. what changes were applied, what were not
-     * and what were not determined.
+     *  and what were not determined.
      *
      * The exception should be thrown only if the connector is sure that nothing was done on the resource.
      * E.g. in case of connect timeout or connection refused. Timeout during operation should not cause the
@@ -244,9 +239,6 @@ public interface ConnectorInstance {
      * returning of new object state and the caller should explicitly invoke fetchObject() in case that the
      * information is needed.
      *
-     * @param object
-     * @param additionalOperations
-     * @throws CommunicationException
      * @throws SchemaException resource schema violation
      * @return created object attributes. May be null.
      * @throws ObjectAlreadyExistsException object already exists on the resource
@@ -256,7 +248,7 @@ public interface ConnectorInstance {
 
     /**
      * TODO: This should return indication how the operation went, e.g. what changes were applied, what were not
-     * and what results are we not sure about.
+     *  and what results are we not sure about.
      *
      * Returns a set of attributes that were changed as a result of the operation. This may include attributes
      * that were changed as a side effect of the operations, e.g. attributes that were not originally specified
@@ -271,17 +263,19 @@ public interface ConnectorInstance {
     AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(
             ResourceObjectIdentification identification,
             PrismObject<ShadowType> shadow,
-            Collection<Operation> changes,
+            @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options,
             StateReporter reporter, OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
             SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ConfigurationException;
 
-    AsynchronousOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass, PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter,
-                             OperationResult parentResult)
-                    throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException;
+    AsynchronousOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass, PrismObject<ShadowType> shadow,
+            Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter, OperationResult parentResult)
+            throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
+            ConfigurationException, SecurityViolationException, PolicyViolationException;
 
-    Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, StateReporter reporter, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
+    Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, StateReporter reporter, OperationResult parentResult)
+            throws CommunicationException, GenericFrameworkException;
 
     /**
      * Creates a live Java object from a token previously serialized to string.
@@ -289,9 +283,6 @@ public interface ConnectorInstance {
      * Serialized token is not portable to other connectors or other resources.
      * However, newer versions of the connector should understand tokens generated
      * by previous connector version.
-     *
-     * @param serializedToken
-     * @return
      */
     PrismProperty<?> deserializeToken(Object serializedToken);
 
@@ -306,9 +297,9 @@ public interface ConnectorInstance {
     /**
      * Token may be null. That means "from the beginning of history".
      */
-    void fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
+    UcfFetchChangesResult fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
             AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter,
-            ChangeHandler changeHandler, OperationResult parentResult)
+            @NotNull UcfLiveSyncChangeListener changeHandler, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException,
             ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException;
 
@@ -336,14 +327,15 @@ public interface ConnectorInstance {
      * threads to listen and/or to execute changeListener in. But the control should return back to the caller after the
      * listening is over.
      *
-     * In the future we could create a similar method that would simply start the listening process and return the control
-     * immediately -- if needed.
+     * This method should be called only in a single thread per the connector instance.
      *
      * @param changeListener Listener to invoke when a change arrives
      * @param canRunSupplier Supplier of "canRun" information. If it returns false we should stop listening.
      * @param parentResult Operation result to use for listening for changes.
+     *
+     * @throws IllegalStateException If another listener is already present (or was successfully started in parallel).
      */
-    default void listenForChanges(@NotNull ChangeListener changeListener, @NotNull Supplier<Boolean> canRunSupplier,
+    default void listenForChanges(@NotNull UcfAsyncUpdateChangeListener changeListener, @NotNull Supplier<Boolean> canRunSupplier,
             @NotNull OperationResult parentResult) throws SchemaException {
         throw new UnsupportedOperationException();
     }

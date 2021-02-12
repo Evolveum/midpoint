@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.schrodinger.component;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.PrismFormWithActionButtons;
@@ -18,6 +19,8 @@ import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.page.FocusPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import com.evolveum.midpoint.schrodinger.util.Utils;
+
 import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -25,7 +28,8 @@ import static com.codeborne.selenide.Selenide.$;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ProjectionsTab<P extends AssignmentHolderDetailsPage> extends Component<FocusPage> {
+public class ProjectionsTab<P extends AssignmentHolderDetailsPage> extends TabWithTableAndPrismView<FocusPage> {
+
     public ProjectionsTab(FocusPage parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
@@ -110,12 +114,8 @@ public class ProjectionsTab<P extends AssignmentHolderDetailsPage> extends Compo
     public FocusSetProjectionModal<ProjectionsTab<P>> clickAddProjection() {
         $(Schrodinger.byElementAttributeValue("i", "class", "fa fa-plus "))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
-        SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Choose object"))
-                .waitUntil(Condition.exist, MidPoint.TIMEOUT_LONG_1_M)
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new FocusSetProjectionModal<ProjectionsTab<P>>(this, actualModal);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        return new FocusSetProjectionModal<ProjectionsTab<P>>(this, Utils.getModalWindowSelenideElement());
     }
 
     public boolean projectionExists(String assignmentName){
@@ -125,4 +125,10 @@ public class ProjectionsTab<P extends AssignmentHolderDetailsPage> extends Compo
                 .$(Schrodinger.byDataId("displayName"));
         return assignmentName.equals(assignmentSummaryDisplayName.getText());
     }
+
+    @Override
+    protected String getPrismViewPanelId() {
+        return "itemDetails";
+    }
+
 }

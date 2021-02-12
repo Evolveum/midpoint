@@ -7,21 +7,69 @@
 package com.evolveum.midpoint.schrodinger.component.task;
 
 import com.codeborne.selenide.SelenideElement;
+import org.testng.Assert;
 
 import com.evolveum.midpoint.schrodinger.component.Component;
+import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 /**
  * @author skublik
  */
 
-public class OperationStatisticsTab<T> extends Component<T> {
+public class OperationStatisticsTab extends Component<TaskPage> {
 
-    public OperationStatisticsTab(T parent, SelenideElement parentElement) {
+    public OperationStatisticsTab(TaskPage parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
 
-    public int getSuccessfullyProcessed() {
-        return Integer.valueOf(getParentElement().$(Schrodinger.byDataId("span", "objectsProcessedSuccess")).getText());
+    public Integer getSuccessfullyProcessed() {
+        return getIntegerValueForTextField("objectsProcessedSuccess");
+    }
+
+    public Integer getObjectsFailedToBeProcessed() {
+        return getIntegerValueForTextField("objectsProcessedFailure");
+    }
+
+    public Integer getObjectsTotalCount() {
+        return getIntegerValueForTextField("objectsTotal");
+    }
+
+    private Integer getIntegerValueForTextField(String fieldName) {
+        String textValue = getParentElement().$(Schrodinger.byDataId("span", fieldName)).getText();
+        if (textValue == null || textValue.trim().equals("")) {
+            return null;
+        }
+        return Integer.valueOf(textValue);
+    }
+
+    public OperationStatisticsTab assertSuccessfullyProcessedCountMatch(int expectedCount) {
+        Assert.assertTrue(getSuccessfullyProcessed() == expectedCount, "The count of successfully processed objects doesn't match to " + expectedCount);
+        return this;
+    }
+
+    public OperationStatisticsTab assertSuccessfullyProcessedIsNull() {
+        Assert.assertNull(getSuccessfullyProcessed(), "The value of successfully processed objects should be null.");
+        return this;
+    }
+
+    public OperationStatisticsTab assertObjectsFailedToBeProcessedCountMatch(int expectedCount) {
+        Assert.assertTrue(getObjectsFailedToBeProcessed() == expectedCount, "The count of failed objects doesn't match to " + expectedCount);
+        return this;
+    }
+
+    public OperationStatisticsTab assertObjectsFailedToBeProcessedIsNull() {
+        Assert.assertNull(getObjectsFailedToBeProcessed(), "The value of failed objects should be null.");
+        return this;
+    }
+
+    public OperationStatisticsTab assertObjectsTotalCountMatch(int expectedCount) {
+        Assert.assertTrue(getObjectsTotalCount() == expectedCount, "The total count of processed objects doesn't match to " + expectedCount);
+        return this;
+    }
+
+    public OperationStatisticsTab assertObjectsTotalIsNull() {
+        Assert.assertNull(getObjectsTotalCount(), "The total count of processed objects should be null.");
+        return null;
     }
 }

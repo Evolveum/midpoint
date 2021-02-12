@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.schemacheck;
+
+import static com.evolveum.midpoint.repo.sqlbase.SupportedDatabase.MARIADB;
+import static com.evolveum.midpoint.repo.sqlbase.SupportedDatabase.MYSQL;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -22,7 +24,7 @@ import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.MissingSchemaAction;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.UpgradeableSchemaAction;
 import com.evolveum.midpoint.repo.sql.data.common.RGlobalMetadata;
-import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
+import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -51,7 +53,7 @@ class SchemaActionComputer {
     private static final String RELEASE_NOTES_URL_PREFIX = "https://wiki.evolveum.com/display/midPoint/Release+";
     private static final String SQL_SCHEMA_SCRIPTS_URL = "https://wiki.evolveum.com/display/midPoint/SQL+Schema+Scripts";
 
-    @Autowired private BaseHelper baseHelper;
+    @Autowired private SqlRepositoryConfiguration repositoryConfiguration;
 
     private static final Set<Pair<String, String>> AUTOMATICALLY_UPGRADEABLE = new HashSet<>(
             Arrays.asList(
@@ -264,42 +266,42 @@ class SchemaActionComputer {
 
     @NotNull
     private UpgradeableSchemaAction getUpgradeableSchemaAction() {
-        return baseHelper.getConfiguration().getUpgradeableSchemaAction();
+        return repositoryConfiguration.getUpgradeableSchemaAction();
     }
 
     @NotNull
     private SqlRepositoryConfiguration.IncompatibleSchemaAction getIncompatibleSchemaAction() {
-        return baseHelper.getConfiguration().getIncompatibleSchemaAction();
+        return repositoryConfiguration.getIncompatibleSchemaAction();
     }
 
     @NotNull
     private MissingSchemaAction getMissingSchemaAction() {
-        return baseHelper.getConfiguration().getMissingSchemaAction();
+        return repositoryConfiguration.getMissingSchemaAction();
     }
 
     private String determineUpgradeScriptFileName(@NotNull String from, @NotNull String to) {
-        SqlRepositoryConfiguration.Database database = getDatabase();
-        return database.name().toLowerCase() + "-upgrade-" + from + "-" + to + getVariantSuffix() + ".sql";
+        return getDatabaseType().name().toLowerCase()
+                + "-upgrade-" + from + "-" + to + getVariantSuffix() + ".sql";
     }
 
     private String determineCreateScriptFileName() {
-        SqlRepositoryConfiguration.Database database = getDatabase();
-        return database.name().toLowerCase() + "-" + REQUIRED_DATABASE_SCHEMA_VERSION + "-all" + getVariantSuffix() + ".sql";
+        return getDatabaseType().name().toLowerCase()
+                + "-" + REQUIRED_DATABASE_SCHEMA_VERSION + "-all" + getVariantSuffix() + ".sql";
     }
 
     private String getVariantSuffix() {
-        String variant = baseHelper.getConfiguration().getSchemaVariant();
+        String variant = repositoryConfiguration.getSchemaVariant();
         return variant != null ? "-" + variant : "";
     }
 
     @NotNull
-    private SqlRepositoryConfiguration.Database getDatabase() {
-        SqlRepositoryConfiguration.Database database = baseHelper.getConfiguration().getDatabaseType();
+    private SupportedDatabase getDatabaseType() {
+        SupportedDatabase database = repositoryConfiguration.getDatabaseType();
         if (database == null) {
             throw new SystemException("Couldn't create/upgrade DB schema because database kind is not known");
         }
-        if (database == SqlRepositoryConfiguration.Database.MARIADB) {
-            database = SqlRepositoryConfiguration.Database.MYSQL;
+        if (database == MARIADB) {
+            return MYSQL;
         }
         return database;
     }

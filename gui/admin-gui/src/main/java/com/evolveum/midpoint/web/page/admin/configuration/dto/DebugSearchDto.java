@@ -12,6 +12,12 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import org.apache.commons.lang3.StringUtils;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
@@ -22,34 +28,27 @@ import java.io.Serializable;
 public class DebugSearchDto implements Serializable, DebugDumpable {
     private static final long serialVersionUID = 1L;
 
-    public static final String F_TYPE = "type";
+//    public static final String F_TYPE = "type";
     public static final String F_RESOURCE = "resource";
     public static final String F_OID_FILTER = "oidFilter";
     public static final String F_OBJECT_CLASS = "objectClass";
     public static final String F_SEARCH = "search";
 
-    private ObjectTypes type;
-    private ObjectViewDto resource;
+//    private ObjectTypes type;
+    private ObjectReferenceType resource;
     private Search search;
-    private String oidFilter;
+//    private String oidFilter;
     private QName objectClass;
 
-    public ObjectTypes getType() {
-        if (type == null) {
-            type = ObjectTypes.SYSTEM_CONFIGURATION;
-        }
-        return type;
+    public DebugSearchDto(){
+        resetResourceRef();
     }
 
-    public void setType(ObjectTypes type) {
-        this.type = type;
-    }
-
-    public ObjectViewDto getResource() {
+    public ObjectReferenceType getResource() {
         return resource;
     }
 
-    public void setResource(ObjectViewDto resource) {
+    public void setResource(ObjectReferenceType resource) {
         this.resource = resource;
     }
 
@@ -69,12 +68,22 @@ public class DebugSearchDto implements Serializable, DebugDumpable {
         this.objectClass = objectClass;
     }
 
-    public String getOidFilter() {
-        return oidFilter;
+//    public String getOidFilter() {
+//        return oidFilter;
+//    }
+//
+//    public void setOidFilter(String oidFilter) {
+//        this.oidFilter = oidFilter;
+//    }
+
+    public boolean isResourceEmpty() {
+        return getResource() == null || getResource().getOid() == null || getResource().asReferenceValue().isEmpty();
     }
 
-    public void setOidFilter(String oidFilter) {
-        this.oidFilter = oidFilter;
+    public void resetResourceRef(){
+        ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setType(ResourceType.COMPLEX_TYPE);
+        this.resource = ref;
     }
 
     @Override
@@ -87,7 +96,7 @@ public class DebugSearchDto implements Serializable, DebugDumpable {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("DebugSearchDto\n");
-        DebugUtil.debugDumpWithLabelLn(sb, "type", type==null?null:type.toString(), indent+1);
+//        DebugUtil.debugDumpWithLabelLn(sb, "type", type==null?null:type.toString(), indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "resource", resource==null?null:resource.toString(), indent+1);
         DebugUtil.debugDumpWithLabel(sb, "objectClass", objectClass==null? null : objectClass.toString(), indent+1);
         DebugUtil.debugDumpWithLabel(sb, "search", search, indent+1);

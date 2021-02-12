@@ -10,9 +10,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -144,6 +144,11 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         return this;
     }
 
+    public TaskAsserter<RA> assertToken(Object expected) {
+        assertPropertyEquals(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN), expected);
+        return this;
+    }
+
     @Override
     public TaskAsserter<RA> assertPolyStringProperty(QName propName, String expectedOrig) {
         return (TaskAsserter<RA>) super.assertPolyStringProperty(propName, expectedOrig);
@@ -199,6 +204,11 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         return this;
     }
 
+    public TaskAsserter<RA> assertFatalError() {
+        TestUtil.assertFatalError(getTaskBean().getResult());
+        return this;
+    }
+
     public TaskAsserter<RA> assertCategory(String category) {
         assertEquals(category, getTaskBean().getCategory());
         return this;
@@ -214,5 +224,11 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         AssignmentsAsserter<TaskType, TaskAsserter<RA>, RA> asserter = new AssignmentsAsserter<>(this, getDetails());
         copySetupTo(asserter);
         return asserter;
+    }
+
+    public ObjectReferenceAsserter<UserType, RA> owner() {
+        ObjectReferenceAsserter<UserType, RA> ownerAsserter = new ObjectReferenceAsserter<>(getTaskBean().getOwnerRef().asReferenceValue(), UserType.class);
+        copySetupTo(ownerAsserter);
+        return ownerAsserter;
     }
 }

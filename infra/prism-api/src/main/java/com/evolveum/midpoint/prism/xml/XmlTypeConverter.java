@@ -137,7 +137,7 @@ public class XmlTypeConverter {
     }
 
     public static XMLGregorianCalendar createXMLGregorianCalendar(String string) {
-        // FIXME: We need to make gregorian calendar roundtrip to make sure time zone is included
+        // We need to make gregorian calendar roundtrip to make sure time zone is included
 
         return createXMLGregorianCalendar(getDatatypeFactory().newXMLGregorianCalendar(string));
     }
@@ -203,6 +203,10 @@ public class XmlTypeConverter {
         XMLGregorianCalendar rv = createXMLGregorianCalendar(now);
         rv.add(duration);
         return rv;
+    }
+
+    public static XMLGregorianCalendar fromNow(long now, String timeSpec) {
+        return fromNow(now, createDuration(timeSpec));
     }
 
     public static long toMillis(Duration duration) {

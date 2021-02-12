@@ -32,9 +32,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AbstractWriteCapabilityType;
@@ -47,6 +45,8 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchC
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Common abstract superclass for all manual connectors. There are connectors that do not
@@ -65,8 +65,6 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
     private static final com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory CAPABILITY_OBJECT_FACTORY
     = new com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory();
-
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractManualConnectorInstance.class);
 
     // test(), connect() and dispose() are lifecycle operations to be implemented in the subclasses
 
@@ -122,18 +120,18 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
     public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(
             ResourceObjectIdentification identification,
             PrismObject<ShadowType> shadow,
-            Collection<Operation> changes,
+            @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options,
             StateReporter reporter, OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
-            SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ConfigurationException {
+            SchemaException, ObjectAlreadyExistsException, ConfigurationException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_MODIFY);
 
         InternalMonitor.recordConnectorOperation("modify");
         InternalMonitor.recordConnectorModification("modify");
 
-        String ticketIdentifier = null;
+        String ticketIdentifier;
 
         try {
 
@@ -188,8 +186,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
     }
 
     @Override
-    public Collection<Object> fetchCapabilities(OperationResult parentResult)
-            throws CommunicationException, GenericFrameworkException, ConfigurationException {
+    public Collection<Object> fetchCapabilities(OperationResult parentResult) {
         Collection<Object> capabilities = new ArrayList<>();
 
         InternalMonitor.recordConnectorOperation("capabilities");
@@ -231,9 +228,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
     @Override
     public PrismObject<ShadowType> fetchObject(ResourceObjectIdentification resourceObjectIdentification, AttributesToReturn attributesToReturn,
-            StateReporter reporter, OperationResult parentResult)
-            throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
-            SchemaException, SecurityViolationException, ConfigurationException {
+            StateReporter reporter, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("fetchObject");
         // Read operations are not supported. We cannot really manually read the content of an off-line resource.
         return null;
@@ -243,10 +238,11 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
     public SearchResultMetadata search(
             ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
             ShadowResultHandler handler, AttributesToReturn attributesToReturn,
-            PagedSearchCapabilityType pagedSearchConfigurationType,
-            SearchHierarchyConstraints searchHierarchyConstraints, StateReporter reporter,
-            OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
-            SchemaException, SecurityViolationException, ObjectNotFoundException {
+            PagedSearchCapabilityType pagedSearchConfiguration,
+            SearchHierarchyConstraints searchHierarchyConstraints,
+            FetchErrorReportingMethodType errorReportingMethod,
+            StateReporter reporter,
+            OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("search");
         // Read operations are not supported. We cannot really manually read the content of an off-line resource.
         return null;
@@ -255,24 +251,21 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
     @Override
     public int count(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
             PagedSearchCapabilityType pagedSearchConfigurationType, StateReporter reporter,
-            OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
-            SchemaException, UnsupportedOperationException {
+            OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("count");
         // Read operations are not supported. We cannot really manually read the content of an off-line resource.
         return 0;
     }
 
-
     @Override
-    public ConnectorOperationalStatus getOperationalStatus() throws ObjectNotFoundException {
-        ConnectorOperationalStatus opstatus = new ConnectorOperationalStatus();
-        opstatus.setConnectorClassName(this.getClass().getName());
-        return opstatus;
+    public ConnectorOperationalStatus getOperationalStatus() {
+        ConnectorOperationalStatus opStatus = new ConnectorOperationalStatus();
+        opStatus.setConnectorClassName(this.getClass().getName());
+        return opStatus;
     }
 
     @Override
-    public ResourceSchema fetchResourceSchema(OperationResult parentResult)
-            throws CommunicationException, GenericFrameworkException, ConfigurationException {
+    public ResourceSchema fetchResourceSchema(OperationResult parentResult) {
         // Schema discovery is not supported. Schema must be defined manually. Or other connector has to provide it.
         InternalMonitor.recordConnectorOperation("schema");
         return null;
@@ -280,17 +273,17 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
     @Override
     public <T> PrismProperty<T> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass,
-            StateReporter reporter, OperationResult parentResult)
-            throws CommunicationException, GenericFrameworkException {
+            StateReporter reporter, OperationResult parentResult) {
         // not supported
         return null;
     }
 
     @Override
-    public void fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
+    public UcfFetchChangesResult fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
             AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter,
-            ChangeHandler changeHandler, OperationResult parentResult) {
+            @NotNull UcfLiveSyncChangeListener changeHandler, OperationResult parentResult) {
         // not supported
+        return null;
     }
 
     @Override
@@ -301,9 +294,8 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
     @Override
     public Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, StateReporter reporter,
-            OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
+            OperationResult parentResult) {
         // not supported
         return null;
     }
-
 }

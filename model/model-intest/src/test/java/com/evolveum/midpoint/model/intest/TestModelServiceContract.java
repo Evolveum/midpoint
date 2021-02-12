@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter.Format.TEXT;
+import static com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter.SortBy.TIME;
+
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
@@ -18,7 +21,11 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.Channel;
 
+import com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter;
+import com.evolveum.midpoint.schema.statistics.OperationsPerformanceInformationUtil;
 import com.evolveum.midpoint.util.exception.*;
+
+import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -3186,10 +3193,21 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         ModelExecuteOptions options = executeOptions().reconcile();
 
+        OperationsPerformanceMonitor.INSTANCE.clearGlobalPerformanceInformation();
+
         // WHEN
         modelService.executeChanges(deltas, options, task, result);
 
         // THEN
+        OperationsPerformanceInformationType performanceInformation =
+                OperationsPerformanceInformationUtil.toOperationsPerformanceInformationType(
+                        OperationsPerformanceMonitor.INSTANCE.getGlobalPerformanceInformation());
+        displayValue("Operation performance (by name)",
+                OperationsPerformanceInformationUtil.format(performanceInformation));
+        displayValue("Operation performance (by time)",
+                OperationsPerformanceInformationUtil.format(performanceInformation,
+                        new AbstractStatisticsPrinter.Options(TEXT, TIME), null, null));
+
         assertSuccess(result);
         // Not sure why 2 ... but this is not a big problem now
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);

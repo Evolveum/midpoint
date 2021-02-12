@@ -15,7 +15,6 @@
             <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryFactory</repositoryServiceFactoryClass>
 
             <port>5438</port>
-            <fileName>midpoint</fileName>
             <dropIfExists>true</dropIfExists>
 
             <performanceStatisticsLevel>10</performanceStatisticsLevel>

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~ Copyright (c) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -120,7 +120,7 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>audit-impl</artifactId>
+            <artifactId>audit-log-impl</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>

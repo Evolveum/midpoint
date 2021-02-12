@@ -24,8 +24,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
+/**
+ * Maintains system-wide schemas.
+ */
 public interface SchemaRegistry extends PrismContextSensitive, DebugDumpable, GlobalDefinitionsStore {
 
+    /**
+     * @return System-wide "standard prefixes" registry.
+     */
     DynamicNamespacePrefixMapper getNamespacePrefixMapper();
 
     void registerInvalidationListener(InvalidationListener listener);

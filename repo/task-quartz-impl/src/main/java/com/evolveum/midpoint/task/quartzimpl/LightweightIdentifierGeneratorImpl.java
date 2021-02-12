@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
@@ -32,7 +33,7 @@ public class LightweightIdentifierGeneratorImpl implements LightweightIdentifier
     }
 
     @Override
-    public synchronized LightweightIdentifier generate() {
+    public synchronized @NotNull LightweightIdentifier generate() {
         long timestamp = System.currentTimeMillis();
         if (timestamp > lastTimestamp) {
             // update the last timestamp and reset sequence counter

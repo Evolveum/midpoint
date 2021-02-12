@@ -15,7 +15,6 @@ import com.evolveum.midpoint.schrodinger.page.configuration.SystemPage;
 import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.page.report.AuditLogViewerPage;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
-import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -24,6 +23,8 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 
 import static com.codeborne.selenide.Selenide.*;
 
@@ -51,15 +52,15 @@ public abstract class AbstractLoginPageTest extends AbstractSchrodingerTest {
     @Override
     public void beforeClass() throws IOException{
         super.beforeClass();
-        importObject(ENABLED_USER, true);
-        importObject(DISABLED_USER, true);
-        importObject(ENABLED_USER_WITHOUT_AUTHORIZATIONS, true);
-        importObject(MAIL_NONCE_VALUE_POLICY, true);
-        importObject(ARCHETYPE_NODE_GUI, true);
-        importObject(getSecurityPolicyMailNonceResetPass(), true);
-        importObject(USER_WITHOUT_SUPERUSER, true);
-        importObject(CREATE_NAME_OBJECT_TEMPLATE, true);
-        importObject(SYSTEM_CONFIG_WITH_NOTIFICATION, true);
+//        importObject(ENABLED_USER, true);
+//        importObject(DISABLED_USER, true);
+//        importObject(ENABLED_USER_WITHOUT_AUTHORIZATIONS, true);
+//        importObject(MAIL_NONCE_VALUE_POLICY, true);
+//        importObject(ARCHETYPE_NODE_GUI, true);
+//        importObject(getSecurityPolicyMailNonceResetPass(), true);
+//        importObject(USER_WITHOUT_SUPERUSER, true);
+//        importObject(CREATE_NAME_OBJECT_TEMPLATE, true);
+//        importObject(SYSTEM_CONFIG_WITH_NOTIFICATION, true);
         basicPage.infrastructure();
         SystemPage systemPage = new SystemPage();
         PrismForm<InfrastructureTab> infrastructureForm = systemPage.infrastructureTab().form();
@@ -74,8 +75,14 @@ public abstract class AbstractLoginPageTest extends AbstractSchrodingerTest {
         }
         NotificationsTab notificationTab = systemPage.notificationsTab();
         notificationTab.setRedirectToFile(notificationFile.getAbsolutePath());
-        systemPage.save();
-        Assert.assertTrue(systemPage.feedback().isSuccess());
+        systemPage.clickSave();
+        systemPage.feedback().assertSuccess();
+    }
+
+    @Override
+    protected List<File> getObjectListToImport(){
+        return Arrays.asList(ENABLED_USER, DISABLED_USER, ENABLED_USER_WITHOUT_AUTHORIZATIONS, MAIL_NONCE_VALUE_POLICY, ARCHETYPE_NODE_GUI,
+                getSecurityPolicyMailNonceResetPass(), USER_WITHOUT_SUPERUSER, CREATE_NAME_OBJECT_TEMPLATE, SYSTEM_CONFIG_WITH_NOTIFICATION);
     }
 
     @Test
@@ -104,8 +111,9 @@ public abstract class AbstractLoginPageTest extends AbstractSchrodingerTest {
         FormLoginPage login = midPoint.formLogin();
         login.login(username, password);
 
-        FeedbackBox feedback = login.feedback();
-        Assert.assertTrue(feedback.isError("0"));
+        login
+                .feedback()
+                .assertError("0");
     }
 
     @Test

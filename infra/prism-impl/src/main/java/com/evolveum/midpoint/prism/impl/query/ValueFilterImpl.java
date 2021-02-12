@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -27,31 +27,29 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefinition> extends ObjectFilterImpl implements
-        ValueFilter<V, D> {
+public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefinition>
+        extends ObjectFilterImpl implements ValueFilter<V, D> {
     private static final long serialVersionUID = 1L;
 
     @NotNull private final ItemPath fullPath;
-    // This is a definition of the item pointed to by "fullPath"
-    // (not marked as @NotNull, because it can be filled-in after creation of the filter - e.g. in provisioning)
+
+    /**
+     * This is a definition of the item pointed to by "fullPath".
+     * Not marked as @NotNull, because it can be filled-in after creation of the filter - e.g. in provisioning.
+     */
     @Nullable private D definition;
     @Nullable private QName matchingRule;
     @Nullable private List<V> values;
     @Nullable private ExpressionWrapper expression;
-    @Nullable private ItemPath rightHandSidePath;                            // alternative to values/expression; can be provided later
-    @Nullable private ItemDefinition rightHandSideDefinition;                // optional (needed only if path points to dynamically defined item)
+
+    /** Alternative to values/expression; can be provided later. */
+    @Nullable private ItemPath rightHandSidePath;
+
+    /** Optional (needed only if path points to dynamically defined item). */
+    @Nullable private ItemDefinition rightHandSideDefinition;
 
     // At most one of values, expression, rightHandSidePath can be non-null.
     // It is a responsibility of the client to ensure it.
-
-    /**
-     * TODO decide whether to make these fields final. It makes the code simpler, but maybe not that much
-     * that it is worth the discomfort of the clients (they cannot change they if the would wish).
-     * Some of them like definition, matchingRule, and right-hand things are filled-in later in some cases (provisioning, query builder).
-     */
-    protected ValueFilterImpl(@NotNull ItemPath fullPath, @Nullable D definition) {
-        this(fullPath, definition, null, null, null, null, null);
-    }
 
     protected ValueFilterImpl(@NotNull ItemPath fullPath, @Nullable D definition, @Nullable QName matchingRule,
             @Nullable List<V> values, @Nullable ExpressionWrapper expression,
@@ -78,15 +76,18 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
         return fullPath;
     }
 
+    @Override
     @NotNull
     public ItemPath getParentPath() {
         return fullPath.allExceptLast();
     }
 
+    @Override
     @NotNull
     public ItemName getElementName() {
         if (definition != null) {
-            return definition.getItemName();        // this is more precise, as the name in path can be unqualified
+            // this is more precise, as the name in path can be unqualified
+            return definition.getItemName();
         }
         if (fullPath.isEmpty()) {
             throw new IllegalStateException("Empty full path in filter " + this);
@@ -99,27 +100,31 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
         }
     }
 
+    @Override
     @Nullable
     public D getDefinition() {
         return definition;
     }
 
+    @Override
     public void setDefinition(@Nullable D definition) {
         this.definition = definition;
         checkConsistence(false);
     }
 
+    @Override
     @Nullable
     public QName getMatchingRule() {
         return matchingRule;
     }
 
+    @Override
     public void setMatchingRule(@Nullable QName matchingRule) {
         this.matchingRule = matchingRule;
     }
 
     @NotNull
-    MatchingRule getMatchingRuleFromRegistry(MatchingRuleRegistry matchingRuleRegistry) {
+    MatchingRule<Object> getMatchingRuleFromRegistry(MatchingRuleRegistry matchingRuleRegistry) {
         if (definition == null) {
             throw new IllegalArgumentException("No definition in item " + fullPath);
         }
@@ -130,6 +135,7 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
         }
     }
 
+    @Override
     @Nullable
     public List<V> getValues() {
         return values;
@@ -162,6 +168,7 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
         }
     }
 
+    @Override
     @Nullable
     public V getSingleValue() {
         if (values == null || values.isEmpty()) {
@@ -176,7 +183,9 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
     /**
      * @param value value, has to be parent-less
      */
+    @Override
     public void setValue(V value) {
+        checkMutable();
         this.values = new ArrayList<>();
         if (value != null) {
             value.setParent(this);
@@ -184,29 +193,37 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
         }
     }
 
+    @Override
     @Nullable
     public ExpressionWrapper getExpression() {
         return expression;
     }
 
+    @Override
     public void setExpression(@Nullable ExpressionWrapper expression) {
+        checkMutable();
         this.expression = expression;
     }
 
+    @Override
     @Nullable
     public ItemPath getRightHandSidePath() {
         return rightHandSidePath;
     }
 
+    @Override
     public void setRightHandSidePath(@Nullable ItemPath rightHandSidePath) {
+        checkMutable();
         this.rightHandSidePath = rightHandSidePath;
     }
 
+    @Override
     @Nullable
     public ItemDefinition getRightHandSideDefinition() {
         return rightHandSideDefinition;
     }
 
+    @Override
     public void setRightHandSideDefinition(@Nullable ItemDefinition rightHandSideDefinition) {
         this.rightHandSideDefinition = rightHandSideDefinition;
     }
@@ -231,6 +248,7 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
         return getFullPath();
     }
 
+    @Override
     public boolean isRaw() {
         if (values != null) {
             for (V value : values) {
@@ -242,58 +260,16 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
         return false;
     }
 
-    // TODO revise
     @Override
-    public boolean match(PrismContainerValue cvalue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-
-        Collection<PrismValue> objectItemValues = getObjectItemValues(cvalue);
-
-        boolean filterItemIsEmpty = getValues() == null || getValues().isEmpty();
-        boolean objectItemIsEmpty = objectItemValues.isEmpty();
-
-        if (filterItemIsEmpty && !objectItemIsEmpty) {
-            return false;
-        }
-
-        if (!filterItemIsEmpty && objectItemIsEmpty) {
-            return false;
-        }
-
-        return true;
-    }
+    public abstract boolean match(PrismContainerValue cvalue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException;
 
     @NotNull
     Collection<PrismValue> getObjectItemValues(PrismContainerValue value) {
-        return value.getAllValues(getFullPath());
-    }
-
-    // TODO revise
-    @NotNull
-    Item getFilterItem() throws SchemaException {
-        if (getDefinition() == null) {
-            throw new SchemaException("Could not find definition for item " + getPath());
-        }
-        Item filterItem = getDefinition().instantiate();
-        if (getValues() != null && !getValues().isEmpty()) {
-            try {
-                for (PrismValue v : getValues()) {
-                    filterItem.add(v.clone());
-                }
-            } catch (SchemaException e) {
-                throw new IllegalArgumentException(e.getMessage(), e);
-            }
-        }
-        return filterItem;
-    }
-
-    @NotNull
-    Collection<PrismValue> getFilterItemValues() throws SchemaException {
-        //noinspection unchecked
-        return getFilterItem().getValues();
+        return value.getAllValues(fullPath);
     }
 
     @Override
-    public abstract ValueFilterImpl clone();
+    public abstract ValueFilterImpl<V, D> clone();
 
     @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
     @Override
@@ -422,6 +398,15 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
             sb.append(getRightHandSidePath());
         }
         return sb.toString();
+    }
+
+    @Override
+    protected void performFreeze() {
+        values = freezeNullableList(values);
+        freezeAll(values);
+        freeze(definition);
+        freeze(rightHandSideDefinition);
+        freeze(expression);
     }
 
     @Override

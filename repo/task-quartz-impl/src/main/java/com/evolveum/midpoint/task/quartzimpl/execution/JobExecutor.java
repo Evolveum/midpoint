@@ -78,7 +78,9 @@ public class JobExecutor implements InterruptableJob {
         // get the task instance
         String oid = context.getJobDetail().getKey().getName();
         try {
-            task = taskManagerImpl.createRunningTask(taskManagerImpl.getTaskWithResult(oid, executionResult));
+            TaskQuartzImpl taskWithResult = taskManagerImpl.getTaskWithResult(oid, executionResult);
+            String rootOid = taskManagerImpl.getRootTaskOid(taskWithResult, executionResult);
+            task = taskManagerImpl.createRunningTask(taskWithResult, rootOid);
         } catch (ObjectNotFoundException e) {
             LoggingUtils.logException(LOGGER, "Task with OID {} no longer exists, removing Quartz job and exiting the execution routine.", e, oid);
             taskManagerImpl.getExecutionManager().removeTaskFromQuartz(oid, executionResult);

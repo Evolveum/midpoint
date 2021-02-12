@@ -11,15 +11,21 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
+import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -39,10 +45,11 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
+
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
  * @author lazyman
@@ -50,13 +57,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 @PageDescriptor(url = "/admin/connectorHosts", action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONNECTOR_HOSTS_ALL_URL, label = "PageAdminResources.auth.connectorHostsAll.label", description = "PageAdminResources.auth.connectorHostsAll.description"),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONNECTOR_HOSTS_ALL_URL, label = "PageResources.auth.connectorHosts.label", description = "PageResources.auth.connectorHosts.description") })
-public class PageConnectorHosts extends PageAdminObjectList<ConnectorHostType> {
+public class PageConnectorHosts extends PageAdmin {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageConnectorHosts.class);
     private static final String DOT_CLASS = PageConnectorHosts.class.getName() + ".";
     private static final String OPERATION_DELETE_HOSTS = DOT_CLASS + "deleteHosts";
     private static final String OPERATION_CONNECTOR_DISCOVERY = DOT_CLASS + "connectorDiscovery";
+
+    private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_TABLE = "table";
 
     private IModel<Search> searchModel;
 
@@ -84,53 +94,56 @@ public class PageConnectorHosts extends PageAdminObjectList<ConnectorHostType> {
         };
     }
 
-//    private void initLayout() {
-//        Form<?> mainForm = new com.evolveum.midpoint.web.component.form.Form<>(ID_MAIN_FORM);
-//        add(mainForm);
-//
-//        BoxedTablePanel<ConnectorHostType> connectorHosts = new BoxedTablePanel<ConnectorHostType>(
-//                ID_CONNECTOR_TABLE,
-//                new ObjectDataProvider<ConnectorHostType, ConnectorHostType>(PageConnectorHosts.this,
-//                        ConnectorHostType.class),
-//                initConnectorHostsColumns(), UserProfileStorage.TableId.PAGE_RESOURCES_CONNECTOR_HOSTS,
-//                (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_RESOURCES_CONNECTOR_HOSTS)) {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected WebMarkupContainer createHeader(String headerId) {
-//                return new SearchFormPanel(headerId, searchModel) {
-//                    private static final long serialVersionUID = 1L;
-//
-//                    @Override
-//                    protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
-//                        PageConnectorHosts.this.searchHostPerformed(query, target);
-//                    }
-//                };
-//            }
-//        };
-//        connectorHosts.setOutputMarkupId(true);
-//        mainForm.add(connectorHosts);
-//    }
-
     @Override
-    protected List<IColumn<SelectableBean<ConnectorHostType>, String>> initColumns() {
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
+
+    protected void initLayout() {
+
+        Form mainForm = new MidpointForm(ID_MAIN_FORM);
+        add(mainForm);
+
+        MainObjectListPanel<ConnectorHostType> table = new MainObjectListPanel<ConnectorHostType>(ID_TABLE, ConnectorHostType.class, getQueryOptions()) {
+            @Override
+            protected void objectDetailsPerformed(AjaxRequestTarget target, ConnectorHostType host) {
+                PageParameters parameters = new PageParameters();
+                parameters.add(OnePageParameterEncoder.PARAMETER, host.getOid());
+                navigateToNext(PageUser.class, parameters);
+            }
+
+            @Override
+            protected UserProfileStorage.TableId getTableId() {
+                return UserProfileStorage.TableId.PAGE_RESOURCES_CONNECTOR_HOSTS;
+            }
+
+            @Override
+            protected List<InlineMenuItem> createInlineMenu() {
+                return createRowActions();
+            }
+
+            @Override
+            protected List<IColumn<SelectableBean<ConnectorHostType>, String>> createDefaultColumns() {
+                return PageConnectorHosts.this.initColumns();
+            }
+
+            @Override
+            protected boolean isCreateNewObjectEnabled() {
+                return false;
+            }
+
+            @Override
+            protected boolean isObjectDetailsEnabled(IModel<SelectableBean<ConnectorHostType>> rowModel) {
+                return false;
+            }
+        };
+        table.setOutputMarkupId(true);
+        mainForm.add(table);
+    }
+
+    private List<IColumn<SelectableBean<ConnectorHostType>, String>> initColumns() {
         List<IColumn<SelectableBean<ConnectorHostType>, String>> columns = new ArrayList<>();
-//
-//        IColumn column = new CheckBoxHeaderColumn<ConnectorHostType>();
-//        columns.add(column);
-//
-//        column = new AjaxLinkColumn<SelectableBean<ConnectorHostType>>(
-//                createStringResource("pageResources.connector.name"), "name", "value.name") {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target,
-//                    IModel<SelectableBean<ConnectorHostType>> rowModel) {
-//                ConnectorHostType host = rowModel.getObject().getValue();
-//                // resourceDetailsPerformed(target, host.getOid());
-//            }
-//        };
-//        columns.add(column);
 
         columns.add(new PropertyColumn(createStringResource("pageResources.connector.hostname"),
                 "value.hostname"));
@@ -140,19 +153,10 @@ public class PageConnectorHosts extends PageAdminObjectList<ConnectorHostType> {
         columns.add(new CheckBoxColumn(createStringResource("pageResources.connector.protectConnection"),
                 "value.protectConnection"));
 
-//        InlineMenuHeaderColumn menu = new InlineMenuHeaderColumn(initInlineHostsMenu());
-//        columns.add(menu);
-
         return columns;
     }
 
-    @Override
-    protected boolean isCreateNewObjectEnabled() {
-        return false;
-    }
-
-    @Override
-    protected List<InlineMenuItem> createRowActions() {
+    private List<InlineMenuItem> createRowActions() {
         List<InlineMenuItem> headerMenuItems = new ArrayList<>();
         headerMenuItems.add(new InlineMenuItem(createStringResource("PageBase.button.delete")) {
             private static final long serialVersionUID = 1L;
@@ -188,18 +192,8 @@ public class PageConnectorHosts extends PageAdminObjectList<ConnectorHostType> {
         return headerMenuItems;
     }
 
-    @Override
-    protected boolean isNameColumnClickable(IModel<SelectableBean<ConnectorHostType>> rowModel) {
-        return false;
-    }
-
-    @Override
-    protected Class<ConnectorHostType> getType(){
-        return ConnectorHostType.class;
-    }
-
     private void deleteHostPerformed(AjaxRequestTarget target) {
-        List<ConnectorHostType> selected = getObjectListPanel().getSelectedObjects();
+        List<ConnectorHostType> selected = getObjectListPanel().getSelectedRealObjects();
         if (selected.isEmpty()) {
             warn(getString("pageResources.message.noHostSelected"));
             target.add(getFeedbackPanel());
@@ -219,6 +213,10 @@ public class PageConnectorHosts extends PageAdminObjectList<ConnectorHostType> {
 
     }
 
+    private MainObjectListPanel<ConnectorHostType> getObjectListPanel() {
+        return (MainObjectListPanel<ConnectorHostType>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
+    }
+
     /**
      * @param oneDeleteKey
      *            message if deleting one item
@@ -233,7 +231,7 @@ public class PageConnectorHosts extends PageAdminObjectList<ConnectorHostType> {
             private static final long serialVersionUID = 1L;
             @Override
             public String getObject() {
-                List<ConnectorHostType> selected = getObjectListPanel().getSelectedObjects();
+                List<ConnectorHostType> selected = getObjectListPanel().getSelectedRealObjects();
 
                 switch (selected.size()) {
                     case 1:
@@ -249,7 +247,7 @@ public class PageConnectorHosts extends PageAdminObjectList<ConnectorHostType> {
     }
 
     private void deleteHostConfirmedPerformed(AjaxRequestTarget target) {
-        List<ConnectorHostType> selected = getObjectListPanel().getSelectedObjects();
+        List<ConnectorHostType> selected = getObjectListPanel().getSelectedRealObjects();
 
         OperationResult result = new OperationResult(OPERATION_DELETE_HOSTS);
         for (ConnectorHostType selectable : selected) {
@@ -285,7 +283,7 @@ public class PageConnectorHosts extends PageAdminObjectList<ConnectorHostType> {
         PageBase page = (PageBase) getPage();
         Task task = page.createSimpleTask(OPERATION_CONNECTOR_DISCOVERY);
         OperationResult result = task.getResult();
-        List<ConnectorHostType> selected = getObjectListPanel().getSelectedObjects();
+        List<ConnectorHostType> selected = getObjectListPanel().getSelectedRealObjects();
         if (selected.isEmpty()) {
             warn(getString("pageResources.message.noHostSelected"));
             return;
@@ -303,25 +301,7 @@ public class PageConnectorHosts extends PageAdminObjectList<ConnectorHostType> {
         showResult(result);
     }
 
-    @Override
-    protected Collection<SelectorOptions<GetOperationOptions>> getQueryOptions(){
+    private Collection<SelectorOptions<GetOperationOptions>> getQueryOptions(){
         return SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
     }
-
-    @Override
-    protected UserProfileStorage.TableId getTableId(){
-        return UserProfileStorage.TableId.PAGE_RESOURCES_CONNECTOR_HOSTS;
-    }
-
-//    private void searchHostPerformed(ObjectQuery query, AjaxRequestTarget target) {
-//        target.add(getFeedbackPanel());
-//
-////        Table panel = getConnectorHostTable();
-////        DataTable table = panel.getDataTable();
-////        ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
-////        provider.setQuery(query);
-////        provider.setOptions(SelectorOptions.createCollection(GetOperationOptions.createNoFetch()));
-//
-//        target.add(getObjectListPanel());
-//    }
 }

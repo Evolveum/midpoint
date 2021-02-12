@@ -8,9 +8,26 @@ package com.evolveum.midpoint.web.component.search;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
+import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
+import com.evolveum.midpoint.web.component.input.TextPanel;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+import com.evolveum.midpoint.prism.path.ItemPath;
+
+import com.evolveum.midpoint.util.QNameUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -36,16 +53,11 @@ import org.apache.wicket.util.time.Duration;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -59,7 +71,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 /**
  * @author Viliam Repan (lazyman)
  */
-public class SearchPanel extends BasePanel<Search> {
+public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOG = TraceManager.getTrace(SearchPanel.class);
@@ -67,10 +79,12 @@ public class SearchPanel extends BasePanel<Search> {
     private static final String ID_FORM = "form";
     private static final String ID_ITEMS = "items";
     private static final String ID_ITEM = "item";
+    private static final String ID_SPECIAL_ITEMS = "specialItems";
+    private static final String ID_SPECIAL_ITEM = "specialItem";
+    private static final String ID_OID_ITEM = "oidItem";
     private static final String ID_SEARCH_CONTAINER = "searchContainer";
-    private static final String ID_SEARCH_SIMPLE = "searchSimple";
+    private static final String ID_DEBUG = "debug";
     private static final String ID_SEARCH_BUTTON_BEFORE_DROPDOWN = "searchButtonBeforeDropdown";
-    private static final String ID_SEARCH_DROPDOWN = "searchDropdown";
     private static final String ID_MORE = "more";
     private static final String ID_POPOVER = "popover";
     private static final String ID_ADD_TEXT = "addText";
@@ -78,35 +92,40 @@ public class SearchPanel extends BasePanel<Search> {
     private static final String ID_CLOSE = "close";
     private static final String ID_PROPERTIES = "properties";
     private static final String ID_CHECK = "check";
+    private static final String ID_HELP = "help";
     private static final String ID_PROP_NAME = "propName";
     private static final String ID_PROP_LINK = "propLink";
     private static final String ID_PROP_LIST = "propList";
-    private static final String ID_ADVANCED = "advanced";
-    private static final String ID_FULL_TEXT = "fullText";
-    private static final String ID_BASIC_SEARCH = "basic";
     private static final String ID_FULL_TEXT_CONTAINER = "fullTextContainer";
-    private static final String ID_LINKS_CONTAINER = "linksContainer";
     private static final String ID_FULL_TEXT_FIELD = "fullTextField";
     private static final String ID_ADVANCED_GROUP = "advancedGroup";
     private static final String ID_MORE_GROUP = "moreGroup";
     private static final String ID_ADVANCED_AREA = "advancedArea";
+    private static final String ID_QUERY_DSL_FIELD = "queryDslField";
     private static final String ID_ADVANCED_CHECK = "advancedCheck";
     private static final String ID_ADVANCED_ERROR = "advancedError";
     private static final String ID_MENU_ITEM = "menuItem";
     private static final String ID_MENU_ITEM_BODY = "menuItemBody";
+    private static final String ID_COLLECTION_REF_PANEL = "collectionRefPanel";
+    private static final String ID_TYPE_PANEL = "typePanel";
 
     private LoadableModel<MoreDialogDto> moreDialogModel;
     boolean advancedSearch;
     boolean queryPlaygroundAccessible;
 
-    public SearchPanel(String id, IModel<Search> model) {
+    public SearchPanel(String id, IModel<Search<C>> model) {
         this(id, model, true);
     }
 
-    public SearchPanel(String id, IModel<Search> model, boolean advancedSearch) {
+    public SearchPanel(String id, IModel<Search<C>> model, boolean advancedSearch) {
         super(id, model);
         this.advancedSearch = advancedSearch;
         queryPlaygroundAccessible = SecurityUtils.isPageAuthorized(PageRepositoryQuery.class);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
         initLayout();
     }
 
@@ -122,10 +141,98 @@ public class SearchPanel extends BasePanel<Search> {
 
                 return dto;
             }
+
+            @Override
+            public MoreDialogDto getObject() {
+                if (SearchPanel.this.getModelObject() != null && SearchPanel.this.getModelObject().isTypeChanged()){
+                    reset();
+                }
+                return super.getObject();
+            }
         };
 
         MidpointForm<?> form = new MidpointForm<>(ID_FORM);
         add(form);
+
+        AjaxButton debug = new AjaxButton(ID_DEBUG, createStringResource("SearchPanel.debug")) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                debugPerformed();
+            }
+        };
+        debug.add(new VisibleEnableBehaviour() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType())
+                        && queryPlaygroundAccessible;
+            }
+        });
+        form.add(debug);
+
+        PropertyModel<ObjectCollectionSearchItem> collectionModel = new PropertyModel<>(getModel(), Search.F_COLLECTION);
+        SearchObjectCollectionPanel collectionPanel = new SearchObjectCollectionPanel(ID_COLLECTION_REF_PANEL, collectionModel);
+        form.add(collectionPanel);
+        collectionPanel.add(new VisibleBehaviour(() -> collectionModel != null && collectionModel.getObject() != null
+                && getModelObject().isCollectionItemVisible()));
+
+        PropertyModel<ContainerTypeSearchItem> typeModel = new PropertyModel<>(getModel(), Search.F_TYPE);
+        SearchTypePanel typePanel = new SearchTypePanel(ID_TYPE_PANEL, typeModel){
+            @Override
+            protected void searchPerformed(AjaxRequestTarget target) {
+                resetMoreDialogModel();
+                SearchPanel.this.searchPerformed(target);
+            }
+        };
+        form.add(typePanel);
+        typePanel.add(new VisibleBehaviour(() -> typeModel != null && typeModel.getObject() != null && typeModel.getObject().isVisible()
+                && !SearchBoxModeType.OID.equals(getModelObject().getSearchType())));
+
+        ListView<SearchItem> specialItems = new ListView<SearchItem>(ID_SPECIAL_ITEMS,
+                new PropertyModel<>(getModel(), Search.F_SPECIAL_ITEMS)) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void populateItem(ListItem<SearchItem> item) {
+                WebMarkupContainer searchItem;
+                if (item.getModelObject() instanceof SpecialSearchItem) {
+                    searchItem = ((SpecialSearchItem) item.getModelObject()).createSpecialSearchPanel(ID_SPECIAL_ITEM, (Consumer<AjaxRequestTarget> & Serializable) target -> searchPerformed(target));
+                } else {
+                    IModel itemModel = item.getModel();
+                    searchItem = new SearchPropertyPanel<T>(ID_SPECIAL_ITEM, (IModel<PropertySearchItem<T>>) itemModel) {
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        protected boolean canRemoveSearchItem() {
+                            return super.canRemoveSearchItem() && SearchPanel.this.getModelObject().isCanConfigure();
+                        }
+
+                        @Override
+                        protected void searchPerformed(AjaxRequestTarget target) {
+                            SearchPanel.this.searchPerformed(target);
+                        }
+                    };
+                }
+                item.add(searchItem);
+            }
+        };
+        specialItems.add(new VisibleEnableBehaviour() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return !SearchBoxModeType.OID.equals(getModelObject().getSearchType());
+            }
+        });
+        form.add(specialItems);
+
 
         ListView<S> items = new ListView<S>(ID_ITEMS,
                 new PropertyModel<>(getModel(), Search.F_ITEMS)) {
@@ -134,24 +241,62 @@ public class SearchPanel extends BasePanel<Search> {
 
             @Override
             protected void populateItem(ListItem<S> item) {
-                SearchItemPanel<S, T> searchItem = new SearchItemPanel<S, T>(ID_ITEM, item.getModel()) {
-                    private static final long serialVersionUID = 1L;
+                AbstractSearchItemPanel searchItem;
+                if (item.getModelObject() instanceof FilterSearchItem) {
+                    searchItem = new SearchFilterPanel(ID_ITEM, (IModel<FilterSearchItem>) item.getModel()) {
+                        private static final long serialVersionUID = 1L;
 
-                    @Override
-                    protected boolean canRemoveSearchItem() {
-                        return SearchPanel.this.getModelObject().isCanConfigure();
-                    }
+                        @Override
+                        protected boolean canRemoveSearchItem() {
+                            return super.canRemoveSearchItem() && SearchPanel.this.getModelObject().isCanConfigure();
+                        }
 
-                    @Override
-                    protected void searchPerformed(AjaxRequestTarget target){
-                        SearchPanel.this.searchPerformed(target);
-                    }
-                };
+                        @Override
+                        protected void searchPerformed(AjaxRequestTarget target) {
+                            SearchPanel.this.searchPerformed(target);
+                        }
+                    };
+                } else {
+                    searchItem = new SearchPropertyPanel<T>(ID_ITEM, (IModel<PropertySearchItem<T>>) item.getModel()) {
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        protected boolean canRemoveSearchItem() {
+                            return super.canRemoveSearchItem() && SearchPanel.this.getModelObject().isCanConfigure();
+                        }
+
+                        @Override
+                        protected void searchPerformed(AjaxRequestTarget target) {
+                            SearchPanel.this.searchPerformed(target);
+                        }
+                    };
+                }
                 item.add(searchItem);
             }
         };
         items.add(createVisibleBehaviour(SearchBoxModeType.BASIC));
         form.add(items);
+
+        SearchSpecialItemPanel oidItem = new SearchSpecialItemPanel<String>(ID_OID_ITEM, new PropertyModel<String>(getModel(), Search.F_OID)) {
+            @Override
+            protected WebMarkupContainer initSearchItemField(String id) {
+                TextPanel<String> inputPanel = new TextPanel<String>(id, getModelValue());
+                inputPanel.getBaseFormComponent().add(AttributeAppender.append("style", "width: 220px; max-width: 400px !important;"));
+                return inputPanel;
+            }
+
+            @Override
+            protected IModel<String> createLabelModel() {
+                return getPageBase().createStringResource("SearchPanel.oid");
+            }
+
+            @Override
+            protected IModel<String> createHelpModel() {
+                return getPageBase().createStringResource("SearchPanel.oid.help");
+            }
+        };
+        oidItem.add(createVisibleBehaviour(SearchBoxModeType.OID));
+        form.add(oidItem);
 
         WebMarkupContainer moreGroup = new WebMarkupContainer(ID_MORE_GROUP);
         moreGroup.add(new VisibleBehaviour(() -> createVisibleBehaviour(SearchBoxModeType.BASIC).isVisible() && getModelObject().isCanConfigure()));
@@ -163,8 +308,8 @@ public class SearchPanel extends BasePanel<Search> {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 resetMoreDialogModel();
-                Component button = SearchPanel.this.get(createComponentPath(ID_FORM, ID_MORE_GROUP, ID_MORE));
                 Component popover = SearchPanel.this.get(createComponentPath(ID_POPOVER));
+                Component button = SearchPanel.this.get(createComponentPath(ID_FORM, ID_MORE_GROUP, ID_MORE));
                 togglePopover(target, button, popover, 14);
             }
         };
@@ -181,23 +326,17 @@ public class SearchPanel extends BasePanel<Search> {
         more.setOutputMarkupId(true);
         moreGroup.add(more);
 
-//        AjaxLink<Void> searchConfigurationButton = new AjaxLink<Void>(ID_SEARCH_CONFIGURATION) {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                searchConfigurationPerformed(target);
-//            }
-//        };
-//        searchConfigurationButton.add(new VisibleBehaviour(() -> false));
-//        searchConfigurationButton.setOutputMarkupId(true);
-//        form.add(searchConfigurationButton);
-
         WebMarkupContainer searchContainer = new WebMarkupContainer(ID_SEARCH_CONTAINER);
         searchContainer.setOutputMarkupId(true);
         form.add(searchContainer);
 
-        AjaxSubmitButton searchSimple = new AjaxSubmitButton(ID_SEARCH_SIMPLE) {
+        final CompositedIconBuilder builder = new CompositedIconBuilder();
+        builder.setBasicIcon("fa fa-search", IconCssStyle.IN_ROW_STYLE);
+        IconType plusIcon = new IconType();
+        plusIcon.setColor("white");
+        builder.appendLayerIcon(getIconLabelByModeModel(), plusIcon, LayeredIconCssStyle.BOTTOM_RIGHT_STYLE);
+        AjaxCompositedIconSubmitButton searchButtonBeforeDropdown = new AjaxCompositedIconSubmitButton(ID_SEARCH_BUTTON_BEFORE_DROPDOWN, builder.build(),
+                getPageBase().createStringResource("MainObjectListPanel.createReport")) {
 
             private static final long serialVersionUID = 1L;
 
@@ -211,77 +350,38 @@ public class SearchPanel extends BasePanel<Search> {
                 searchPerformed(target);
             }
         };
-        searchSimple.add(new VisibleEnableBehaviour() {
 
-            private static final long serialVersionUID = 1L;
-
+        IModel<String> buttonRightPaddingModel = new IModel<String>() {
             @Override
-            public boolean isEnabled() {
-                return (SearchBoxModeType.BASIC.equals(getModelObject().getSearchType())
-                        || SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchType())
-                        || (SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType()) && !queryPlaygroundAccessible));
-            }
-
-            @Override
-            public boolean isVisible() {
-                return (SearchBoxModeType.BASIC.equals(getModelObject().getSearchType())
-                        || SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchType())
-                        || (SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType()) && !queryPlaygroundAccessible));
-            }
-        });
-        searchSimple.setOutputMarkupId(true);
-        searchContainer.add(searchSimple);
-        form.setDefaultButton(searchSimple);
-
-        WebMarkupContainer searchDropdown = new WebMarkupContainer(ID_SEARCH_DROPDOWN);
-        searchDropdown.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType())
-                        && queryPlaygroundAccessible;
-            }
-        });
-        searchContainer.add(searchDropdown);
-
-        AjaxSubmitButton searchButtonBeforeDropdown = new AjaxSubmitButton(ID_SEARCH_BUTTON_BEFORE_DROPDOWN) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onError(AjaxRequestTarget target) {
-                target.add(form);
-            }
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target) {
-                searchPerformed(target);
+            public String getObject() {
+                return "padding-right: " + (SearchBoxModeType.BASIC.equals(getModelObject().getSearchType()) ? "23" : "16") + "px";
             }
         };
+        searchButtonBeforeDropdown.add(AttributeAppender.append("style", buttonRightPaddingModel));
+
         searchButtonBeforeDropdown.add(new VisibleEnableBehaviour() {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isEnabled() {
-                if (SearchBoxModeType.BASIC.equals(getModelObject().getSearchType())
-                        || SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchType())) {
-                    return true;
+                if (SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType())
+                        || SearchBoxModeType.QUERY_DSL.equals(getModelObject().getSearchType())) {
+                    Search search = getModelObject();
+                    PrismContext ctx = getPageBase().getPrismContext();
+                    return search.isAdvancedQueryValid(ctx);
                 }
-
-                Search search = getModelObject();
-                PrismContext ctx = getPageBase().getPrismContext();
-                return search.isAdvancedQueryValid(ctx);
+                return true;
             }
         });
-        searchDropdown.add(searchButtonBeforeDropdown);
+        searchButtonBeforeDropdown.setOutputMarkupId(true);
+        searchContainer.add(searchButtonBeforeDropdown);
+        form.setDefaultButton(searchButtonBeforeDropdown);
 
         List<InlineMenuItem> searchItems = new ArrayList<>();
 
         InlineMenuItem searchItem = new InlineMenuItem(
-                createStringResource("SearchPanel.search")) {
+                createStringResource("SearchPanel.basic")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -292,17 +392,15 @@ public class SearchPanel extends BasePanel<Search> {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        PrismContext ctx = getPageBase().getPrismContext();
-                        if (getModelObject().isAdvancedQueryValid(ctx)) {
-                            searchPerformed(target);
-                        }
+                        searchTypeUpdated(target, SearchBoxModeType.BASIC);
                     }
                 };
             }
         };
         searchItems.add(searchItem);
 
-        searchItem = new InlineMenuItem(createStringResource("SearchPanel.debug")) {
+        searchItem = new InlineMenuItem(
+                createStringResource("SearchPanel.advanced")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -313,9 +411,81 @@ public class SearchPanel extends BasePanel<Search> {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        debugPerformed();
+                        searchTypeUpdated(target, SearchBoxModeType.ADVANCED);
                     }
                 };
+            }
+        };
+        searchItems.add(searchItem);
+
+        searchItem = new InlineMenuItem(
+                createStringResource("SearchPanel.fullText")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        searchTypeUpdated(target, SearchBoxModeType.FULLTEXT);
+                    }
+                };
+            }
+
+            @Override
+            public IModel<Boolean> getVisible() {
+                return Model.of(isFullTextSearchEnabled());
+            }
+        };
+        searchItems.add(searchItem);
+
+        searchItem = new InlineMenuItem(
+                createStringResource("SearchPanel.oid")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        searchTypeUpdated(target, SearchBoxModeType.OID);
+                    }
+                };
+            }
+
+            @Override
+            public IModel<Boolean> getVisible() {
+                return Model.of(getModelObject().isOidSearchEnabled());
+            }
+        };
+        searchItems.add(searchItem);
+
+        searchItem = new InlineMenuItem(
+                createStringResource("SearchPanel.queryDsl")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        searchTypeUpdated(target, SearchBoxModeType.QUERY_DSL);
+                    }
+                };
+            }
+
+            @Override
+            public IModel<Boolean> getVisible() {
+                return Model.of(getPageBase().getCompiledGuiProfile().isEnableExperimentalFeatures());
             }
         };
         searchItems.add(searchItem);
@@ -329,84 +499,15 @@ public class SearchPanel extends BasePanel<Search> {
                 WebMarkupContainer menuItemBody = new MenuLinkPanel(ID_MENU_ITEM_BODY, item.getModel());
                 menuItemBody.setRenderBodyOnly(true);
                 item.add(menuItemBody);
+                menuItemBody.add(new VisibleEnableBehaviour(){
+                    @Override
+                    public boolean isVisible() {
+                        return Boolean.TRUE.equals(item.getModelObject().getVisible().getObject());
+                    }
+                });
             }
         };
-        searchDropdown.add(li);
-
-        WebMarkupContainer linksContainer = new WebMarkupContainer(ID_LINKS_CONTAINER);
-        linksContainer.setOutputMarkupId(true);
-        form.add(linksContainer);
-
-        AjaxButton advanced = new AjaxButton(ID_ADVANCED, createStringResource("SearchPanel.advanced")) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                searchTypeUpdated(target, SearchBoxModeType.ADVANCED);
-            }
-        };
-        advanced.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return !SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType());
-            }
-        });
-        linksContainer.add(advanced);
-
-        AjaxButton fullTextButton = new AjaxButton(ID_FULL_TEXT, createStringResource("SearchPanel.fullText")) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                searchTypeUpdated(target, SearchBoxModeType.FULLTEXT);
-            }
-        };
-        fullTextButton.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return isFullTextSearchEnabled() &&
-                        !SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchType());
-            }
-        });
-        linksContainer.add(fullTextButton);
-
-        AjaxButton basicSearchButton = new AjaxButton(ID_BASIC_SEARCH, createStringResource("SearchPanel.basic")) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                searchTypeUpdated(target, SearchBoxModeType.BASIC);
-            }
-        };
-        basicSearchButton.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return !SearchBoxModeType.BASIC.equals(getModelObject().getSearchType());
-            }
-        });
-        linksContainer.add(basicSearchButton);
-
-        advanced.add(new AttributeAppender("style", new LoadableModel<String>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String load() {
-                return basicSearchButton.isVisible() ? "" : "display: table-cell; vertical-align: top;";
-            }
-        }));
+        searchContainer.add(li);
 
         initPopover();
 
@@ -442,7 +543,7 @@ public class SearchPanel extends BasePanel<Search> {
         fullTextContainer.add(fullTextInput);
 
         WebMarkupContainer advancedGroup = new WebMarkupContainer(ID_ADVANCED_GROUP);
-        advancedGroup.add(createVisibleBehaviour(SearchBoxModeType.ADVANCED));
+        advancedGroup.add(createVisibleBehaviour(SearchBoxModeType.ADVANCED, SearchBoxModeType.QUERY_DSL));
         advancedGroup.add(AttributeAppender.append("class", createAdvancedGroupStyle()));
         advancedGroup.setOutputMarkupId(true);
         form.add(advancedGroup);
@@ -451,8 +552,7 @@ public class SearchPanel extends BasePanel<Search> {
         advancedCheck.add(AttributeAppender.append("class", createAdvancedGroupLabelStyle()));
         advancedGroup.add(advancedCheck);
 
-        TextArea<?> advancedArea = new TextArea<>(ID_ADVANCED_AREA,
-                new PropertyModel<>(getModel(), Search.F_ADVANCED_QUERY));
+        TextArea<?> advancedArea = new TextArea<>(ID_ADVANCED_AREA, new PropertyModel<>(getModel(), Search.F_ADVANCED_QUERY));
         advancedArea.add(new AjaxFormComponentUpdatingBehavior("keyup") {
 
             @Override
@@ -468,7 +568,30 @@ public class SearchPanel extends BasePanel<Search> {
                         new ThrottlingSettings(ID_ADVANCED_AREA, Duration.milliseconds(500), true));
             }
         });
+        advancedArea.add(AttributeAppender.append("placeholder", getPageBase().createStringResource("SearchPanel.insertFilterXml")));
+        advancedArea.add(createVisibleBehaviour(SearchBoxModeType.ADVANCED));
         advancedGroup.add(advancedArea);
+
+        TextField<String> queryDslField = new TextField<>(ID_QUERY_DSL_FIELD,
+                new PropertyModel<>(getModel(), Search.F_DSL_QUERY));
+        queryDslField.add(new AjaxFormComponentUpdatingBehavior("keyup") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                updateAdvancedArea(advancedArea, target);
+            }
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+
+                attributes.setThrottlingSettings(
+                        new ThrottlingSettings(ID_QUERY_DSL_FIELD, Duration.milliseconds(500), true));
+            }
+        });
+        queryDslField.add(AttributeAppender.append("placeholder", getPageBase().createStringResource("SearchPanel.insertQueryDsl")));
+        queryDslField.add(createVisibleBehaviour(SearchBoxModeType.QUERY_DSL));
+        advancedGroup.add(queryDslField);
 
         Label advancedError = new Label(ID_ADVANCED_ERROR,
                 new PropertyModel<String>(getModel(), Search.F_ADVANCED_ERROR));
@@ -490,11 +613,30 @@ public class SearchPanel extends BasePanel<Search> {
         advancedGroup.add(advancedError);
     }
 
+    private IModel<String> getIconLabelByModeModel() {
+        return new IModel<String>(){
+            @Override
+            public String getObject() {
+                if (SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType())) {
+                    return "Adv";
+                } else if (SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchType())) {
+                    return "Full";
+                } else if (SearchBoxModeType.OID.equals(getModelObject().getSearchType())) {
+                    return "Oid";
+                } else if (SearchBoxModeType.QUERY_DSL.equals(getModelObject().getSearchType())) {
+                    return "DSL";
+                } else {
+                    return "Basic";
+                }
+            }
+        };
+    }
+
     private void debugPerformed() {
         Search search = getModelObject();
         PageRepositoryQuery pageQuery;
         if (search != null) {
-            ObjectTypes type = search.getType() != null ? ObjectTypes.getObjectType(search.getType().getSimpleName()) : null;
+            ObjectTypes type = search.getTypeClass() != null ? ObjectTypes.getObjectType(search.getTypeClass().getSimpleName()) : null;
             QName typeName = type != null ? type.getTypeQName() : null;
             String inner = search.getAdvancedQuery();
             if (StringUtils.isNotBlank(inner)) {
@@ -537,14 +679,15 @@ public class SearchPanel extends BasePanel<Search> {
         };
     }
 
-    private VisibleEnableBehaviour createVisibleBehaviour(SearchBoxModeType searchType) {
+    private VisibleEnableBehaviour createVisibleBehaviour(SearchBoxModeType ... searchType) {
         return new VisibleEnableBehaviour() {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
-                return getModelObject() != null && getModelObject().getSearchType().equals(searchType);
+                return getModelObject() != null && getModelObject().getSearchType() != null
+                        && Arrays.asList(searchType).contains(getModelObject().getSearchType());
             }
         };
     }
@@ -558,14 +701,14 @@ public class SearchPanel extends BasePanel<Search> {
         propList.setOutputMarkupId(true);
         popover.add(propList);
 
-        ListView properties = new ListView<Property>(ID_PROPERTIES,
+        ListView properties = new ListView<SearchItemDefinition>(ID_PROPERTIES,
                 new PropertyModel<>(moreDialogModel, MoreDialogDto.F_PROPERTIES)) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void populateItem(final ListItem<Property> item) {
+            protected void populateItem(final ListItem<SearchItemDefinition> item) {
                 CheckBox check = new CheckBox(ID_CHECK,
-                        new PropertyModel<>(item.getModel(), Property.F_SELECTED));
+                        new PropertyModel<>(item.getModel(), SearchItemDefinition.F_SELECTED));
                 check.add(new AjaxFormComponentUpdatingBehavior("change") {
 
                     private static final long serialVersionUID = 1L;
@@ -588,9 +731,21 @@ public class SearchPanel extends BasePanel<Search> {
                 };
                 item.add(propLink);
 
-                Label name = new Label(ID_PROP_NAME, new PropertyModel<>(item.getModel(), Property.F_NAME));
+                Label name = new Label(ID_PROP_NAME, new PropertyModel<>(item.getModel(), SearchItemDefinition.F_NAME));
                 name.setRenderBodyOnly(true);
                 propLink.add(name);
+
+                Label help = new Label(ID_HELP);
+                IModel<String> helpModel = new PropertyModel<>(item.getModel(), SearchItemDefinition.F_HELP);
+                help.add(AttributeModifier.replace("title",createStringResource(helpModel.getObject() != null ? helpModel.getObject() : "")));
+                help.add(new InfoTooltipBehavior(){
+                    @Override
+                    public String getDataPlacement() {
+                        return "left";
+                    }
+                });
+                help.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(helpModel.getObject())));
+                item.add(help);
 
                 item.add(new VisibleEnableBehaviour() {
 
@@ -598,23 +753,28 @@ public class SearchPanel extends BasePanel<Search> {
 
                     @Override
                     public boolean isVisible() {
-                        Property property = item.getModelObject();
+                        SearchItemDefinition property = item.getModelObject();
 
-                        Search search = SearchPanel.this.getModelObject();
-                        if (!search.getAvailableDefinitions().contains(property.getDefinition())) {
+                        Search<C> search = SearchPanel.this.getModelObject();
+                        if (!search.getAvailableDefinitions().contains(property)) {
                             return false;
                         }
 
-                        MoreDialogDto dto = moreDialogModel.getObject();
-
-                        String propertyName = property.getName().toLowerCase();
                         for (SearchItem searchItem : search.getItems()) {
-                            if (propertyName.equalsIgnoreCase(searchItem.getName())) {
+                            if (searchItem.getDefinition().equals(property)) {
                                 return false;
+                            }
+                            if (searchItem instanceof PropertySearchItem) {
+                                ItemPath propertyPath = property.getPath();
+                                if (propertyPath != null && QNameUtil.match(propertyPath.lastName(), ((PropertySearchItem) searchItem).getPath().lastName())) {
+                                    return false;
+                                }
                             }
                         }
 
+                        MoreDialogDto dto = moreDialogModel.getObject();
                         String nameFilter = dto.getNameFilter();
+                        String propertyName = property.getName().toLowerCase();
                         if (StringUtils.isNotEmpty(nameFilter)
                                 && !propertyName.contains(nameFilter.toLowerCase())) {
                             return false;
@@ -674,23 +834,24 @@ public class SearchPanel extends BasePanel<Search> {
         popover.add(close);
     }
 
-    private List<Property> createPropertiesList() {
-        List<Property> list = new ArrayList<>();
+    private List<SearchItemDefinition> createPropertiesList() {
+        List<SearchItemDefinition> list = new ArrayList<>();
+
+        List<ItemPath> specialItemPaths = new ArrayList<>();
+        getModelObject().getSpecialItems().stream().filter(specItem -> (specItem instanceof PropertySearchItem))
+                .forEach(specItem -> specialItemPaths.add(((PropertySearchItem<?>) specItem).getPath()));
 
         Search search = getModelObject();
-        List<ItemDefinition> defs = search.getAllDefinitions();
-        for (ItemDefinition def : defs) {
-            list.add(new Property(def, def.getItemName()));
-        }
-
+        search.getAllDefinitions().stream().filter((Predicate<SearchItemDefinition>) def -> !ItemPathCollectionsUtil.containsEquivalent(specialItemPaths, def.getPath()))
+                .forEach((Consumer<SearchItemDefinition>) def -> list.add(def));
         Collections.sort(list);
 
         return list;
     }
 
-    private void addOneItemPerformed(Property property, AjaxRequestTarget target) {
+    private void addOneItemPerformed(SearchItemDefinition property, AjaxRequestTarget target) {
         Search search = getModelObject();
-        SearchItem item = search.addItem(property.getDefinition());
+        SearchItem item = search.addItem(property);
         item.setEditWhenVisible(true);
 
         refreshSearchForm(target);
@@ -700,12 +861,13 @@ public class SearchPanel extends BasePanel<Search> {
         Search search = getModelObject();
 
         MoreDialogDto dto = moreDialogModel.getObject();
-        for (Property property : dto.getProperties()) {
+        for (SearchItemDefinition property : dto.getProperties()) {
             if (!property.isSelected()) {
                 continue;
             }
 
-            search.addItem(property.getDefinition());
+            search.addItem(property);
+            property.setSelected(false);
         }
 
         refreshSearchForm(target);
@@ -716,14 +878,7 @@ public class SearchPanel extends BasePanel<Search> {
         target.appendJavaScript("$('#" + popoverId + "').toggle();");
     }
 
-    void searchPerformed(AjaxRequestTarget target) {
-        PageBase page = (PageBase) getPage();
-        PrismContext ctx = page.getPrismContext();
-
-        Search search = getModelObject();
-        ObjectQuery query = search.createObjectQuery(ctx);
-        LOG.debug("Created query: {}", query);
-        searchPerformed(query, target);
+    public void searchPerformed(AjaxRequestTarget target) {
     }
 
     void refreshSearchForm(AjaxRequestTarget target) {
@@ -734,9 +889,6 @@ public class SearchPanel extends BasePanel<Search> {
     protected void saveSearch(Search search, AjaxRequestTarget target) {
     }
 
-    public void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
-    }
-
     public void togglePopover(AjaxRequestTarget target, Component button, Component popover, int paddingRight) {
         target.appendJavaScript("toggleSearchPopover('"
                 + button.getMarkupId() + "','"
@@ -745,7 +897,16 @@ public class SearchPanel extends BasePanel<Search> {
     }
 
     private void searchTypeUpdated(AjaxRequestTarget target, SearchBoxModeType searchType) {
+        if (searchType.equals(getModelObject().getSearchType())) {
+            return;
+        }
+        SearchBoxModeType oldMode = getModelObject().getSearchType();
         getModelObject().setSearchType(searchType);
+        if (getModelObject().isTypeChanged() && SearchBoxModeType.OID.equals(oldMode)) {
+            getModelObject().setOid(null);
+            searchPerformed(target);
+            resetMoreDialogModel();
+        }
 
         refreshSearchForm(target);
     }

@@ -21,6 +21,17 @@ public interface Containerable extends Serializable, DebugDumpable {
         return containerable != null ? containerable.asPrismContainerValue() : null;
     }
 
+    static boolean equivalent(Containerable c1, Containerable c2) {
+        if (c1 == null && c2 == null) {
+            return true;
+        } else if (c1 == null || c2 == null) {
+            return false;
+        } else {
+            //noinspection unchecked
+            return c1.asPrismContainerValue().equivalent(c2.asPrismContainerValue());
+        }
+    }
+
     PrismContainerValue asPrismContainerValue();
 
     /**

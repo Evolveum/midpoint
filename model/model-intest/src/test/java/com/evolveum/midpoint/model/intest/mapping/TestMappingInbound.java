@@ -404,10 +404,11 @@ public class TestMappingInbound extends AbstractMappingTest {
         assertUserAfterByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME)
                 .assertFullName("Mancomb Seepgood")
                 .links()
-                .single()
-                .resolveTarget()
-                .assertTombstone()
-                .assertSynchronizationSituation(SynchronizationSituationType.DELETED);
+                    .single()
+                    .resolveTarget()
+                        .display()
+                        .assertTombstone()
+                        .assertSynchronizationSituation(SynchronizationSituationType.DELETED);
 
 //        assertUsers(7 + getNumberOfExtraDummyUsers());
 
@@ -818,7 +819,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         when();
 
         modelService.importFromResource(RESOURCE_DUMMY_TEA_GREEN_OID, new QName(MidPointConstants.NS_RI, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
-        waitForTaskFinish(task, true);
+        waitForTaskFinish(task, false);
 
         then();
 

@@ -1,14 +1,15 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
+import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
 import com.evolveum.midpoint.task.quartzimpl.execution.JobExecutor;
@@ -17,9 +18,7 @@ import com.evolveum.midpoint.task.quartzimpl.handlers.NoOpTaskHandler;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeErrorStatusType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
 /**
  * Initializes the task manager.
@@ -28,7 +27,7 @@ public class Initializer {
 
     private static final Trace LOGGER = TraceManager.getTrace(Initializer.class);
 
-    private TaskManagerQuartzImpl taskManager;
+    private final TaskManagerQuartzImpl taskManager;
 
     Initializer(TaskManagerQuartzImpl taskManager) {
         this.taskManager = taskManager;
@@ -47,26 +46,22 @@ public class Initializer {
         configuration.validateBasicInformation();
 
         LOGGER.info("Task Manager: Quartz Job Store: "
-                + (configuration.isJdbcJobStore() ? "JDBC":"in-memory") + ", "
-                + (configuration.isClustered() ? "":"NOT ") + "clustered. Threads: " + configuration.getThreads());
+                + (configuration.isJdbcJobStore() ? "JDBC" : "in-memory") + ", "
+                + (configuration.isClustered() ? "" : "NOT ") + "clustered. Threads: "
+                + configuration.getThreads());
 
         if (configuration.isJdbcJobStore()) {
-
-            // quartz properties related to database connection will be taken from SQL repository
-            String defaultJdbcUrlPrefix = null;
-            SqlRepositoryConfiguration sqlConfig = null;
+            // Let's find Quartz JDBC setup fallback (which will be used very likely)
+            JdbcRepositoryConfiguration jdbcConfig = null;
             try {
-                SqlRepositoryFactory sqlRepositoryFactory = (SqlRepositoryFactory) taskManager.getBeanFactory().getBean("sqlRepositoryFactory");
-                sqlConfig = sqlRepositoryFactory.getSqlConfiguration();
-                if (sqlConfig.isEmbedded()) {
-                    defaultJdbcUrlPrefix = sqlConfig.getDefaultEmbeddedJdbcUrlPrefix();
-                }
+                jdbcConfig = taskManager.getBeanFactory().getBean(JdbcRepositoryConfiguration.class);
             } catch (NoSuchBeanDefinitionException e) {
-                LOGGER.info("SqlRepositoryFactory is not available, JDBC Job Store configuration will be taken from taskManager section only.");
+                LOGGER.info("JdbcRepositoryConfiguration is not available, JDBC Job Store"
+                        + " configuration will be taken from taskManager section only.");
                 LOGGER.trace("Reason is", e);
             }
 
-            configuration.setJdbcJobStoreInformation(midpointConfiguration, sqlConfig, defaultJdbcUrlPrefix);
+            configuration.setJdbcJobStoreInformation(midpointConfiguration, jdbcConfig);
             configuration.validateJdbcJobStoreInformation();
         }
 

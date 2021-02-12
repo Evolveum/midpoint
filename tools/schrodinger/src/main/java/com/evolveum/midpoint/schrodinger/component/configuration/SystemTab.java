@@ -17,39 +17,11 @@ import com.evolveum.midpoint.schrodinger.page.configuration.SystemPage;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class SystemTab extends TabWithContainerWrapper<SystemTab, SystemPage> {
+public class SystemTab extends TabWithContainerWrapper<SystemPage> {
 
     public SystemTab(SystemPage parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
-
-    public void auditRecordsCleanupInterval(String interval) {
-        // todo implement
-    }
-
-    public String auditRecordsCleanupInterval() {
-        // todo implement
-        return null;
-    }
-
-    public void closedCertificationCampaignsCleanupInterval(String interval) {
-        // todo implement
-    }
-
-    public String closedCertificationCampaignsCleanupInterval() {
-        // todo implement
-        return null;
-    }
-
-    public void operationExecutionResultsCleanupInterval(String interval) {
-        // todo implement
-    }
-
-    public String operationExecutionResultsCleanupInterval() {
-        // todo implement
-        return null;
-    }
-
 
 }
 

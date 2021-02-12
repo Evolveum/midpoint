@@ -6,24 +6,25 @@
  */
 package com.evolveum.midpoint.schrodinger.page.resource;
 
+import static com.codeborne.selenide.Selenide.$;
+
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import org.openqa.selenium.By;
+
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.resource.ResourceAccountsTab;
 import com.evolveum.midpoint.schrodinger.component.resource.ResourceConfigurationTab;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
-import org.openqa.selenium.By;
-
-import static com.codeborne.selenide.Selenide.$;
 
 public class ViewResourcePage extends BasicPage {
 
     public ResourceConfigurationTab clickEditResourceConfiguration() {
 
-        $(Schrodinger.byDataResourceKey("a", "pageResource.button.configurationEdit")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        $(Schrodinger.byDataResourceKey("a", "pageResource.button.configurationEdit")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
-      SelenideElement element=  $(By.cssSelector(".tab0.active"))
+        SelenideElement element=  $(By.cssSelector(".tab0.active"))
               .waitUntil(Condition.visible, MidPoint.TIMEOUT_LONG_1_M);
 
         return new ResourceConfigurationTab(new EditResourceConfigurationPage(), element);
@@ -31,8 +32,9 @@ public class ViewResourcePage extends BasicPage {
 
     public ResourceWizardPage clickShowUsingWizard() {
 
-        $(Schrodinger.byDataResourceKey("a", "pageResource.button.wizardShow")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
+        $(Schrodinger.byDataResourceKey("a", "pageResource.button.wizardShow")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        $(Schrodinger.byElementAttributeValue("form", "class", "form-horizontal"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
         return new ResourceWizardPage();
     }
 
@@ -48,7 +50,7 @@ public class ViewResourcePage extends BasicPage {
     }
 
     public ViewResourcePage refreshSchema() {
-        $(Schrodinger.byDataResourceKey("a", "pageResource.button.refreshSchema")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        $(Schrodinger.byDataResourceKey("a", "pageResource.button.refreshSchema")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return this;
     }

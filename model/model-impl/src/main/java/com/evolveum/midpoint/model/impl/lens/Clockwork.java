@@ -19,6 +19,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.model.impl.lens.projector.Components;
 
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEnforcer;
+import com.evolveum.midpoint.model.impl.tasks.RecomputeTaskHandler;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +42,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChe
 import com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor.PolicyRuleScriptExecutor;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleSuspendTaskExecutor;
 import com.evolveum.midpoint.model.impl.migrator.Migrator;
-import com.evolveum.midpoint.model.impl.sync.RecomputeTaskHandler;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -102,7 +102,7 @@ public class Clockwork {
     @Autowired private ClockworkAuthorizationHelper clockworkAuthorizationHelper;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
     @Autowired private SecurityEnforcer securityEnforcer;
-    @Autowired private OperationExecutionRecorder operationExecutionRecorder;
+    @Autowired private OperationExecutionRecorderForClockwork operationExecutionRecorder;
     @Autowired private ClockworkAuditHelper clockworkAuditHelper;
     @Autowired private ClockworkHookHelper clockworkHookHelper;
     @Autowired private ClockworkConflictResolver clockworkConflictResolver;
@@ -173,6 +173,7 @@ public class Clockwork {
                     clockworkConflictResolver.checkFocusConflicts(context, conflictResolutionContext, result);
                 }
             } finally {
+                operationExecutionRecorder.recordOperationExecutions(context, task, result);
                 clockworkConflictResolver.unregisterConflictWatcher(context);
                 FocusConstraintsChecker.exitCache();
                 //exitDefaultSearchExpressionEvaluatorCache();
@@ -566,7 +567,6 @@ public class Clockwork {
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException {
         clockworkAuditHelper.auditFinalExecution(context, task, result, overallResult);
         logFinalReadable(context);
-        operationExecutionRecorder.recordOperationExecution(context, null, task, result);
         migrator.executeAfterOperationMigration(context, result);
 
         HookOperationMode opmode = personaProcessor.processPersonaChanges(context, task, result);
@@ -620,7 +620,7 @@ public class Clockwork {
         reconTask.setName("Recomputing users after changing role " + role.asObjectable().getName());
         reconTask.setBinding(TaskBinding.LOOSE);
         reconTask.setInitialExecutionStatus(TaskExecutionStatus.RUNNABLE);
-        reconTask.setHandlerUri(RecomputeTaskHandler.HANDLER_URI);
+        reconTask.setHandlerUri(RecomputeTaskHandler.HANDLER_URI); // FIXME
         reconTask.setCategory(TaskCategory.RECOMPUTATION);
         reconTask.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value());
         taskManager.switchToBackground(reconTask, result);
@@ -657,7 +657,6 @@ public class Clockwork {
         LOGGER.trace("Processing clockwork exception {}", e.toString());
         result.recordFatalErrorNotFinish(e);
         clockworkAuditHelper.auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result, overallResult);
-        operationExecutionRecorder.recordOperationExecution(context, e, task, result);
 
         reclaimSequencesIfPossible(context, task, result);
         result.recordEnd();

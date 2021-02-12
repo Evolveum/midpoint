@@ -12,6 +12,8 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
+import org.testng.Assert;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -34,5 +36,10 @@ public class ManagerPanel<T> extends Component<T> {
         }
 
         return managers.containsAll(Arrays.asList(expectedManagers));
+    }
+
+    public ManagerPanel<T> assertContainsManager(String... expectedManagers) {
+        Assert.assertTrue(containsManager(expectedManagers));
+        return this;
     }
 }

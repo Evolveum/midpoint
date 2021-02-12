@@ -36,12 +36,12 @@ public class DecisionsPanel extends BasePanel<List<DecisionDto>> {
     private static final String ID_DECISIONS_TABLE = "decisionsTable";
 
     // todo options to select which columns will be shown
-    public DecisionsPanel(String id, IModel<List<DecisionDto>> model, UserProfileStorage.TableId tableId, int pageSize) {
+    public DecisionsPanel(String id, IModel<List<DecisionDto>> model, UserProfileStorage.TableId tableId) {
         super(id, model);
-        initLayout(tableId, pageSize);
+        initLayout(tableId);
     }
 
-    protected void initLayout(UserProfileStorage.TableId tableId, int pageSize) {
+    protected void initLayout(UserProfileStorage.TableId tableId) {
         List<IColumn<DecisionDto, String>> columns = new ArrayList<>();
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.user"), DecisionDto.F_USER));
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.attorney"), DecisionDto.F_ATTORNEY));
@@ -55,7 +55,7 @@ public class DecisionsPanel extends BasePanel<List<DecisionDto>> {
 
         ISortableDataProvider<?, ?> provider = new ListDataProvider<>(this, getModel());
         BoxedTablePanel<?> decisionsTable = new BoxedTablePanel<>(
-                ID_DECISIONS_TABLE, provider, columns, tableId, pageSize);
+                ID_DECISIONS_TABLE, provider, columns, tableId);
         add(decisionsTable);
     }
 

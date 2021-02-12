@@ -6,8 +6,10 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.labs;
 
+import com.codeborne.selenide.Selenide;
+
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schrodinger.page.configuration.AboutPage;
+import com.evolveum.midpoint.schrodinger.MidPoint;
 
 import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 
@@ -16,8 +18,6 @@ import com.evolveum.midpoint.schrodinger.util.Utils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.Assert;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -32,28 +32,21 @@ import java.io.IOException;
 public class M12Authorizations extends AbstractLabTest{
 
     private static final Logger LOG = LoggerFactory.getLogger(M12Authorizations.class);
+    protected static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M12/";
 
     private static final File ROLE_BASIC_USER_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-basic-user.xml");
     private static final File ROLE_BASIC_USER_FILE_12_1 = new File(LAB_OBJECTS_DIRECTORY + "roles/role-basic-user-12-1.xml");
 
-//    @AfterClass
-//    @Override
-//    public void afterClass() {
-//        super.afterClass();
-//
-//        midPoint.formLogin().loginWithReloadLoginPage(username, password);
-//
-//        LOG.info("After: Login name " + username + " pass " + password);
-//
-//        AboutPage aboutPage = basicPage.aboutPage();
-//        aboutPage
-//                .clickSwitchToFactoryDefaults()
-//                .clickYes();
-//    }
+    @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
+    @Override
+    public void beforeClass() throws IOException {
+        super.beforeClass();
+    }
 
-    @Test(groups={"M12"}, dependsOnGroups={"M11"})
+    @Test
     public void mod12test01BasicUserAuthorization() {
-        importObject(ROLE_BASIC_USER_FILE, true);
+        addObjectFromFile(ROLE_BASIC_USER_FILE);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         showUser("X000005").selectTabBasic()
                 .form()
                     .setPasswordFieldsValues(new QName(SchemaConstantsGenerated.NS_COMMON, "value"), "qwerty12345XXXX")
@@ -77,20 +70,21 @@ public class M12Authorizations extends AbstractLabTest{
         login.login("X000005", "qwerty12345XXXX");
 
         ProfilePage profile = basicPage.profile();
-        Assert.assertTrue(profile.selectTabProjections()
+        profile.selectTabProjections()
             .table()
-                .containsLinksTextPartially("")); //TODO projections names
+                .assertTableContainsLinksTextPartially(""); //TODO projections names
 
-        Assert.assertTrue(profile.selectTabAssignments()
+        profile.selectTabAssignments()
                 .table()
-                    .containsLinksTextPartially("Basic user", "")); //TODO roles names
+                    .assertTableContainsLinksTextPartially("Basic user", ""); //TODO roles names
 
         basicPage.credentials(); //TODO implement credentials page
 
         basicPage.loggedUser().logoutIfUserIsLogin();
         login.login(getUsername(), getPassword());
 
-        importObject(ROLE_BASIC_USER_FILE_12_1, true);
+        addObjectFromFile(ROLE_BASIC_USER_FILE_12_1);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
 
         basicPage.loggedUser().logoutIfUserIsLogin();
         login.login("X000005", "qwerty12345ZZZZ");

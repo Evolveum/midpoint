@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sql.testing;
 
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Simple mock identifier generator to satisfy spring dependencies.
@@ -20,7 +21,7 @@ public class LightweightIdentifierGeneratorMock implements LightweightIdentifier
     private int sequence;
 
     @Override
-    public LightweightIdentifier generate() {
+    public @NotNull LightweightIdentifier generate() {
         return new LightweightIdentifier(System.currentTimeMillis(), 0, ++sequence);
     }
 }

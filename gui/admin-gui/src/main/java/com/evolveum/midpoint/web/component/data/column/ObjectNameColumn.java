@@ -16,6 +16,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -47,15 +48,17 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
 
     private ExpressionType expression;
     private PageBase pageBase;
+    private String itemPath;
 
     public ObjectNameColumn(IModel<String> displayModel) {
-        super(displayModel, ObjectType.F_NAME.getLocalPart());
+        this(displayModel, null, null, null, true);
     }
 
-    public ObjectNameColumn(IModel<String> displayModel, String itemPath, ExpressionType expression, PageBase pageBase) {
-        super(displayModel, itemPath);
+    public ObjectNameColumn(IModel<String> displayModel, String itemPath, ExpressionType expression, PageBase pageBase, boolean useDefaultPath) {
+        super(displayModel, useDefaultPath ? ObjectType.F_NAME.getLocalPart() : itemPath);
         this.expression = expression;
         this.pageBase = pageBase;
+        this.itemPath = itemPath;
     }
 
     @Override
@@ -97,14 +100,19 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
                             return cellItem.getString(props.getStatusLabelKey());
                         }
                     } else {
-                        name = WebComponentUtil.getName(value, true);
-                        if (selectableBean.getResult() != null) {
-                            StringBuilder complexName = new StringBuilder();
-                            complexName.append(name);
-                            complexName.append(" (");
-                            complexName.append(selectableBean.getResult().getStatus());
-                            complexName.append(")");
-                            return complexName.toString();
+                        if (itemPath == null || itemPath.equals("name")) {
+                            name = WebComponentUtil.getName(value, true);
+                            if (selectableBean.getResult() != null) {
+                                StringBuilder complexName = new StringBuilder();
+                                complexName.append(name);
+                                complexName.append(" (");
+                                complexName.append(selectableBean.getResult().getStatus());
+                                complexName.append(")");
+                                return complexName.toString();
+                            }
+                        } else {
+                            Object itemPathPropertyValue = new PropertyModel<>(rowModel, "value." + itemPath).getObject();
+                            name = itemPathPropertyValue != null ? itemPathPropertyValue.toString() : "";
                         }
                     }
                         return name;

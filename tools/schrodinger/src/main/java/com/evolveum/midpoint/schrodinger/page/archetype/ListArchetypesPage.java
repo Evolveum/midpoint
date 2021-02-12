@@ -20,7 +20,7 @@ public class ListArchetypesPage extends AssignmentHolderObjectListPage<Assignmen
     public AssignmentHolderObjectListTable<ListArchetypesPage, ArchetypePage> table() {
         return new AssignmentHolderObjectListTable<ListArchetypesPage, ArchetypePage>(this, getTableBoxElement()) {
             @Override
-            public <P extends TableWithPageRedirect<ListArchetypesPage>> TableHeaderDropDownMenu<P> clickHeaderActionDropDown() {
+            protected  <P extends TableWithPageRedirect<ListArchetypesPage>> TableHeaderDropDownMenu<P> clickHeaderActionDropDown() {
                 return null;
             }
 

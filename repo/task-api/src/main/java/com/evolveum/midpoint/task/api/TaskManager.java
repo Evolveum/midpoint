@@ -13,6 +13,8 @@ import java.util.function.Function;
 
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -165,7 +167,7 @@ public interface TaskManager {
      * @throws IllegalArgumentException
      *             wrong OID format, described change is not applicable
      */
-    void modifyTask(String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult)
+    void modifyTask(String oid, Collection<? extends ItemDelta<?, ?>> modifications, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
 
     /**
@@ -783,9 +785,10 @@ public interface TaskManager {
             ObjectAlreadyExistsException;
 
     /**
-     * Use only for tests. Otherwise considered to be an ugly hack.
+     * Use only for tests. (Even in that case it is an ugly hack.)
      */
-    RunningTask createFakeRunningTask(Task task);
+    @VisibleForTesting
+    RunningTask createFakeRunningTask(Task task, String rootTaskOid);
 
     TaskHandler getHandler(String handlerUri);
 

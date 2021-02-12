@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.model.intest.sync;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.PROTECTED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -33,8 +36,8 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
-import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
-import com.evolveum.midpoint.model.impl.util.DebugReconciliationTaskResultListener;
+import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationTaskHandler;
+import com.evolveum.midpoint.model.impl.sync.tasks.recon.DebugReconciliationTaskResultListener;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -380,7 +383,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         loginAdministrator();
 
-        waitForTaskFinish(task, true, 40000);
+        waitForTaskFinish(task, false, 40000);
 
         // THEN
         then();
@@ -390,15 +393,22 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertTask(task, "task after")
                 .display()
                 .synchronizationInformation()
-                .assertUnmatched(1, 0)
-                .assertUnlinked(1, 0)
-                .assertLinked(3, 5)
-                .assertProtected(2, 2)
-                .assertTotal(7, 7)
-                .end()
+                    .display()
+                    .assertUnmatched(1, 0)
+                    .assertUnlinked(1, 0)
+                    .assertLinked(3, 5)
+                    .assertProtected(2, 2)
+                    .assertTotal(7, 7)
+                    .assertTransition(LINKED, LINKED, LINKED, null, 1, 0, 0) // stan
+                    .assertTransition(null, LINKED, LINKED, null, 2, 0, 0) // guybrush, elaine
+                    .assertTransition(null, UNLINKED, LINKED, null, 1, 0, 0) // rapp
+                    .assertTransition(null, UNMATCHED, LINKED, null, 1, 0, 0) // ht
+                    .assertTransition(null, null, null, PROTECTED, 2, 0, 0) // daviejones, calypso
+                    .assertTransitions(5)
+                    .end()
                 .iterativeTaskInformation()
-                .assertTotalCounts(7, 0)
-                .end()
+                    .assertTotalCounts(7, 0)
+                    .end()
                 .assertProgress(7);
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 3);
@@ -455,7 +465,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         loginAdministrator();
 
-        waitForTaskFinish(task, true, 40000);
+        waitForTaskFinish(task, false, 40000);
 
         // THEN
         then();
@@ -465,13 +475,17 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertTask(task, "task after")
                 .display()
                 .synchronizationInformation()
-                .assertLinked(5, 5)
-                .assertProtected(2, 2)
-                .assertTotal(7, 7)
-                .end()
+                    .display()
+                    .assertLinked(5, 5)
+                    .assertProtected(2, 2)
+                    .assertTotal(7, 7)
+                    .assertTransition(LINKED, LINKED, LINKED, null, 5, 0, 0) // stan, guybrush, elaine, rapp, ht
+                    .assertTransition(null, null, null, PROTECTED, 2, 0, 0) // daviejones, calypso
+                    .assertTransitions(2)
+                    .end()
                 .iterativeTaskInformation()
-                .assertTotalCounts(7, 0)
-                .end()
+                    .assertTotalCounts(7, 0)
+                    .end()
                 .assertProgress(7);
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 3);
@@ -537,7 +551,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         loginAdministrator();
 
-        waitForTaskFinish(task, true, 40000);
+        waitForTaskFinish(task, false, 40000);
 
         // THEN
         then();
@@ -547,14 +561,18 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertTask(task, "task after")
                 .display()
                 .synchronizationInformation()
-                .assertUnmatched(2, 0)
-                .assertUnlinked(1, 0)
-                .assertLinked(0, 3)
-                .assertTotal(3, 3)
-                .end()
+                    .display()
+                    .assertUnmatched(2, 0)
+                    .assertUnlinked(1, 0)
+                    .assertLinked(0, 3)
+                    .assertTotal(3, 3)
+                    .assertTransition(null, UNLINKED, LINKED, null, 1, 0, 0) // rapp
+                    .assertTransition(null, UNMATCHED, LINKED, null, 2, 0, 0) // rum, murray
+                    .assertTransitions(2)
+                    .end()
                 .iterativeTaskInformation()
-                .assertTotalCounts(3, 0)
-                .end()
+                    .assertTotalCounts(3, 0)
+                    .end()
                 .assertProgress(3);
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
@@ -627,7 +645,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         loginAdministrator();
 
-        waitForTaskFinish(task, true, 40000);
+        waitForTaskFinish(task, false, 40000);
 
         // THEN
         then();
@@ -712,7 +730,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         loginAdministrator();
 
-        waitForTaskFinish(task, true, 40000);
+        waitForTaskFinish(task, false, 40000);
 
         // THEN
         then();
@@ -805,20 +823,24 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertTask(taskAfter, "task after")
                 .display()
                 .synchronizationInformation()
-                .assertLinked(5, 5)
-                .assertProtected(2, 2)
-                .assertTotal(7, 7)
-                .end()
+                    .display()
+                    .assertLinked(5, 5)
+                    .assertProtected(2, 2)
+                    .assertTotal(7, 7)
+                    .assertTransition(LINKED, LINKED, LINKED, null, 5, 0, 0)
+                    .assertTransition(null, null, null, PROTECTED, 2, 0, 0)
+                    .assertTransitions(2)
+                    .end()
                 .iterativeTaskInformation()
-                .assertTotalCounts(9, 0)            // protected accounts are processed also in the third stage
-                .end()
-                .assertProgress(7);         // or should be 9?
+                    .assertTotalCounts(9, 0)            // protected accounts are processed also in the third stage
+                    .end();
+                //.assertProgress(7);         // TODO - specify meaning of progress for reconciliation tasks
 
         // THEN
         then();
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
 
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 0);
+        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 2);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
@@ -980,7 +1002,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
 
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 0);
+        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 2);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
@@ -1066,19 +1088,23 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertTask(taskAfter, "task after")
                 .display()
                 .synchronizationInformation()
-                .assertLinked(5, 5)
-                .assertProtected(2, 2)
-                .assertTotal(7, 7)
-                .end()
+                    .display()
+                    .assertLinked(5, 5)
+                    .assertProtected(2, 2)
+                    .assertTotal(7, 7)
+                    .assertTransition(LINKED, LINKED, LINKED, null, 4, 1, 0) // error is guybrush
+                    .assertTransition(null, null, null, PROTECTED, 2, 0, 0)
+                    .assertTransitions(2)
+                    .end()
                 .iterativeTaskInformation()
-                .assertTotalCounts(8, 1)
-                .end()
-                .assertProgress(7);         // or should be 9?
+                    .assertTotalCounts(8, 1)
+                    .end();
+                //.assertProgress(7);         // TODO - specify meaning of progress for reconciliation tasks
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconciliation (broken resource account)", users);
 
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 1, 0);
+        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 1, 2);
 
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
@@ -1108,7 +1134,13 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         OperationResultType reconTaskResult = reconTaskAfter.asObjectable().getResult();
         display("Recon task result", reconTaskResult);
         TestUtil.assertStatus(reconTaskResult, OperationResultStatusType.PARTIAL_ERROR);
-        assertTrue("Errors not mentioned in the task message", reconTaskResult.getMessage().contains("got 1 error"));
+
+        OperationResult reconTaskOpResult = OperationResult.createOperationResult(reconTaskResult);
+        // TODO reconsider this
+        OperationResult statistics = reconTaskOpResult
+                .findSubResultStrictly("com.evolveum.midpoint.common.operation.reconciliation.part2")
+                .findSubResultStrictly("com.evolveum.midpoint.common.operation.reconciliation.statistics");
+        assertTrue("Errors not mentioned in the task message", statistics.getMessage().contains("got 1 error"));
 
         // Check audit
         displayDumpable("Audit", dummyAuditService);
@@ -1146,7 +1178,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
 
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 0);
+        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 2);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
@@ -1237,22 +1269,28 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertTask(taskAfter, "task after")
                 .display()
                 .synchronizationInformation()
-                .assertUnmatched(1, 0)
-                .assertLinked(4, 5)
-                .assertDeleted(1, 1)
-                .assertProtected(2, 2)
-                .assertTotal(8, 8)
-                .end()
+                    .display()
+                    .assertUnmatched(1, 0)
+                    .assertLinked(4, 5)
+                    .assertDeleted(1, 1)
+                    .assertProtected(2, 2)
+                    .assertTotal(8, 8)
+                    .assertTransition(LINKED, LINKED, LINKED, null, 4, 0, 0) // guybrush, elaine, rapp, stan
+                    .assertTransition(null, UNMATCHED, LINKED, null, 1, 0, 0) // htm (new name for ht)
+                    .assertTransition(null, null, null, PROTECTED, 2, 0, 0) // daviejones, calypso
+                    // TODO implement 3rd part reporting and have: LINKED -> DELETED -> ? for ht (old name for htm)
+                    .assertTransitions(3)
+                    .end()
                 .iterativeTaskInformation()
-                .assertTotalCounts(10, 0)
-                .end()
-                .assertProgress(8);         // or should be 10?
+                    .assertTotalCounts(10, 0)
+                    .end();
+                //.assertProgress(8);         // TODO - specify meaning of progress for reconciliation tasks
 
         dumpShadowSituations(RESOURCE_DUMMY_OID, result);
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
 
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 1);
+        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 3);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
@@ -1306,7 +1344,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECONCILE_DUMMY_OID);
         OperationResultType reconTaskResult = reconTaskAfter.asObjectable().getResult();
         display("Recon task result", reconTaskResult);
-        TestUtil.assertSuccess(reconTaskResult);
+
+        // There's (expected) "object not found" error related to ht that was renamed.
+        TestUtil.assertSuccess("reconciliation", reconTaskResult, 4);
     }
 
     private void addReconScripts(Collection<ProvisioningScriptSpec> scripts, String username, String fullName, boolean modified) {
@@ -1613,10 +1653,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<ValuePolicyType> passwordPolicy = getObjectViaRepo(ValuePolicyType.class, PASSWORD_POLICY_LOWER_CASE_ALPHA_AZURE.oid);
 
-        boolean isPasswordValid = valuePolicyProcessor.validateValue(
+        valuePolicyProcessor.validateValue(
                 stringPassword, passwordPolicy.asObjectable(),
                 createUserOriginResolver(userRapp), getTestNameShort(), task, result);
-        assertTrue("Password doesn't satisfy password policy, generated password: " + stringPassword, isPasswordValid);
+        boolean isPasswordValid = result.isAcceptable();
+                assertTrue("Password doesn't satisfy password policy, generated password: " + stringPassword, isPasswordValid);
 
         // These are protected accounts, they should not be imported
         assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
@@ -2456,7 +2497,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         loginAdministrator();
 
-        waitForTaskFinish(task, true, 40000);
+        waitForTaskFinish(task, false, 40000);
 
         dumpStatistics(task);
 
@@ -2534,7 +2575,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         OperationStatsType statistics = taskAfter.getStoredOperationStats();
         SynchronizationInformationType syncInfo = statistics.getSynchronizationInformation();
         // TODO: sometimes fails with: java.lang.AssertionError: expected:<12> but was:<0>
-        assertEquals(17 - 3 - 2, syncInfo.getCountLinked());  //total (17) - filtered (3)- protectected (2)
+        assertEquals(17 - 3 - 2, (Object) syncInfo.getCountLinked());  //total (17) - filtered (3)- protectected (2)
     }
 
     @Test
@@ -2607,7 +2648,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // THEN
         then();
 
-        Task taskAfter = waitForTaskFinish(TASK_DELETE_DUMMY_SHADOWS.oid, true, 20000);
+        Task taskAfter = waitForTaskFinish(TASK_DELETE_DUMMY_SHADOWS.oid, false, 20000);
         dumpStatistics(taskAfter);
 
         // THEN
@@ -2651,7 +2692,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // THEN
         then();
 
-        Task taskAfter = waitForTaskFinish(TASK_DELETE_DUMMY_ACCOUNTS.oid, true, 20000);
+        Task taskAfter = waitForTaskFinish(TASK_DELETE_DUMMY_ACCOUNTS.oid, false, 20000);
         dumpStatistics(taskAfter);
 
         // THEN

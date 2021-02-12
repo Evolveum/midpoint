@@ -1,0 +1,404 @@
+= midScale new SQL repository experiments
+
+As a non-involved developer you may ignore this directory.
+It is not part of the current midPoint build.
+
+See also https://docs.evolveum.com/midpoint/midscale/design/repository-design/[midScale Repository Design] document.
+
+== Notes
+
+* Directory `sql` contains various init scripts and experiments.
+Some of these will be moved to `config/sql` when proven worthy.
+* Create DB schema script (WIP): link:sql/pgnew-repo.sql[]
+* Useful inserts, selects, etc.: link:sql/pgnew-experiments.sql[]
+
+== Extension attributes (JSONB?)
+
+[NOTE]
+The whole section deals with *indexed extension* attributes only.
+If the attribute is not used for search, it does not have to be extracted from `fullobject` representation.
+It's likely the word "indexed" (or even "extension") will be omitted a lot in this section but is implied.
+
+It is very tempting to replace the current master-detail (or https://en.wikipedia.org/wiki/Entity%E2%80%93attribute%E2%80%93value_model[EAV])
+model for indexed extension attributes with something that does not require JOIN or EXISTS.
+Also, we need various extension tables for various data types.
+Can https://www.postgresql.org/docs/13/datatype-json.html[JSON types] (namely JSONB) be our salvation?
+We need to strike the balance between *query performance* and *extension attributes maintainability/flexibility*.
+
+Regarding *query performance* we have to realize that even current implementation under favorable
+conditions (middle-sized databases) has various levels of performance for various operations:
+
+* Equality, comparison and "starts with" filters can rely on indexes like `iAExtensionDate` for `m_assignment_ext_date (dateValue)`.
+// TODO: why is this on dateValue only and not combined with item_id?
+
+* "Ends with" or "contains" substrings are not optimized unless we add a trigram or similar index,
+see https://stackoverflow.com/a/17646278/658826[this answer]
+and https://www.postgresql.org/docs/13/indexes-types.html[index types documentation].
+Trigram indexes support only alphanumerical characters and can, reportedly, be huge and inefficient.
+"Ends with" can benefit from `reverse()` index.
+
+* Case-insensitive search is not optimized without appropriate function-based index.
+
+
+=== Modeling options
+
+Following options are available, but they still must be proved:
+
+* Single JSONB for all attributes stored in an object, some of them possibly multi-valued
+with values stored in an array.
+There are two sub-options here (actual key values like `hobbies` can actually be synthetic identifiers,
+e.g. referencing PK from the global catalogue of extension attributes):
+** Using `{"hobbies": "video", ...}` style (the value can also be an array).
+The conditions then may look like `ext->'hobbies' @> '"video"'` where `ext` is JSONB extension column.
+** More normalized `[{"key": "hobbies", "value": "video"}, ...]` with condition to `key` AND `value`.
+It feels noisy and indirect if we use JSONB in the first place, requires more conditions for the same
+thing and creates bigger JSON.
+
++
+--
+The nice thing about single JSONB column is it requires no DDL management during runtime.
+If this is usable it also eliminates the question of how to store different sets of extensions
+on different sets of the same type (e.g. shadows for different resources).
+
+One possible problem is that the whole JSONB value must be updated so the column value can be
+a source of contention if small changes (e.g. value of a single attribute) are performed
+on large extensions containing a lot of data.
+
+Also, related to the "blobby" nature of all-in-one JSON, it can be more costly for more difficult
+queries like substrings where index helps only partially and the value must be consulted.
+As the JSON grows it can be more and more expensive to filter over it (probably more if TOAST-ed).
+--
+
+* Each attribute in separate columns of various non-JSON types with multi-values stored as JSON array.
+This makes each column simpler but requires dynamic DDL management and other complications mentioned
+above that single general JSONB does not have.
+
+* Master-detail (https://en.wikipedia.org/wiki/Entity%E2%80%93attribute%E2%80%93value_model[EAV])
+model is still in play as well if nothing above works well enough.
+Following modifications are possible:
+
+** Splitting tables for single-value and multi-value attributes.
+** Separate tables for attributes used most (e.g. some external identifier used for all users),
+especially if multi-valued.
+
+* Single JSON column for single-value attributes but keeping multi-value attributes in separate
+table(s) (per type or per attribute).
+This is a mix of the first approach ("JSONB handles it all") and some version EAV model just mentioned.
+
+The typical problems are:
+
+* How to identify attributes?
+Attributes are identified with synthetic identifier from extension attributes catalog.
+Legacy implementation uses `m_ext_item` table and its `id` column - this works just fine.
+Repository can easily cache this catalog, there is no need to JOIN the table.
+
+* Check if some multi-value attribute contains a value.
+With `ext->'hobby' @> '"video"'` (`ext` being of type JSONB) it's possible to check value exactly.
+There may be problem with ignore-case and starts/endsWith operations.
+
+* Various operations can be used against simple attributes when the value is extracted, e.g.
+`ext->>'personalEmail' LIKE...
+
+* Extracting value from an array is a bit https://stackoverflow.com/a/49542329/658826[more tricky]):
++
+[source,sql]
+----
+select some objects ...
+where exists (select from jsonb_array_elements_text(ext->'hobbies') v
+    where jsonb_typeof(ext->'hobbies') = 'array'
+    and upper(v::text) LIKE '%ING')
+----
++
+It is crucial to either be sure `hobbies` is always array (this should be preferable solution)
+or add the `jsonb_typeof` check.
+This also mentions how important can be when LIMIT is used.
+*From personal experience during all these experiments, using LIMIT on queries without aggregate functions
+was always much faster, even when no index was used at all.*
+It is also possible to join scalar and arrays, see https://stackoverflow.com/a/39237349/658826[this answer]
+for more - but that requires union.
+I suggest we always know whether concrete extension attribute is array or scalar and *keep it consistent*.
+
+=== Other technical problems
+
+* https://vsevolod.net/postgresql-jsonb-index/[This post] points to various indexing/planning
+problems, i.e. planner guessing many more rows to be returned.
+Also, JIT slowing down execution of queries was mentioned.
+
+* Pure GIN index can get big depending on the number of different values used.
+It's tricky to use as only some operators are supported - contains/equals are possible, but not comparison or LIKE.
+It can still help with other operations by selecting only relevant rows containing the attribute (with any value)
+and then adding the condition of interest, e.g.: `
+
+TODO SEE: https://stackoverflow.com/a/49826693/658826
+TODO also: https://stackoverflow.com/a/12612255 see arrays, composite types, hstore options
+
+=== Extension attribute types in JSONB
+
+* String, booleans and numbers (whole or floating points) as native JSON types.
+
+* Dates as ISO formatted strings - do we need dates or just date+times?
+What about local vs timezones?
+We probably want to enforce timezones, but is it possible that some dates will have "local date" semantics.
+
+* Polystring TODO as `{"orig": ..., "norm": ...}`?
+
+* References TODO
+
+What are the typical operations on various types?
+
+* Comparing (lt/gt) numbers, dates and even strings (but first two are crucial).
+* LIKE and ignore case comparison.
+* Ordering? Do we use it now? Do we need it?
+
+Is policy situation related or not?
+
+=== GIN indexes
+
+Using https://www.postgresql.org/docs/13/gin-intro.html[GIN indexes] is tricky.
+Where clauses have to follow certain forms to benefit from https://www.postgresql.org/docs/13/datatype-json.html#JSON-INDEXING[JSONB indexing].
+For example:
+
+[source,sql]
+----
+-- with this index
+CREATE INDEX m_user_ext_idx ON m_user USING gin (ext);
+
+-- the following where does not use it
+select * from m_user
+    where ext->>'email' = 'user11666123@mycompany.com';
+
+-- but this one does (found entry can have other attributes just fine)
+select * from m_user
+    where ext @> '{"email": "user11666123@mycompany.com"}'
+----
+
+Alternatively, more specific GIN indexes can be added, but I'd not recommend this by default.
+If some high-business-value custom query takes longer it may benefit from the manually added index,
+typically function based with some JSON selector inside.
+It is however not recommended as a preventive measure, because this would require many indexes.
+Also, joining multiple indexes during an execution can take longer than using single (seemingly less efficient) index,
+see https://medium.com/plangrid-technology/indexing-with-postgres-when-less-is-more-7337d6f09048[this story].
+Finally, each index incurs a penalty for updates and inserts and takes additional space.
+
+Just for example, the following indexes could be created for each attribute (doesn't mean they should):
+
+* `((ext->>'attr'))` for conditions on `ext->>'attr'` of any kind, but mostly comparison.
+* TODO... lower (or upper)
+* TODO min/max functional for arrays (https://dba.stackexchange.com/a/202761/157622[this answer]).
+* trigram index for "endsWith"?
+
+All these indexes could be made much smaller by adding `WHERE ext ? 'attr'`.
+The condition then must be used in the query too, which should not be a problem.
+I recommend to use `ext?'attr'` in the query in any case because even without these indexes it can
+benefit from the generic GIN index a lot.
+
+== TODO
+
+* Can we merge boring entities to a single `m_object_generic` table?
+Things like `m_sequence`, `m_security_policy`, `m_system_configuration`, etc.
+Of course, if some of these can have many rows it's not desirable, perhaps it's more confusing in general anyway.
+* How is `m_object_subtype` (`ObjectType.subtype`) used and searched?
+*Obsolete,* even if necessary, single JSON array should cover it, no entity needed.
+* Untackled yet: Tree tables, organization, see: https://www.postgresql.org/docs/13/ltree.html
+* Mention how LIMIT makes queries faster, mentioned in comments to https://stackoverflow.com/a/49542329/658826[this answer].
+This "top-N queries" are also favored in "SQL Performance Explained" book.
+Also, that Q/A shows how to look into JSON array with `jsonb_array_elements` without expanding the result with the help of `EXISTS`.
+* For comparison of values stored in an array (multi-value extensions) see https://dba.stackexchange.com/a/202761/157622[this answer].
+It demonstrates interesting functional index for max value that can be used for `>` operation
+(if the array has higher max than the searched value, it has at least some higher value and the whole row matches).
+While interesting, we have to be careful not to pollute the DB with many small indexes.
+
+== PostgreSQL table inheritance
+
+https://www.postgresql.org/docs/current/ddl-inherit.html[Table inheritance] is a nice mechanism
+that allows creating table hierarchies, so we see all objects in one table and various subtypes in
+inherited tables.
+*It is also an implicit method for partitioning*, at least from the perspective of the parent table(s).
+
+* We need "abstract" tables like `m_object`.
+Alternative would be a view with `SELECT ... UNION` and common columns have to be repeated in DDL.
+Ideally we don't want to insert into abstract tables, we can use `check (false) no inherit` for this.
+"Check false" always fails, but this is not inherited by sub-tables.
+Updates of common columns or deletes on abstract tables still work with expected results
+(not possible with view without additional measures like triggers).
+
+* PKs, FKs and most of other constraints must be declared on each sub-table.
+Only check and not-null constraints are inherited, unless `no inherit` is declared.
+See https://www.postgresql.org/docs/current/ddl-inherit.html#DDL-INHERIT-CAVEATS[inheritance caveats].
+
+* To assure globally unique PKs we have to use triggers on sub-tables or separate OID-pool table.
+We chose the separate table solution after
+See http://blog.ioguix.net/postgresql/2015/02/05/Partitionning-and-constraints-part-1.html[this post]
+for more - especially the solution towards the end with advisory locks.
+The part with the support for other types is also handy, because UUID is bigger than bigint for lock.
+
+* UUID is far from the first recommendation for a PK, but it's impractical to use anything else for midPoint.
+Even with additional serial PK the objects are searched by their OID, so it would have to be indexed
+and its uniqueness assured and then it can just be PK directly.
+Smaller PK could be beneficial only as FK from other tables, e.g. instead of `targetRef_oid` for associations.
+This could still mean that we need to follow the FK to resolve it to OID which we use in application.
+
+* We want to generate OID in the database, so `DEFAULT gen_random_uuid()` is used for `OID`
+column directly in the master table `m_object`.
+
+* To assure unique OIDs we will use separate `m_object_oid` table.
+Triggers for insert and delete will assure the consistency between this and `m_object` hierarchy.
+For inserts we have to generate OID if its not provided or use the one that is - in both cases
+the new OID is inserted into `m_object_oid`.
+Updates of OID are forbidden which is also guarded by a trigger, otherwise it would be able to
+change OID to already existing OID from another table (PK does not allow it for the same table).
+
+* Can we partition inherited table? Like `m_shadow`.
+*No, this is not possible.*
+Options:
+** Using "application managed partitioning" with inheritance as needed.
+We prefer this, it is more cumbersome, but possibly more flexible.
+It also allows adding different extensions for different tables, e.g. based on resource.
+** Shadow would not be part of `m_object` hierarchy.
+
+* Foreign key can't be used against `m_object.oid` because it does not enforce index (by itself).
+Perhaps we want to introduce `m_object_oid` table that would own the unique pool of OIDs and could
+be used for referencing FKs.
+Referencing only some types of objects (e.g. just focuses) is probably mission impossible.
+
+
+* TODO: membership searches on abstract tables (e.g. focus), EXPLAIN, performance?
+
+* TODO: logging of all statements for experiments?
+https://www.postgresql.org/docs/current/runtime-config-logging.html
+https://stackoverflow.com/questions/722221/how-to-log-postgresql-queries
+
+* TODO: tablespaces?
+
+* The default `public` schema is used for all midpoint objects, that's OK.
+
+== Maintenance
+
+We may need regular `ANALYZE` and/or `VACUUM`.
+This should be run regularly - can it be done in DB or should MP call this or something else will trigger it?
+
+== Performance drop with volume
+
+TL/DR:
+
+* After first million, insert performance drops.
+* So does query, but if it uses an index, not that significantly.
+* Count queries suffer with volume - avoid count whenever possible.
+* Avoid solutions where number of inherited tables affects the performance, e.g. unique over
+hierarchy - perhaps externalize it to dedicated table.
+* Nothing was optimized, it was just couple of experiments to get a feeling for it.
+* After mass-deletes, performance can still be slow before `VACUUM` and/or `ANALYZE` is not ran.
+
+Tested on VirtualBox, 2 GB RAM, 60+ GB disk.
+
+Insert performance measurements:
+
+[source,sql]
+----
+INSERT INTO m_user (name_norm, name_orig, version)
+  VALUES ('user-' || LPAD(r::text, 10, '0'), 'user-' || LPAD(r::text, 10, '0'), 1);
+----
+
+Both name columns are indexed, `name_norm` is also unique.
+Loop is used to INSERT the rows, which is slower than `INSERT from SELECT` with `generate_series`,
+but closer to real scenario that uses separate statements (although there are no round-trips here).
+
+Effect of the number of inherited tables on INSERT performance.
+`VACUUM` was used after massive deletes, otherwise the times for 10M were similar to 40M.
+This should not be problematic when separate `m_object_oid` table is used now.
+
+|===
+| Inherited{nbsp}tables / Existing rows | 4 | 50 | 100
+
+| 0 | 6s | 6s | 6s
+| 1M | 6s | - | 6s
+| 10M | 29/14/14s | - | 28/12/27s
+| 40M | 74/70/72s | 70s | 70s
+|===
+
+Conclusion - as there is no check against `m_object` there is no negative impact of the hierarchy on the performance.
+
+Table sizes after x inserts (index means PK index):
+
+|===
+| Inserted rows total | User table/index size | OID table/index size | DB size
+
+| 0 | | |
+| 1M | 96/30 MB | 42/30 MB | 266 MB
+| 10M | 965/446 MB | 422/446 MB | 2888 MB
+| 40M | 3858/1721 MB | 1689/1721 MB | 11 GB
+|===
+
+With user's names formatted like `user-0000000001` both name indexes had 1269 MB at 40M rows.
+
+== Performance of searching for unused OIDs
+
+If delete is not guarded by a trigger, `m_object_oid` can have unused OIDs.
+It's crucial to use the right select/delete construction to find/delete them.
+With 26M rows naive approach with `NOT IN` to delete 200k unused OIDs took over 1h without finishing.
+Following output shows the plan for `NOT IN`, `LEFT JOIN` and `NOT EXISTS`.
+Latter two use `Parallel Hash Anti Join` which is good, `NOT IN` uses `Parallel Seq Scan` which is not.
+`NOT EXISTS` is practical for `DELETE`/`UPDATE` and perfectly valid to use.
+The previous problem (deleting 200k unused OIDs from 26M total) was solved in around 150s.
+
+[source,sql]
+----
+EXPLAIN -- (ANALYZE, BUFFERS, FORMAT TEXT) with analyze it's super slow, EXPLAIN is enough here
+select * FROM m_object_oid WHERE OID NOT IN (SELECT oid from m_object);
+
+Gather  (cost=1000.00..5431677337728.88 rows=13150078 width=16)
+  Workers Planned: 2
+  ->  Parallel Seq Scan on m_object_oid  (cost=0.00..5431676021721.08 rows=5479199 width=16)
+        Filter: (NOT (SubPlan 1))
+        SubPlan 1
+          ->  Materialize  (cost=0.00..925576.32 rows=26300117 width=16)
+                ->  Append  (cost=0.00..665656.73 rows=26300117 width=16)
+                      ->  Seq Scan on m_object m_object_1  (cost=0.00..0.00 rows=1 width=16)
+                      ->  Seq Scan on m_resource m_object_2  (cost=0.00..10.10 rows=10 width=16)
+                      ->  Seq Scan on m_focus m_object_3  (cost=0.00..0.00 rows=1 width=16)
+                      ->  Seq Scan on m_shadow m_object_4  (cost=0.00..10.10 rows=10 width=16)
+                      ->  Seq Scan on m_user m_object_5  (cost=0.00..534135.95 rows=26300095 width=16)
+JIT:
+  Functions: 14
+"  Options: Inlining true, Optimization true, Expressions true, Deforming true"
+
+EXPLAIN select count(oo.oid) FROM m_object_oid oo
+left join m_object o on o.oid = oo.oid
+WHERE o.oid is null;
+
+Gather  (cost=627018.54..1217367.23 rows=38 width=16)
+  Workers Planned: 2
+  ->  Parallel Hash Anti Join  (cost=626018.54..1216363.43 rows=16 width=16)
+        Hash Cond: (oo.oid = o.oid)
+        ->  Parallel Seq Scan on m_object_oid oo  (cost=0.00..251746.98 rows=10958398 width=16)
+        ->  Parallel Hash  (cost=435530.76..435530.76 rows=10958383 width=16)
+              ->  Parallel Append  (cost=0.00..435530.76 rows=10958383 width=16)
+                    ->  Seq Scan on m_object o_1  (cost=0.00..0.00 rows=1 width=16)
+                    ->  Seq Scan on m_focus o_3  (cost=0.00..0.00 rows=1 width=16)
+                    ->  Parallel Seq Scan on m_user o_5  (cost=0.00..380718.73 rows=10958373 width=16)
+                    ->  Parallel Seq Scan on m_resource o_2  (cost=0.00..10.06 rows=6 width=16)
+                    ->  Parallel Seq Scan on m_shadow o_4  (cost=0.00..10.06 rows=6 width=16)
+JIT:
+  Functions: 18
+"  Options: Inlining true, Optimization true, Expressions true, Deforming true"
+
+EXPLAIN
+delete FROM m_object_oid oo
+where not exists (select * from m_object o where o.oid = oo.oid);
+
+Gather  (cost=627018.54..1217367.23 rows=38 width=16)
+  Workers Planned: 2
+  ->  Parallel Hash Anti Join  (cost=626018.54..1216363.43 rows=16 width=16)
+        Hash Cond: (oo.oid = o.oid)
+        ->  Parallel Seq Scan on m_object_oid oo  (cost=0.00..251746.98 rows=10958398 width=16)
+        ->  Parallel Hash  (cost=435530.76..435530.76 rows=10958383 width=16)
+              ->  Parallel Append  (cost=0.00..435530.76 rows=10958383 width=16)
+                    ->  Seq Scan on m_object o_1  (cost=0.00..0.00 rows=1 width=16)
+                    ->  Seq Scan on m_focus o_3  (cost=0.00..0.00 rows=1 width=16)
+                    ->  Parallel Seq Scan on m_user o_5  (cost=0.00..380718.73 rows=10958373 width=16)
+                    ->  Parallel Seq Scan on m_resource o_2  (cost=0.00..10.06 rows=6 width=16)
+                    ->  Parallel Seq Scan on m_shadow o_4  (cost=0.00..10.06 rows=6 width=16)
+JIT:
+  Functions: 18
+"  Options: Inlining true, Optimization true, Expressions true, Deforming true"
+----

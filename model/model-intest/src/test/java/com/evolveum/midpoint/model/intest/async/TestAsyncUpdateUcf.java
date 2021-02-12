@@ -12,12 +12,11 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UcfChangeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -36,20 +35,20 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "async/ucf");
 
-    protected static final File RESOURCE_GROUPER_FILE = new File(TEST_DIR, "resource-grouper-ucf-internal.xml");
+    private static final File RESOURCE_GROUPER_FILE = new File(TEST_DIR, "resource-grouper-ucf-internal.xml");
     protected static final String RESOURCE_GROUPER_ID = "Grouper";
-    protected static final String RESOURCE_GROUPER_OID = "bbb9900a-b53d-4453-b60b-908725e3950e";
+    private static final String RESOURCE_GROUPER_OID = "bbb9900a-b53d-4453-b60b-908725e3950e";
 
-    public static final String BANDERSON_USERNAME = "banderson";
-    public static final String JLEWIS685_USERNAME = "jlewis685";
-    public static final String KWHITE_USERNAME = "kwhite";
-    public static final String ALUMNI_NAME = "ref:alumni";
-    public static final String STAFF_NAME = "ref:staff";
+    private static final String BANDERSON_USERNAME = "banderson";
+    private static final String JLEWIS685_USERNAME = "jlewis685";
+    private static final String KWHITE_USERNAME = "kwhite";
+    private static final String ALUMNI_NAME = "ref:alumni";
+    private static final String STAFF_NAME = "ref:staff";
 
     public static final String GROUPER_USER_INTENT = "subject";
     public static final String GROUPER_GROUP_INTENT = "group";
 
-    protected PrismObject<ResourceType> resourceGrouper;
+    private static final TestResource<TaskType> TASK_ASYNC_UPDATE = new TestResource<>(TEST_DIR, "task-async-update.xml", "02c3f13d-e3e4-40c8-8a39-50013859f0f6");
 
     private static final File CHANGE_100 = new File(TEST_DIR, "change-100-banderson-add.xml");
     private static final File CHANGE_110 = new File(TEST_DIR, "change-110-alumni-add.xml");
@@ -66,8 +65,9 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        resourceGrouper = importAndGetObjectFromFile(ResourceType.class, RESOURCE_GROUPER_FILE, RESOURCE_GROUPER_OID,
-                initTask, initResult);
+        importAndGetObjectFromFile(ResourceType.class, RESOURCE_GROUPER_FILE, RESOURCE_GROUPER_OID, initTask, initResult);
+
+        addObject(TASK_ASYNC_UPDATE, initTask, initResult);
     }
 
     @Test
@@ -93,8 +93,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 
@@ -133,7 +132,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 
@@ -177,7 +176,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 
@@ -215,7 +214,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 
@@ -253,7 +252,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 
@@ -291,7 +290,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 
@@ -329,7 +328,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 
@@ -367,7 +366,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
         // WHEN
 
         ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 
@@ -398,8 +397,7 @@ public class TestAsyncUpdateUcf extends AbstractInitializedModelIntegrationTest 
 
         // WHEN
 
-        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER_OID);
-        provisioningService.processAsynchronousUpdates(coords, task, result);
+        rerunTask(TASK_ASYNC_UPDATE.oid, result);
 
         // THEN
 

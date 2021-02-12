@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.web.component.menu;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -16,21 +18,34 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
  */
 public class MenuItem extends BaseMenuItem {
 
-    public MenuItem(IModel<String> nameModel, Class<? extends WebPage> pageClass) {
-        this(nameModel, "", pageClass);
+    public MenuItem(String nameModel, Class<? extends WebPage> pageClass) {
+        this(nameModel, DEFAULT_ICON, pageClass);
     }
 
-    public MenuItem(IModel<String> nameModel, String iconClass, Class<? extends WebPage> pageClass) {
-        this(nameModel, iconClass, pageClass, null, null);
+    public MenuItem(String nameModel, String iconClass, Class<? extends WebPage> pageClass) {
+        this(nameModel, iconClass, pageClass, null);
     }
 
-    public MenuItem(IModel<String> nameModel, Class<? extends WebPage> pageClass,
-                    PageParameters params, VisibleEnableBehaviour visibleEnable, Class<? extends WebPage>... aliases) {
-        this(nameModel, "", pageClass, params, visibleEnable, aliases);
+    public MenuItem(String nameModel, Class<? extends WebPage> pageClass,
+                    PageParameters params, Class<? extends WebPage>... aliases) {
+        this(nameModel, DEFAULT_ICON, pageClass, params, aliases);
     }
 
-    public MenuItem(IModel<String> nameModel, String iconClass, Class<? extends WebPage> pageClass,
-                    PageParameters params, VisibleEnableBehaviour visibleEnable, Class<? extends WebPage>... aliases) {
-        super(nameModel, iconClass, pageClass, params, visibleEnable, aliases);
+    public MenuItem(String nameModel, String iconClass, Class<? extends WebPage> pageClass,
+                    PageParameters params, Class<? extends WebPage>... aliases) {
+        super(nameModel, iconClass, pageClass, params, aliases);
     }
+
+    public MenuItem(String nameModel, String iconClass, Class<? extends WebPage> pageClass,
+            PageParameters params, boolean active) {
+        super(nameModel, iconClass, pageClass, params, active);
+    }
+
+    public MenuItem(String nameModel, Class<? extends WebPage> pageClass,
+            PageParameters params, boolean active) {
+        super(nameModel, BaseMenuItem.DEFAULT_ICON, pageClass, params, active);
+    }
+
+
+
 }

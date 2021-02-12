@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -338,6 +338,18 @@ public class StartupConfiguration implements MidpointConfiguration {
     @Override
     public SystemConfigurationSection getSystemSection() {
         return new SystemConfigurationSectionImpl(getConfiguration(SYSTEM_CONFIGURATION));
+    }
+
+    @Override
+    public boolean keyMatches(String key, String... regexPatterns) {
+        String value = config.getString(key);
+        if (value == null) {
+            // we are able to match null values too and we're very flexible here
+            return regexPatterns == null || regexPatterns.length == 0 || regexPatterns[0] == null;
+        }
+
+        return Arrays.stream(regexPatterns)
+                .anyMatch(regex -> value.matches(regex));
     }
 
     private String getFileIndirectionSuffix() {

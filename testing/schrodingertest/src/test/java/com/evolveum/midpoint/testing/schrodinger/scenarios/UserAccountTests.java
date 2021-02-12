@@ -8,7 +8,6 @@ package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
 import com.evolveum.midpoint.schrodinger.page.self.HomePage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 /**
@@ -124,11 +123,9 @@ public class UserAccountTests extends AccountTests {
                 .selectAll()
                 .and()
                     .table()
-                        .clickHeaderActionDropDown()
-                            .clickDisable()
+                        .disableUser()
                             .clickYes()
                         .and()
-                    .and()
                     .feedback()
                         .isSuccess()
             ;
@@ -147,9 +144,9 @@ public class UserAccountTests extends AccountTests {
                 .selectAll()
                 .and()
                     .table()
-                    .clickEnable()
-                .clickYes()
-            .and()
+                    .enableUser()
+                        .clickYes()
+                    .and()
                 .feedback()
                 .isSuccess()
         ;
@@ -158,30 +155,26 @@ public class UserAccountTests extends AccountTests {
     @Test (dependsOnMethods = {CREATE_MP_USER_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void searchUser(){
     ListUsersPage usersPage = basicPage.listUsers();
-    Assert.assertTrue(
-               usersPage
+    usersPage
                        .table()
                             .search()
                                 .byName()
                                 .inputValue(TEST_USER_MIKE_NAME)
                             .updateSearch()
                        .and()
-                       .currentTableContains(TEST_USER_MIKE_NAME)
-       );
+                       .assertCurrentTableContains(TEST_USER_MIKE_NAME);
     }
 
     @Test (dependsOnMethods = {CREATE_MP_USER_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void searchUserFromHome(){
         HomePage homePage = basicPage.home();
-        Assert.assertTrue(
-                homePage
+        homePage
                     .search()
                         .clickSearchFor()
                     .clickUsers()
                     .inputValue(TEST_USER_MIKE_NAME)
                         .clickSearch()
-                        .currentTableContains(TEST_USER_MIKE_NAME)
-        );
+                        .assertCurrentTableContains(TEST_USER_MIKE_NAME);
 
     }
 
@@ -198,12 +191,10 @@ public class UserAccountTests extends AccountTests {
                 .selectAll()
                 .and()
                     .table()
-                        .clickHeaderActionDropDown()
-                            .clickDelete()
+                        .deleteUser()
                         .clickYes()
                     .and()
-                .and()
                 .feedback()
-                    .isSuccess()
-        ;}
+                    .isSuccess();
+    }
 }

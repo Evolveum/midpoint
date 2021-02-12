@@ -56,6 +56,11 @@ public class GuiStyleConstants {
     public static final String CLASS_OBJECT_TASK_BOX_CSS_CLASSES = "object-task-box";
     public static final String CLASS_OBJECT_TASK_BOX_THIN_CSS_CLASSES = "object-task-box-thin";
 
+    public static final String CLASS_OBJECT_NODE_ICON = "fa fa-server";
+    public static final String CLASS_OBJECT_NODE_ICON_COLORED = CLASS_OBJECT_NODE_ICON + " object-node-color";
+    public static final String CLASS_OBJECT_NODE_BOX_CSS_CLASSES = "object-node-box";
+    public static final String CLASS_OBJECT_NODE_BOX_THIN_CSS_CLASSES = "object-node-box-thin";
+
     public static final String CLASS_OBJECT_WORK_ITEM_ICON = "fa fa-inbox";
     public static final String CLASS_OBJECT_WORK_ITEM_ICON_COLORED = CLASS_OBJECT_WORK_ITEM_ICON + " object-task-color";        // TODO
     public static final String CLASS_OBJECT_WORK_ITEM_BOX_CSS_CLASSES = "object-task-box"; // TODO

@@ -64,15 +64,15 @@ public class TestThresholdsReconSimulateMultithreaded extends TestThresholds {
 
         // user4, user5, user6, user7, user8
         assertThat(syncInfo.getCountUnmatched()).isBetween(RULE_CREATE_WATERMARK, RULE_CREATE_WATERMARK + WORKER_THREADS);
-        assertEquals(syncInfo.getCountDeleted(), 0);
+        assertEquals((Object) syncInfo.getCountDeleted(), 0);
         // jgibbs, hbarbossa, jbeckett, user1, user2, user3
-        assertEquals(syncInfo.getCountLinked(), getDefaultUsers());
-        assertEquals(syncInfo.getCountUnlinked(), 0);
+        assertEquals((Object) syncInfo.getCountLinked(), getDefaultUsers());
+        assertEquals((Object) syncInfo.getCountUnlinked(), 0);
 
         assertThat(syncInfo.getCountUnmatchedAfter()).isBetween(RULE_CREATE_WATERMARK, RULE_CREATE_WATERMARK + WORKER_THREADS);
-        assertEquals(syncInfo.getCountDeletedAfter(), 0);
-        assertEquals(syncInfo.getCountLinkedAfter(), getDefaultUsers());
-        assertEquals(syncInfo.getCountUnlinkedAfter(), 0);
+        assertEquals((Object) syncInfo.getCountDeletedAfter(), 0);
+        assertEquals((Object) syncInfo.getCountLinkedAfter(), getDefaultUsers());
+        assertEquals((Object) syncInfo.getCountUnlinkedAfter(), 0);
     }
 
     @Override
@@ -86,15 +86,15 @@ public class TestThresholdsReconSimulateMultithreaded extends TestThresholds {
 
         // user4, user5, user6, user7, user8
         assertThat(syncInfo.getCountUnmatched()).isBetween(RULE_CREATE_WATERMARK, RULE_CREATE_WATERMARK + WORKER_THREADS);
-        assertEquals(syncInfo.getCountDeleted(), 0);
+        assertEquals((Object) syncInfo.getCountDeleted(), 0);
         // jgibbs, hbarbossa, jbeckett, user1, user2, user3
-        assertEquals(syncInfo.getCountLinked(), getDefaultUsers() + getProcessedUsers());
-        assertEquals(syncInfo.getCountUnlinked(), 0);
+        assertEquals((Object) syncInfo.getCountLinked(), getDefaultUsers() + getProcessedUsers());
+        assertEquals((Object) syncInfo.getCountUnlinked(), 0);
 
         assertThat(syncInfo.getCountUnmatchedAfter()).isBetween(RULE_CREATE_WATERMARK, RULE_CREATE_WATERMARK + WORKER_THREADS);
-        assertEquals(syncInfo.getCountDeletedAfter(), 0);
-        assertEquals(syncInfo.getCountLinkedAfter(), getDefaultUsers() + getProcessedUsers());
-        assertEquals(syncInfo.getCountUnlinkedAfter(), 0);
+        assertEquals((Object) syncInfo.getCountDeletedAfter(), 0);
+        assertEquals((Object) syncInfo.getCountLinkedAfter(), getDefaultUsers() + getProcessedUsers());
+        assertEquals((Object) syncInfo.getCountUnlinkedAfter(), 0);
     }
 
     @Override
@@ -106,14 +106,14 @@ public class TestThresholdsReconSimulateMultithreaded extends TestThresholds {
         dumpSynchronizationInformation(syncInfo);
 
         //user4
-        assertEquals(syncInfo.getCountDeleted(), 0);
+        assertEquals((Object) syncInfo.getCountDeleted(), 0);
         // jgibbs, hbarbossa, jbeckett, user1 (disabled-#1), user2 (disabled-#2), user3 (disabled-#3-fails)
-        assertEquals(syncInfo.getCountLinked(), getDefaultUsers() + getProcessedUsers());
-        assertEquals(syncInfo.getCountUnlinked(), 0);
+        assertEquals((Object) syncInfo.getCountLinked(), getDefaultUsers() + getProcessedUsers());
+        assertEquals((Object) syncInfo.getCountUnlinked(), 0);
 
-        assertEquals(syncInfo.getCountDeleted(), 0);
+        assertEquals((Object) syncInfo.getCountDeleted(), 0);
         // jgibbs, hbarbossa, jbeckett, user1 (disabled-#1), user2 (disabled-#2), user3 (disabled-#3-fails)
-        assertEquals(syncInfo.getCountLinked(), getDefaultUsers() + getProcessedUsers());
-        assertEquals(syncInfo.getCountUnlinked(), 0);
+        assertEquals((Object) syncInfo.getCountLinked(), getDefaultUsers() + getProcessedUsers());
+        assertEquals((Object) syncInfo.getCountUnlinked(), 0);
     }
 }

@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_OID;
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_USERNAME;
 
 import org.apache.wicket.Page;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.tester.FormTester;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,7 +22,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -91,39 +91,35 @@ public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
         assignParametricRole(USER_ADMINISTRATOR_OID, role2Oid, ORG_SAVE_ELAINE_OID, null, task, task.getResult());
 
         String panel = "mainPanel:mainForm:tabPanel:panel";
-        String memberTable = panel + ":form:memberContainer:memberTable:mainForm:table:box:tableContainer:table";
+        String memberTable = panel + ":form:memberContainer:memberTable:items:itemsTable:box:tableContainer:table";
+        String searchForm = "mainPanel:mainForm:tabPanel:panel:form:memberContainer:memberTable:items:itemsTable:box:header:searchForm:search:form";
 
         // WHEN
         // Open Role0001 page
         renderPage(PageRole.class, role1Oid);
         // Show Members tab
-        clickOnTab(8);
+        clickOnTab(8, PageRole.class);
 
         // THEN
         tester.assertComponent(panel, AbstractRoleMemberPanel.class);
         tester.debugComponentTrees(":rows:.*:cells:3:cell:link:label");
         // It should show all members who are assigned Role0001
-        tester.hasLabel(memberTable + ":body:rows:1:cells:3:cell:link:label", USER_ADMINISTRATOR_USERNAME);
-        tester.hasLabel(memberTable + ":body:rows:2:cells:3:cell:link:label", USER_JACK_USERNAME);
+        tester.assertLabel(memberTable + ":body:rows:1:cells:3:cell:link:label", USER_ADMINISTRATOR_USERNAME);
+        tester.assertLabel(memberTable + ":body:rows:2:cells:3:cell:link:label", USER_JACK_USERNAME);
         tester.assertNotExists(memberTable + ":body:rows:3:cells:3:cell:link:label");
 
         // WHEN
         // Choose P0001 in 'Org/Project' filter selection
-        tester.clickLink(panel + ":form:project:inputContainer:choose");
-        tester.clickLink("mainPopup:content:table:mainForm:table:box:tableContainer:table:body:rows:7:cells:2:cell:link");
-        executeModalWindowCloseCallback("mainPopup");
+        String orgProjectItem = searchForm + ":specialItems:3:specialItem:searchItemContainer:searchItemField";
+        tester.clickLink(orgProjectItem + ":editButton");
+        ((TextField)tester.getComponentFromLastRenderedPage(orgProjectItem + ":popover:popoverPanel:popoverForm:oid")).getModel().setObject(ORG_SAVE_ELAINE_OID);
+        tester.clickLink(orgProjectItem + ":popover:popoverPanel:popoverForm:confirmButton");
 
         // THEN
         // It should show only one user who is assigned Role0001 with orgRef P0001
         tester.debugComponentTrees(":rows:.*:cells:3:cell:link:label");
-        tester.hasLabel(memberTable + ":body:rows:3:cells:3:cell:link:label", USER_JACK_USERNAME);
+        tester.assertLabel(memberTable + ":body:rows:3:cells:3:cell:link:label", USER_JACK_USERNAME);
         tester.assertNotExists(memberTable + ":body:rows:4:cells:3:cell:link:label");
-    }
-
-    private void clickOnTab(int order) {
-        tester.assertRenderedPage(PageRole.class);
-        String tabPath = "mainPanel:mainForm:tabPanel:tabs-container:tabs:" + order + ":link";
-        tester.clickLink(tabPath);
     }
 
     private Page renderPage(Class<? extends Page> expectedRenderedPageClass) {

@@ -21,6 +21,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -92,18 +93,12 @@ public class PageAttorneySelection extends PageBase {
         add(mainForm);
 
 
-        ObjectListPanel<UserType> table = new ObjectListPanel<UserType>(ID_TABLE, UserType.class,
-                UserProfileStorage.TableId.PAGE_USER_SELECTION, Collections.emptyList()) {
+        ObjectListPanel<UserType> table = new ObjectListPanel<UserType>(ID_TABLE, UserType.class, Collections.emptyList()) {
 
-//            @Override
-//            protected boolean isRefreshEnabled() {
-//                return false;
-//            }
-//
-//            @Override
-//            protected int getAutoRefreshInterval() {
-//                return 0;
-//            }
+            @Override
+            protected UserProfileStorage.TableId getTableId() {
+                return UserProfileStorage.TableId.PAGE_USER_SELECTION;
+            }
 
             @Override
             protected IColumn<SelectableBean<UserType>, String> createCheckboxColumn() {
@@ -119,14 +114,17 @@ public class PageAttorneySelection extends PageBase {
                     @Override
                     public void onClick(AjaxRequestTarget target, IModel<SelectableBean<UserType>> rowModel) {
                         UserType object = rowModel.getObject().getValue();
-                        selectUserPerformed(target, object.getOid());
+                        selectUserPerformed(object.getOid());
                     }
                 };
             }
 
             @Override
-            protected List<IColumn<SelectableBean<UserType>, String>> createColumns() {
-                return PageAttorneySelection.this.initColumns();
+            protected List<IColumn<SelectableBean<UserType>, String>> createDefaultColumns() {
+                List<IColumn<SelectableBean<UserType>, String>> columns = new ArrayList<>();
+                columns.add(createNameColumn(null, null, null));
+                columns.addAll(PageAttorneySelection.this.initColumns());
+                return columns;
             }
 
             @Override
@@ -135,22 +133,23 @@ public class PageAttorneySelection extends PageBase {
             }
 
             @Override
-            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
-                if (query == null) {
-                    query = PageAttorneySelection.this.getPrismContext().queryFactory().createQuery();
-                }
-
+            protected ObjectQuery getCustomizeContentQuery() {
                 ModelInteractionService service = getModelInteractionService();
-
                 Task task = createSimpleTask(OPERATION_GET_DONOR_FILTER);
                 try {
-                    ObjectFilter filter = query.getFilter();
+                    ObjectQuery origQuery = ((SelectableBeanObjectDataProvider)getDataProvider()).getQuery();
+                    ObjectFilter filter;
+                    ObjectQuery query = PageAttorneySelection.this.getPrismContext().queryFactory().createQuery();
+                    if (origQuery != null) {
+                        filter = origQuery.getFilter();
+                    } else {
+                        filter = query.getFilter();
+                    }
                     // todo target authorization action
                     filter = service.getDonorFilter(UserType.class, filter, null,
                             task, task.getResult());
 
-                    query.setFilter(filter);
-
+                    query.addFilter(filter);
                     return query;
                 } catch (CommonException ex) {
                     LOGGER.error("Couldn't get donor filter, reason: {}", ex.getMessage());
@@ -169,27 +168,27 @@ public class PageAttorneySelection extends PageBase {
     private List<IColumn<SelectableBean<UserType>, String>> initColumns() {
         List<IColumn<SelectableBean<UserType>, String>> columns = new ArrayList<>();
 
-        IColumn<SelectableBean<UserType>, String> column = new PropertyColumn(
+        IColumn<SelectableBean<UserType>, String> column = new PropertyColumn<>(
                 createStringResource("UserType.givenName"), UserType.F_GIVEN_NAME.getLocalPart(),
                 SelectableBeanImpl.F_VALUE + ".givenName");
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("UserType.familyName"),
+        column = new PropertyColumn<>(createStringResource("UserType.familyName"),
                 UserType.F_FAMILY_NAME.getLocalPart(), SelectableBeanImpl.F_VALUE + ".familyName");
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("UserType.fullName"),
+        column = new PropertyColumn<>(createStringResource("UserType.fullName"),
                 UserType.F_FULL_NAME.getLocalPart(), SelectableBeanImpl.F_VALUE + ".fullName");
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("UserType.emailAddress"), null,
+        column = new PropertyColumn<>(createStringResource("UserType.emailAddress"), null,
                 SelectableBeanImpl.F_VALUE + ".emailAddress");
         columns.add(column);
 
         return columns;
     }
 
-    private void selectUserPerformed(AjaxRequestTarget target, String oid) {
+    private void selectUserPerformed(String oid) {
         PageParameters parameters = new PageParameters();
         parameters.add(PARAMETER_DONOR_OID, oid);
         PageWorkItemsAttorney workItemsPage = new PageWorkItemsAttorney(parameters);

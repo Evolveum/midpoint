@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -108,18 +108,14 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
     }
 
     @Override
-    protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
+    protected ObjectQuery addFilterToContentQuery() {
         LOGGER.debug("Loading roles which the current user has right to assign");
         Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);
         OperationResult result = task.getResult();
 
-        ObjectFilter filter = WebComponentUtil.getAssignableRolesFilter(getTargetedAssignemntObject(), (Class<AbstractRoleType>) getObjectType().getClassDefinition(),
+        ObjectFilter filter = WebComponentUtil.getAssignableRolesFilter(getTargetedAssignemntObject(), getObjectType().getClassDefinition(),
                 isInducement() ? WebComponentUtil.AssignmentOrder.INDUCEMENT : WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, getPageBase());
-        if (query == null) {
-            query = getPrismContext().queryFactory().createQuery();
-        }
-        query.addFilter(filter);
-        return query;
+        return getPrismContext().queryFactory().createQuery(filter);
     }
 
     protected boolean isInducement() {

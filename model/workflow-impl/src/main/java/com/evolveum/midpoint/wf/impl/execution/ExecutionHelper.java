@@ -202,7 +202,8 @@ public class ExecutionHelper {
 
     private String getGroupSuffix(WfExecutionTasksSerializationScopeType scope, CaseType aCase, Task task) {
         switch (scope) {
-            case GLOBAL: return "";
+            case GLOBAL:
+                return "";
             case OBJECT:
                 String oid = aCase.getObjectRef() != null ? aCase.getObjectRef().getOid() : null;
                 if (oid == null) {
@@ -229,7 +230,7 @@ public class ExecutionHelper {
 
         Task task = taskManager.createTaskInstance("execute");
         task.setName("Execution of " + aCase.getName().getOrig());
-        task.setOwner(getExecutionTaskOwner(result));
+        task.setOwner(getExecutionTaskOwner(aCase, result));
         task.setObjectRef(ObjectTypeUtil.createObjectRef(aCase, prismContext));
         task.setHandlerUri(CaseOperationExecutionTaskHandler.HANDLER_URI);
         if (waiting) {
@@ -249,8 +250,41 @@ public class ExecutionHelper {
         LOGGER.debug("Marked case {} as {}", aCase, SchemaConstants.CASE_STATE_EXECUTING);
     }
 
-    private PrismObject<UserType> getExecutionTaskOwner(OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return repositoryService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, result);
+    private PrismObject<UserType> getExecutionTaskOwner(CaseType aCase, OperationResult result) throws SchemaException, ObjectNotFoundException {
+
+        ObjectReferenceType ownerRef = getOwnerForCaseTask(aCase, result);
+        String ownerOid = SystemObjectsType.USER_ADMINISTRATOR.value();
+        if (ownerRef != null) {
+            ownerOid = ownerRef.getOid();
+        }
+        return repositoryService.getObject(UserType.class, ownerOid, null, result);
+    }
+
+    private ObjectReferenceType getOwnerForCaseTask(CaseType aCase, OperationResult result) throws SchemaException {
+        ObjectReferenceType ref = getOwnerFromWfConfiguration(result);
+        if (ref != null) {
+            return ref;
+        }
+        return aCase.getRequestorRef();
+    }
+
+    private ObjectReferenceType getOwnerFromWfConfiguration(OperationResult result) throws SchemaException {
+        PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
+        if (systemConfiguration == null) {
+            return null;
+        }
+        SystemConfigurationType systemConfigurationType = systemConfiguration.asObjectable();
+        WfConfigurationType wfConfig = systemConfigurationType.getWorkflowConfiguration();
+        if (wfConfig == null) {
+            return null;
+        }
+
+        WfExecutionTasksConfigurationType wfExecutionConfig = wfConfig.getExecutionTasks();
+        if (wfExecutionConfig == null) {
+            return null;
+        }
+
+        return wfExecutionConfig.getOwnerRef();
     }
 
     /**

@@ -9,8 +9,12 @@ package com.evolveum.midpoint.web.component.data;
 import java.io.Serializable;
 import java.util.*;
 
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.web.component.search.Search;
+
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
+import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -37,8 +41,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * @author lazyman
  */
-public class RepositoryObjectDataProvider
-        extends BaseSortableDataProvider<DebugObjectItem> {
+public class RepositoryObjectDataProvider<O extends ObjectType>
+        extends BaseSearchDataProvider<O, DebugObjectItem> {
 
     private static final String DOT_CLASS = RepositoryObjectDataProvider.class.getName() + ".";
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
@@ -46,19 +50,16 @@ public class RepositoryObjectDataProvider
     private static final String OPERATION_COUNT_OBJECTS = DOT_CLASS + "countObjects";
 
     private static final Trace LOGGER = TraceManager.getTrace(RepositoryObjectDataProvider.class);
-    private Class<? extends ObjectType> type;
 
     private Map<String, ResourceDescription> resourceCache = new HashMap<>();
 
-    public RepositoryObjectDataProvider(Component component, Class<? extends ObjectType> type) {
-        super(component, true);
-
-        setType(type);
+    public RepositoryObjectDataProvider(Component component, IModel<Search<O>> searchModel) {
+        super(component, searchModel, true);
     }
 
     @Override
     public Iterator<DebugObjectItem> internalIterator(long first, long count) {
-        LOGGER.trace("begin::iterator() from {} count {}.", new Object[] { first, count });
+        LOGGER.trace("begin::iterator() from {} count {}.", first, count);
         getAvailableData().clear();
 
         OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECTS);
@@ -71,18 +72,18 @@ public class RepositoryObjectDataProvider
             query.setPaging(paging);
 
             Collection<SelectorOptions<GetOperationOptions>> options = getOptions();
-            List<PrismObject<? extends ObjectType>> list = getModel().searchObjects((Class) type, query, options,
-                    getPage().createSimpleTask(OPERATION_SEARCH_OBJECTS), result);
+            List<? extends PrismObject<? extends ObjectType>> list = getModel().searchObjects(getType(), query, options,
+                    getPageBase().createSimpleTask(OPERATION_SEARCH_OBJECTS), result);
             for (PrismObject<? extends ObjectType> object : list) {
                 getAvailableData().add(createItem(object, result));
             }
         } catch (Exception ex) {
-            result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.listObjects.fatalError").getString(), ex);
+            result.recordFatalError(getPageBase().createStringResource("ObjectDataProvider.message.listObjects.fatalError").getString(), ex);
         } finally {
             result.computeStatusIfUnknown();
         }
 
-        getPage().showResult(result, false);
+        getPageBase().showResult(result, false);
 
         LOGGER.trace("end::iterator()");
         return getAvailableData().iterator();
@@ -135,7 +136,7 @@ public class RepositoryObjectDataProvider
         String type = null;
         try {
             resource = getModel().getObject(ResourceType.class, oid, options,
-                    getPage().createSimpleTask(OPERATION_LOAD_RESOURCE), subResult);
+                    getPageBase().createSimpleTask(OPERATION_LOAD_RESOURCE), subResult);
 
             PrismReference ref = resource.findReference(ResourceType.F_CONNECTOR_REF);
             if (ref != null && ref.getValue() != null) {
@@ -152,10 +153,10 @@ public class RepositoryObjectDataProvider
             subResult.recordSuccess();
         } catch (ObjectNotFoundException e) {
             LoggingUtils.logException(LOGGER, "Resource with oid {} not found", e, oid);
-            result.recordPartialError(getPage().createStringResource("ObjectDataProvider.message.loadResourceForAccount.notFound", oid).getString());
+            result.recordPartialError(getPageBase().createStringResource("ObjectDataProvider.message.loadResourceForAccount.notFound", oid).getString());
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load resource for account", ex);
-            result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.loadResourceForAccount.fatalError").getString(), ex);
+            result.recordFatalError(getPageBase().createStringResource("ObjectDataProvider.message.loadResourceForAccount.fatalError").getString(), ex);
         } finally {
             subResult.recomputeStatus();
         }
@@ -169,35 +170,26 @@ public class RepositoryObjectDataProvider
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
-            count = getModel().countObjects(type, getQuery(), getOptions(),
-                    getPage().createSimpleTask(OPERATION_COUNT_OBJECTS), result);
+            count = getModel().countObjects(getType(), getQuery(), getOptions(),
+                    getPageBase().createSimpleTask(OPERATION_COUNT_OBJECTS), result);
         } catch (Exception ex) {
-            result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.countObjects.fatalError").getString(), ex);
+            result.recordFatalError(getPageBase().createStringResource("ObjectDataProvider.message.countObjects.fatalError").getString(), ex);
         } finally {
             result.computeStatusIfUnknown();
         }
-        getPage().showResult(result, false);
+        getPageBase().showResult(result, false);
         LOGGER.trace("end::internalSize()");
         return count;
     }
 
-    public void setType(Class<? extends ObjectType> type) {
-        Validate.notNull(type);
-        this.type = type;
-    }
-
-    public Class<? extends ObjectType> getType() {
-        return type;
-    }
-
     @Override
     protected CachedSize getCachedSize(Map<Serializable, CachedSize> cache) {
-        return cache.get(new TypedCacheKey(getQuery(), type));
+        return cache.get(new TypedCacheKey(getQuery(), getType()));
     }
 
     @Override
     protected void addCachedSize(Map<Serializable, CachedSize> cache, CachedSize newSize) {
-        cache.put(new TypedCacheKey(getQuery(), type), newSize);
+        cache.put(new TypedCacheKey(getQuery(), getType()), newSize);
     }
 
     private static class ResourceDescription implements Serializable {

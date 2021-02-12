@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+~ Copyright (c) 2010-2020 Evolveum and contributors
+~
+~ This work is dual-licensed under the Apache License 2.0
+~ and European Union Public License. See LICENSE file for details.
+-->
+<objects>
+    <user xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+        <name>jack1</name>
+    </user>
+
+    <user xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+        <name>jack2</name>
+    </user>
+
+    <user xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+        <name>jack3</name>
+    </user>
+
+    <user xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+        <name>jack4</name>
+    </user>
+
+    <user xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+        <name>jack5</name>
+    </user>
+
+    <user xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+        <name>jack6</name>
+    </user>
+
+    <user xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+        <name>jack7</name>
+    </user>
+
+    <user xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+        <name>jack8</name>
+    </user>
+
+    <user xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+        <name>jack9</name>
+    </user>
+
+    <user xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+        <name>jack10</name>
+    </user>
+
+    <user xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+        <name>jack11</name>
+    </user>
+
+    <user xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+        <name>jack12</name>
+    </user>
+
+    <user xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+        <name>jack13</name>
+    </user>
+
+    <user xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+        <name>jack14</name>
+    </user>
+
+    <user xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+        <name>jack15</name>
+    </user>
+
+    <user xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+        <name>jack16</name>
+    </user>
+
+    <user xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+        <name>jack17</name>
+    </user>
+
+    <user xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+        <name>jack18</name>
+    </user>
+
+    <user xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+        <name>jack19</name>
+    </user>
+
+    <user xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+        <name>jack20</name>
+    </user>
+
+</objects>

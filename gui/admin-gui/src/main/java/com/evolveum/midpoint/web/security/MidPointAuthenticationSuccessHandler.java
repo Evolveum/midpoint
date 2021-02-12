@@ -55,6 +55,10 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
         this.requestCache = requestCache;
     }
 
+    public RequestCache getRequestCache() {
+        return requestCache;
+    }
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
             throws ServletException, IOException {
@@ -106,7 +110,6 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
 
     @Override
     protected String getTargetUrlParameter() {
-
         return defaultTargetUrl;
     }
 

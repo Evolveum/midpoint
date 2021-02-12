@@ -175,24 +175,32 @@ public class DummyResource implements DebugDumpable {
      * Clears everything, just like the resource was just created.
      */
     public void reset() {
+        clear();
+        accountObjectClass = new DummyObjectClass();
+        groupObjectClass = new DummyObjectClass();
+        privilegeObjectClass = new DummyObjectClass();
+        syncStyle = DummySyncStyle.NONE;
+        operationDelayOffset = 0;
+        operationDelayRange = 0;
+        blockOperations = false;
+        syncSearchHandlerStart = false;
+        resetBreakMode();
+    }
+
+    /**
+     * Clears the content but not the schema and settings.
+     */
+    public void clear() {
         allObjects.clear();
         accounts.clear();
         groups.clear();
         privileges.clear();
         orgs.clear();
         scriptHistory.clear();
-        accountObjectClass = new DummyObjectClass();
-        groupObjectClass = new DummyObjectClass();
-        privilegeObjectClass = new DummyObjectClass();
-        syncStyle = DummySyncStyle.NONE;
         deltas.clear();
         latestSyncToken.set(0);
         writeOperationCount = 0;
-        operationDelayOffset = 0;
-        operationDelayRange = 0;
-        blockOperations = false;
-        syncSearchHandlerStart = false;
-        resetBreakMode();
+        groupMembersReadCount = 0;
     }
 
     public static DummyResource getInstance() {
@@ -1070,8 +1078,10 @@ public class DummyResource implements DebugDumpable {
                 sb.append(stackElement.toString());
                 sb.append("\n");
             }
-            LOGGER.debug("MONITOR dummy '{}' {} ({}): {} {}", new Object[]{instanceName, opName, counter, immediateClass, immediateMethod});
-            LOGGER.trace("MONITOR dummy '{}' {} ({}):\n{}", new Object[]{instanceName, opName, counter, sb});
+            LOGGER.debug("MONITOR dummy '{}' {} ({}): {} {}",
+                    instanceName, opName, counter, immediateClass, immediateMethod);
+            LOGGER.trace("MONITOR dummy '{}' {} ({}):\n{}",
+                    instanceName, opName, counter, sb);
         }
     }
 

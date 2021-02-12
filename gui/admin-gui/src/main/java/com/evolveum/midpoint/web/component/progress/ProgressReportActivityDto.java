@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.component.progress;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
@@ -27,6 +28,7 @@ public class ProgressReportActivityDto implements Serializable {
     private ResourceShadowDiscriminator resourceShadowDiscriminator;        // if applicable w.r.t. activityType
     private String resourceName;                                            // pre-resolved resource name, if applicable
     private OperationResultStatusType status;
+    private OperationResult operationResult;
     // additional information on resource-related operation
     private String resourceObjectName;
     private List<ResourceOperationResult> resourceOperationResultList;
@@ -61,6 +63,14 @@ public class ProgressReportActivityDto implements Serializable {
 
     public void setStatus(OperationResultStatusType status) {
         this.status = status;
+    }
+
+    public OperationResult getOperationResult() {
+        return operationResult;
+    }
+
+    public void setOperationResult(OperationResult operationResult) {
+        this.operationResult = operationResult;
     }
 
     public String getResourceObjectName() {

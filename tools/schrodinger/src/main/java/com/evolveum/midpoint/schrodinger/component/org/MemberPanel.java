@@ -12,14 +12,19 @@ import com.codeborne.selenide.SelenideElement;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
-import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
-import com.evolveum.midpoint.schrodinger.component.common.table.TableWithPageRedirect;
-import com.evolveum.midpoint.schrodinger.component.table.TableHeaderDropDownMenu;
-import com.evolveum.midpoint.schrodinger.component.user.UsersPageTable;
-import com.evolveum.midpoint.schrodinger.component.user.UsersTableDropDown;
+import com.evolveum.midpoint.schrodinger.component.common.ChooseFocusTypeAndRelationModal;
+import com.evolveum.midpoint.schrodinger.component.modal.FocusSetAssignmentsModal;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
+import com.evolveum.midpoint.schrodinger.page.BasicPage;
+import com.evolveum.midpoint.schrodinger.page.FocusPage;
+import com.evolveum.midpoint.schrodinger.page.org.OrgPage;
+import com.evolveum.midpoint.schrodinger.page.resource.ResourceWizardPage;
+import com.evolveum.midpoint.schrodinger.page.role.RolePage;
+import com.evolveum.midpoint.schrodinger.page.service.ServicePage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+
+import com.evolveum.midpoint.schrodinger.util.Utils;
 
 import org.openqa.selenium.By;
 
@@ -35,38 +40,69 @@ public class MemberPanel<T> extends Component<T> {
         super(parent, parentElement);
     }
 
-    public UserPage newMember() {
-        SelenideElement mainButton = $(By.xpath("//button[@type='button'][@title='Create  member ']"));
-        String expanded = mainButton.getAttribute("aria-haspopup");
-        if (Boolean.getBoolean(expanded)) {
-            newMember("Create  member ");
+    public ChooseFocusTypeAndRelationModal<MemberPanel<T>> newMember() {
+        SelenideElement mainButton = $(By.xpath("//button[@type='button'][@title='Create  member ']"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).parent();
+        if (!mainButton.$x(".//div[@data-s-id='additionalButton']").is(Condition.exist)) {
+            mainButton.click();
+            Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+            return new ChooseFocusTypeAndRelationModal<>(this, Utils.getModalWindowSelenideElement());
         } else {
             mainButton.click();
+            Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+            mainButton.$x(".//div[@title='Create  member ']")
+                    .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+            Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+            return new ChooseFocusTypeAndRelationModal<>(this, Utils.getModalWindowSelenideElement());
         }
-        return null; //TODO implement return popup
     }
 
-    public AssignmentHolderDetailsPage newMember(String title) {
-        SelenideElement mainButton = $(By.xpath("//button[@type='button'][@title='Create  member ']"));
-        if (!Boolean.getBoolean(mainButton.getAttribute("aria-expanded"))) {
+    public BasicPage newMember(String title, String newMemberType) {
+        SelenideElement mainButton = $(By.xpath(".//button[@type='button'][@title='Create  member ']"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).parent();
+        if (!mainButton.$x(".//div[@data-s-id='additionalButton']").is(Condition.visible)) {
             mainButton.click();
-            mainButton.waitWhile(Condition.attribute("aria-expanded", "false"), MidPoint.TIMEOUT_MEDIUM_6_S);
+            Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         }
-        $(Schrodinger.byElementAttributeValue("div", "title", title))
+        mainButton.$x(".//div[@title='" + title + "']")
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
-        return new AssignmentHolderDetailsPage(){};
+        $(Schrodinger.byDataId("div", "mainPanel")).waitUntil(Condition.visible, MidPoint.TIMEOUT_SHORT_4_S);
+        if ("User".equals(newMemberType)) {
+            return new UserPage();
+        } else if ("Organization".equals(newMemberType)) {
+            return new OrgPage();
+        } else if ("Role".equals(newMemberType)) {
+            return new RolePage();
+        } else if ("Service".equals(newMemberType)) {
+            return new ServicePage();
+        } else if ("Resource".equals(newMemberType)) {
+            return new ResourceWizardPage();
+        }
+        return null;
+    }
+
+    public FocusSetAssignmentsModal<T> assignMember() {
+        $(By.xpath("//button[@type='button'][@title='Assign  member ']")).waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        return new FocusSetAssignmentsModal<T>((T) this.getParent(),  Utils.getModalWindowSelenideElement());
     }
 
     public MemberPanel<T> selectType(String type) {
-        getParentElement().$x(".//select[@name='type:propertyLabel:row:selectWrapper:select']")
+        getParentElement().$x(".//select[@name='memberContainer:memberTable:items:itemsTable:box:header:searchForm:search:form:typePanel:searchItemContainer:searchItemField:input']")
                 .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S).selectOption(type);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return this;
     }
 
+    public MemberPanel<T> selectRelation(String relation) {
+        table().search().dropDownPanelByItemName("Relation").inputDropDownValue(relation);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        return this;
+    }
+
     public MemberTable<MemberPanel<T>> table() {
-        SelenideElement table = getParentElement().$x(".//div[@" + Schrodinger.DATA_S_ID + "='table']");
+        SelenideElement table = getParentElement().$x(".//div[@" + Schrodinger.DATA_S_ID + "='memberTable']");
         return new MemberTable<>(this, table);
     }
 }

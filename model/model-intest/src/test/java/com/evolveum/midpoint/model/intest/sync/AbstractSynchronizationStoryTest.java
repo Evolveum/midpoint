@@ -54,6 +54,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     private static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
     private static final Date ACCOUNT_MANCOMB_VALID_TO_DATE = MiscUtil.asDate(2066, 5, 4, 3, 2, 1);
 
+    private static final String ACCOUNT_PROTECTED_SYSTEM = "system";
+
     protected static String userWallyOid;
 
     protected boolean allwaysCheckTimestamp = false;
@@ -852,6 +854,47 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
     }
 
     /**
+     * System is a protected account. It should not be touched by the sync.
+     * (using script in protected filter)
+     */
+    @Test
+    public void test601AddDummyGreenAccountSystem() throws Exception {
+        // GIVEN
+        rememberTimeBeforeSync();
+        prepareNotifications();
+
+        // Preconditions
+        assertUsers(8 + getNumberOfExtraDummyUsers());
+
+        DummyAccount account = new DummyAccount(ACCOUNT_PROTECTED_SYSTEM);
+        account.setEnabled(true);
+        account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "System Account");
+
+        /// WHEN
+        when();
+
+        getDummyResource(RESOURCE_DUMMY_GREEN_NAME).addAccount(account);
+
+        waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
+
+        // THEN
+        then();
+
+        PrismObject<ShadowType> accountShadow = findAccountByUsername(ACCOUNT_PROTECTED_SYSTEM, getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
+        display("Account system", accountShadow);
+        assertNotNull("No system account shadow", accountShadow);
+        assertEquals("Wrong resourceRef in system account", RESOURCE_DUMMY_GREEN_OID,
+                accountShadow.asObjectable().getResourceRef().getOid());
+        assertTrue("System shadow is NOT protected", accountShadow.asObjectable().isProtectedObject());
+
+        PrismObject<UserType> userSystem = findUserByUsername(ACCOUNT_PROTECTED_SYSTEM);
+        display("User system", userSystem);
+        assertNull("User system was created, it should not", userSystem);
+
+        assertUsers(8 + getNumberOfExtraDummyUsers());
+    }
+
+    /**
      * Accounts starting with X are admin accounts (intent "admin"). Check if synchronization gets this right.
      */
     @Test
@@ -904,7 +947,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         SynchronizationType resourceSync = resource.getSynchronization();
         resourceSync.getObjectSynchronization().get(0).setObjectTemplateRef(ObjectTypeUtil.createObjectRef(templateOid, ObjectTypes.OBJECT_TEMPLATE));
 
-        Collection<? extends ItemDelta> refDelta = prismContext.deltaFactory().property()
+        Collection<? extends ItemDelta<?, ?>> refDelta = prismContext.deltaFactory().property()
                 .createModificationReplacePropertyCollection(ResourceType.F_SYNCHRONIZATION, resource.asPrismObject().getDefinition(), resourceSync);
         repositoryService.modifyObject(ResourceType.class, resource.getOid(), refDelta, result);
 

@@ -29,44 +29,6 @@ public class InducementsTab<P extends AbstractRolePage> extends AssignmentsTab<P
         super(parent, parentElement);
     }
 
-    public AbstractTableWithPrismView<InducementsTab<P>> table() {
-
-        SelenideElement tableBox = $(Schrodinger.byDataId("div", "assignmentsTable"));
-
-        return new AbstractTableWithPrismView<InducementsTab<P>>(this, tableBox) {
-            @Override
-            public PrismFormWithActionButtons<AbstractTableWithPrismView<InducementsTab<P>>> clickByName(String name) {
-
-                $(Schrodinger.byElementValue("span", "data-s-id", "label", name))
-                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
-                SelenideElement prismElement = $(Schrodinger.byDataId("div", "assignmentsContainer"))
-                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-                return new PrismFormWithActionButtons<>(this, prismElement);
-            }
-
-            @Override
-            public AbstractTableWithPrismView<InducementsTab<P>> selectCheckboxByName(String name) {
-
-                $(Schrodinger.byFollowingSiblingEnclosedValue("td", "class", "check", "data-s-id", "3", name))
-                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
-                return this;
-            }
-
-            public AbstractTableWithPrismView<InducementsTab<P>> removeByName(String name) {
-
-                $(Schrodinger.byAncestorPrecedingSiblingDescendantOrSelfElementEnclosedValue("button", "title", "Unassign", null, null, name))
-                        .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
-                return this;
-            }
-        };
-    }
-
-
-
     public FocusSetAssignmentsModal<InducementsTab<P>> clickAddInducement() {
         return super.clickAddAssignemnt();
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -20,6 +20,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -82,6 +83,8 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
+import com.evolveum.midpoint.repo.sql.testing.TestQueryListener;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -110,8 +113,10 @@ import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.*;
 import com.evolveum.midpoint.tools.testng.CurrentTestResultHolder;
 import com.evolveum.midpoint.tools.testng.MidpointTestContext;
+import com.evolveum.midpoint.tools.testng.TestMonitor;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -145,7 +150,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected LdapShaPasswordEncoder ldapShaPasswordEncoder = new LdapShaPasswordEncoder();
 
-    private Map<InternalCounters, Long> lastCountMap = new HashMap<>();
+    private final Map<InternalCounters, Long> lastCountMap = new HashMap<>();
 
     private CachingStatistics lastResourceCacheStats;
 
@@ -170,15 +175,15 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     @Autowired protected SchemaHelper schemaHelper;
     @Autowired protected MatchingRuleRegistry matchingRuleRegistry;
     @Autowired protected LocalizationService localizationService;
+    @Autowired protected TestQueryListener queryListener;
 
     @Autowired(required = false)
     @Qualifier("repoSimpleObjectResolver")
     protected SimpleObjectResolver repoSimpleObjectResolver;
 
-    // Controllers for embedded OpenDJ and Derby. The abstract test will configure it, but
-    // it will not start only tests that need OpenDJ or derby should start it
+    // Controllers for embedded OpenDJ. The abstract test will configure it, but
+    // it will not start only tests that need OpenDJ should start it.
     protected static OpenDJController openDJController = new OpenDJController();
-    protected static DerbyController derbyController = new DerbyController();
 
     /**
      * Fast and simple way how to enable tracing of test methods.
@@ -201,6 +206,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
      */
     @PostConstruct
     public void initSystem() throws Exception {
+        displayTestTitle("Initializing TEST CLASS: " + getClass().getName());
         if (initSystemExecuted) {
             logger.trace("initSystem: already called for class {} - IGNORING", getClass().getName());
             return;
@@ -300,6 +306,17 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 task.getResult().computeStatusIfUnknown();
             }
         }
+    }
+
+    /** Called only by performance tests. */
+    @Override
+    public TestMonitor createTestMonitor() {
+        OperationsPerformanceMonitor.INSTANCE.clearGlobalPerformanceInformation();
+        queryListener.clear();
+
+        return super.createTestMonitor()
+                .addReportCallback(TestReportUtil::reportGlobalPerfData)
+                .addReportCallback(SqlRepoTestUtil.createReportCallback(queryListener));
     }
 
     protected TracingProfileType getTestMethodTracingProfile() {
@@ -446,6 +463,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(
             File file, boolean metadata, OperationResult parentResult)
             throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
+        return repoAddObjectFromFile(file, (RepoAddOptions) null, metadata, parentResult);
+    }
+
+    protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(
+            File file, RepoAddOptions options, boolean metadata, OperationResult parentResult)
+            throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
 
         OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
                 + ".repoAddObjectFromFile");
@@ -463,7 +486,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
 
         logger.trace("Adding object:\n{}", object.debugDump());
-        repoAddObject(object, "from file " + file, result);
+        repoAddObject(object, "from file " + file, options, result);
         result.recordSuccess();
         return object;
     }
@@ -510,10 +533,16 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected <T extends ObjectType> void repoAddObject(
             PrismObject<T> object, String contextDesc, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
+        repoAddObject(object, contextDesc, null, result);
+    }
+
+    protected <T extends ObjectType> void repoAddObject(
+            PrismObject<T> object, String contextDesc, RepoAddOptions options, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
         if (object.canRepresent(TaskType.class)) {
             Assert.assertNotNull(taskManager, "Task manager is not initialized");
             try {
-                taskManager.addTask((PrismObject<TaskType>) object, result);
+                taskManager.addTask((PrismObject<TaskType>) object, options, result);
             } catch (ObjectAlreadyExistsException | SchemaException ex) {
                 result.recordFatalError(ex.getMessage(), ex);
                 throw ex;
@@ -522,7 +551,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             Assert.assertNotNull(repositoryService, "Repository service is not initialized");
             try {
                 CryptoUtil.encryptValues(protector, object);
-                String oid = repositoryService.addObject(object, null, result);
+                String oid = repositoryService.addObject(object, options, result);
                 object.setOid(oid);
             } catch (ObjectAlreadyExistsException | SchemaException | EncryptionException ex) {
                 result.recordFatalError(ex.getMessage() + " while adding " + object + (contextDesc == null ? "" : " " + contextDesc), ex);
@@ -534,12 +563,17 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected <T extends ObjectType> List<PrismObject<T>> repoAddObjectsFromFile(
             String filePath, Class<T> type, OperationResult parentResult)
             throws SchemaException, ObjectAlreadyExistsException, IOException, EncryptionException {
-
         return repoAddObjectsFromFile(new File(filePath), type, parentResult);
     }
 
     protected <T extends ObjectType> List<PrismObject<T>> repoAddObjectsFromFile(
             File file, Class<T> type, OperationResult parentResult)
+            throws SchemaException, ObjectAlreadyExistsException, IOException, EncryptionException {
+        return repoAddObjectsFromFile(file, type, null, parentResult);
+    }
+
+    protected <T extends ObjectType> List<PrismObject<T>> repoAddObjectsFromFile(
+            File file, Class<T> type, RepoAddOptions options, OperationResult parentResult)
             throws SchemaException, ObjectAlreadyExistsException, IOException, EncryptionException {
 
         OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
@@ -549,7 +583,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         List<PrismObject<T>> objects = (List) prismContext.parserFor(file).parseObjects();
         for (PrismObject<T> object : objects) {
             try {
-                repoAddObject(object, result);
+                repoAddObject(object, null, options, result);
             } catch (ObjectAlreadyExistsException e) {
                 throw new ObjectAlreadyExistsException(e.getMessage() + " while adding " + object + " from file " + file, e);
             } catch (SchemaException e) {
@@ -836,7 +870,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         PrismObjectDefinition<?> objectDefinition = prismContext.getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(clazz);
 
-        Collection<? extends ItemDelta> modifications = prismContext.deltaFactory().container()
+        Collection<? extends ItemDelta<?, ?>> modifications = prismContext.deltaFactory().container()
                 .createModificationReplaceContainerCollection(itemName, objectDefinition, syncSettings.asPrismContainerValue());
 
         OperationResult result = new OperationResult("Applying sync settings");
@@ -1246,18 +1280,34 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         shadowType.setObjectClass(objectClassDefinition.getTypeName());
         ResourceAttributeContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
         if (uid != null) {
-            RefinedAttributeDefinition uidAttrDef = objectClassDefinition.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "uid"));
+            RefinedAttributeDefinition<String> uidAttrDef = objectClassDefinition.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "uid"));
             ResourceAttribute<String> uidAttr = uidAttrDef.instantiate();
             uidAttr.setRealValue(uid);
             attrContainer.add(uidAttr);
         }
         if (name != null) {
-            RefinedAttributeDefinition nameAttrDef = objectClassDefinition.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"));
+            RefinedAttributeDefinition<String> nameAttrDef = objectClassDefinition.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"));
             ResourceAttribute<String> nameAttr = nameAttrDef.instantiate();
             nameAttr.setRealValue(name);
             attrContainer.add(nameAttr);
         }
         return shadow;
+    }
+
+    @SafeVarargs
+    protected final <T> void addAttributeValue(PrismObject<ResourceType> resource, PrismObject<ShadowType> shadow,
+            QName attributeName, T... values) throws SchemaException {
+        ShadowType shadowBean = shadow.asObjectable();
+        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
+        RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getDefaultRefinedDefinition(shadowBean.getKind());
+        shadowBean.setObjectClass(objectClassDefinition.getTypeName());
+        ResourceAttributeContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
+        RefinedAttributeDefinition<T> attrDef = Objects.requireNonNull(
+                objectClassDefinition.findAttributeDefinition(attributeName),
+                () -> "No attribute " + attributeName + " in " + objectClassDefinition);
+        ResourceAttribute<T> attr = attrDef.instantiate();
+        attr.addRealValues(values);
+        attrContainer.add(attr);
     }
 
     protected PrismObject<ShadowType> findAccountShadowByUsername(
@@ -1371,7 +1421,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     // objectClassName may be null
-    protected RefinedAttributeDefinition getAttributeDefinition(ResourceType resourceType,
+    protected <T> RefinedAttributeDefinition<T> getAttributeDefinition(ResourceType resourceType,
             ShadowKindType kind, QName objectClassName, String attributeLocalName)
             throws SchemaException {
         RefinedResourceSchema refinedResourceSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
@@ -1470,9 +1520,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected void assertActivationAdministrativeStatus(PrismObject<ShadowType> shadow, ActivationStatusType expectedStatus) {
         ActivationType activationType = shadow.asObjectable().getActivation();
         if (activationType == null) {
-            if (expectedStatus == null) {
-                return;
-            } else {
+            if (expectedStatus != null) {
                 AssertJUnit.fail("Expected activation administrative status of " + shadow + " to be " + expectedStatus + ", but there was no activation administrative status");
             }
         } else {
@@ -1483,9 +1531,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected void assertShadowLockout(PrismObject<ShadowType> shadow, LockoutStatusType expectedStatus) {
         ActivationType activationType = shadow.asObjectable().getActivation();
         if (activationType == null) {
-            if (expectedStatus == null) {
-                return;
-            } else {
+            if (expectedStatus != null) {
                 AssertJUnit.fail("Expected lockout status of " + shadow + " to be " + expectedStatus + ", but there was no lockout status");
             }
         } else {
@@ -1496,9 +1542,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected void assertUserLockout(PrismObject<UserType> user, LockoutStatusType expectedStatus) {
         ActivationType activationType = user.asObjectable().getActivation();
         if (activationType == null) {
-            if (expectedStatus == null) {
-                return;
-            } else {
+            if (expectedStatus != null) {
                 AssertJUnit.fail("Expected lockout status of " + user + " to be " + expectedStatus + ", but there was no lockout status");
             }
         } else {
@@ -1900,6 +1944,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         IntegrationTestTools.displayCollection(message, collection);
     }
 
+    public static void displayMap(String message, Map<?, ? extends DebugDumpable> map) {
+        IntegrationTestTools.displayMap(message, map);
+    }
+
     public static void displayObjectTypeCollection(String message, Collection<? extends ObjectType> collection) {
         IntegrationTestTools.displayObjectTypeCollection(message, collection);
     }
@@ -2268,13 +2316,14 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         assertLinked(UserType.class, userOid, accountOid);
     }
 
-    protected <F extends FocusType> void assertLinked(Class<F> type, String focusOid, String projectionOid) throws ObjectNotFoundException, SchemaException {
+    protected <F extends FocusType> void assertLinked(Class<F> type, String focusOid, String projectionOid)
+            throws ObjectNotFoundException, SchemaException {
         OperationResult result = new OperationResult("assertLinked");
         PrismObject<F> user = repositoryService.getObject(type, focusOid, null, result);
         assertLinked(user, projectionOid);
     }
 
-    protected <F extends FocusType> void assertLinked(PrismObject<F> focus, PrismObject<ShadowType> projection) throws ObjectNotFoundException, SchemaException {
+    protected <F extends FocusType> void assertLinked(PrismObject<F> focus, PrismObject<ShadowType> projection) {
         assertLinked(focus, projection.getOid());
     }
 
@@ -2296,7 +2345,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         assertNotLinked(user, accountOid);
     }
 
-    protected <F extends FocusType> void assertNotLinked(PrismObject<F> user, PrismObject<ShadowType> account) throws ObjectNotFoundException, SchemaException {
+    protected <F extends FocusType> void assertNotLinked(PrismObject<F> user, PrismObject<ShadowType> account) {
         assertNotLinked(user, account.getOid());
     }
 
@@ -2574,12 +2623,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected ObjectDelta<ShadowType> createModifyAccountShadowReplaceAttributeDelta(String accountOid,
-            PrismObject<ResourceType> resource, String attributeName, Object... newRealValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+            PrismObject<ResourceType> resource, String attributeName, Object... newRealValue) throws SchemaException {
         return createModifyAccountShadowReplaceAttributeDelta(accountOid, resource, getAttributeQName(resource, attributeName), newRealValue);
     }
 
     protected ObjectDelta<ShadowType> createModifyAccountShadowReplaceAttributeDelta(String accountOid,
-            PrismObject<ResourceType> resource, QName attributeName, Object... newRealValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+            PrismObject<ResourceType> resource, QName attributeName, Object... newRealValue) throws SchemaException {
         return createModifyAccountShadowReplaceDelta(accountOid, resource, ItemPath.create(ShadowType.F_ATTRIBUTES, attributeName), newRealValue);
     }
 

@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.helpers.delta;
 
 import java.util.Collection;
@@ -12,25 +11,25 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.persistence.metamodel.ManagedType;
 
-import com.evolveum.midpoint.prism.*;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectTextInfo;
 import com.evolveum.midpoint.repo.sql.data.common.RShadow;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sql.helpers.ObjectUpdater;
 import com.evolveum.midpoint.repo.sql.helpers.modify.EntityRegistry;
 import com.evolveum.midpoint.repo.sql.helpers.modify.PrismEntityMapper;
@@ -62,7 +61,7 @@ public class ObjectDeltaUpdater {
     @Autowired RelationRegistry relationRegistry;
     @Autowired PrismEntityMapper prismEntityMapper;
     @Autowired ExtItemDictionary extItemDictionary;
-    @Autowired BaseHelper baseHelper;
+    @Autowired SqlRepositoryConfiguration repositoryConfiguration;
 
     /**
      * modify
@@ -103,7 +102,7 @@ public class ObjectDeltaUpdater {
         //
         // Category-2 changes are to be treated very carefully: we should avoid phantom add+delete in tables.
         // Category-3 changes are (hopefully) not narrowed out. [See assumeMissingItems / MID-5280.]
-        Collection<? extends ItemDelta> narrowedModifications = prismObject.narrowModifications(modifications,
+        Collection<? extends ItemDelta<?, ?>> narrowedModifications = prismObject.narrowModifications(modifications,
                 EquivalenceStrategy.DATA, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS, true);
         LOGGER.trace("Narrowed modifications:\n{}", DebugUtil.debugDumpLazily(narrowedModifications));
 
@@ -132,7 +131,7 @@ public class ObjectDeltaUpdater {
         return object;
     }
 
-    private <T extends ObjectType> void handleObjectCommonAttributes(Class<T> type, Collection<? extends ItemDelta> modifications,
+    private <T extends ObjectType> void handleObjectCommonAttributes(Class<T> type, Collection<? extends ItemDelta<?, ?>> modifications,
             PrismObject<T> prismObject, RObject object, PrismIdentifierGenerator<T> idGenerator) throws SchemaException {
 
         // update version
@@ -170,7 +169,7 @@ public class ObjectDeltaUpdater {
         // full object column will be updated later
     }
 
-    private <T extends ObjectType> boolean isObjectTextInfoRecomputationNeeded(Class<T> type, Collection<? extends ItemDelta> modifications) {
+    private <T extends ObjectType> boolean isObjectTextInfoRecomputationNeeded(Class<T> type, Collection<? extends ItemDelta<?, ?>> modifications) {
         FullTextSearchConfigurationType config = repositoryService.getFullTextSearchConfiguration();
         if (!FullTextSearchConfigurationUtil.isEnabled(config)) {
             return false;
@@ -178,7 +177,7 @@ public class ObjectDeltaUpdater {
 
         Set<ItemPath> paths = FullTextSearchConfigurationUtil.getFullTextSearchItemPaths(config, type);
 
-        for (ItemDelta modification : modifications) {
+        for (ItemDelta<?, ?> modification : modifications) {
             ItemPath namesOnly = modification.getPath().namedSegmentsOnly();
             for (ItemPath path : paths) {
                 if (path.startsWith(namesOnly)) {
@@ -190,15 +189,15 @@ public class ObjectDeltaUpdater {
         return false;
     }
 
-    private void handleObjectTextInfoChanges(Class<? extends ObjectType> type, Collection<? extends ItemDelta> modifications,
-            PrismObject prismObject, RObject object) {
+    private void handleObjectTextInfoChanges(Class<? extends ObjectType> type, Collection<? extends ItemDelta<?, ?>> modifications,
+            PrismObject<?> prismObject, RObject object) {
         // update object text info if necessary
         if (!isObjectTextInfoRecomputationNeeded(type, modifications)) {
             return;
         }
 
         Set<RObjectTextInfo> newInfos = RObjectTextInfo.createItemsSet((ObjectType) prismObject.asObjectable(), object,
-                new RepositoryContext(repositoryService, prismContext, relationRegistry, extItemDictionary, baseHelper.getConfiguration()));
+                new RepositoryContext(repositoryService, prismContext, relationRegistry, extItemDictionary, repositoryConfiguration));
 
         if (newInfos == null || newInfos.isEmpty()) {
             object.getTextInfoItems().clear();
@@ -216,8 +215,8 @@ public class ObjectDeltaUpdater {
     }
 
     RepositoryContext createRepositoryContext() {
-        return new RepositoryContext(repositoryService, prismContext, relationRegistry, extItemDictionary,
-                baseHelper.getConfiguration());
+        return new RepositoryContext(repositoryService, prismContext,
+                relationRegistry, extItemDictionary, repositoryConfiguration);
     }
 
 }

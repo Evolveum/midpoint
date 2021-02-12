@@ -7,17 +7,12 @@
 
 package com.evolveum.midpoint.testing.schrodinger.page;
 
-import com.codeborne.selenide.Condition;
-
 import com.codeborne.selenide.Selenide;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
-import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
-import com.evolveum.midpoint.schrodinger.page.login.MailNoncePage;
-import com.evolveum.midpoint.schrodinger.page.login.SecurityQuestionsPage;
-import com.evolveum.midpoint.schrodinger.page.login.SelfRegistrationPage;
-import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+import com.evolveum.midpoint.schrodinger.page.login.*;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -47,12 +42,13 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
         login.login("bad_username", "secret");
 
         FeedbackBox feedback = login.feedback();
-        Assert.assertTrue(feedback.isError("0"));
+        feedback.assertError("0");
 
 
         login.login("bad_username", "secret");
-        Assert.assertTrue(feedback.isError("0"));
-        Assert.assertTrue(feedback.isError("1"));
+        feedback
+                .assertError("0")
+                .assertError("1");
     }
 
     @Test
@@ -62,7 +58,7 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
         FormLoginPage login = midPoint.formLogin();
         login.login("administrator", "5ecr3t");
         basicPage.loggedUser().logout();
-        Assert.assertFalse($(".dropdown.user.user-menu").exists());
+        basicPage.assertUserMenuDoesntExist();
     }
 
     @Test
@@ -88,13 +84,14 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
     }
 
     @Test
-    public void test031resetPasswordSecurityQuestion() {
+    public void test031resetPasswordSecurityQuestion() throws InterruptedException {
         basicPage.loggedUser().logoutIfUserIsLogin();
         FormLoginPage login = midPoint.formLogin();
         open("/login");
         open("/");
         login.loginWithReloadLoginPage("administrator", "5ecr3t");
-        importObject(FLEXIBLE_AUTHENTICATION_SEC_QUES_RESET_PASS_SECURITY_POLICY, true);
+        addObjectFromFile(FLEXIBLE_AUTHENTICATION_SEC_QUES_RESET_PASS_SECURITY_POLICY);
+        TimeUnit.SECONDS.sleep(4);
         basicPage.loggedUser().logoutIfUserIsLogin();
         SecurityQuestionsPage securityQuestion = (SecurityQuestionsPage) login.forgotPassword();
         securityQuestion.setUsername(NAME_OF_ENABLED_USER)
@@ -121,7 +118,8 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
 //        String username = notification.substring(notification.indexOf(usernameTag) + usernameTag.length(), notification.lastIndexOf("', " + linkTag));
         String link = notification.substring(notification.indexOf(linkTag) + linkTag.length(), notification.lastIndexOf("''"));
         open(link);
-        $(Schrodinger.byDataId("successPanel")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+
+        new RegistrationFinishPage().assertSuccessPanelExists();
         String actualUrl = basicPage.getCurrentUrl();
         Assert.assertTrue(actualUrl.endsWith("/registration/result"));
     }
@@ -136,7 +134,7 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
         basicPage.loggedUser().logoutIfUserIsLogin();
 
         login.loginWithReloadLoginPage("administrator", "5ecr3t");
-        importObject(BULK_TASK, true);
+        addObjectFromFile(BULK_TASK);
         basicPage.listTasks().table().clickByName("Add archetype"); //.clickRunNow(); the task is running after import, no need to click run now button
         screenshot("addArchetypeBulkActionTask");
         Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);

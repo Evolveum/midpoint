@@ -46,7 +46,7 @@ public class ShadowStatistics {
     private int shadowsWithWarnings;
     private int unfinishedShadows;
 
-    private String[] codeList = {
+    private final String[] codeList = {
             NON_NORMALIZED_IDENTIFIER_VALUE,
             NO_RESOURCE_OID,
             NO_RESOURCE,

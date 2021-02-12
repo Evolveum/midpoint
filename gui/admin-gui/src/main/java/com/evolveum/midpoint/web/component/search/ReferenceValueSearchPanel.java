@@ -9,33 +9,21 @@ package com.evolveum.midpoint.web.component.search;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * @author honchar
  */
-public class ReferenceValueSearchPanel extends BasePanel<ObjectReferenceType> {
+public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenceType> {
 
     private static final long serialVersionUID = 1L;
-
-    private static final String ID_REFERENCE_VALUE_TEXT_FIELD = "referenceValueTextField";
-    private static final String ID_EDIT_BUTTON = "editReferenceButton";
-    private static final String ID_REF_POPOVER_PANEL = "refPopoverPanel";
-    private static final String ID_REF_POPOVER_BODY = "refPopoverBody";
-    private static final String ID_REF_POPOVER = "refPopover";
 
     private final PrismReferenceDefinition referenceDef;
 
@@ -45,49 +33,15 @@ public class ReferenceValueSearchPanel extends BasePanel<ObjectReferenceType> {
     }
 
     @Override
-    protected void onInitialize() {
-        super.onInitialize();
-        initLayout();
-    }
-
-    private void initLayout() {
-        setOutputMarkupId(true);
-
-        TextPanel<String> referenceTextValueField =
-                new TextPanel<>(ID_REFERENCE_VALUE_TEXT_FIELD, getReferenceTextValueModel());
-        referenceTextValueField.add(AttributeAppender.append("title", getReferenceTextValueModel()));
-        referenceTextValueField.setOutputMarkupId(true);
-        referenceTextValueField.setEnabled(false);
-        add(referenceTextValueField);
-
-        AjaxButton editButton = new AjaxButton(ID_EDIT_BUTTON) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                togglePopover(target, ReferenceValueSearchPanel.this.get(ID_REFERENCE_VALUE_TEXT_FIELD),
-                        ReferenceValueSearchPanel.this.get(createComponentPath(ID_REF_POPOVER)), 0);
-            }
-        };
-        editButton.setOutputMarkupId(true);
-        add(editButton);
-
-        WebMarkupContainer popover = new WebMarkupContainer(ID_REF_POPOVER);
-        popover.setOutputMarkupId(true);
-        add(popover);
-
-        WebMarkupContainer popoverBody = new WebMarkupContainer(ID_REF_POPOVER_BODY);
-        popoverBody.setOutputMarkupId(true);
-        popover.add(popoverBody);
-
+    protected PopoverSearchPopupPanel createPopupPopoverPanel(String id) {
         ReferenceValueSearchPopupPanel<?> value =
-                new ReferenceValueSearchPopupPanel(ID_REF_POPOVER_PANEL, getModel()) {
+                new ReferenceValueSearchPopupPanel(id, getModel()) {
 
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     protected List<QName> getAllowedRelations() {
-                        return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getPageBase());
+                        return ReferenceValueSearchPanel.this.getAllowedRelations();
                     }
 
                     @Override
@@ -98,15 +52,20 @@ public class ReferenceValueSearchPanel extends BasePanel<ObjectReferenceType> {
                     @Override
                     protected void confirmPerformed(AjaxRequestTarget target) {
                         target.add(ReferenceValueSearchPanel.this);
-                        referenceValueUpdated(ReferenceValueSearchPanel.this.getModelObject());
+                        referenceValueUpdated(ReferenceValueSearchPanel.this.getModelObject(), target);
+                    }
+
+                    @Override
+                    protected Boolean isItemPanelEnabled() {
+                        return ReferenceValueSearchPanel.this.isItemPanelEnabled();
                     }
                 };
         value.setRenderBodyOnly(true);
-        popoverBody.add(value);
-
+        return value;
     }
 
-    private LoadableModel<String> getReferenceTextValueModel() {
+    @Override
+    protected LoadableModel<String> getTextValue() {
         return new LoadableModel<String>() {
             @Override
             protected String load() {
@@ -115,13 +74,10 @@ public class ReferenceValueSearchPanel extends BasePanel<ObjectReferenceType> {
         };
     }
 
-    protected void referenceValueUpdated(ObjectReferenceType ort) {
+    protected void referenceValueUpdated(ObjectReferenceType ort, AjaxRequestTarget target) {
     }
 
-    public void togglePopover(AjaxRequestTarget target, Component button, Component popover, int paddingRight) {
-        target.appendJavaScript("toggleSearchPopover('"
-                + button.getMarkupId() + "','"
-                + popover.getMarkupId() + "',"
-                + paddingRight + ");");
+    protected List<QName> getAllowedRelations() {
+        return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getPageBase());
     }
 }

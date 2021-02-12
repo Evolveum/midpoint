@@ -15,7 +15,11 @@ import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
+import org.testng.Assert;
 
+import java.util.Objects;
+
+import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.*;
 
 /**
@@ -42,7 +46,7 @@ public class FormLoginPage extends LoginPage {
     public BasicPage loginIfUserIsNotLog(String username, String password){
         open("/login");
         Selenide.sleep(5000);
-        if(!$(".dropdown.user.user-menu").exists()) {
+        if(!userMenuExists()) {
             return login(username, password);
         }
         return new BasicPage();
@@ -82,5 +86,12 @@ public class FormLoginPage extends LoginPage {
 
     public static String getBasePath() {
         return "/login";
+    }
+
+    public FormLoginPage assertSignInButtonTitleMatch(String title) {
+        Assert.assertTrue(Objects.equals(title, $(By.cssSelector(".btn.btn-primary"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .getValue()), "Sign in button title doesn't equal to " + title);
+        return this;
     }
 }

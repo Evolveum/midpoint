@@ -135,8 +135,8 @@ public class ConnIdNameMapper {
             throws SchemaException {
         PrismPropertyDefinition<?> propDef = attributeDelta.getDefinition();
         ResourceAttributeDefinition attrDef;
-        if (propDef != null && (propDef instanceof ResourceAttributeDefinition)) {
-            attrDef = (ResourceAttributeDefinition)propDef;
+        if (propDef instanceof ResourceAttributeDefinition) {
+            attrDef = (ResourceAttributeDefinition) propDef;
         } else {
             attrDef = ocDef.findAttributeDefinition(attributeDelta.getElementName());
             if (attrDef == null) {

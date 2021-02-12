@@ -54,8 +54,12 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<T, St
             }
         };
         check.setOutputMarkupId(true);
+        processBehaviourOfCheckBox(check, rowModel);
 
         cellItem.add(check);
+    }
+
+    protected void processBehaviourOfCheckBox(IsolatedCheckBoxPanel check, IModel<T> rowModel) {
     }
 
     protected IModel<Boolean> getCheckBoxValueModel(IModel<T> rowModel){

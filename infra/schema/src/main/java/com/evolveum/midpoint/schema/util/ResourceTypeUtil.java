@@ -15,6 +15,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.MaintenanceException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -92,10 +93,7 @@ public class ResourceTypeUtil {
 
     public static Element getResourceXsdSchema(PrismObject<ResourceType> resource) {
         PrismContainer<XmlSchemaType> xmlSchema = resource.findContainer(ResourceType.F_SCHEMA);
-        if (xmlSchema == null) {
-            return null;
-        }
-        return ObjectTypeUtil.findXsdElement(xmlSchema);
+        return xmlSchema != null ? ObjectTypeUtil.findXsdElement(xmlSchema) : null;
     }
 
     public static void setResourceXsdSchema(ResourceType resourceType, Element xsdElement) {
@@ -468,15 +466,16 @@ public class ResourceTypeUtil {
         if (kind == null) {
             kind = ShadowKindType.ACCOUNT;
         }
+        // TODO review the code below
         for (ResourceObjectTypeDefinitionType objType: schemaHandling.getObjectType()) {
             if (objType.getKind() == kind || (objType.getKind() == null && kind == ShadowKindType.ACCOUNT)) {
-                if (intent == null && objType.isDefault()) {
+                if (intent == null && Boolean.TRUE.equals(objType.isDefault())) {
                     return objType;
                 }
                 if (objType.getIntent() != null && objType.getIntent().equals(intent)) {
                     return objType;
                 }
-                if (objType.getIntent() == null && objType.isDefault() && intent != null && intent.equals(SchemaConstants.INTENT_DEFAULT)) {
+                if (objType.getIntent() == null && Boolean.TRUE.equals(objType.isDefault()) && intent != null && intent.equals(SchemaConstants.INTENT_DEFAULT)) {
                     return objType;
                 }
             }
@@ -752,20 +751,34 @@ public class ResourceTypeUtil {
         return consistency.getConnectorErrorCriticality();
     }
 
+    public static void checkNotInMaintenance(PrismObject<ResourceType> resource) throws MaintenanceException {
+        if (isInMaintenance(resource)) {
+            throw new MaintenanceException("Resource " + resource + " is in the maintenance");
+        }
+    }
+
+    public static boolean isInMaintenance(PrismObject<ResourceType> resource) {
+        return isInMaintenance(resource.asObjectable());
+    }
+
     public static boolean isInMaintenance(ResourceType resource) {
-        if (resource == null)
+        if (resource == null) {
             return false;
+        }
 
         AdministrativeOperationalStateType administrativeOperationalState = resource.getAdministrativeOperationalState();
-        if (administrativeOperationalState == null)
+        if (administrativeOperationalState == null) {
             return false;
+        }
 
         AdministrativeAvailabilityStatusType administrativeAvailabilityStatus = administrativeOperationalState.getAdministrativeAvailabilityStatus();
-        if (administrativeAvailabilityStatus == null)
+        if (administrativeAvailabilityStatus == null) {
             return false;
+        }
 
-        if (AdministrativeAvailabilityStatusType.MAINTENANCE == administrativeAvailabilityStatus)
+        if (AdministrativeAvailabilityStatusType.MAINTENANCE == administrativeAvailabilityStatus) {
             return true;
+        }
 
         return false;
     }

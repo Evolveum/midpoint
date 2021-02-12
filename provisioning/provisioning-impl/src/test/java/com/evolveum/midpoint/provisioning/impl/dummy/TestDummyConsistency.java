@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -54,16 +54,16 @@ public class TestDummyConsistency extends AbstractDummyTest {
     public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "consistency");
     public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy-retry.xml");
 
-    protected static final String ACCOUNT_MORGAN_FULLNAME_HM = "Henry Morgan";
-    protected static final String ACCOUNT_MORGAN_FULLNAME_CHM = "Captain Henry Morgan";
+    private static final String ACCOUNT_MORGAN_FULLNAME_HM = "Henry Morgan";
+    private static final String ACCOUNT_MORGAN_FULLNAME_CHM = "Captain Henry Morgan";
 
     private static final String ACCOUNT_JP_MORGAN_FULLNAME = "J.P. Morgan";
     private static final String ACCOUNT_BETTY_USERNAME = "betty";
     private static final String ACCOUNT_BETTY_FULLNAME = "Betty Rubble";
     private static final String ACCOUNT_ELIZABETH2_FULLNAME = "Her Majesty Queen Elizabeth II";
 
-    protected static final File ACCOUNT_SHADOW_MURRAY_PENDING_FILE = new File(TEST_DIR, "account-shadow-murray-pending-operation.xml");
-    protected static final String ACCOUNT_SHADOW_MURRAY_PENDING_OID = "34132742-2085-11e9-a956-17770b09881b";
+    private static final File ACCOUNT_SHADOW_MURRAY_PENDING_FILE = new File(TEST_DIR, "account-shadow-murray-pending-operation.xml");
+    private static final String ACCOUNT_SHADOW_MURRAY_PENDING_OID = "34132742-2085-11e9-a956-17770b09881b";
     private static final String ACCOUNT_MURRAY_USERNAME = "murray";
     private static final String ACCOUNT_MURRAY_FULL_NAME = "Murray";
 
@@ -90,8 +90,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         displayValue("Dummy resource instance", dummyResource.toString());
 
-        OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID, task);
-        assertSuccess(testResult);
+        testResourceAssertSuccess(RESOURCE_DUMMY_OID, task);
 
         resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, null, result);
         resourceType = resource.asObjectable();
@@ -100,7 +99,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
     }
 
     /**
-     * Mostly just a sanity test. Make sure that normal (non-failure) operation works.
+     * Mostly just a sanity test. Makes sure that normal (non-failure) operation works.
      * Also prepares some state for later tests.
      */
     @Test
@@ -114,11 +113,9 @@ public class TestDummyConsistency extends AbstractDummyTest {
         account.checkConsistence();
         display("Adding shadow", account);
 
-        // WHEN
         when();
         String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
         assertEquals(ACCOUNT_WILL_OID, addedObjectOid);
@@ -159,11 +156,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
         assertSteadyResources();
     }
 
-    // TODO: asssert operationExecution
+    // TODO: assert operationExecution
 
     @Test
     public void test100AddAccountMorganCommunicationFailure() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
@@ -176,11 +173,9 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         lastRequestStartTs = lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 
-        // WHEN
         when();
         String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
 
-        // THEN
         then();
         display("Result", result);
         assertInProgress(result);
@@ -214,7 +209,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         // THEN
         then();
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         assertUncreatedMorgan(1);
 
@@ -227,7 +222,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test104RefreshAccountMorganCommunicationFailure() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
@@ -236,15 +231,13 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(ACCOUNT_MORGAN_OID);
 
-        // WHEN
         when();
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
-        // THEN
         then();
         display("Result", result);
         assertSuccess(result);
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         assertUncreatedMorgan(1);
 
@@ -257,7 +250,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test105GetForceRefreshAccountMorganCommunicationFailure() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
@@ -267,7 +260,6 @@ public class TestDummyConsistency extends AbstractDummyTest {
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createForceRefresh());
 
         try {
-            // WHEN
             when();
 
             provisioningService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID, options, task, result);
@@ -275,14 +267,13 @@ public class TestDummyConsistency extends AbstractDummyTest {
             assertNotReached();
 
         } catch (GenericConnectorException e) {
-            // expected
+            displayExpectedException(e);
         }
 
-        // THEN
         then();
         display("Result", result);
         assertFailure(result);
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         assertUncreatedMorgan(1);
 
@@ -295,7 +286,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test106RefreshAccountMorganCommunicationFailureRetry() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -309,11 +300,9 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 
-        // WHEN
         when();
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
-        // THEN
         then();
         display("Result", result);
         result.computeStatus();
@@ -333,7 +322,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test108RefreshAccountMorganCommunicationFailureRetryAgain() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -347,15 +336,13 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 
-        // WHEN
         when();
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
-        // THEN
         then();
         display("Result", result);
         result.computeStatus();
-        TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
+        TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR); // TODO why not fatal error here?
         lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
         syncServiceMock.assertSingleNotifyFailureOnly();
 
@@ -459,7 +446,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test109RefreshAccountMorganDead() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -471,15 +458,13 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(ACCOUNT_MORGAN_OID);
 
-        // WHEN
         when();
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
-        // THEN
         then();
         display("Result", result);
         assertSuccess(result);
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         assertMorganDead();
     }
@@ -489,7 +474,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test110AddAccountMorganAgainCommunicationFailure() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
@@ -505,11 +490,9 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         lastRequestStartTs = lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 
-        // WHEN
         when();
         shadowMorganOid = provisioningService.addObject(account, null, null, task, result);
 
-        // THEN
         then();
         display("Result", result);
         assertInProgress(result);
@@ -528,7 +511,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test114RefreshAccountMorganCommunicationFailure() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
@@ -539,15 +522,13 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
 
-        // WHEN
         when();
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
-        // THEN
         then();
         display("Result", result);
         assertSuccess(result);
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         assertUncreatedMorgan(1);
 
@@ -560,7 +541,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
      */
     @Test
     public void test116RefreshAccountMorganRetrySuccess() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -574,11 +555,9 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 
-        // WHEN
         when();
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
-        // THEN
         then();
         display("Result", result);
         assertSuccess(result);
@@ -646,7 +625,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         assertSuccess(result);
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         assertUnmodifiedMorgan(1, 2, ACCOUNT_MORGAN_FULLNAME_HM);
 
@@ -752,7 +731,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         assertSuccess(result);
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         assertMorganModifyFailed();
     }
@@ -813,7 +792,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         assertPartialError(result);
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         assertUnmodifiedMorgan(1, 3, ACCOUNT_MORGAN_FULLNAME_CHM);
 
@@ -854,7 +833,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         assertFailure(result);
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         assertUnmodifiedMorgan(1, 3, ACCOUNT_MORGAN_FULLNAME_CHM);
 
@@ -986,7 +965,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         assertSuccess(result);
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         assertUndeletedMorgan(1, 4);
 
@@ -1091,7 +1070,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         assertSuccess(result);
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         assertMorganDeleteFailed();
     }
@@ -1198,7 +1177,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         assertSuccess(result);
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         // @formatter:off
         assertRepoShadow(ACCOUNT_MORGAN_OID)
@@ -1282,7 +1261,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         assertSuccess(result);
-        syncServiceMock.assertNoNotifcations();
+        syncServiceMock.assertNoNotifications();
 
         // @formatter:off
         assertRepoShadow(shadowMorganOid)
@@ -1432,7 +1411,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         PrismObject<ShadowType> conflictingShadowRepo = findAccountShadowByUsername(ACCOUNT_MORGAN_NAME, getResource(), result);
         assertNotNull("Shadow for conflicting object was not created in the repository", conflictingShadowRepo);
         // @formatter:off
-        ShadowAsserter.forShadow(conflictingShadowRepo,"confligting repo shadow")
+        ShadowAsserter.forShadow(conflictingShadowRepo,"conflicting repo shadow")
             .display()
             .assertBasicRepoProperties()
             .assertOidDifferentThan(shadowMorganOid)
@@ -2226,7 +2205,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
     }
 
     private void assertUnmodifiedMorgan(
-            int expectedAttemptNumber, int expectenNumberOfPendingOperations, String expectedFullName)
+            int expectedAttemptNumber, int expectedNumberOfPendingOperations, String expectedFullName)
             throws Exception {
 
         PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
@@ -2237,7 +2216,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         shadowAsserter
             .display()
             .pendingOperations()
-                .assertOperations(expectenNumberOfPendingOperations)
+                .assertOperations(expectedNumberOfPendingOperations)
                 .by()
                     .executionStatus(PendingOperationExecutionStatusType.EXECUTING)
                 .find()
@@ -2266,7 +2245,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         shadowAsserter
             .display()
             .pendingOperations()
-                .assertOperations(expectenNumberOfPendingOperations)
+                .assertOperations(expectedNumberOfPendingOperations)
                 .by()
                     .executionStatus(PendingOperationExecutionStatusType.EXECUTING)
                 .find()
@@ -2335,7 +2314,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
     }
 
     private void assertModifiedMorgan(
-            int expectedAttemptNumber, int expectenNumberOfPendingOperations, String expectedFullName)
+            int expectedAttemptNumber, int expectedNumberOfPendingOperations, String expectedFullName)
             throws Exception {
 
         PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
@@ -2346,7 +2325,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         shadowAsserter
             .display()
             .pendingOperations()
-                .assertOperations(expectenNumberOfPendingOperations)
+                .assertOperations(expectedNumberOfPendingOperations)
                 .by()
                     .executionStatus(PendingOperationExecutionStatusType.COMPLETED)
                     .resultStatus(OperationResultStatusType.SUCCESS)
@@ -2377,7 +2356,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         shadowAsserter
             .display()
             .pendingOperations()
-                .assertOperations(expectenNumberOfPendingOperations)
+                .assertOperations(expectedNumberOfPendingOperations)
                 .by()
                     .executionStatus(PendingOperationExecutionStatusType.COMPLETED)
                     .resultStatus(OperationResultStatusType.SUCCESS)
@@ -2544,7 +2523,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertPassword(ACCOUNT_MORGAN_PASSWORD);
     }
 
-    private void assertUndeletedMorgan(int expectedAttemptNumber, int expectenNumberOfPendingOperations) throws Exception {
+    private void assertUndeletedMorgan(int expectedAttemptNumber, int expectedNumberOfPendingOperations) throws Exception {
 
         PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
         assertNotNull("Shadow was not created in the repository", repoShadow);
@@ -2554,7 +2533,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         shadowAsserter
             .display()
             .pendingOperations()
-                .assertOperations(expectenNumberOfPendingOperations)
+                .assertOperations(expectedNumberOfPendingOperations)
                 .by()
                     .executionStatus(PendingOperationExecutionStatusType.EXECUTING)
                 .find()
@@ -2583,7 +2562,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         shadowAsserter
             .display()
             .pendingOperations()
-                .assertOperations(expectenNumberOfPendingOperations)
+                .assertOperations(expectedNumberOfPendingOperations)
                 .by()
                     .executionStatus(PendingOperationExecutionStatusType.EXECUTING)
                 .find()
@@ -2831,6 +2810,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void assertGetUncreatedShadow(String oid)
             throws ObjectNotFoundException, CommunicationException, SchemaException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -2840,7 +2820,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                     ShadowType.class, oid, null, getTestTask(), result);
             fail("Expected that get of uncreated shadow fails, but it was successful: " + shadow);
         } catch (GenericConnectorException e) {
-            // Expected
+            displayExpectedException(e);
         }
     }
 

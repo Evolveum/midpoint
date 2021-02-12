@@ -11,6 +11,7 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -54,9 +55,6 @@ public class CommunicationExceptionHandler extends ErrorHandler {
             ConfigurationException, ExpressionEvaluationException {
 
         ResourceType resource = ctx.getResource();
-        if (!ProvisioningUtil.isDoDiscovery(resource, rootOptions)) {
-            throwException(cause, null, parentResult);
-        }
 
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_GET_ERROR);
         result.addParam("exception", cause.getMessage());
@@ -64,16 +62,13 @@ public class CommunicationExceptionHandler extends ErrorHandler {
         String stateChangeReason = "getting " + repositoryShadow + " ended with communication problem, " + cause.getMessage();
         markResourceDown(resource.getOid(), stateChangeReason, result, task);
 
-        // nothing to do, just return the shadow from the repo and set fetch
-        // result..
+        // nothing to do, just return the shadow from the repo and set fetch result..
         for (OperationResult subRes : parentResult.getSubresults()) {
             subRes.muteError();
         }
         result.recordPartialError("Could not get "+repositoryShadow+" from the resource "
                 + resource + ", because resource is unreachable. Returning shadow from the repository");
         repositoryShadow.asObjectable().setFetchResult(result.createOperationResultType());
-//                    operationResult.recordSuccess();
-//                    operationResult.computeStatus();
         return repositoryShadow;
     }
 

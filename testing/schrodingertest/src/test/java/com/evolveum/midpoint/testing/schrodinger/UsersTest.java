@@ -9,22 +9,17 @@ package com.evolveum.midpoint.testing.schrodinger;
 
 import com.codeborne.selenide.Selenide;
 
-import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
 import com.evolveum.midpoint.schrodinger.component.common.Paging;
-import com.evolveum.midpoint.schrodinger.component.common.Popover;
-import com.evolveum.midpoint.schrodinger.component.common.Search;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 
-import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
-
-import org.openqa.selenium.Keys;
-import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.codeborne.selenide.Selenide.screenshot;
 
@@ -36,27 +31,16 @@ public class UsersTest extends AbstractSchrodingerTest {
     private static final File LOOKUP_TABLE_SUBTYPES = new File("src/test/resources/configuration/objects/lookuptable/subtypes.xml");
     private static final File OT_FOR_LOOKUP_TABLE_SUBTYPES = new File("src/test/resources/configuration/objects/objecttemplate/object-template-for-lookup-table-subtypes.xml");
     private static final File SYSTEM_CONFIG_WITH_LOOKUP_TABLE = new File("src/test/resources/configuration/objects/systemconfig/system-configuration-with-lookup-table.xml");
+    private static final File MULTIPLE_USERS = new File("src/test/resources/configuration/objects/users/jack-users.xml");
 
-    @BeforeClass
     @Override
-    public void beforeClass() throws IOException {
-        super.beforeClass();
-        importObject(LOOKUP_TABLE_SUBTYPES, true);
-        importObject(OT_FOR_LOOKUP_TABLE_SUBTYPES, true);
-        importObject(SYSTEM_CONFIG_WITH_LOOKUP_TABLE, true);
-
+    protected List<File> getObjectListToImport(){
+        return Arrays.asList(LOOKUP_TABLE_SUBTYPES, OT_FOR_LOOKUP_TABLE_SUBTYPES, SYSTEM_CONFIG_WITH_LOOKUP_TABLE, MULTIPLE_USERS);
     }
 
     @Test
     public void test001UserTablePaging() {
         ListUsersPage users = basicPage.listUsers();
-
-        screenshot("listUsers");
-
-        for (int i = 0; i < 21; i++) {
-            addUser("john" + i);
-            Selenide.sleep(5000);
-        }
 
         Paging paging = users
                 .table()
@@ -65,86 +49,62 @@ public class UsersTest extends AbstractSchrodingerTest {
         paging.pageSize(5);
         Selenide.sleep(3000);
 
-        screenshot("paging");
-
-        paging.next();
-        paging.last();
-        paging.previous();
-        paging.first();
-        paging.actualPagePlusOne();
-        paging.actualPagePlusTwo();
-        paging.actualPageMinusTwo();
-        paging.actualPageMinusOne();
+        paging
+                .next()
+                .last()
+                .previous()
+                .first()
+                .actualPagePlusOne()
+                .actualPagePlusTwo()
+                .actualPageMinusTwo()
+                .actualPageMinusOne();
     }
 
     @Test
     public void test002SearchWithLookupTable() {
 
-        UserPage user = basicPage.newUser();
-        user.selectTabBasic()
-                .form()
-                .addAttributeValue("name", "searchUser")
-                .addAttributeValue("title", "PhD.")
-                .and()
-                .and()
-                .clickSave();
-
+        Map<String, String> attr = new HashMap<>();
+        attr.put("name", "searchUser");
+        attr.put("title", "PhD.");
+        createUser(attr);
 
         ListUsersPage users = basicPage.listUsers();
 
-        Assert.assertTrue(
-            users
+        users
                 .table()
                     .search()
-                        .byItemName("title")
+                        .textInputPanelByItemName("title")
                             .inputValue("PhD.")
                     .updateSearch()
                     .and()
-                .currentTableContains("searchUser")
-        );
+                .assertCurrentTableContains("searchUser");
 
-        Assert.assertTrue(
-                users
+        users
                 .table()
                     .search()
-                        .byItemName("title")
+                        .textInputPanelByItemName("title")
                             .inputValue("PhD")
                     .updateSearch()
                     .and()
-                .currentTableContains("searchUser")
-        );
+                .assertCurrentTableContains("searchUser");
 
-        Assert.assertFalse(
-            users
+        users
                 .table()
                     .search()
-                        .byItemName("title")
+                        .textInputPanelByItemName("title")
                             .inputValue("Ing.")
                     .updateSearch()
                     .and()
-                .currentTableContains("searchUser")
-        );
+                .assertCurrentTableDoesntContain("searchUser");
 
-        Assert.assertFalse(
-            users
+        users
                 .table()
                     .search()
-                        .byItemName("title")
+                        .textInputPanelByItemName("title")
                             .inputValue("Ing")
                     .updateSearch()
                     .and()
-                .currentTableContains("searchUser")
-        );
+                .assertCurrentTableDoesntContain("searchUser");
 
-    }
-
-    private void addUser(String name) {
-        UserPage user = basicPage.newUser();
-        user.selectTabBasic()
-                .form()
-                .addAttributeValue("name", name)
-                .and()
-                .and()
-                .clickSave();
     }
 }

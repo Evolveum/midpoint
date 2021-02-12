@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -16,15 +16,12 @@ import java.util.stream.Collectors;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.validation.Validator;
 
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 
-import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -44,6 +41,7 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -86,34 +84,29 @@ public class TestMisc extends AbstractMiscTest {
 
     @Test
     public void test100GetRepositoryDiag() {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         RepositoryDiag diag = modelDiagnosticService.getRepositoryDiag(task, result);
 
-        // THEN
         then();
         displayValue("Diag", diag);
         assertSuccess(result);
 
         assertEquals("Wrong implementationShortName", "SQL", diag.getImplementationShortName());
         assertNotNull("Missing implementationDescription", diag.getImplementationDescription());
-        // TODO
     }
 
     @Test
     public void test110RepositorySelfTest() {
-        // GIVEN
+        given();
         Task task = getTestTask();
 
-        // WHEN
         when();
         OperationResult testResult = modelDiagnosticService.repositorySelfTest(task);
 
-        // THEN
         then();
         display("Repository self-test result", testResult);
         TestUtil.assertSuccess("Repository self-test result", testResult);
@@ -123,16 +116,14 @@ public class TestMisc extends AbstractMiscTest {
 
     @Test
     public void test200ExportUsers() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null,
                 SelectorOptions.createCollection(GetOperationOptions.createRaw()), task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -159,7 +150,7 @@ public class TestMisc extends AbstractMiscTest {
      */
     @Test
     public void test210SearchUsersMatchingRulesPolystringNorm() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -169,11 +160,9 @@ public class TestMisc extends AbstractMiscTest {
                 .matchingNorm()
                 .build();
 
-        // WHEN
         when();
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, query, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -190,7 +179,7 @@ public class TestMisc extends AbstractMiscTest {
      */
     @Test
     public void test212SearchUsersMatchingRulesPolystringIgnoreCase() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -201,7 +190,6 @@ public class TestMisc extends AbstractMiscTest {
                 .build();
 
         try {
-            // WHEN
             when();
             modelService.searchObjects(UserType.class, query, null, task, result);
         } catch (SystemException e) {
@@ -216,7 +204,7 @@ public class TestMisc extends AbstractMiscTest {
      */
     @Test
     public void test214SearchUsersMatchingRulesStringIgnoreCase() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -226,11 +214,9 @@ public class TestMisc extends AbstractMiscTest {
                 .matchingCaseIgnore()
                 .build();
 
-        // WHEN
         when();
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, query, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -247,7 +233,7 @@ public class TestMisc extends AbstractMiscTest {
      */
     @Test
     public void test216SearchUsersMatchingRulesStringNorm() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -257,11 +243,9 @@ public class TestMisc extends AbstractMiscTest {
                 .matchingNorm()
                 .build();
 
-        // WHEN
         when();
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, query, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -274,15 +258,13 @@ public class TestMisc extends AbstractMiscTest {
      */
     @Test
     public void test300RecomputeJack() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         recomputeUser(USER_JACK_OID, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -296,15 +278,14 @@ public class TestMisc extends AbstractMiscTest {
      */
     @Test
     public void test302UpdateKeyJack() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
+        //noinspection PrimitiveArrayArgumentToVarargsMethod
         modifyUserReplace(USER_JACK_OID, getExtensionPath(PIRACY_KEY), task, result, KEY);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -315,17 +296,15 @@ public class TestMisc extends AbstractMiscTest {
 
     @Test
     public void test310AddUserClean() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = createUser(USER_CLEAN_NAME, USER_CLEAN_GIVEN_NAME, USER_CLEAN_FAMILY_NAME, true);
 
-        // WHEN
         when();
         addObject(userBefore, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -341,15 +320,14 @@ public class TestMisc extends AbstractMiscTest {
      */
     @Test
     public void test312UpdateBinaryIdClean() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
+        //noinspection PrimitiveArrayArgumentToVarargsMethod
         modifyUserReplace(userCleanOid, getExtensionPath(PIRACY_BINARY_ID), task, result, KEY);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -363,31 +341,27 @@ public class TestMisc extends AbstractMiscTest {
      */
     @Test
     public void test320DefaultRelations() {
-        // WHEN
         when();
         List<RelationDefinitionType> relations = modelInteractionService.getRelationDefinitions();
 
-        // THEN
         then();
         display("Relations", relations);
-        assertRelationDef(relations, SchemaConstants.ORG_MANAGER, "RelationTypes.manager");
-        assertRelationDef(relations, SchemaConstants.ORG_OWNER, "RelationTypes.owner");
+        assertRelationDef(relations, SchemaConstants.ORG_MANAGER, "manager");
+        assertRelationDef(relations, SchemaConstants.ORG_OWNER, "owner");
         assertEquals("Unexpected number of relation definitions", 7, relations.size());
     }
 
     /**
      * Add indestructible user.
      * This is add. Nothing special should happen.
-     *
+     * <p>
      * MID-1448
      */
     @Test
     public void test330IndestructibleSkellingtonAdd() throws Exception {
-        // WHEN
         when();
         addObject(USER_SKELLINGTON_FILE);
 
-        // THEN
         then();
         assertUserAfter(USER_SKELLINGTON_OID)
                 .assertName(USER_SKELLINGTON_NAME)
@@ -397,7 +371,7 @@ public class TestMisc extends AbstractMiscTest {
     /**
      * Attempt to delete indestructible user.
      * This should end up with an error.
-     *
+     * <p>
      * MID-1448
      */
     @Test
@@ -406,7 +380,6 @@ public class TestMisc extends AbstractMiscTest {
         OperationResult result = task.getResult();
 
         try {
-            // WHEN
             when();
             deleteObject(UserType.class, USER_SKELLINGTON_OID, task, result);
             assertNotReached();
@@ -414,7 +387,6 @@ public class TestMisc extends AbstractMiscTest {
             assertFailure(result);
         }
 
-        // THEN
         then();
         assertUserAfter(USER_SKELLINGTON_OID)
                 .assertName(USER_SKELLINGTON_NAME)
@@ -424,7 +396,7 @@ public class TestMisc extends AbstractMiscTest {
     /**
      * Attempt to RAW delete indestructible user.
      * This should end up with an error.
-     *
+     * <p>
      * MID-1448
      */
     @Test
@@ -433,7 +405,6 @@ public class TestMisc extends AbstractMiscTest {
         OperationResult result = task.getResult();
 
         try {
-            // WHEN
             when();
             deleteObjectRaw(UserType.class, USER_SKELLINGTON_OID, task, result);
             assertNotReached();
@@ -441,7 +412,6 @@ public class TestMisc extends AbstractMiscTest {
             assertFailure(result);
         }
 
-        // THEN
         then();
         assertUserAfter(USER_SKELLINGTON_OID)
                 .assertName(USER_SKELLINGTON_NAME)
@@ -450,7 +420,7 @@ public class TestMisc extends AbstractMiscTest {
 
     /**
      * Modify Skellington to be destructible. This should go well.
-     *
+     * <p>
      * MID-1448
      */
     @Test
@@ -458,11 +428,9 @@ public class TestMisc extends AbstractMiscTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         modifyObjectReplaceProperty(UserType.class, USER_SKELLINGTON_OID, UserType.F_INDESTRUCTIBLE, task, result, false);
 
-        // THEN
         then();
         assertSuccess(result);
         assertUserAfter(USER_SKELLINGTON_OID)
@@ -473,7 +441,7 @@ public class TestMisc extends AbstractMiscTest {
     /**
      * Attempt to delete indestructible user, that is made destructible now.
      * This should go well.
-     *
+     * <p>
      * MID-1448
      */
     @Test
@@ -481,11 +449,9 @@ public class TestMisc extends AbstractMiscTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         deleteObject(UserType.class, USER_SKELLINGTON_OID, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
         assertNoObject(UserType.class, USER_SKELLINGTON_OID);
@@ -496,15 +462,13 @@ public class TestMisc extends AbstractMiscTest {
      */
     @Test
     public void test400ImportRoleWithFilters() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         modelService.importObjectsFromFile(ROLE_IMPORT_FILTERS_FILE, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -518,7 +482,7 @@ public class TestMisc extends AbstractMiscTest {
 
     @Test
     public void test500AddHocProvisioningScriptAssignJackResourceScripty() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -526,11 +490,9 @@ public class TestMisc extends AbstractMiscTest {
         display("User before", userBefore);
         assertAssignments(userBefore, 0);
 
-        // WHEN
         when();
         assignAccountToUser(USER_JACK_OID, RESOURCE_SCRIPTY_OID, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -549,7 +511,7 @@ public class TestMisc extends AbstractMiscTest {
      */
     @Test
     public void test502GetAccountJackResourceScripty() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -558,11 +520,9 @@ public class TestMisc extends AbstractMiscTest {
         assertAssignments(userBefore, 1);
         String accountOid = getSingleLinkOid(userBefore);
 
-        // WHEN
         when();
         PrismObject<ShadowType> accountShadow = modelService.getObject(ShadowType.class, accountOid, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -579,7 +539,7 @@ public class TestMisc extends AbstractMiscTest {
      */
     @Test
     public void test504GetAccountJackResourceScriptyAgain() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -588,11 +548,9 @@ public class TestMisc extends AbstractMiscTest {
         assertAssignments(userBefore, 1);
         String accountOid = getSingleLinkOid(userBefore);
 
-        // WHEN
         when();
         PrismObject<ShadowType> accountShadow = modelService.getObject(ShadowType.class, accountOid, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -614,7 +572,7 @@ public class TestMisc extends AbstractMiscTest {
      */
     @Test
     public void test506ModifyResourceGetAccountJackResourceScripty() throws Exception {
-        // GIVEN
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -625,12 +583,10 @@ public class TestMisc extends AbstractMiscTest {
         PrismObject<ResourceType> resourceBefore = getObject(ResourceType.class, RESOURCE_SCRIPTY_OID);
         displayValue("Resource version before", resourceBefore.getVersion());
 
-        // WHEN
         when();
         modifyObjectReplaceProperty(ResourceType.class, RESOURCE_SCRIPTY_OID,
                 ResourceType.F_DESCRIPTION, null, task, result, "Whatever");
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -656,11 +612,9 @@ public class TestMisc extends AbstractMiscTest {
      */
     @Test
     public void test600jackAssignRoleShip() throws Exception {
-        // WHEN
         when();
         assignRole(USER_JACK_OID, ROLE_SHIP_OID);
 
-        //THEN
         then();
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User before", userAfter);
@@ -670,24 +624,19 @@ public class TestMisc extends AbstractMiscTest {
         PrismReference linkRef = userAfter.findReference(UserType.F_LINK_REF);
         assertFalse(linkRef.isEmpty());
 
-//        PrismObject<ShadowType> shadowModel = getShadowModel(linkRef.getOid());
-
         assertDummyAccountAttribute(RESOURCE_DUMMY_SCRIPTY_NAME, USER_JACK_USERNAME, "ship", "ship");
-
     }
 
     @Test
     public void test601jackUnassignResourceAccount() throws Exception {
-        // GIVEN
+        given();
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 2);
 
-        // WHEN
         when();
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_SCRIPTY_OID, null);
 
-        //THEN
         then();
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
@@ -715,9 +664,9 @@ public class TestMisc extends AbstractMiscTest {
 
     @Test
     public void test700AddNodeArchetype() throws Exception {
+        given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        given();
 
         when();
         NodeType localNode = taskManager.getLocalNode();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,16 +9,10 @@ package com.evolveum.midpoint.repo.cache;
 import static com.evolveum.midpoint.repo.cache.other.MonitoringUtil.repoOpEnd;
 import static com.evolveum.midpoint.repo.cache.other.MonitoringUtil.repoOpStart;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import javax.annotation.PreDestroy;
-
-import com.evolveum.midpoint.repo.cache.global.GlobalObjectCache;
-import com.evolveum.midpoint.repo.cache.global.GlobalQueryCache;
-import com.evolveum.midpoint.repo.cache.global.GlobalVersionCache;
-import com.evolveum.midpoint.repo.cache.handlers.*;
-import com.evolveum.midpoint.repo.cache.local.LocalRepoCacheCollection;
-import com.evolveum.midpoint.repo.cache.invalidation.Invalidator;
-import com.evolveum.midpoint.repo.api.CacheRegistry;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +26,15 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
+import com.evolveum.midpoint.repo.cache.global.GlobalObjectCache;
+import com.evolveum.midpoint.repo.cache.global.GlobalQueryCache;
+import com.evolveum.midpoint.repo.cache.global.GlobalVersionCache;
+import com.evolveum.midpoint.repo.cache.handlers.GetObjectOpHandler;
+import com.evolveum.midpoint.repo.cache.handlers.GetVersionOpHandler;
+import com.evolveum.midpoint.repo.cache.handlers.ModificationOpHandler;
+import com.evolveum.midpoint.repo.cache.handlers.SearchOpHandler;
+import com.evolveum.midpoint.repo.cache.invalidation.Invalidator;
+import com.evolveum.midpoint.repo.cache.local.LocalRepoCacheCollection;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -42,11 +45,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Read-through write-through repository cache.
  * <p>
- * This is an umbrella class providing RepositoryService and Cacheable interfaces.
+ * This is an umbrella class providing RepositoryService and {@link Cache} interfaces.
  * Majority of the work is delegated to operation handlers (and other classes).
  */
 @Component(value = "cacheRepositoryService")
-public class RepositoryCache implements RepositoryService, Cacheable {
+public class RepositoryCache implements RepositoryService, Cache {
 
     public static final String CLASS_NAME_WITH_DOT = RepositoryCache.class.getName() + ".";
     private static final String EXECUTE_QUERY_DIAGNOSTICS = CLASS_NAME_WITH_DOT + "executeQueryDiagnostics";
@@ -104,8 +107,8 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 
     @NotNull
     @Override
-    public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
+    public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(@NotNull Class<T> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, @NotNull OperationResult parentResult) throws SchemaException {
         return searchOpHandler.searchObjects(type, query, options, parentResult);
     }
 
@@ -145,21 +148,26 @@ public class RepositoryCache implements RepositoryService, Cacheable {
     //region --- ADD, MODIFY, DELETE and other modifications -------------------------------------------------------
 
     @Override
-    public <T extends ObjectType> String addObject(PrismObject<T> object, RepoAddOptions options, OperationResult parentResult)
+    public <T extends ObjectType> @NotNull String addObject(@NotNull PrismObject<T> object, RepoAddOptions options, @NotNull OperationResult parentResult)
             throws ObjectAlreadyExistsException, SchemaException {
         return modificationOpHandler.addObject(object, options, parentResult);
     }
 
     @NotNull
-    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
-            OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(
+            @NotNull Class<T> type, @NotNull String oid, @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            @NotNull OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         return modifyObject(type, oid, modifications, null, parentResult);
     }
 
     @NotNull
     @Override
-    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
-            RepoModifyOptions options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(
+            @NotNull Class<T> type, @NotNull String oid,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            RepoModifyOptions options, @NotNull OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         try {
             return modifyObject(type, oid, modifications, null, options, parentResult);
         } catch (PreconditionViolationException e) {
@@ -169,9 +177,11 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 
     @NotNull
     @Override
-    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(@NotNull Class<T> type, @NotNull String oid,
-            @NotNull Collection<? extends ItemDelta> modifications, ModificationPrecondition<T> precondition,
-            RepoModifyOptions options, OperationResult parentResult)
+    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(
+            @NotNull Class<T> type, @NotNull String oid,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            ModificationPrecondition<T> precondition,
+            RepoModifyOptions options, @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException {
         return modificationOpHandler.modifyObject(type, oid, modifications, precondition, options, parentResult);
     }
@@ -347,12 +357,12 @@ public class RepositoryCache implements RepositoryService, Cacheable {
         globalObjectCache.initialize();
         globalVersionCache.initialize();
         globalQueryCache.initialize();
-        cacheRegistry.registerCacheableService(this);
+        cacheRegistry.registerCache(this);
     }
 
     @PreDestroy
     public void unregister() {
-        cacheRegistry.unregisterCacheableService(this);
+        cacheRegistry.unregisterCache(this);
     }
 
     //region Cacheable interface

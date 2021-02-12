@@ -61,6 +61,10 @@
             <artifactId>commons-configuration2</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
         </dependency>
@@ -89,6 +93,10 @@
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
 
         <!-- Testing dependencies -->
         <dependency>
@@ -104,7 +112,7 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>audit-impl</artifactId>
+            <artifactId>audit-log-impl</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>

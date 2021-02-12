@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -14,7 +14,6 @@ import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
@@ -54,23 +53,28 @@ import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
-import com.evolveum.midpoint.repo.sql.helpers.JdbcSession;
-import com.evolveum.midpoint.repo.sql.pure.FlexibleRelationalPathBase;
-import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
+import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.repo.sql.testing.TestQueryListener;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
+import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
+import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
+import com.evolveum.midpoint.test.util.TestReportUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.tools.testng.TestMonitor;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -143,12 +147,14 @@ public class BaseSQLRepoTest extends AbstractSpringTest
             logger.trace("initSystem: already called for class {} - IGNORING", getClass().getName());
             return;
         }
+
+        displayTestTitle("Initializing TEST CLASS: " + getClass().getName());
         initSystemExecuted = true;
         initSystem();
     }
 
     @AfterMethod
-    public void afterMethod(Method method) {
+    public void afterMethod() {
         try {
             Session session = factory.getCurrentSession();
             if (session != null) {
@@ -159,6 +165,16 @@ public class BaseSQLRepoTest extends AbstractSpringTest
             //it's ok
             logger.debug("after test method, checking for potential open session, exception occurred: " + ex.getMessage());
         }
+    }
+
+    /** Called only by performance tests. */
+    @Override
+    public TestMonitor createTestMonitor() {
+        OperationsPerformanceMonitor.INSTANCE.clearGlobalPerformanceInformation();
+        queryListener.clear();
+        return super.createTestMonitor()
+                .addReportCallback(TestReportUtil::reportGlobalPerfData)
+                .addReportCallback(SqlRepoTestUtil.createReportCallback(queryListener));
     }
 
     protected boolean isUsingH2() {
@@ -208,11 +224,6 @@ public class BaseSQLRepoTest extends AbstractSpringTest
 
     protected <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException {
         return prismContext.deltaFor(objectClass);
-    }
-
-    @SuppressWarnings("unused")
-    protected SqlRepositoryConfiguration getRepositoryConfiguration() {
-        return ((SqlRepositoryServiceImpl) repositoryService).sqlConfiguration();
     }
 
     protected GetOperationOptionsBuilder getOperationOptionsBuilder() {
@@ -319,9 +330,9 @@ public class BaseSQLRepoTest extends AbstractSpringTest
 
     protected <S, Q extends FlexibleRelationalPathBase<R>, R> List<R> select(
             QueryModelMapping<S, Q, R> mapping, Predicate... conditions) {
-        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startReadOnlyTransaction()) {
+        try (JdbcSession jdbcSession = createJdbcSession().startReadOnlyTransaction()) {
             Q alias = mapping.defaultAlias();
-            SQLQuery<R> query = jdbcSession.query()
+            SQLQuery<R> query = jdbcSession.newQuery()
                     .select(alias)
                     .from(alias)
                     .where(conditions);
@@ -340,13 +351,19 @@ public class BaseSQLRepoTest extends AbstractSpringTest
 
     protected <S, Q extends FlexibleRelationalPathBase<R>, R> long count(
             QueryModelMapping<S, Q, R> mapping, Predicate... conditions) {
-        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startReadOnlyTransaction()) {
+        try (JdbcSession jdbcSession = createJdbcSession().startReadOnlyTransaction()) {
             Q alias = mapping.defaultAlias();
-            return jdbcSession.query()
+            return jdbcSession.newQuery()
                     .select(alias)
                     .from(alias)
                     .where(conditions)
                     .fetchCount();
         }
+    }
+
+    /** Creates new {@link JdbcSession} based on {@link #baseHelper} setup. */
+    protected JdbcSession createJdbcSession() {
+        return new SqlRepoContext(baseHelper.getConfiguration(), baseHelper.dataSource(), null)
+                .newJdbcSession();
     }
 }

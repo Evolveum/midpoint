@@ -11,22 +11,31 @@ import com.codeborne.selenide.Selenide;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
-import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
+import com.evolveum.midpoint.schrodinger.component.task.OperationStatisticsTab;
 import com.evolveum.midpoint.schrodinger.page.task.ListTasksPage;
 import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
-import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
-import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author skublik
  */
 
 public class TaskPageTest extends AbstractSchrodingerTest {
+
+    private static final File OPERATION_STATISTICS_CLEANUP_TASK_FILE = new File("./src/test/resources/configuration/objects/tasks/operation-statistics-clean-up.xml");
+    private static final File ENVIRONMENTAL_PERFORMANCE_CLEANUP_TASK_FILE = new File("./src/test/resources/configuration/objects/tasks/environmental-performance-clean-up.xml");
+    private static final File RESULTS_CLEANUP_TASK_FILE = new File("./src/test/resources/configuration/objects/tasks/results-clean-up.xml");
+
+    @Override
+    protected List<File> getObjectListToImport(){
+        return Arrays.asList(OPERATION_STATISTICS_CLEANUP_TASK_FILE, ENVIRONMENTAL_PERFORMANCE_CLEANUP_TASK_FILE, RESULTS_CLEANUP_TASK_FILE);
+    }
 
     @Test
     public void test001createNewTask() {
@@ -59,7 +68,103 @@ public class TaskPageTest extends AbstractSchrodingerTest {
                         .selectTabBasic()
                             .form();
 
-        Assert.assertTrue(taskForm.compareInputAttributeValue("name", name));
-        Assert.assertTrue(taskForm.compareInputAttributeValue("handlerUri", handler));
+        taskForm.assertInputAttributeValueMatches("name", name);
+        taskForm.assertInputAttributeValueMatches("handlerUri", handler);
+    }
+
+    @Test
+    public void test002cleanupOperationStatistics() {
+        TaskPage taskPage = basicPage.listTasks()
+                .table()
+                    .search()
+                        .byName()
+                        .inputValue("OperationStatisticsCleanupTest")
+                        .updateSearch()
+                    .and()
+                    .clickByName("OperationStatisticsCleanupTest");
+        OperationStatisticsTab operationStatisticsTab = taskPage
+                .selectTabOperationStatistics();
+        operationStatisticsTab.assertSuccessfullyProcessedCountMatch(30);
+        operationStatisticsTab.assertObjectsFailedToBeProcessedCountMatch(3);
+        operationStatisticsTab.assertObjectsTotalCountMatch(33);
+        taskPage
+                .cleanupEnvironmentalPerformanceInfo()
+                .clickYes()
+                .feedback()
+                .assertSuccess();
+        operationStatisticsTab = taskPage
+                .selectTabOperationStatistics();
+        operationStatisticsTab.assertSuccessfullyProcessedIsNull();
+        operationStatisticsTab.assertObjectsFailedToBeProcessedIsNull();
+        operationStatisticsTab.assertObjectsTotalIsNull();
+
+    }
+
+    @Test
+    public void test003cleanupEnvironmentalPerformance() {
+        TaskPage taskPage = basicPage.listTasks()
+                .table()
+                    .search()
+                        .byName()
+                        .inputValue("EnvironmentalPerformanceCleanupTest")
+                        .updateSearch()
+                    .and()
+                    .clickByName("EnvironmentalPerformanceCleanupTest");
+        taskPage
+                .selectTabEnvironmentalPerformance()
+                    .getStatisticsPanel()
+                        .assertMappingsEvaluationContainingObjectValueMatch("ManRes")
+                        .assertMappingsEvaluationInvocationsCountValueMatch("4")
+                        .assertMappingsEvaluationMaxValueMatch("1")
+                        .assertMappingsEvaluationTotalTimeValueMatch("2");
+        taskPage
+                .cleanupEnvironmentalPerformanceInfo()
+                .clickYes()
+                .feedback()
+                .assertSuccess();
+        taskPage
+                .selectTabEnvironmentalPerformance()
+                    .getStatisticsPanel()
+                        .assertMappingsEvaluationContainingObjectValueMatch(null)
+                        .assertMappingsEvaluationInvocationsCountValueMatch(null)
+                        .assertMappingsEvaluationMaxValueMatch(null)
+                        .assertMappingsEvaluationTotalTimeValueMatch(null);
+    }
+
+    @Test
+    public void test004cleanupTaskResults() {
+        TaskPage taskPage = basicPage.listTasks()
+                .table()
+                    .search()
+                        .byName()
+                        .inputValue("ResultCleanupTest")
+                        .updateSearch()
+                    .and()
+                    .clickByName("ResultCleanupTest");
+        String tokenValue = "1000000000000003831";
+        taskPage
+                .selectTabResult()
+                    .getResultsTable()
+                        .assertTableContainsText(tokenValue)
+                        .and()
+                    .assertOperationValueByTokenMatch(tokenValue, "run")
+                    .assertStatusValueByTokenMatch(tokenValue, "IN_PROGRESS")
+                    .assertTimestampValueByTokenMatch(tokenValue, "1/1/20, 12:00:00 AM")
+                    .assertMessageValueByTokenMatch(tokenValue, "Test results");
+        taskPage
+                .cleanupResults()
+                    .clickYes()
+                        .feedback()
+                        .assertSuccess();
+        taskPage
+                .selectTabResult()
+                    .getResultsTable()
+                        .assertTableDoesntContainText(tokenValue)
+                        .and()
+                    .assertOperationValueByTokenMatch(tokenValue, null)
+                    .assertStatusValueByTokenMatch(tokenValue, null)
+                    .assertTimestampValueByTokenMatch(tokenValue, null)
+                    .assertMessageValueByTokenMatch(tokenValue, null);
+
     }
 }

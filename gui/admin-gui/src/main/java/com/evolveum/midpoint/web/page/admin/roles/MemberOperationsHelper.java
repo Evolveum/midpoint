@@ -10,6 +10,7 @@ import java.util.*;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import com.evolveum.midpoint.gui.api.component.ChooseArchetypeMemberPopup;
@@ -129,7 +130,7 @@ public class MemberOperationsHelper {
 
     public static Task createRecomputeMembersTask(PageBase pageBase, QueryScope scope,
             ObjectQuery query, AjaxRequestTarget target) {
-        Task operationalTask = pageBase.createSimpleTask(getTaskName(RECOMPUTE_OPERATION, scope));
+        Task operationalTask = pageBase.createSimpleTask(getTaskName("Recompute", scope));
         OperationResult parentResult = operationalTask.getResult();
         return createRecomputeMemberOperationTask(operationalTask, AssignmentHolderType.COMPLEX_TYPE, query,
                 null, parentResult, pageBase, target);
@@ -244,14 +245,25 @@ public class MemberOperationsHelper {
         pageBase.showMainPopup(browser, target);
     }
 
-    public static <R extends AbstractRoleType> ObjectQuery createDirectMemberQuery(R targetObject, QName objectType, Collection<QName> relations, ObjectViewDto<OrgType> tenant, ObjectViewDto<OrgType> project, PrismContext prismContext) {
+    public static <R extends AbstractRoleType> ObjectQuery createDirectMemberQuery(R targetObject, QName objectType, Collection<QName> relations, ObjectViewDto<OrgType> tenantObject, ObjectViewDto<OrgType> projectObject, PrismContext prismContext) {
+        ObjectReferenceType tenant = null;
+        ObjectReferenceType project = null;
+        if (tenantObject != null && tenantObject.getObject() != null) {
+            tenant = new ObjectReferenceType();
+            tenant.setOid(tenantObject.getObject().getOid());
+        }
+        if (projectObject != null && projectObject.getObject() != null) {
+            project = new ObjectReferenceType();
+            project.setOid(projectObject.getObject().getOid());
+        }
+        return createDirectMemberQuery(targetObject, objectType, relations, tenant, project, prismContext);
+    }
+
+    public static <R extends AbstractRoleType> ObjectQuery createDirectMemberQuery(R targetObject, QName objectType, Collection<QName> relations, ObjectReferenceType tenant, ObjectReferenceType project, PrismContext prismContext) {
         // We assume tenantRef.relation and orgRef.relation are always default ones (see also MID-3581)
-        S_FilterEntry q0;
-        if (objectType == null || AssignmentHolderType.COMPLEX_TYPE.equals(objectType)) {
-            q0 = prismContext.queryFor(AssignmentHolderType.class);
-        } else {
-            q0 = prismContext.queryFor(AssignmentHolderType.class)
-                    .type(objectType);
+        S_FilterEntry q0 = prismContext.queryFor(AssignmentHolderType.class);
+        if (objectType != null && !AssignmentHolderType.COMPLEX_TYPE.equals(objectType)) {
+            q0 = q0.type(objectType);
         }
 
         // Use exists filter to build a query like this:
@@ -261,14 +273,12 @@ public class MemberOperationsHelper {
                 .item(AssignmentType.F_TARGET_REF)
                 .ref(createReferenceValuesList(targetObject, relations));
 
-        if (tenant != null && tenant.getObjectType() != null) {
-            q = q.and().item(AssignmentType.F_TENANT_REF).ref(ObjectTypeUtil.createObjectRef(tenant.getObjectType(),
-                    prismContext).asReferenceValue());
+        if (tenant != null && StringUtils.isNotEmpty(tenant.getOid())) {
+            q = q.and().item(AssignmentType.F_TENANT_REF).ref(tenant.getOid());
         }
 
-        if (project != null && project.getObjectType() != null) {
-            q = q.and().item(AssignmentType.F_ORG_REF).ref(ObjectTypeUtil.createObjectRef(project.getObjectType(),
-                    prismContext).asReferenceValue());
+        if (project != null && StringUtils.isNotEmpty(project.getOid())) {
+            q = q.and().item(AssignmentType.F_ORG_REF).ref(project.getOid());
         }
 
         ObjectQuery query = q.endBlock().build();
@@ -297,7 +307,8 @@ public class MemberOperationsHelper {
     }
 
     private static String getTaskName(String operation, QueryScope scope) {
-        StringBuilder nameBuilder = new StringBuilder(operation);
+        StringBuilder nameBuilder = new StringBuilder("operation.");
+        nameBuilder.append(operation);
         nameBuilder.append(".");
         if (scope != null) {
             nameBuilder.append(scope.name());
@@ -382,7 +393,9 @@ public class MemberOperationsHelper {
         ScheduleType schedule = new ScheduleType();
         schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
         operationalTask.makeSingle(schedule);
-        operationalTask.setName(WebComponentUtil.createPolyFromOrigString(pageBase.createStringResource(parentResult.getOperation()).getString()));
+        String key = parentResult.getOperation();
+        String name = pageBase.createStringResource(key).getString();
+        operationalTask.setName(WebComponentUtil.createPolyFromOrigString(name, key));
 
         QueryType queryType = pageBase.getQueryConverter().createQueryType(memberQuery);
         operationalTask.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, queryType);

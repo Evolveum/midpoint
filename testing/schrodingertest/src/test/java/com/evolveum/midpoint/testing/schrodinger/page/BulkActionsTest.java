@@ -6,14 +6,9 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.page;
 
-import com.codeborne.selenide.Condition;
 import com.evolveum.midpoint.schrodinger.page.configuration.BulkActionsPage;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
-import org.openqa.selenium.By;
-import org.testng.Assert;
 import org.testng.annotations.Test;
-
-import static com.codeborne.selenide.Selenide.$;
 
 /**
  * Created by Kate Honchar
@@ -27,11 +22,11 @@ public class BulkActionsTest extends AbstractSchrodingerTest {
         BulkActionsPage bulkActionsPage = basicPage.bulkActions();
         bulkActionsPage
                 .insertOneLineTextIntoEditor("<objects></objects>")
-                .startButtonClick();
+                .startButtonClick()
+                .feedback()
+                .assertError()
+                .assertMessageExists(PARSING_ERROR_MESSAGE);
 
-        $(By.linkText(PARSING_ERROR_MESSAGE))
-                .shouldBe(Condition.visible);
-
-        Assert.assertTrue(bulkActionsPage.isAceEditorVisible());
+        bulkActionsPage.assertAceEditorVisible();
     }
 }

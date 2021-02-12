@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -46,6 +47,8 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -60,11 +63,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -303,28 +302,36 @@ public class ProvisioningUtil {
         return refinedSchema;
     }
 
-    public static boolean isProtectedShadow(RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadow,
+//    public static boolean isProtectedShadow(RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadow,
+//            MatchingRuleRegistry matchingRuleRegistry, RelationRegistry relationRegistry) throws SchemaException {
+//        boolean isProtected;
+//        if (objectClassDefinition == null) {
+//            isProtected = false;
+//        } else {
+//            Collection<ResourceObjectPattern> protectedAccountPatterns = objectClassDefinition.getProtectedObjectPatterns();
+//            if (protectedAccountPatterns == null) {
+//                isProtected = false;
+//            } else {
+//                isProtected = ResourceObjectPattern.matches(shadow, protectedAccountPatterns, matchingRuleRegistry, relationRegistry);
+//            }
+//        }
+//        LOGGER.trace("isProtectedShadow: {}: {} = {}", objectClassDefinition, shadow, isProtected);
+//        return isProtected;
+//    }
+
+    public static boolean isProtectedShadow(Collection<ResourceObjectPattern> protectedAccountPatterns, PrismObject<ShadowType> shadow,
             MatchingRuleRegistry matchingRuleRegistry, RelationRegistry relationRegistry) throws SchemaException {
-        boolean isProtected;
-        if (objectClassDefinition == null) {
-            isProtected = false;
-        } else {
-            Collection<ResourceObjectPattern> protectedAccountPatterns = objectClassDefinition.getProtectedObjectPatterns();
-            if (protectedAccountPatterns == null) {
-                isProtected = false;
-            } else {
-                isProtected = ResourceObjectPattern.matches(shadow, protectedAccountPatterns, matchingRuleRegistry, relationRegistry);
-            }
-        }
-        LOGGER.trace("isProtectedShadow: {}: {} = {}", objectClassDefinition, shadow, isProtected);
+        boolean isProtected = protectedAccountPatterns != null &&
+                ResourceObjectPattern.matches(shadow, protectedAccountPatterns, matchingRuleRegistry, relationRegistry);
+        LOGGER.trace("isProtectedShadow: {} = {}", shadow, isProtected);
         return isProtected;
     }
 
-    public static void setProtectedFlag(ProvisioningContext ctx, PrismObject<ShadowType> resourceObject,
-            MatchingRuleRegistry matchingRuleRegistry, RelationRegistry relationRegistry) throws SchemaException,
-            ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
-        if (isProtectedShadow(ctx.getObjectClassDefinition(), resourceObject, matchingRuleRegistry, relationRegistry)) {
-            resourceObject.asObjectable().setProtectedObject(true);
+    public static void setProtectedFlag(ProvisioningContext ctx, PrismObject<ShadowType> resourceObjectOrShadow,
+            MatchingRuleRegistry matchingRuleRegistry, RelationRegistry relationRegistry, ExpressionFactory factory, OperationResult result) throws SchemaException,
+            ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, SecurityViolationException {
+        if (isProtectedShadow(ctx.getProtectedAccountPatterns(factory, result), resourceObjectOrShadow, matchingRuleRegistry, relationRegistry)) {
+            resourceObjectOrShadow.asObjectable().setProtectedObject(true);
         }
     }
 

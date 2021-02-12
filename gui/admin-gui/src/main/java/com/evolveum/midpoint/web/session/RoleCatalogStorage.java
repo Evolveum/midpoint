@@ -16,6 +16,7 @@ import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingCart;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
 import com.evolveum.midpoint.web.page.self.dto.ConflictDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import javax.xml.namespace.QName;
@@ -25,12 +26,16 @@ import java.util.*;
  * Created by honchar.
  */
 public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
+
+    public static final String F_ORG_SEARCH_SCOPE = "orgSearchScope";
+
     /**
      * DTO used for search in {@link PageAssignmentShoppingCart}
      */
     private Map<Integer, Search> roleCatalogSearchMap = new HashMap<>();
 
-    /**<
+    /**
+     * <
      * Paging DTO used in table on page {@link PageAssignmentShoppingCart}
      */
 
@@ -49,6 +54,7 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
     private ObjectPaging roleCatalogPaging;
     private int assignmentRequestLimit = -1;
     private QName selectedRelation = null;
+    private SearchBoxScopeType orgSearchScope = SearchBoxScopeType.ONE_LEVEL;
 
     public Search getSearch() {
         return roleCatalogSearchMap.get(getDefaultTabIndex() < 0 ? 0 : getDefaultTabIndex());
@@ -56,7 +62,7 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
 
     public void setSearch(Search roleCatalogSearch) {
         int selectedTab = getDefaultTabIndex() < 0 ? 0 : getDefaultTabIndex();
-        if (!roleCatalogSearchMap.containsKey(selectedTab)){
+        if (!roleCatalogSearchMap.containsKey(selectedTab)) {
             roleCatalogSearchMap.put(selectedTab, roleCatalogSearch);
         } else {
             roleCatalogSearchMap.replace(selectedTab, roleCatalogSearch);
@@ -91,7 +97,7 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("RoleCatalogStorage\n");
-        DebugUtil.debugDumpWithLabelLn(sb, "roleCatalogSearchMap", roleCatalogSearchMap, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "roleCatalogSearchMap", roleCatalogSearchMap, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "roleCatalogPaging", roleCatalogPaging, indent + 1);
         return sb.toString();
     }
@@ -145,7 +151,7 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
     }
 
     public List<AssignmentEditorDto> getAssignmentShoppingCart() {
-        if (assignmentShoppingCart == null){
+        if (assignmentShoppingCart == null) {
             assignmentShoppingCart = new ArrayList<>();
         }
         return assignmentShoppingCart;
@@ -195,11 +201,11 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
         this.assignmentsUserOwner = assignmentsUserOwner;
     }
 
-    public boolean isSelfRequest(){
+    public boolean isSelfRequest() {
         return getTargetUserOidsList() == null || getTargetUserOidsList().size() == 0;
     }
 
-    public boolean isMultiUserRequest(){
+    public boolean isMultiUserRequest() {
         return getTargetUserOidsList() != null && getTargetUserOidsList().size() > 1;
     }
 
@@ -217,5 +223,13 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
 
     public void setSelectedRelation(QName selectedRelation) {
         this.selectedRelation = selectedRelation;
+    }
+
+    public SearchBoxScopeType getOrgSearchScope() {
+        return orgSearchScope;
+    }
+
+    public void setOrgSearchScope(SearchBoxScopeType orgSearchScope) {
+        this.orgSearchScope = orgSearchScope;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,11 +11,6 @@ import java.util.Objects;
 import java.util.Map.Entry;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.schema.constants.Channel;
-
-import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -39,12 +34,14 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -52,6 +49,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -77,6 +75,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      * Note: taskId cannot be used for that, as task can have many operations (e.g. reconciliation task).
      */
     private String requestIdentifier = null;
+
+    /**
+     * Identifier of the current "item processing". Set by iterative tasks.
+     * Should not be propagated to any other lens context!
+     */
+    @Experimental // maybe will be removed later
+    private String itemProcessingIdentifier;
 
     private ModelState state = ModelState.INITIAL;
 
@@ -125,10 +130,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      */
     private MetadataType requestMetadata;
 
-    /*
-     * Executed deltas from rotten contexts.
+    /**
+     * Executed deltas from rotten projection contexts.
      */
-    private final List<LensObjectDeltaOperation<?>> rottenExecutedDeltas = new ArrayList<>();
+    @NotNull private final List<LensObjectDeltaOperation<?>> rottenExecutedDeltas = new ArrayList<>();
 
     private transient ObjectTemplateType focusTemplate;
     private boolean focusTemplateExternallySet;       // todo serialize this
@@ -206,7 +211,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      */
     private transient Collection<ProgressListener> progressListeners;
 
-    private Map<String, Long> sequences = new HashMap<>();
+    private final Map<String, Long> sequences = new HashMap<>();
 
     /**
      * Moved from ProjectionValuesProcessor TODO consider if necessary to
@@ -271,6 +276,14 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     public void setRequestIdentifier(String requestIdentifier) {
         this.requestIdentifier = requestIdentifier;
+    }
+
+    public String getItemProcessingIdentifier() {
+        return itemProcessingIdentifier;
+    }
+
+    public void setItemProcessingIdentifier(String itemProcessingIdentifier) {
+        this.itemProcessingIdentifier = itemProcessingIdentifier;
     }
 
     public void generateRequestIdentifierIfNeeded() {
@@ -744,7 +757,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return false;
     }
 
-    public Collection<ObjectDelta<? extends ObjectType>> getPrimaryChanges() throws SchemaException {
+    public Collection<ObjectDelta<? extends ObjectType>> getPrimaryChanges() {
         Collection<ObjectDelta<? extends ObjectType>> allChanges = new ArrayList<>();
         if (focusContext != null) {
             addChangeIfNotNull(allChanges, focusContext.getPrimaryDelta());
@@ -805,7 +818,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
     }
 
-    public List<LensObjectDeltaOperation<?>> getRottenExecutedDeltas() {
+    public @NotNull List<LensObjectDeltaOperation<?>> getRottenExecutedDeltas() {
         return rottenExecutedDeltas;
     }
 
@@ -942,7 +955,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      * Cleans up the contexts by removing some of the working state. The current
      * wave number is retained. Otherwise it ends up in endless loop.
      */
-    public void cleanup() throws SchemaException, ConfigurationException {
+    public void cleanup() throws SchemaException {
         if (focusContext != null) {
             focusContext.cleanup();
         }
@@ -1332,7 +1345,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     @SuppressWarnings({ "unchecked", "raw" })
-    public static LensContext fromLensContextType(LensContextType lensContextType, PrismContext prismContext,
+    public static <T extends ObjectType> LensContext<T> fromLensContextType(LensContextType lensContextType, PrismContext prismContext,
             ProvisioningService provisioningService, Task task, OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 
@@ -1344,9 +1357,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             throw new SystemException("Focus class is undefined in LensContextType");
         }
 
-        LensContext lensContext;
+        LensContext<T> lensContext;
         try {
-            lensContext = new LensContext(Class.forName(focusClassString), prismContext, provisioningService);
+            lensContext = new LensContext<>((Class<T>) Class.forName(focusClassString), prismContext, provisioningService);
         } catch (ClassNotFoundException e) {
             throw new SystemException(
                     "Couldn't instantiate LensContext because focus or projection class couldn't be found",
@@ -1699,7 +1712,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         };
     }
 
-    public <F extends ObjectType> void removeIgnoredContexts() {
+    public void removeIgnoredContexts() {
         projectionContexts.removeIf(projCtx -> projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE);
     }
 
@@ -1749,10 +1762,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     /**
      * Checks if there was anything (at least partially) executed.
-     *
+     * <p>
      * Currently we can only look at executed deltas and check whether there is something relevant
      * (i.e. not FATAL_ERROR nor NOT_APPLICABLE).
-     *
+     * <p>
      * Any solution based on operation result status will never be 100% accurate, e.g. because
      * a network timeout could occur just before returning a status value. So please use with care.
      */

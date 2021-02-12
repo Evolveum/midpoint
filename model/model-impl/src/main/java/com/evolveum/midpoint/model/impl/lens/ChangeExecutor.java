@@ -732,8 +732,16 @@ public class ChangeExecutor {
         if (isEmptyTombstone(projCtx)) {
             return false;
         }
-        if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.DELETE
-                || projCtx.isDelete()) {
+        if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
+            // Should we unlink broken accounts or not? Originally we considered broken contexts as "not isDelete".
+            // However, in 0bb36defb29448ba326713a8642439a64ba93160 we changed projCtx.isDelete method so that broken contexts
+            // with delete delta have isDelete=true.
+            //
+            // But we perhaps don't want to unlink such broken-being-deleted shadows (as tested e.g. in
+            // TestServiceAccounts.test104DeleteServiceAccount). So here we return "true".
+            return true;
+        }
+        if (projCtx.isDelete()) {
             return shadowAfterModification != null;
         }
         if (projCtx.hasPendingOperations()) {
@@ -768,7 +776,7 @@ public class ChangeExecutor {
         PrismReferenceValue linkRef = prismContext.itemFactory().createReferenceValue();
         linkRef.setOid(shadowOid);
         linkRef.setTargetType(ShadowType.COMPLEX_TYPE);
-        Collection<? extends ItemDelta> linkRefDeltas = prismContext.deltaFactory().reference()
+        Collection<? extends ItemDelta<?, ?>> linkRefDeltas = prismContext.deltaFactory().reference()
                 .createModificationAddCollection(FocusType.F_LINK_REF, getUserDefinition(), linkRef);
 
         try {
@@ -808,8 +816,8 @@ public class ChangeExecutor {
 
         LOGGER.debug("Unlinking shadow {} from focus {}", accountRef.getOid(), focusOid);
         OperationResult result = parentResult.createSubresult(OPERATION_UNLINK_ACCOUNT);
-        Collection<? extends ItemDelta> accountRefDeltas = prismContext.deltaFactory().reference().createModificationDeleteCollection(
-                FocusType.F_LINK_REF, getUserDefinition(), accountRef.clone());
+        Collection<? extends ItemDelta<?, ?>> accountRefDeltas = prismContext.deltaFactory().reference()
+                .createModificationDeleteCollection(FocusType.F_LINK_REF, getUserDefinition(), accountRef.clone());
 
         try {
             cacheRepositoryService.modifyObject(typeClass, focusOid, accountRefDeltas, result);
@@ -856,12 +864,18 @@ public class ChangeExecutor {
             LOGGER.trace("Shadow is gone, skipping modifying situation in shadow.");
             result.muteLastSubresultError();
             result.recordSuccess();
+            task.onSynchronizationSituationChange(context.getItemProcessingIdentifier(), projectionOid, null); // TODO or what?
             return;
         } catch (Exception ex) {
             LOGGER.trace("Problem with getting shadow, skipping modifying situation in shadow.");
             result.recordPartialError(ex);
+            task.onSynchronizationSituationChange(context.getItemProcessingIdentifier(), projectionOid, null); // TODO or what?
             return;
         }
+
+        // Note there can be some discrepancies between computed situation and the one that will be really present
+        // in the repository after the task finishes. It can occur if the modify operation does not succeed.
+        task.onSynchronizationSituationChange(context.getItemProcessingIdentifier(), projectionOid, newSituation);
 
         SynchronizationSituationType currentSynchronizationSituation = currentShadow.asObjectable().getSynchronizationSituation();
         if (currentSynchronizationSituation == SynchronizationSituationType.DELETED && ShadowUtil.isDead(currentShadow.asObjectable())) {
@@ -1598,7 +1612,7 @@ public class ChangeExecutor {
     }
 
     private <F extends ObjectType, T extends ObjectType> String modifyProvisioningObject(
-            Class<T> objectTypeClass, String oid, Collection<? extends ItemDelta> modifications,
+            Class<T> objectTypeClass, String oid, Collection<? extends ItemDelta<?, ?>> modifications,
             LensContext<F> context, LensElementContext<T> objectContext, ProvisioningOperationOptions options,
             ResourceType resource, Task task, OperationResult result) throws ObjectNotFoundException,
             CommunicationException, SchemaException, ConfigurationException,

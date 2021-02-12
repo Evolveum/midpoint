@@ -1,38 +1,38 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.schema;
-
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationMethodType;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.singleton;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
-/**
- *
- */
-public class GetOperationOptionsBuilderImpl implements GetOperationOptionsBuilder, GetOperationOptionsBuilder.Query {
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorHandlingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationMethodType;
+
+public class GetOperationOptionsBuilderImpl
+        implements GetOperationOptionsBuilder, GetOperationOptionsBuilder.Query {
 
     @NotNull private Set<UniformItemPath> currentPaths;
     private RelationalValueSearchQuery relationalValueSearchQuery;
-    private Map<UniformItemPath, GetOperationOptions> options = new HashMap<>();
 
-    private PrismContext prismContext;
+    private final Map<UniformItemPath, GetOperationOptions> options = new HashMap<>();
+    private final PrismContext prismContext;
 
     GetOperationOptionsBuilderImpl(PrismContext prismContext) {
         this.prismContext = prismContext;
@@ -240,6 +240,17 @@ public class GetOperationOptionsBuilderImpl implements GetOperationOptionsBuilde
     public GetOperationOptionsBuilder executionPhase(Boolean value) {
         return forPaths(opts -> opts.setExecutionPhase(value));
     }
+
+    @Override
+    public GetOperationOptionsBuilder errorHandling(FetchErrorHandlingType errorHandling) {
+        return forPaths(opts -> opts.setErrorHandling(errorHandling));
+    }
+
+    @Override
+    public GetOperationOptionsBuilder errorReportingMethod(FetchErrorReportingMethodType method) {
+        return forPaths(opts -> opts.setErrorReportingMethod(method, prismContext));
+    }
+
     //endregion
 
     //region Query
@@ -372,7 +383,7 @@ public class GetOperationOptionsBuilderImpl implements GetOperationOptionsBuilde
     //region Aux methods
     private UniformItemPath pathForItem(Object item) {
         if (item instanceof QName) {
-            return prismContext.path((QName) item);
+            return prismContext.path(item);
         } else if (item instanceof UniformItemPath) {
             return ((UniformItemPath) item);
         } else if (item instanceof ItemPath) {
@@ -397,5 +408,4 @@ public class GetOperationOptionsBuilderImpl implements GetOperationOptionsBuilde
                 .collect(Collectors.toList());
     }
     //endregion
-
 }

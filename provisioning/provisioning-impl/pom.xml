@@ -123,10 +123,6 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-        </dependency>
 
         <!-- Testing dependencies -->
         <dependency>
@@ -136,7 +132,7 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>audit-impl</artifactId>
+            <artifactId>audit-log-impl</artifactId>
             <version>4.3-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
@@ -258,6 +254,32 @@
         <dependency>
             <groupId>org.apache.qpid</groupId>
             <artifactId>qpid-broker-plugins-memory-store</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>artemis-server</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>artemis-jms-client</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>artemis-core-client</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>artemis-commons</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.geronimo.specs</groupId>
+            <artifactId>geronimo-jms_2.0_spec</artifactId>
             <scope>test</scope>
         </dependency>
 

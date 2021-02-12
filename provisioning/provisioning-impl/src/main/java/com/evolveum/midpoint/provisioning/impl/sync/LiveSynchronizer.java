@@ -7,42 +7,51 @@
 
 package com.evolveum.midpoint.provisioning.impl.sync;
 
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
+
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.provisioning.api.LiveSyncEvent;
+import com.evolveum.midpoint.provisioning.api.LiveSyncEventHandler;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
 import com.evolveum.midpoint.provisioning.impl.ResourceObjectConverter;
-import com.evolveum.midpoint.provisioning.ucf.api.Change;
-import com.evolveum.midpoint.provisioning.ucf.api.ChangeHandler;
+import com.evolveum.midpoint.provisioning.impl.ShadowCache;
+import com.evolveum.midpoint.provisioning.impl.adoption.AdoptedLiveSyncChange;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectLiveSyncChangeListener;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfFetchChangesResult;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskUtil;
-import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.LiveSyncCapabilityType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import static org.apache.commons.lang3.BooleanUtils.isNotFalse;
-import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 /**
  * Implements Live synchronization functionality.
+ *
+ * Although this class exists outside of {@link ShadowCache}, the related functionality is embedded
+ * in {@link AdoptedLiveSyncChange#preprocess(OperationResult)} method.
+ *
+ * Responsibilities:
+ *
+ * 1. Converts ROC changes into pre-processed adopted changes, embeds them to {@link LiveSyncEvent} instances and emits them out.
+ * 2. Manages the token value in the task, based on the acknowledgements.
+ * 3. Keeps the control until all events are acknowledged.
  */
 @Component
 public class LiveSynchronizer {
@@ -51,178 +60,100 @@ public class LiveSynchronizer {
 
     @Autowired private ProvisioningContextFactory ctxFactory;
     @Autowired private ResourceObjectConverter resourceObjectConverter;
-    @Autowired private ChangeProcessor changeProcessor;
-    @Autowired private TaskManager taskManager;
+    @Autowired private ChangeProcessingBeans beans;
 
     @NotNull
     public SynchronizationOperationResult synchronize(ResourceShadowDiscriminator shadowCoordinates,
-            Task task, TaskPartitionDefinitionType partition, OperationResult parentResult) throws ObjectNotFoundException,
-            CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException,
-            SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+            Task task, TaskPartitionDefinitionType partition, LiveSyncEventHandler handler, OperationResult gResult)
+            throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
+            ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 
-        SynchronizationOperationResult syncResult = new SynchronizationOperationResult();
+        LiveSyncCtx ctx = new LiveSyncCtx(shadowCoordinates, task, partition, gResult);
 
         InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
 
-        ProvisioningContext ctx = ctxFactory.create(shadowCoordinates, task, parentResult);
-        boolean isSimulate = partition != null && partition.getStage() == ExecutionModeType.SIMULATE;
-        boolean isDryRun = TaskUtil.isDryRun(task);
-        boolean updateTokenInDryRun = TaskUtil.findExtensionItemValueInThisOrParent(task,
-                SchemaConstants.MODEL_EXTENSION_UPDATE_LIVE_SYNC_TOKEN_IN_DRY_RUN, false);
-
-        PrismProperty<?> initialToken = getTokenFromTask(task);
-        syncResult.setInitialToken(initialToken);
-        if (initialToken == null) {
-            // No sync token in task. We are going to simply fetch the current token value from the resource and exit right now.
-            // (This is introduced in 4.0.1; it is different from the behaviour up to and including 4.0.) The rational is that
-            // there's no point in trying to fetch changes after fetching the current token value. We defer that to next run
-            // of the live sync task.
-            //
-            // We intentionally update the token even if we are in dry run mode. Otherwise we could never see any records
-            // (without setting updateLiveSyncTokenInDryRun to true).
-            fetchAndRememberCurrentToken(syncResult, isSimulate, ctx, parentResult);
-            return syncResult;
+        setupInitialToken(ctx);
+        if (!ctx.hasInitialToken()) {
+            fetchAndRememberCurrentToken(ctx, gResult); // see comment in the called method
+            return ctx.syncResult;
         }
 
-        boolean retryLiveSyncErrors = isNotFalse(task.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_RETRY_LIVE_SYNC_ERRORS));
+        IndividualEventsAcknowledgeGate<LiveSyncEvent> acknowledgeGate = new IndividualEventsAcknowledgeGate<>();
 
-        LiveSyncCapabilityType capability = ctx.getEffectiveCapability(LiveSyncCapabilityType.class);
-        boolean preciseTokenValue = capability != null && isTrue(capability.isPreciseTokenValue());
+        ResourceObjectLiveSyncChangeListener listener = (resourceObjectChange, lResult) -> {
 
-        OldestTokenWatcher oldestTokenWatcher = new OldestTokenWatcher();
+            int sequentialNumber = ctx.oldestTokenWatcher.changeArrived(resourceObjectChange.getToken());
 
-        ChangeProcessingCoordinator coordinator = new ChangeProcessingCoordinator(
-                () -> ctx.canRun() && !syncResult.isHaltingErrorEncountered(),
-                changeProcessor, task, partition);
+            AdoptedLiveSyncChange change = new AdoptedLiveSyncChange(resourceObjectChange, ctx.simulate, beans);
+            change.preprocess(lResult);
 
-        Holder<PrismProperty<?>> finalTokenHolder = new Holder<>();
-        ChangeHandler changeHandler = new ChangeHandler() {
-            @Override
-            public boolean handleChange(Change change, OperationResult result) {
-                int sequentialNumber = oldestTokenWatcher.changeArrived(change.getToken());
-                if (ctx.canRun()) {
-                    ProcessChangeRequest request = new ProcessChangeRequest(change, ctx, isSimulate) {
-                        /**
-                         * This is a success reported by change processor. It is hopefully the usual case.
-                         */
-                        @Override
-                        public void onSuccess() {
-                            treatSuccess(sequentialNumber);
-                        }
-
-                        /**
-                         * This is a "soft" error reported by change processor - i.e. the one without an exception.
-                         * The issue should be already recorded in the operation result. Our task is to stop or
-                         * continue processing, depending on the settings.
-                         */
-                        @Override
-                        public void onError(OperationResult result) {
-                            LOGGER.error("An error occurred during live synchronization in {}, when processing #{}: {}", task,
-                                    sequentialNumber, change);
-                            treatError(sequentialNumber, RepoCommonUtils.getResultExceptionIfExists(result));
-                        }
-
-                        /**
-                         * This is a "hard" error reported by change processor - i.e. the one with an exception.
-                         * The issue should be already recorded in the operation result. Our task is to stop or
-                         * continue processing, depending on the settings.
-                         */
-                        @Override
-                        public void onError(Throwable t, OperationResult result) {
-                            LoggingUtils.logUnexpectedException(LOGGER, "An exception occurred during live synchronization in {},"
-                                    + " when processing #{}: {}", t, task, sequentialNumber, change);
-                            treatError(sequentialNumber, t);
-                        }
-                    };
-                    try {
-                        coordinator.submit(request, result);
-                    } catch (InterruptedException e) {
-                        LOGGER.trace("Got InterruptedException, probably the coordinator task was suspended. Let's stop fetching changes.");
-                        syncResult.setSuspendEncountered(true); // ok?
-                        return false;
+            LiveSyncEvent event = new LiveSyncEventImpl(change) {
+                @Override
+                public void acknowledge(boolean release, OperationResult aResult) {
+                    LOGGER.trace("Acknowledgement (release={}) sent for {}", release, this);
+                    if (release) {
+                        ctx.oldestTokenWatcher.changeProcessed(sequentialNumber);
                     }
+                    acknowledgeGate.acknowledgeIssuedEvent(this);
                 }
-                return ctx.canRun() && !syncResult.isHaltingErrorEncountered();
-            }
+            };
 
-            /**
-             * This is a "hard" error reported in preparation stages of change processing. The change might be even null here
-             * (in that case we hope at least token is present).
-             */
-            @Override
-            public boolean handleError(@Nullable PrismProperty<?> token, @Nullable Change change,
-                    @NotNull Throwable exception, @NotNull OperationResult result) {
-                int sequentialNumber = oldestTokenWatcher.changeArrived(token);
-                LoggingUtils
-                        .logUnexpectedException(LOGGER, "An exception occurred during live synchronization in {}, "
-                                + "as part of pre-processing #{}: {}", exception, task,
-                                sequentialNumber, change != null ? "change " + change : "sync delta with token " + token);
-                return treatError(sequentialNumber, exception);
-            }
-
-            @Override
-            public void handleAllChangesFetched(PrismProperty<?> finalToken, OperationResult result) {
-                LOGGER.trace("All changes were fetched; finalToken = {}", finalToken);
-                finalTokenHolder.setValue(finalToken);
-                syncResult.setAllChangesFetched(true);
-            }
-
-            private boolean treatSuccess(int sequentialNumber) {
-                oldestTokenWatcher.changeProcessed(sequentialNumber);
-                syncResult.incrementChangesProcessed();
-                if (task instanceof RunningTask) {
-                    ((RunningTask) task).incrementProgressAndStoreStatsIfNeeded();
-                }
-                return ctx.canRun();
-            }
-
-            private boolean treatError(int sequentialNumber, Throwable t) {
-                syncResult.incrementErrors();
-                if (retryLiveSyncErrors) {
-                    // We need to retry the failed change -- so we must not update the token.
-                    // Moreover, we have to stop here, so that the changes will be applied in correct order.
-                    syncResult.setHaltingErrorEncountered(true);
-                    syncResult.setExceptionEncountered(t);
-                    LOGGER.info("LiveSync encountered an error and 'retryLiveSyncErrors' is set to true: so exiting now with "
-                                    + "the hope that the error will be cleared on the next task run. Task: {}; processed changes: {}",
-                            ctx.getTask(), syncResult.getChangesProcessed());
-                    return false;
-                } else {
-                    LOGGER.info("LiveSync encountered an error but 'retryLiveSyncErrors' is set to false: so continuing "
-                                    + "as if nothing happened. Task: {}", ctx.getTask());
-                    return treatSuccess(sequentialNumber);
-                }
+            acknowledgeGate.registerIssuedEvent(event);
+            try {
+                return handler.handle(event, lResult);
+            } catch (Throwable t) {
+                // We assume the event was not acknowledged yet. Note that serious handler should never throw an exception!
+                LoggingUtils.logUnexpectedException(LOGGER, "Got unexpected exception while handling a live sync event", t);
+                acknowledgeGate.acknowledgeIssuedEvent(event);
+                return false;
             }
         };
 
+        UcfFetchChangesResult fetchChangesResult;
         try {
-            resourceObjectConverter.fetchChanges(ctx, initialToken, changeHandler, parentResult);
+            fetchChangesResult = resourceObjectConverter.fetchChanges(ctx.context, ctx.getInitialToken(), listener, gResult);
         } finally {
-            coordinator.setAllItemsSubmitted();
+            handler.allEventsSubmitted(gResult);
         }
 
-        if (task instanceof RunningTask) {
-            taskManager.waitForTransientChildren((RunningTask) task, parentResult);
-            coordinator.updateOperationResult(parentResult);
+        if (fetchChangesResult.isAllChangesFetched()) {
+            ctx.syncResult.setAllChangesFetched(true);
+            ctx.finalToken = fetchChangesResult.getFinalToken();
         }
 
-        if (!ctx.canRun()) {
-            LOGGER.info("LiveSync was suspended during processing. Task: {}; processed changes: {}", ctx.getTask(),
-                    syncResult.getChangesProcessed());
-            syncResult.setSuspendEncountered(true);
-        }
+        acknowledgeGate.waitForIssuedEventsAcknowledge(gResult);
 
-        PrismProperty<?> oldestTokenProcessed = oldestTokenWatcher.getOldestTokenProcessed();
-        LOGGER.trace("oldestTokenProcessed = {}, synchronization result = {}", oldestTokenProcessed, syncResult);
+        updateTokenValue(ctx);
+        task.flushPendingModifications(gResult);
+
+        return ctx.syncResult;
+    }
+
+    private void setupInitialToken(LiveSyncCtx ctx) {
+        PrismProperty<?> initialToken = getTokenFromTask(ctx.task);
+        ctx.syncResult.setInitialToken(initialToken);
+    }
+
+    private void updateTokenValue(LiveSyncCtx ctx) throws SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, ConfigurationException, CommunicationException {
+
+        LiveSyncCapabilityType capability = ctx.context.getEffectiveCapability(LiveSyncCapabilityType.class);
+        boolean preciseTokenValue = capability != null && isTrue(capability.isPreciseTokenValue());
+        boolean isDryRun = TaskUtil.isDryRun(ctx.task);
+        boolean updateTokenInDryRun = TaskUtil.findExtensionItemValueInThisOrParent(ctx.task,
+                SchemaConstants.MODEL_EXTENSION_UPDATE_LIVE_SYNC_TOKEN_IN_DRY_RUN, false);
+        PrismProperty<?> initialToken = ctx.getInitialToken();
+
+        PrismProperty<?> oldestTokenProcessed = ctx.oldestTokenWatcher.getOldestTokenProcessed();
+        LOGGER.trace("oldestTokenProcessed = {}, synchronization result = {}", oldestTokenProcessed, ctx.syncResult);
         PrismProperty<?> tokenToSet;
-        if (isSimulate) {
+        if (ctx.simulate) {
             tokenToSet = null;        // Token should not be updated during simulation.
         } else if (isDryRun && !updateTokenInDryRun) {
             tokenToSet = null;
-        } else if (!syncResult.isHaltingErrorEncountered() && !syncResult.isSuspendEncountered() && syncResult.isAllChangesFetched()) {
+        } else if (!ctx.syncResult.isHaltingErrorEncountered() && !ctx.syncResult.isSuspendEncountered() && ctx.syncResult.isAllChangesFetched()) {
             // Everything went OK. Everything was processed.
-            PrismProperty<?> finalToken = finalTokenHolder.getValue();
-            tokenToSet = finalToken != null ? finalToken : oldestTokenProcessed;
+            tokenToSet = ctx.finalToken != null ? ctx.finalToken : oldestTokenProcessed;
             // Note that it is theoretically possible that tokenToSet is null here: it happens when no changes are fetched from
             // the resource and the connector returns null from .sync() method. But in this case nothing wrong happens: the
             // token in task will simply stay as it is. That's the correct behavior for such a case.
@@ -234,7 +165,7 @@ public class LiveSynchronizer {
                     SchemaDebugUtil.prettyPrint(tokenToSet), SchemaDebugUtil.prettyPrint(initialToken));
         } else {
             // Something was wrong and we must restart from the beginning.
-            tokenToSet = null;      // So we will not update the token.
+            tokenToSet = null; // So we will not update the token.
             LOGGER.info("Capability of providing precise token values is NOT present. Token will not be updated so the "
                             + "processing will restart from the beginning at next task run. So token value stays as it was: '{}'",
                     SchemaDebugUtil.prettyPrint(initialToken));
@@ -242,11 +173,9 @@ public class LiveSynchronizer {
 
         if (tokenToSet != null) {
             LOGGER.trace("Setting token value of {}", SchemaDebugUtil.prettyPrintLazily(tokenToSet));
-            task.setExtensionProperty(tokenToSet);
-            syncResult.setTaskTokenUpdatedTo(tokenToSet);
+            ctx.task.setExtensionProperty(tokenToSet);
+            ctx.syncResult.setTaskTokenUpdatedTo(tokenToSet);
         }
-        task.flushPendingModifications(parentResult);
-        return syncResult;
     }
 
     private PrismProperty<?> getTokenFromTask(Task task) {
@@ -265,22 +194,57 @@ public class LiveSynchronizer {
         }
     }
 
-    private void fetchAndRememberCurrentToken(SynchronizationOperationResult syncResult, boolean isSimulate, ProvisioningContext ctx,
-            OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException,
-            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
-        Task task = ctx.getTask();
-        PrismProperty<?> currentToken = resourceObjectConverter.fetchCurrentToken(ctx, parentResult);
+    /**
+     * No sync token in task. We are going to simply fetch the current token value from the resource and skip any processing.
+     * (This is introduced in 4.0.1; it is different from the behaviour up to and including 4.0.) The rational is that
+     * there's no point in trying to fetch changes after fetching the current token value. We defer that to next run
+     * of the live sync task.
+     *
+     * We intentionally update the token even if we are in dry run mode. Otherwise we could never see any records
+     * (without setting updateLiveSyncTokenInDryRun to true).
+     */
+    private void fetchAndRememberCurrentToken(LiveSyncCtx ctx, OperationResult result) throws ObjectNotFoundException,
+            CommunicationException, SchemaException, ConfigurationException, ExpressionEvaluationException,
+            ObjectAlreadyExistsException {
+        PrismProperty<?> currentToken = resourceObjectConverter.fetchCurrentToken(ctx.context, result);
         if (currentToken == null) {
             LOGGER.warn("No current token provided by resource: {}. Live sync will not proceed: {}",
-                    ctx.getShadowCoordinates(), task);
-        } else if (!isSimulate) {
-            LOGGER.info("Setting initial live sync token ({}) in task: {}.", currentToken, task);
-            task.setExtensionProperty(currentToken);
-            task.flushPendingModifications(parentResult);
-            syncResult.setTaskTokenUpdatedTo(currentToken);
+                    ctx.context.getShadowCoordinates(), ctx.task);
+        } else if (!ctx.simulate) {
+            LOGGER.info("Setting initial live sync token ({}) in task: {}.", currentToken, ctx.task);
+            ctx.task.setExtensionProperty(currentToken);
+            ctx.task.flushPendingModifications(result);
+            ctx.syncResult.setTaskTokenUpdatedTo(currentToken);
         } else {
             LOGGER.info("We would set initial live sync token ({}) in task: {}; but not doing so because in simulation mode",
-                    currentToken, task);
+                    currentToken, ctx.task);
         }
+    }
+
+    private class LiveSyncCtx {
+        private final SynchronizationOperationResult syncResult;
+        private final ProvisioningContext context;
+        private final Task task; // redundant to simplify access
+        private final boolean simulate;
+        private final OldestTokenWatcher oldestTokenWatcher;
+        private PrismProperty<?> finalToken; // TODO what exactly is this for? Be sure to set it only when all changes were processed
+
+        private LiveSyncCtx(ResourceShadowDiscriminator shadowCoordinates, Task task, TaskPartitionDefinitionType partition, OperationResult result)
+                throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+            this.syncResult = new SynchronizationOperationResult();
+            this.context = ctxFactory.create(shadowCoordinates, task, result);
+            this.task = task;
+            this.simulate = partition != null && partition.getStage() == ExecutionModeType.SIMULATE;
+            this.oldestTokenWatcher = new OldestTokenWatcher();
+        }
+
+        public PrismProperty<?> getInitialToken() {
+            return syncResult.getInitialToken();
+        }
+
+        private boolean hasInitialToken() {
+            return getInitialToken() != null;
+        }
+
     }
 }

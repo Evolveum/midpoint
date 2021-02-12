@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,44 +8,44 @@ package com.evolveum.midpoint.repo.sql;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
-import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database.*;
+import static com.evolveum.midpoint.repo.sql.Database.H2;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.h2.Driver;
-import org.hibernate.dialect.H2Dialect;
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager;
-import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
-import com.evolveum.midpoint.repo.sql.util.MidPointMySQLDialect;
-import com.evolveum.midpoint.repo.sql.util.MidPointOracleDialect;
-import com.evolveum.midpoint.repo.sql.util.MidPointPostgreSQLDialect;
-import com.evolveum.midpoint.repo.sql.util.UnicodeSQLServer2008Dialect;
+import com.evolveum.midpoint.repo.sql.helpers.TransactionSerializationProblemDetector;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
+import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
+import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
+import com.evolveum.midpoint.repo.sqlbase.TransactionIsolation;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * This class is used for SQL repository configuration.
+ * This class is used for SQL+Hibernate repository configuration.
  * It reads values from Apache configuration object (xml).
- *
- * @author lazyman
+ * <p>
+ * Implementation note:
+ * It was considered to extract SQL only portions to the superclass and use it for midScale
+ * repository (repo-sqale), but the interaction between Hibernate and JDBC stuff is very strong
+ * here, especially around guessing of default values for database type, driver class, etc.
  */
-public class SqlRepositoryConfiguration {
+public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryConfiguration.class);
 
@@ -54,91 +54,6 @@ public class SqlRepositoryConfiguration {
     private static final String HBM2DDL_UPDATE = "update";
     private static final String HBM2DDL_VALIDATE = "validate";
     private static final String HBM2DDL_NONE = "none";
-
-    @SuppressWarnings("deprecation")
-    public enum Database {
-
-        // Order of dialects is important, the first value is the default.
-        H2(DRIVER_H2,
-                H2Dialect.class.getName()),
-        MYSQL(DRIVER_MYSQL,
-                MidPointMySQLDialect.class.getName(),
-                org.hibernate.dialect.MySQLDialect.class.getName(),
-                org.hibernate.dialect.MySQLInnoDBDialect.class.getName()),
-        POSTGRESQL(DRIVER_POSTGRESQL,
-                MidPointPostgreSQLDialect.class.getName(),
-                org.hibernate.dialect.PostgreSQLDialect.class.getName(),
-                org.hibernate.dialect.PostgresPlusDialect.class.getName()),
-        SQLSERVER(DRIVER_SQLSERVER,
-                UnicodeSQLServer2008Dialect.class.getName(),
-                org.hibernate.dialect.SQLServerDialect.class.getName()),
-        ORACLE(DRIVER_ORACLE,
-                MidPointOracleDialect.class.getName(),
-                org.hibernate.dialect.OracleDialect.class.getName(),
-                org.hibernate.dialect.Oracle9Dialect.class.getName(),
-                org.hibernate.dialect.Oracle8iDialect.class.getName(),
-                org.hibernate.dialect.Oracle9iDialect.class.getName(),
-                org.hibernate.dialect.Oracle10gDialect.class.getName()),
-        MARIADB(DRIVER_MARIADB,
-                MidPointMySQLDialect.class.getName());
-
-        @NotNull List<String> drivers;
-        @NotNull List<String> dialects;
-
-        Database(String driver, String... dialects) {
-            this.drivers = Collections.singletonList(driver);
-            this.dialects = Arrays.asList(dialects);
-        }
-
-        public static Database findDatabase(String databaseName) {
-            if (StringUtils.isBlank(databaseName)) {
-                return null;
-            }
-            for (Database database : values()) {
-                if (database.name().equalsIgnoreCase(databaseName)) {
-                    return database;
-                }
-            }
-            throw new IllegalArgumentException("Unsupported database type: " + databaseName);
-        }
-
-        public String getDefaultHibernateDialect() {
-            return dialects.get(0);
-        }
-
-        public String getDefaultDriverClassName() {
-            return drivers.get(0);
-        }
-
-        public boolean containsDriver(String driverClassName) {
-            return drivers.contains(driverClassName);
-        }
-
-        public boolean containsDialect(String hibernateDialect) {
-            return dialects.contains(hibernateDialect);
-        }
-
-        @Nullable
-        public static Database findByDriverClassName(String driverClassName) {
-            if (driverClassName != null) {
-                return Arrays.stream(values())
-                        .filter(db -> db.containsDriver(driverClassName))
-                        .findFirst().orElse(null);
-            } else {
-                return null;
-            }
-        }
-
-        public static Database findByHibernateDialect(String hibernateDialect) {
-            if (hibernateDialect != null) {
-                return Arrays.stream(values())
-                        .filter(db -> db.containsDialect(hibernateDialect))
-                        .findFirst().orElse(null);
-            } else {
-                return null;
-            }
-        }
-    }
 
     /**
      * What to do if the DB schema is missing.
@@ -256,7 +171,8 @@ public class SqlRepositoryConfiguration {
         }
     }
 
-    private static final String DEFAULT_FILE_NAME = "midpoint";
+    // This needs to be "explicitly relative" (or absolute), unless -Dh2.implicitRelativePath=true
+    private static final String DEFAULT_FILE_NAME = "./midpoint";
     private static final String DEFAULT_EMBEDDED_H2_JDBC_USERNAME = "sa";
     private static final String DEFAULT_EMBEDDED_H2_JDBC_PASSWORD = "";
     private static final int DEFAULT_EMBEDDED_H2_PORT = 5437;
@@ -264,7 +180,6 @@ public class SqlRepositoryConfiguration {
     private static final int DEFAULT_MAX_POOL_SIZE = 20;
     private static final int DEFAULT_MAX_OBJECTS_FOR_IMPLICIT_FETCH_ALL_ITERATION_METHOD = 500;
 
-    public static final String PROPERTY_DATABASE = "database";
     public static final String PROPERTY_BASE_DIR = "baseDir";
     public static final String PROPERTY_DROP_IF_EXISTS = "dropIfExists";
     public static final String PROPERTY_AS_SERVER = "asServer";
@@ -272,22 +187,10 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_FILE_NAME = "fileName";
     public static final String PROPERTY_TCP_SSL = "tcpSSL";
     public static final String PROPERTY_EMBEDDED = "embedded";
-    public static final String PROPERTY_DRIVER_CLASS_NAME = "driverClassName";
     public static final String PROPERTY_HIBERNATE_HBM2DDL = "hibernateHbm2ddl";
     public static final String PROPERTY_HIBERNATE_DIALECT = "hibernateDialect";
-    public static final String PROPERTY_JDBC_PASSWORD = "jdbcPassword";
-    public static final String PROPERTY_JDBC_PASSWORD_FILE = "jdbcPasswordFile";
-    public static final String PROPERTY_JDBC_USERNAME = "jdbcUsername";
-    public static final String PROPERTY_JDBC_URL = "jdbcUrl";
-    public static final String PROPERTY_DATASOURCE = "dataSource";
-    public static final String PROPERTY_USE_ZIP = "useZip";
     public static final String PROPERTY_CREATE_MISSING_CUSTOM_COLUMNS = "createMissingCustomColumns";
 
-    /**
-     * Specifies language used for writing fullObject attribute.
-     * See LANG constants in {@link com.evolveum.midpoint.prism.PrismContext} for supported values.
-     */
-    public static final String PROPERTY_FULL_OBJECT_FORMAT = "fullObjectFormat";
     public static final String PROPERTY_MIN_POOL_SIZE = "minPoolSize";
     public static final String PROPERTY_MAX_POOL_SIZE = "maxPoolSize";
     public static final String PROPERTY_MAX_LIFETIME = "maxLifetime";
@@ -298,8 +201,6 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_LOCK_FOR_UPDATE_VIA_HIBERNATE = "lockForUpdateViaHibernate";
     public static final String PROPERTY_LOCK_FOR_UPDATE_VIA_SQL = "lockForUpdateViaSql";
     public static final String PROPERTY_READ_ONLY_TRANSACTIONS_STATEMENT = "readOnlyTransactionsStatement";
-    public static final String PROPERTY_PERFORMANCE_STATISTICS_FILE = "performanceStatisticsFile";
-    public static final String PROPERTY_PERFORMANCE_STATISTICS_LEVEL = "performanceStatisticsLevel";
 
     //other
     public static final String PROPERTY_ITERATIVE_SEARCH_BY_PAGING = "iterativeSearchByPaging";
@@ -309,7 +210,6 @@ public class SqlRepositoryConfiguration {
     //closure
     public static final String PROPERTY_IGNORE_ORG_CLOSURE = "ignoreOrgClosure";
     public static final String PROPERTY_ORG_CLOSURE_STARTUP_ACTION = "orgClosureStartupAction";
-    public static final String PROPERTY_SKIP_ORG_CLOSURE_STRUCTURE_CHECK = "skipOrgClosureStructureCheck";
     public static final String PROPERTY_STOP_ON_ORG_CLOSURE_STARTUP_FAILURE = "stopOnOrgClosureStartupFailure";
 
     public static final String PROPERTY_SKIP_EXPLICIT_SCHEMA_VALIDATION = "skipExplicitSchemaValidation";
@@ -328,13 +228,6 @@ public class SqlRepositoryConfiguration {
 
     public static final String PROPERTY_TEXT_INFO_COLUMN_SIZE = "textInfoColumnSize";
 
-    private static final String DRIVER_H2 = Driver.class.getName();
-    private static final String DRIVER_MYSQL = "com.mysql.cj.jdbc.Driver";
-    private static final String DRIVER_MARIADB = "org.mariadb.jdbc.Driver";
-    private static final String DRIVER_SQLSERVER = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-    private static final String DRIVER_POSTGRESQL = "org.postgresql.Driver";
-    private static final String DRIVER_ORACLE = "oracle.jdbc.OracleDriver";
-
     private static final String UTF8MB4 = "utf8mb4";
 
     /*
@@ -347,6 +240,7 @@ public class SqlRepositoryConfiguration {
      * May be null if couldn't be derived in any reasonable way.
      */
     private final Database database;
+    private final SupportedDatabase databaseType; // the same as Database, but more general type
 
     //embedded configuration
     private final boolean embedded;
@@ -362,13 +256,14 @@ public class SqlRepositoryConfiguration {
     private final String jdbcUsername;
     private final String jdbcPassword;
     private final String hibernateDialect;
-    private String hibernateHbm2ddl; // not final only because of testing
+    private final String hibernateHbm2ddl;
     private final String dataSource;
     private final int minPoolSize;
     private final int maxPoolSize;
     private final Long maxLifetime;
     private final Long idleTimeout;
     private final boolean useZip;
+    private final boolean useZipAudit;
     private String fullObjectFormat; // non-final for testing
 
     private TransactionIsolation defaultTransactionIsolation;
@@ -393,7 +288,6 @@ public class SqlRepositoryConfiguration {
 
     private final boolean ignoreOrgClosure;
     private final OrgClosureManager.StartupAction orgClosureStartupAction;
-    private final boolean skipOrgClosureStructureCheck;
     private final boolean stopOnOrgClosureStartupFailure;
 
     private final boolean createMissingCustomColumns;
@@ -424,6 +318,8 @@ public class SqlRepositoryConfiguration {
      *    4. embedded (if true, H2 is used)
      */
     public SqlRepositoryConfiguration(Configuration configuration) {
+        Validate.notNull(configuration, "Repository configuration must not be null.");
+
         dataSource = MiscUtil.nullIfEmpty(configuration.getString(PROPERTY_DATASOURCE));
 
         // guessing the database + setting related basic properties
@@ -453,10 +349,11 @@ public class SqlRepositoryConfiguration {
             }
             database = guessedDatabase;
         }
-        // TODO: when JDK-8 is gone use Objects.requireNonNullElse
-        driverClassName = defaultIfNull(configuredDriverClassName, getDefaultDriverClassName(dataSource, database));
-        hibernateDialect = defaultIfNull(configuredHibernateDialect, getDefaultHibernateDialect(database));
-        embedded = defaultIfNull(configuredEmbedded, getDefaultEmbedded(dataSource, database));
+        databaseType = database != null ? SupportedDatabase.valueOf(database.name()) : null;
+
+        driverClassName = Objects.requireNonNullElse(configuredDriverClassName, getDefaultDriverClassName(dataSource, database));
+        hibernateDialect = Objects.requireNonNullElse(configuredHibernateDialect, getDefaultHibernateDialect(database));
+        embedded = Objects.requireNonNullElse(configuredEmbedded, getDefaultEmbedded(dataSource, database));
 
         // other properties
         asServer = configuration.getBoolean(PROPERTY_AS_SERVER, embedded);
@@ -487,6 +384,7 @@ public class SqlRepositoryConfiguration {
         idleTimeout = configuration.getLong(PROPERTY_IDLE_TIMEOUT, null);
 
         useZip = configuration.getBoolean(PROPERTY_USE_ZIP, false);
+        useZipAudit = configuration.getBoolean(PROPERTY_USE_ZIP_AUDIT, true);
         createMissingCustomColumns = configuration.getBoolean(PROPERTY_CREATE_MISSING_CUSTOM_COLUMNS, false);
         fullObjectFormat = configuration.getString(
                 PROPERTY_FULL_OBJECT_FORMAT,
@@ -521,7 +419,6 @@ public class SqlRepositoryConfiguration {
         orgClosureStartupAction = OrgClosureManager.StartupAction.fromValue(
                 configuration.getString(PROPERTY_ORG_CLOSURE_STARTUP_ACTION,
                         OrgClosureManager.StartupAction.REBUILD_IF_NEEDED.toString()));
-        skipOrgClosureStructureCheck = configuration.getBoolean(PROPERTY_SKIP_ORG_CLOSURE_STRUCTURE_CHECK, false);
         stopOnOrgClosureStartupFailure = configuration.getBoolean(PROPERTY_STOP_ON_ORG_CLOSURE_STARTUP_FAILURE, true);
 
         skipExplicitSchemaValidation = configuration.getBoolean(PROPERTY_SKIP_EXPLICIT_SCHEMA_VALIDATION,
@@ -544,7 +441,7 @@ public class SqlRepositoryConfiguration {
         enableNoFetchExtensionValuesDeletion = configuration.getBoolean(PROPERTY_ENABLE_NO_FETCH_EXTENSION_VALUES_DELETION, false);
         enableIndexOnlyItems = configuration.getBoolean(PROPERTY_ENABLE_INDEX_ONLY_ITEMS, false);
 
-        int maxTextSize = (database == MYSQL || database == MARIADB) && UTF8MB4.equalsIgnoreCase(schemaVariant) ? 191 : 255;
+        int maxTextSize = isUsingMySqlCompatible() && UTF8MB4.equalsIgnoreCase(schemaVariant) ? 191 : 255;
         textInfoColumnSize = configuration.getInt(PROPERTY_TEXT_INFO_COLUMN_SIZE, maxTextSize);
     }
 
@@ -622,6 +519,15 @@ public class SqlRepositoryConfiguration {
             jdbcUrl.append(databaseFile.getAbsolutePath());
         }
         return jdbcUrl.toString();
+    }
+
+    /**
+     * If exception is related to serialization it is not considered "fatal" and can be retried.
+     */
+    @Override
+    public boolean isFatalException(Throwable ex) {
+        return !new TransactionSerializationProblemDetector(this, LOGGER)
+                .isExceptionRelatedToSerialization(ex);
     }
 
     // The methods below are static to highlight their data dependencies and to avoid using properties
@@ -726,7 +632,7 @@ public class SqlRepositoryConfiguration {
      *
      * @throws RepositoryServiceFactoryException if configuration is invalid.
      */
-    public void validate() throws RepositoryServiceFactoryException {
+    public SqlRepositoryConfiguration validate() throws RepositoryServiceFactoryException {
         if (dataSource == null) {
             notEmpty(jdbcUrl, "JDBC Url is empty or not defined.");
             // We don't check username and password, they can be null (MID-5342)
@@ -757,6 +663,8 @@ public class SqlRepositoryConfiguration {
         if (minPoolSize > maxPoolSize) {
             throw new RepositoryServiceFactoryException("Max. pool size must be greater than min. pool size.");
         }
+
+        return this;
     }
 
     private void notEmpty(String value, String message) throws RepositoryServiceFactoryException {
@@ -780,6 +688,7 @@ public class SqlRepositoryConfiguration {
         return driverClassName;
     }
 
+    @Override
     public boolean isEmbedded() {
         return embedded;
     }
@@ -798,11 +707,6 @@ public class SqlRepositoryConfiguration {
 
     public String getHibernateHbm2ddl() {
         return hibernateHbm2ddl;
-    }
-
-    // use only for testing
-    public void setHibernateHbm2ddl(String hibernateHbm2ddl) {
-        this.hibernateHbm2ddl = hibernateHbm2ddl;
     }
 
     /**
@@ -855,6 +759,7 @@ public class SqlRepositoryConfiguration {
         return dropIfExists;
     }
 
+    @Override
     public TransactionIsolation getTransactionIsolation() {
         return transactionIsolation;
     }
@@ -872,14 +777,17 @@ public class SqlRepositoryConfiguration {
         return lockForUpdateViaSql;
     }
 
+    @Override
     public String getReadOnlyTransactionStatement() {
         return readOnlyTransactionStatement;
     }
 
+    @Override
     public String getPerformanceStatisticsFile() {
         return performanceStatisticsFile;
     }
 
+    @Override
     public int getPerformanceStatisticsLevel() {
         return performanceStatisticsLevel;
     }
@@ -905,24 +813,32 @@ public class SqlRepositoryConfiguration {
         return dataSource;
     }
 
+    @Override
     public int getMinPoolSize() {
         return minPoolSize;
     }
 
+    @Override
     public int getMaxPoolSize() {
         return maxPoolSize;
     }
 
+    @Override
     public Long getMaxLifetime() {
         return maxLifetime;
     }
 
+    @Override
     public Long getIdleTimeout() {
         return idleTimeout;
     }
 
     public boolean isUseZip() {
         return useZip;
+    }
+
+    public boolean isUseZipAudit() {
+        return useZipAudit;
     }
 
     /**
@@ -948,46 +864,22 @@ public class SqlRepositoryConfiguration {
         return orgClosureStartupAction;
     }
 
-    public boolean isUsingH2() {
-        return isUsing(H2);
-    }
-
-    private boolean isUsing(Database db) {
-        // Originally we checked here also the driver/dialect; but this is no longer necessary as the database
-        // guesswork is done at initialization time.
-        return database == db;
-    }
-
-    public boolean isUsingOracle() {
-        return isUsing(ORACLE);
-    }
-
-    public boolean isUsingMySqlCompatible() {
-        return isUsing(MYSQL) || isUsing(MARIADB);
-    }
-
-    public boolean isUsingPostgreSQL() {
-        return isUsing(POSTGRESQL);
-    }
-
-    public boolean isUsingSQLServer() {
-        return isUsing(SQLSERVER);
+    @Override
+    public boolean isUsing(SupportedDatabase db) {
+        return databaseType == db;
     }
 
     public boolean isStopOnOrgClosureStartupFailure() {
         return stopOnOrgClosureStartupFailure;
     }
 
-    public boolean isSkipOrgClosureStructureCheck() {
-        return skipOrgClosureStructureCheck;
-    }
-
     public boolean isCreateMissingCustomColumns() {
         return createMissingCustomColumns;
     }
 
-    public Database getDatabaseType() {
-        return database;
+    @Override
+    public SupportedDatabase getDatabaseType() {
+        return database != null ? SupportedDatabase.valueOf(database.name()) : null;
     }
 
     @NotNull
@@ -1021,6 +913,7 @@ public class SqlRepositoryConfiguration {
         return schemaVariant;
     }
 
+    @Override
     public long getInitializationFailTimeout() {
         return initializationFailTimeout;
     }

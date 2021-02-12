@@ -147,12 +147,12 @@ public class MethodUsageStatistics {
 
         if(afterTest){
             LOGGER.info("{}->{}: CALLS: {} MAX: {} MIN: {} MEAN: {} PROCESS_TIME_MEAN: {}",
-                    new Object[]{log.getClassName(), log.getMethodName(), usageCount, formatExecutionTime(max), formatExecutionTime(min), formatExecutionTime(this.mean),
-                            formatExecutionTime(processTimeMean)});
+                    log.getClassName(), log.getMethodName(), usageCount, formatExecutionTime(max),
+                    formatExecutionTime(min), formatExecutionTime(this.mean), formatExecutionTime(processTimeMean));
         } else {
             LOGGER.debug("{}->{}: CALLS: {} MAX: {} MIN: {} MEAN: {} PROCESS_TIME_MEAN: {}",
-                    new Object[]{log.getClassName(), log.getMethodName(), usageCount, formatExecutionTime(max), formatExecutionTime(min), formatExecutionTime(this.mean),
-                            formatExecutionTime(processTimeMean)});
+                    log.getClassName(), log.getMethodName(), usageCount, formatExecutionTime(max),
+                    formatExecutionTime(min), formatExecutionTime(this.mean), formatExecutionTime(processTimeMean));
         }
 
 

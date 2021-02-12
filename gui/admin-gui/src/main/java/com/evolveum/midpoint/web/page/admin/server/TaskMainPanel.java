@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.page.admin.server;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionConstraintsType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -62,6 +64,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
         createBasicPanel(tabs, parentTaskPage);
         createScheduleTab(tabs, parentTaskPage);
         createWorkManagementTab(tabs, parentTaskPage);
+        createExecutionConstraintsTab(tabs, parentTaskPage);
 //        createCleanupPoliciesTab(tabs, parentTaskPage);
         createSubtasksTab(tabs, parentTaskPage);
         createOperationStatisticsPanel(tabs, parentTaskPage);
@@ -158,6 +161,18 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
             }
         });
     }
+
+    public void createExecutionConstraintsTab(List<ITab> tabs, PageTask parentPage) {
+
+        tabs.add(new PanelTab(parentPage.createStringResource("pageTask.executionConstraints.title")) {
+
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                return new SingleContainerPanel<TaskExecutionConstraintsType>(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_EXECUTION_CONSTRAINTS), TaskExecutionConstraintsType.COMPLEX_TYPE);
+            }
+        });
+    }
+
 
 //    private void createCleanupPoliciesTab(List<ITab> tabs, PageTask parentPage) {
 //        ObjectTabVisibleBehavior<TaskType> cleanupPoliciesTabVisibility = new ObjectTabVisibleBehavior<TaskType>

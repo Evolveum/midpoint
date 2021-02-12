@@ -4,8 +4,9 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
-@import "midpoint-theme-variables.less";
+@import "webjars:AdminLTE/2.4.18/build/less/AdminLTE.less";
+@import "webjars:AdminLTE/2.4.18/build/less/skins/_all-skins.less";
+@import "/less/midpoint-theme-variables.less";
 
 body.custom-hold-transition {
 	.content-wrapper,
@@ -103,43 +104,34 @@ th.cog, td.cog {
 }
 //end table context menu border fix
 
-//disabled menu css fixes
-.sidebar-menu .treeview-menu > li > span {
-  display: block;
-  font-size: 14px;
-  padding: 5px 5px 5px 15px;
-}
 
-.sidebar-menu .treeview-menu > li > span > .fa,
-.sidebar-menu .treeview-menu > li > span > .fe,
-.sidebar-menu .treeview-menu > li > span > .glyphicon,
-.sidebar-menu .treeview-menu > li > span > .ion {
+// sidebar styles extension
+.sidebar-menu .treeview-menu > li > span > .fe {
   width: 20px;
 }
-
-.sidebar-menu > .header {
-	// white-space: wrap is problematic in firefox, it wraps expand/collapse icon on next line
-	white-space: normal !important;
-}
-
 .sidebar-menu > li > a > .fe {
 	width: 20px;
 }
 
-.sidebar-form, .sidebar-menu > li.header {
-	padding: 10px 20px 10px 15px;
-	text-transform: uppercase;
+.sidebar-menu {
 
-	& i.fa, & i.fe {
-		margin-top: 2px;
-	}
-}
+  li.header {
+    > i.fa-chevron-down {
+      width: auto;
+      height: auto;
+      padding: 0;
+      .transition(transform .5s ease);
+    }
 
-body .treeview-menu > li.active > span,
-body .treeview-menu > li > span:hover {
-  color: #000;
+    &.closed {
+      > i.fa-chevron-down {
+        .rotate(90deg);
+      }
+    }
+
+  }
 }
-//end of disabled menu css fixes
+// end sidebar styles extension
 
 .user-thumbnail-helper {
   display: inline-block;
@@ -1845,4 +1837,67 @@ th.composited-icon {
   padding-left: 50px;
   margin-top: 0px;
   margin-bottom: -10px;
+}
+
+.popover {
+    .form-control {
+      width: 100% !important;
+    }
+
+    .form-control-sized {
+      width: auto !important;
+    }
+}
+
+.password-progress-bar {
+    .progress {
+      height: 5px;
+      margin-bottom: 5px;
+    }
+}
+
+.password-validator-popover {
+    position: absolute;
+    z-index: 1000;
+    display: none;
+    min-width: 300px;
+
+    .arrow-up {
+        left: 19px;
+        position: absolute;
+        top: 0px;
+        background-color: white;
+        border-left: 1px solid rgb(210,214,222);
+        border-top: 1px solid rgb(210,214,222);
+        transform: translate(50%, -50%) rotate(45deg);
+        height: 16px;
+        width: 16px;
+    }
+
+    .popover-inner {
+        -webkit-box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        -moz-box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        -webkit-border-radius: 2px;
+        -moz-border-radius: 2px;
+        border-radius: 2px;
+        background-color: white;
+        border: 1px solid #d2d6de;
+        white-space: nowrap;
+    }
+
+    .list-group {
+        margin-bottom: 0px;
+    }
+
+    .list-group-item {
+        margin-bottom: 0px;
+        border: none;
+        border-bottom: 1px solid #d2d6de;
+        padding: 5px 5px;
+    }
+
+    .list-group-item:last-child {
+            margin-bottom: -1px;
+        }
 }

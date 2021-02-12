@@ -968,7 +968,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 null);
         jpegPhotoDelta.setRealValuesToReplace(bytesIn);
 
-        Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(jpegPhotoDelta);
+        Collection<? extends ItemDelta<?, ?>> modifications = MiscSchemaUtil.createCollection(jpegPhotoDelta);
 
         display("Modifications", modifications);
 
@@ -1026,7 +1026,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 null);
         titleDelta.addRealValuesToAdd("Great Captain");
 
-        Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(givenNameDelta, titleDelta);
+        Collection<? extends ItemDelta<?, ?>> modifications = MiscSchemaUtil.createCollection(givenNameDelta, titleDelta);
 
         display("Modifications", modifications);
 
@@ -2806,7 +2806,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 null);
         descriptionDelta.setRealValuesToReplace(descriptionBefore);
 
-        Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(descriptionDelta);
+        Collection<? extends ItemDelta<?, ?>> modifications = MiscSchemaUtil.createCollection(descriptionDelta);
 
         display("Modifications", modifications);
 
@@ -2855,7 +2855,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 null);
         descriptionDelta.setRealValuesToReplace(descriptionBefore);
 
-        Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(descriptionDelta);
+        Collection<? extends ItemDelta<?, ?>> modifications = MiscSchemaUtil.createCollection(descriptionDelta);
 
         display("Modifications", modifications);
 
@@ -2904,7 +2904,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 null);
         descriptionDelta.setRealValuesToReplace(descriptionBefore);
 
-        Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(descriptionDelta);
+        Collection<? extends ItemDelta<?, ?>> modifications = MiscSchemaUtil.createCollection(descriptionDelta);
 
         display("Modifications", modifications);
 
@@ -2953,7 +2953,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 null);
         descriptionDelta.setRealValuesToReplace(descriptionBefore);
 
-        Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(descriptionDelta);
+        Collection<? extends ItemDelta<?, ?>> modifications = MiscSchemaUtil.createCollection(descriptionDelta);
 
         display("Modifications", modifications);
 
@@ -3001,7 +3001,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 null);
         descriptionDelta.addRealValuesToDelete(descriptionBefore);
 
-        Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(descriptionDelta);
+        Collection<? extends ItemDelta<?, ?>> modifications = MiscSchemaUtil.createCollection(descriptionDelta);
 
         display("Modifications", modifications);
 
@@ -3051,7 +3051,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 null);
         descriptionDelta.setRealValuesToReplace(descriptionBefore);
 
-        Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(descriptionDelta);
+        Collection<? extends ItemDelta<?, ?>> modifications =
+                MiscSchemaUtil.createCollection(descriptionDelta);
 
         display("Modifications", modifications);
 

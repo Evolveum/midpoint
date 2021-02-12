@@ -1,16 +1,16 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql;
 
 import static java.util.Collections.emptySet;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
-import static com.evolveum.midpoint.repo.api.RepoModifyOptions.createExecuteIfNoChanges;
+import static com.evolveum.midpoint.repo.api.RepoModifyOptions.createForceReindex;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 
 import java.io.File;
@@ -23,10 +23,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -53,6 +50,7 @@ public class SearchTest extends BaseSQLRepoTest {
     private static final String ARCHETYPE1_OID = "a71e48fe-f6e2-40f4-ab76-b4ad4a0918ad";
 
     private String beforeConfigOid;
+    private String x00002Oid; // user with 3 assignments
 
     @Override
     public void initSystem() throws Exception {
@@ -74,9 +72,13 @@ public class SearchTest extends BaseSQLRepoTest {
         List<PrismObject<? extends Objectable>> objects = prismContext.parserFor(new File(FOLDER_BASIC, "objects.xml")).parseObjects();
         objects.addAll(prismContext.parserFor(new File(FOLDER_BASIC, "objects-2.xml")).parseObjects());
 
+        //noinspection rawtypes
         for (PrismObject object : objects) {
             //noinspection unchecked
             repositoryService.addObject(object, null, result);
+            if (object.getName().getOrig().equals("atestuserX00002")) {
+                x00002Oid = object.getOid();
+            }
         }
 
         result.recomputeStatus();
@@ -84,7 +86,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void iterateEmptySet() throws Exception {
+    public void test100IterateEmptySet() throws Exception {
         OperationResult result = new OperationResult("search empty");
 
         ResultHandler<UserType> handler = (object, parentResult) -> {
@@ -103,10 +105,10 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void iterateSet() throws Exception {
+    public void test110IterateSet() throws Exception {
         OperationResult result = new OperationResult("search set");
 
-        final List<PrismObject> objects = new ArrayList<>();
+        final List<PrismObject<?>> objects = new ArrayList<>();
 
         ResultHandler<UserType> handler = (object, parentResult) -> {
             objects.add(object);
@@ -121,7 +123,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void iterateSetWithPaging() throws Exception {
+    public void test120IterateSetWithPaging() throws Exception {
         iterateGeneral(0, 2, 2, "atestuserX00002", "atestuserX00003");
         iterateGeneral(0, 2, 1, "atestuserX00002", "atestuserX00003");
         iterateGeneral(0, 1, 10, "atestuserX00002");
@@ -132,9 +134,9 @@ public class SearchTest extends BaseSQLRepoTest {
     private void iterateGeneral(int offset, int size, int batch, final String... names) throws Exception {
         OperationResult result = new OperationResult("search general");
 
-        final List<PrismObject> objects = new ArrayList<>();
+        final List<PrismObject<?>> objects = new ArrayList<>();
 
-        ResultHandler<UserType> handler = new ResultHandler<UserType>() {
+        ResultHandler<UserType> handler = new ResultHandler<>() {
 
             private int index = 0;
 
@@ -164,7 +166,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void caseSensitiveSearchTest() throws Exception {
+    public void test150CaseSensitiveSearch() throws Exception {
         final String existingNameOrig = "Test UserX00003";
         final String nonExistingNameOrig = "test UserX00003";
         final String nameNorm = "test userx00003";
@@ -190,7 +192,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void roleMembershipSearchTest() throws Exception {
+    public void test200RoleMembershipSearch() throws Exception {
         PrismReferenceValue r456 = itemFactory().createReferenceValue("r456", RoleType.COMPLEX_TYPE);
         r456.setRelation(SchemaConstants.ORG_DEFAULT);
         ObjectQuery query = prismContext.queryFor(UserType.class)
@@ -224,7 +226,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void delegatedSearchTest() throws Exception {
+    public void test210DelegatedSearch() throws Exception {
         PrismReferenceValue r789 = itemFactory().createReferenceValue("r789", RoleType.COMPLEX_TYPE);
         // intentionally without relation (meaning "member")
         ObjectQuery query = prismContext.queryFor(UserType.class)
@@ -248,7 +250,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void personaSearchTest() throws Exception {
+    public void test220PersonaSearch() throws Exception {
         PrismReferenceValue u000 = itemFactory().createReferenceValue("u000", UserType.COMPLEX_TYPE);
         ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(UserType.F_PERSONA_REF).ref(u000)
@@ -271,7 +273,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void assignmentOrgRefSearchTest() throws Exception {
+    public void test300AssignmentOrgRefSearch() throws Exception {
         PrismReferenceValue o123456 = itemFactory().createReferenceValue("o123456", OrgType.COMPLEX_TYPE);
         ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, AssignmentType.F_ORG_REF).ref(o123456)
@@ -296,7 +298,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void assignmentResourceRefSearchTest() throws Exception {
+    public void test310AssignmentResourceRefSearch() throws Exception {
         PrismReferenceValue resourceRef = itemFactory().createReferenceValue("10000000-0000-0000-0000-000000000004", ResourceType.COMPLEX_TYPE);
         ObjectQuery query = prismContext.queryFor(RoleType.class)
                 .item(RoleType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF).ref(resourceRef)
@@ -320,7 +322,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void roleAssignmentSearchTest() throws Exception {
+    public void test320RoleAssignmentSearch() throws Exception {
         PrismReferenceValue r456 = itemFactory().createReferenceValue("r123", RoleType.COMPLEX_TYPE);
         ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(r456)
@@ -335,7 +337,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void orgAssignmentSearchTest() throws Exception {
+    public void test330OrgAssignmentSearch() throws Exception {
         PrismReferenceValue org = itemFactory().createReferenceValue("00000000-8888-6666-0000-100000000085", OrgType.COMPLEX_TYPE);
         ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(org)
@@ -350,7 +352,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void orgAssignmentSearchTestNoTargetType() throws Exception {
+    public void test340OrgAssignmentSearchNoTargetType() throws Exception {
         PrismReferenceValue org = itemFactory().createReferenceValue("00000000-8888-6666-0000-100000000085", null);
         ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(org)
@@ -364,7 +366,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void orgAssignmentSearchTestByOid() throws Exception {
+    public void test350OrgAssignmentSearchByOid() throws Exception {
         ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref("00000000-8888-6666-0000-100000000085")
                 .build();
@@ -378,7 +380,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void roleAndOrgAssignmentSearchTest() throws Exception {
+    public void test360RoleAndOrgAssignmentSearch() throws Exception {
         PrismReferenceValue r123 = itemFactory().createReferenceValue("r123", RoleType.COMPLEX_TYPE);
         PrismReferenceValue org = itemFactory().createReferenceValue("00000000-8888-6666-0000-100000000085", OrgType.COMPLEX_TYPE);
         ObjectQuery query = prismContext.queryFor(UserType.class)
@@ -395,7 +397,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void notBusinessRoleTypeSearchTest() throws Exception {
+    public void test400NotBusinessRoleTypeSearch() throws Exception {
         ObjectQuery query = prismContext.queryFor(RoleType.class)
                 .not().item(RoleType.F_ROLE_TYPE).eq("business")
                 .build();
@@ -411,7 +413,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void businessRoleTypeSearchTest() throws Exception {
+    public void test410BusinessRoleTypeSearch() throws Exception {
         ObjectQuery query = prismContext.queryFor(RoleType.class)
                 .item(RoleType.F_ROLE_TYPE).eq("business")
                 .build();
@@ -425,7 +427,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void emptyRoleTypeSearchTest() throws Exception {
+    public void test420EmptyRoleTypeSearch() throws Exception {
         ObjectQuery query = prismContext.queryFor(RoleType.class)
                 .item(RoleType.F_ROLE_TYPE).isNull()
                 .build();
@@ -441,7 +443,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void nonEmptyRoleTypeSearchTest() throws Exception {
+    public void test430NonEmptyRoleTypeSearch() throws Exception {
         ObjectQuery query = prismContext.queryFor(RoleType.class)
                 .not().item(RoleType.F_ROLE_TYPE).isNull()
                 .build();
@@ -455,7 +457,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testIndividualOwnerRef() throws Exception {
+    public void test440IndividualOwnerRef() throws Exception {
         testOwnerRef(TaskType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), "Synchronization: Embedded Test OpenDJ");
         testOwnerRef(TaskType.class, null, "Task with no owner");
         testOwnerRef(TaskType.class, "123");
@@ -470,7 +472,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testOwnerRefWithTypeRestriction() throws Exception {
+    public void test450OwnerRefWithTypeRestriction() throws Exception {
         testOwnerRefWithTypeRestriction(TaskType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), "Synchronization: Embedded Test OpenDJ");
         testOwnerRefWithTypeRestriction(TaskType.class, null, "Task with no owner");
         testOwnerRefWithTypeRestriction(TaskType.class, "123");
@@ -514,7 +516,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testWildOwnerRef() throws SchemaException {
+    public void test560WildOwnerRef() throws SchemaException {
         final String oid = SystemObjectsType.USER_ADMINISTRATOR.value();
         ItemDefinition<?> ownerRefDef = prismContext.getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(TaskType.class)
@@ -532,7 +534,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testResourceUp() throws SchemaException {
+    public void test600ResourceUp() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(ResourceType.class)
                 .item(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS).eq(AvailabilityStatusType.UP)
                 .build();
@@ -544,7 +546,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testMultivaluedExtensionPropertySubstringQualified() throws SchemaException {
+    public void test610MultivaluedExtensionPropertySubstringQualified() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
                 .item(ObjectType.F_EXTENSION, new QName("http://example.com/p", "multivalued")).contains("slava")
                 .build();
@@ -556,7 +558,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testMultivaluedExtensionPropertyEqualsQualified() throws SchemaException {
+    public void test620MultivaluedExtensionPropertyEqualsQualified() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
                 .item(ObjectType.F_EXTENSION, new QName("http://example.com/p", "multivalued")).eq("Bratislava")
                 .build();
@@ -568,7 +570,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testMultivaluedExtensionPropertySubstringUnqualified() throws SchemaException {
+    public void test630MultivaluedExtensionPropertySubstringUnqualified() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
                 .item(ObjectType.F_EXTENSION, new QName("multivalued")).contains("slava")
                 .build();
@@ -580,7 +582,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testMultivaluedExtensionPropertyEqualsUnqualified() throws SchemaException {
+    public void test640MultivaluedExtensionPropertyEqualsUnqualified() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
                 .item(ObjectType.F_EXTENSION, new QName("multivalued")).eq("Bratislava")
                 .build();
@@ -592,7 +594,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testRoleAttributes() throws SchemaException {
+    public void test650RoleAttributes() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(RoleType.class)
                 .item(RoleType.F_RISK_LEVEL).eq("critical")
                 .and().item(RoleType.F_IDENTIFIER).eq("123")
@@ -607,7 +609,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
     // testing MID-3568
     @Test
-    public void caseInsensitiveSearchTest() throws Exception {
+    public void test660CaseInsensitiveSearch() throws Exception {
         final String existingNameNorm = "test userx00003";
         final String existingNameOrig = "Test UserX00003";
         final String emailLowerCase = "testuserx00003@example.com";
@@ -677,7 +679,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void fullTextSearch() throws Exception {
+    public void test700FullTextSearch() throws Exception {
 
         OperationResult result = new OperationResult("fullTextSearch");
 
@@ -760,7 +762,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test // MID-4932
-    public void fullTextSearchModify() throws Exception {
+    public void test710FullTextSearchModify() throws Exception {
 
         OperationResult result = new OperationResult("fullTextSearchModify");
         repositoryService.modifyObject(TaskType.class, "777",
@@ -777,7 +779,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void reindex() throws Exception {
+    public void test720Reindex() throws Exception {
 
         OperationResult result = new OperationResult("reindex");
 
@@ -785,7 +787,7 @@ public class SearchTest extends BaseSQLRepoTest {
                         .fullText(DESCRIPTION_TO_FIND)
                         .build(),
                 false, 0);
-        repositoryService.modifyObject(UserType.class, beforeConfigOid, emptySet(), createExecuteIfNoChanges(), result);
+        repositoryService.modifyObject(UserType.class, beforeConfigOid, emptySet(), createForceReindex(), result);
         assertUsersFound(prismContext.queryFor(UserType.class)
                         .fullText(DESCRIPTION_TO_FIND)
                         .build(),
@@ -797,7 +799,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testShadowPendingOperation() throws SchemaException {
+    public void test730ShadowPendingOperation() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(ShadowType.class)
                 .exists(ShadowType.F_PENDING_OPERATION)
                 .build();
@@ -835,7 +837,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testOperationExecutionAny() throws SchemaException {
+    public void test740OperationExecutionAny() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(CaseType.class)
                 .item(ObjectType.F_OPERATION_EXECUTION, OperationExecutionType.F_STATUS).eq(OperationResultStatusType.FATAL_ERROR)
                 .build();
@@ -847,7 +849,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testOperationExecutionWithTask() throws SchemaException {
+    public void test750OperationExecutionWithTask() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(CaseType.class)
                 .exists(ObjectType.F_OPERATION_EXECUTION)
                 .block()
@@ -863,7 +865,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testOperationExecutionWithTask2() throws SchemaException {
+    public void test751OperationExecutionWithTask2() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(CaseType.class)
                 .exists(ObjectType.F_OPERATION_EXECUTION)
                 .block()
@@ -879,7 +881,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testExtensionReference() throws SchemaException {
+    public void test800ExtensionReference() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
                 .item(ObjectType.F_EXTENSION, new QName("referenceType"))
                 .ref("12345678-1234-1234-1234-123456789012")
@@ -892,7 +894,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testExtensionReferenceNotMatching() throws SchemaException {
+    public void test802ExtensionReferenceNotMatching() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
                 .item(ObjectType.F_EXTENSION, new QName("referenceType"))
                 .ref("12345678-1234-1234-1234-123456789xxx")
@@ -905,7 +907,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testExtensionReferenceNull() throws SchemaException {
+    public void test804ExtensionReferenceNull() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
                 .item(ObjectType.F_EXTENSION, new QName("referenceType"))
                 .isNull()
@@ -918,7 +920,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testExtensionReferenceNonNull() throws SchemaException {
+    public void test806ExtensionReferenceNonNull() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
                 .not().item(ObjectType.F_EXTENSION, new QName("referenceType"))
                 .isNull()
@@ -931,7 +933,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testObjectCollection() throws SchemaException {
+    public void test810ObjectCollection() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(ObjectCollectionType.class)
                 .item(ObjectType.F_NAME).eqPoly("collection1", "collection1").matchingOrig()
                 .build();
@@ -943,7 +945,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testAllObjectCollections() throws SchemaException {
+    public void test815AllObjectCollections() throws SchemaException {
         OperationResult result = new OperationResult("search");
         List<PrismObject<ObjectCollectionType>> collections = repositoryService.searchObjects(ObjectCollectionType.class, null, null, result);
         result.recomputeStatus();
@@ -952,7 +954,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testFunctionLibrary() throws SchemaException {
+    public void test820FunctionLibrary() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(FunctionLibraryType.class)
                 .item(ObjectType.F_NAME).eqPoly("fl1", "fl1").matchingOrig()
                 .build();
@@ -964,7 +966,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testArchetype() throws SchemaException {
+    public void test830Archetype() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(ArchetypeType.class)
                 .item(ObjectType.F_NAME).eqPoly("archetype1", "archetype1").matchingOrig()
                 .build();
@@ -976,7 +978,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testSearchAssignmentHoldersByArchetypeRef() throws SchemaException {
+    public void test840SearchAssignmentHoldersByArchetypeRef() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(AssignmentHolderType.class)
                 .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(ARCHETYPE1_OID)
                 .build();
@@ -989,7 +991,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testSearchObjectsByArchetypeRef() throws SchemaException {
+    public void test850SearchObjectsByArchetypeRef() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(AssignmentHolderType.class)
                 .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(ARCHETYPE1_OID)
                 .build();
@@ -1002,7 +1004,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testSearchUsersByArchetypeRef() throws SchemaException {
+    public void test860SearchUsersByArchetypeRef() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(ARCHETYPE1_OID)
                 .build();
@@ -1015,7 +1017,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testSearchTasksByArchetypeRef() throws SchemaException {
+    public void test870SearchTasksByArchetypeRef() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(TaskType.class)
                 .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(ARCHETYPE1_OID)
                 .build();
@@ -1028,7 +1030,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testSearchFocus() throws SchemaException {
+    public void test880SearchFocus() throws SchemaException {
         OperationResult result = new OperationResult("search");
         List<PrismObject<FocusType>> objects = repositoryService.searchObjects(FocusType.class, null, null, result);
         result.recomputeStatus();
@@ -1040,7 +1042,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testSearchAssignmentHolder() throws SchemaException {
+    public void test890SearchAssignmentHolder() throws SchemaException {
         OperationResult result = new OperationResult("search");
         List<PrismObject<AssignmentHolderType>> objects = repositoryService.searchObjects(AssignmentHolderType.class, null, null, result);
         result.recomputeStatus();
@@ -1052,7 +1054,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testCaseWorkItemAssignee() throws SchemaException {
+    public void test900CaseWorkItemAssignee() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(CaseType.class)
                 .item(CaseType.F_WORK_ITEM, CaseWorkItemType.F_ASSIGNEE_REF).ref("5905f321-630f-4de3-abc9-ba3a614aac36")
                 .build();
@@ -1064,7 +1066,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testCaseWorkItemCandidate() throws SchemaException {
+    public void test902CaseWorkItemCandidate() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(CaseType.class)
                 .item(CaseType.F_WORK_ITEM, CaseWorkItemType.F_CANDIDATE_REF).ref("5905f321-630f-4de3-abc9-ba3a614aac36")
                 .build();
@@ -1076,7 +1078,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testCaseWorkItemCandidateOther() throws SchemaException {
+    public void test904CaseWorkItemCandidateOther() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(CaseType.class)
                 .item(CaseType.F_WORK_ITEM, CaseWorkItemType.F_CANDIDATE_REF).ref("d2bda14f-8571-4c99-bbe4-25c132650998")
                 .build();
@@ -1089,7 +1091,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testWorkItemCandidate() throws SchemaException {
+    public void test910WorkItemCandidate() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(CaseWorkItemType.class)
                 .item(CaseWorkItemType.F_CANDIDATE_REF).ref("d2bda14f-8571-4c99-bbe4-25c132650998")
                 .build();
@@ -1101,7 +1103,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testWorkItemCandidateOther() throws SchemaException {
+    public void test912WorkItemCandidateOther() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(CaseWorkItemType.class)
                 .item(CaseWorkItemType.F_CANDIDATE_REF).ref("5905f321-630f-4de3-abc9-ba3a614aac36")
                 .build();
@@ -1113,7 +1115,7 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void testWorkItemWithCreateTimestamp() throws SchemaException {
+    public void test914WorkItemWithCreateTimestamp() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(CaseWorkItemType.class)
                 .not().item(CaseWorkItemType.F_CREATE_TIMESTAMP).isNull()
                 .build();
@@ -1125,11 +1127,76 @@ public class SearchTest extends BaseSQLRepoTest {
         assertNotNull("Null createTimestamp", workItems.get(0).getCreateTimestamp());
     }
 
+    // MID-6799, MID-6393
+    @Test
+    public void test920AssignmentsForOwner() throws SchemaException {
+        given("query for assignments of a specified owner");
+        ObjectQuery query = prismContext.queryFor(AssignmentType.class)
+                .ownerId(x00002Oid)
+                .build();
+        OperationResult result = new OperationResult("search");
+
+        when("executing container search");
+        SearchResultList<AssignmentType> assignments =
+                repositoryService.searchContainers(AssignmentType.class, query, null, result);
+        result.recomputeStatus();
+
+        then("all assignments of that owner are returned");
+        assertThat(result.isSuccess()).isTrue();
+        assertThat(assignments).hasSize(3);
+    }
+
+    @Test
+    public void test921AssignmentsOfSomeType() throws SchemaException {
+        given("query for assignments with target ref type of Role");
+        ObjectQuery query = prismContext.queryFor(AssignmentType.class)
+                .item(AssignmentType.F_TARGET_REF).ref(null, RoleType.COMPLEX_TYPE)
+                .and().ownerId(x00002Oid)
+                .build();
+        OperationResult result = new OperationResult("search");
+
+        when("executing container search");
+        SearchResultList<AssignmentType> assignments =
+                repositoryService.searchContainers(AssignmentType.class, query, null, result);
+        result.recomputeStatus();
+
+        then("only assignment with target ref type equal to Role"
+                + " (with default relation which is implied) is returned");
+        assertThat(result.isSuccess()).isTrue();
+        assertThat(assignments).hasSize(1);
+        assertThat(assignments.get(0).getTargetRef().getType()).isEqualTo(RoleType.COMPLEX_TYPE);
+    }
+
+    @Test
+    public void test922AssignmentsWithSpecifiedTargetName() throws SchemaException {
+        given("query for assignment to organization with specified name");
+        ObjectQuery query = prismContext.queryFor(AssignmentType.class)
+                .item(AssignmentType.F_TARGET_REF).ref(null, OrgType.COMPLEX_TYPE)
+                .and()
+                .item(AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, F_NAME)
+                .eq("F0085")
+                // skipping owner this time, although this is fishy as it is not currently in the returned values
+                .asc(AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, F_NAME)
+                .build();
+        OperationResult result = new OperationResult("search");
+
+        when("executing container search");
+        SearchResultList<AssignmentType> assignments =
+                repositoryService.searchContainers(AssignmentType.class, query, null, result);
+        result.recomputeStatus();
+
+        then("only assignment to the specified organization is returned");
+        assertThat(result.isSuccess()).isTrue();
+        assertThat(assignments).hasSize(1);
+        // this OID in object.xml matches the F0085 name, the name itself is not in fetched data
+        assertThat(assignments.get(0).getTargetRef().getOid()).isEqualTo("00000000-8888-6666-0000-100000000085");
+    }
+
     /**
      * See MID-5474 (just a quick attempt to replicate)
      */
     @Test
-    public void iterateAndModify() throws Exception {
+    public void test930IterateAndModify() throws Exception {
         OperationResult result = new OperationResult("iterateAndModify");
 
         AtomicInteger count = new AtomicInteger(0);
@@ -1160,7 +1227,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
     // MID-5515
     @Test
-    public void testSearchNameNull() throws Exception {
+    public void test935SearchNameNull() throws Exception {
         OperationResult result = new OperationResult("testSearchNameNull");
         ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(F_NAME).isNull()
@@ -1175,7 +1242,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
     // MID-5515
     @Test
-    public void testSearchNameNotNull() throws Exception {
+    public void test932SearchNameNotNull() throws Exception {
         OperationResult result = new OperationResult("testSearchNameNotNull");
         ObjectQuery query = prismContext.queryFor(UserType.class)
                 .not().item(F_NAME).isNull()
@@ -1191,7 +1258,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
     // MID-4575
     @Test
-    public void testSearchPasswordCreateTimestamp() throws Exception {
+    public void test950SearchPasswordCreateTimestamp() throws Exception {
         ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
                         PasswordType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -23,9 +23,27 @@ public abstract class AbstractUnitTest implements MidpointTestMixin {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
+    private TestMonitor testMonitor;
+
+    /** Called only by tests that need it, implements performance mixin interface. */
+    public TestMonitor createTestMonitor() {
+        testMonitor = new TestMonitor();
+        return testMonitor;
+    }
+
+    /** Called only by tests that need it, implements performance mixin interface. */
+    public void destroyTestMonitor() {
+        testMonitor = null;
+    }
+
+    /** Called only by tests that need it, implements performance mixin interface. */
+    public TestMonitor testMonitor() {
+        return testMonitor;
+    }
+
     @BeforeClass
     public void displayTestClassTitle() {
-        displayTestTitle("Initializing TEST CLASS: " + getClass().getName());
+        displayTestTitle("Starting TEST CLASS: " + getClass().getName());
     }
 
     @AfterClass

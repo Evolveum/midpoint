@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql;
 
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
@@ -16,6 +15,8 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.Validate;
@@ -39,7 +40,8 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.repo.sql.helpers.*;
-import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
+import com.evolveum.midpoint.repo.sqlbase.ConflictWatcherImpl;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -64,39 +66,61 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public class SqlRepositoryServiceImpl extends SqlBaseService implements RepositoryService {
 
+    private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
+
     public static final String PERFORMANCE_LOG_NAME = SqlRepositoryServiceImpl.class.getName() + ".performance";
     public static final String CONTENTION_LOG_NAME = SqlRepositoryServiceImpl.class.getName() + ".contention";
+
     public static final int CONTENTION_LOG_DEBUG_THRESHOLD = 3;
     public static final int MAIN_LOG_WARN_THRESHOLD = 8;
 
     private static final int RESTART_LIMIT = 1000;
 
-    private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
-
-    private static final int MAX_CONFLICT_WATCHERS = 10; // just a safeguard (watchers per thread should be at most 1-2)
+    // just a safeguard (watchers per thread should be at most 1-2)
+    private static final int MAX_CONFLICT_WATCHERS = 10;
     public static final int MAX_CONSTRAINT_NAME_LENGTH = 40;
     private static final String IMPLEMENTATION_SHORT_NAME = "SQL";
-    private static final String IMPLEMENTATION_DESCRIPTION = "Implementation that stores data in generic relational" +
-            " (SQL) databases. It is using ORM (hibernate) on top of JDBC to access the database.";
+    private static final String IMPLEMENTATION_DESCRIPTION =
+            "Implementation that stores data in generic relational (SQL) databases."
+                    + " It is using ORM (hibernate) on top of JDBC to access the database.";
     private static final String DETAILS_TRANSACTION_ISOLATION = "transactionIsolation";
     private static final String DETAILS_CLIENT_INFO = "clientInfo.";
     private static final String DETAILS_DATA_SOURCE = "dataSource";
     private static final String DETAILS_HIBERNATE_DIALECT = "hibernateDialect";
     private static final String DETAILS_HIBERNATE_HBM_2_DDL = "hibernateHbm2ddl";
 
+    private final BaseHelper baseHelper;
+    private final MatchingRuleRegistry matchingRuleRegistry;
+    private final PrismContext prismContext;
+    private final RelationRegistry relationRegistry;
+
+    // autowired because sadly these involve dependency cycles
     @Autowired private SequenceHelper sequenceHelper;
     @Autowired private ObjectRetriever objectRetriever;
     @Autowired private ObjectUpdater objectUpdater;
     @Autowired private OrgClosureManager closureManager;
-    @Autowired private BaseHelper baseHelper;
-    @Autowired private MatchingRuleRegistry matchingRuleRegistry;
-    @Autowired private PrismContext prismContext;
-    @Autowired private RelationRegistry relationRegistry;
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
 
-    private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal = new ThreadLocal<>();
+    private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal =
+            ThreadLocal.withInitial(ArrayList::new);
 
     private FullTextSearchConfigurationType fullTextSearchConfiguration;
+
+    public SqlRepositoryServiceImpl(
+            BaseHelper baseHelper,
+            MatchingRuleRegistry matchingRuleRegistry,
+            PrismContext prismContext,
+            RelationRegistry relationRegistry) {
+        this.baseHelper = baseHelper;
+        this.matchingRuleRegistry = matchingRuleRegistry;
+        this.prismContext = prismContext;
+        this.relationRegistry = relationRegistry;
+    }
+
+    @PostConstruct
+    public void init() throws RepositoryServiceFactoryException {
+        LOGGER.info("Repository initialization finished.");
+    }
 
     @Override
     public SqlRepositoryConfiguration sqlConfiguration() {
@@ -241,8 +265,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     @NotNull
     @Override
-    public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
+    public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(
+            @NotNull Class<T> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult result) throws SchemaException {
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
 
@@ -342,8 +368,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
+    @NotNull
     public <T extends ObjectType> String addObject(
-            PrismObject<T> object, RepoAddOptions options, OperationResult result)
+            @NotNull PrismObject<T> object, RepoAddOptions options, @NotNull OperationResult result)
             throws ObjectAlreadyExistsException, SchemaException {
         Validate.notNull(object, "Object must not be null.");
         validateName(object);
@@ -383,7 +410,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         long opHandle = pm.registerOperationStart(OP_ADD_OBJECT, object.getCompileTimeClass());
         int attempt = 1;
         int restarts = 0;
-        boolean noFetchExtensionValueInsertionForbidden = false;
         try {
             // TODO use executeAttempts
             final String operation = "adding";
@@ -391,7 +417,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             String proposedOid = object.getOid();
             while (true) {
                 try {
-                    String createdOid = objectUpdater.addObjectAttempt(object, options, noFetchExtensionValueInsertionForbidden, subResult);
+                    String createdOid = objectUpdater.addObjectAttempt(object, options, subResult);
                     invokeConflictWatchers((w) -> w.afterAddObject(createdOid, object));
                     return createdOid;
                 } catch (RestartOperationRequestedException ex) {
@@ -405,7 +431,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     attempt = baseHelper.logOperationAttempt(proposedOid, operation, attempt, ex, subResult);
                     pm.registerOperationNewAttempt(opHandle, attempt);
                 }
-                noFetchExtensionValueInsertionForbidden = true; // todo This is a temporary measure; needs better handling.
             }
         } finally {
             pm.registerOperationFinish(opHandle, attempt);
@@ -478,8 +503,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     @NotNull
     @Override
-    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid,
-            Collection<? extends ItemDelta> modifications, OperationResult result)
+    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(
+            @NotNull Class<T> type,
+            @NotNull String oid,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         return modifyObject(type, oid, modifications, null, result);
     }
@@ -487,8 +515,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @NotNull
     @Override
     public <T extends ObjectType> ModifyObjectResult<T> modifyObject(
-            Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
-            RepoModifyOptions options, OperationResult result)
+            @NotNull Class<T> type,
+            @NotNull String oid,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            RepoModifyOptions options,
+            @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         try {
             return modifyObject(type, oid, modifications, null, options, result);
@@ -500,10 +531,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @NotNull
     @Override
     public <T extends ObjectType> ModifyObjectResult<T> modifyObject(
-            Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+            @NotNull Class<T> type,
+            @NotNull String oid,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
             ModificationPrecondition<T> precondition,
             RepoModifyOptions options,
-            OperationResult result)
+            @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException {
 
         Validate.notNull(modifications, "Modifications must not be null.");
@@ -518,7 +551,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 .addArbitraryObjectCollectionAsParam("modifications", modifications)
                 .build();
 
-        if (modifications.isEmpty() && !RepoModifyOptions.isExecuteIfNoChanges(options)) {
+        if (modifications.isEmpty() && !RepoModifyOptions.isForceReindex(options)) {
             LOGGER.debug("Modification list is empty, nothing was modified.");
             subResult.recordStatus(OperationResultStatus.SUCCESS, "Modification list is empty, nothing was modified.");
             return new ModifyObjectResult<>(modifications);
@@ -535,7 +568,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         if (LOGGER.isTraceEnabled()) {
-            for (ItemDelta modification : modifications) {
+            for (ItemDelta<?, ?> modification : modifications) {
                 if (modification instanceof PropertyDelta<?>) {
                     PropertyDelta<?> propDelta = (PropertyDelta<?>) modification;
                     if (propDelta.getPath().equivalent(ObjectType.F_NAME)) {
@@ -873,10 +906,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
          */
         Set<String> retrievedOids = new HashSet<>();
 
-        //        turned off until resolved 'unfinished operation' warning
-        //        SqlPerformanceMonitor pm = getPerformanceMonitor();
-        //        long opHandle = pm.registerOperationStart(SEARCH_OBJECTS_ITERATIVE);
-
         final String operation = "searching iterative";
         int attempt = 1;
         try {
@@ -1174,9 +1203,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @Override
     public ConflictWatcher createAndRegisterConflictWatcher(@NotNull String oid) {
         List<ConflictWatcherImpl> watchers = conflictWatchersThreadLocal.get();
-        if (watchers == null) {
-            conflictWatchersThreadLocal.set(watchers = new ArrayList<>());
-        }
         if (watchers.size() >= MAX_CONFLICT_WATCHERS) {
             throw new IllegalStateException("Conflicts watchers leaking: reached limit of "
                     + MAX_CONFLICT_WATCHERS + ": " + watchers);
@@ -1306,5 +1332,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         } else {
             return true;
         }
+    }
+
+    @PreDestroy
+    public void destroy() {
+        super.destroy();
+        LOGGER.info("Shutdown complete.");
     }
 }

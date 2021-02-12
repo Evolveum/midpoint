@@ -1,0 +1,23 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<configuration xmlns="urn:activemq">
+    <core xmlns="urn:activemq:core">
+        <persistence-enabled>false</persistence-enabled>
+        <security-enabled>false</security-enabled>
+        <acceptors>
+            <acceptor name="in-vm">vm://0</acceptor>
+        </acceptors>
+        <addresses>
+            <address name="ProvisioningQueue">
+                <anycast>
+                    <queue name="ProvisioningQueue"/>
+                </anycast>
+            </address>
+        </addresses>
+    </core>
+</configuration>

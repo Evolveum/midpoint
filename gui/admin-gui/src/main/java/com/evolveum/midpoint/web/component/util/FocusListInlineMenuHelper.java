@@ -8,12 +8,12 @@
 package com.evolveum.midpoint.web.component.util;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -23,18 +23,15 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -66,10 +63,10 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 
     @NotNull private final Class<F> objectClass;
     @NotNull private final PageBase parentPage;
-    @NotNull private final PageAdminObjectList<F> focusListComponent;
+    @NotNull private final MainObjectListPanel<F> focusListComponent;
     private F singleDelete;
 
-    public FocusListInlineMenuHelper(@NotNull Class<F> objectClass, @NotNull PageBase parentPage, @NotNull PageAdminObjectList<F> focusListComponent) {
+    public FocusListInlineMenuHelper(@NotNull Class<F> objectClass, @NotNull PageBase parentPage, @NotNull MainObjectListPanel<F> focusListComponent) {
         this.objectClass = objectClass;
         this.parentPage = parentPage;
         this.focusListComponent = focusListComponent;
@@ -212,6 +209,8 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
             iconClass = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
         } else if (type.equals(ServiceType.class)){
             iconClass = GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON;
+        } else if (type.equals(OrgType.class)){
+            iconClass = GuiStyleConstants.CLASS_OBJECT_ORG_ICON;
         }
         return iconClass;
     }
@@ -239,12 +238,12 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
             }
         }
         result.computeStatusComposite();
-        focusListComponent.getObjectListPanel().clearCache();
+        focusListComponent.clearCache();
 
         parentPage.showResult(result);
         target.add(parentPage.getFeedbackPanel());
-        focusListComponent.getObjectListPanel().refreshTable(objectClass, target);
-        focusListComponent.getObjectListPanel().clearCache();
+        focusListComponent.refreshTable(target);
+        focusListComponent.clearCache();
     }
 
     /**
@@ -284,8 +283,8 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 
         parentPage.showResult(result);
         target.add(parentPage.getFeedbackPanel());
-        focusListComponent.getObjectListPanel().clearCache();
-        focusListComponent.getObjectListPanel().refreshTable(objectClass, target);
+        focusListComponent.clearCache();
+        focusListComponent.refreshTable(target);
     }
 
     private void reconcilePerformed(AjaxRequestTarget target, F selectedObject) {
@@ -317,8 +316,8 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 
         parentPage.showResult(result);
         target.add(parentPage.getFeedbackPanel());
-        focusListComponent.getObjectListPanel().refreshTable(objectClass, target);
-        focusListComponent.getObjectListPanel().clearCache();
+        focusListComponent.refreshTable(target);
+        focusListComponent.clearCache();
     }
 
 
@@ -335,7 +334,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
             return Collections.singletonList(selectedObject);
         } else {
             List<F> objects;
-            objects = focusListComponent.getObjectListPanel().getSelectedObjects();
+            objects = focusListComponent.getSelectedRealObjects();
             if (objects.isEmpty()) {
                 parentPage.warn(parentPage.getString("FocusListInlineMenuHelper.message.nothingSelected"));
                 target.add(parentPage.getFeedbackPanel());

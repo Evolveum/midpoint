@@ -15,7 +15,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +34,7 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 public class CompiledObjectCollectionView implements DebugDumpable, Serializable {
     private static final long serialVersionUID = 1L;
 
-    private QName objectType;
+    private QName containerType;
     private String viewIdentifier;
 
     private List<GuiActionType> actions = new ArrayList<>();
@@ -57,29 +56,29 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
     // Only used to construct "default" view definition. May be not needed later on.
     public CompiledObjectCollectionView() {
         super();
-        objectType = null;
+        containerType = null;
         viewIdentifier = null;
     }
 
     public CompiledObjectCollectionView(QName objectType, String viewIdentifier) {
         super();
-        this.objectType = objectType;
+        this.containerType = objectType;
         this.viewIdentifier = viewIdentifier;
     }
 
-    public QName getObjectType() {
-        return objectType;
+    public QName getContainerType() {
+        return containerType;
     }
 
-    public void setObjectType(QName objectType) {
-        this.objectType = objectType;
+    public void setContainerType(QName containerType) {
+        this.containerType = containerType;
     }
 
     public <O extends ObjectType> Class<O> getTargetClass() {
-        if (objectType == null) {
+        if (containerType == null) {
             return null;
         }
-        return ObjectTypes.getObjectTypeClass(objectType);
+        return ObjectTypes.getObjectTypeClass(containerType);
     }
 
     public String getViewIdentifier() {
@@ -189,7 +188,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
     }
 
     public boolean match(QName expectedObjectType, String expectedViewIdentifier) {
-        if (!QNameUtil.match(objectType, expectedObjectType)) {
+        if (!QNameUtil.match(containerType, expectedObjectType)) {
             return false;
         }
         if (expectedViewIdentifier == null) {
@@ -199,7 +198,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
     }
 
     public boolean match(QName expectedObjectType) {
-        return QNameUtil.match(objectType, expectedObjectType);
+        return QNameUtil.match(containerType, expectedObjectType);
     }
 
 
@@ -234,7 +233,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(CompiledObjectCollectionView.class, indent);
-        DebugUtil.debugDumpWithLabelLn(sb, "objectType", objectType, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "objectType", containerType, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "viewIdentifier", viewIdentifier, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "actions", actions, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "columns", columns, indent + 1);
@@ -254,7 +253,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
     public GuiObjectListViewType toGuiObjectListViewType() {
         GuiObjectListViewType viewType = new GuiObjectListViewType();
         viewType.setIdentifier(getViewIdentifier());
-        viewType.setType(getObjectType());
+        viewType.setType(getContainerType());
         viewType.setAdditionalPanels(getAdditionalPanels());
         viewType.setDisplay(getDisplay());
         for (GuiObjectColumnType column : getColumns()) {

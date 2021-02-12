@@ -20,13 +20,15 @@ public class CompositedIcon implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    public static final String F_LAYER_ICONS = "layerIcons";
+
     private final String basicIcon;
-    private final List<IconType> layerIcons;
+    private final List<LayerIcon> layerIcons;
 
     private String basicIconHtmlColor = "";
     private String title = "";
 
-    public CompositedIcon(String basicIcon, List<IconType> layerIcons, String basicIconHtmlColor, String title) {
+    public CompositedIcon(String basicIcon, List<LayerIcon> layerIcons, String basicIconHtmlColor, String title) {
         this.basicIcon = basicIcon;
         this.layerIcons = layerIcons;
         this.basicIconHtmlColor = basicIconHtmlColor;
@@ -37,7 +39,7 @@ public class CompositedIcon implements Serializable {
         return basicIcon;
     }
 
-    public List<IconType> getLayerIcons() {
+    public List<LayerIcon> getLayerIcons() {
         return layerIcons;
     }
 

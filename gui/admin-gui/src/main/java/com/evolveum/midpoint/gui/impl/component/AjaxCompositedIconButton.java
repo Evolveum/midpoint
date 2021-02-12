@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.component;
 
+import com.evolveum.midpoint.gui.impl.component.icon.LayerIcon;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -79,16 +81,16 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
         }
 
         if (icon.hasLayerIcons()) {
-            for (IconType entry : icon.getLayerIcons()) {
+            for (LayerIcon entry : icon.getLayerIcons()) {
                 if (entry == null) {
                     continue;
                 }
-                if (StringUtils.isNotEmpty(entry.getCssClass())) {
-                    sb.append("<i class=\"").append(entry.getCssClass()).append("\"");
-                    if (StringUtils.isNotEmpty(entry.getColor())) {
-                        sb.append(" style=\"color: ").append(entry.getColor()).append(";\"");
+                if (StringUtils.isNotEmpty(entry.getIconType().getCssClass())) {
+                    sb.append("<i class=\"").append(entry.getIconType().getCssClass()).append("\"");
+                    if (StringUtils.isNotEmpty(entry.getIconType().getColor())) {
+                        sb.append(" style=\"color: ").append(entry.getIconType().getColor()).append(";\"");
                     }
-                    sb.append("></i> ");
+                    sb.append(">").append(entry.hasLabel() ? entry.getLabelModel().getObject() : "").append("</i> ");
                 }
             }
         }

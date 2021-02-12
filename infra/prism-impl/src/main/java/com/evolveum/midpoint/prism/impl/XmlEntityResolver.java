@@ -11,7 +11,7 @@ import org.w3c.dom.ls.LSResourceResolver;
 import org.xml.sax.EntityResolver;
 
 /**
- * @author mederly
+ * Combined resolver used when parsing schemas.
  */
 public interface XmlEntityResolver extends EntityResolver, LSResourceResolver {
 }

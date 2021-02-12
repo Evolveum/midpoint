@@ -10,6 +10,8 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
+import com.evolveum.midpoint.schrodinger.component.cases.ChildrenCaseTable;
+
 import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Selenide.$;

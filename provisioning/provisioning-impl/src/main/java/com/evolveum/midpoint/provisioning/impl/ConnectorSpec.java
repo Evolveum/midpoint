@@ -17,14 +17,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  */
 public class ConnectorSpec {
 
-    private PrismObject<ResourceType> resource;
-    private String connectorName;
-    private String connectorOid;
-    private PrismContainer<ConnectorConfigurationType> connectorConfiguration;
+    private final PrismObject<ResourceType> resource;
+    private final String connectorName;
+    private final String connectorOid;
+    private final PrismContainer<ConnectorConfigurationType> connectorConfiguration;
 
-    public ConnectorSpec(PrismObject<ResourceType> resource, String connectorName, String connectorOid,
+    ConnectorSpec(PrismObject<ResourceType> resource, String connectorName, String connectorOid,
             PrismContainer<ConnectorConfigurationType> connectorConfiguration) {
-        super();
         this.resource = resource;
         this.connectorName = connectorName;
         this.connectorOid = connectorOid;
@@ -53,8 +52,6 @@ public class ConnectorSpec {
 
     @Override
     public String toString() {
-        return "ConnectorSpec(" + resource + ", name=" + connectorName + ", oid="
-                + connectorOid + ")";
+        return "ConnectorSpec(" + resource + ", name=" + connectorName + ", oid=" + connectorOid + ")";
     }
-
 }

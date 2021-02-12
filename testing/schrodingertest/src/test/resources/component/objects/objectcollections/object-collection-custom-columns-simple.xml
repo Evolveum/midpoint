@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<objectCollection oid="kk3pk98e-f587-4b11-b92b-723251dbb299">
+    <name>Custom columns view</name>
+    <type>UserType</type>
+    <filter>
+        <all/>
+    </filter>
+    <defaultView>
+        <column>
+            <name>customNameColumn</name>
+            <path>name</path>
+            <display>
+                <label>Name (custom)</label>
+            </display>
+        </column>
+        <column>
+            <name>customRoleMembershipColumn</name>
+            <path>roleMembershipRef</path>
+            <display>
+                <label>Role membership</label>
+            </display>
+            <previousColumn>customNameColumn</previousColumn>
+        </column>
+        <column>
+            <name>customPreferredLanguageColumn</name>
+            <path>preferredLanguage</path>
+            <display>
+                <label>Preferred language</label>
+            </display>
+            <previousColumn>customRoleMembershipColumn</previousColumn>
+        </column>
+    </defaultView>
+</objectCollection>

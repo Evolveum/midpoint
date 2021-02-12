@@ -6,10 +6,13 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
+import com.evolveum.midpoint.web.component.data.column.*;
+
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -34,9 +37,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
-import com.evolveum.midpoint.web.component.data.column.PolyStringPropertyColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
@@ -51,17 +51,20 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 
     private static final Trace LOGGER = TraceManager.getTrace(PopupObjectListPanel.class);
 
+    private boolean multiselect;
+
     /**
      * @param defaultType specifies type of the object that will be selected by default
      */
-    public PopupObjectListPanel(String id, Class<? extends O> defaultType, boolean multiselect, PageBase parentPage) {
-        super(id, defaultType, null, multiselect);
-
+    public PopupObjectListPanel(String id, Class<? extends O> defaultType, boolean multiselect) {
+        this(id, defaultType, null, multiselect);
+        this.multiselect = multiselect;
     }
 
     public PopupObjectListPanel(String id, Class<? extends O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options,
-            boolean multiselect, PageBase parentPage) {
-        super(id, defaultType, null, options, multiselect);
+                                boolean multiselect) {
+        super(id, defaultType, options);
+        this.multiselect = multiselect;
     }
 
     @Override
@@ -92,74 +95,13 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
     }
 
     @Override
-    protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> columnNameModel, String itemPath, ExpressionType expression) {
-        if (!isMultiselect()) {
-            String propertyExpression = SelectableBeanImpl.F_VALUE + "." + (StringUtils.isEmpty(itemPath) ? "name" : itemPath);
-            String sortProperty = StringUtils.isEmpty(itemPath) ? ObjectType.F_NAME.getLocalPart() : itemPath;
-            if (expression != null) {
-                propertyExpression = SelectableBeanImpl.F_VALUE + (StringUtils.isEmpty(itemPath) ? "" : ("." + itemPath));
-                sortProperty = StringUtils.isEmpty(itemPath) ? "" : itemPath;
-            }
-            return new AjaxLinkColumn<SelectableBean<O>>(
-                    columnNameModel == null ? createStringResource("ObjectType.name") : columnNameModel,
-                    sortProperty, propertyExpression) {
-                private static final long serialVersionUID = 1L;
+    protected void objectDetailsPerformed(AjaxRequestTarget target, O object) {
+        onSelectPerformed(target, object);
+    }
 
-                @Override
-                protected IModel createLinkModel(IModel<SelectableBean<O>> rowModel) {
-                    IModel linkModel = new PropertyModel(rowModel, getPropertyExpression());
-                    if (linkModel.getObject() != null && linkModel.getObject() instanceof PolyStringType) {
-                        return Model.of(WebComponentUtil.getTranslatedPolyString((PolyStringType) linkModel.getObject()));
-                    }
-                    return linkModel;
-                }
-
-                @Override
-                public void onClick(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {
-                    O object = rowModel.getObject().getValue();
-                    onSelectPerformed(target, object);
-                }
-
-                @Override
-                public IModel<String> getDataModel(IModel<SelectableBean<O>> rowModel) {
-                    if (expression != null) {
-                        Object object = new PropertyModel<>(rowModel, getPropertyExpression()).getObject();
-                        return evaluateColumnExpression(object, expression);
-                    } else {
-                        return super.getDataModel(rowModel);
-                    }
-                }
-            };
-        } else {
-            if ((StringUtils.isEmpty(itemPath) || ObjectType.F_NAME.getLocalPart().equals(itemPath)) && expression == null) {
-                return new PolyStringPropertyColumn<>(
-                        columnNameModel == null
-                                ? createStringResource("userBrowserDialog.name")
-                                : columnNameModel,
-                        ObjectType.F_NAME.getLocalPart(), "value.name");
-            } else {
-                String propertyExpression = SelectableBeanImpl.F_VALUE + "." + itemPath;
-                String sortProperty = itemPath;
-                if (expression != null) {
-                    propertyExpression = SelectableBeanImpl.F_VALUE + (StringUtils.isEmpty(itemPath) ? "" : ("." + itemPath));
-                    sortProperty = StringUtils.isEmpty(itemPath) ? "" : itemPath;
-                }
-                return new PropertyColumn(
-                        columnNameModel == null ? createStringResource("userBrowserDialog.name") : columnNameModel,
-                        sortProperty, propertyExpression) {
-
-                    @Override
-                    public IModel<?> getDataModel(IModel rowModel) {
-                        if (expression != null) {
-                            Object object = new PropertyModel<>(rowModel, getPropertyExpression()).getObject();
-                            return evaluateColumnExpression(object, expression);
-                        } else {
-                            return super.getDataModel(rowModel);
-                        }
-                    }
-                };
-            }
-        }
+    @Override
+    protected boolean isObjectDetailsEnabled(IModel<SelectableBean<O>> rowModel) {
+        return !isMultiselect();
     }
 
     private IModel<String> evaluateColumnExpression(Object object, ExpressionType expression) {
@@ -181,8 +123,10 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
     }
 
     @Override
-    protected List<IColumn<SelectableBean<O>, String>> createColumns() {
-        return ColumnUtils.getDefaultColumns(getType());
+    protected List<IColumn<SelectableBean<O>, String>> createDefaultColumns() {
+        List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<>();
+        columns.addAll(ColumnUtils.getDefaultColumns(getType(), getPageBase()));
+        return columns;
     }
 
     protected void onSelectPerformed(AjaxRequestTarget target, O object) {
@@ -195,7 +139,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
     }
 
     @Override
-    protected void addCustomActions(@NotNull List<InlineMenuItem> actionsList, SerializableSupplier<Collection<? extends ObjectType>> objectsSupplier) {
+    protected void addCustomActions(@NotNull List<InlineMenuItem> actionsList, SerializableSupplier<Collection<? extends O>> objectsSupplier) {
     }
 
     protected void onUpdateCheckbox(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {
@@ -210,13 +154,17 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
         return null;
     }
 
-//    @Override
-//    protected boolean isRefreshEnabled() {
-//        return false;
-//    }
-//
-//    @Override
-//    protected int getAutoRefreshInterval() {
-//        return 0;
-//    }
+    public boolean isMultiselect() {
+        return multiselect;
+    }
+
+    @Override
+    protected boolean enableSavePageSize() {
+        return false;
+    }
+
+    @Override
+    protected UserProfileStorage.TableId getTableId() {
+        return null;
+    }
 }

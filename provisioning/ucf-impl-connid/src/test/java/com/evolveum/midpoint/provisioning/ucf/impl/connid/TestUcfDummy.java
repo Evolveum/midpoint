@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.ucf.api.UcfLiveSyncChange;
+
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -28,7 +30,6 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ShadowResultHandler;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -319,7 +320,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         OperationResult result = createOperationResult();
 
         // WHEN
-        cc.search(accountDefinition, null, handler, null, null, null, null, result);
+        cc.search(accountDefinition, null, handler, null, null, null, null, null, result);
 
         // THEN
         assertEquals("Unexpected number of search results", 1, searchResults.size());
@@ -353,7 +354,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         assertTrue("Last sync token definition is NOT dynamic", lastTokenDef.isDynamic());
 
         // WHEN
-        CollectingChangeHandler handler = new CollectingChangeHandler();
+        CollectingChangeListener handler = new CollectingChangeListener();
         cc.fetchChanges(accountDefinition, lastToken, null, null, null, handler, result);
 
         AssertJUnit.assertEquals(0, handler.getChanges().size());
@@ -376,20 +377,19 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         dummyResource.addAccount(newAccount);
 
         // WHEN
-        CollectingChangeHandler handler = new CollectingChangeHandler();
+        CollectingChangeListener handler = new CollectingChangeListener();
         cc.fetchChanges(accountDefinition, lastToken, null, null, null, handler, result);
-        List<Change> changes = handler.getChanges();
+        List<UcfLiveSyncChange> changes = handler.getChanges();
 
         AssertJUnit.assertEquals(1, changes.size());
-        Change change = changes.get(0);
+        UcfLiveSyncChange change = changes.get(0);
         assertNotNull("null change", change);
-        PrismObject<ShadowType> currentResourceObject = change.getCurrentResourceObject();
-        assertNotNull("null current resource object", currentResourceObject);
-        PrismAsserts.assertParentConsistency(currentResourceObject);
+        PrismObject<ShadowType> resourceObject = change.getResourceObject();
+        assertNotNull("null current resource object", resourceObject);
+        PrismAsserts.assertParentConsistency(resourceObject);
         Collection<ResourceAttribute<?>> identifiers = change.getIdentifiers();
         assertNotNull("null identifiers", identifiers);
         assertFalse("empty identifiers", identifiers.isEmpty());
-
     }
 
     @Test

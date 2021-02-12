@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.Contract;
@@ -143,6 +145,7 @@ public class OperationResult
     private Long start;
     private Long end;
     private Long microseconds;
+    private Long cpuMicroseconds;
     private Long invocationId;
 
     private final List<LogSegmentType> logSegments = new ArrayList<>();
@@ -248,7 +251,7 @@ public class OperationResult
         if (!building) {
             throw new IllegalStateException("Not being built");
         }
-        recordStart(this, operation, createArguments());
+        recordStart(operation, createArguments());
         building = false;
         if (futureParent != null) {
             futureParent.addSubresult(this);
@@ -264,22 +267,24 @@ public class OperationResult
         }
     }
 
-    private static void recordStart(OperationResult result, String operation, Object[] arguments) {
-        result.collectingLogEntries = result.tracingProfile != null && result.tracingProfile.isCollectingLogEntries();
-        if (result.collectingLogEntries) {
-            LoggingLevelOverrideConfiguration loggingOverrideConfiguration = result.tracingProfile.getLoggingLevelOverrideConfiguration();
+    private void recordStart(String operation, Object[] arguments) {
+        collectingLogEntries = tracingProfile != null && tracingProfile.isCollectingLogEntries();
+        if (collectingLogEntries) {
+            LoggingLevelOverrideConfiguration loggingOverrideConfiguration = tracingProfile.getLoggingLevelOverrideConfiguration();
             if (loggingOverrideConfiguration != null && !LevelOverrideTurboFilter.isActive()) {
                 LevelOverrideTurboFilter.overrideLogging(loggingOverrideConfiguration);
-                result.startedLoggingOverride = true;
+                startedLoggingOverride = true;
             }
-            TracingAppender.openSink(result::appendLoggedEvents);
+            TracingAppender.openSink(this::appendLoggedEvents);
         }
         // TODO for very minor operation results (e.g. those dealing with mapping and script execution)
         //  we should consider skipping creation of invocationRecord. It includes some string manipulation(s)
         //  and a call to System.nanoTime that could unnecessarily slow down midPoint operation.
-        result.invocationRecord = OperationInvocationRecord.create(operation, arguments);
-        result.invocationId = result.invocationRecord.getInvocationId();
-        result.start = System.currentTimeMillis();
+        //  But beware, it would disable measurements of these operations e.g. in task internal performance info panel.
+        boolean measureCpuTime = tracingProfile != null && tracingProfile.isMeasureCpuTime();
+        invocationRecord = OperationInvocationRecord.create(operation, arguments, measureCpuTime);
+        invocationId = invocationRecord.getInvocationId();
+        start = System.currentTimeMillis();
     }
 
     private void appendLoggedEvents(LoggingEventSink loggingEventSink) {
@@ -309,21 +314,11 @@ public class OperationResult
         return createSubresult(operation, true, null);
     }
 
-//    public static OperationResult createProfiled(String operation) {
-//        return createProfiled(operation, new Object[0]);
-//    }
-//
-//    public static OperationResult createProfiled(String operation, Object[] arguments) {
-//        OperationResult result = new OperationResult(operation);
-//        recordStart(result, operation, arguments);
-//        return result;
-//    }
-
     private OperationResult createSubresult(String operation, boolean minor, Object[] arguments) {
         OperationResult subresult = new OperationResult(operation);
         subresult.recordCallerReason(this);
         addSubresult(subresult);
-        recordStart(subresult, operation, arguments);
+        subresult.recordStart(operation, arguments);
         subresult.importance = minor ? MINOR : NORMAL;
         return subresult;
     }
@@ -336,6 +331,7 @@ public class OperationResult
             invocationRecord.processReturnValue(getReturns(), cause);
             invocationRecord.afterCall();
             microseconds = invocationRecord.getElapsedTimeMicros();
+            cpuMicroseconds = invocationRecord.getCpuTimeMicros();
             if (collectingLogEntries) {
                 TracingAppender.closeCurrentSink();
                 collectingLogEntries = false;
@@ -348,17 +344,6 @@ public class OperationResult
             startedLoggingOverride = false;
         }
     }
-
-    // This is not quite useful: We want to record the "real" end, i.e. when the control leaves the region belonging to
-    // the operation result. So it's actually OK to rewrite the end timestamp, even if it was already set.
-    // A small price to pay is that "end" could get a bit inconsistent with "microseconds", that was presumably set earlier.
-    // But that's quite good - when analyzing we can see that such an inconsistency arose and we can deal with it.
-
-//    public void recordEndIfNeeded() {
-//        if (invocationRecord != null || end == null) {
-//            recordEnd();
-//        }
-//    }
 
     /**
      * Reference to an asynchronous operation that can be used to retrieve
@@ -528,6 +513,20 @@ public class OperationResult
             }
         }
         return null;
+    }
+
+    public List<OperationResult> findSubresultsInSubTree(String operation) {
+        List<OperationResult> found = new ArrayList<>();
+        if (subresults == null) {
+            return found;
+        }
+        for (OperationResult subResult : getSubresults()) {
+            List<OperationResult> foundedSubresults = subResult.findSubresultsInSubTree(operation);
+            if (!foundedSubresults.isEmpty()) {
+                found.addAll(foundedSubresults);
+            }
+        }
+        return found;
     }
 
     public List<OperationResult> findSubresults(String operation) {
@@ -957,7 +956,28 @@ public class OperationResult
     public Stream<OperationResult> getResultStream() {
         return Stream.concat(Stream.of(this),
                 getSubresults().stream()
-                        .flatMap(subresult -> subresult.getResultStream()));
+                        .flatMap(OperationResult::getResultStream));
+    }
+
+    public OperationResult findSubResultStrictly(String operation) {
+        return emptyIfNull(subresults).stream()
+                .filter(r -> operation.equals(r.getOperation()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Subresult '" + operation + "' not found"));
+    }
+
+    /**
+     * This is used in situations where handled error is actually the success.
+     *
+     * For example, when writing an operation execution record to an object which we expect to be deleted,
+     * we consider such an operation to be a success. We do not want to bother user or administrator with
+     * the information that there was something that went wrong - when, in fact, it was really expected.
+     */
+    @Experimental
+    public void switchHandledErrorToSuccess() {
+        if (status == OperationResultStatus.HANDLED_ERROR) {
+            status = OperationResultStatus.SUCCESS;
+        }
     }
 
     public static final class PreviewResult {
@@ -1449,7 +1469,7 @@ public class OperationResult
     }
 
     /**
-     * If the operation is an error then it will switch the status to EXPECTED_ERROR.
+     * If the operation is an error then it will switch the status to HANDLED_ERROR.
      * This is used if the error is expected and properly handled.
      */
     public void muteError() {
@@ -1634,6 +1654,7 @@ public class OperationResult
             opResult.setEnd(XmlTypeConverter.toMillis(result.getEnd()));
         }
         opResult.setMicroseconds(result.getMicroseconds());
+        opResult.setCpuMicroseconds(result.getCpuMicroseconds());
         opResult.setInvocationId(result.getInvocationId());
         opResult.logSegments.addAll(result.getLog());
         return opResult;
@@ -1665,31 +1686,31 @@ public class OperationResult
         resultType.setMessageCode(opResult.getMessageCode());
 
         if (opResult.getCause() != null || !opResult.details.isEmpty()) {
-            StringBuilder detailsb = new StringBuilder();
+            StringBuilder detailSb = new StringBuilder();
 
             // Record text messages in details (if present)
             if (!opResult.details.isEmpty()) {
                 for (String line : opResult.details) {
-                    detailsb.append(line);
-                    detailsb.append("\n");
+                    detailSb.append(line);
+                    detailSb.append("\n");
                 }
             }
 
             // Record stack trace in details if a cause is present
             if (opResult.getCause() != null) {
                 Throwable ex = opResult.getCause();
-                detailsb.append(ex.getClass().getName());
-                detailsb.append(": ");
-                detailsb.append(ex.getMessage());
-                detailsb.append("\n");
+                detailSb.append(ex.getClass().getName());
+                detailSb.append(": ");
+                detailSb.append(ex.getMessage());
+                detailSb.append("\n");
                 StackTraceElement[] stackTrace = ex.getStackTrace();
                 for (StackTraceElement aStackTrace : stackTrace) {
-                    detailsb.append(aStackTrace.toString());
-                    detailsb.append("\n");
+                    detailSb.append(aStackTrace.toString());
+                    detailSb.append("\n");
                 }
             }
 
-            resultType.setDetails(detailsb.toString());
+            resultType.setDetails(detailSb.toString());
         }
 
         if (opResult.getUserFriendlyMessage() != null) {
@@ -1710,6 +1731,7 @@ public class OperationResult
         resultType.setStart(XmlTypeConverter.createXMLGregorianCalendar(opResult.start));
         resultType.setEnd(XmlTypeConverter.createXMLGregorianCalendar(opResult.end));
         resultType.setMicroseconds(opResult.microseconds);
+        resultType.setCpuMicroseconds(opResult.cpuMicroseconds);
         resultType.setInvocationId(opResult.invocationId);
         resultType.getLog().addAll(opResult.logSegments);           // consider cloning here
         resultType.getTrace().addAll(opResult.traces);           // consider cloning here
@@ -2227,6 +2249,7 @@ public class OperationResult
         clone.start = start;
         clone.end = end;
         clone.microseconds = microseconds;
+        clone.cpuMicroseconds = cpuMicroseconds;
         clone.invocationId = invocationId;
         clone.traces.addAll(CloneUtil.cloneCollectionMembers(traces));
 
@@ -2339,6 +2362,7 @@ public class OperationResult
                 Objects.equals(start, result.start) &&
                 Objects.equals(end, result.end) &&
                 Objects.equals(microseconds, result.microseconds) &&
+                Objects.equals(cpuMicroseconds, result.cpuMicroseconds) &&
                 Objects.equals(invocationId, result.invocationId) &&
                 Objects.equals(tracingProfile, result.tracingProfile) &&
                 Objects.equals(operation, result.operation) &&
@@ -2363,7 +2387,7 @@ public class OperationResult
                 operation, qualifiers, status, params, context, returns, token, messageCode,
                 message, userFriendlyMessage, cause, count, hiddenRecordsCount, subresults, details,
                 summarizeErrors, summarizePartialErrors, summarizeSuccesses, building, start, end,
-                microseconds, invocationId, traces, asynchronousOperationReference);
+                microseconds, cpuMicroseconds, invocationId, traces, asynchronousOperationReference);
     }
 
     public Long getStart() {
@@ -2388,6 +2412,14 @@ public class OperationResult
 
     public void setMicroseconds(Long microseconds) {
         this.microseconds = microseconds;
+    }
+
+    public Long getCpuMicroseconds() {
+        return cpuMicroseconds;
+    }
+
+    public void setCpuMicroseconds(Long cpuMicroseconds) {
+        this.cpuMicroseconds = cpuMicroseconds;
     }
 
     public Long getInvocationId() {

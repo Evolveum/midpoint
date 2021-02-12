@@ -54,7 +54,7 @@ public class PageResetPassword extends PageAbstractSelfCredentials{
     }
 
     @Override
-    protected boolean isSideMenuVisible(boolean visibleIfLoggedIn) {
+    protected boolean isSideMenuVisible() {
         return false;
     }
 
@@ -65,7 +65,7 @@ public class PageResetPassword extends PageAbstractSelfCredentials{
     }
 
     @Override
-    protected void finishChangePassword(final OperationResult result, AjaxRequestTarget target) {
+    protected void finishChangePassword(final OperationResult result, AjaxRequestTarget target, boolean showFeedback) {
 
 
         if (result.getStatus() == OperationResultStatus.SUCCESS) {
@@ -94,9 +94,11 @@ public class PageResetPassword extends PageAbstractSelfCredentials{
             }
 
             SecurityContextHolder.getContext().setAuthentication(null);
+            showResult(result);
+            target.add(getFeedbackPanel());
+        } else if (showFeedback) {
+            showResult(result);
         }
-
-        showResult(result);
         target.add(getFeedbackPanel());
 //        get(ID_MAIN_FORM).setVisible(false);
 
@@ -117,7 +119,7 @@ public class PageResetPassword extends PageAbstractSelfCredentials{
     protected List<PasswordAccountDto> getSelectedAccountsList() {
         List<PasswordAccountDto> accounts = getModelObject().getAccounts();
         if (accounts.isEmpty()) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
 
        for (PasswordAccountDto account : accounts) {

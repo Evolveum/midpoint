@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.helpers;
 
 import java.util.*;
@@ -36,9 +35,9 @@ import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertification
 import com.evolveum.midpoint.repo.sql.data.common.container.RCertWorkItemReference;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.query.QueryEngine;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
 import com.evolveum.midpoint.repo.sql.util.*;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -60,8 +59,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * It is quite a temporary solution in order to ease SqlRepositoryServiceImpl
  * from tons of type-specific code. Serious solution would be to implement
  * subobject-level operations more generically.
- *
- * @author mederly
  */
 @Component
 public class CertificationCaseHelper {
@@ -140,33 +137,35 @@ public class CertificationCaseHelper {
         deleteCases.executeUpdate();
     }
 
-    <T extends ObjectType> Collection<? extends ItemDelta> filterCampaignCaseModifications(Class<T> type,
-            Collection<? extends ItemDelta> modifications) {
-        Collection<ItemDelta> caseDelta = new ArrayList<>();
+    <T extends ObjectType> Collection<? extends ItemDelta<?, ?>> filterCampaignCaseModifications(Class<T> type,
+            Collection<? extends ItemDelta<?, ?>> modifications) {
+        Collection<ItemDelta<?, ?>> caseDelta = new ArrayList<>();
         if (!AccessCertificationCampaignType.class.equals(type)) {
             return caseDelta;
         }
 
         ItemPath casePath = AccessCertificationCampaignType.F_CASE;
-        for (ItemDelta delta : modifications) {
+        for (ItemDelta<?, ?> delta : modifications) {
             ItemPath path = delta.getPath();
             if (path.isEmpty()) {
                 throw new UnsupportedOperationException("Certification campaign cannot be modified via empty-path modification");
             } else if (path.equivalent(casePath)) {
                 caseDelta.add(delta);
-            } else if (path.isSuperPath(casePath)) {        // like case[id]/xxx
+            } else if (path.isSuperPath(casePath)) { // like case[id]/xxx
                 caseDelta.add(delta);
             }
         }
 
+        //noinspection SuspiciousMethodCalls
         modifications.removeAll(caseDelta);
 
         return caseDelta;
     }
 
-    <T extends ObjectType> void updateCampaignCases(Session session, String campaignOid,
-            Collection<? extends ItemDelta> modifications, RepoModifyOptions modifyOptions) throws SchemaException, ObjectNotFoundException, DtoTranslationException {
-        if (modifications.isEmpty() && !RepoModifyOptions.isExecuteIfNoChanges(modifyOptions)) {
+    void updateCampaignCases(Session session, String campaignOid,
+            Collection<? extends ItemDelta<?, ?>> modifications, RepoModifyOptions modifyOptions)
+            throws SchemaException, ObjectNotFoundException, DtoTranslationException {
+        if (modifications.isEmpty() && !RepoModifyOptions.isForceReindex(modifyOptions)) {
             return;
         }
 
@@ -188,7 +187,7 @@ public class CertificationCaseHelper {
             if (deltaPath.size() == 1) {
                 if (delta.getValuesToDelete() != null) {
                     // todo do 'bulk' delete like delete from ... where oid=? and id in (...)
-                    for (PrismContainerValue value : (Collection<PrismContainerValue>) delta.getValuesToDelete()) {
+                    for (PrismContainerValue<?> value : (Collection<PrismContainerValue<?>>) delta.getValuesToDelete()) {
                         Long id = value.getId();
                         if (id == null) {
                             throw new SchemaException("Couldn't delete certification case with null id");
@@ -201,17 +200,17 @@ public class CertificationCaseHelper {
 //                        deleteCaseReferences.setParameter("oid", campaignOid);
 //                        deleteCaseReferences.setParameter("id", integerCaseId);
 //                        deleteCaseReferences.executeUpdate();
-                        NativeQuery deleteWorkItemReferences = session.createNativeQuery("delete from " + RCertWorkItemReference.TABLE +
+                        NativeQuery<?> deleteWorkItemReferences = session.createNativeQuery("delete from " + RCertWorkItemReference.TABLE +
                                 " where owner_owner_owner_oid=:oid and owner_owner_id=:id");
                         deleteWorkItemReferences.setParameter("oid", campaignOid);
                         deleteWorkItemReferences.setParameter("id", integerCaseId);
                         deleteWorkItemReferences.executeUpdate();
-                        NativeQuery deleteCaseWorkItems = session.createNativeQuery("delete from " + RAccessCertificationWorkItem.TABLE +
+                        NativeQuery<?> deleteCaseWorkItems = session.createNativeQuery("delete from " + RAccessCertificationWorkItem.TABLE +
                                 " where owner_owner_oid=:oid and owner_id=:id");
                         deleteCaseWorkItems.setParameter("oid", campaignOid);
                         deleteCaseWorkItems.setParameter("id", integerCaseId);
                         deleteCaseWorkItems.executeUpdate();
-                        Query deleteCase = session.getNamedQuery("delete.campaignCase");
+                        Query<?> deleteCase = session.getNamedQuery("delete.campaignCase");
                         deleteCase.setParameter("oid", campaignOid);
                         deleteCase.setParameter("id", integerCaseId);
                         deleteCase.executeUpdate();
@@ -246,7 +245,7 @@ public class CertificationCaseHelper {
                 // should start with "case[id]"
                 long id = checkPathSanity(deltaPath, casesAddedOrDeleted);
 
-                Query query = session.getNamedQuery("get.campaignCase");
+                Query<?> query = session.getNamedQuery("get.campaignCase");
                 query.setString("ownerOid", campaignOid);
                 query.setInteger("id", (int) id);
 
@@ -273,10 +272,10 @@ public class CertificationCaseHelper {
         }
 
         // refresh campaign cases, if requested
-        if (RepoModifyOptions.isExecuteIfNoChanges(modifyOptions)) {
-            Query query = session.getNamedQuery("get.campaignCases");
+        if (RepoModifyOptions.isForceReindex(modifyOptions)) {
+            //noinspection unchecked
+            Query<Object> query = session.getNamedQuery("get.campaignCases");
             query.setString("ownerOid", campaignOid);
-            @SuppressWarnings({ "raw", "unchecked" })
             List<Object> cases = query.list();
             for (Object o : cases) {
                 if (!(o instanceof byte[])) {
@@ -347,7 +346,6 @@ public class CertificationCaseHelper {
                     .and().id(caseId)
                     .build();
             RQuery caseQuery = engine.interpret(query, AccessCertificationCaseType.class, null, false, session);
-            @SuppressWarnings({ "raw", "unchecked" })
             List<GetContainerableResult> cases = caseQuery.list();
             if (cases.size() > 1) {
                 throw new IllegalStateException(
@@ -371,8 +369,9 @@ public class CertificationCaseHelper {
         }
     }
 
-    private PrismObject<AccessCertificationCampaignType> resolveCampaign(String campaignOid, Map<String, PrismObject<AccessCertificationCampaignType>> campaignsCache, Session session,
-            OperationResult operationResult) {
+    private PrismObject<AccessCertificationCampaignType> resolveCampaign(String campaignOid,
+            Map<String, PrismObject<AccessCertificationCampaignType>> campaignsCache,
+            Session session, OperationResult operationResult) {
         PrismObject<AccessCertificationCampaignType> campaign = campaignsCache.get(campaignOid);
         if (campaign != null) {
             return campaign;
@@ -397,13 +396,12 @@ public class CertificationCaseHelper {
         LOGGER.debug("Loading certification campaign cases.");
 
         CriteriaBuilder cb = session.getCriteriaBuilder();
-        CriteriaQuery cq = cb.createQuery(RAccessCertificationCase.class);
+        CriteriaQuery<RAccessCertificationCase> cq = cb.createQuery(RAccessCertificationCase.class);
         cq.where(cb.equal(cq.from(RAccessCertificationCase.class).get("ownerOid"), object.getOid()));
 
-        Query query = session.createQuery(cq);
+        Query<RAccessCertificationCase> query = session.createQuery(cq);
 
         // TODO fetch only XML representation
-        @SuppressWarnings({ "raw", "unchecked" })
         List<RAccessCertificationCase> cases = query.list();
         if (CollectionUtils.isNotEmpty(cases)) {
             AccessCertificationCampaignType campaign = (AccessCertificationCampaignType) object.asObjectable();

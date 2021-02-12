@@ -13,10 +13,8 @@ import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.ConstantsUtil;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 
 import org.apache.commons.io.FileUtils;
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -59,15 +57,13 @@ public class OrganizationStructureTests extends AbstractSchrodingerTest {
         FileUtils.copyFile(CSV_INITIAL_SOURCE_FILE, csvTargetFile);
 
         ImportObjectPage importPage = basicPage.importObject();
-        Assert.assertTrue(
-                importPage
+        importPage
                     .getObjectsFromFile()
                     .chooseFile(ORG_MONKEY_ISLAND_SOURCE_FILE)
                     .checkOverwriteExistingObject()
                     .clickImportFileButton()
                         .feedback()
-                        .isSuccess()
-        );
+                        .assertSuccess();
     }
 
 //    @Test (dependsOnMethods ={IMPORT_ORG_STRUCT_DEPENDENCY})
@@ -97,8 +93,7 @@ public class OrganizationStructureTests extends AbstractSchrodingerTest {
         userPage.checkKeepDisplayingResults()
                 .clickSave()
                     .feedback()
-                    .isSuccess()
-        ;
+                    .assertSuccess();
     }
 
 //    @Test (dependsOnMethods ={ORG_UNIT_ACCOUNT_INDUCEMENT_DEPENDENCY})
@@ -120,14 +115,14 @@ public class OrganizationStructureTests extends AbstractSchrodingerTest {
         userPage.checkKeepDisplayingResults()
                 .clickSave()
                     .feedback()
-                    .isSuccess();
+                    .assertSuccess();
     }
 
 //    @Test (dependsOnMethods ={ASSIGN_ORG_UNIT_DEPENDENCY})
     public void orgUnitAccountInducement(){
-        importObject(CSV_RESOURCE_ADVANCED_SYNC,true);
-        importObject(ORG_ACCOUNT_INDUCEMENT_FILE);
-        importObject(ScenariosCommons.USER_TEST_RAPHAEL_FILE, true);
+        addObjectFromFile(CSV_RESOURCE_ADVANCED_SYNC);
+        addObjectFromFile(ORG_ACCOUNT_INDUCEMENT_FILE);
+        addObjectFromFile(ScenariosCommons.USER_TEST_RAPHAEL_FILE);
 
         changeResourceFilePath();
 
@@ -165,23 +160,23 @@ public class OrganizationStructureTests extends AbstractSchrodingerTest {
     @Test (dependsOnMethods ={IMPORT_ORG_STRUCT_DEPENDENCY})
     public void expandCollapseAllTests(){
         OrgTreePage orgPage = basicPage.orgStructure();
-        Assert.assertTrue(orgPage.selectTabWithRootOrg("Governor Office")
+        orgPage.selectTabWithRootOrg("Governor Office")
                 .getOrgHierarchyPanel()
                     .showTreeNodeDropDownMenu("Ministry of Offense")
                         .expandAll()
-                    .containsChildOrg("Swashbuckler Section", "Ministry of Health"));
+                        .assertChildOrgExists("Swashbuckler Section", "Ministry of Health");
 
-        Assert.assertFalse(orgPage.selectTabWithRootOrg("Governor Office")
+        orgPage.selectTabWithRootOrg("Governor Office")
                 .getOrgHierarchyPanel()
                     .showTreeNodeDropDownMenu("Ministry of Offense")
                         .collapseAll()
-                    .containsChildOrg("Swashbuckler Section", false, "Ministry of Health"));
+                        .assertChildOrgDoesntExist("Swashbuckler Section", false, "Ministry of Health");
     }
 
     public void changeResourceFilePath(){
         ListResourcesPage listResourcesPage = basicPage.listResources();
 
-        Assert.assertTrue(listResourcesPage
+        listResourcesPage
                 .table()
                 .search()
                 .byName()
@@ -196,7 +191,6 @@ public class OrganizationStructureTests extends AbstractSchrodingerTest {
                     .and()
                 .and()
                 .clickSaveAndTestConnection()
-                .isTestSuccess()
-        );
+                .assertIsTestSuccess();
     }
 }

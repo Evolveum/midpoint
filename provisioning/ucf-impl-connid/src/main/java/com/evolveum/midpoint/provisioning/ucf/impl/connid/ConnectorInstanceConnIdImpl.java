@@ -23,6 +23,9 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.*;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
 import org.identityconnectors.common.pooling.ObjectPoolConfiguration;
@@ -47,8 +50,6 @@ import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.ScriptContext;
 import org.identityconnectors.framework.common.objects.SearchResult;
 import org.identityconnectors.framework.common.objects.SortKey;
-import org.identityconnectors.framework.common.objects.SyncDelta;
-import org.identityconnectors.framework.common.objects.SyncDeltaType;
 import org.identityconnectors.framework.common.objects.SyncResultsHandler;
 import org.identityconnectors.framework.common.objects.SyncToken;
 import org.identityconnectors.framework.common.objects.Uid;
@@ -62,15 +63,12 @@ import org.identityconnectors.framework.spi.Connector;
 import org.identityconnectors.framework.spi.PoolableConnector;
 
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.ucf.impl.connid.query.FilterInterpreter;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
@@ -88,11 +86,6 @@ import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
@@ -122,17 +115,17 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
     private static final String OP_FETCH_CHANGES = ConnectorInstance.class.getName() + ".fetchChanges";
 
-    ConnectorInfo cinfo;
-    ConnectorType connectorType;
-    ConnectorFacade connIdConnectorFacade;
-    String resourceSchemaNamespace;
-    private PrismSchema connectorSchema;
+    private final ConnectorInfo connectorInfo;
+    private final ConnectorType connectorType;
+    private ConnectorFacade connIdConnectorFacade;
+    private final String resourceSchemaNamespace;
+    private final PrismSchema connectorSchema;
     private APIConfiguration apiConfig = null;
 
-    Protector protector;
-    PrismContext prismContext;
-    private final ConnIdNameMapper connIdNameMapper;
-    private final ConnIdConvertor connIdConvertor;
+    private final Protector protector;
+    final PrismContext prismContext;
+    final ConnIdNameMapper connIdNameMapper;
+    final ConnIdConvertor connIdConvertor;
 
     private List<QName> generateObjectClasses = null;
 
@@ -155,19 +148,18 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     ConnectorInstanceConnIdImpl(ConnectorInfo connectorInfo, ConnectorType connectorType,
             String schemaNamespace, PrismSchema connectorSchema, Protector protector,
             PrismContext prismContext, LocalizationService localizationService) {
-        this.cinfo = connectorInfo;
+        this.connectorInfo = connectorInfo;
         this.connectorType = connectorType;
         this.resourceSchemaNamespace = schemaNamespace;
         this.connectorSchema = connectorSchema;
         this.protector = protector;
         this.prismContext = prismContext;
         connIdNameMapper = new ConnIdNameMapper(schemaNamespace);
-        connIdConvertor = new ConnIdConvertor(protector, resourceSchemaNamespace, localizationService);
-        connIdConvertor.setConnIdNameMapper(connIdNameMapper);
+        connIdConvertor = new ConnIdConvertor(protector, resourceSchemaNamespace, localizationService, connIdNameMapper);
     }
 
     /**
-     * Complex description for development diagnotics, e.g. ConnectorSpec(resource OID....)
+     * Complex description for development diagnostics, e.g. ConnectorSpec(resource OID....)
      */
     public String getDescription() {
         return description;
@@ -202,14 +194,12 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     }
 
     @Override
-    public synchronized void configure(PrismContainerValue<?> configurationOriginal, List<QName> generateObjectClasses, OperationResult parentResult)
+    public synchronized void configure(@NotNull PrismContainerValue<?> configurationOriginal, List<QName> generateObjectClasses, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException {
 
         OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_CONFIGURE);
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Configuring connector {}, provided configuration:\n{}", connectorType, configurationOriginal.debugDump(1));
-        }
+        LOGGER.trace("Configuring connector {}, provided configuration:\n{}", connectorType, configurationOriginal.debugDumpLazily(1));
 
         try {
             this.generateObjectClasses = generateObjectClasses;
@@ -221,7 +211,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             PrismContainerValue<?> configurationCloned = configurationOriginal.clone();
             configurationCloned.applyDefinition(getConfigurationContainerDefinition());
 
-            ConnIdConfigurationTransformer configTransformer = new ConnIdConfigurationTransformer(connectorType, cinfo, protector);
+            ConnIdConfigurationTransformer configTransformer = new ConnIdConfigurationTransformer(connectorType, connectorInfo, protector);
             // Transform XML configuration from the resource to the ConnId connector configuration
             try {
                 apiConfig = configTransformer.transformConnectorConfiguration(configurationCloned);
@@ -230,13 +220,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                 throw e;
             }
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Configuring connector {}, transformed configuration:", connectorType);
-                for (String propName : apiConfig.getConfigurationProperties().getPropertyNames()) {
-                    LOGGER.trace("P: {} = {}", propName,
-                            apiConfig.getConfigurationProperties().getProperty(propName).getValue());
-                }
-            }
+            logTransformedConfiguration();
 
             apiConfig.setInstanceName(getInstanceName());
 
@@ -288,6 +272,15 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         }
     }
 
+    private void logTransformedConfiguration() {
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Configuring connector {}, transformed configuration:", connectorType);
+            for (String propName : apiConfig.getConfigurationProperties().getPropertyNames()) {
+                LOGGER.trace("P: {} = {}", propName, apiConfig.getConfigurationProperties().getProperty(propName).getValue());
+            }
+        }
+    }
+
     private PrismContainerDefinition<?> getConfigurationContainerDefinition() throws SchemaException {
         QName configContainerQName = new QName(connectorType.getNamespace(),
                 ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
@@ -300,12 +293,10 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         return configContainerDef;
     }
 
-
-
     @Override
     public ConnectorOperationalStatus getOperationalStatus() throws ObjectNotFoundException {
 
-        if (!(cinfo instanceof LocalConnectorInfoImpl)) {
+        if (!(connectorInfo instanceof LocalConnectorInfoImpl)) {
             LOGGER.trace("Cannot get operational status of a remote connector {}", connectorType);
             return null;
         }
@@ -317,7 +308,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
         ConnectorOperationalStatus status = new ConnectorOperationalStatus();
 
-        ConnectorOperationalContext connectorOperationalContext = new ConnectorOperationalContext((LocalConnectorInfoImpl)cinfo, (APIConfigurationImpl) apiConfig);
+        ConnectorOperationalContext connectorOperationalContext = new ConnectorOperationalContext((LocalConnectorInfoImpl) connectorInfo, (APIConfigurationImpl) apiConfig);
 
         Class<? extends Connector> connectorClass = connectorOperationalContext.getConnectorClass();
         if (connectorClass != null) {
@@ -498,8 +489,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     }
 
     @Override
-    public PrismObject<ShadowType> fetchObject(ResourceObjectIdentification resourceObjectIdentification, AttributesToReturn attributesToReturn, StateReporter reporter,
-                                                             OperationResult parentResult)
+    public PrismObject<ShadowType> fetchObject(ResourceObjectIdentification resourceObjectIdentification,
+            AttributesToReturn attributesToReturn, StateReporter reporter, OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
             SchemaException, SecurityViolationException, ConfigurationException {
 
@@ -558,8 +549,10 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             }
 
             PrismObjectDefinition<ShadowType> shadowDefinition = toShadowDefinition(objectClassDefinition);
+            // TODO configure error reporting method
             PrismObject<ShadowType> shadow = connIdConvertor
-                    .convertToResourceObject(co, shadowDefinition, false, caseIgnoreAttributeNames, legacySchema, result);
+                    .convertToResourceObject(co, shadowDefinition, false, caseIgnoreAttributeNames,
+                            legacySchema, FetchErrorReportingMethodType.DEFAULT, result);
 
             result.recordSuccess();
             return shadow;
@@ -571,7 +564,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         }
     }
 
-    private PrismObjectDefinition<ShadowType> toShadowDefinition(
+    static PrismObjectDefinition<ShadowType> toShadowDefinition(
             ObjectClassComplexTypeDefinition objectClassDefinition) {
         ResourceAttributeContainerDefinition resourceAttributeContainerDefinition = objectClassDefinition
                 .toResourceAttributeContainerDefinition(ShadowType.F_ATTRIBUTES);
@@ -596,7 +589,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Fetching connector object ObjectClass={}, UID={}, options={}",
-                    new Object[]{icfObjectClass, uid, ConnIdUtil.dumpOptions(options)});
+                    icfObjectClass, uid, ConnIdUtil.dumpOptions(options));
         }
 
         ConnectorObject co = null;
@@ -938,7 +931,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(
                     ResourceObjectIdentification identification,
                     PrismObject<ShadowType> shadow,
-                    Collection<Operation> changes,
+                    @NotNull Collection<Operation> changes,
                     ConnectorOperationOptions options,
                     StateReporter reporter,
                     OperationResult parentResult)
@@ -949,10 +942,10 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         result.addArbitraryObjectAsParam("identification", identification);
         result.addArbitraryObjectCollectionAsParam("changes", changes);
 
-        if (changes.isEmpty()){
+        if (changes.isEmpty()) {
             LOGGER.info("No modifications for connector object specified. Skipping processing.");
             result.recordNotApplicableIfUnknown();
-            return AsynchronousOperationReturnValue.wrap(new ArrayList<PropertyModificationOperation>(0), result);
+            return AsynchronousOperationReturnValue.wrap(new ArrayList<>(0), result);
         }
 
         ObjectClass objClass = connIdNameMapper.objectClassToConnId(identification.getObjectClassDefinition(), getSchemaNamespace(), connectorType, legacySchema);
@@ -1197,7 +1190,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace(
                         "Invoking ConnId addAttributeValues(), objectclass={}, uid={}, attributes: {}",
-                        new Object[] { objClass, uid, dumpAttributes(attributesToAdd) });
+                        objClass, uid, dumpAttributes(attributesToAdd));
             }
 
             InternalMonitor.recordConnectorOperation("addAttributeValues");
@@ -1256,8 +1249,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             connIdResult.addContext("connector", connIdConnectorFacade.getClass());
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Invoking ConnId update(), objectclass={}, uid={}, attributes: {}", new Object[] {
-                        objClass, uid, dumpAttributes(attributesToUpdate) });
+                LOGGER.trace("Invoking ConnId update(), objectclass={}, uid={}, attributes: {}",
+                        objClass, uid, dumpAttributes(attributesToUpdate));
             }
 
             try {
@@ -1318,7 +1311,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace(
                         "Invoking ConnId removeAttributeValues(), objectclass={}, uid={}, attributes: {}",
-                        new Object[] { objClass, uid, dumpAttributes(attributesToRemove) });
+                        objClass, uid, dumpAttributes(attributesToRemove));
             }
 
             InternalMonitor.recordConnectorOperation("removeAttributeValues");
@@ -1538,12 +1531,12 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
     @Override
     public PrismProperty<?> deserializeToken(Object serializedToken) {
-        return createTokenPropertyFromRealValue(serializedToken);
+        return TokenUtil.createTokenPropertyFromRealValue(serializedToken, prismContext);
     }
 
     @Override
     public <T> PrismProperty<T> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClassDef, StateReporter reporter,
-                                                  OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
+            OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
 
         OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
                 + ".fetchCurrentToken");
@@ -1593,13 +1586,13 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         }
 
         result.recordSuccess();
-        return createTokenProperty(syncToken);
+        return TokenUtil.createTokenProperty(syncToken, prismContext);
     }
 
     @Override
-    public void fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> initialTokenProperty,
+    public UcfFetchChangesResult fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> initialTokenProperty,
             AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter,
-            ChangeHandler changeHandler, OperationResult parentResult)
+            @NotNull UcfLiveSyncChangeListener changeListener, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException {
 
         OperationResult result = parentResult.subresult(OP_FETCH_CHANGES)
@@ -1607,7 +1600,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                 .addArbitraryObjectAsParam("initialToken", initialTokenProperty)
                 .build();
         try {
-            SyncToken initialToken = getSyncToken(initialTokenProperty);
+            SyncToken initialToken = TokenUtil.getSyncToken(initialTokenProperty);
             LOGGER.trace("Initial token: {}", initialToken == null ? null : initialToken.getValue());
 
             // get icf object class
@@ -1629,6 +1622,11 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
             Thread callerThread = Thread.currentThread();
 
+            SyncDeltaConverter changeConverter = new SyncDeltaConverter(this, objectClass);
+
+            AtomicBoolean allChangesFetched = new AtomicBoolean(true);
+            UcfFetchChangesResult fetchChangesResult;
+
             OperationResult connIdResult = result.subresult(ConnectorFacade.class.getName() + ".sync")
                     .addContext("connector", connIdConnectorFacade.getClass())
                     .addArbitraryObjectAsParam("objectClass", requestConnIdObjectClass)
@@ -1644,8 +1642,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                  * In other words, we assume that if we tell ConnId to continue feeding changes to us, we are sure that on
                  * successful exit from sync() method all changes were processed.
                  */
-                AtomicBoolean allChangesFetched = new AtomicBoolean(true);
-                SyncResultsHandler syncHandler = delta -> {
+                SyncResultsHandler syncHandler = syncDelta -> {
 
                     Thread handlingThread = Thread.currentThread();
                     if (!handlingThread.equals(callerThread)) {
@@ -1654,37 +1651,52 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                     }
 
                     recordIcfOperationSuspend(reporter, ProvisioningOperation.ICF_SYNC, objectClass);
-                    LOGGER.trace("Detected sync delta: {}", delta);
+                    LOGGER.trace("Received sync delta: {}", syncDelta);
                     OperationResult handleResult;
                     // We can reasonably assume that this handler is NOT called in concurrent threads.
                     // But - just for sure - let us create subresults in a safe way.
                     synchronized (connIdResult) {
                         handleResult = connIdResult.subresult(OP_FETCH_CHANGES + ".handle")
-                                .addArbitraryObjectAsParam("uid", delta.getUid())
+                                .addArbitraryObjectAsParam("uid", syncDelta.getUid())
                                 .setMinor()
                                 .build();
                     }
-                    Change change = null;
+                    UcfLiveSyncChange change = null;
                     try {
+                        boolean canContinue = false; // Driven by the signal from the listener
+
                         // Here we again assume we are called in a single thread, and that changes received here are in
                         // the correct order - i.e. in the order in which they are to be processed.
                         int sequentialNumber = deltasProcessed.incrementAndGet();
 
-                        change = getChangeFromSyncDelta(requestConnIdObjectClass, objectClass, delta, sequentialNumber, handleResult);
-                        boolean canContinue = changeHandler.handleChange(change, handleResult);
+                        try {
+                            change = changeConverter.prepareChange(sequentialNumber, syncDelta, handleResult);
+                        } catch (Exception e) {
+                            handleResult.recordFatalError(e);
+                            String primaryIdentifierValue = syncDelta.getUid().getUidValue();
+                            PrismProperty<?> token = TokenUtil.createTokenProperty(syncDelta.getToken(), prismContext);
+                            canContinue = changeListener.onError(sequentialNumber, primaryIdentifierValue,
+                                    token, e, handleResult);
+                            change = null; // just to be sure that the change listener will not get executed
+                        }
+
+                        if (change != null) {
+                            // The following should not throw any exceptions
+                            canContinue = changeListener.onChange(change, handleResult);
+                        }
+
                         boolean doContinue = canContinue && canRun(reporter) && (maxChanges == null || maxChanges == 0 || sequentialNumber < maxChanges);
                         if (!doContinue) {
                             allChangesFetched.set(false);
                         }
                         return doContinue;
-                    } catch (Throwable t) {
-                        PrismProperty<?> token = delta.getToken() != null ? createTokenProperty(delta.getToken()) : null;
-                        handleResult.recordFatalError(t);
-                        boolean doContinue = changeHandler.handleError(token, change, t, handleResult);
-                        if (!doContinue) {
-                            allChangesFetched.set(false);
-                        }
-                        return doContinue;
+
+                    } catch (RuntimeException e) {
+                        handleResult.recordFatalError(e);
+                        // any exception here is not expected
+                        LoggingUtils.logUnexpectedException(LOGGER, "Got unexpected exception while handling live sync "
+                                + "change, stopping the processing. Sync delta: {}, UCF change: {}", e, syncDelta, change);
+                        return false;
                     } finally {
                         // Asynchronously processed changes (if used) have their own, separate, operation results
                         // that are tied to the lightweight asynchronous task handlers in ChangeProcessingCoordinator.
@@ -1738,9 +1750,12 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                 if (allChangesFetched.get()) {
                     // We might consider finalToken value here. I.e. it it's non null, we could declare all changes to be fetched.
                     // But as mentioned above, this is not supported explicitly in SyncApiOp. So let's be a bit conservative.
-                    LOGGER.trace("Signalling 'all changes fetched' with finalToken = {}", finalToken);
-                    changeHandler.handleAllChangesFetched(createTokenProperty(finalToken), result);
+                    LOGGER.trace("All changes were fetched; with finalToken = {}", finalToken);
+                    fetchChangesResult = new UcfFetchChangesResult(true, TokenUtil.createTokenProperty(finalToken, prismContext));
+                } else {
+                    fetchChangesResult = new UcfFetchChangesResult(false, null);
                 }
+
             } catch (Throwable t) {
                 connIdResult.recordFatalError(t);
                 throw t;
@@ -1750,6 +1765,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
             result.recordSuccess();
             result.addReturn(OperationResult.RETURN_COUNT, deltasProcessed.get());
+
+            return fetchChangesResult;
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
@@ -1790,8 +1807,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     @Override
     public SearchResultMetadata search(final ObjectClassComplexTypeDefinition objectClassDefinition,
             final ObjectQuery query, final ShadowResultHandler handler, AttributesToReturn attributesToReturn,
-            PagedSearchCapabilityType pagedSearchCapabilityType, SearchHierarchyConstraints searchHierarchyConstraints,
-            final StateReporter reporter, OperationResult parentResult)
+            PagedSearchCapabilityType pagedSearchConfiguration, SearchHierarchyConstraints searchHierarchyConstraints,
+            FetchErrorReportingMethodType errorReportingMethod, StateReporter reporter, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SecurityViolationException, SchemaException,
                         ObjectNotFoundException {
 
@@ -1819,11 +1836,11 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         }
         final PrismObjectDefinition<ShadowType> objectDefinition = toShadowDefinition(objectClassDefinition);
 
-        if (pagedSearchCapabilityType == null) {
-            pagedSearchCapabilityType = getCapability(PagedSearchCapabilityType.class);
+        if (pagedSearchConfiguration == null) {
+            pagedSearchConfiguration = getCapability(PagedSearchCapabilityType.class);
         }
 
-        final boolean useConnectorPaging = pagedSearchCapabilityType != null;
+        boolean useConnectorPaging = pagedSearchConfiguration != null;
         if (!useConnectorPaging && query != null && query.getPaging() != null &&
                 (query.getPaging().getOffset() != null || query.getPaging().getMaxSize() != null)) {
             InternalMonitor.recordCount(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
@@ -1834,51 +1851,34 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         ResultsHandler connIdHandler = new ResultsHandler() {
             @Override
             public boolean handle(ConnectorObject connectorObject) {
-                // Convert ConnId-specific connector object to a generic ResourceObject
-                recordIcfOperationSuspend(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
-                int count = countHolder.getValue();
-                countHolder.setValue(count+1);
-                if (!useConnectorPaging) {
-                    // TODO allow offset or maxSize be null
-                    if (query != null && query.getPaging() != null && query.getPaging().getOffset() != null
-                            && query.getPaging().getMaxSize() != null) {
-                        if (count < query.getPaging().getOffset()) {
-                            recordResume();
-                            return true;
-                        }
+                Validate.notNull(connectorObject, "null connector object"); // todo apply error reporting method?
 
-                        if (count == (query.getPaging().getOffset() + query.getPaging().getMaxSize())) {
-                            recordResume();
-                            return false;
+                recordIcfOperationSuspend(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
+                try {
+                    int count = countHolder.getValue();
+                    countHolder.setValue(count + 1);
+                    if (!useConnectorPaging) {
+                        // TODO allow offset or maxSize be null
+                        if (query != null && query.getPaging() != null && query.getPaging().getOffset() != null
+                                && query.getPaging().getMaxSize() != null) {
+                            if (count < query.getPaging().getOffset()) {
+                                return true;
+                            }
+                            if (count == (query.getPaging().getOffset() + query.getPaging().getMaxSize())) {
+                                return false;
+                            }
                         }
                     }
-                }
-                PrismObject<ShadowType> resourceObject;
-                Validate.notNull(connectorObject, "null connector object");
-                try {
-                    resourceObject = connIdConvertor.convertToResourceObject(connectorObject, objectDefinition, false, caseIgnoreAttributeNames, legacySchema,
-                            result);
+
+                    PrismObject<ShadowType> resourceObject = connIdConvertor.convertToResourceObject(connectorObject,
+                            objectDefinition, false, caseIgnoreAttributeNames, legacySchema, errorReportingMethod, result);
+                    return handler.handle(resourceObject);
+
                 } catch (SchemaException e) {
-                    recordResume();
                     throw new IntermediateException(e);
+                } finally {
+                    recordIcfOperationResume(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
                 }
-
-                Validate.notNull(resourceObject, "null resource object");
-
-                // .. and pass it to the handler
-                boolean cont = handler.handle(resourceObject);
-                /*
-                 * When iterative search on resource was stopped, we used to record WARNING into OperationResult (originally
-                 * there was even PARTIAL_ERROR). But this is not quite correct. The operation as such is successful.
-                 * (Maybe we should provide OperationResult to handler so that it can put something to it.)
-                 * This would also help when displaying operation result structure.
-                 */
-                recordResume();
-                return cont;
-            }
-
-            private void recordResume() {
-                recordIcfOperationResume(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
             }
 
             @Override
@@ -1915,8 +1915,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                     isAscending = paging.getDirection() != OrderDirection.DESCENDING;
                     desc = "(explicitly specified orderBy attribute)";
                 } else {
-                    orderByAttributeName = pagedSearchCapabilityType.getDefaultSortField();
-                    isAscending = pagedSearchCapabilityType.getDefaultSortDirection() != OrderDirectionType.DESCENDING;
+                    orderByAttributeName = pagedSearchConfiguration.getDefaultSortField();
+                    isAscending = pagedSearchConfiguration.getDefaultSortDirection() != OrderDirectionType.DESCENDING;
                     desc = "(default orderBy attribute from capability definition)";
                 }
                 if (orderByAttributeName != null) {
@@ -2303,111 +2303,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         return primaryIdentifier.getDefinition();
     }
 
-    @NotNull
-    private Change getChangeFromSyncDelta(ObjectClass requestConnIdObjectClass,
-            ObjectClassComplexTypeDefinition requestObjectClass, SyncDelta connIdDelta, int localSequenceNumber, OperationResult result)
-            throws SchemaException, GenericFrameworkException {
-
-        ObjectClassComplexTypeDefinition deltaObjectClass;
-
-        if (requestObjectClass != null) {
-            deltaObjectClass = requestObjectClass;
-        } else {
-            ObjectClass deltaConnIdObjectClass = connIdDelta.getObjectClass();
-            QName deltaObjectClassName = connIdNameMapper.objectClassToQname(deltaConnIdObjectClass, getSchemaNamespace(), legacySchema);
-            if (deltaConnIdObjectClass != null) {
-                deltaObjectClass = (ObjectClassComplexTypeDefinition) resourceSchema.findComplexTypeDefinitionByType(deltaObjectClassName);
-            } else {
-                deltaObjectClass = null;
-            }
-            if (deltaObjectClass == null) {
-                if (connIdDelta.getDeltaType() == SyncDeltaType.DELETE) {
-                    // tolerate this. E.g. LDAP changelogs do not have objectclass in delete deltas.
-                } else {
-                    throw new SchemaException("Got delta with object class "+deltaObjectClassName+" ("+deltaConnIdObjectClass+") that has no definition in resource schema");
-                }
-            }
-        }
-
-        Change change;
-
-        SyncDeltaType icfDeltaType = connIdDelta.getDeltaType();
-        LOGGER.trace("START creating delta of type {}", icfDeltaType);
-
-        if (icfDeltaType == SyncDeltaType.DELETE) {
-
-            ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.DELETE);
-            Uid uid = connIdDelta.getUid();
-            Collection<ResourceAttribute<?>> identifiers = ConnIdUtil.convertToIdentifiers(uid, deltaObjectClass, resourceSchema);
-            change = new Change(uid.getUidValue(), identifiers, null, objectDelta, createTokenProperty(connIdDelta.getToken()), localSequenceNumber);
-
-        } else if (icfDeltaType == SyncDeltaType.CREATE || icfDeltaType == SyncDeltaType.CREATE_OR_UPDATE || icfDeltaType == SyncDeltaType.UPDATE) {
-
-            Uid uid = connIdDelta.getUid() != null ? connIdDelta.getUid() : connIdDelta.getObject().getUid();
-
-            PrismObjectDefinition<ShadowType> objectDefinition = toShadowDefinition(deltaObjectClass);
-            LOGGER.trace("Object definition: {}", objectDefinition);
-
-            PrismObject<ShadowType> currentResourceObject = connIdConvertor.convertToResourceObject(connIdDelta.getObject(),
-                    objectDefinition, false, caseIgnoreAttributeNames, legacySchema, result);
-            LOGGER.trace("Got (current) resource object: {}", currentResourceObject.debugDumpLazily());
-            Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(currentResourceObject);
-
-            if (icfDeltaType == SyncDeltaType.CREATE) {
-                ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.ADD);
-                objectDelta.setObjectToAdd(currentResourceObject);
-                change = new Change(uid.getUidValue(), identifiers, null, objectDelta, createTokenProperty(connIdDelta.getToken()), localSequenceNumber);
-            } else {
-                change = new Change(uid.getUidValue(), identifiers, currentResourceObject, null, createTokenProperty(connIdDelta.getToken()), localSequenceNumber);
-            }
-
-        } else {
-            throw new GenericFrameworkException("Unexpected sync delta type " + icfDeltaType);
-        }
-
-        change.setObjectClassDefinition(deltaObjectClass);
-        LOGGER.trace("END creating change of type {}:\n{}", icfDeltaType, change.debugDumpLazily());
-
-        return change;
-    }
-
-    private SyncToken getSyncToken(PrismProperty tokenProperty) throws SchemaException {
-        if (tokenProperty == null || tokenProperty.getValues().isEmpty()) {
-            return null;
-        } else if (tokenProperty.getValues().size() > 1) {
-            throw new SchemaException("Unexpected number of attributes in SyncToken. SyncToken is single-value attribute and can contain only one value.");
-        } else {
-            Object tokenValue = tokenProperty.getAnyRealValue();
-            if (tokenValue != null) {
-                return new SyncToken(tokenValue);
-            } else {
-                return null;
-            }
-        }
-    }
-
-    private <T> PrismProperty<T> createTokenProperty(SyncToken syncToken) {
-        if (syncToken != null) {
-            //noinspection unchecked
-            T realValue = (T) syncToken.getValue();
-            return createTokenPropertyFromRealValue(realValue);
-        } else {
-            return null;
-        }
-    }
-
-    private <T> PrismProperty<T> createTokenPropertyFromRealValue(T realValue) {
-        QName type = XsdTypeMapper.toXsdType(realValue.getClass());
-
-        MutablePrismPropertyDefinition<T> propDef = prismContext.definitionFactory().createPropertyDefinition(SchemaConstants.SYNC_TOKEN, type);
-        propDef.setDynamic(true);
-        propDef.setMaxOccurs(1);
-        propDef.setIndexed(false);          // redundant, as dynamic extension items are not indexed by default
-        PrismProperty<T> property = propDef.instantiate();
-        property.addRealValue(realValue);
-        return property;
-    }
-
     @Override
     public Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, StateReporter reporter, OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
 
@@ -2646,5 +2541,15 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         return connIdOptionsBuilder.build();
     }
 
+    boolean isLegacySchema() {
+        return Boolean.TRUE.equals(legacySchema);
+    }
 
+    ResourceSchema getResourceSchema() {
+        return resourceSchema;
+    }
+
+    boolean isCaseIgnoreAttributeNames() {
+        return caseIgnoreAttributeNames;
+    }
 }

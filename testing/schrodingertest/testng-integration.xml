@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2015 Evolveum and contributors
+  ~ Copyright (C) 2015-2020 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
 <suite name="integration" parallel="false" verbose="1">
     <test name="Schrodinger.scenarios.UserPhotoTests" preserve-order="true" parallel="false" verbose="3" enabled="true">
         <classes>
@@ -106,6 +106,36 @@
     <test name="Schrodinger.page.TaskPageTest" preserve-order="true" parallel="false" verbose="3" enabled="true">
         <classes>
             <class name="com.evolveum.midpoint.testing.schrodinger.page.TaskPageTest"/>
+        </classes>
+    </test>
+    <test name="Schrodinger.component.FilterConfigPanelTest" preserve-order="true" parallel="false" verbose="3" enabled="true">
+        <classes>
+            <class name="com.evolveum.midpoint.testing.schrodinger.component.FilterConfigPanelTest"/>
+        </classes>
+    </test>
+    <test name="Schrodinger.component.SearchPanelTest" preserve-order="true" parallel="false" verbose="3" enabled="true">
+        <classes>
+            <class name="com.evolveum.midpoint.testing.schrodinger.component.SearchPanelTest"/>
+        </classes>
+    </test>
+    <test name="Schrodinger.component.AssignmentPanelTest" preserve-order="true" parallel="false" verbose="3" enabled="true">
+        <classes>
+            <class name="com.evolveum.midpoint.testing.schrodinger.component.AssignmentPanelTest"/>
+        </classes>
+    </test>
+    <test name="Schrodinger.page.CredentialsPageTest" preserve-order="true" parallel="false" verbose="3" enabled="true">
+        <classes>
+            <class name="com.evolveum.midpoint.testing.schrodinger.page.CredentialsPageTest"/>
+        </classes>
+    </test>
+    <test name="Schrodinger.scenarios.ReportTests" preserve-order="true" parallel="false" verbose="3" enabled="true">
+        <classes>
+            <class name="com.evolveum.midpoint.testing.schrodinger.scenarios.ReportTests"/>
+        </classes>
+    </test>
+    <test name="Schrodinger.scenarios.ObjectTemplateTests" preserve-order="true" parallel="false" verbose="3" enabled="true">
+        <classes>
+            <class name="com.evolveum.midpoint.testing.schrodinger.scenarios.ObjectTemplateTests"/>
         </classes>
     </test>
     <test name="Schrodinger.mid-101.labs" preserve-order="true" parallel="false" verbose="3" enabled="true">

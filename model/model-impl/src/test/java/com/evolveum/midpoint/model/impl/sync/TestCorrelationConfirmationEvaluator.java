@@ -208,7 +208,7 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
         assertNotNull("Unexpected null system configuration", systemConfiguration);
 
         SynchronizationContext<UserType> syncCtx = new SynchronizationContext<>(shadow.asPrismObject(), shadow.asPrismObject(),
-                null, resourceType.asPrismObject(), null, prismContext, expressionFactory, task);
+                null, resourceType.asPrismObject(), null, prismContext, expressionFactory, task, null);
         syncCtx.setSystemConfiguration(systemConfiguration);
         syncCtx.setObjectSynchronization(objectSynchronizationType);
         syncCtx.setFocusClass(UserType.class);
@@ -232,7 +232,7 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
 
         ResourceType resourceType = parseObjectType(RESOURCE_DUMMY_FILE, ResourceType.class);
         userType.asObjectable().setName(new PolyStringType("JACK"));
-        Collection<? extends ItemDelta> modifications = prismContext.deltaFactory().property()
+        Collection<? extends ItemDelta<?, ?>> modifications = prismContext.deltaFactory().property()
                 .createModificationReplacePropertyCollection(UserType.F_NAME, userType.getDefinition(), new PolyString("JACK", "jack"));
         repositoryService.modifyObject(UserType.class, USER_JACK_OID, modifications, result);
 

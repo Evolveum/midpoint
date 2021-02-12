@@ -189,6 +189,14 @@ public class TestCsvReport extends BasicNewReportTest {
         assertTrue(user.asObjectable().getSubtype().isEmpty());
         assertEquals("Test import: test_NICK2", user.asObjectable().getNickName().getOrig());
         assertTrue(user.asObjectable().getAssignment().isEmpty());
+
+        user = searchObjectByName(UserType.class, "testUser03");
+        assertNotNull("User testUser03 was not created", user);
+        assertEquals(ActivationStatusType.ENABLED, user.asObjectable().getActivation().getAdministrativeStatus());
+        assertEquals("2020-07-07T00:00:00.000+02:00", user.asObjectable().getActivation().getValidFrom().toString());
+        assertEquals("sub31", user.asObjectable().getSubtype().get(0));
+        assertEquals("Test import: test_NICK3", user.asObjectable().getNickName().getOrig());
+        assertTrue(user.asObjectable().getAssignment().isEmpty());
     }
 
     @Test(dependsOnMethods = {"test115CreateObjectCollectionReportWithCondition"})

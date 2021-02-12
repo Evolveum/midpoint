@@ -31,7 +31,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class AbstractPrismTest extends AbstractUnitTest {
+public abstract class AbstractPrismTest extends AbstractUnitTest {
 
     protected static final String USER_FOO_OID = "01234567";
 
@@ -51,6 +51,7 @@ public class AbstractPrismTest extends AbstractUnitTest {
         PrismTestUtil.display(title, value);
     }
 
+    @Override
     public void displayValue(String title, Object value) {
         PrismTestUtil.display(title, value);
     }

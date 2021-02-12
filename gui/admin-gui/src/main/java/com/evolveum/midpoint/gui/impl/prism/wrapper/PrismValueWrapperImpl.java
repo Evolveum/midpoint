@@ -72,7 +72,10 @@ public abstract class PrismValueWrapperImpl<T> implements PrismValueWrapper<T> {
 
                 if (parent.isSingleValue()) {
                     if (newValue.isEmpty())  {
-                        delta.addValueToDelete(oldValue.clone());
+                        // if old value is empty, nothing to do.
+                        if (!oldValue.isEmpty()) {
+                            delta.addValueToDelete(oldValue.clone());
+                        }
                     } else {
                         delta.addValueToReplace(getNewValueWithMetadataApplied());
                     }
@@ -156,8 +159,6 @@ public abstract class PrismValueWrapperImpl<T> implements PrismValueWrapper<T> {
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createIndentedStringBuilder(indent);
         sb.append("Status: ").append(status).append("\n");
-        sb.append("New value: ").append(newValue.debugDump()).append("\n");
-        sb.append("Old value: ").append(oldValue.debugDump()).append("\n");
         return sb.toString();
     }
 

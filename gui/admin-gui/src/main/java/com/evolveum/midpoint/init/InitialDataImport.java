@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -51,6 +51,10 @@ public class InitialDataImport extends DataImport {
     private static final String INITIAL_OBJECTS_RESOURCE_PATTERN = "classpath*:/initial-objects/*";
 
     public void init() throws SchemaException {
+        init(false);
+    }
+
+    public void init(boolean overwrite) throws SchemaException {
         LOGGER.info("Starting initial object import (if necessary).");
 
         OperationResult mainResult = new OperationResult(OPERATION_INITIAL_OBJECTS_IMPORT);
@@ -68,7 +72,8 @@ public class InitialDataImport extends DataImport {
 
             SecurityContext securityContext = provideFakeSecurityContext();
             for (Resource resource : resources) {
-                ImportResult result = importInitialObjectsResource(resource, task, mainResult);
+                ImportResult result = importInitialObjectsResource(
+                        resource, task, mainResult, overwrite);
                 importStats.get(result).incrementAndGet();
             }
             securityContext.setAuthentication(null);
@@ -89,7 +94,7 @@ public class InitialDataImport extends DataImport {
     }
 
     private ImportResult importInitialObjectsResource(
-            Resource resource, Task task, OperationResult mainResult) {
+            Resource resource, Task task, OperationResult mainResult, boolean overwrite) {
 
         try {
             LOGGER.debug("Considering initial import of file {}.", resource.getFilename());
@@ -103,7 +108,7 @@ public class InitialDataImport extends DataImport {
                 ReportTypeUtil.applyDefinition((PrismObject<ReportType>) object, prismContext);
             }
 
-            return importObject(object, resource.getFilename(), task, mainResult);
+            return importObject(object, resource.getFilename(), task, mainResult, overwrite);
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER,
                     "Couldn't import file {}", ex, resource.getFilename());
@@ -114,7 +119,7 @@ public class InitialDataImport extends DataImport {
     }
 
     private ImportResult importObject(PrismObject<? extends ObjectType> object,
-            String fileName, Task task, OperationResult mainResult) {
+            String fileName, Task task, OperationResult mainResult, boolean overwrite) {
         OperationResult result = mainResult.createSubresult(OPERATION_IMPORT_OBJECT);
 
         try {
@@ -126,7 +131,9 @@ public class InitialDataImport extends DataImport {
                     task,
                     result);
             result.recordSuccess();
-            return ImportResult.SKIPPED;
+            if (!overwrite) {
+                return ImportResult.SKIPPED;
+            }
         } catch (ObjectNotFoundException ex) {
             // this is OK, we're going to import missing object
         } catch (Exception ex) {
@@ -144,7 +151,7 @@ public class InitialDataImport extends DataImport {
             LOGGER.info("Starting initial import of file {}.", fileName);
             model.executeChanges(
                     MiscUtil.createCollection(delta),
-                    ModelExecuteOptions.create(prismContext).setIsImport(),
+                    ModelExecuteOptions.create(prismContext).setIsImport().overwrite(overwrite),
                     task,
                     result);
             result.recordSuccess();

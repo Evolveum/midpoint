@@ -267,3 +267,92 @@ function toggleSearchPopover(buttonId, popoverId, paddingRight) {
 function initDropdown(compId, options) {
     $('#' + compId).multiselect(options);
 }
+
+// expand/collapse for sidebarMenuPanel
+jQuery(function ($) {
+    $('.sidebar-menu li.header').on("click", function (e) {
+        if ($(this).hasClass('closed')) {
+            // expand the panel
+            $(this).nextUntil('.header').slideDown();
+            $(this).removeClass('closed');
+        }
+        else {
+            // collapse the panel
+            $(this).nextUntil('.header').slideUp();
+            $(this).addClass('closed');
+        }
+    });
+});
+
+function showPassword(iconElement) {
+    var parent = iconElement.closest(".password-parent");
+	var input = parent.querySelector("input");
+
+    	if (input.type === "password") {
+    		input.type = "text";
+    		iconElement.className = 'fa fa-eye-slash';
+  		} else {
+    		input.type = "password";
+    		iconElement.className = 'fa fa-eye';
+  		}
+}
+
+!function($) {
+    $.fn.passwordFieldValidatorPopover = function(inputId, popover) {
+        return this.each(function() {
+
+            var parent = $(this).parent();
+
+            var showPopover=function(){
+                parent.find(inputId).each(function() {
+                    var itemH=$(this).innerHeight() + 18;
+                    parent.find(popover).fadeIn(300).css({top:itemH, left:0}).css("display", "block");
+                });
+            }
+
+            showPopover();
+            $(this).on("focus", function(){showPopover();});
+
+            var deletePopover=function(){
+        	    parent.find(popover).fadeIn(300).css("display", "none");
+            };
+
+            $(this).on("blur", function(){
+        	    deletePopover();
+            });
+        });
+    };
+
+    $.fn.passwordValidatorPopover = function(inputId, popover) {
+            return this.each(function() {
+
+                var parent = $(this).parent();
+
+                var showPopover=function(){
+                    if (parent.find(inputId + ":hover").length != 0) {
+                        parent.find(inputId).each(function() {
+                            var itemH=$(this).innerHeight() + 10;
+                            parent.find(popover).fadeIn(300).css({top:itemH, left:0}).css("display", "block");
+                        });
+                    }
+                }
+
+                $(this).on("mouseenter", function(){showPopover();});
+
+                var deletePopover=function(){
+                    parent.find(popover).fadeIn(300).css("display", "none");
+                };
+
+                $(this).on("mouseleave", function(){
+                    if (parent.find(popover + ":hover").length == 0) {
+            	        deletePopover();
+            	    }
+                });
+                parent.find(popover).on("mouseleave", function(){
+                    if (parent.find(inputId + ":hover").length == 0) {
+                        deletePopover();
+                    }
+               });
+            });
+        };
+}(window.jQuery);

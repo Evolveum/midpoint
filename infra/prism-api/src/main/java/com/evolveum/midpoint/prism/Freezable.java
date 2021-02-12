@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.prism;
 
-
 /**
  *  Something that can be made immutable.
  */
@@ -26,6 +25,12 @@ public interface Freezable {
     default void checkImmutable() {
         if (!isImmutable()) {
             throw new IllegalStateException("Item is not immutable even if it should be: " + toString());
+        }
+    }
+
+    static void freezeNullable(Freezable target) {
+        if (target != null) {
+            target.freeze();
         }
     }
 

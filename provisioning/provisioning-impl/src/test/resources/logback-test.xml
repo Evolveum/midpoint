@@ -49,7 +49,7 @@
     <logger name="org.apache.directory.api.CODEC_LOG" level="INFO" />
     <logger name="org.apache.directory.api.ldap.codec" level="INFO" />
     <logger name="org.apache.directory.CURSOR_LOG" level="INFO" />
-    <logger name="PROFILING" level="INFO" />
+    <logger name="PROFILING" level="TRACE" />
     <root level="INFO">
         <appender-ref ref="X" />
         <appender-ref ref="TracingAppender" />

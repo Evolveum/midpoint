@@ -18,6 +18,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 
 import org.apache.commons.lang.BooleanUtils;
@@ -631,6 +632,26 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             }
 
             SecurityPolicyType securityPolicyType = securityHelper.locateSecurityPolicy(focus, systemConfiguration, task, result);
+            if (securityPolicyType == null) {
+                result.recordNotApplicableIfUnknown();
+                return null;
+            }
+
+            return securityPolicyType;
+        } catch (Throwable e) {
+            result.recordFatalError(e);
+            throw e;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    @Override
+    public SecurityPolicyType getSecurityPolicy(RefinedObjectClassDefinition rOCDef, Task task, OperationResult parentResult)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException {
+        OperationResult result = parentResult.createMinorSubresult(GET_SECURITY_POLICY);
+        try {
+            SecurityPolicyType securityPolicyType = securityHelper.locateProjectionSecurityPolicy(rOCDef, task, result);
             if (securityPolicyType == null) {
                 result.recordNotApplicableIfUnknown();
                 return null;
@@ -1264,8 +1285,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         if (object == null) {
             return null;
         }
-        if (object.canRepresent(UserType.class)) {
-            return new FocusValuePolicyOriginResolver<>((PrismObject<UserType>) object, objectResolver);
+        if (object.canRepresent(FocusType.class)) {
+            return new FocusValuePolicyOriginResolver<>((PrismObject<FocusType>) object, objectResolver);
         }
         if (object.canRepresent(ShadowType.class)) {
             return new ShadowValuePolicyOriginResolver((PrismObject<ShadowType>) object, objectResolver);
@@ -1293,6 +1314,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     private String getClearValue(ProtectedStringType protectedString) throws SchemaException, PolicyViolationException {
+        if (protectedString == null) {
+            return null;
+        }
         try {
             if (protectedString.isEncrypted()) {
 
@@ -1690,7 +1714,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         for (PrismObject<ArchetypeType> archetype : archetypes) {
             List<QName> archetypeFocusTypes = null;
             for (AssignmentType inducement : archetype.asObjectable().getInducement()) {
-                for (AssignmentRelationType assignmentRelation : inducement.getAssignmentRelation()) {
+                for (AssignmentRelationType assignmentRelation: inducement.getAssignmentRelation()) {
                     if (canBeAssignmentHolder(assignmentRelation, object)) {
                         if (archetypeFocusTypes == null) {
                             archetypeFocusTypes = determineArchetypeFocusTypes(archetype);
@@ -1829,7 +1853,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Override
     @Experimental
     @NotNull
-    public CompiledObjectCollectionView compileObjectCollectionView(@NotNull CollectionRefSpecificationType collectionRef, @Nullable Class<? extends ObjectType> targetTypeClass, @NotNull Task task, @NotNull OperationResult result)
+    public CompiledObjectCollectionView compileObjectCollectionView(@NotNull CollectionRefSpecificationType collectionRef, @Nullable Class<? extends Containerable> targetTypeClass, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
         return collectionProcessor.compileObjectCollectionView(collectionRef, targetTypeClass, task, result);
@@ -1904,6 +1928,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Override
     public void applyView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
         collectionProcessor.compileView(existingView, objectListViewType);
+    }
+
+    @Override
+    public <O extends ObjectType> List<StringLimitationResult> validateValue(ProtectedStringType protectedStringValue, ValuePolicyType pp, PrismObject<O> object, Task task, OperationResult parentResult)
+            throws SchemaException, PolicyViolationException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        return policyProcessor.validateValue(getClearValue(protectedStringValue), pp, createOriginResolver(object, parentResult), "validate string", task, parentResult);
     }
 
 }

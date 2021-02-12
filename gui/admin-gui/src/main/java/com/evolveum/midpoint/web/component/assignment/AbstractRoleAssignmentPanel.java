@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -38,7 +38,6 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -58,11 +57,11 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
-        columns.add(new AbstractColumn<PrismContainerValueWrapper<AssignmentType>, String>(
+        columns.add(new AbstractColumn<>(
                 createStringResource("AbstractRoleAssignmentPanel.relationLabel")) {
             @Override
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<PrismContainerValueWrapper<AssignmentType>> assignmentModel) {
-                item.add(new Label(componentId, getRelationLabelValue(assignmentModel.getObject())));
+                item.add(new Label(componentId, WebComponentUtil.getRelationLabelValue(assignmentModel.getObject(), getPageBase())));
             }
         });
 
@@ -71,7 +70,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
             columns.add(new PrismReferenceWrapperColumn<AssignmentType, ObjectReferenceType>(getModel(), AssignmentType.F_ORG_REF, ColumnType.STRING, getPageBase()));
         }
 
-        columns.add(new AbstractColumn<PrismContainerValueWrapper<AssignmentType>, String>(createStringResource("AbstractRoleAssignmentPanel.identifierLabel")) {
+        columns.add(new AbstractColumn<>(createStringResource("AbstractRoleAssignmentPanel.identifierLabel")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -84,28 +83,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         return columns;
     }
 
-    private String getRelationLabelValue(PrismContainerValueWrapper<AssignmentType> assignmentWrapper) {
-        if (assignmentWrapper == null || assignmentWrapper.getRealValue() == null
-                || assignmentWrapper.getRealValue().getTargetRef() == null
-                || assignmentWrapper.getRealValue().getTargetRef().getRelation() == null) {
-            return "";
-        }
-
-        QName relation = assignmentWrapper.getRealValue().getTargetRef().getRelation();
-        String relationDisplayName = WebComponentUtil.getRelationHeaderLabelKeyIfKnown(relation);
-        return StringUtils.isNotEmpty(relationDisplayName) ?
-                getPageBase().createStringResource(relationDisplayName).getString() :
-                getPageBase().createStringResource(relation.getLocalPart()).getString();
-    }
-
     protected void initCustomPaging() {
-        getAssignmentsTabStorage().setPaging(getPrismContext().queryFactory()
-                .createPaging(0, (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)));
-    }
-
-    @Override
-    protected UserProfileStorage.TableId getTableId() {
-        return UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE;
     }
 
     protected ObjectQuery createObjectQuery() {
@@ -127,7 +105,6 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                     .ref(ort.asReferenceValue())
                     .buildFilter();
             targetRefFilter.setOidNullAsAny(true);
-            targetRefFilter.setRelationNullAsAny(true);
         }
         ObjectQuery query = getParentPage().getPrismContext().queryFor(AssignmentType.class)
                 .not()

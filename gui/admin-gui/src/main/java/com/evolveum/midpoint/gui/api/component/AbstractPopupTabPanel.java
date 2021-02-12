@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -41,8 +41,6 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
     protected static final String ID_PARAMETERS_PANEL = "parametersPanel";
     protected static final String ID_PARAMETERS_PANEL_FRAGMENT = "parametersPanelFragment";
 
-    protected List<O> preSelectedObjects = new ArrayList<>();
-
     public AbstractPopupTabPanel(String id) {
         super(id);
     }
@@ -61,19 +59,19 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
     }
 
     protected Component initObjectListPanel() {
-        PopupObjectListPanel<O> listPanel = new PopupObjectListPanel<O>(ID_OBJECT_LIST_PANEL,
-                (Class) getObjectType().getClassDefinition(), true, getPageBase()) {
+        PopupObjectListPanel<O> listPanel = new PopupObjectListPanel<>
+                (ID_OBJECT_LIST_PANEL, getObjectType().getClassDefinition(), true) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected List<IColumn<SelectableBean<O>, String>> createColumns() {
+            protected List<IColumn<SelectableBean<O>, String>> createDefaultColumns() {
                 if (AbstractRoleType.class.isAssignableFrom(getType())) {
                     List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<>();
                     columns.addAll((Collection) ColumnUtils.getDefaultAbstractRoleColumns(false));
                     return columns;
                 } else {
-                    return super.createColumns();
+                    return super.createDefaultColumns();
                 }
             }
 
@@ -93,10 +91,10 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
             }
 
             @Override
-            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
-                ObjectQuery queryWithFilters = AbstractPopupTabPanel.this.addFilterToContentQuery(query);
-                if (queryWithFilters == null) {
-                    queryWithFilters = AbstractPopupTabPanel.this.getPageBase().getPrismContext().queryFactory().createQuery();
+            protected ObjectQuery getCustomizeContentQuery() {
+                ObjectQuery customQuery = AbstractPopupTabPanel.this.addFilterToContentQuery();
+                if (customQuery == null) {
+                    customQuery = AbstractPopupTabPanel.this.getPageBase().getPrismContext().queryFactory().createQuery();
                 }
                 List<ObjectReferenceType> archetypeRefList = getArchetypeRefList();
                 if (!CollectionUtils.isEmpty(archetypeRefList)) {
@@ -107,21 +105,20 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
                                 .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(archetypeRef.getOid())
                                 .buildFilter();
                         ((RefFilter) filter).setTargetTypeNullAsAny(true);
-                        ((RefFilter) filter).setRelationNullAsAny(true);
                         archetypeRefFilterList.add(filter);
                     }
                     if (!CollectionUtils.isEmpty(archetypeRefFilterList)) {
                         OrFilter archetypeRefOrFilter =
                                 AbstractPopupTabPanel.this.getPageBase().getPrismContext().queryFactory().createOr(archetypeRefFilterList);
-                        queryWithFilters.addFilter(archetypeRefOrFilter);
+                        customQuery.addFilter(archetypeRefOrFilter);
                     }
                 }
 
                 ObjectFilter subTypeFilter = getSubtypeFilter();
                 if (subTypeFilter != null) {
-                    queryWithFilters.addFilter(subTypeFilter);
+                    customQuery.addFilter(subTypeFilter);
                 }
-                return queryWithFilters;
+                return customQuery;
             }
 
         };
@@ -143,15 +140,16 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
     }
 
     protected List<O> getSelectedObjectsList() {
-        PopupObjectListPanel objectListPanel = getObjectListPanel();
+        PopupObjectListPanel<O> objectListPanel = getObjectListPanel();
         if (objectListPanel == null) {
             return new ArrayList<>();
         }
-        return objectListPanel.getSelectedObjects();
+        return objectListPanel.getSelectedRealObjects();
     }
 
-    protected PopupObjectListPanel getObjectListPanel() {
-        return (PopupObjectListPanel) get(ID_OBJECT_LIST_PANEL);
+    protected <T extends ObjectType> PopupObjectListPanel<T> getObjectListPanel() {
+        //noinspection unchecked
+        return (PopupObjectListPanel<T>) get(ID_OBJECT_LIST_PANEL);
     }
 
     protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {
@@ -161,8 +159,8 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
         return Model.of(true);
     }
 
-    protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
-        return query;
+    protected ObjectQuery addFilterToContentQuery() {
+        return null;
     }
 
     protected List<ObjectReferenceType> getArchetypeRefList() {

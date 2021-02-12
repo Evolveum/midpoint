@@ -6,10 +6,22 @@
  */
 package com.evolveum.midpoint.schrodinger.page.configuration;
 
+import com.codeborne.selenide.Condition;
+
+import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.component.configuration.ListRepositoryObjectsTable;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
+import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+
+import static com.codeborne.selenide.Selenide.$;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class ListRepositoryObjectsPage extends BasicPage {
+
+    public ListRepositoryObjectsTable table() {
+        return new ListRepositoryObjectsTable(this, $(Schrodinger.byDataId("table")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S));
+    }
+
 }

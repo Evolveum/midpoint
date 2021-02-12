@@ -1,38 +1,33 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.data.common.dictionary;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.sql.RestartOperationRequestedException;
-import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
-import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
-import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import javax.annotation.PostConstruct;
+import javax.persistence.criteria.CriteriaQuery;
+
 import org.hibernate.Session;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.PostConstruct;
-import javax.persistence.criteria.CriteriaQuery;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sql.RestartOperationRequestedException;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
+import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
+import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
+import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
-/**
- * TODO clean this up!
- *
- * @author mederly
- */
 public class ExtItemDictionary {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExtItemDictionary.class);

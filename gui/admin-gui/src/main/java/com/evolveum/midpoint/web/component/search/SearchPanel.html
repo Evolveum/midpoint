@@ -6,62 +6,66 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <form wicket:id="form" class="form-inline pull-right search-form" style="padding-bottom:5px;">
-        <div class="form-group has-feedback" wicket:id="advancedGroup" style="float:left; padding-right: 5px;">
-            <label class="control-label" style="vertical-align: top; float:left; padding-right: 5px;">
-                <i class="fa fa-lg" wicket:id="advancedCheck"/>
-            </label>
-            <textarea class="form-control input-sm" rows="2" wicket:id="advancedArea"
-                      style="width: 220px; height: 60px; overflow: hidden; float:left;"
-                      wicket:message="placeholder:SearchPanel.insertFilterXml"></textarea>
-            <span class="help-block" wicket:id="advancedError"/>
-        </div>
+    <form wicket:id="form" class="form-inline pull-right search-form" style="padding-bottom:5px; width:100%">
 
-        <div class="form-group" wicket:id="fullTextContainer" style="float:left; padding-right: 5px;">
-            <input wicket:id="fullTextField" type="text" class="form-control input-sm" style="width: 150px; min-width: 150px;">
-            <!--<div wicket:id="fullTextField" wicket:message="placeholder:SearchPanel.fullTextSearch"></div>-->
-        </div>
+        <div class="form-inline">
+            <div class="form-group pull-right" style="vertical-align: top; margin-top: -5px; display: grid;">
+                <a class="btn btn-sm btn-link" wicket:id="debug" style="display: table-cell; vertical-align: top; padding: 0px;"/>
+            </div>
 
-        <wicket:container wicket:id="items">
-            <div wicket:id="item" class="form-group" style="float:left;  padding-right: 5px; margin-bottom: 5px;"/>
-        </wicket:container>
+            <div class="form-group pull-right" style="vertical-align: top; padding-right: 5px;" wicket:id="searchContainer">
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-primary" about="searchSimple" wicket:id="searchButtonBeforeDropdown">
+                            <i class="fa fa-search fa-lg"></i>
+                        </button>
+                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown"
+                                aria-haspopup="true" aria-expanded="false">
+                            <span class="caret"></span>
+                            <span class="sr-only">Toggle Dropdown</span>
+                        </button>
+                        <ul class="dropdown-menu pull-right" role="menu">
+                            <li wicket:id="menuItem">
+                                <div wicket:id="menuItemBody"/>
+                            </li>
+                        </ul>
+                    </div>
+            </div>
 
-        <div class="form-group pull-right" wicket:id="linksContainer" style="vertical-align: top; margin-top: -5px;">
-            <a class="btn btn-sm btn-link" wicket:id="basic" style="display: table-cell; vertical-align: top; padding: 0px;"/>
-            <a class="btn btn-sm btn-link" wicket:id="advanced" style="padding: 0px;"/>
-            <a class="btn btn-sm btn-link" wicket:id="fullText" style="padding: 0px;"/>
-        </div>
-
-        <div class="form-group pull-right" style="vertical-align: top; padding-right: 5px;" wicket:id="searchContainer">
-            <a wicket:id="searchSimple" class="btn btn-sm btn-primary" about="searchSimple">
-                <i class="fa fa-search fa-lg"/>
-            </a>
-            <div wicket:id="searchDropdown">
-                <div class="btn-group btn-group-sm">
-                    <button type="button" class="btn btn-primary" wicket:id="searchButtonBeforeDropdown">
-                        <i class="fa fa-search fa-lg"></i>
-                    </button>
-                    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown"
-                            aria-haspopup="true" aria-expanded="false">
-                        <span class="caret"></span>
-                        <span class="sr-only">Toggle Dropdown</span>
-                    </button>
-                    <ul class="dropdown-menu pull-right" role="menu">
-                        <li wicket:id="menuItem">
-                            <div wicket:id="menuItemBody"/>
-                        </li>
-                    </ul>
-                </div>
+            <div class="form-group pull-right" wicket:id="moreGroup"  style="padding-right: 5px;">
+                <a wicket:id="more" class="btn btn-sm btn-default">
+                    <wicket:message key="SearchPanel.more"/>
+                    &nbsp;
+                    <span class="caret"></span>
+                </a>
             </div>
         </div>
 
-        <div class="form-group pull-right" wicket:id="moreGroup"  style="padding-right: 5px;">
-            <a wicket:id="more" class="btn btn-sm btn-default">
-                <wicket:message key="SearchPanel.more"/>
-                &nbsp;
-                <span class="caret"></span>
-            </a>
+        <div class="form-group has-feedback col-lg-11 col-sm-10 col-xs-9" wicket:id="advancedGroup" style="float:right; padding-right: 5px;">
+            <textarea class="form-control input-sm" rows="2" wicket:id="advancedArea"
+                    style="width: 220px; height: 60px; overflow: hidden; float:right;"></textarea>
+            <input wicket:id="queryDslField" type="text" class="form-control input-sm"
+                    style="width: 91.6666667%; min-width: 300px; float:right;">
+            <label class="control-label col-lg-1" style="vertical-align: top; float:right; padding-right: 5px;">
+                <i class="fa fa-lg" wicket:id="advancedCheck"/>
+            </label>
+            <span class="help-block" wicket:id="advancedError" style="float:right"/>
         </div>
+
+        <div class="form-group" wicket:id="fullTextContainer" style="float:right; padding-right: 5px;">
+            <input wicket:id="fullTextField" type="text" class="form-control input-sm" style="width: 150px; min-width: 150px;">
+        </div>
+
+        <wicket:container wicket:id="items">
+            <div wicket:id="item" class="form-group" style="float:right;  padding-right: 5px; margin-bottom: 5px;"/>
+        </wicket:container>
+        <wicket:container wicket:id="specialItems">
+            <div wicket:id="specialItem" class="form-group" style="float:right;  padding-right: 5px; margin-bottom: 5px;"/>
+        </wicket:container>
+        <div wicket:id="oidItem" class="form-group" style="float:right;  padding-right: 5px; margin-bottom: 5px;"/>
+        <div wicket:id="typePanel" class="form-group" style="float:right;  padding-right: 5px; margin-bottom: 5px;"/>
+        <div wicket:id="collectionRefPanel" class="form-group" style="float:right;  padding-right: 5px; margin-bottom: 5px;"/>
+
+
 
     </form>
 
@@ -79,6 +83,7 @@
                         <label>
                             <input wicket:id="check" type="checkbox">&nbsp;
                             <a wicket:id="propLink"><span wicket:id="propName"/></a>
+                            <i wicket:id="help"/>
                         </label>
                     </dd>
                 </dl>
