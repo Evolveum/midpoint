@@ -136,7 +136,7 @@ public class AdoptedObjectConstruction {
         // by the resource. But that may be just a quantum illusion (gestation and corpse shadow states).
 
         mergeActivation();
-        copyAndCompleteAssociations(result);
+        copyAndAdoptAssociations(result);
         copyCachingMetadata();
 
         checkConsistence();
@@ -156,13 +156,15 @@ public class AdoptedObjectConstruction {
         resultShadow.asObjectable().setCachingMetadata(resourceObject.asObjectable().getCachingMetadata());
     }
 
-    private void copyAndCompleteAssociations(OperationResult result) throws SchemaException, ObjectNotFoundException,
+    private void copyAndAdoptAssociations(OperationResult result) throws SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException, SecurityViolationException,
             EncryptionException {
 
         if (resourceObjectAssociations == null) {
             return;
         }
+
+        LOGGER.trace("Start adopting associations: {}", resourceObjectAssociations.size());
 
         PrismContainer<ShadowAssociationType> associationsCloned = resourceObjectAssociations.clone();
         resultShadow.addReplaceExisting(associationsCloned);
@@ -329,6 +331,8 @@ public class AdoptedObjectConstruction {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException, EncryptionException {
 
+        LOGGER.trace("Determining shadowRef for {}", associationValue);
+
         ResourceAttributeContainer identifierContainer = ShadowUtil.getAttributesContainer(associationValue,
                 ShadowAssociationType.F_IDENTIFIERS);
 
@@ -338,6 +342,7 @@ public class AdoptedObjectConstruction {
         ShadowKindType entitlementKind = firstNonNull(rAssociationDef.getKind(), ShadowKindType.ENTITLEMENT);
 
         for (String entitlementIntent : rAssociationDef.getIntents()) {
+            LOGGER.trace("Processing kind={}, intent={} (from the definition)", entitlementKind, entitlementIntent);
             ProvisioningContext ctxEntitlement = ctx.spawn(entitlementKind, entitlementIntent);
 
             PrismObject<ShadowType> entitlementRepoShadow = acquireEntitlementRepoShadow(associationValue, identifierContainer,
@@ -346,8 +351,10 @@ public class AdoptedObjectConstruction {
                 continue; // maybe we should try another intent
             }
             if (doesAssociationMatch(rAssociationDef, entitlementRepoShadow)) {
+                LOGGER.trace("Association value matches. Repo shadow is: {}", entitlementRepoShadow);
                 associationValueBean.setShadowRef(createObjectRef(entitlementRepoShadow, beans.prismContext));
             } else {
+                LOGGER.trace("Association value does not match. Repo shadow is: {}", entitlementRepoShadow);
                 // We have association value that does not match its definition. This may happen because the association attribute
                 // may be shared among several associations. The EntitlementConverter code has no way to tell them apart.
                 // We can do that only if we have shadow or full resource object. And that is available at this point only.
@@ -433,7 +440,7 @@ public class AdoptedObjectConstruction {
 
         ShadowKindType shadowKind = ShadowUtil.getKind(entitlementRepoShadow.asObjectable());
         String shadowIntent = ShadowUtil.getIntent(entitlementRepoShadow.asObjectable());
-        if (shadowKind == ShadowKindType.UNKNOWN || shadowIntent == null) {
+        if (ShadowUtil.isNotKnown(shadowKind) || ShadowUtil.isNotKnown(shadowIntent)) {
             // We have unclassified shadow here. This should not happen in a well-configured system. But the world is a tough place.
             // In case that this happens let's just keep all such shadows in all associations. This is how midPoint worked before,
             // therefore we will get better compatibility. But it is also better for visibility. MidPoint will show data that are
