@@ -68,17 +68,18 @@ class ClassificationHelper {
 
         if (isDifferent(classification, shadow)) {
             LOGGER.trace("New/updated classification of {} found: {}", shadow, classification);
-            updateShadow(shadow, classification, result);
+            updateShadowClassification(shadow, classification, result);
         } else {
             LOGGER.trace("No change in classification of {}: {}", shadow, classification);
         }
     }
 
-    private void updateShadow(PrismObject<ShadowType> shadow, Classification classification, OperationResult result)
+    private void updateShadowClassification(PrismObject<ShadowType> shadow, Classification classification, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(ShadowType.class)
                 .item(ShadowType.F_KIND).replace(classification.getKind())
                 .item(ShadowType.F_INTENT).replace(classification.getIntent())
+                .item(ShadowType.F_TAG).replace(classification.getTag())
                 .asItemDeltas();
         try {
             repositoryService.modifyObject(ShadowType.class, shadow.getOid(), itemDeltas, result);
@@ -89,7 +90,8 @@ class ClassificationHelper {
 
     private boolean isDifferent(Classification classification, PrismObject<ShadowType> shadow) {
         return classification.getKind() != shadow.asObjectable().getKind() ||
-                !Objects.equals(classification.getIntent(), shadow.asObjectable().getIntent());
+                !Objects.equals(classification.getIntent(), shadow.asObjectable().getIntent()) ||
+                !Objects.equals(classification.getTag(), shadow.asObjectable().getTag());
     }
 
     public void setResourceObjectClassifier(ResourceObjectClassifier classifier) {
