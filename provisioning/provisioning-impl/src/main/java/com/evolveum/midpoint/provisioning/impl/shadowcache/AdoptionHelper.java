@@ -71,19 +71,20 @@ class AdoptionHelper {
 
     /**
      * TODO improve the description
+     * TODO devise better name ... like constructAdoptedObject? dunno...
      *
      * Make sure that the repo shadow is complete, e.g. that all the mandatory fields
      * are filled (e.g name, resourceRef, ...) Also transforms the shadow with
      * respect to simulated capabilities. Also shadowRefs are added to associations.
      */
-    @NotNull PrismObject<ShadowType> constructReturnedObject(ProvisioningContext ctx,
-            PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceObject,
-            OperationResult parentResult)
+    @NotNull PrismObject<ShadowType> constructReturnedObject(@NotNull ProvisioningContext ctx,
+            @NotNull PrismObject<ShadowType> repoShadow, @NotNull PrismObject<ShadowType> resourceObject,
+            @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             SecurityViolationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
 
         return ReturnedObjectConstruction.create(ctx, repoShadow, resourceObject, commonBeans)
-                .construct(parentResult);
+                .construct(result);
     }
 
 }

@@ -186,8 +186,8 @@ class GetHelper {
         } else {
             Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(repositoryShadow);
             if (primaryIdentifiers == null || primaryIdentifiers.isEmpty()) {
-                if (ProvisioningUtil.hasPendingAddOperation(repositoryShadow) || ShadowUtil
-                        .isDead(repositoryShadow.asObjectable())) {
+                if (ProvisioningUtil.hasPendingAddOperation(repositoryShadow) ||
+                        ShadowUtil.isDead(repositoryShadow.asObjectable())) {
                     if (ProvisioningUtil.isFuturePointInTime(options)) {
                         // Get of uncreated or dead shadow, we want to see future state (how the shadow WILL look like).
                         // We cannot even try fetch operation here. We do not have the identifiers.
