@@ -121,25 +121,16 @@ public class AdoptedResourceObject implements InitializableMixin {
         boolean isDoDiscovery = ProvisioningUtil.isDoDiscovery(ictx.ctx.getResource(), ictx.rootOptions);
 
         PrismObject<ShadowType> repoShadow = ictx.localBeans.adoptionHelper.acquireRepoShadow(
-                estimatedShadowCtx, resourceObject, true, isDoDiscovery, result);
+                estimatedShadowCtx, resourceObject, result);
 
         // This determines the definitions exactly. Now the repo shadow should have proper kind/intent
         ProvisioningContext shadowCtx = ictx.localBeans.shadowCaretaker.applyAttributesDefinition(ictx.ctx, repoShadow);
         // TODO: shadowState
-        repoShadow = ictx.localBeans.shadowManager.updateShadow(shadowCtx, resourceObject, null, repoShadow, null, result);
-        PrismObject<ShadowType> resultShadow = ictx.localBeans.adoptionHelper.completeShadow(shadowCtx, resourceObject, repoShadow, isDoDiscovery, result);
+        PrismObject<ShadowType> updatedRepoShadow = ictx.localBeans.shadowManager.updateShadow(shadowCtx, resourceObject, null, repoShadow, null, result);
 
         // TODO do we want also to futurize the shadow like in getObject?
 
-        //check and fix kind/intent
-        ShadowType repoShadowBean = repoShadow.asObjectable();
-        if (isDoDiscovery && (repoShadowBean.getKind() == null || repoShadowBean.getIntent() == null)) { //TODO: check also empty?
-            // notify resourceObjectChangeListeners to fix kind and intent for Shadow
-            // Do NOT invoke this if discovery is disabled. This may ruin the flow (e.g. when importing objects)
-            // or it may lead to discovery loops.
-            ictx.localBeans.commonHelper.notifyResourceObjectChangeListeners(repoShadow, ictx.ctx.getResource().asPrismObject(), false);
-        }
-        return resultShadow;
+        return ictx.localBeans.adoptionHelper.completeShadow(shadowCtx, resourceObject, updatedRepoShadow, isDoDiscovery, result);
     }
 
     @Override

@@ -81,23 +81,6 @@ class CommonHelper {
         return connOptions;
     }
 
-    void notifyResourceObjectChangeListeners(PrismObject<ShadowType> resourceShadow, PrismObject<ResourceType> resource, boolean newShadow) {
-        ResourceObjectShadowChangeDescription shadowChangeDescription = new ResourceObjectShadowChangeDescription();
-        shadowChangeDescription.setResource(resource);
-        shadowChangeDescription.setOldShadow(newShadow ? null : resourceShadow);
-        shadowChangeDescription.setCurrentShadow(resourceShadow);
-        shadowChangeDescription.setSourceChannel(SchemaConstants.CHANNEL_DISCOVERY_URI);
-        shadowChangeDescription.setUnrelatedChange(true);
-
-        Task task = taskManager.createTaskInstance();
-        notifyResourceObjectChangeListeners(shadowChangeDescription, task, task.getResult());
-    }
-
-    void notifyResourceObjectChangeListeners(ResourceObjectShadowChangeDescription change, Task task,
-            OperationResult parentResult) {
-        changeNotificationDispatcher.notifyChange(change, task, parentResult);
-    }
-
     void handleErrorHandlerException(ProvisioningContext ctx,
             ProvisioningOperationState<? extends AsynchronousOperationResult> opState,
             ObjectDelta<ShadowType> delta,

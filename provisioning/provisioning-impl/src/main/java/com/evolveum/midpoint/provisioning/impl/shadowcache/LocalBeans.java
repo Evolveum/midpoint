@@ -17,6 +17,7 @@ class LocalBeans {
     @Autowired AccessChecker accessChecker;
     @Autowired AdoptionHelper adoptionHelper;
     @Autowired CommonHelper commonHelper;
+    @Autowired ClassificationHelper classificationHelper;
     @Autowired ShadowCache shadowCache;
     @Autowired ShadowCaretaker shadowCaretaker;
     @Autowired ShadowManager shadowManager;

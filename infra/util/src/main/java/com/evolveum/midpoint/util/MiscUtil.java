@@ -983,4 +983,10 @@ public class MiscUtil {
             throw new IllegalStateException(Strings.lenientFormat(template, arguments));
         }
     }
+
+    public static void argCheck(boolean condition, String template, Object... arguments) {
+        if (!condition) {
+            throw new IllegalArgumentException(Strings.lenientFormat(template, arguments));
+        }
+    }
 }

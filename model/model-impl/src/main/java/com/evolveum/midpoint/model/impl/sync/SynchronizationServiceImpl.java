@@ -136,7 +136,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             SynchronizationContext<?> syncCtx = loadSynchronizationContext(
                     applicableShadow, currentShadow, change.getObjectDelta(), change.getResource(),
                     change.getSourceChannel(), change.getItemProcessingIdentifier(), configuration, task, subResult);
-            syncCtx.setUnrelatedChange(change.isUnrelatedChange());
             LOGGER.trace("SYNCHRONIZATION determined policy: {}", syncCtx);
 
             if (!checkSynchronizationPolicy(syncCtx, eventInfo, subResult) || !checkProtected(syncCtx, eventInfo, subResult)) {
@@ -332,33 +331,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     private <F extends FocusType> boolean checkSynchronizationPolicy(SynchronizationContext<F> syncCtx,
             SynchronizationEventInformation eventInfo, OperationResult result) throws SchemaException {
         Task task = syncCtx.getTask();
-
-        if (syncCtx.isUnrelatedChange()) {
-            PrismObject<ShadowType> applicableShadow = syncCtx.getApplicableShadow();
-            Validate.notNull(applicableShadow, "No current nor old shadow present: ");
-            List<PropertyDelta<?>> modifications = SynchronizationUtils.createSynchronizationTimestampsDelta(applicableShadow, prismContext);
-            ShadowType applicableShadowType = applicableShadow.asObjectable();
-            if (applicableShadowType.getIntent() == null || SchemaConstants.INTENT_UNKNOWN.equals(applicableShadowType.getIntent())) {
-                PropertyDelta<String> intentDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_INTENT,
-                        syncCtx.getApplicableShadow().getDefinition(), syncCtx.getIntent());
-                modifications.add(intentDelta);
-            }
-            if (applicableShadowType.getKind() == null || ShadowKindType.UNKNOWN == applicableShadowType.getKind()) {
-                PropertyDelta<ShadowKindType> intentDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_KIND,
-                        syncCtx.getApplicableShadow().getDefinition(), syncCtx.getKind());
-                modifications.add(intentDelta);
-            }
-            if (applicableShadowType.getTag() == null && syncCtx.getTag() != null) {
-                PropertyDelta<String> tagDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_TAG,
-                        syncCtx.getApplicableShadow().getDefinition(), syncCtx.getTag());
-                modifications.add(tagDelta);
-            }
-
-            executeShadowModifications(syncCtx.getApplicableShadow(), modifications, task, result);
-            result.recordSuccess();
-            LOGGER.debug("SYNCHRONIZATION: UNRELATED CHANGE for {}", syncCtx.getApplicableShadow());
-            return false;
-        }
 
         if (!syncCtx.hasApplicablePolicy()) {
             String message = "SYNCHRONIZATION no matching policy for " + syncCtx.getApplicableShadow() + " ("

@@ -95,7 +95,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Qualifier("cacheRepositoryService")
     private RepositoryService cacheRepositoryService;
 
-    private SystemConfigurationType systemConfiguration;
+    private volatile SystemConfigurationType systemConfiguration;
 
     private static final Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImpl.class);
 
@@ -1206,5 +1206,10 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Override
     public SystemConfigurationType getSystemConfiguration() {
         return systemConfiguration;
+    }
+
+    @Override
+    public void setResourceObjectClassifier(ResourceObjectClassifier classifier) {
+        shadowCache.setResourceObjectClassifier(classifier);
     }
 }

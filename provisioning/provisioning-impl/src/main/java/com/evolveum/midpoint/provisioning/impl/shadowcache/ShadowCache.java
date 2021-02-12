@@ -8,6 +8,8 @@ package com.evolveum.midpoint.provisioning.impl.shadowcache;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.provisioning.api.ResourceObjectClassifier;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +54,7 @@ public class ShadowCache {
     @Autowired private SearchHelper searchHelper;
     @Autowired private PropagateHelper propagateHelper;
     @Autowired private CompareHelper compareHelper;
+    @Autowired private ClassificationHelper classificationHelper;
     @Autowired private LocalBeans localBeans;
 
     /**
@@ -115,27 +118,6 @@ public class ShadowCache {
         definitionsHelper.applyDefinition(query, result);
     }
 
-//    protected ResourceType getResource(ResourceShadowDiscriminator coords, Task task, OperationResult parentResult)
-//            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-//        String resourceOid = coords.getResourceOid();
-//        if (resourceOid == null) {
-//            throw new IllegalArgumentException("No resource OID in " + coords);
-//        }
-//        return resourceManager.getResource(resourceOid, null, task, parentResult).asObjectable();
-//    }
-
-//    //we need to remove resolved identifiers form the ShadowAssociationType before we save it to the shadow as an unfinished operation.
-//    void normalizeAssociationDeltasBeforeSave(Collection<PrismContainerValue<ShadowAssociationType>> associationContainers) {
-//        if (associationContainers == null) {
-//            return;
-//        }
-//        for (PrismContainerValue<ShadowAssociationType> associationContainer : associationContainers) {
-//            if (associationContainer.contains(ShadowAssociationType.F_IDENTIFIERS) && associationContainer.contains(ShadowAssociationType.F_SHADOW_REF)) {
-//                associationContainer.removeContainer(ShadowAssociationType.F_IDENTIFIERS);
-//            }
-//        }
-//    }
-
     public SearchResultMetadata searchObjectsIterative(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<ShadowType> handler,
             boolean updateRepository, Task task, OperationResult result)
@@ -190,5 +172,10 @@ public class ShadowCache {
     // temporary
     LocalBeans getLocalBeans() {
         return localBeans;
+    }
+
+    // temporary
+    public void setResourceObjectClassifier(ResourceObjectClassifier classifier) {
+        classificationHelper.setResourceObjectClassifier(classifier);
     }
 }

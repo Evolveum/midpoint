@@ -175,6 +175,10 @@ public class MockFactory {
             public SystemConfigurationType getSystemConfiguration() {
                 return null;
             }
+
+            @Override
+            public void setResourceObjectClassifier(ResourceObjectClassifier classifier) {
+            }
         };
     }
 

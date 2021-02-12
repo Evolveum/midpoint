@@ -859,4 +859,12 @@ public class ShadowUtil {
             }
         }
     }
+
+    public static boolean isKnown(ShadowKindType kind) {
+        return kind != null && kind != ShadowKindType.UNKNOWN;
+    }
+
+    public static boolean isKnown(String intent) {
+        return intent != null && !SchemaConstants.INTENT_UNKNOWN.equals(intent);
+    }
 }

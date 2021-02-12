@@ -77,8 +77,6 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
     private boolean reactionEvaluated = false;
     private SynchronizationReactionType reaction;
 
-    private boolean unrelatedChange = false;
-
     private boolean shadowExistsInRepo = true;
     private boolean forceIntentChange;
 
@@ -398,14 +396,6 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         this.reaction = reaction;
     }
 
-    public boolean isUnrelatedChange() {
-        return unrelatedChange;
-    }
-
-    public void setUnrelatedChange(boolean unrelatedChange) {
-        this.unrelatedChange = unrelatedChange;
-    }
-
     public Task getTask() {
         return task;
     }
@@ -472,7 +462,6 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         DebugUtil.debugDumpWithLabelToStringLn(sb, "intent", intent, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "tag", tag, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "reaction", reaction, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "unrelatedChange", unrelatedChange, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "shadowExistsInRepo", shadowExistsInRepo, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "forceIntentChange", forceIntentChange, indent + 1);
         return sb.toString();

@@ -56,36 +56,68 @@ class ShadowAcquisition {
     @NotNull private final ResourceObjectSupplier resourceObjectSupplier;
 
     /**
-     * If true, we want to determine correct intent by re-reading newly created shadow (after kind+intent
-     * determination by notifyChange is invoked).
-     *
-     * Currently it seems that we set this to true when dealing with "normal" objects
-     * and false when acquiring shadows for entitlements.
+     * Lazily obtained resource object (via {@link #resourceObjectSupplier}).
      */
-    private final boolean unknownIntent;
-
-    /** TODO */
-    private final boolean isDoDiscovery;
+    private PrismObject<ShadowType> resourceObject;
 
     private final CommonBeans beans;
     private final LocalBeans localBeans;
 
     public ShadowAcquisition(@NotNull ProvisioningContext ctx, @NotNull PrismProperty<?> primaryIdentifier,
             @NotNull QName objectClass, @NotNull ResourceObjectSupplier resourceObjectSupplier,
-            boolean unknownIntent, boolean isDoDiscovery, CommonBeans commonBeans) {
+            CommonBeans commonBeans) {
         this.ctx = ctx;
         this.primaryIdentifier = primaryIdentifier;
         this.objectClass = objectClass;
         this.resourceObjectSupplier = resourceObjectSupplier;
-        this.unknownIntent = unknownIntent;
-        this.isDoDiscovery = isDoDiscovery;
         this.beans = commonBeans;
         this.localBeans = commonBeans.shadowCache.getLocalBeans();
     }
 
     public PrismObject<ShadowType> execute(OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException,
-            CommunicationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+            GenericConnectorException, ExpressionEvaluationException, EncryptionException, SecurityViolationException {
+
+        PrismObject<ShadowType> repoShadow = obtainRepoShadow(result);
+
+        setOidAndResourceRefToResourceObject(repoShadow);
+
+        if (localBeans.classificationHelper.needsClassification(repoShadow)) {
+            PrismObject<ShadowType> fixedRepoShadow = classifyAndFixTheShadow(repoShadow, result);
+            LOGGER.trace("Acquired repo shadow (after classification and re-reading):\n{}", fixedRepoShadow.debugDumpLazily(1));
+            return fixedRepoShadow;
+        } else {
+            LOGGER.trace("Acquired repo shadow (already classified):\n{}", repoShadow.debugDumpLazily(1));
+            return repoShadow;
+        }
+    }
+
+    @NotNull
+    private PrismObject<ShadowType> classifyAndFixTheShadow(PrismObject<ShadowType> repoShadow, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException,
+            ExpressionEvaluationException, SecurityViolationException {
+
+        localBeans.classificationHelper.classify(ctx, repoShadow, getResourceObject(), result);
+
+        // TODO We probably can avoid re-reading the shadow
+        return beans.shadowManager.fixShadow(ctx, repoShadow, result);
+    }
+
+    // TODO is it OK to do it here? OID maybe. But resourceRef should have been there already (although without full object)
+    private void setOidAndResourceRefToResourceObject(PrismObject<ShadowType> repoShadow) throws ObjectNotFoundException,
+            SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        ShadowType resourceObject = getResourceObject().asObjectable();
+
+        resourceObject.setOid(repoShadow.getOid());
+        if (resourceObject.getResourceRef() == null) {
+            resourceObject.setResourceRef(new ObjectReferenceType());
+        }
+        resourceObject.getResourceRef().asReferenceValue().setObject(ctx.getResource().asPrismObject());
+    }
+
+    @NotNull
+    private PrismObject<ShadowType> obtainRepoShadow(OperationResult result) throws SchemaException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
 
         PrismObject<ShadowType> existingRepoShadow = beans.shadowManager.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier,
                 objectClass, result);
@@ -95,7 +127,7 @@ class ShadowAcquisition {
             return existingRepoShadow;
         }
 
-        PrismObject<ShadowType> resourceObject = resourceObjectSupplier.getResourceObject();
+        PrismObject<ShadowType> resourceObject = getResourceObject();
 
         LOGGER.trace("Shadow object (in repo) corresponding to the resource object (on the resource) was not found. "
                 + "The repo shadow will be created. The resource object:\n{}", resourceObject);
@@ -104,38 +136,11 @@ class ShadowAcquisition {
         // not exist in the repository we need to create the shadow to align repo state to the
         // reality (resource)
 
-        PrismObject<ShadowType> createdRepoShadow;
         try {
-            createdRepoShadow = beans.shadowManager.addDiscoveredRepositoryShadow(ctx, resourceObject, result);
+            return beans.shadowManager.addDiscoveredRepositoryShadow(ctx, resourceObject, result);
         } catch (ObjectAlreadyExistsException e) {
             return findConflictingShadow(resourceObject, e, result);
         }
-
-        resourceObject.setOid(createdRepoShadow.getOid());
-        ShadowType resourceShadowBean = resourceObject.asObjectable();
-        if (resourceShadowBean.getResourceRef() == null) {
-            resourceShadowBean.setResourceRef(new ObjectReferenceType());
-        }
-        resourceShadowBean.getResourceRef().asReferenceValue().setObject(ctx.getResource().asPrismObject());
-
-        if (isDoDiscovery) {
-            // We have object for which there was no shadow. Which means that midPoint haven't known about this shadow before.
-            // Invoke notifyChange() so the new shadow is properly initialized.
-
-            localBeans.commonHelper.notifyResourceObjectChangeListeners(resourceObject, ctx.getResource().asPrismObject(), true);
-        }
-
-        PrismObject<ShadowType> finalRepoShadow;
-        if (unknownIntent) {
-            // Intent may have been changed during the notifyChange processing.
-            // Re-read the shadow if necessary.
-            finalRepoShadow = beans.shadowManager.fixShadow(ctx, createdRepoShadow, result);
-        } else {
-            finalRepoShadow = createdRepoShadow;
-        }
-
-        LOGGER.trace("Final repo shadow (created and possibly re-read):\n{}", finalRepoShadow.debugDumpLazily(1));
-        return finalRepoShadow;
     }
 
     @NotNull
@@ -179,8 +184,15 @@ class ShadowAcquisition {
         return conflictingShadow;
     }
 
+    private PrismObject<ShadowType> getResourceObject() throws SchemaException {
+        if (resourceObject == null) {
+            resourceObject = resourceObjectSupplier.getResourceObject();
+        }
+        return resourceObject;
+    }
+
     @FunctionalInterface
     interface ResourceObjectSupplier {
-        PrismObject<ShadowType> getResourceObject() throws SchemaException;
+        @NotNull PrismObject<ShadowType> getResourceObject() throws SchemaException;
     }
 }

@@ -364,8 +364,7 @@ public class ShadowCompletion {
         Collection<ResourceAttribute<?>> entitlementIdentifiers = getEntitlementIdentifiers(associationValue, identifierContainer);
         PrismObject<ShadowType> providedResourceObject = identifierContainer.getUserData(ResourceObjectConverter.FULL_SHADOW_KEY);
         if (providedResourceObject != null) {
-            return localBeans.adoptionHelper.acquireRepoShadow(ctxEntitlement, providedResourceObject,
-                    false, isDoDiscovery, result);
+            return localBeans.adoptionHelper.acquireRepoShadow(ctxEntitlement, providedResourceObject, result);
         }
 
         try {
@@ -381,8 +380,7 @@ public class ShadowCompletion {
             // Try to look up repo shadow again, this time with full resource shadow. When we
             // have searched before we might have only some identifiers. The shadow
             // might still be there, but it may be renamed
-            return localBeans.adoptionHelper.acquireRepoShadow(ctxEntitlement, fetchedResourceObject,
-                    false, isDoDiscovery, result);
+            return localBeans.adoptionHelper.acquireRepoShadow(ctxEntitlement, fetchedResourceObject, result);
 
         } catch (ObjectNotFoundException e) {
             // The entitlement to which we point is not there. Simply ignore this association value.

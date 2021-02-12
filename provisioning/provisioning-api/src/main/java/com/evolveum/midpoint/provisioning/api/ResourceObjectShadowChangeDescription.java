@@ -47,20 +47,6 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
     private String sourceChannel;
     private PrismObject<ResourceType> resource;
 
-    /**
-     * If set to true then this change is not related to the primary goal of
-     * the running task. E.g. it may be a change in entitlement that is discovered
-     * when reading an account. Or it may be ordinary creation of a new shadow during
-     * search.
-     *
-     * On the other hand, related change is a change in the object that is being processed.
-     * E.g. discovering that the object is missing, or a conflicting object already exists.
-     *
-     * It is expected that reactions to the unrelated changes will be lighter, faster,
-     * with lower overhead and without ambition to provide full synchronization.
-     */
-    private boolean unrelatedChange = false;
-
     private boolean simulate = false;
 
     private boolean cleanDeadShadow = false;
@@ -111,14 +97,6 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
 
     public void setResource(PrismObject<ResourceType> resource) {
         this.resource = resource;
-    }
-
-    public boolean isUnrelatedChange() {
-        return unrelatedChange;
-    }
-
-    public void setUnrelatedChange(boolean unrelatedChange) {
-        this.unrelatedChange = unrelatedChange;
     }
 
     public boolean isSimulate() {
@@ -193,7 +171,6 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
                 + ", sourceChannel=" + sourceChannel
                 + ", resource=" + resource
                 + ", processing=" + itemProcessingIdentifier
-                + (unrelatedChange ? " UNRELATED" : "")
                 + (simulate ? " SIMULATE" : "")
                 + (cleanDeadShadow ? " CLEAN DEAD SHADOW" : "")
                 + ")";
@@ -246,10 +223,6 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
             sb.append("\n");
             sb.append(currentShadow.debugDump(indent+2));
         }
-
-        sb.append("\n");
-        SchemaDebugUtil.indentDebugDump(sb, indent+1);
-        sb.append("unrelatedChange: ").append(unrelatedChange);
 
         sb.append("\n");
         SchemaDebugUtil.indentDebugDump(sb, indent+1);

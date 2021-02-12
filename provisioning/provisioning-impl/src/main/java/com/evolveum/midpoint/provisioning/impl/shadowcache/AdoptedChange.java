@@ -269,12 +269,13 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements Initiali
         }
     }
 
-    private void acquireShadow(OperationResult result) throws SchemaException, CommunicationException,
+    private void acquireShadow(OperationResult result) throws SchemaException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, EncryptionException {
         assert !isDelete();
 
         PrismProperty<?> primaryIdentifier = resourceObjectChange.getPrimaryIdentifierRequired();
         QName objectClass = getObjectClassDefinition().getTypeName();
+
         repoShadow = localBeans.adoptionHelper.acquireRepoShadow(context, primaryIdentifier, objectClass,
                 this::createResourceObjectFromChange, result);
     }
@@ -315,7 +316,6 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements Initiali
     public ObjectClassComplexTypeDefinition getObjectClassDefinition() {
         return resourceObjectChange.getCurrentObjectClassDefinition();
     }
-
 
     /**
      * Index-only items in the resource object delta are necessarily incomplete: their old value was taken from repo

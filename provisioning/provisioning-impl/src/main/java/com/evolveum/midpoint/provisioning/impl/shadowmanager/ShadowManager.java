@@ -50,6 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  * 1. Lookup, create, and update shadows (as part of the provisioning process).
  * 2. Getting and searching shadows (as part of get/search operations in higher layers).
+ * 3. Management of pending operations
  *
  * Limitations:
  *

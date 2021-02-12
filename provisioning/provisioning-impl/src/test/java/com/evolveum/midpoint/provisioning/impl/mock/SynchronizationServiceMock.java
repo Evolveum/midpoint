@@ -85,7 +85,7 @@ public class SynchronizationServiceMock
         assertTrue("Either current shadow or delta must be present", change.getCurrentShadow() != null
                 || change.getObjectDelta() != null);
 
-        if (change.isUnrelatedChange() || isDryRun(task) || (change.getCurrentShadow() != null && change.getCurrentShadow().asObjectable().isProtectedObject() == Boolean.TRUE)) {
+        if (isDryRun(task) || (change.getCurrentShadow() != null && change.getCurrentShadow().asObjectable().isProtectedObject() == Boolean.TRUE)) {
             return;
         }
 
@@ -164,9 +164,6 @@ public class SynchronizationServiceMock
         return dryRun != null && dryRun;
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyFailure(com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
-     */
     @Override
     public void notifySuccess(ResourceOperationDescription opDescription,
             Task task, OperationResult parentResult) {
@@ -174,9 +171,6 @@ public class SynchronizationServiceMock
         wasSuccess = true;
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyFailure(com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
-     */
     @Override
     public void notifyFailure(ResourceOperationDescription opDescription,
             Task task, OperationResult parentResult) {
@@ -184,9 +178,6 @@ public class SynchronizationServiceMock
         wasFailure = true;
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyFailure(com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
-     */
     @Override
     public void notifyInProgress(ResourceOperationDescription opDescription,
             Task task, OperationResult parentResult) {
@@ -356,9 +347,6 @@ public class SynchronizationServiceMock
         return this;
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#getName()
-     */
     @Override
     public String getName() {
         return "synchronization service mock";

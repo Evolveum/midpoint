@@ -45,8 +45,8 @@ class AdoptionHelper {
      * (e.g. change notification).
      */
     public @NotNull PrismObject<ShadowType> acquireRepoShadow(ProvisioningContext ctx,
-            PrismObject<ShadowType> resourceObject, boolean unknownIntent, boolean isDoDiscovery, OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException,
+            PrismObject<ShadowType> resourceObject, OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
 
         PrismProperty<?> primaryIdentifier = requireNonNull(
@@ -56,18 +56,16 @@ class AdoptionHelper {
                 resourceObject.asObjectable().getObjectClass(),
                 () -> "No object class in " + ShadowUtil.shortDumpShadow(resourceObject));
 
-        return new ShadowAcquisition(ctx, primaryIdentifier, objectClass, () -> resourceObject, unknownIntent,
-                isDoDiscovery, commonBeans)
+        return new ShadowAcquisition(ctx, primaryIdentifier, objectClass, () -> resourceObject, commonBeans)
                 .execute(result);
     }
 
     public @NotNull PrismObject<ShadowType> acquireRepoShadow(ProvisioningContext ctx, PrismProperty<?> primaryIdentifier,
             QName objectClass, ResourceObjectSupplier resourceObjectSupplier, OperationResult result) throws SchemaException,
             ConfigurationException, ObjectNotFoundException, CommunicationException, GenericConnectorException,
-            ExpressionEvaluationException, EncryptionException {
+            ExpressionEvaluationException, EncryptionException, SecurityViolationException {
 
-        return new ShadowAcquisition(ctx, primaryIdentifier, objectClass, resourceObjectSupplier, true,
-                ProvisioningUtil.isDoDiscovery(ctx.getResource()), commonBeans)
+        return new ShadowAcquisition(ctx, primaryIdentifier, objectClass, resourceObjectSupplier, commonBeans)
                 .execute(result);
     }
 
