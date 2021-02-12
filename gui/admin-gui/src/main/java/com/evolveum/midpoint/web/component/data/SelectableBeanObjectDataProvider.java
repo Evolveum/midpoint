@@ -14,6 +14,8 @@ import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.web.component.search.Search;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultImportanceType;
+
 import org.apache.wicket.Component;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -76,7 +78,9 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
 
         if (!WebComponentUtil.isSuccessOrHandledError(obj.getFetchResult())) {
             try {
-                selectable.setResult(obj.getFetchResult());
+                if (obj.getFetchResult() != null && !OperationResultImportanceType.MINOR.equals(obj.getFetchResult().getImportance())) {
+                    selectable.setResult(obj.getFetchResult());
+                }
             } catch (SchemaException e) {
                 throw new SystemException(e.getMessage(), e);
             }
