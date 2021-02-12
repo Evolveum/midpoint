@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,33 +8,16 @@ package com.evolveum.midpoint.repo.cache;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.fail;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.displayCollection;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-
-import static org.testng.AssertJUnit.fail;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.PostConstruct;
-
-import com.evolveum.midpoint.prism.PrismContext;
-
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-
-import com.evolveum.midpoint.repo.cache.global.GlobalCacheObjectValue;
-import com.evolveum.midpoint.repo.cache.global.GlobalObjectCache;
-
-import com.evolveum.midpoint.repo.cache.global.GlobalQueryCache;
-import com.evolveum.midpoint.repo.cache.global.GlobalVersionCache;
-
-import com.evolveum.midpoint.repo.cache.local.QueryKey;
-
-import com.evolveum.midpoint.schema.statistics.CachePerformanceInformationUtil;
-
-import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -43,19 +26,28 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.perf.OperationPerformanceInformation;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
+import com.evolveum.midpoint.repo.cache.global.GlobalCacheObjectValue;
+import com.evolveum.midpoint.repo.cache.global.GlobalObjectCache;
+import com.evolveum.midpoint.repo.cache.global.GlobalQueryCache;
+import com.evolveum.midpoint.repo.cache.global.GlobalVersionCache;
+import com.evolveum.midpoint.repo.cache.local.QueryKey;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.CachePerformanceInformationUtil;
 import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationUtil;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -87,6 +79,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
 
     @PostConstruct
     public void initialize() throws SchemaException {
+        displayTestTitle("Initializing TEST CLASS: " + getClass().getName());
         PrismTestUtil.setPrismContext(prismContext);
 
         OperationResult initResult = new OperationResult(CLASS_DOT + "setup");
@@ -635,8 +628,8 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
                     .description(StringUtils.repeat('#', size));
             repositoryCache.addObject(object, null, result);
 
-            if ((i+1) % 100 == 0) {
-                showMemory("After generating " + (i+1) + " objects");
+            if ((i + 1) % 100 == 0) {
+                showMemory("After generating " + (i + 1) + " objects");
             }
         }
     }

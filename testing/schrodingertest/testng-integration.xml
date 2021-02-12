@@ -133,6 +133,11 @@
             <class name="com.evolveum.midpoint.testing.schrodinger.scenarios.ReportTests"/>
         </classes>
     </test>
+    <test name="Schrodinger.scenarios.ObjectTemplateTests" preserve-order="true" parallel="false" verbose="3" enabled="true">
+        <classes>
+            <class name="com.evolveum.midpoint.testing.schrodinger.scenarios.ObjectTemplateTests"/>
+        </classes>
+    </test>
     <test name="Schrodinger.mid-101.labs" preserve-order="true" parallel="false" verbose="3" enabled="true">
         <classes>
             <class name="com.evolveum.midpoint.testing.schrodinger.labs.M3ResourcesAttributesAndMappingsTest"/>

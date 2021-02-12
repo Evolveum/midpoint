@@ -41,8 +41,6 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
     protected static final String ID_PARAMETERS_PANEL = "parametersPanel";
     protected static final String ID_PARAMETERS_PANEL_FRAGMENT = "parametersPanelFragment";
 
-    protected List<O> preSelectedObjects = new ArrayList<>();
-
     public AbstractPopupTabPanel(String id) {
         super(id);
     }
@@ -107,7 +105,6 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
                                 .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(archetypeRef.getOid())
                                 .buildFilter();
                         ((RefFilter) filter).setTargetTypeNullAsAny(true);
-                        ((RefFilter) filter).setRelationNullAsAny(true);
                         archetypeRefFilterList.add(filter);
                     }
                     if (!CollectionUtils.isEmpty(archetypeRefFilterList)) {
@@ -143,15 +140,16 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
     }
 
     protected List<O> getSelectedObjectsList() {
-        PopupObjectListPanel objectListPanel = getObjectListPanel();
+        PopupObjectListPanel<O> objectListPanel = getObjectListPanel();
         if (objectListPanel == null) {
             return new ArrayList<>();
         }
         return objectListPanel.getSelectedRealObjects();
     }
 
-    protected PopupObjectListPanel getObjectListPanel() {
-        return (PopupObjectListPanel) get(ID_OBJECT_LIST_PANEL);
+    protected <T extends ObjectType> PopupObjectListPanel<T> getObjectListPanel() {
+        //noinspection unchecked
+        return (PopupObjectListPanel<T>) get(ID_OBJECT_LIST_PANEL);
     }
 
     protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {

@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.query;
 
 import java.util.List;
@@ -23,22 +22,24 @@ import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 public class RQueryImpl implements RQuery {
 
     private final RootHibernateQuery querySource; // only for diagnostic purposes
-    private final org.hibernate.query.Query query;
+    private final Query<?> query;
 
-    public RQueryImpl(Query query, RootHibernateQuery querySource) {
+    public RQueryImpl(Query<?> query, RootHibernateQuery querySource) {
         Objects.requireNonNull(query, "Query must not be null.");
         this.query = query;
         this.querySource = querySource;
     }
 
     @Override
-    public List list() throws HibernateException {
-        return query.list();
+    public <T> List<T> list() throws HibernateException {
+        //noinspection unchecked
+        return (List<T>) query.list();
     }
 
     @Override
-    public Object uniqueResult() throws HibernateException {
-        return query.uniqueResult();
+    public <T> T uniqueResult() throws HibernateException {
+        //noinspection unchecked
+        return (T) query.uniqueResult();
     }
 
     @Override
@@ -46,7 +47,7 @@ public class RQueryImpl implements RQuery {
         return query.scroll(mode);
     }
 
-    public org.hibernate.query.Query getQuery() {
+    public Query<?> getQuery() {
         return query;
     }
 

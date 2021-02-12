@@ -154,6 +154,7 @@ CREATE TABLE m_uri (
     id SERIAL NOT NULL PRIMARY KEY,
     uri VARCHAR(255) NOT NULL UNIQUE
 );
+-- TODO pre-fill with various PrismConstants?
 -- endregion
 
 -- region custom enum types
@@ -195,6 +196,7 @@ CREATE TABLE m_object (
     tenantRef_targetType INTEGER, -- soft-references m_objtype
     tenantRef_relation_id INTEGER, -- soft-references m_uri,
     lifecycleState VARCHAR(255), -- TODO what is this? how many distinct values?
+    cid_seq INTEGER NOT NULL DEFAULT 1, -- sequence for container id
     version INTEGER NOT NULL DEFAULT 1,
     -- add GIN index for concrete tables where more than hundreds of entries are expected (see m_user)
     ext JSONB,
@@ -407,8 +409,8 @@ CREATE INDEX m_shadow_ext_idx ON m_shadow USING gin (ext);
 --1	45 (inducements)
 --0	48756229
 CREATE TABLE m_assignment (
-    id INTEGER NOT NULL, -- TODO serial? how if partitioned?
     owner_oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    cid INTEGER NOT NULL, -- container id
     -- new column may avoid join to object for some queries
     owner_type INTEGER NOT NULL,
     administrativeStatus INTEGER,
@@ -450,7 +452,7 @@ CREATE TABLE m_assignment (
     extOid VARCHAR(36), -- is this UUID too?
     ext JSONB,
 
-    CONSTRAINT m_assignment_pk PRIMARY KEY (owner_oid, id)
+    CONSTRAINT m_assignment_pk PRIMARY KEY (owner_oid, cid)
     -- no need to index owner_oid, it's part of the PK index
 );
 
@@ -488,8 +490,8 @@ ALTER TABLE m_acc_cert_campaign ADD CONSTRAINT m_acc_cert_campaign_name_norm_key
 CREATE INDEX m_acc_cert_campaign_ext_idx ON m_acc_cert_campaign USING gin (ext);
 
 CREATE TABLE m_acc_cert_case (
-    id INTEGER NOT NULL,
     owner_oid VARCHAR(36) NOT NULL,
+    cid INTEGER NOT NULL,
     administrativeStatus INTEGER,
     archiveTimestamp TIMESTAMPTZ,
     disableReason VARCHAR(255),
@@ -521,7 +523,7 @@ CREATE TABLE m_acc_cert_case (
     tenantRef_targetType INTEGER, -- soft-references m_objtype
     tenantRef_relation_id INTEGER, -- soft-references m_uri
 
-    PRIMARY KEY (owner_oid, id)
+    PRIMARY KEY (owner_oid, cid)
 );
 
 CREATE TABLE m_acc_cert_definition (
@@ -550,8 +552,8 @@ ALTER TABLE m_acc_cert_definition ADD CONSTRAINT m_acc_cert_definition_name_norm
 CREATE INDEX m_acc_cert_definition_ext_idx ON m_acc_cert_definition USING gin (ext);
 
 CREATE TABLE m_acc_cert_wi (
-    id INTEGER NOT NULL,
     owner_id INTEGER NOT NULL,
+    cid INTEGER NOT NULL,
     owner_owner_oid UUID NOT NULL,
     closeTimestamp TIMESTAMPTZ,
     iteration INTEGER NOT NULL,
@@ -562,7 +564,7 @@ CREATE TABLE m_acc_cert_wi (
     performerRef_targetType INTEGER,
     stageNumber INTEGER,
 
-    PRIMARY KEY (owner_owner_oid, owner_id, id)
+    PRIMARY KEY (owner_owner_oid, owner_id, cid)
 );
 
 CREATE TABLE m_acc_cert_wi_reference (

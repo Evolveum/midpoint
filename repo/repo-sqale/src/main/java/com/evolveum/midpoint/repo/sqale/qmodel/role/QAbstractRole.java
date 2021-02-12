@@ -13,16 +13,23 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
+import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocus;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QAbstractRole<T extends MAbstractRole> extends QObject<T> {
+public class QAbstractRole<T extends MAbstractRole> extends QFocus<T> {
 
     private static final long serialVersionUID = 8559628642680237808L;
+
+    /**
+     * If {@code QAbstractRole.class} is not enough because of generics,
+     * try {@code QAbstractRole.CLASS}.
+     */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public static final Class<QAbstractRole<MAbstractRole>> CLASS = (Class) QAbstractRole.class;
 
     public static final String TABLE_NAME = "m_abstract_role";
 
@@ -66,15 +73,5 @@ public class QAbstractRole<T extends MAbstractRole> extends QObject<T> {
 
     public QAbstractRole(Class<? extends T> type, String variable, String schema, String table) {
         super(type, variable, schema, table);
-    }
-
-    /**
-     * Class representing generic {@code QAbstractRole<MAbstractRole>.class} which is otherwise impossible.
-     * There should be no need to instantiate this, so the class is private and final.
-     */
-    public static final class QAbstractRoleReal extends QAbstractRole<MAbstractRole> {
-        public QAbstractRoleReal(String variable) {
-            super(MAbstractRole.class, variable);
-        }
     }
 }

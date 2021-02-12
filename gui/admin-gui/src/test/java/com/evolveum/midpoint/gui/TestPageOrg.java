@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui;
 
 import static org.testng.Assert.assertNotNull;
 
+import com.evolveum.midpoint.web.page.admin.orgs.PageOrgs;
+
 import org.apache.wicket.Page;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.tester.FormTester;
@@ -18,13 +20,12 @@ import org.springframework.test.context.ActiveProfiles;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
+import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
+import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
@@ -94,6 +95,11 @@ public class TestPageOrg extends AbstractInitializedGuiIntegrationTest {
         PrismObject<OrgType> newOrg = findObjectByName(OrgType.class, NEW_ORG_NAME);
         assertNotNull(newOrgChild, "New org not created.");
         assertAssignedOrg(newOrgChild, newOrg.getOid());
+    }
+
+    @Test
+    public void test005testPageOrgList() {
+        renderPage(PageOrgs.class);
     }
 
     private void renderPage(Class<? extends Page> expectedRenderedPageClass) {

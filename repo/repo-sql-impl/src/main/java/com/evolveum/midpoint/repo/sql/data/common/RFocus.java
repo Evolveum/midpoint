@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -59,9 +59,6 @@ public abstract class RFocus extends RObject {
     private String preferredLanguage;
     private XMLGregorianCalendar passwordCreateTimestamp;
     private XMLGregorianCalendar passwordModifyTimestamp;
-
-    //password Metadata TODO remove? it's in RObject already
-    private XMLGregorianCalendar createTimestamp;
 
     @Where(clause = RObjectReference.REFERENCE_TYPE + "= 1")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
@@ -235,7 +232,7 @@ public abstract class RFocus extends RObject {
 
         if (jaxb.getActivation() != null) {
             RActivation activation = new RActivation();
-            RActivation.fromJaxb(jaxb.getActivation(), activation, repositoryContext);
+            RActivation.fromJaxb(jaxb.getActivation(), activation);
             repo.setActivation(activation);
         }
 

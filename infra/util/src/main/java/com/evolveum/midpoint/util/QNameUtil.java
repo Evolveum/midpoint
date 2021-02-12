@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.util;
 
 import java.util.Arrays;
@@ -122,30 +121,6 @@ public class QNameUtil {
         }
     }
 
-//    // returns null if no change is requested
-//    public static String qualifyUriIfNeeded(String uri, String namespace) {
-//        if (StringUtils.isEmpty(namespace) || StringUtils.isEmpty(uri)) {
-//            return null;
-//        }
-//        QNameInfo info = uriToQNameInfo(uri, true);
-//        if (hasNamespace(info.name) || info.explicitEmptyNamespace) {
-//            return null;
-//        } else {
-//            return qNameToUri(new QName(namespace, info.name.getLocalPart()));
-//        }
-//    }
-
-//    @NotNull
-//    public static QName setNamespaceIfMissing(@NotNull QName name, @NotNull String namespace, @Nullable String prefix) {
-//        if (hasNamespace(name)) {
-//            return name;
-//        } else if (prefix == null) {
-//            return new QName(namespace, name.getLocalPart());
-//        } else {
-//            return new QName(namespace, name.getLocalPart(), prefix);
-//        }
-//    }
-
     public static boolean matchUri(String uri1, String uri2) {
         if (java.util.Objects.equals(uri1, uri2)) {
             return true;
@@ -227,10 +202,6 @@ public class QNameUtil {
         } else {
             throw new IllegalArgumentException("The URI (" + uri + ") does not contain slash character");
         }
-    }
-
-    public static QName getNodeQName(Node node) {
-        return new QName(node.getNamespaceURI(), node.getLocalName());
     }
 
     public static boolean compareQName(QName qname, Node node) {

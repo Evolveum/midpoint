@@ -36,7 +36,7 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
     private static final String COMPONENT_USERS_DIRECTORY = COMPONENT_OBJECTS_DIRECTORY + "users/";
     private static final String COMPONENT_ROLES_DIRECTORY = COMPONENT_OBJECTS_DIRECTORY + "roles/";
     private static final String COMPONENT_ORGS_DIRECTORY = COMPONENT_OBJECTS_DIRECTORY + "orgs/";
-    private static final String COMPONENT_SYSTEM_CONFIG_DIRECTORY = COMPONENT_OBJECTS_DIRECTORY + "systemConfiguation/";
+    private static final String COMPONENT_SYSTEM_CONFIG_DIRECTORY = COMPONENT_OBJECTS_DIRECTORY + "systemconfiguation/";
 
     private static final File SEARCH_CONFIG_SYSTEM_CONFIG_FILE = new File(COMPONENT_SYSTEM_CONFIG_DIRECTORY + "system-configuration-search-configuration.xml");
     private static final File SEARCH_CONFIG_WITHOUT_DEFAULT_ITEM_SYSTEM_CONFIG_FILE = new File(COMPONENT_SYSTEM_CONFIG_DIRECTORY + "system-configuration-search-without-def-search-items.xml");

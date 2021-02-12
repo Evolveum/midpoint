@@ -46,25 +46,29 @@ import java.util.List;
 public class M10ObjectTemplate extends AbstractLabTest{
 
     protected static final String LAB_OBJECTS_DIRECTORY = LAB_DIRECTORY + "M10/";
-    private static final File OBJECT_TEMPLATE_USER_FILE_10_3 = new File(LAB_OBJECTS_DIRECTORY + "objectTemplate/object-template-example-user-10-3.xml");
-    private static final File LOOKUP_EMP_STATUS_FILE = new File(LAB_OBJECTS_DIRECTORY + "lookupTables/lookup-emp-status.xml");
+    private static final File OBJECT_TEMPLATE_USER_FILE_10_3 = new File(LAB_OBJECTS_DIRECTORY + "objecttemplate/object-template-example-user-10-3.xml");
+    private static final File OBJECT_TEMPLATE_USER_FILE = new File(LAB_OBJECTS_DIRECTORY + "objecttemplate/object-template-example-user.xml");
+    private static final File LOOKUP_EMP_STATUS_FILE = new File(LAB_OBJECTS_DIRECTORY + "lookuptables/lookup-emp-status.xml");
     private static final File CSV_3_RESOURCE_FILE_10_4 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-10-4.xml");
-    private static final File SYSTEM_CONFIGURATION_FILE_10 = new File(LAB_OBJECTS_DIRECTORY + "systemConfiguration/system-configuration-10.xml");
+    private static final File SYSTEM_CONFIGURATION_FILE_10 = new File(LAB_OBJECTS_DIRECTORY + "systemconfiguration/system-configuration-10.xml");
     private static final File ARCHETYPE_EMPLOYEE_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-employee.xml");
     private static final File ARCHETYPE_ORG_FUNCTIONAL_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-org-functional.xml");
     private static final File ARCHETYPE_ORG_COMPANY_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-org-company.xml");
     private static final File ARCHETYPE_ORG_GROUP_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-org-group.xml");
     private static final File ARCHETYPE_ORG_GROUP_LIST_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-org-group-list.xml");
     private static final File KIRK_USER_TIBERIUS_FILE = new File("./src/test/resources/labs/objects/users/kirk-tiberius-user.xml");
+    private static final File PICARD_USER_TIBERIUS_FILE = new File("./src/test/resources/labs/M10/users/kirk-tiberius-user.xml");
     private static final File INTERNAL_EMPLOYEE_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-internal-employee.xml");
     private static final File ORG_EXAMPLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "org/org-example.xml");
+    private static final File ORG_WARP_SPEED_RESEARCH_FILE = new File(LAB_OBJECTS_DIRECTORY + "org/warp-speed-research.xml");
     private static final File ORG_SECRET_OPS_FILE = new File(LAB_OBJECTS_DIRECTORY + "org/org-secret-ops.xml");
-    private static final File NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE = new File(LAB_OBJECTS_DIRECTORY + "valuePolicies/numeric-pin-first-nonzero-policy.xml");
+    private static final File NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE = new File(LAB_OBJECTS_DIRECTORY + "valuepolicies/numeric-pin-first-nonzero-policy.xml");
     private static final File CSV_1_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-10.xml");
     private static final File CSV_3_RESOURCE_FILE_10 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-10.xml");
     private static final File HR_RESOURCE_FILE_10 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-hr.xml");
     private static final File HR_SYNCHRONIZATION_TASK_FILE = new File(LAB_OBJECTS_DIRECTORY + "tasks/task-opendj-livesync-full.xml");
-    private static final File OBJECT_TEMPLATE_USER_FILE = new File(LAB_OBJECTS_DIRECTORY + "objectTemplate/object-template-example-user-simple.xml");
+    private static final File HR_IMPORT_TASK_FILE = new File(LAB_OBJECTS_DIRECTORY + "tasks/task-hr-import.xml");
+    private static final File OBJECT_TEMPLATE_USER_SIMPLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "objecttemplate/object-template-example-user-simple.xml");
     private static final File CSV_2_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-2-canteen-10.xml");
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextBeforeTestClass" })
@@ -95,29 +99,20 @@ public class M10ObjectTemplate extends AbstractLabTest{
         super.beforeClass();
     }
 
-//    @Override
-//    protected List<File> getObjectListToImport(){
-//        return Arrays.asList(OBJECT_TEMPLATE_USER_FILE, ARCHETYPE_EMPLOYEE_FILE, ARCHETYPE_ORG_FUNCTIONAL_FILE, ARCHETYPE_ORG_COMPANY_FILE, ARCHETYPE_ORG_GROUP_FILE,
-//                ARCHETYPE_ORG_GROUP_LIST_FILE, KIRK_USER_TIBERIUS_FILE, INTERNAL_EMPLOYEE_ROLE_FILE, ORG_EXAMPLE_FILE, ORG_SECRET_OPS_FILE);
-//    }
+    @Override
+    protected List<File> getObjectListToImport(){
+        return Arrays.asList(ARCHETYPE_EMPLOYEE_FILE, ARCHETYPE_ORG_FUNCTIONAL_FILE, ARCHETYPE_ORG_COMPANY_FILE, ARCHETYPE_ORG_GROUP_FILE,
+                ARCHETYPE_ORG_GROUP_LIST_FILE, OBJECT_TEMPLATE_USER_SIMPLE_FILE, KIRK_USER_TIBERIUS_FILE, PICARD_USER_TIBERIUS_FILE,
+                ORG_EXAMPLE_FILE, ORG_SECRET_OPS_FILE, ORG_WARP_SPEED_RESEARCH_FILE, NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE);
+    }
 
     @Test
     public void mod10test01SimpleObjectTemplate() throws IOException {
-        importObject(OBJECT_TEMPLATE_USER_FILE, true, true);
-        importObject(KIRK_USER_TIBERIUS_FILE, true, true);
-        importObject(ORG_EXAMPLE_FILE, true, true);
-        importObject(ORG_SECRET_OPS_FILE, true, true);
-        importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE, true, true);
-
         hrTargetFile = new File(getTestTargetDir(), HR_FILE_SOURCE_NAME);
         FileUtils.copyFile(HR_SOURCE_FILE_7_4_PART_4, hrTargetFile);
 
         importObject(HR_RESOURCE_FILE_10, true);
         changeResourceAttribute(HR_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, hrTargetFile.getAbsolutePath(), true);
-
-        importObject(HR_SYNCHRONIZATION_TASK_FILE);
-        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
-
 
         csv3TargetFile = new File(getTestTargetDir(), CSV_3_FILE_SOURCE_NAME);
         FileUtils.copyFile(CSV_3_SOURCE_FILE, csv3TargetFile);
@@ -131,13 +126,58 @@ public class M10ObjectTemplate extends AbstractLabTest{
         importObject(CSV_1_RESOURCE_FILE, true);
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
 
-        importObject(INTERNAL_EMPLOYEE_ROLE_FILE, true, true);
-
         importObject(CSV_2_RESOURCE_FILE, true);
         changeResourceAttribute(CSV_2_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv2TargetFile.getAbsolutePath(), true);
 
         importObject(CSV_3_RESOURCE_FILE_10, true);
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
+
+        importObject(INTERNAL_EMPLOYEE_ROLE_FILE, true, true);
+
+        importObject(HR_IMPORT_TASK_FILE);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        showTask("Initial import from HR")
+                .clickRunNow();
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
+
+        importObject(HR_SYNCHRONIZATION_TASK_FILE);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+
+        //user kirk should have projection with CSV-3 resource
+        showUser("kirk")
+                .selectTabProjections()
+                    .clickAddProjection()
+                        .table()
+                            .search()
+                            .byName()
+                            .inputValue(CSV_3_RESOURCE_NAME)
+                            .updateSearch()
+                            .and()
+                        .selectCheckboxByName(CSV_3_RESOURCE_NAME)
+                        .and()
+                    .clickAdd()
+                    .and()
+                        .clickSave()
+                            .feedback()
+                            .isSuccess();
+
+        //user kirk should have projection with CSV-1 resource
+        showUser("picard")
+                .selectTabProjections()
+                    .clickAddProjection()
+                        .table()
+                            .search()
+                            .byName()
+                            .inputValue(CSV_1_RESOURCE_NAME)
+                            .updateSearch()
+                            .and()
+                        .selectCheckboxByName(CSV_1_RESOURCE_NAME)
+                        .and()
+                    .clickAdd()
+                    .and()
+                .clickSave()
+                    .feedback()
+                    .isSuccess();
 
         basicPage.listResources()
                 .table()
@@ -180,13 +220,6 @@ public class M10ObjectTemplate extends AbstractLabTest{
                     .form()
                         .assertInputAttributeValueMatches("fullName", "John Smith");
 
-
-        importObject(ARCHETYPE_EMPLOYEE_FILE, true, true);
-        importObject(ARCHETYPE_ORG_FUNCTIONAL_FILE, true, true);
-        importObject(ARCHETYPE_ORG_COMPANY_FILE, true, true);
-        importObject(ARCHETYPE_ORG_GROUP_FILE, true, true);
-        importObject(ARCHETYPE_ORG_GROUP_LIST_FILE, true, true);
-
         FileUtils.copyFile(HR_SOURCE_FILE_10_1, hrTargetFile);
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
 
@@ -216,8 +249,8 @@ public class M10ObjectTemplate extends AbstractLabTest{
 
     @Test(dependsOnMethods = {"mod10test01SimpleObjectTemplate"})
     public void mod10test02AutomaticAssignments() throws IOException {
-        importObject(ORG_EXAMPLE_FILE, true);
-        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        importObject(OBJECT_TEMPLATE_USER_FILE, true);
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         ResourceAccountsTab<ViewResourcePage> accountTab = basicPage.listResources()
                 .table()
@@ -236,7 +269,6 @@ public class M10ObjectTemplate extends AbstractLabTest{
         AssignmentsTab<UserPage> tab = accountTab.table()
                 .clickOnOwnerByName("X001212")
                 .selectTabAssignments();
-        Selenide.screenshot("M10_assignmentsTab");
         tab.assertAssignmentsWithRelationExist("Member", "Human Resources",
                 "Active Employees", "Internal Employee")
                 .assertAssignmentsWithRelationExist("Manager", "Human Resources");
@@ -292,6 +324,28 @@ public class M10ObjectTemplate extends AbstractLabTest{
 
     @Test(dependsOnMethods = {"mod10test02AutomaticAssignments"})
     public void mod10test03LookupTablesAndAttributeOverrides() {
+        showUser("kirk").selectTabAssignments()
+                .clickAddAssignemnt("New Organization type assignment with Member relation")
+                    .table()
+                        .paging()
+                        .next()
+                        .and()
+                    .and()
+                    .table()
+                        .search()
+                            .byName()
+                            .inputValue("0919")
+                            .updateSearch()
+                        .and()
+                        .rowByColumnLabel("Name", "0919")
+                        .clickCheckBox()
+                        .and()
+                    .and()
+                    .clickAdd()
+                .and()
+                .clickSave()
+                    .feedback()
+                        .isSuccess();
 
         PrismForm<AssignmentHolderBasicTab<UserPage>> form = showUser("kirk")
                 .selectTabBasic()
@@ -321,9 +375,9 @@ public class M10ObjectTemplate extends AbstractLabTest{
         form.addAttributeValue("familyName", "kirk2");
         form.and().and().feedback().assertError();
         form
-                .assertPropertyWithTitleTextExist("telephoneNumber", "Primary telephone number of the user, org. unit, etc.")
+                .assertPropertyWithTitleTextDoesntExist("telephoneNumber", "Primary telephone number of the user, org. unit, etc.")
                 .assertPropertyWithTitleTextExist("telephoneNumber", "Mobile Telephone Number")
-                .assertPropertyEnabled("honorificSuffix");
+                .assertPropertyDisabled("honorificSuffix");
     }
 
     @Test(dependsOnMethods = {"mod10test03LookupTablesAndAttributeOverrides"})
@@ -340,7 +394,6 @@ public class M10ObjectTemplate extends AbstractLabTest{
                 .selectOrgInTree("IT Administration Department")
                 .and()
                 .getManagerPanel();
-        Selenide.screenshot("managersPanel");
         managerPanel
                 .assertContainsManager("John Wicks");
 

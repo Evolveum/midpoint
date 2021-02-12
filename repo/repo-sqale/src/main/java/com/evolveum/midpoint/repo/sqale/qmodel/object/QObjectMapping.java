@@ -17,9 +17,13 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleModelMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignment;
+import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
+import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.PolyStringItemFilterProcessor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -30,9 +34,9 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
     public static final String DEFAULT_ALIAS_NAME = "o";
 
-    public static final QObjectMapping<ObjectType, QObject.QObjectReal, MObject> INSTANCE =
+    public static final QObjectMapping<ObjectType, QObject<MObject>, MObject> INSTANCE =
             new QObjectMapping<>(QObject.TABLE_NAME, DEFAULT_ALIAS_NAME,
-                    ObjectType.class, QObject.QObjectReal.class);
+                    ObjectType.class, QObject.CLASS);
 
     protected QObjectMapping(
             @NotNull String tableName,
@@ -58,6 +62,9 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
         // TODO mappings
         // TODO is version mapped for queries at all?
+
+        addRelationMapping(AssignmentHolderType.F_ASSIGNMENT,
+                QAssignment.class, joinOn((o, a) -> o.oid.eq(a.ownerOid)));
     }
 
     @Override
@@ -71,5 +78,16 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     protected Q newAliasInstance(String alias) {
         //noinspection unchecked
         return (Q) new QObject<>(MObject.class, alias);
+    }
+
+    @Override
+    public SqlTransformer<S, Q, R> createTransformer(SqlTransformerContext sqlTransformerContext) {
+        return new ObjectSqlTransformer<>(sqlTransformerContext, this);
+    }
+
+    @Override
+    public R newRowObject() {
+        //noinspection unchecked
+        return (R) new MObject();
     }
 }

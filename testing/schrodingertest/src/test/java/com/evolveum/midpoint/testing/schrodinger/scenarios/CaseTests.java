@@ -193,15 +193,8 @@ public class CaseTests extends AbstractSchrodingerTest {
     public void test140forwardCaseAction() {
         createUserAndAssignRoleWithApprovement(FORWARD_WORKITEM_TEST_USER_NAME);
 
-        UserPage user = basicPage.newUser();
-        user.selectTabBasic()
-                .form()
-                .addAttributeValue("name", FORWARD_WORKITEM_TO_USER_NAME)
-                .and()
-                .and()
-                .clickSave();
-
-        Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
+        createUser(FORWARD_WORKITEM_TO_USER_NAME);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
 
         AllRequestsPage allRequestsPage = basicPage.listAllRequests();
         ChildrenCaseTable childrenCaseTable = allRequestsPage
@@ -273,13 +266,7 @@ public class CaseTests extends AbstractSchrodingerTest {
     }
 
     private void createUserAndAssignRoleWithApprovement(String userName){
-        UserPage user = basicPage.newUser();
-        user.selectTabBasic()
-                .form()
-                .addAttributeValue("name", userName)
-                .and()
-                .and()
-                .clickSave();
+        createUser(userName);
 
         ListUsersPage users = basicPage.listUsers();
         users

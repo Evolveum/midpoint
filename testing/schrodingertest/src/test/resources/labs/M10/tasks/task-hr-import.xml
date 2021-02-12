@@ -1,0 +1,36 @@
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" oid="36498568-4876-4bbf-8665-604d9c46baa4" version="9">
+    <name>Initial import from HR</name>
+    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+        <mext:kind>account</mext:kind>
+    </extension>
+    <assignment id="1">
+        <targetRef oid="00000000-0000-0000-0000-000000000503" relation="org:default" type="c:ArchetypeType">
+            <!-- Import task -->
+        </targetRef>
+        <activation>
+            <effectiveStatus>enabled</effectiveStatus>
+        </activation>
+    </assignment>
+    <iteration>0</iteration>
+    <iterationToken/>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000503" relation="org:default" type="c:ArchetypeType">
+        <!-- Import task -->
+    </archetypeRef>
+    <roleMembershipRef oid="00000000-0000-0000-0000-000000000503" relation="org:default" type="c:ArchetypeType">
+        <!-- Import task -->
+    </roleMembershipRef>
+    <taskIdentifier>1612911918094-0-1</taskIdentifier>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+        <!-- administrator -->
+    </ownerRef>
+    <channel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#import</channel>
+    <executionStatus>runnable</executionStatus>
+    <node>DefaultNode</node>
+    <category>ImportingAccounts</category>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/import/handler-3</handlerUri>
+    <objectRef oid="10000000-9999-9999-0000-a000ff000001" relation="org:default" type="c:ResourceType">
+        <!-- ExAmPLE, Inc. HR Source -->
+    </objectRef>
+    <recurrence>single</recurrence>
+    <binding>loose</binding>
+</task>

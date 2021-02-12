@@ -12,6 +12,11 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
+
+import com.evolveum.midpoint.web.page.admin.orgs.PageOrgUnit;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -59,6 +64,8 @@ import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPres
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 public class ColumnUtils {
     private static final Trace LOGGER = TraceManager.getTrace(ColumnUtils.class);
@@ -112,7 +119,7 @@ public class ColumnUtils {
         };
     }
 
-    public static <O extends ObjectType> List<IColumn<SelectableBean<O>, String>> getDefaultColumns(Class<? extends O> type) {
+    public static <O extends ObjectType> List<IColumn<SelectableBean<O>, String>> getDefaultColumns(Class<? extends O> type, PageBase pageBase) {
         if (type == null) {
             return getDefaultUserColumns();
         }
@@ -122,7 +129,7 @@ public class ColumnUtils {
         } else if (RoleType.class.equals(type)) {
             return getDefaultRoleColumns();
         } else if (OrgType.class.equals(type)) {
-            return getDefaultOrgColumns();
+            return getDefaultOrgColumns(pageBase);
         } else if (ServiceType.class.equals(type)) {
             return getDefaultServiceColumns();
         } else if (type.equals(TaskType.class)) {
@@ -373,11 +380,54 @@ public class ColumnUtils {
         return columns;
     }
 
-    public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultOrgColumns() {
+    public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultOrgColumns(PageBase pageBase) {
         List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
 
-        columns.addAll((Collection) getDefaultAbstractRoleColumns(true));
+        columns.addAll((Collection) getDefaultAbstractRoleColumns(false));
 
+
+        columns.add(new LinkColumn<>(createStringResource("ObjectType.parentOrgRef")){
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<T>>> cellItem, String componentId, IModel<SelectableBean<T>> rowModel) {
+                RepeatingView links = new RepeatingView(componentId);
+                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getValue() != null
+                        && rowModel.getObject().getValue().getParentOrgRef() != null && !rowModel.getObject().getValue().getParentOrgRef().isEmpty()) {
+                    for (ObjectReferenceType parentRef : rowModel.getObject().getValue().getParentOrgRef()) {
+                        if (parentRef.getOid() == null) {
+                            continue;
+                        }
+                        Model name = Model.of(WebModelServiceUtils.resolveReferenceName(parentRef, pageBase, true));
+                        if (name.getObject() == null) {
+                            continue;
+                        }
+                        links.add(new LinkPanel(links.newChildId(), name) {
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public void onClick() {
+                                PageParameters parameters = new PageParameters();
+                                parameters.add(OnePageParameterEncoder.PARAMETER, parentRef);
+                                pageBase.navigateToNext(PageOrgUnit.class, parameters);
+                            }
+
+                            @Override
+                            public boolean isEnabled() {
+                                return parentRef.getTargetName() != null;
+                            }
+                        });
+                    }
+                }
+                cellItem.add(links);
+            }
+
+            @Override
+            public void onClick(IModel<SelectableBean<T>> rowModel) {
+                super.onClick(rowModel);
+            }
+        });
+
+        columns.add((IColumn)getAbstractRoleColumnForProjection());
         return columns;
     }
 
@@ -418,29 +468,33 @@ public class ColumnUtils {
         List<IColumn<SelectableBean<T>, String>> columns = createColumns(columnsDefs);
 
         if (showAccounts) {
-            IColumn<SelectableBean<T>, String> column = new AbstractExportableColumn<SelectableBean<T>, String>(
-                    createStringResource("AbstractRole.projectionsColumn")) {
-
-                @Override
-                public void populateItem(Item<ICellPopulator<SelectableBean<T>>> cellItem,
-                        String componentId, IModel<SelectableBean<T>> model) {
-                    cellItem.add(new Label(componentId,
-                            model.getObject().getValue() != null ?
-                                    model.getObject().getValue().getLinkRef().size() : null));
-                }
-
-                @Override
-                public IModel<String> getDataModel(IModel<SelectableBean<T>> rowModel) {
-                    return Model.of(rowModel.getObject().getValue() != null ?
-                            Integer.toString(rowModel.getObject().getValue().getLinkRef().size()) : "");
-                }
-
-            };
-
-            columns.add(column);
+            columns.add(getAbstractRoleColumnForProjection());
         }
         return columns;
 
+    }
+
+    private static <T extends AbstractRoleType> IColumn<SelectableBean<T>, String> getAbstractRoleColumnForProjection() {
+        IColumn<SelectableBean<T>, String> column = new AbstractExportableColumn<SelectableBean<T>, String>(
+                createStringResource("AbstractRole.projectionsColumn")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<T>>> cellItem,
+                    String componentId, IModel<SelectableBean<T>> model) {
+                cellItem.add(new Label(componentId,
+                        model.getObject().getValue() != null ?
+                                model.getObject().getValue().getLinkRef().size() : null));
+            }
+
+            @Override
+            public IModel<String> getDataModel(IModel<SelectableBean<T>> rowModel) {
+                return Model.of(rowModel.getObject().getValue() != null ?
+                        Integer.toString(rowModel.getObject().getValue().getLinkRef().size()) : "");
+            }
+
+        };
+
+        return column;
     }
 
     public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultResourceColumns() {

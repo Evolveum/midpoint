@@ -82,7 +82,8 @@ public class SearchFactory {
                 ItemPath.create(ServiceType.F_NAME),
                 ItemPath.create(RoleType.F_DISPLAY_NAME),
                 ItemPath.create(ServiceType.F_SERVICE_TYPE),
-                ItemPath.create(ServiceType.F_URL)));
+                ItemPath.create(ServiceType.F_URL)
+        ));
         SEARCHABLE_OBJECTS.put(ConnectorHostType.class, Arrays.asList(
                 ItemPath.create(ConnectorHostType.F_HOSTNAME)
         ));
@@ -100,6 +101,7 @@ public class SearchFactory {
                 ItemPath.create(OrgType.F_COST_CENTER),
                 ItemPath.create(OrgType.F_ORG_TYPE),
                 ItemPath.create(OrgType.F_TENANT),
+                ItemPath.create(OrgType.F_PARENT_ORG_REF),
                 ItemPath.create(OrgType.F_LOCALITY)
         ));
         SEARCHABLE_OBJECTS.put(GenericObjectType.class, Arrays.asList(
@@ -259,7 +261,7 @@ public class SearchFactory {
                 fixedSearchItems.add(ObjectType.F_NAME);
             }
             fixedSearchItems.forEach(searchItemPath -> {
-                PrismPropertyDefinition def = objDef.findPropertyDefinition(searchItemPath);
+                ItemDefinition def = objDef.findItemDefinition(searchItemPath);
                 SearchItem item = search.addItem(def);
                 if (item != null) {
                     item.setFixed(true);

@@ -9,13 +9,20 @@ package com.evolveum.midpoint.web.page.admin.home.dto;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.web.component.progress.ProgressDto;
+import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPropagationUserControlType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordChangeSecurityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lazyman
@@ -30,16 +37,30 @@ public class MyPasswordsDto implements Serializable {
     private PrismObject<? extends FocusType> focus;
 
     private List<PasswordAccountDto> accounts;
+    private Map<String, ValuePolicyType> passwordPolicies;
     private ProtectedStringType password;
     private CredentialsPropagationUserControlType propagation;
     private PasswordChangeSecurityType passwordChangeSecurity;
     private String oldPassword;
+    private ProgressDto progress = new ProgressDto();
+
 
     public List<PasswordAccountDto> getAccounts() {
         if (accounts == null) {
             accounts = new ArrayList<>();
         }
         return accounts;
+    }
+
+    public Map<String, ValuePolicyType> getPasswordPolicies() {
+        if (passwordPolicies == null) {
+            passwordPolicies = new HashMap<>();
+        }
+        return passwordPolicies;
+    }
+
+    public void addPasswordPolicy(@NotNull ValuePolicyType policyType) {
+        getPasswordPolicies().put(policyType.getOid(), policyType);
     }
 
     public ProtectedStringType getPassword() {
@@ -84,5 +105,25 @@ public class MyPasswordsDto implements Serializable {
 
     public String getFocusOid() {
         return focus.getOid();
+    }
+
+    public ValuePolicyType getFocusPolicy() {
+        for(PasswordAccountDto accountDto : getAccounts()) {
+            if (accountDto.isMidpoint()){
+                if (accountDto.getPasswordValuePolicyOid() != null) {
+                    return getPasswordPolicies().get(accountDto.getPasswordValuePolicyOid());
+                }
+                break;
+            }
+        }
+        return null;
+    }
+
+    public ProgressDto getProgress() {
+        return progress;
+    }
+
+    public void setProgress(ProgressDto progress) {
+        this.progress = progress;
     }
 }
