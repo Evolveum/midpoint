@@ -269,7 +269,7 @@ class GetHelper {
 
             // Complete the shadow by adding attributes from the resource object
             // This also completes the associations by adding shadowRefs
-            PrismObject<ShadowType> assembledShadow = adoptionHelper.completeShadow(shadowCtx, resourceObject, repositoryShadow, false, parentResult);
+            PrismObject<ShadowType> assembledShadow = adoptionHelper.constructReturnedObject(shadowCtx, repositoryShadow, resourceObject, parentResult);
             LOGGER.trace("Shadow when assembled:\n{}", assembledShadow.debugDumpLazily(1));
 
             PrismObject<ShadowType> resultShadow = commonHelper.futurizeShadow(ctx, repositoryShadow, assembledShadow, options, now);

@@ -128,8 +128,7 @@ class ShadowCreator {
 
         CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
         if (cachingStrategy == CachingStategyType.NONE) {
-            // Clean all repoShadow attributes and add only those that should be
-            // there
+            // Clean all repoShadow attributes and add only those that should be there
             repoAttributesContainer.clear();
             Collection<ResourceAttribute<?>> primaryIdentifiers = attributesContainer.getPrimaryIdentifiers();
             for (PrismProperty<?> p : primaryIdentifiers) {

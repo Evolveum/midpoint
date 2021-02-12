@@ -342,10 +342,6 @@ public class ShadowManager {
         helper.setKindIfNecessary(repoShadowType, objectClassDefinition);
     }
 
-    public void normalizeAttributes(PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
-        helper.normalizeAttributes(shadow, objectClassDefinition);
-    }
-
     @SafeVarargs
     public final <T> boolean compareAttribute(RefinedObjectClassDefinition refinedObjectClassDefinition,
             ResourceAttribute<T> attributeA, T... valuesB) throws SchemaException {

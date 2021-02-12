@@ -128,7 +128,7 @@ class SearchHelper {
 
         ResourceObjectHandler resultHandler = (FetchedResourceObject fetchedObject, OperationResult objResult) -> {
 
-            AdoptedResourceObject adopted = new AdoptedResourceObject(fetchedObject, localBeans, ctx, updateRepository, rootOptions);
+            AdoptedResourceObject adopted = new AdoptedResourceObject(fetchedObject, localBeans, ctx, updateRepository);
             adopted.initialize(ctx.getTask(), objResult);
             PrismObject<ShadowType> resultShadow = adopted.getResultingObject(ucfErrorReportingMethod);
 

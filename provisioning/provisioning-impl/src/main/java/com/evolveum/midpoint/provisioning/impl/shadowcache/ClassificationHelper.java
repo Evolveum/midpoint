@@ -7,14 +7,13 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectClassifier;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectClassifier.Classification;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,21 +40,32 @@ class ClassificationHelper {
      */
     private volatile ResourceObjectClassifier classifier;
 
-    public void setResourceObjectClassifier(ResourceObjectClassifier classifier) {
-        this.classifier = classifier;
+    /**
+     * Checks if the shadow needs the classification. This is to avoid e.g. needless preparation of the resource object.
+     */
+    public boolean needsClassification(PrismObject<ShadowType> shadow) {
+        return ShadowUtil.isNotKnown(shadow.asObjectable().getKind())
+                || ShadowUtil.isNotKnown(shadow.asObjectable().getIntent());
     }
 
+    /**
+     * Classifies the current shadow, based on information from the resource object.
+     * As a result, the repository is updated.
+     */
     public void classify(ProvisioningContext ctx, PrismObject<ShadowType> shadow, PrismObject<ShadowType> resourceObject,
             OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        if (classifier == null) {
+
+        if (classifier == null) { // Occurs when model-impl is not present, i.e. in tests.
             LOGGER.trace("No classifier. Skipping classification of {}/{}", shadow, resourceObject);
             return;
         }
 
         argCheck(shadow.getOid() != null, "Shadow has no OID");
 
-        Classification classification = classifier.classify(resourceObject, null, null, ctx.getTask(), result);
+        Classification classification = classifier.classify(resourceObject, ctx.getResource().asPrismObject(), shadow,
+                ctx.getTask(), result);
+
         if (isDifferent(classification, shadow)) {
             LOGGER.trace("New/updated classification of {} found: {}", shadow, classification);
             updateShadow(shadow, classification, result);
@@ -79,12 +89,10 @@ class ClassificationHelper {
 
     private boolean isDifferent(Classification classification, PrismObject<ShadowType> shadow) {
         return classification.getKind() != shadow.asObjectable().getKind() ||
-                Objects.equals(classification.getIntent(), shadow.asObjectable().getIntent());
+                !Objects.equals(classification.getIntent(), shadow.asObjectable().getIntent());
     }
 
-    public boolean needsClassification(PrismObject<ShadowType> shadow) {
-        ShadowKindType kind = shadow.asObjectable().getKind();
-        String intent = shadow.asObjectable().getIntent();
-        return kind == null || kind == ShadowKindType.UNKNOWN || SchemaConstants.INTENT_UNKNOWN.equals(intent);
+    public void setResourceObjectClassifier(ResourceObjectClassifier classifier) {
+        this.classifier = classifier;
     }
 }

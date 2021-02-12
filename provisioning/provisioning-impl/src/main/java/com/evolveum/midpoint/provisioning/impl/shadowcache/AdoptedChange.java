@@ -155,7 +155,7 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements Initiali
 
         if (isDelete()) {
             markRepoShadowTombstone(result);
-            setDeletedCurrentResourceObject(result);
+            setDeletedCurrentResourceObject(result); // TODO remove
         }
 
         shadowChangeDescription = createResourceShadowChangeDescription();
@@ -367,7 +367,7 @@ public class AdoptedChange<ROC extends ResourceObjectChange> implements Initiali
 
         if (currentResourceObject != null) {
             // TODO do we need to complete the shadow now? Why? MID-5834
-            currentResourceObject = getAdoptionHelper().completeShadow(context, currentResourceObject, repoShadow, false, result);
+            currentResourceObject = getAdoptionHelper().constructReturnedObject(context, repoShadow, currentResourceObject, result);
             // TODO: shadowState MID-5834
             beans.shadowManager.updateShadow(context, currentResourceObject, objectDelta, repoShadow, null, result);
         }

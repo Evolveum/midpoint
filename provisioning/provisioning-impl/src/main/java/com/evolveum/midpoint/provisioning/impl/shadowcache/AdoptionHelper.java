@@ -25,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * Helps with the resource object adoption process (acquiring repo shadows, shadow completion).
  *
- * Currently it delegates these activities to dedicated classes: {@link ShadowAcquisition}, {@link ShadowCompletion}.
+ * Currently it delegates these activities to dedicated classes: {@link ShadowAcquisition}, {@link ReturnedObjectConstruction}.
  */
 @Experimental
 @Component
@@ -70,18 +70,20 @@ class AdoptionHelper {
     }
 
     /**
-     * Make sure that the shadow is complete, e.g. that all the mandatory fields
+     * TODO improve the description
+     *
+     * Make sure that the repo shadow is complete, e.g. that all the mandatory fields
      * are filled (e.g name, resourceRef, ...) Also transforms the shadow with
      * respect to simulated capabilities. Also shadowRefs are added to associations.
      */
-    @NotNull PrismObject<ShadowType> completeShadow(ProvisioningContext ctx,
-            PrismObject<ShadowType> resourceShadow, PrismObject<ShadowType> repoShadow, boolean isDoDiscovery,
+    @NotNull PrismObject<ShadowType> constructReturnedObject(ProvisioningContext ctx,
+            PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceObject,
             OperationResult parentResult)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException,
-            CommunicationException, SecurityViolationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+            SecurityViolationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
 
-        return ShadowCompletion.create(ctx, resourceShadow, repoShadow, isDoDiscovery, commonBeans)
-                .completeShadow(parentResult);
+        return ReturnedObjectConstruction.create(ctx, repoShadow, resourceObject, commonBeans)
+                .construct(parentResult);
     }
 
 }

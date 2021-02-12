@@ -136,7 +136,9 @@ public class ProvisioningContext extends StateReporter {
         this.resource = resource;
     }
 
-    public ResourceType getResource() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    @NotNull public ResourceType getResource()
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
         if (resource == null) {
             if (getResourceOid() == null) {
                 throw new SchemaException("Null resource OID "+getDesc());

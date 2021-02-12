@@ -864,7 +864,15 @@ public class ShadowUtil {
         return kind != null && kind != ShadowKindType.UNKNOWN;
     }
 
+    public static boolean isNotKnown(ShadowKindType kind) {
+        return !isKnown(kind);
+    }
+
     public static boolean isKnown(String intent) {
         return intent != null && !SchemaConstants.INTENT_UNKNOWN.equals(intent);
+    }
+
+    public static boolean isNotKnown(String intent) {
+        return !isKnown(intent);
     }
 }

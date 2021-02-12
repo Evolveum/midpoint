@@ -4,6 +4,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorRep
 
 import java.util.Objects;
 
+import com.evolveum.midpoint.provisioning.impl.shadowmanager.ShadowManager;
+
 import com.google.common.base.MoreObjects;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -17,7 +19,6 @@ import com.evolveum.midpoint.provisioning.impl.resourceobjects.FetchedResourceOb
 import com.evolveum.midpoint.provisioning.impl.shadowcache.sync.SkipProcessingException;
 import com.evolveum.midpoint.provisioning.util.ProcessingState;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -62,11 +63,11 @@ public class AdoptedResourceObject implements InitializableMixin {
     @NotNull private final InitializationContext ictx;
 
     public AdoptedResourceObject(FetchedResourceObject fetchedResourceObject, LocalBeans localBeans, ProvisioningContext ctx,
-            boolean updateRepository, GetOperationOptions rootOptions) {
+            boolean updateRepository) {
         this.resourceObject = fetchedResourceObject.getResourceObject();
         this.primaryIdentifierValue = fetchedResourceObject.getPrimaryIdentifierValue();
         this.processingState = ProcessingState.fromLowerLevelState(fetchedResourceObject.getProcessingState());
-        this.ictx = new InitializationContext(localBeans, ctx, updateRepository, rootOptions);
+        this.ictx = new InitializationContext(localBeans, ctx, updateRepository);
     }
 
     @Override
@@ -76,9 +77,19 @@ public class AdoptedResourceObject implements InitializableMixin {
         sb.append(this.getClass().getSimpleName());
         sb.append("\n");
         DebugUtil.debugDumpWithLabelLn(sb, "resourceObject", resourceObject, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "repoShadow", adoptedObject, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "adoptedObject", adoptedObject, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "processingState", String.valueOf(processingState), indent + 1);
         return sb.toString();
+    }
+
+    @Override
+    public String toString() {
+        return "AdoptedResourceObject{" +
+                "resourceObject=" + resourceObject +
+                ", primaryIdentifierValue=" + primaryIdentifierValue +
+                ", adoptedObject=" + adoptedObject +
+                ", processingState=" + processingState +
+                '}';
     }
 
     /**
@@ -118,19 +129,27 @@ public class AdoptedResourceObject implements InitializableMixin {
             OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException,
             CommunicationException, ExpressionEvaluationException, EncryptionException, SecurityViolationException {
 
-        boolean isDoDiscovery = ProvisioningUtil.isDoDiscovery(ictx.ctx.getResource(), ictx.rootOptions);
+        AdoptionHelper adoptionHelper = getAdoptionHelper();
+        ShadowManager shadowManager = getShadowManager();
 
-        PrismObject<ShadowType> repoShadow = ictx.localBeans.adoptionHelper.acquireRepoShadow(
-                estimatedShadowCtx, resourceObject, result);
+        PrismObject<ShadowType> repoShadow = adoptionHelper.acquireRepoShadow(estimatedShadowCtx, resourceObject, result);
 
         // This determines the definitions exactly. Now the repo shadow should have proper kind/intent
         ProvisioningContext shadowCtx = ictx.localBeans.shadowCaretaker.applyAttributesDefinition(ictx.ctx, repoShadow);
         // TODO: shadowState
-        PrismObject<ShadowType> updatedRepoShadow = ictx.localBeans.shadowManager.updateShadow(shadowCtx, resourceObject, null, repoShadow, null, result);
+        PrismObject<ShadowType> updatedRepoShadow = shadowManager.updateShadow(shadowCtx, resourceObject, null, repoShadow, null, result);
 
         // TODO do we want also to futurize the shadow like in getObject?
 
-        return ictx.localBeans.adoptionHelper.completeShadow(shadowCtx, resourceObject, updatedRepoShadow, isDoDiscovery, result);
+        return adoptionHelper.constructReturnedObject(shadowCtx, updatedRepoShadow, resourceObject, result);
+    }
+
+    private ShadowManager getShadowManager() {
+        return ictx.localBeans.shadowManager;
+    }
+
+    private AdoptionHelper getAdoptionHelper() {
+        return ictx.localBeans.adoptionHelper;
     }
 
     @Override
@@ -216,14 +235,11 @@ public class AdoptedResourceObject implements InitializableMixin {
         private final LocalBeans localBeans;
         private final ProvisioningContext ctx;
         private final boolean updateRepository;
-        private final GetOperationOptions rootOptions;
 
-        private InitializationContext(LocalBeans localBeans, ProvisioningContext ctx, boolean updateRepository,
-                GetOperationOptions rootOptions) {
+        private InitializationContext(LocalBeans localBeans, ProvisioningContext ctx, boolean updateRepository) {
             this.localBeans = localBeans;
             this.ctx = ctx;
             this.updateRepository = updateRepository;
-            this.rootOptions = rootOptions;
         }
     }
 }

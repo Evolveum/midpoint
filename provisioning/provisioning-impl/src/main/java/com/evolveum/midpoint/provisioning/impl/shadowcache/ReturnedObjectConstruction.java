@@ -35,7 +35,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
- * Responsible for _completion_ of a shadow. That means:
+ * Construction of an object that is being returned from the shadow cache to a client.
+ *
+ * Data in the resulting object come from two sources:
+ *
+ * 1. resource object; TODO - can be "fake" i.e. coming from the repository??
+ * 2. repository shadow (potentially updated by previous processing).
+ *
+ * TODO the algorithm:
  *
  * 1. All the mandatory fields are filled (e.g name, resourceRef, ...)
  * 2. Transforms the shadow with respect to simulated capabilities. (???)
@@ -44,9 +51,16 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  * Instantiated separately for each shadow that is being completed.
  */
-public class ShadowCompletion {
+public class ReturnedObjectConstruction {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ShadowCompletion.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ReturnedObjectConstruction.class);
+
+    /**
+     * Existing repository shadow. Usually contains only a subset of attributes.
+     * OTOH it is the only source of some information like password or activation metadata,
+     * and a more reliable source for others: like exists and dead.
+     */
+    @NotNull private final PrismObject<ShadowType> repoShadow;
 
     /**
      * Object that was fetched from the resource.
@@ -69,13 +83,6 @@ public class ShadowCompletion {
     @NotNull private final ProvisioningContext ctx;
 
     /**
-     * Existing repository shadow. Usually contains only a subset of attributes.
-     * OTOH it is the only source of some information like password or activation metadata,
-     * or more reliable source for others: like exists and dead.
-     */
-    @NotNull private final PrismObject<ShadowType> repoShadow;
-
-    /**
      * Result shadow that is being constructed. It starts with the repo shadow, with selected information
      * transferred from the resource object.
      */
@@ -85,28 +92,25 @@ public class ShadowCompletion {
 
     @NotNull private final LocalBeans localBeans;
 
-    private final boolean isDoDiscovery;
-
-    private ShadowCompletion(@NotNull ProvisioningContext ctx, @NotNull PrismObject<ShadowType> resourceObject,
-            @NotNull PrismObject<ShadowType> repoShadow, boolean isDoDiscovery, @NotNull CommonBeans beans) {
+    private ReturnedObjectConstruction(@NotNull ProvisioningContext ctx, @NotNull PrismObject<ShadowType> repoShadow,
+            @NotNull PrismObject<ShadowType> resourceObject, @NotNull CommonBeans beans) {
         this.ctx = ctx;
         this.resourceObject = resourceObject;
         this.resourceObjectAttributes = ShadowUtil.getAttributesContainer(resourceObject);
         this.resourceObjectAssociations = resourceObject.findContainer(ShadowType.F_ASSOCIATION);
         this.repoShadow = repoShadow;
-        this.isDoDiscovery = isDoDiscovery;
         this.resultShadow = repoShadow.clone();
         this.beans = beans;
         this.localBeans = beans.shadowCache.getLocalBeans();
     }
 
-    public static ShadowCompletion create(ProvisioningContext ctx, PrismObject<ShadowType> resourceShadow,
-            PrismObject<ShadowType> repoShadow, boolean isDoDiscovery, CommonBeans commonBeans) {
-        return new ShadowCompletion(ctx, resourceShadow, repoShadow, isDoDiscovery, commonBeans);
+    public static ReturnedObjectConstruction create(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
+            PrismObject<ShadowType> resourceObject, CommonBeans commonBeans) {
+        return new ReturnedObjectConstruction(ctx, repoShadow, resourceObject, commonBeans);
     }
 
     @NotNull
-    public PrismObject<ShadowType> completeShadow(OperationResult result)
+    public PrismObject<ShadowType> construct(OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             SecurityViolationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
 

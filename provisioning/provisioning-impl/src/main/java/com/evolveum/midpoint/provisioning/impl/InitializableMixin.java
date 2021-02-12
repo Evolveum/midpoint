@@ -52,7 +52,7 @@ public interface InitializableMixin extends DebugDumpable {
             processException(e, result);
         }
 
-        getLogger().trace("Item after initialization (initialized: {})\n:{}", getProcessingState().isInitialized(),
+        getLogger().trace("Item after initialization (initialized: {}):\n{}", getProcessingState().isInitialized(),
                 debugDumpLazily());
     }
 
