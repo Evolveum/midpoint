@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (C) 2010-2020 Evolveum and contributors
+  ~ Copyright (C) 2010-2021 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -15,6 +15,19 @@
     </parent>
 
     <artifactId>midpoint-jar</artifactId>
+    <!--
+    TODO: EXPERIMENTAL AT THE MOMENT:
+     Support of midPoint as JAR is experimental at the moment and further testing is necessary:
+     - included libs need to be checked, compared with WAR content of lib + lib-provided
+     - thorough testing of ${midpoint.home}/lib loading is needed
+     (perhaps it's possible to support it without special command line using simple custom launcher)
+
+    To try midPoint as a JAR:
+    - enable "mpjar" profile (defined in gui/pom.xml) during Maven build (mvn ... -P mpjar ...)
+    - then run: java -jar gui/midpoint-jar/target/midpoint.jar
+    It seems JAR is booting faster than WAR, first tests indicate start in 80% of time for WAR.
+    This is probably caused by more efficient class loader which helps with resource loading/scanning.
+    -->
 
     <name>midPoint Spring Boot JAR</name>
 
@@ -47,6 +60,9 @@
         </dependency>
         <!--
         Following drivers are excluded in repackaging, we don't want to distribute it (or can't).
+        TODO: in admin-gui they are provided, because it's handy for developer
+         but perhaps we can just delete it here and recheck whether they are packaged.
+         See repackaging "exclusions" and truezip-maven-plugin lower.
         -->
         <dependency>
             <groupId>mysql</groupId>
@@ -111,15 +127,9 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <!--<id>repackage</id>-->
                         <goals>
                             <goal>repackage</goal>
                         </goals>
-                        <!--<phase>package</phase>-->
-                        <!--<configuration>-->
-                        <!--    <classifier>executable</classifier>-->
-                        <!--    <layoutFactory implementation="com.evolveum.midpoint.tools.layout.MidPointWarLayoutFactory"/>-->
-                        <!--</configuration>-->
                     </execution>
                 </executions>
             </plugin>
