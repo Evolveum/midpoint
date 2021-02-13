@@ -29,12 +29,12 @@ public class ObjectFilterProcessor implements FilterProcessor<ObjectFilter> {
         } else if (filter instanceof NotFilter) {
             return new NotFilterProcessor(context)
                     .process((NotFilter) filter);
-        } else if (filter instanceof PropertyValueFilter) {
-            return new PropertyValueFilterProcessor(context)
-                    .process((PropertyValueFilter<?>) filter);
-        } else if (filter instanceof RefFilter) {
-            return new RefFilterProcessor(context)
-                    .process((RefFilter) filter);
+        } else if (filter instanceof ValueFilter) {
+            // here are the values applied (ref/property value filters)
+            return new ValueFilterProcessor(context)
+                    .process((ValueFilter<?, ?>) filter);
+// TODO see QueryInterpreter.findAndCreateRestrictionInternal for uncovered cases
+//  } else if (filter instanceof OrgFilter) {
         } else if (filter instanceof AllFilter) {
             return Expressions.asBoolean(true).isTrue();
         } else if (filter instanceof NoneFilter) {

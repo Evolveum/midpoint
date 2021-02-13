@@ -24,8 +24,8 @@ public class SqaleTransformerContext extends SqlTransformerContext {
     }
 
     /** Returns ID for cached URI without going ot database. */
-    public Integer getCachedUriId(String uri) {
-        return sqaleRepoContext().getCachedUriId(uri);
+    public Integer resolveId(String uri) {
+        return sqaleRepoContext().resolveId(uri);
     }
 
     /** Returns ID for URI creating new cache row in DB as needed. */
