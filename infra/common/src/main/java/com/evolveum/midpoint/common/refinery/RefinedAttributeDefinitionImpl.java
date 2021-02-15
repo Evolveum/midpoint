@@ -10,12 +10,14 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -59,6 +61,8 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
     private Boolean readReplaceMode;
     private PropertyAccessType accessOverride = new PropertyAccessType();
     private boolean isVolatilityTrigger = false;
+
+    private transient @Nullable Optional<ComplexTypeDefinition> structuredType;
 
     protected RefinedAttributeDefinitionImpl(ResourceAttributeDefinition<T> attrDef, PrismContext prismContext) {
         super(attrDef.getItemName(), attrDef.getTypeName(), prismContext);
@@ -242,32 +246,39 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
         this.inboundMappingTypes = inboundAssignmentTypes;
     }
 
+    @Override
     @NotNull
     public ItemName getItemName() {
         return attributeDefinition.getItemName();
     }
 
+    @Override
     @NotNull
     public QName getTypeName() {
         return attributeDefinition.getTypeName();
     }
 
+    @Override
     public String getNativeAttributeName() {
         return attributeDefinition.getNativeAttributeName();
     }
 
+    @Override
     public String getFrameworkAttributeName() {
         return attributeDefinition.getFrameworkAttributeName();
     }
 
+    @Override
     public Collection<? extends DisplayableValue<T>> getAllowedValues() {
         return attributeDefinition.getAllowedValues();
     }
 
+    @Override
     public boolean isReturnedByDefault() {
         return attributeDefinition.isReturnedByDefault();
     }
 
+    @Override
     public void setReturnedByDefault(Boolean returnedByDefault) {
         throw new UnsupportedOperationException("Cannot change returnedByDefault");
     }
@@ -327,6 +338,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
         return limitationsMap.get(layer);
     }
 
+    @Override
     public String getHelp() {
         return attributeDefinition.getHelp();
     }
@@ -349,10 +361,12 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
         this.storageStrategy = storageStrategy;
     }
 
+    @Override
     public QName getMatchingRuleQName() {
         return matchingRuleQName;
     }
 
+    @Override
     public void setMatchingRuleQName(QName matchingRuleQName) {
         checkMutable();
         this.matchingRuleQName = matchingRuleQName;
@@ -652,5 +666,13 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
     @Override
     public boolean isDisplayNameAttribute() {
         return isDisplayNameAttribute;
+    }
+
+    @Override
+    public Optional<ComplexTypeDefinition> structuredType() {
+        if(structuredType == null) {
+            this.structuredType = Optional.ofNullable(prismContext.getSchemaRegistry().findComplexTypeDefinitionByType(typeName));
+        }
+        return structuredType;
     }
 }

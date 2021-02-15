@@ -45,8 +45,8 @@ public class LexicalProcessorRegistry {
 
         parserMap = new HashMap<>();
         parserMap.put(LANG_XML, domLexicalProcessor);
-        parserMap.put(LANG_JSON, new DelegatingLexicalProcessor(new JsonReader(schemaRegistry), new JsonWriter()));
-        parserMap.put(LANG_YAML, new DelegatingLexicalProcessor(new YamlReader(schemaRegistry), new YamlWriter()));
+        parserMap.put(LANG_JSON, new DelegatingLexicalProcessor(new JsonReader(schemaRegistry), new JsonWriter(schemaRegistry)));
+        parserMap.put(LANG_YAML, new DelegatingLexicalProcessor(new YamlReader(schemaRegistry), new YamlWriter(schemaRegistry)));
     }
 
     @NotNull

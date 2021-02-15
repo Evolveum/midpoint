@@ -36,4 +36,8 @@ public interface PrimitiveXNode<T> extends XNode, MetadataAware {
     ValueParser<T> getValueParser();
 
     boolean isParsed();
+
+
+    @Override
+    PrimitiveXNode<T> copy();
 }

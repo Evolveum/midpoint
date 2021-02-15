@@ -12,6 +12,7 @@ import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Freezable;
+import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.impl.marshaller.PrismBeanInspector;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -61,6 +62,7 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
      */
     private boolean infra = false;
 
+    @Deprecated
     public PrimitiveXNodeImpl() {
         super();
     }
@@ -70,11 +72,22 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
         this.value = value;
     }
 
+    public PrimitiveXNodeImpl(PrismNamespaceContext ctx) {
+        super(ctx);
+    }
+
+    public PrimitiveXNodeImpl(T value, PrismNamespaceContext ctx) {
+        super(ctx);
+        this.value = value;
+    }
+
+    @Override
     public T getValue() {
         return value;
     }
 
     // @post: return value is type-compliant with expectedClass (if both are non-null)
+    @Override
     public <X> X getParsedValue(@NotNull QName typeName, @Nullable Class<X> expectedClass) throws SchemaException {
         return getParsedValue(typeName, expectedClass, XNodeProcessorEvaluationMode.STRICT);
     }
@@ -101,6 +114,7 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
         }
     }
 
+    @Override
     public ValueParser<T> getValueParser() {
         return valueParser;
     }
@@ -131,6 +145,7 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
         this.valueParser = null;
     }
 
+    @Override
     public boolean isParsed() {
         return valueParser == null;
     }
@@ -144,6 +159,7 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
         this.isAttribute = isAttribute;
     }
 
+    @Override
     public boolean isEmpty() {
         if (isParsed()) {
             return value == null || value instanceof String && StringUtils.isBlank((String) value);
@@ -380,9 +396,9 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
         PrimitiveXNodeImpl<T> clone;
         if (value != null) {
             // if we are parsed, things are much simpler
-            clone = new PrimitiveXNodeImpl<>(CloneUtil.clone(getValue()));
+            clone = new PrimitiveXNodeImpl<>(CloneUtil.clone(getValue()),namespaceContext());
         } else {
-            clone = new PrimitiveXNodeImpl<>();
+            clone = new PrimitiveXNodeImpl<>(namespaceContext());
             clone.valueParser = valueParser;            // for the time being we simply don't clone the valueParser
         }
 
@@ -401,6 +417,22 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
             valueParser = valueParser.freeze();
         }
         super.performFreeze();
+    }
+
+    @Override
+    public PrimitiveXNode<T> copy() {
+        if(isImmutable()) {
+            return this;
+        }
+        PrimitiveXNodeImpl<T> ret = new PrimitiveXNodeImpl<>(namespaceContext());
+        copyCommonTo(ret);
+        if (value != null) {
+            ret.setValue(CloneUtil.clone(getValue()), getTypeQName());
+        }
+        if (valueParser != null) {
+            ret.setValueParser(getValueParser().freeze());
+        }
+        return ret;
     }
 
     @Override

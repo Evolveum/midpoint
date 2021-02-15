@@ -7,15 +7,13 @@
 
 package com.evolveum.midpoint.prism.impl.lex.json.reader;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.impl.ParsingContextImpl;
 import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
-import com.evolveum.midpoint.prism.impl.xnode.MapXNodeImpl;
-import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
+import com.evolveum.midpoint.prism.impl.xnode.XNodeDefinition;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.fasterxml.jackson.core.JsonParser;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.IdentityHashMap;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * TODO
@@ -26,28 +24,20 @@ class JsonReadingContext {
     @NotNull final ParsingContextImpl prismParsingContext;
     @NotNull final LexicalProcessor.RootXNodeHandler objectHandler;
     @NotNull final AbstractReader.YamlTagResolver yamlTagResolver;
-    @NotNull final PrismContext prismContext;
 
     private boolean aborted;
-
-    // TODO consider getting rid of these IdentityHashMaps by support default namespace marking and resolution
-    //  directly in XNode structures (like it was done for Map XNode keys recently).
-
-    // Definitions of namespaces ('@ns') within maps; to be applied after parsing.
-    @NotNull final IdentityHashMap<MapXNodeImpl, String> defaultNamespaces = new IdentityHashMap<>();
-    // Elements that should be skipped when filling-in default namespaces - those that are explicitly set with no-NS ('#name').
-    // (Values for these entries are not important. Only key presence is relevant.)
-    @NotNull final IdentityHashMap<XNodeImpl, Object> noNamespaceElementNames = new IdentityHashMap<>();
+    private final XNodeDefinition.Root rootContext;
 
     JsonReadingContext(@NotNull JsonParser parser, @NotNull ParsingContextImpl prismParsingContext,
             @NotNull LexicalProcessor.RootXNodeHandler objectHandler, @NotNull AbstractReader.YamlTagResolver yamlTagResolver,
-            @NotNull PrismContext prismContext) {
+            @NotNull SchemaRegistry schemaRegistry) {
         this.parser = parser;
         this.prismParsingContext = prismParsingContext;
         this.objectHandler = objectHandler;
         this.yamlTagResolver = yamlTagResolver;
-        this.prismContext = prismContext;
+        this.rootContext = XNodeDefinition.root(schemaRegistry);
     }
+
 
     public boolean isAborted() {
         return aborted;
@@ -65,4 +55,11 @@ class JsonReadingContext {
     String getPositionSuffixIfPresent() {
         return " At: " + getPositionSuffix();
     }
+
+    public XNodeDefinition.Root rootDefinition() {
+        return rootContext;
+    }
+
+
+
 }

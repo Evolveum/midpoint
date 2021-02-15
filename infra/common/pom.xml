@@ -91,6 +91,10 @@
             <groupId>org.codehaus.staxmate</groupId>
             <artifactId>staxmate</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
         <!-- Adding logging bridges for JUL, commons-logging and log4j (3rd party libs needs). -->
         <dependency>
             <groupId>org.slf4j</groupId>

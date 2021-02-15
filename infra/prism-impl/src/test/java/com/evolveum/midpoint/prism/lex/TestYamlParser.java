@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.prism.lex;
 
+import com.evolveum.midpoint.prism.foo.ObjectType;
 import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
 import com.evolveum.midpoint.prism.impl.lex.json.*;
 import com.evolveum.midpoint.prism.impl.lex.json.reader.YamlReader;
@@ -40,7 +41,7 @@ public class TestYamlParser extends DelegatingLexicalProcessorTest {
     protected LexicalProcessor<String> createLexicalProcessor() {
         return new DelegatingLexicalProcessor(
                 new YamlReader(PrismTestUtil.getSchemaRegistry()),
-                new YamlWriter());
+                new YamlWriter(PrismTestUtil.getSchemaRegistry()));
     }
 
     @Override
@@ -71,7 +72,11 @@ public class TestYamlParser extends DelegatingLexicalProcessorTest {
         Iterator<RootXNodeImpl> i = nodes.iterator();
         assertEquals("Wrong namespace for node 1", NS_C, i.next().getRootElementName().getNamespaceURI());
         assertEquals("Wrong namespace for node 2", NS_C, i.next().getRootElementName().getNamespaceURI());
-        assertEquals("Wrong namespace for node 3", "", i.next().getRootElementName().getNamespaceURI());
+
+        // TODO: Originally was empty but now we can detect objects
+        assertEquals("Wrong namespace for node 3", ObjectType.NS_FOO, i.next().getRootElementName().getNamespaceURI());
+
+
         assertEquals("Wrong namespace for node 4", "http://a/", i.next().getRootElementName().getNamespaceURI());
 
         // WHEN+THEN (parse in standard way)

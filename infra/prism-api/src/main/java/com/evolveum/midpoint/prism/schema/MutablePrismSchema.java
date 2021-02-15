@@ -35,4 +35,6 @@ public interface MutablePrismSchema extends PrismSchema {
     PrismPropertyDefinition createPropertyDefinition(QName name, QName typeName);
 
     void addDelayedItemDefinition(DefinitionSupplier o);
+
+    void addSubstitution(QName substitutionHead, ItemDefinition<?> definition);
 }

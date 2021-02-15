@@ -18,6 +18,9 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
@@ -54,6 +57,8 @@ public class PrismSchemaImpl extends AbstractFreezable implements MutablePrismSc
     // (Caused by the fact that the type resides in another schema.)
     // These definitions are to be resolved after parsing the set of schemas.
     @NotNull private final List<DefinitionSupplier> delayedItemDefinitions = new ArrayList<>();
+
+    private final Multimap<QName, ItemDefinition<?>> substitutions = HashMultimap.create();
 
     public PrismSchemaImpl(@NotNull String namespace, PrismContext prismContext) {
         if (StringUtils.isEmpty(namespace)) {
@@ -136,6 +141,16 @@ public class PrismSchemaImpl extends AbstractFreezable implements MutablePrismSc
             }
             typeDefinitionMap.put(typeName, (TypeDefinition) def);
         }
+    }
+
+    @Override
+    public void addSubstitution(QName substitutionHead, ItemDefinition<?> definition) {
+        this.substitutions.put(substitutionHead, definition);
+    }
+
+    @Override
+    public Multimap<QName, ItemDefinition<?>> getSubstitutions() {
+        return substitutions;
     }
 
     @Override
