@@ -32,21 +32,18 @@ public class ResourceObjectAsyncChange extends ResourceObjectChange implements A
     /** Where to send acknowledgements to. */
     @NotNull private final AcknowledgementSink acknowledgementSink;
 
-    @NotNull private final InitializationContext ictx;
-
     public ResourceObjectAsyncChange(@NotNull UcfAsyncUpdateChange ucfAsyncUpdateChange,
             @NotNull ResourceObjectConverter converter, @NotNull ProvisioningContext ctx) {
-        super(ucfAsyncUpdateChange, converter.getLocalBeans());
+        super(ucfAsyncUpdateChange, ctx, converter.getLocalBeans());
         this.notificationOnly = ucfAsyncUpdateChange.isNotificationOnly();
         this.acknowledgementSink = ucfAsyncUpdateChange;
-        this.ictx = new InitializationContext(ctx);
     }
 
     @Override
     public void initializeInternal(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException, SecurityViolationException {
 
-        determineProvisioningContext(ictx.originalCtx, task);
+        updateProvisioningContext(task);
         updateRefinedObjectClass();
         setResourceRefIfMissing(context.getResourceOid()); // TODO why not in other kinds of changes (LS, EXT)?
         postProcessResourceObjectIfPresent(localBeans.resourceObjectConverter, result);
@@ -82,8 +79,7 @@ public class ResourceObjectAsyncChange extends ResourceObjectChange implements A
 
     @Override
     protected void debugDumpExtra(StringBuilder sb, int indent) {
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "notificationOnly", notificationOnly, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "notificationOnly", notificationOnly, indent + 1);
     }
 
     @Override
@@ -94,14 +90,5 @@ public class ResourceObjectAsyncChange extends ResourceObjectChange implements A
     @Override
     public Trace getLogger() {
         return LOGGER;
-    }
-
-    private static class InitializationContext {
-
-        private final ProvisioningContext originalCtx;
-
-        private InitializationContext(ProvisioningContext originalCtx) {
-            this.originalCtx = originalCtx;
-        }
     }
 }

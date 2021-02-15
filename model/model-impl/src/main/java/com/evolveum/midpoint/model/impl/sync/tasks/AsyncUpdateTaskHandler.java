@@ -124,8 +124,9 @@ public class AsyncUpdateTaskHandler
                     OperationResult result) throws CommonException, PreconditionViolationException {
                 AsyncUpdateEvent event = request.getItem();
                 if (event.isComplete()) {
-                    event.getChangeDescription().setItemProcessingIdentifier(request.getIdentifier());
-                    changeNotificationDispatcher.notifyChange(event.getChangeDescription(), workerTask, result);
+                    ResourceObjectShadowChangeDescription changeDescription = event.getChangeDescription();
+                    changeDescription.setItemProcessingIdentifier(request.getIdentifier());
+                    changeNotificationDispatcher.notifyChange(changeDescription, workerTask, result);
                 } else if (event.isSkip()) {
                     result.recordNotApplicable();
                 } else {

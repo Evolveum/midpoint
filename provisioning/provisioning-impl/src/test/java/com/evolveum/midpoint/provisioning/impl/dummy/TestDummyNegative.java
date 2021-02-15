@@ -16,10 +16,13 @@ import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.evolveum.icf.dummy.resource.*;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.provisioning.api.LiveSyncEvent;
+import com.evolveum.midpoint.provisioning.api.LiveSyncEventHandler;
+import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -32,8 +35,6 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -614,6 +615,115 @@ public class TestDummyNegative extends AbstractDummyTest {
                 .attributes()
                     .assertSize(1)
                     .end();
+    }
+
+    @Test
+    public void test270LiveSyncBrokenAccountsExternalUid() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        cleanupAccounts(RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID, result);
+        RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.controller.setSyncStyle(DummySyncStyle.SMART);
+
+        ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.oid,
+                SchemaConstants.RI_ACCOUNT_OBJECT_CLASS);
+
+        List<LiveSyncEvent> events = new ArrayList<>();
+        LiveSyncEventHandler handler = new LiveSyncEventHandler() {
+            @Override
+            public void allEventsSubmitted(OperationResult result) {
+            }
+
+            @Override
+            public boolean handle(LiveSyncEvent event, OperationResult opResult) {
+                events.add(event);
+                event.acknowledge(true, opResult);
+                return true;
+            }
+        };
+        provisioningService.synchronize(coords, task, null, handler, result);
+        assertThat(events).isEmpty();
+
+        createAccountExternalUid(GOOD_ACCOUNT, 1, null);
+        createAccountExternalUid(INCONVERTIBLE_ACCOUNT, 2, "WRONG");
+        createAccountExternalUid(UNSTORABLE_ACCOUNT, "WRONG", null);
+
+        when();
+
+        provisioningService.synchronize(coords, task, null, handler, result);
+
+        then();
+        display("events", events);
+        assertThat(events.size()).as("events found").isEqualTo(3);
+
+        List<PrismObject<ShadowType>> objects = events.stream()
+                .map(event -> event.getChangeDescription().getCurrentShadow())
+                .collect(Collectors.toList());
+
+        assertSelectedAccountByName(objects, GOOD_ACCOUNT)
+                .assertOid()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertPrimaryIdentifierValue(GOOD_ACCOUNT_UID)
+                .assertName(GOOD_ACCOUNT)
+                .attributes()
+                    .assertSize(3)
+                    .end()
+                .assertSuccessOrNoFetchResult();
+
+        PrismObject<ShadowType> goodAfter = findShadowByPrismName(GOOD_ACCOUNT, RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.object, result);
+        assertShadow(goodAfter, GOOD_ACCOUNT)
+                .display()
+                .assertOid()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertPrimaryIdentifierValue(GOOD_ACCOUNT_UID)
+                .attributes()
+                    .assertSize(3)
+                    .end();
+
+        assertSelectedAccountByName(objects, INCONVERTIBLE_ACCOUNT_UID)
+                .assertOid()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT_UID)
+                .assertName(INCONVERTIBLE_ACCOUNT_UID)
+                .attributes()
+                    .assertSize(1) // uid=uid:inconvertible (for some reason number=2 is not there)
+                    .end();
+
+        // name is now derived from UID
+        PrismObject<ShadowType> inconvertibleAfter = findShadowByPrismName(INCONVERTIBLE_ACCOUNT_UID,
+                RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.object, result);
+        assertShadow(inconvertibleAfter, INCONVERTIBLE_ACCOUNT)
+                .display()
+                .assertOid()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertPrimaryIdentifierValue(INCONVERTIBLE_ACCOUNT_UID)
+                .attributes()
+                    .assertSize(1)
+                    .end();
+
+        assertSelectedAccountByName(objects, UNSTORABLE_ACCOUNT_UID)
+                .assertOid()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertPrimaryIdentifierValue(UNSTORABLE_ACCOUNT_UID)
+                .assertName(UNSTORABLE_ACCOUNT_UID)
+                .attributes()
+                    .assertSize(1) // uid=unstorable
+                    .end();
+
+        // name is now derived from UID
+        PrismObject<ShadowType> unstorableAfter = findShadowByPrismName(UNSTORABLE_ACCOUNT_UID,
+                RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.object, result);
+        assertShadow(unstorableAfter, UNSTORABLE_ACCOUNT)
+                .display()
+                .assertOid()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertPrimaryIdentifierValue(UNSTORABLE_ACCOUNT_UID)
+                .attributes()
+                    .assertSize(1)
+                    .end();
+
+        // The fetch result is not in the shadows. The exception is recorded in events.
     }
 
     private void createAccount(String name, Object number, Object enableDate) throws Exception {

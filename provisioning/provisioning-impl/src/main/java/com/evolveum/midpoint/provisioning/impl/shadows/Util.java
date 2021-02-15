@@ -2,6 +2,7 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import java.util.List;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -11,6 +12,7 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -100,5 +102,15 @@ class Util {
         }
         sb.append(")");
         return sb.toString();
+    }
+
+    static PrismObject<ShadowType> minimize(PrismObject<ShadowType> resourceObject, RefinedObjectClassDefinition ocDef) {
+        PrismObject<ShadowType> minimized = resourceObject.clone();
+        ShadowUtil.removeAllAttributesExceptPrimaryIdentifier(minimized, ocDef);
+        if (ShadowUtil.hasPrimaryIdentifier(minimized, ocDef)) {
+            return minimized;
+        } else {
+            return null;
+        }
     }
 }

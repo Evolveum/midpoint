@@ -7,11 +7,14 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.sync;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.SynchronizationEvent;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowedChange;
 import com.evolveum.midpoint.provisioning.util.ProcessingState;
 import com.evolveum.midpoint.util.DebugUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -88,6 +91,11 @@ public abstract class SynchronizationEventImpl<AC extends ShadowedChange<?>> imp
     @Override
     public String getShadowOid() {
         return change.getShadowOid();
+    }
+
+    @Override
+    public PrismObject<ShadowType> getShadowedObject() {
+        return change.getShadowedObject();
     }
 
     @Override

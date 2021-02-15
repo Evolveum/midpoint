@@ -45,9 +45,9 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
      */
     public ResourceObjectLiveSyncChange(UcfLiveSyncChange ucfLiveSyncChange, ResourceObjectConverter converter,
             ProvisioningContext originalCtx, AttributesToReturn originalAttributesToReturn) {
-        super(ucfLiveSyncChange, converter.getLocalBeans());
+        super(ucfLiveSyncChange, originalCtx, converter.getLocalBeans());
         this.token = ucfLiveSyncChange.getToken();
-        this.ictx = new InitializationContext(originalCtx, originalAttributesToReturn);
+        this.ictx = new InitializationContext(originalAttributesToReturn);
     }
 
     @Override
@@ -55,11 +55,13 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException, SkipProcessingException {
 
-        determineProvisioningContext(ictx.originalCtx, null);
+        ProvisioningContext originalCtx = context;
+
+        updateProvisioningContext(null);
         updateRefinedObjectClass();
 
         if (!isDelete()) {
-            postProcessOrFetchResourceObject(localBeans.resourceObjectConverter, ictx.originalCtx, ictx.originalAttrsToReturn,
+            postProcessOrFetchResourceObject(localBeans.resourceObjectConverter, originalCtx, ictx.originalAttrsToReturn,
                     result);
         }
 
@@ -119,8 +121,7 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
 
     @Override
     protected void debugDumpExtra(StringBuilder sb, int indent) {
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "token", token, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "token", token, indent + 1);
     }
 
     @Override
@@ -129,11 +130,9 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
     }
 
     private static class InitializationContext {
-        private final ProvisioningContext originalCtx;
         private final AttributesToReturn originalAttrsToReturn;
 
-        private InitializationContext(ProvisioningContext originalCtx, AttributesToReturn originalAttrsToReturn) {
-            this.originalCtx = originalCtx;
+        private InitializationContext(AttributesToReturn originalAttrsToReturn) {
             this.originalAttrsToReturn = originalAttrsToReturn;
         }
     }

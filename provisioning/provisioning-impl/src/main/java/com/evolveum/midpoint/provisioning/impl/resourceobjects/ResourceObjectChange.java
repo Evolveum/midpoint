@@ -14,6 +14,7 @@ import static com.evolveum.midpoint.util.MiscUtil.*;
 
 import static java.util.Collections.emptySet;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -118,30 +119,32 @@ public abstract class ResourceObjectChange implements InitializableMixin {
      *
      * Computed during pre-processing.
      */
-    protected ProvisioningContext context;
+    @NotNull protected ProvisioningContext context;
 
     @NotNull protected final ResourceObjectsLocalBeans localBeans;
 
     ResourceObjectChange(int localSequenceNumber, Object primaryIdentifierRealValue,
             @NotNull Collection<ResourceAttribute<?>> identifiers,
             PrismObject<ShadowType> resourceObject, ObjectDelta<ShadowType> objectDelta,
-            @NotNull ProcessingState processingState, @NotNull ResourceObjectsLocalBeans localBeans) {
+            @NotNull ProcessingState processingState,
+            @NotNull ProvisioningContext context, @NotNull ResourceObjectsLocalBeans localBeans) {
         this.localSequenceNumber = localSequenceNumber;
         this.primaryIdentifierRealValue = primaryIdentifierRealValue;
-        this.identifiers = identifiers;
+        this.identifiers = new ArrayList<>(identifiers);
         this.resourceObject = resourceObject;
         this.objectDelta = objectDelta;
         this.processingState = processingState;
+        this.context = context;
         this.localBeans = localBeans;
     }
 
-    ResourceObjectChange(UcfChange ucfChange, ResourceObjectsLocalBeans localBeans) {
+    ResourceObjectChange(UcfChange ucfChange, @NotNull ProvisioningContext context, ResourceObjectsLocalBeans localBeans) {
         this(ucfChange.getLocalSequenceNumber(),
                 ucfChange.getPrimaryIdentifierRealValue(),
                 ucfChange.getIdentifiers(),
                 ucfChange.getResourceObject(),
                 ucfChange.getObjectDelta(),
-                ProcessingState.fromUcfErrorState(ucfChange.getErrorState()), localBeans);
+                ProcessingState.fromUcfErrorState(ucfChange.getErrorState()), context, localBeans);
         this.objectClassDefinition = ucfChange.getObjectClassDefinition();
     }
 
@@ -156,6 +159,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
     public void skipInitialization(Task task, OperationResult result) throws CommonException, SkipProcessingException,
             EncryptionException {
         addFakePrimaryIdentifierIfNeeded();
+        freezeIdentifiers();
     }
 
     public void setObjectClassDefinition(RefinedObjectClassDefinition definition) {
@@ -216,29 +220,29 @@ public abstract class ResourceObjectChange implements InitializableMixin {
                 + toStringExtra() + ")";
     }
 
-    private void checkObjectClassDefinitionPresent(ProvisioningContext originalCtx) throws SchemaException {
-        if (objectClassDefinition == null && (!originalCtx.isWildcard() || !isDelete())) {
+    private void checkObjectClassDefinitionPresent() throws SchemaException {
+        if (objectClassDefinition == null && (!context.isWildcard() || !isDelete())) {
             throw new SchemaException("No object class definition in change " + this);
         }
     }
 
     // FIXME this ugly hack with taskToSet
-    void determineProvisioningContext(ProvisioningContext originalCtx, Task taskToSet) throws SchemaException, ObjectNotFoundException,
+    void updateProvisioningContext(Task taskToSet) throws SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        checkObjectClassDefinitionPresent(originalCtx);
-        if (originalCtx.isWildcard()) {
+        checkObjectClassDefinitionPresent();
+        if (context.isWildcard()) {
             if (objectClassDefinition == null) {
                 if (!isDelete()) {
                     throw new SchemaException("No object class definition in change " + this);
                 } else {
                     // We accept missing object class definition for delete changes
-                    context = spawnContextForNewTaskIfNeeded(originalCtx, taskToSet);
+                    context = spawnContextForNewTaskIfNeeded(context, taskToSet);
                 }
             } else {
                 if (taskToSet != null) {
-                    context = originalCtx.spawn(objectClassDefinition.getTypeName(), taskToSet);
+                    context = context.spawn(objectClassDefinition.getTypeName(), taskToSet);
                 } else {
-                    context = originalCtx.spawn(objectClassDefinition.getTypeName());
+                    context = context.spawn(objectClassDefinition.getTypeName());
                 }
                 if (context.isWildcard()) {
                     throw new SchemaException("Unknown object class " + objectClassDefinition.getTypeName()
@@ -250,7 +254,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
             if (objectClassDefinition == null && !isDelete()) {
                 throw new SchemaException("No object class definition in change " + this);
             }
-            context = spawnContextForNewTaskIfNeeded(originalCtx, taskToSet);
+            context = spawnContextForNewTaskIfNeeded(context, taskToSet);
         }
     }
 
@@ -275,7 +279,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
         return primaryIdentifierRealValue;
     }
 
-    public ProvisioningContext getContext() {
+    public @NotNull ProvisioningContext getContext() {
         return context;
     }
 
@@ -289,26 +293,19 @@ public abstract class ResourceObjectChange implements InitializableMixin {
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
-        DebugUtil.indentDebugDump(sb, 0);
+        DebugUtil.indentDebugDump(sb, indent);
         sb.append(getClass().getSimpleName());
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "localSequenceNumber", localSequenceNumber, indent + 1);
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "primaryIdentifierValue", String.valueOf(primaryIdentifierRealValue), indent + 1);
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "objectClassDefinition", String.valueOf(objectClassDefinition), indent + 1);
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "identifiers", identifiers, indent + 1);
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "objectDelta", objectDelta, indent + 1);
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "resourceObject", resourceObject, indent + 1);
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "context", String.valueOf(context), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "localSequenceNumber", localSequenceNumber, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "primaryIdentifierValue", String.valueOf(primaryIdentifierRealValue), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "objectClassDefinition", String.valueOf(objectClassDefinition), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "identifiers", identifiers, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "objectDelta", objectDelta, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "resourceObject", resourceObject, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "context", String.valueOf(context), indent + 1);
 
         debugDumpExtra(sb, indent);
 
-        sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "processingState", String.valueOf(processingState), indent + 1);
         return sb.toString();
     }

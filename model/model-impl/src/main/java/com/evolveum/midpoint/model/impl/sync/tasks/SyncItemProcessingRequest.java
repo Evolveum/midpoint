@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
 import org.jetbrains.annotations.NotNull;
@@ -43,9 +44,9 @@ public class SyncItemProcessingRequest<SE extends SynchronizationEvent>
 
     @Override
     public OperationExecutionRecorderForTasks.Target getOperationExecutionRecordingTarget() {
-        ResourceObjectShadowChangeDescription changeDescription = getItem().getChangeDescription();
-        if (changeDescription != null && changeDescription.getCurrentShadow() != null) {
-            return createRecordingTargetForObject(changeDescription.getCurrentShadow());
+        PrismObject<ShadowType> shadowedObject = getItem().getShadowedObject();
+        if (shadowedObject != null) {
+            return createRecordingTargetForObject(shadowedObject);
         } else {
             return new OperationExecutionRecorderForTasks.Target(null, ShadowType.COMPLEX_TYPE,
                     getMalformedEventIdentification(), getRootTaskOid(), TaskType.class);

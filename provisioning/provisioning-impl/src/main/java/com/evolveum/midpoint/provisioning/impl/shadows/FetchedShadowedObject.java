@@ -9,7 +9,6 @@ import com.google.common.base.MoreObjects;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -175,24 +174,12 @@ public class FetchedShadowedObject implements InitializableMixin {
     private PrismObject<ShadowType> shadowResourceObjectInUltraEmergency(OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException,
             CommunicationException, ExpressionEvaluationException, EncryptionException, SecurityViolationException {
-        PrismObject<ShadowType> minimalResourceObject = minimize(resourceObject);
+        PrismObject<ShadowType> minimalResourceObject = Util.minimize(resourceObject, ictx.ctx.getObjectClassDefinition());
         LOGGER.trace("Minimal resource object to acquire a shadow for:\n{}",
                 DebugUtil.debugDumpLazily(minimalResourceObject, 1));
         if (minimalResourceObject != null) {
             return ictx.localBeans.shadowAcquisitionHelper
                     .acquireRepoShadow(ictx.ctx, minimalResourceObject, true, result);
-        } else {
-            return null;
-        }
-    }
-
-    private PrismObject<ShadowType> minimize(PrismObject<ShadowType> resourceObject) throws SchemaException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        PrismObject<ShadowType> minimized = resourceObject.clone();
-        RefinedObjectClassDefinition ocDef = ictx.ctx.getObjectClassDefinition();
-        ShadowUtil.removeAllAttributesExceptPrimaryIdentifier(minimized, ocDef);
-        if (ShadowUtil.hasPrimaryIdentifier(minimized, ocDef)) {
-            return minimized;
         } else {
             return null;
         }

@@ -30,15 +30,12 @@ public class ExternalResourceObjectChange extends ResourceObjectChange {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExternalResourceObjectChange.class);
 
-    private final ProvisioningContext ctx; // the only initialization parameter (TODO ok?)
-
     public ExternalResourceObjectChange(int localSequenceNumber,
             @NotNull Object primaryIdentifierRealValue, @NotNull Collection<ResourceAttribute<?>> identifiers,
             PrismObject<ShadowType> resourceObject, ObjectDelta<ShadowType> objectDelta,
             ProvisioningContext ctx, ResourceObjectConverter resourceObjectConverter) {
         super(localSequenceNumber, primaryIdentifierRealValue, identifiers, resourceObject, objectDelta,
-                ProcessingState.success(), resourceObjectConverter.getLocalBeans());
-        this.ctx = ctx;
+                ProcessingState.success(), ctx, resourceObjectConverter.getLocalBeans());
     }
 
     @Override
@@ -53,7 +50,6 @@ public class ExternalResourceObjectChange extends ResourceObjectChange {
     @Override
     public void initializeInternal(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        this.context = this.ctx;
         updateRefinedObjectClass();
         freezeIdentifiers();
     }

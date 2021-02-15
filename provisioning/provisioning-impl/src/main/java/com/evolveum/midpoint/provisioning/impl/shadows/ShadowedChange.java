@@ -77,7 +77,7 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
      * But for wildcard delete changes it is clarified using existing repo shadow.
      * After pre-processing it is no longer wildcard.
      */
-    private ProvisioningContext context;
+    @NotNull private ProvisioningContext context;
 
     // TODO reconsider, probably remove
     private final boolean simulate;
@@ -102,7 +102,7 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
      * 1. For resources without read capability it is based on the cached version.
      * 2. For delete deltas, it is the current shadow, with applied definitions. TODO reconsider this.
      */
-    protected PrismObject<ShadowType> adoptedObject;
+    protected PrismObject<ShadowType> shadowedObject;
 
     /**
      * Repository shadow of the changed resource object.
@@ -112,11 +112,6 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
      * preprocessing of this change.
      */
     private PrismObject<ShadowType> repoShadow;
-
-    /**
-     * Resulting change description that is propagated outwards.
-     */
-    private ResourceObjectShadowChangeDescription shadowChangeDescription;
 
     public ShadowedChange(@NotNull ROC resourceObjectChange, boolean simulate, ChangeProcessingBeans beans) {
         this.processingState = ProcessingState.fromLowerLevelState(resourceObjectChange.getProcessingState());
@@ -137,35 +132,91 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
             lookupShadow(result);
             updateProvisioningContextFromRepoShadow();
         } else {
-            acquireShadow(result);
+            try {
+                acquireShadow(result);
+            } catch (Exception e) {
+                setShadowedResourceObjectInEmergency(result);
+                throw e;
+            }
         }
 
         assert repoShadow != null;
         assert !context.isWildcard();
 
-        applyAttributesDefinition();
+        try {
+            applyAttributesDefinition();
 
-        LOGGER.trace("Initializing change, old shadow: {}", ShadowUtil.shortDumpShadowLazily(repoShadow));
+            LOGGER.trace("Initializing change, old shadow: {}", ShadowUtil.shortDumpShadowLazily(repoShadow));
 
-        if (currentResourceObject == null && !isDelete()) {
-            currentResourceObject = determineCurrentResourceObject(result);
+            if (currentResourceObject == null && !isDelete()) {
+                currentResourceObject = determineCurrentResourceObject(result);
+            }
+
+            updateRepoShadow(result);
+
+            // TODO clean up
+            if (objectDelta != null && objectDelta.getOid() == null) {
+                objectDelta.setOid(repoShadow.getOid());
+            }
+
+            if (isDelete()) {
+                markRepoShadowTombstone(result);
+                shadowedObject = constructShadowedObjectForDeletion(result);
+            } else {
+                shadowedObject = constructShadowedObject(result);
+            }
+
+        } catch (Exception e) { // FIXME improve this try-catch block
+            shadowedObject = repoShadow;
+            throw e;
         }
+    }
 
-        updateRepoShadow(result);
+    @Override
+    public void skipInitialization(Task task, OperationResult result) throws CommonException, SkipProcessingException,
+            EncryptionException {
+        setShadowedResourceObjectInEmergency(result);
+    }
 
-        // TODO clean up
-        if (objectDelta != null && objectDelta.getOid() == null) {
-            objectDelta.setOid(repoShadow.getOid());
+    // TODO deduplicate with FetchedShadowedObject
+    private void setShadowedResourceObjectInEmergency(OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException,
+            CommunicationException, ExpressionEvaluationException, EncryptionException, SecurityViolationException {
+        PrismObject<ShadowType> resourceObject = createResourceObjectFromChange();
+        LOGGER.trace("Acquiring repo shadow in emergency:\n{}", debugDumpLazily(1));
+        try {
+            setEmergencyRepoShadow(
+                    localBeans.shadowAcquisitionHelper
+                            .acquireRepoShadow(context, resourceObject, true, result));
+        } catch (Exception e) {
+            setShadowedResourceObjectInUltraEmergency(resourceObject, result);
+            throw e;
         }
+    }
 
-        if (isDelete()) {
-            markRepoShadowTombstone(result);
-            adoptedObject = constructAdoptedObjectForDeletion(result);
-        } else {
-            adoptedObject = constructShadowedObject(result);
+    private void setEmergencyRepoShadow(PrismObject<ShadowType> repoShadow) {
+        this.repoShadow = repoShadow;
+        this.shadowedObject = repoShadow;
+    }
+
+    /**
+     * Something prevents us from creating a shadow (most probably). Let us be minimalistic, and create
+     * a shadow having only the primary identifier.
+     *
+     * TODO deduplicate with FetchedShadowedObject
+     */
+    private void setShadowedResourceObjectInUltraEmergency(PrismObject<ShadowType> resourceObject,
+            OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException,
+            CommunicationException, ExpressionEvaluationException, EncryptionException, SecurityViolationException {
+        PrismObject<ShadowType> minimalResourceObject = Util.minimize(resourceObject, context.getObjectClassDefinition());
+        LOGGER.trace("Minimal resource object to acquire a shadow for:\n{}",
+                DebugUtil.debugDumpLazily(minimalResourceObject, 1));
+        if (minimalResourceObject != null) {
+            setEmergencyRepoShadow(
+                    localBeans.shadowAcquisitionHelper
+                            .acquireRepoShadow(context, minimalResourceObject, true, result));
         }
-
-        shadowChangeDescription = createResourceShadowChangeDescription();
     }
 
     public void checkConsistence() {
@@ -178,9 +229,6 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
         }
         if (context.isWildcard()) {
             throw new IllegalStateException("Context is wildcard in " + this);
-        }
-        if (shadowChangeDescription == null) {
-            throw new IllegalStateException("No shadow change description in " + this);
         }
     }
 
@@ -267,7 +315,6 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
         // But the only way how to detect the OC is to read existing repo shadow. So we must take the risk
         // of guessing identifiers' definition correctly - in other words, assuming that these definitions are
         // the same for all the object classes on the given resource.
-        ProvisioningContext context = resourceObjectChange.getContext();
         repoShadow = beans.shadowManager.lookupLiveOrAnyShadowByPrimaryIds(context, resourceObjectChange.getIdentifiers(), result);
         if (repoShadow == null) {
             LOGGER.debug("No old shadow for delete synchronization event {}, we probably did not know about "
@@ -352,7 +399,7 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
         shadowChangeDescription.setOldShadow(repoShadow);
         shadowChangeDescription.setSourceChannel(getChannel());
         shadowChangeDescription.setSimulate(simulate);
-        shadowChangeDescription.setCurrentShadow(adoptedObject);
+        shadowChangeDescription.setCurrentShadow(shadowedObject);
         return shadowChangeDescription;
     }
 
@@ -404,7 +451,7 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
      *
      * So until clarified, we provide here the shadow object, with properly applied definitions.
      */
-    private PrismObject<ShadowType> constructAdoptedObjectForDeletion(OperationResult result) throws SchemaException,
+    private PrismObject<ShadowType> constructShadowedObjectForDeletion(OperationResult result) throws SchemaException,
             ExpressionEvaluationException, ConfigurationException, CommunicationException, SkipProcessingException,
             ObjectNotFoundException {
         PrismObject<ShadowType> currentShadow;
@@ -425,7 +472,13 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
     }
 
     public ResourceObjectShadowChangeDescription getShadowChangeDescription() {
-        return shadowChangeDescription;
+        try {
+            return createResourceShadowChangeDescription();
+        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException |
+                ExpressionEvaluationException e) {
+            // The resource should have been already resolved. (It is the only source of exceptions.)
+            throw new SystemException("Unexpected exception while creating shadow change description", e);
+        }
     }
 
     public boolean isPreprocessed() {
@@ -473,5 +526,9 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
 
     public String getShadowOid() {
         return repoShadow != null ? repoShadow.getOid() : null;
+    }
+
+    public PrismObject<ShadowType> getShadowedObject() {
+        return shadowedObject;
     }
 }
