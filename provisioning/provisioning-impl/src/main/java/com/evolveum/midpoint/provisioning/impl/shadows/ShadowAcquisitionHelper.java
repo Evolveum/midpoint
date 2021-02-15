@@ -29,7 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 @Experimental
 @Component
-class ShadowingHelper {
+class ShadowAcquisitionHelper {
 
     @Autowired private CommonBeans commonBeans;
 
@@ -67,23 +67,5 @@ class ShadowingHelper {
 
         return new ShadowAcquisition(ctx, primaryIdentifier, objectClass, resourceObjectSupplier, commonBeans)
                 .execute(result);
-    }
-
-    /**
-     * TODO improve the description
-     * TODO devise better name ... like constructAdoptedObject? dunno...
-     *
-     * Make sure that the repo shadow is complete, e.g. that all the mandatory fields
-     * are filled (e.g name, resourceRef, ...) Also transforms the shadow with
-     * respect to simulated capabilities. Also shadowRefs are added to associations.
-     */
-    @NotNull PrismObject<ShadowType> constructShadowedObject(@NotNull ProvisioningContext ctx,
-            @NotNull PrismObject<ShadowType> repoShadow, @NotNull PrismObject<ShadowType> resourceObject,
-            @NotNull OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
-
-        return ShadowedObjectConstruction.create(ctx, repoShadow, resourceObject, commonBeans)
-                .construct(result);
     }
 }

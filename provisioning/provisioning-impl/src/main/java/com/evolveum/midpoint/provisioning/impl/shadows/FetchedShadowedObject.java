@@ -125,10 +125,11 @@ public class FetchedShadowedObject implements InitializableMixin {
             OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException,
             CommunicationException, ExpressionEvaluationException, EncryptionException, SecurityViolationException {
 
-        ShadowingHelper shadowingHelper = getAdoptionHelper();
-        ShadowManager shadowManager = getShadowManager();
+        ShadowAcquisitionHelper shadowAcquisitionHelper = ictx.localBeans.shadowAcquisitionHelper;
+        ShadowedObjectConstructionHelper shadowedObjectConstructionHelper = ictx.localBeans.shadowedObjectConstructionHelper;
+        ShadowManager shadowManager = ictx.localBeans.shadowManager;
 
-        PrismObject<ShadowType> repoShadow = shadowingHelper.acquireRepoShadow(estimatedShadowCtx, resourceObject, result);
+        PrismObject<ShadowType> repoShadow = shadowAcquisitionHelper.acquireRepoShadow(estimatedShadowCtx, resourceObject, result);
 
         // This determines the definitions exactly. Now the repo shadow should have proper kind/intent
         ProvisioningContext shadowCtx = ictx.localBeans.shadowCaretaker.applyAttributesDefinition(ictx.ctx, repoShadow);
@@ -137,15 +138,7 @@ public class FetchedShadowedObject implements InitializableMixin {
 
         // TODO do we want also to futurize the shadow like in getObject?
 
-        return shadowingHelper.constructShadowedObject(shadowCtx, updatedRepoShadow, resourceObject, result);
-    }
-
-    private ShadowManager getShadowManager() {
-        return ictx.localBeans.shadowManager;
-    }
-
-    private ShadowingHelper getAdoptionHelper() {
-        return ictx.localBeans.shadowingHelper;
+        return shadowedObjectConstructionHelper.constructShadowedObject(shadowCtx, updatedRepoShadow, resourceObject, result);
     }
 
     @Override

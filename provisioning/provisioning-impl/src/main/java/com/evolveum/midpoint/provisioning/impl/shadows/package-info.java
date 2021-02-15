@@ -24,5 +24,6 @@
  *
  * 1. `sync` - takes care of live sync and async update
  * 2. `errors` - takes care of the error handling
+ * 3. `task` - various task handlers related to shadows processing (currently the operation propagation/multi-propagation)
  */
 package com.evolveum.midpoint.provisioning.impl.shadows;

@@ -67,12 +67,12 @@ class GetHelper {
     @Autowired protected ShadowManager shadowManager;
     @Autowired private ProvisioningContextFactory ctxFactory;
     @Autowired private CommonHelper commonHelper;
-    @Autowired private ShadowingHelper shadowingHelper;
+    @Autowired private ShadowedObjectConstructionHelper shadowedObjectConstructionHelper;
     @Autowired private RefreshHelper refreshHelper;
 
     private static final Trace LOGGER = TraceManager.getTrace(GetHelper.class);
 
-    public PrismObject<ShadowType> getShadow(String oid, PrismObject<ShadowType> repositoryShadow,
+    public PrismObject<ShadowType> getShadow(String oid, PrismObject<ShadowType> repoShadow,
             Collection<ResourceAttribute<?>> identifiersOverride, Collection<SelectorOptions<GetOperationOptions>> options,
             Task task, OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException,
@@ -80,10 +80,10 @@ class GetHelper {
 
         Validate.notNull(oid, "Object id must not be null.");
 
-        if (repositoryShadow == null) {
+        if (repoShadow == null) {
             LOGGER.trace("Start getting object with oid {}; identifiers override = {}", oid, identifiersOverride);
         } else {
-            LOGGER.trace("Start getting object {}; identifiers override = {}", repositoryShadow, identifiersOverride);
+            LOGGER.trace("Start getting object {}; identifiers override = {}", repoShadow, identifiersOverride);
         }
 
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
@@ -94,18 +94,18 @@ class GetHelper {
         // Get the shadow from repository. There are identifiers that we need
         // for accessing the object by UCF.Later, the repository object may
         // have a fully cached object from the resource.
-        if (repositoryShadow == null) {
-            repositoryShadow = repositoryService.getObject(ShadowType.class, oid, null, parentResult);
-            LOGGER.trace("Got repository shadow object:\n{}", repositoryShadow.debugDumpLazily());
+        if (repoShadow == null) {
+            repoShadow = repositoryService.getObject(ShadowType.class, oid, null, parentResult);
+            LOGGER.trace("Got repository shadow object:\n{}", repoShadow.debugDumpLazily());
         }
 
         // Sanity check
-        if (!oid.equals(repositoryShadow.getOid())) {
+        if (!oid.equals(repoShadow.getOid())) {
             parentResult.recordFatalError("Provided OID is not equal to OID of repository shadow");
             throw new IllegalArgumentException("Provided OID is not equal to OID of repository shadow");
         }
 
-        ProvisioningContext ctx = ctxFactory.create(repositoryShadow, task, parentResult);
+        ProvisioningContext ctx = ctxFactory.create(repoShadow, task, parentResult);
         ctx.setGetOperationOptions(options);
         try {
             ctx.assertDefinition();
@@ -115,21 +115,21 @@ class GetHelper {
                 //TODO maybe change assertDefinition to consider rawOption?
                 parentResult.computeStatusIfUnknown();
                 parentResult.muteError();
-                return repositoryShadow;
+                return repoShadow;
             }
             throw e;
         }
-        if (repositoryShadow.isImmutable()) {
-            repositoryShadow = shadowCaretaker.applyAttributesDefinitionToImmutable(ctx, repositoryShadow);
+        if (repoShadow.isImmutable()) {
+            repoShadow = shadowCaretaker.applyAttributesDefinitionToImmutable(ctx, repoShadow);
         } else {
-            shadowCaretaker.applyAttributesDefinition(ctx, repositoryShadow);
+            shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
         }
 
         ResourceType resource = ctx.getResource();
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 
         if (isNoFetch(rootOptions) || isRaw(rootOptions)) {
-            return processNoFetchGet(ctx, repositoryShadow, options, now, task, parentResult);
+            return processNoFetchGet(ctx, repoShadow, options, now, task, parentResult);
         }
 
         if (!ResourceTypeUtil.isReadCapabilityEnabled(resource)) {
@@ -141,7 +141,7 @@ class GetHelper {
         if (ResourceTypeUtil.isInMaintenance(resource)) {
             try {
                 MaintenanceException ex = new MaintenanceException("Resource " + resource + " is in the maintenance");
-                PrismObject<ShadowType> handledShadow = handleGetError(ctx, repositoryShadow, rootOptions, ex, task, parentResult);
+                PrismObject<ShadowType> handledShadow = handleGetError(ctx, repoShadow, rootOptions, ex, task, parentResult);
                 validateShadow(handledShadow, true);
                 return handledShadow;
             } catch (GenericFrameworkException | ObjectAlreadyExistsException | PolicyViolationException e) {
@@ -150,15 +150,15 @@ class GetHelper {
         }
 
         if (shouldRefreshOnRead(resource, rootOptions)) {
-            LOGGER.trace("Refreshing {} before reading", repositoryShadow);
+            LOGGER.trace("Refreshing {} before reading", repoShadow);
             ProvisioningOperationOptions refreshOpts = toProvisioningOperationOptions(rootOptions);
-            RefreshShadowOperation refreshShadowOperation = refreshHelper.refreshShadow(repositoryShadow, refreshOpts, task, parentResult);
+            RefreshShadowOperation refreshShadowOperation = refreshHelper.refreshShadow(repoShadow, refreshOpts, task, parentResult);
             if (refreshShadowOperation != null) {
-                repositoryShadow = refreshShadowOperation.getRefreshedShadow();
+                repoShadow = refreshShadowOperation.getRefreshedShadow();
             }
-            LOGGER.trace("Refreshed repository shadow:\n{}", DebugUtil.debugDumpLazily(repositoryShadow, 1));
+            LOGGER.trace("Refreshed repository shadow:\n{}", DebugUtil.debugDumpLazily(repoShadow, 1));
         }
-        if (repositoryShadow == null) {
+        if (repoShadow == null) {
             // Dead shadow was just removed
             // TODO: is this OK? What about re-appeared objects
             LOGGER.warn("DEAD shadow {} DEAD?", oid);
@@ -167,12 +167,12 @@ class GetHelper {
             throw e;
         }
 
-        ShadowState shadowState = shadowCaretaker.determineShadowState(ctx, repositoryShadow, now);
-        LOGGER.trace("State of shadow {}: {}", repositoryShadow, shadowState);
+        ShadowState shadowState = shadowCaretaker.determineShadowState(ctx, repoShadow, now);
+        LOGGER.trace("State of shadow {}: {}", repoShadow, shadowState);
 
-        if (canImmediatelyReturnCached(options, repositoryShadow, shadowState, resource)) {
-            LOGGER.trace("Returning cached (repository) version of shadow {}", repositoryShadow);
-            PrismObject<ShadowType> resultShadow = commonHelper.futurizeShadow(ctx, repositoryShadow, null, options, now);
+        if (canImmediatelyReturnCached(options, repoShadow, shadowState, resource)) {
+            LOGGER.trace("Returning cached (repository) version of shadow {}", repoShadow);
+            PrismObject<ShadowType> resultShadow = commonHelper.futurizeShadow(ctx, repoShadow, null, options, now);
             shadowCaretaker.applyAttributesDefinition(ctx, resultShadow);
             validateShadow(resultShadow, true);
             return resultShadow;
@@ -184,15 +184,15 @@ class GetHelper {
         if (identifiersOverride != null) {
             identifiers = identifiersOverride;
         } else {
-            Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(repositoryShadow);
+            Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(repoShadow);
             if (primaryIdentifiers == null || primaryIdentifiers.isEmpty()) {
-                if (ProvisioningUtil.hasPendingAddOperation(repositoryShadow) ||
-                        ShadowUtil.isDead(repositoryShadow.asObjectable())) {
+                if (ProvisioningUtil.hasPendingAddOperation(repoShadow) ||
+                        ShadowUtil.isDead(repoShadow.asObjectable())) {
                     if (ProvisioningUtil.isFuturePointInTime(options)) {
                         // Get of uncreated or dead shadow, we want to see future state (how the shadow WILL look like).
                         // We cannot even try fetch operation here. We do not have the identifiers.
                         // But we have quite a good idea how the shadow is going to look like. Therefore we can return it.
-                        PrismObject<ShadowType> resultShadow = commonHelper.futurizeShadow(ctx, repositoryShadow, null, options, now);
+                        PrismObject<ShadowType> resultShadow = commonHelper.futurizeShadow(ctx, repoShadow, null, options, now);
                         shadowCaretaker.applyAttributesDefinition(ctx, resultShadow);
                         validateShadow(resultShadow, true);
                         // NOTE: do NOT re-try add operation here. It will be retried in separate task.
@@ -210,11 +210,11 @@ class GetHelper {
 
                 // No identifiers found
                 SchemaException ex = new SchemaException("No primary identifiers found in the repository shadow "
-                        + repositoryShadow + " with respect to " + resource);
-                parentResult.recordFatalError("No primary identifiers found in the repository shadow " + repositoryShadow, ex);
+                        + repoShadow + " with respect to " + resource);
+                parentResult.recordFatalError("No primary identifiers found in the repository shadow " + repoShadow, ex);
                 throw ex;
             }
-            identifiers = ShadowUtil.getAllIdentifiers(repositoryShadow);
+            identifiers = ShadowUtil.getAllIdentifiers(repoShadow);
         }
 
         try {
@@ -226,18 +226,18 @@ class GetHelper {
             } catch (ObjectNotFoundException e) {
                 // This may be OK, e.g. for connectors that have running async add operation.
                 if (shadowState == ShadowState.CONCEPTION || shadowState == ShadowState.GESTATION) {
-                    LOGGER.trace("{} was not found, but we can return cached shadow because it is in {} state", repositoryShadow, shadowState);
+                    LOGGER.trace("{} was not found, but we can return cached shadow because it is in {} state", repoShadow, shadowState);
                     parentResult.deleteLastSubresultIfError();        // we don't want to see 'warning-like' orange boxes in GUI (TODO reconsider this)
                     parentResult.recordSuccess();
 
-                    PrismObject<ShadowType> resultShadow = commonHelper.futurizeShadow(ctx, repositoryShadow, null, options, now);
+                    PrismObject<ShadowType> resultShadow = commonHelper.futurizeShadow(ctx, repoShadow, null, options, now);
                     shadowCaretaker.applyAttributesDefinition(ctx, resultShadow);
                     LOGGER.trace("Returning futurized shadow:\n{}", DebugUtil.debugDumpLazily(resultShadow));
                     validateShadow(resultShadow, true);
                     return resultShadow;
 
                 } else {
-                    LOGGER.trace("{} was not found, following normal error processing because shadow is in {} state", repositoryShadow, shadowState);
+                    LOGGER.trace("{} was not found, following normal error processing because shadow is in {} state", repoShadow, shadowState);
                     // This is live shadow that was not found on resource. Just re-throw the exception. It will
                     // be caught later and the usual error handlers will bury the shadow.
                     throw e;
@@ -251,29 +251,30 @@ class GetHelper {
             // applies to resource shadow. We will fix repo shadow later.
             // BUT we need also information about kind/intent and these information is only
             // in repo shadow, therefore the following 2 lines..
-            resourceObject.asObjectable().setKind(repositoryShadow.asObjectable().getKind());
-            resourceObject.asObjectable().setIntent(repositoryShadow.asObjectable().getIntent());
+            resourceObject.asObjectable().setKind(repoShadow.asObjectable().getKind());
+            resourceObject.asObjectable().setIntent(repoShadow.asObjectable().getIntent());
             ProvisioningContext shadowCtx = ctx.spawn(resourceObject);
 
-            String operationCtx = "getting " + repositoryShadow + " was successful.";
+            String operationCtx = "getting " + repoShadow + " was successful.";
 
             resourceManager.modifyResourceAvailabilityStatus(resource.getOid(), AvailabilityStatusType.UP, operationCtx, task, parentResult, false);
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Shadow from repository:\n{}", repositoryShadow.debugDump(1));
+                LOGGER.trace("Shadow from repository:\n{}", repoShadow.debugDump(1));
                 LOGGER.trace("Resource object fetched from resource:\n{}", resourceObject.debugDump(1));
             }
 
-            repositoryShadow = shadowManager.updateShadow(shadowCtx, resourceObject, null, repositoryShadow, shadowState, parentResult);
-            LOGGER.trace("Repository shadow after update:\n{}", repositoryShadow.debugDumpLazily(1));
+            repoShadow = shadowManager.updateShadow(shadowCtx, resourceObject, null, repoShadow, shadowState, parentResult);
+            LOGGER.trace("Repository shadow after update:\n{}", repoShadow.debugDumpLazily(1));
 
             // Complete the shadow by adding attributes from the resource object
             // This also completes the associations by adding shadowRefs
-            PrismObject<ShadowType> assembledShadow = shadowingHelper.constructShadowedObject(shadowCtx, repositoryShadow, resourceObject, parentResult);
-            LOGGER.trace("Shadow when assembled:\n{}", assembledShadow.debugDumpLazily(1));
+            PrismObject<ShadowType> shadowedObject = shadowedObjectConstructionHelper.constructShadowedObject(shadowCtx,
+                    repoShadow, resourceObject, parentResult);
+            LOGGER.trace("Shadowed resource object:\n{}", shadowedObject.debugDumpLazily(1));
 
-            PrismObject<ShadowType> resultShadow = commonHelper.futurizeShadow(ctx, repositoryShadow, assembledShadow, options, now);
-            LOGGER.trace("Futurized assembled shadow:\n{}", resultShadow.debugDumpLazily(1));
+            PrismObject<ShadowType> resultShadow = commonHelper.futurizeShadow(ctx, repoShadow, shadowedObject, options, now);
+            LOGGER.trace("Futurized shadowed resource:\n{}", resultShadow.debugDumpLazily(1));
 
             parentResult.recordSuccess();
             validateShadow(resultShadow, true);
@@ -281,7 +282,7 @@ class GetHelper {
 
         } catch (Exception ex) {
             try {
-                PrismObject<ShadowType> handledShadow = handleGetError(ctx, repositoryShadow, rootOptions, ex, task, parentResult);
+                PrismObject<ShadowType> handledShadow = handleGetError(ctx, repoShadow, rootOptions, ex, task, parentResult);
                 if (handledShadow == null) {
                     throw ex;
                 }

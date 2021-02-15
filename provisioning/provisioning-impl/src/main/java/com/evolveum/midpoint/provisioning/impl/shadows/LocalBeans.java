@@ -15,7 +15,8 @@ import org.springframework.stereotype.Component;
 class LocalBeans {
 
     @Autowired AccessChecker accessChecker;
-    @Autowired ShadowingHelper shadowingHelper;
+    @Autowired ShadowedObjectConstructionHelper shadowedObjectConstructionHelper;
+    @Autowired ShadowAcquisitionHelper shadowAcquisitionHelper;
     @Autowired CommonHelper commonHelper;
     @Autowired ClassificationHelper classificationHelper;
     @Autowired

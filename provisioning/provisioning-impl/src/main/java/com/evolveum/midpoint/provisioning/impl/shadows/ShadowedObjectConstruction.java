@@ -35,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
- * Construction of an object that is being returned from the shadow cache to a client.
+ * Construction of an object that is being returned from the shadows facade to a client.
  *
  * Data in the resulting object come from two sources:
  *
@@ -49,7 +49,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * 3. Adds shadowRefs to associations. TODO
  * 4. TODO
  *
- * Instantiated separately for each shadow that is being completed.
+ * Instantiated separately for each shadowing operation.
  */
 public class ShadowedObjectConstruction {
 
@@ -375,7 +375,7 @@ public class ShadowedObjectConstruction {
         Collection<ResourceAttribute<?>> entitlementIdentifiers = getEntitlementIdentifiers(associationValue, identifierContainer);
         PrismObject<ShadowType> providedResourceObject = identifierContainer.getUserData(ResourceObjectConverter.FULL_SHADOW_KEY);
         if (providedResourceObject != null) {
-            return localBeans.shadowingHelper.acquireRepoShadow(ctxEntitlement, providedResourceObject, result);
+            return localBeans.shadowAcquisitionHelper.acquireRepoShadow(ctxEntitlement, providedResourceObject, result);
         }
 
         try {
@@ -391,7 +391,7 @@ public class ShadowedObjectConstruction {
             // Try to look up repo shadow again, this time with full resource shadow. When we
             // have searched before we might have only some identifiers. The shadow
             // might still be there, but it may be renamed
-            return localBeans.shadowingHelper.acquireRepoShadow(ctxEntitlement, fetchedResourceObject, result);
+            return localBeans.shadowAcquisitionHelper.acquireRepoShadow(ctxEntitlement, fetchedResourceObject, result);
 
         } catch (ObjectNotFoundException e) {
             // The entitlement to which we point is not there. Simply ignore this association value.

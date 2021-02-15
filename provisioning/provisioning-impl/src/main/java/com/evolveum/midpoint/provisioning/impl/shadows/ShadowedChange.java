@@ -162,7 +162,7 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
             markRepoShadowTombstone(result);
             adoptedObject = constructAdoptedObjectForDeletion(result);
         } else {
-            adoptedObject = constructAdoptedObject(result);
+            adoptedObject = constructShadowedObject(result);
         }
 
         shadowChangeDescription = createResourceShadowChangeDescription();
@@ -283,7 +283,7 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
         PrismProperty<?> primaryIdentifier = resourceObjectChange.getPrimaryIdentifierRequired();
         QName objectClass = getObjectClassDefinition().getTypeName();
 
-        repoShadow = localBeans.shadowingHelper.acquireRepoShadow(context, primaryIdentifier, objectClass,
+        repoShadow = localBeans.shadowAcquisitionHelper.acquireRepoShadow(context, primaryIdentifier, objectClass,
                 this::createResourceObjectFromChange, result);
     }
 
@@ -388,12 +388,13 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
         }
     }
 
-    private PrismObject<ShadowType> constructAdoptedObject(OperationResult result)
+    private PrismObject<ShadowType> constructShadowedObject(OperationResult result)
             throws CommunicationException, EncryptionException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 
         assert !isDelete() && currentResourceObject != null;
-        return getAdoptionHelper().constructShadowedObject(context, repoShadow, currentResourceObject, result);
+        return localBeans.shadowedObjectConstructionHelper
+                .constructShadowedObject(context, repoShadow, currentResourceObject, result);
     }
 
     /**
@@ -472,9 +473,5 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
 
     public String getShadowOid() {
         return repoShadow != null ? repoShadow.getOid() : null;
-    }
-
-    private ShadowingHelper getAdoptionHelper() {
-        return beans.shadowsFacade.getLocalBeans().shadowingHelper;
     }
 }
