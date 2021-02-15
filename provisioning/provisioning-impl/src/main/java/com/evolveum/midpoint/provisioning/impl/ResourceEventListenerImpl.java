@@ -17,16 +17,16 @@ import javax.annotation.PreDestroy;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 
-import com.evolveum.midpoint.provisioning.impl.shadowcache.ShadowCache;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.*;
-import com.evolveum.midpoint.provisioning.impl.shadowcache.AdoptedExternalChange;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowedExternalChange;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExternalResourceObjectChange;
-import com.evolveum.midpoint.provisioning.impl.shadowcache.sync.ChangeProcessingBeans;
+import com.evolveum.midpoint.provisioning.impl.shadows.sync.ChangeProcessingBeans;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -41,7 +41,7 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceEventListenerImpl.class);
 
-    @Autowired private ShadowCache shadowCache;
+    @Autowired private ShadowsFacade shadowsFacade;
     @Autowired private ChangeProcessingBeans changeProcessingBeans;
     @Autowired private ProvisioningContextFactory provisioningContextFactory;
     @Autowired private ChangeNotificationDispatcher changeNotificationDispatcher;
@@ -95,7 +95,7 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
                 eventDescription.getObjectDelta(), ctx);
         resourceObjectChange.initialize(task, result);
 
-        AdoptedExternalChange adoptedChange = new AdoptedExternalChange(resourceObjectChange, false, changeProcessingBeans);
+        ShadowedExternalChange adoptedChange = new ShadowedExternalChange(resourceObjectChange, false, changeProcessingBeans);
         adoptedChange.initialize(task, result);
 
         if (adoptedChange.isPreprocessed()) {
@@ -142,15 +142,15 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
     private void applyDefinitions(ResourceEventDescription eventDescription,
             OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         if (eventDescription.getResourceObject() != null) {
-            shadowCache.applyDefinition(eventDescription.getResourceObject(), parentResult);
+            shadowsFacade.applyDefinition(eventDescription.getResourceObject(), parentResult);
         }
 
         if (eventDescription.getOldRepoShadow() != null){
-            shadowCache.applyDefinition(eventDescription.getOldRepoShadow(), parentResult);
+            shadowsFacade.applyDefinition(eventDescription.getOldRepoShadow(), parentResult);
         }
 
         if (eventDescription.getObjectDelta() != null) {
-            shadowCache.applyDefinition(eventDescription.getObjectDelta(), null, parentResult);
+            shadowsFacade.applyDefinition(eventDescription.getObjectDelta(), null, parentResult);
         }
     }
 

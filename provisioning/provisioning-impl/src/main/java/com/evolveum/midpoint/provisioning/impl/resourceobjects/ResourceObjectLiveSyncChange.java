@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.shadowcache.sync.SkipProcessingException;
+import com.evolveum.midpoint.provisioning.impl.shadows.sync.SkipProcessingException;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfLiveSyncChange;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;

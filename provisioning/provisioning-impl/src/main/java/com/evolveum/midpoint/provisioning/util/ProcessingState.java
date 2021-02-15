@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.util;
 
-import com.evolveum.midpoint.provisioning.impl.shadowcache.sync.SkipProcessingException;
+import com.evolveum.midpoint.provisioning.impl.shadows.sync.SkipProcessingException;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfErrorState;
 import com.evolveum.midpoint.util.annotation.Experimental;
 

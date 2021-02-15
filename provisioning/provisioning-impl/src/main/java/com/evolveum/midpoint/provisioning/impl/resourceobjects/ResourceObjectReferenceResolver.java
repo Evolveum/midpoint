@@ -12,8 +12,8 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.shadowmanager.ShadowManager;
-import com.evolveum.midpoint.provisioning.impl.shadowcache.ShadowCache;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -75,7 +75,7 @@ class ResourceObjectReferenceResolver {
     @Autowired private PrismContext prismContext;
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private ShadowManager shadowManager;
-    @Autowired private ShadowCache shadowCache;
+    @Autowired private ShadowsFacade shadowsFacade;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -93,7 +93,7 @@ class ResourceObjectReferenceResolver {
             if (resourceObjectReference.getResolutionFrequency() == null
                     || resourceObjectReference.getResolutionFrequency() == ResourceObjectReferenceResolutionFrequencyType.ONCE) {
                 PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(), null, result);
-                shadowCache.applyDefinition(shadow, result);
+                shadowsFacade.applyDefinition(shadow, result);
                 return shadow;
             }
         } else if (resourceObjectReference.getResolutionFrequency() == ResourceObjectReferenceResolutionFrequencyType.NEVER) {
@@ -129,7 +129,7 @@ class ResourceObjectReferenceResolver {
             return true;
         };
 
-        shadowCache.searchObjectsIterative(subctx, query, null, handler, result);
+        shadowsFacade.searchObjectsIterative(subctx, query, null, handler, result);
 
         // TODO: implement storage of OID (ONCE search frequency)
 
@@ -152,7 +152,7 @@ class ResourceObjectReferenceResolver {
         if (repoShadow == null) {
             return null;
         }
-        shadowCache.applyDefinition(repoShadow, result);
+        shadowsFacade.applyDefinition(repoShadow, result);
         PrismContainer<Containerable> attributesContainer = repoShadow.findContainer(ShadowType.F_ATTRIBUTES);
         if (attributesContainer == null) {
             return null;
@@ -244,7 +244,7 @@ class ResourceObjectReferenceResolver {
             // TODO: we should attempt resource search here
             throw new ObjectNotFoundException("No repository shadow for "+secondaryIdentifiers+", cannot resolve identifiers");
         }
-        shadowCache.applyDefinition(repoShadow, result);
+        shadowsFacade.applyDefinition(repoShadow, result);
         PrismContainer<Containerable> attributesContainer = repoShadow.findContainer(ShadowType.F_ATTRIBUTES);
         if (attributesContainer == null) {
             throw new SchemaException("No attributes in "+repoShadow+", cannot resolve identifiers "+secondaryIdentifiers);

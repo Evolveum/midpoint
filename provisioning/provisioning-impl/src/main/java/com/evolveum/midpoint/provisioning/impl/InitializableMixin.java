@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.provisioning.impl.shadowcache.sync.SkipProcessingException;
+import com.evolveum.midpoint.provisioning.impl.shadows.sync.SkipProcessingException;
 import com.evolveum.midpoint.provisioning.util.ProcessingState;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
