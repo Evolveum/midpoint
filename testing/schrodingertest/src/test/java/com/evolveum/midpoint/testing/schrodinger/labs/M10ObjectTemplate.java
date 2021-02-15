@@ -470,7 +470,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
                     .clickByName("cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com")
                         .assertInputAttributeValueMatches("manager", "picard");
 
-        importObject(CSV_3_RESOURCE_FILE_10_4);
+        importObject(CSV_3_RESOURCE_FILE_10_4, true);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
 
