@@ -19,11 +19,15 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.MUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Component hiding details of how QNames are stored in {@link QUri}.
  */
 public class UriCache {
+
+    private static final Trace LOGGER = TraceManager.getTrace(UriCache.class);
 
     /**
      * Unknown id placeholder, not actually in DB but returned when URI is not in the cache
@@ -46,6 +50,7 @@ public class UriCache {
         for (MUri row : result) {
             updateMaps(row);
         }
+        LOGGER.info("URI cache initialized with {} items.", result.size());
     }
 
     private void updateMaps(MUri row) {
@@ -68,33 +73,43 @@ public class UriCache {
     }
 
     /** Returns ID for QName or throws exception - does not work with underlying database. */
-    public @NotNull Integer resolveId(@NotNull QName qName) {
-        return resolveId(QNameUtil.qNameToUri(qName));
+    public @NotNull Integer resolveToId(@NotNull QName qName) {
+        return resolveToId(QNameUtil.qNameToUri(qName));
     }
 
     /** Returns ID for string, possibly {@code null} - does not work with underlying database. */
     public @Nullable Integer getId(@NotNull String uri) {
-        return uriToId.get(uri);
+        Integer id = uriToId.get(uri);
+        LOGGER.trace("URI cache 'get' returned ID={} for URI={}", id, uri);
+        return id;
     }
 
     /** Returns ID for string or {@link #UNKNOWN_ID} - does not work with underlying database. */
     public @NotNull Integer searchId(@NotNull String uri) {
-        return uriToId.getOrDefault(uri, UNKNOWN_ID);
+        Integer id = uriToId.getOrDefault(uri, UNKNOWN_ID);
+        LOGGER.trace("URI cache 'search' returned ID={} for URI={}", id, uri);
+        return id;
     }
 
     /** Returns ID for QName or throws exception - does not work with underlying database. */
-    public @NotNull Integer resolveId(@NotNull String uri) {
-        return Objects.requireNonNull(getId(uri), () -> "URI not cached: " + uri);
+    public @NotNull Integer resolveToId(@NotNull String uri) {
+        Integer id = getId(uri);
+        LOGGER.trace("URI cache 'resolve' returned ID={} for URI={}", id, uri);
+        return Objects.requireNonNull(id, () -> "URI not cached: " + uri);
     }
 
     /** Returns URI string for ID or {@code null} - does not work with underlying database. */
-    public String getQName(Integer id) {
-        return idToUri.get(id);
+    public String getUri(Integer id) {
+        String uri = idToUri.get(id);
+        LOGGER.trace("URI cache 'get' returned URI={} for ID={}", uri, id);
+        return uri;
     }
 
     /** Returns URI string for ID or throws exception - does not work with underlying database. */
-    public @NotNull String getQNameMandatory(Integer id) {
-        return Objects.requireNonNull(idToUri.get(id), () -> "No URI cached under ID " + id);
+    public @NotNull String resolveToUri(Integer id) {
+        String uri = idToUri.get(id);
+        LOGGER.trace("URI cache 'resolve' returned URI={} for ID={}", uri, id);
+        return Objects.requireNonNull(uri, () -> "No URI cached under ID " + id);
     }
 
     /**
@@ -118,6 +133,7 @@ public class UriCache {
                 .executeWithKey(qu.id);
         updateMaps(MUri.of(id, uri));
 
+        LOGGER.debug("URI cache inserted URI={} under ID={}", uri, id);
         return id;
     }
 }
