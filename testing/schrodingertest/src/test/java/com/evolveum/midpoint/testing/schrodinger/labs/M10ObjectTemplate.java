@@ -429,7 +429,7 @@ public class M10ObjectTemplate extends AbstractLabTest{
 
         showUser("picard")
                 .selectTabAssignments()
-                    .clickAddAssignemnt("New Organization type assignment with manager relation")
+                    .clickAddAssignemnt("New Organization type assignment with Manager relation")
                         .selectType("Org")
                             .table()
                                 .search()
