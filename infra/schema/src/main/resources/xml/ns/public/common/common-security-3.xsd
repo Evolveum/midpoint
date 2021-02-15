@@ -2000,6 +2000,30 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="onlyMapping">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Credentials propagation will be determined by the mappings.
+                        User cannot choose where the credentials will be propagated.
+                        But the propagation dialog will be shown.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ONLY_MAPPING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="identityManagerMandatory">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Identity Manager Repository will by propagated.
+                        The user can choose where the other credentials will be propagated.
+                        The propagation dialog will be shown.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IDENTITY_MANAGER_MANDATORY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 

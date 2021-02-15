@@ -46,9 +46,11 @@
             <input wicket:id="queryDslField" type="text" class="form-control input-sm"
                     style="width: 91.6666667%; min-width: 300px; float:right;">
             <label class="control-label col-lg-1" style="vertical-align: top; float:right; padding-right: 5px;">
-                <i class="fa fa-lg" wicket:id="advancedCheck"/>
+                <i id="advancedCheck" class="fa fa-lg" wicket:id="advancedCheck"/>
             </label>
-            <span class="help-block" wicket:id="advancedError" style="float:right"/>
+            <div wicket:id="advancedErrorGroup" style="float:right">
+                <span id="advancedError" class="help-block" wicket:id="advancedError" style="float:right"/>
+            </div>
         </div>
 
         <div class="form-group" wicket:id="fullTextContainer" style="float:right; padding-right: 5px;">

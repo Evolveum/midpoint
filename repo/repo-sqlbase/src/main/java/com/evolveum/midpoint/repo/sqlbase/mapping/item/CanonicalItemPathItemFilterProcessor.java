@@ -43,9 +43,8 @@ public class CanonicalItemPathItemFilterProcessor
 
     @Override
     public Predicate process(PropertyValueFilter<ItemPathType> filter) throws QueryException {
-        ValueFilterValues<ItemPathType> values = new ValueFilterValues<>(filter,
-                value -> context.createCanonicalItemPath(value.getItemPath())
-                        .asString());
-        return createBinaryCondition(filter, path, values);
+        return createBinaryCondition(filter, path,
+                ValueFilterValues.from(filter,
+                        value -> context.createCanonicalItemPath(value.getItemPath()).asString()));
     }
 }

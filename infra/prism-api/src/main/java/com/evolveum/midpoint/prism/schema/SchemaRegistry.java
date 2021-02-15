@@ -225,4 +225,8 @@ public interface SchemaRegistry extends PrismContextSensitive, DebugDumpable, Gl
     interface InvalidationListener {
         void invalidate();
     }
+
+    default PrismNamespaceContext globalNamespaceContext() {
+        return PrismNamespaceContext.EMPTY; // FIXME later
+    }
 }

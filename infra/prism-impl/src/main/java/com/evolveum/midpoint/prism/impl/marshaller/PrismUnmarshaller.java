@@ -637,6 +637,8 @@ public class PrismUnmarshaller {
             ItemDefinition<?> contentDefinition = schemaRegistry.findItemDefinitionByType(typeName);
             isComposite = contentDefinition instanceof PrismObjectDefinition;
         } else {
+            // FIXME: MID-6818 This should be probably distinguished by type, instead of
+            // name difference
             isComposite = !QNameUtil.match(itemName, definition.getItemName());
         }
 

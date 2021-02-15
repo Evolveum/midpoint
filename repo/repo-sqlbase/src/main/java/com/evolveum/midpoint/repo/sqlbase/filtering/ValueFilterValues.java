@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -25,27 +25,36 @@ import com.evolveum.midpoint.repo.sqlbase.QueryException;
  * Object wraps zero, one or multiple values and makes their processing easier.
  * Instead of just wrapping the values it uses the whole filter object
  * to utilize its convenience methods.
- * <p>
+ *
  * Returned values are typed to Object, because they can be converted from original type.
  * Conversion is moved into this class, so the client code doesn't have to handle translation
  * from {@link PrismPropertyValue} to "real value" and then to convert it.
  * Both {@link #singleValue()} and {@link #allValues()} are handled the same way.
- * <p>
+ *
  * If {@link #conversionFunction} is used any {@link IllegalArgumentException} will be rewrapped
  * as {@link QueryException}, other runtime exceptions are not intercepted.
+ *
+ * @param <T> type of filter value
+ * @param <S> type of value after conversion (can by the same like T)
  */
-public class ValueFilterValues<T> {
+public class ValueFilterValues<T, S> {
 
     @NotNull private final PropertyValueFilter<T> filter;
-    @Nullable private final Function<T, ?> conversionFunction;
+    @Nullable private final Function<T, S> conversionFunction;
 
-    public ValueFilterValues(PropertyValueFilter<T> filter) {
-        this(filter, null);
+    public static <T> ValueFilterValues<T, T> from(@NotNull PropertyValueFilter<T> filter) {
+        return new ValueFilterValues<>(filter, null);
     }
 
-    public ValueFilterValues(
+    public static <T, S> ValueFilterValues<T, S> from(
             @NotNull PropertyValueFilter<T> filter,
-            @Nullable Function<T, ?> conversionFunction) {
+            @Nullable Function<T, S> conversionFunction) {
+        return new ValueFilterValues<>(filter, conversionFunction);
+    }
+
+    private ValueFilterValues(
+            @NotNull PropertyValueFilter<T> filter,
+            @Nullable Function<T, S> conversionFunction) {
         this.filter = Objects.requireNonNull(filter);
         this.conversionFunction = conversionFunction;
     }

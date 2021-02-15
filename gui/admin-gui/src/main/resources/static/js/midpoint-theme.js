@@ -356,3 +356,26 @@ function showPassword(iconElement) {
             });
         };
 }(window.jQuery);
+
+(function($) {
+    $.fn.updateParentClass = function(successClass, parentSuccessClass, parentId, failClass, parentFailClass) {
+        var child = this;
+        var parent = $("#" + parentId);
+
+        if (child.hasClass(successClass)){
+            if (parent.hasClass(parentFailClass)) {
+                parent.removeClass(parentFailClass);
+            }
+            if (!parent.hasClass(parentSuccessClass)) {
+                parent.addClass(parentSuccessClass);
+            }
+        } else if (child.hasClass(failClass)){
+            if (parent.hasClass(parentSuccessClass)) {
+                parent.removeClass(parentSuccessClass);
+            }
+            if (!parent.hasClass(parentFailClass)) {
+                parent.addClass(parentFailClass);
+            }
+        }
+    }
+})(jQuery);

@@ -13,10 +13,14 @@ import java.util.List;
  *
  */
 public interface ListXNode extends XNode {
+    @Override
     boolean isEmpty();
     int size();
     XNode get(int i);
 
     // todo reconsider this
     List<? extends XNode> asList();
+
+    @Override
+    ListXNode copy();
 }

@@ -16,7 +16,6 @@ import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
@@ -44,8 +43,11 @@ public class DetailTableItemFilterProcessor
     }
 
     /**
-     * Creates composition mapper that defines 1) how to traverse to the detail table
-     * and 2) specifies the actual {@link ItemSqlMapper} used for the column on the detail table.
+     * Creates composition mapper that defines:
+     *
+     * 1. how to traverse to the detail table and
+     * 2. specifies the actual {@link ItemSqlMapper} used for the column on the detail table.
+     *
      * Note that the nested mapper works in the context using the joined path, so any item path
      * mapping is already relative to the query type representing the detail table.
      *
@@ -76,14 +78,9 @@ public class DetailTableItemFilterProcessor
 
     @Override
     public Predicate process(PropertyValueFilter<String> filter) throws QueryException {
-        // this part takes care of delegation to the nested path, including JOIN creation
-        QueryModelMapping<?, DQ, DR> mapping =
-                context.sqlRepoContext().getMappingByQueryType(detailQueryType);
-        String aliasName = context.uniqueAliasName(mapping.defaultAliasName());
-        DQ joinPath = mapping.newAlias(aliasName);
         //noinspection unchecked
         SqlQueryContext<?, DQ, DR> joinContext =
-                ((SqlQueryContext<?, Q, ?>) context).leftJoin(joinPath, joinOnPredicate);
+                ((SqlQueryContext<?, Q, ?>) context).leftJoin(detailQueryType, joinOnPredicate);
 
         // now we create the actual filter processor on the inner context
         FilterProcessor<ObjectFilter> filterProcessor =

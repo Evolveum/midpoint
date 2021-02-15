@@ -17,15 +17,18 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 
 /**
  * Type of {@link FilterProcessor} for a single Prism item (not necessarily one SQL column).
  * These are executed as "leaves" of filter processing tree returning terminal predicates.
- * These are used in {@link QueryModelMapping} objects.
+ * These are used in {@link QueryTableMapping} objects.
  * This superclass contains support methods for determining operator from filter,
  * getting single value and other typical operations needed by item filter processors.
+ *
+ * See {@link ValueFilterProcessor} for details how complex paths are resolved to its last part.
  */
 public abstract class ItemFilterProcessor<O extends ObjectFilter>
         implements FilterProcessor<O> {
@@ -74,8 +77,8 @@ public abstract class ItemFilterProcessor<O extends ObjectFilter>
     }
 
     @NotNull
-    protected Predicate createBinaryCondition(
-            ValueFilter<?, ?> filter, Path<?> path, ValueFilterValues<?> values)
+    protected <T> Predicate createBinaryCondition(
+            ValueFilter<?, ?> filter, Path<T> path, ValueFilterValues<?, T> values)
             throws QueryException {
         Ops operator = operation(filter);
         if (values.isEmpty()) {

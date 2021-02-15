@@ -10,6 +10,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.commons.lang3.StringUtils;
@@ -25,10 +29,6 @@ import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ShadowWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
@@ -192,7 +192,18 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
 
                     @Override
                     public String getCount() {
-                        return Integer.toString(projectionModel.getObject() == null ? 0 : projectionModel.getObject().size());
+                        try {
+                            PrismReferenceWrapper<Referencable> link = getObjectWrapper().findReference(FocusType.F_LINK_REF);
+                            if (link == null) {
+                                return "0";
+                            }
+
+                            return Integer.toString(link.getValues().size());
+                        } catch (SchemaException e) {
+                            LoggingUtils.logUnexpectedException(LOGGER, "Problem while getting link refs, {}", e, e.getMessage());
+                            return "0";
+                        }
+
                     }
                 });
 

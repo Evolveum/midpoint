@@ -8,6 +8,7 @@ package com.evolveum.midpoint.util;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -21,6 +22,8 @@ import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
 
 /**
  * QName &lt;-&gt; URI conversion.
@@ -47,6 +50,7 @@ public class QNameUtil {
     // ThreadLocal "safe mode" override for the above value (MID-2218)
     // This can be set to true for raw reads, allowing to manually fix broken objects
     private static final ThreadLocal<Boolean> TEMPORARILY_TOLERATE_UNDECLARED_PREFIXES = new ThreadLocal<>();
+    private static final Splitter PREFIXED_NAME = Splitter.on(':');
 
     public static String qNameToUri(QName qname) {
         return qNameToUri(qname, true);
@@ -137,9 +141,33 @@ public class QNameUtil {
         }
     }
 
+    public static PrefixedName parsePrefixedName(String name) {
+        Iterator<String> splitted = PREFIXED_NAME.split(name).iterator();
+        Preconditions.checkState(splitted.hasNext());
+        String first = splitted.next();
+        final PrefixedName ret;
+        if(splitted.hasNext()) {
+            ret = new PrefixedName(first, splitted.next());
+        } else {
+            ret = new PrefixedName("", first);
+        }
+        Preconditions.checkArgument(!splitted.hasNext(), "Name '%s' is not in format prefix:localName", name);
+        return ret;
+
+    }
+
+    public static QNameInfo qnameToQnameInfo(QName name) {
+        Preconditions.checkArgument(name.getNamespaceURI() != null, "Namespace must be qualified");
+        return new QNameInfo(name, false);
+    }
+
     @NotNull
     public static QName uriToQName(@NotNull String uri, boolean allowUnqualified) {
         return uriToQNameInfo(uri, allowUnqualified).name;
+    }
+
+    public static boolean isUriQName(@NotNull String maybeUri) {
+        return maybeUri.contains("/") || maybeUri.contains("#");
     }
 
     @NotNull
@@ -377,5 +405,31 @@ public class QNameUtil {
 
     public static String prettyPrint(QName... qnames) {
         return PrettyPrinter.prettyPrint(Arrays.asList(qnames));
+    }
+
+    public static class PrefixedName {
+        private final @NotNull String prefix;
+        private final @NotNull String localName;
+
+        PrefixedName(@NotNull String prefix, @NotNull String localName) {
+            this.prefix = prefix;
+            this.localName = localName;
+        }
+
+        @Override
+        public String toString() {
+            if(prefix.isEmpty()) {
+                return localName;
+            }
+            return prefix + ":" + localName;
+        }
+
+        public String prefix() {
+            return prefix;
+        }
+
+        public String localName() {
+            return localName;
+        }
     }
 }

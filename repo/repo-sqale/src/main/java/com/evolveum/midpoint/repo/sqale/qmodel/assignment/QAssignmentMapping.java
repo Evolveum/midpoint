@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.F_TARGET_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.F_TENANT_REF;
+
+import com.evolveum.midpoint.repo.sqale.RefItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -16,13 +20,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 public class QAssignmentMapping
         extends SqaleModelMapping<AssignmentType, QAssignment, MAssignment> {
 
-    public static final String DEFAULT_ALIAS_NAME = "u";
+    public static final String DEFAULT_ALIAS_NAME = "a";
 
     public static final QAssignmentMapping INSTANCE = new QAssignmentMapping();
 
     private QAssignmentMapping() {
         super(QAssignment.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 AssignmentType.class, QAssignment.class);
+
+        addItemMapping(F_TARGET_REF, RefItemFilterProcessor.mapper(
+                path(q -> q.targetRefTargetOid),
+                path(q -> q.targetRefTargetType),
+                path(q -> q.targetRefRelationId)));
+        addItemMapping(F_TENANT_REF, RefItemFilterProcessor.mapper(
+                path(q -> q.tenantRefTargetOid),
+                path(q -> q.tenantRefTargetType),
+                path(q -> q.tenantRefRelationId)));
 
         // TODO mapping
     }

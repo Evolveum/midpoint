@@ -17,19 +17,19 @@ import com.querydsl.core.types.EntityPath;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
- * Holds {@link QueryModelMapping} instances obtainable by various key (e.g. schema type Q-name).
+ * Holds {@link QueryTableMapping} instances obtainable by various key (e.g. schema type Q-name).
  * The registry is oblivious to the actual configuration defined elsewhere.
  */
 public class QueryModelMappingRegistry {
 
-    private final Map<Class<? extends EntityPath<?>>, QueryModelMapping<?, ?, ?>>
+    private final Map<Class<? extends EntityPath<?>>, QueryTableMapping<?, ?, ?>>
             mappingByQueryType = new HashMap<>();
 
-    private final Map<String, QueryModelMapping<?, ?, ?>>
+    private final Map<String, QueryTableMapping<?, ?, ?>>
             mappingByDefaultAliasNames = new HashMap<>();
 
-    private final Map<QName, QueryModelMapping<?, ?, ?>> mappingBySchemaQName = new HashMap<>();
-    private final Map<Class<?>, QueryModelMapping<?, ?, ?>> mappingBySchemaType = new HashMap<>();
+    private final Map<QName, QueryTableMapping<?, ?, ?>> mappingBySchemaQName = new HashMap<>();
+    private final Map<Class<?>, QueryTableMapping<?, ?, ?>> mappingBySchemaType = new HashMap<>();
 
     // true if configuration is finished and no further register can be used
     private volatile boolean sealed;
@@ -39,10 +39,10 @@ public class QueryModelMappingRegistry {
      * Mapping can be later obtained by its schema class, schema name or query class.
      */
     public QueryModelMappingRegistry register(
-            QName schemaQName, QueryModelMapping<?, ?, ?> mapping) {
+            QName schemaQName, QueryTableMapping<?, ?, ?> mapping) {
         Preconditions.checkState(!sealed, "QueryModelMappingRegistry instance is sealed!");
 
-        QueryModelMapping<?, ?, ?> existingMapping = mappingBySchemaQName.get(schemaQName);
+        QueryTableMapping<?, ?, ?> existingMapping = mappingBySchemaQName.get(schemaQName);
         if (existingMapping != null) {
             throw new IllegalArgumentException(
                     "New mapping tries to override schema QName '" + schemaQName + "': "
@@ -71,10 +71,10 @@ public class QueryModelMappingRegistry {
      * This can happen for detail tables that have no unique mapping from schema type.
      * Mapping can be later obtained only by its query class, not by schema type/name.
      */
-    public QueryModelMappingRegistry register(QueryModelMapping<?, ?, ?> mapping) {
+    public QueryModelMappingRegistry register(QueryTableMapping<?, ?, ?> mapping) {
         Preconditions.checkState(!sealed, "QueryModelMappingRegistry instance is sealed!");
 
-        QueryModelMapping<?, ?, ?> existingMapping = mappingByQueryType.get(mapping.queryType());
+        QueryTableMapping<?, ?, ?> existingMapping = mappingByQueryType.get(mapping.queryType());
         if (existingMapping != null) {
             throw new IllegalArgumentException(
                     "New mapping tries to override query type: " + mapping
@@ -103,7 +103,7 @@ public class QueryModelMappingRegistry {
         return this;
     }
 
-    public <S, Q extends FlexibleRelationalPathBase<R>, R, QM extends QueryModelMapping<S, Q, R>>
+    public <S, Q extends FlexibleRelationalPathBase<R>, R, QM extends QueryTableMapping<S, Q, R>>
     QM getBySchemaType(Class<S> schemaType) {
         //noinspection unchecked
         return (QM) Objects.requireNonNull(
@@ -112,9 +112,9 @@ public class QueryModelMappingRegistry {
     }
 
     public <S, Q extends FlexibleRelationalPathBase<R>, R>
-    QueryModelMapping<S, Q, R> getByQueryType(Class<Q> queryType) {
+    QueryTableMapping<S, Q, R> getByQueryType(Class<Q> queryType) {
         //noinspection unchecked
-        return (QueryModelMapping<S, Q, R>) Objects.requireNonNull(
+        return (QueryTableMapping<S, Q, R>) Objects.requireNonNull(
                 mappingByQueryType.get(queryType),
                 () -> "Missing mapping for query type " + queryType);
     }

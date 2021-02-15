@@ -46,13 +46,15 @@ public class TimestampItemFilterProcessor
 
     @Override
     public Predicate process(PropertyValueFilter<?> filter) throws QueryException {
-        ValueFilterValues<?> values = new ValueFilterValues<>(filter, this::convertToPathType);
-        return createBinaryCondition(filter, path, values);
+        return createBinaryCondition(filter, path,
+                ValueFilterValues.from(filter, this::convertToPathType));
     }
 
-    private Object convertToPathType(@NotNull Object value) {
+    // Used <T> instead of Object to conform to unknown type of path above
+    @SuppressWarnings("unchecked")
+    private <T> T convertToPathType(@NotNull Object value) {
         if (value.getClass() == path.getType()) {
-            return value;
+            return (T) value;
         }
 
         long timestamp;
@@ -73,6 +75,6 @@ public class TimestampItemFilterProcessor
             throw new IllegalArgumentException(
                     "Unsupported temporal type " + pathType + " for path: " + path);
         }
-        return value;
+        return (T) value;
     }
 }

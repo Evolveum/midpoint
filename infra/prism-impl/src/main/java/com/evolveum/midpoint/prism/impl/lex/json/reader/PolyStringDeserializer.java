@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.prism.impl.lex.json.reader;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.fasterxml.jackson.core.JsonParser;
@@ -14,7 +15,7 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 
-public class PolyStringDeserializer extends JsonDeserializer<PolyString>{
+public class PolyStringDeserializer extends JsonDeserializer<PolyString> implements Serializable {
 
     @Override
     public PolyString deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {

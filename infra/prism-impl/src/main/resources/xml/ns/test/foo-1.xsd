@@ -12,6 +12,7 @@
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
             xmlns:ft="http://midpoint.evolveum.com/xml/ns/test/foo-types-1"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
@@ -31,6 +32,8 @@
             </jaxb:globalBindings>
         </xsd:appinfo>
     </xsd:annotation>
+
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3" schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3" />
 
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3" schemaLocation="http://prism.evolveum.com/xml/ns/public/types-3">
         <xsd:annotation>
@@ -202,7 +205,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="filter" minOccurs="0" maxOccurs="1">
+            <xsd:element name="filter" minOccurs="0" maxOccurs="1" type="q:SearchFilterType">
                 <xsd:annotation>
                     <xsd:documentation>
                         Filter that can be used to dynamically lookup the reference OID e.g. during imports.
@@ -210,11 +213,6 @@
                         be stored in the repository.
                     </xsd:documentation>
                 </xsd:annotation>
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
-                    </xsd:sequence>
-                </xsd:complexType>
             </xsd:element>
             <xsd:element name="object" minOccurs="0" maxOccurs="1">
                 <xsd:complexType>

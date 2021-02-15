@@ -38,6 +38,7 @@ public class PasswordAccountDto extends Selectable<PasswordAccountDto>
     private String passwordValuePolicyOid;
     private boolean passwordOutbound;
     private boolean passwordCapabilityEnabled;
+    private boolean maintenanceState;
     /**
      * true if this DTO represents default midpoint account;
      */
@@ -52,6 +53,7 @@ public class PasswordAccountDto extends Selectable<PasswordAccountDto>
         this(shadow, WebComponentUtil.getName(shadow), resourceName,
                 WebComponentUtil.isActivationEnabled(shadow, ActivationType.F_ADMINISTRATIVE_STATUS), false);
         this.resourceOid = resourceOid;
+        setSelected(true);
     }
 
     public PasswordAccountDto(@NotNull PrismObject<?extends ObjectType> object, String displayName, String resourceName, Boolean enabled, boolean midpoint) {
@@ -60,6 +62,7 @@ public class PasswordAccountDto extends Selectable<PasswordAccountDto>
         this.enabled = enabled;
         this.object = object;
         this.midpoint = midpoint;
+        setSelected(true);
     }
 
     public String getResourceName() {
@@ -116,6 +119,14 @@ public class PasswordAccountDto extends Selectable<PasswordAccountDto>
 
     public void setPasswordCapabilityEnabled(boolean passwordCapabilityEnabled) {
         this.passwordCapabilityEnabled = passwordCapabilityEnabled;
+    }
+
+    public boolean isMaintenanceState() {
+        return maintenanceState;
+    }
+
+    public void setMaintenanceState(boolean maintenanceState) {
+        this.maintenanceState = maintenanceState;
     }
 
     public String getResourceOid() {

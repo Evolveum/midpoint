@@ -27,7 +27,6 @@ import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
 import com.evolveum.midpoint.prism.impl.lex.LexicalUtils;
 import com.evolveum.midpoint.prism.impl.xnode.*;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -50,7 +49,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
     public RootXNodeImpl read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
         if (source instanceof ParserElementSource) {
             Element root = ((ParserElementSource) source).getElement();
-            return new DomReader(root, schemaRegistry).read();
+            return new DomReader(root, schemaRegistry, PrismNamespaceContext.EMPTY).read();
         } else {
             InputStream is = source.getInputStream();
             try {

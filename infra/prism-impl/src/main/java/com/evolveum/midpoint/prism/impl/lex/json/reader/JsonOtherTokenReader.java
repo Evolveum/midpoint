@@ -13,14 +13,17 @@ import javax.xml.namespace.QName;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ValueNode;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.impl.lex.json.JsonNullValueParser;
 import com.evolveum.midpoint.prism.impl.lex.json.JsonValueParser;
 import com.evolveum.midpoint.prism.impl.xnode.ListXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.PrimitiveXNodeImpl;
+import com.evolveum.midpoint.prism.impl.xnode.XNodeDefinition;
 import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
 import com.evolveum.midpoint.prism.xnode.ValueParser;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -37,9 +40,18 @@ class JsonOtherTokenReader {
     @NotNull private final JsonReadingContext ctx;
     @NotNull private final JsonParser parser;
 
-    JsonOtherTokenReader(JsonReadingContext ctx) {
+    private final PrismNamespaceContext parentContext;
+
+    private final XNodeDefinition def;
+
+    private @NotNull XNodeDefinition parentDef;
+
+    JsonOtherTokenReader(JsonReadingContext ctx, PrismNamespaceContext context, XNodeDefinition def, @NotNull XNodeDefinition parentDef) {
         this.ctx = ctx;
         this.parser = ctx.parser;
+        this.parentContext = context;
+        this.def = def;
+        this.parentDef = parentDef;
     }
 
     @NotNull XNodeImpl readValue() throws IOException, SchemaException {
@@ -47,7 +59,7 @@ class JsonOtherTokenReader {
 
         switch (currentToken) {
             case START_OBJECT:
-                return new JsonObjectTokenReader(ctx).read();
+                return new JsonObjectTokenReader(ctx, parentContext, def, parentDef).read();
             case START_ARRAY:
                 return parseToList();
             case VALUE_STRING:
@@ -86,7 +98,7 @@ class JsonOtherTokenReader {
     }
 
     private <T> PrimitiveXNodeImpl<T> parseToPrimitive() throws IOException, SchemaException {
-        PrimitiveXNodeImpl<T> primitive = new PrimitiveXNodeImpl<>();
+        PrimitiveXNodeImpl<T> primitive = new PrimitiveXNodeImpl<>(this.parentContext);
 
         Object tid = parser.getTypeId();
         if (tid != null) {
@@ -99,10 +111,10 @@ class JsonOtherTokenReader {
             // as xsd:string, even if the schema would expect e.g. timestamp.
         }
 
-        JsonNode jn = parser.readValueAs(JsonNode.class);
-        ValueParser<T> vp = new JsonValueParser<>(parser, jn);
+        ValueNode jn = parser.readValueAs(ValueNode.class);
+        ValueParser<T> vp = new JsonValueParser<>(parser, jn, parentContext);
         primitive.setValueParser(vp);
-
+        // FIXME: Materialize when possible
         return primitive;
     }
 
@@ -112,21 +124,4 @@ class JsonOtherTokenReader {
         return primitive;
     }
 
-//    @SuppressWarnings("unused") // TODO remove if not needed
-//    private QName getCurrentTypeName(JsonReadingContext ctx) throws IOException, SchemaException {
-//        switch (parser.currentToken()) {
-//            case VALUE_NUMBER_INT:
-//            case VALUE_NUMBER_FLOAT:
-//                return AbstractReader.determineNumberType(parser.getNumberType());
-//            case VALUE_FALSE:
-//            case VALUE_TRUE:
-//                return DOMUtil.XSD_BOOLEAN;
-//            case VALUE_STRING:
-//                return DOMUtil.XSD_STRING;
-//            case VALUE_NULL:
-//                return null;            // TODO?
-//            default:
-//                throw new SchemaException("Unexpected current token type: " + parser.currentToken() + "/" + parser.getText() + " at " + ctx.getPositionSuffix());
-//        }
-//    }
 }

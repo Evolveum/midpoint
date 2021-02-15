@@ -11,7 +11,7 @@ import static com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditItem.TABLE_N
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditDelta;
 import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditDelta;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 
@@ -19,7 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperation
  * Mapping between {@link QAuditDelta} and {@link ObjectDeltaOperationType}.
  */
 public class QAuditDeltaMapping
-        extends QueryModelMapping<ObjectDeltaOperationType, QAuditDelta, MAuditDelta> {
+        extends QueryTableMapping<ObjectDeltaOperationType, QAuditDelta, MAuditDelta> {
 
     public static final String DEFAULT_ALIAS_NAME = "ad";
 

@@ -1,10 +1,10 @@
- {
+{
   "@ns" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd",
   "object" : {
+    "@ns" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd",
     "@type" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd#UserType",
     "oid" : "c0c010c0-d34d-b33f-f00d-111111111111",
     "version" : "42",
-    "@ns" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd",
     "name" : "jack",
     "description" : "This must be the best pirate the world has ever seen",
     "extension" : {

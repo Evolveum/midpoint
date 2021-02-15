@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="6628a329-4b29-4f3a-9339-8fa12c59c38f"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.update/AsyncUpdateConnector">
+
+    <name>async-inbound</name>
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:equal>
+                <q:path>connectorType</q:path>
+                <q:value>AsyncUpdateConnector</q:value>
+            </q:equal>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration>
+        <conf:sources>
+            <jms>
+                <connectionFactory>invmConnectionFactory</connectionFactory>
+                <destination>ProvisioningQueue</destination>
+            </jms>
+        </conf:sources>
+        <conf:transformExpression>
+            <script>
+                <code>
+                    import com.evolveum.midpoint.schema.util.UcfChangeUtil
+                    import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI
+
+                    wrappedMessage = midpoint.wrap(message)
+                    log.info('Message body:\n{}', wrappedMessage.bodyAsText)
+
+                    request = wrappedMessage.bodyAsAsyncProvisioningRequest
+                    UcfChangeUtil.createFromAsyncProvisioningRequest(request, NS_RI, prismContext)
+                </code>
+            </script>
+        </conf:transformExpression>
+        <!--<conf:processTracingConfiguration>-->
+        <!--    <interval>100</interval>-->
+        <!--    <tracingProfile>-->
+        <!--        <ref>performance</ref>-->
+        <!--        <fileNamePattern>update %{timestamp} %{focusName}</fileNamePattern>-->
+        <!--    </tracingProfile>-->
+        <!--</conf:processTracingConfiguration>-->
+    </connectorConfiguration>
+    <schema>
+        <definition>
+            <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
+                        xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+                        targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
+                <xsd:complexType name="AccountObjectClass">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <ra:resourceObject/>
+                            <ra:identifier>ri:login</ra:identifier>
+                            <ra:displayNameAttribute>ri:login</ra:displayNameAttribute>
+                            <ra:namingAttribute>ri:login</ra:namingAttribute>
+                            <ra:kind>account</ra:kind>
+                            <ra:default/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                    <xsd:sequence>
+                        <xsd:element name="login" type="xsd:string" minOccurs="0"/>
+                        <xsd:element name="fullName" type="xsd:string" minOccurs="0"/>
+                        <xsd:element name="description" type="xsd:string" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:schema>
+        </definition>
+    </schema>
+    <schemaHandling>
+        <objectType>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>ri:login</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:fullName</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>fullName</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:description</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>description</path>
+                    </target>
+                </inbound>
+            </attribute>
+        </objectType>
+    </schemaHandling>
+    <capabilities>
+        <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+            <cap:read>
+                <cap:cachingOnly>true</cap:cachingOnly>
+            </cap:read>
+        </configured>
+    </capabilities>
+    <synchronization>
+        <objectSynchronization>
+            <enabled>true</enabled>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <kind>account</kind>
+            <intent>default</intent>
+            <correlation>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <expression>
+                        <path>$projection/attributes/ri:login</path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
+</resource>

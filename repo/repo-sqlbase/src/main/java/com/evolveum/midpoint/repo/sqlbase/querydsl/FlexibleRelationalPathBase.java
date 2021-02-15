@@ -21,7 +21,7 @@ import com.querydsl.sql.RelationalPathBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 
 /**
  * Extension of {@link RelationalPathBase} that adapts the Q-class to midPoint
@@ -45,12 +45,12 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
  * <li>Unsuitable path types can be changed, e.g. date/time related.
  * The same changes must be done for the related field in the M-class.
  * Exotic type support can be added to Querydsl configuration (see usages of InstantType).</li>
- * <li>Remove default static final aliases, {@link QueryModelMapping} for the table will be
+ * <li>Remove default static final aliases, {@link QueryTableMapping} for the table will be
  * responsible for providing aliases, including default ones.
  * This better handles extension columns, static default alias would not easily know about them).</li>
  * <li>Simplify bean (M-class) to public fields with no setters/getters.</li>
  * <li>Add PK-based equals/hashCode to beans (not critical, but handy for grouping transformations).</li>
- * <li>Now it's time to create {@code Q_YourType_Mapping}, see any subclass of {@link QueryModelMapping}
+ * <li>Now it's time to create {@code Q_YourType_Mapping}, see any subclass of {@link QueryTableMapping}
  * as example, then register the mapping in QueryModelMappingConfig.</li>
  * </ul>
  *

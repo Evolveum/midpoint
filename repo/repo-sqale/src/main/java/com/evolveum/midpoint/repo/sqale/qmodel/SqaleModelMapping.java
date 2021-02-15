@@ -9,16 +9,16 @@ package com.evolveum.midpoint.repo.sqale.qmodel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
  * Mapping superclass with common functions for {@link QObject} and non-objects (e.g. containers).
  *
- * @see QueryModelMapping
+ * @see QueryTableMapping
  */
 public abstract class SqaleModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R>
-        extends QueryModelMapping<S, Q, R> {
+        extends QueryTableMapping<S, Q, R> {
 
     protected SqaleModelMapping(
             @NotNull String tableName,

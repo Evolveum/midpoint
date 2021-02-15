@@ -66,7 +66,7 @@ public class EnumOrdinalItemFilterProcessor<E extends Enum<E>>
 
     @Override
     public Predicate process(PropertyValueFilter<E> filter) throws QueryException {
-        ValueFilterValues<E> values = new ValueFilterValues<>(filter, conversionFunction);
-        return createBinaryCondition(filter, path, values);
+        return createBinaryCondition(filter, path,
+                ValueFilterValues.from(filter, conversionFunction));
     }
 }
