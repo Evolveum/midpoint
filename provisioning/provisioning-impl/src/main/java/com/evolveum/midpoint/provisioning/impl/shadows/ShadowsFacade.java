@@ -55,7 +55,7 @@ public class ShadowsFacade {
     @Autowired private PropagateHelper propagateHelper;
     @Autowired private CompareHelper compareHelper;
     @Autowired private ClassificationHelper classificationHelper;
-    @Autowired private LocalBeans localBeans;
+    @Autowired private ShadowsLocalBeans localBeans;
 
     /**
      * @param repositoryShadow Current shadow in the repository. If not specified, this method will retrieve it by OID.
@@ -170,7 +170,7 @@ public class ShadowsFacade {
     }
 
     // temporary
-    LocalBeans getLocalBeans() {
+    ShadowsLocalBeans getLocalBeans() {
         return localBeans;
     }
 

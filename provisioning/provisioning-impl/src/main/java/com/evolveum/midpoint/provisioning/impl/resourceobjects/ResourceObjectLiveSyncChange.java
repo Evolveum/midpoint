@@ -37,7 +37,7 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
      */
     @NotNull private final PrismProperty<?> token;
 
-    @NotNull private final InitializationContext initializationContext;
+    @NotNull private final InitializationContext ictx;
 
     /**
      * @param originalCtx Provisioning context determined from the parameters of the synchronize method. It can be wildcard.
@@ -45,9 +45,9 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
      */
     public ResourceObjectLiveSyncChange(UcfLiveSyncChange ucfLiveSyncChange, ResourceObjectConverter converter,
             ProvisioningContext originalCtx, AttributesToReturn originalAttributesToReturn) {
-        super(ucfLiveSyncChange);
+        super(ucfLiveSyncChange, converter.getLocalBeans());
         this.token = ucfLiveSyncChange.getToken();
-        this.initializationContext = new InitializationContext(converter, originalCtx, originalAttributesToReturn);
+        this.ictx = new InitializationContext(originalCtx, originalAttributesToReturn);
     }
 
     @Override
@@ -55,15 +55,15 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException, SkipProcessingException {
 
-        determineProvisioningContext(initializationContext.originalCtx, null);
+        determineProvisioningContext(ictx.originalCtx, null);
         updateRefinedObjectClass();
 
         if (!isDelete()) {
-            postProcessOrFetchResourceObject(initializationContext.converter, initializationContext.originalCtx,
-                    initializationContext.originalAttrsToReturn, result);
+            postProcessOrFetchResourceObject(localBeans.resourceObjectConverter, ictx.originalCtx, ictx.originalAttrsToReturn,
+                    result);
         }
 
-        completeIdentifiers();
+        freezeIdentifiers();
     }
 
     private void postProcessOrFetchResourceObject(ResourceObjectConverter converter, ProvisioningContext originalCtx,
@@ -129,12 +129,10 @@ public class ResourceObjectLiveSyncChange extends ResourceObjectChange {
     }
 
     private static class InitializationContext {
-        private final ResourceObjectConverter converter;
         private final ProvisioningContext originalCtx;
         private final AttributesToReturn originalAttrsToReturn;
 
-        private InitializationContext(ResourceObjectConverter converter, ProvisioningContext originalCtx, AttributesToReturn originalAttrsToReturn) {
-            this.converter = converter;
+        private InitializationContext(ProvisioningContext originalCtx, AttributesToReturn originalAttrsToReturn) {
             this.originalCtx = originalCtx;
             this.originalAttrsToReturn = originalAttrsToReturn;
         }

@@ -7,14 +7,19 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.impl.InitializableMixin;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.shadows.sync.SkipProcessingException;
 import com.evolveum.midpoint.provisioning.ucf.api.FetchedUcfObject;
 import com.evolveum.midpoint.provisioning.util.ProcessingState;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -58,18 +63,35 @@ public class FetchedResourceObject implements InitializableMixin {
 
     private final InitializationContext ictx;
 
+    private final ResourceObjectsLocalBeans localBeans;
+
     public FetchedResourceObject(FetchedUcfObject ucfObject, ResourceObjectConverter converter,
             ProvisioningContext ctx, boolean fetchAssociations) {
-        this.resourceObject = ucfObject.getResourceObject();
+        this.resourceObject = ucfObject.getResourceObject().clone();
         this.primaryIdentifierValue = ucfObject.getPrimaryIdentifierValue();
         this.processingState = ProcessingState.fromUcfErrorState(ucfObject.getErrorState());
-        this.ictx = new InitializationContext(converter, ctx, fetchAssociations);
+        this.ictx = new InitializationContext(ctx, fetchAssociations);
+        this.localBeans = converter.getLocalBeans();
     }
 
     public void initializeInternal(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 
-        ictx.converter.postProcessResourceObjectRead(ictx.ctx, resourceObject, ictx.fetchAssociations, result);
+        localBeans.resourceObjectConverter
+                .postProcessResourceObjectRead(ictx.ctx, resourceObject, ictx.fetchAssociations, result);
+    }
+
+    @Override
+    public void skipInitialization(Task task, OperationResult result) throws CommonException, SkipProcessingException, EncryptionException {
+        addFakePrimaryIdentifierIfNeeded();
+    }
+
+    private void addFakePrimaryIdentifierIfNeeded() throws SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException {
+        RefinedObjectClassDefinition objectClassDef = ictx.ctx.getObjectClassDefinition();
+        ResourceAttributeContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(resourceObject, objectClassDef);
+        localBeans.fakeIdentifierGenerator
+                .addFakePrimaryIdentifierIfNeeded(attrContainer, primaryIdentifierValue, objectClassDef);
     }
 
     public @NotNull PrismObject<ShadowType> getResourceObject() {
@@ -118,12 +140,10 @@ public class FetchedResourceObject implements InitializableMixin {
     }
 
     private static class InitializationContext {
-        private final ResourceObjectConverter converter;
         private final ProvisioningContext ctx;
         private final boolean fetchAssociations;
 
-        private InitializationContext(ResourceObjectConverter converter, ProvisioningContext ctx, boolean fetchAssociations) {
-            this.converter = converter;
+        private InitializationContext(ProvisioningContext ctx, boolean fetchAssociations) {
             this.ctx = ctx;
             this.fetchAssociations = fetchAssociations;
         }

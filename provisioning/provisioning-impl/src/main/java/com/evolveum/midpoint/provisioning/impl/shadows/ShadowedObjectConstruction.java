@@ -90,7 +90,7 @@ public class ShadowedObjectConstruction {
 
     @NotNull private final CommonBeans beans;
 
-    @NotNull private final LocalBeans localBeans;
+    @NotNull private final ShadowsLocalBeans localBeans;
 
     private ShadowedObjectConstruction(@NotNull ProvisioningContext ctx, @NotNull PrismObject<ShadowType> repoShadow,
             @NotNull PrismObject<ShadowType> resourceObject, @NotNull CommonBeans beans) {
@@ -375,7 +375,7 @@ public class ShadowedObjectConstruction {
         Collection<ResourceAttribute<?>> entitlementIdentifiers = getEntitlementIdentifiers(associationValue, identifierContainer);
         PrismObject<ShadowType> providedResourceObject = identifierContainer.getUserData(ResourceObjectConverter.FULL_SHADOW_KEY);
         if (providedResourceObject != null) {
-            return localBeans.shadowAcquisitionHelper.acquireRepoShadow(ctxEntitlement, providedResourceObject, result);
+            return localBeans.shadowAcquisitionHelper.acquireRepoShadow(ctxEntitlement, providedResourceObject, false, result);
         }
 
         try {
@@ -391,7 +391,7 @@ public class ShadowedObjectConstruction {
             // Try to look up repo shadow again, this time with full resource shadow. When we
             // have searched before we might have only some identifiers. The shadow
             // might still be there, but it may be renamed
-            return localBeans.shadowAcquisitionHelper.acquireRepoShadow(ctxEntitlement, fetchedResourceObject, result);
+            return localBeans.shadowAcquisitionHelper.acquireRepoShadow(ctxEntitlement, fetchedResourceObject, false, result);
 
         } catch (ObjectNotFoundException e) {
             // The entitlement to which we point is not there. Simply ignore this association value.

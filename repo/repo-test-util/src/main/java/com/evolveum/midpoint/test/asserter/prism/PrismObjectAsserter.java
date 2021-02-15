@@ -506,4 +506,20 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         }
         return this;
     }
+
+    public PrismObjectAsserter<O,RA> assertFetchResult(OperationResultStatusType status, String... messageFragments) {
+        OperationResultType fetchResult = object.asObjectable().getFetchResult();
+        if (fetchResult == null) {
+            fail("Expected fetch result with status " + status + ", got none");
+        } else if (fetchResult.getStatus() != status) {
+            fail("Expected fetch result with status " + status + ", got " + fetchResult.getStatus() + ": " + fetchResult.toString());
+        } else {
+            for (String messageFragment : messageFragments) {
+                if (fetchResult.getMessage() == null || !fetchResult.getMessage().contains(messageFragment)) {
+                    fail("Expected message to contain '" + messageFragment + "' but it does not: " + fetchResult.getMessage());
+                }
+            }
+        }
+        return this;
+    }
 }

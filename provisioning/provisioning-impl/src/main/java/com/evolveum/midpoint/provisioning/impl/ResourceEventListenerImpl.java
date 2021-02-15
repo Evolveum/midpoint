@@ -17,6 +17,7 @@ import javax.annotation.PreDestroy;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,7 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
     @Autowired private ChangeProcessingBeans changeProcessingBeans;
     @Autowired private ProvisioningContextFactory provisioningContextFactory;
     @Autowired private ChangeNotificationDispatcher changeNotificationDispatcher;
+    @Autowired private ResourceObjectConverter resourceObjectConverter;
 
     private final AtomicInteger currentSequenceNumber = new AtomicInteger(0);
 
@@ -92,7 +94,7 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
                 currentSequenceNumber.getAndIncrement(),
                 primaryIdentifierRealValue, identifiers,
                 getResourceObject(eventDescription),
-                eventDescription.getObjectDelta(), ctx);
+                eventDescription.getObjectDelta(), ctx, resourceObjectConverter);
         resourceObjectChange.initialize(task, result);
 
         ShadowedExternalChange adoptedChange = new ShadowedExternalChange(resourceObjectChange, false, changeProcessingBeans);

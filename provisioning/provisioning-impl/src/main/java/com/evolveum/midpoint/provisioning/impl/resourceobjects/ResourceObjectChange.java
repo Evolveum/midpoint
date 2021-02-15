@@ -17,8 +17,8 @@ import static java.util.Collections.emptySet;
 import java.util.Collection;
 import java.util.Collections;
 
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.provisioning.impl.shadows.sync.SkipProcessingException;
 import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -120,27 +120,42 @@ public abstract class ResourceObjectChange implements InitializableMixin {
      */
     protected ProvisioningContext context;
 
+    @NotNull protected final ResourceObjectsLocalBeans localBeans;
+
     ResourceObjectChange(int localSequenceNumber, Object primaryIdentifierRealValue,
             @NotNull Collection<ResourceAttribute<?>> identifiers,
-            PrismObject<ShadowType> resourceObject,
-            ObjectDelta<ShadowType> objectDelta,
-            @NotNull ProcessingState processingState) {
+            PrismObject<ShadowType> resourceObject, ObjectDelta<ShadowType> objectDelta,
+            @NotNull ProcessingState processingState, @NotNull ResourceObjectsLocalBeans localBeans) {
         this.localSequenceNumber = localSequenceNumber;
         this.primaryIdentifierRealValue = primaryIdentifierRealValue;
         this.identifiers = identifiers;
         this.resourceObject = resourceObject;
         this.objectDelta = objectDelta;
         this.processingState = processingState;
+        this.localBeans = localBeans;
     }
 
-    ResourceObjectChange(UcfChange ucfChange) {
+    ResourceObjectChange(UcfChange ucfChange, ResourceObjectsLocalBeans localBeans) {
         this(ucfChange.getLocalSequenceNumber(),
                 ucfChange.getPrimaryIdentifierRealValue(),
                 ucfChange.getIdentifiers(),
                 ucfChange.getResourceObject(),
                 ucfChange.getObjectDelta(),
-                ProcessingState.fromUcfErrorState(ucfChange.getErrorState()));
+                ProcessingState.fromUcfErrorState(ucfChange.getErrorState()), localBeans);
         this.objectClassDefinition = ucfChange.getObjectClassDefinition();
+    }
+
+    /**
+     * The meat is in subclasses. (In the future we might pull up common parts here.)
+     */
+    @Override
+    public abstract void initializeInternal(Task task, OperationResult result) throws CommonException, SkipProcessingException,
+            EncryptionException;
+
+    @Override
+    public void skipInitialization(Task task, OperationResult result) throws CommonException, SkipProcessingException,
+            EncryptionException {
+        addFakePrimaryIdentifierIfNeeded();
     }
 
     public void setObjectClassDefinition(RefinedObjectClassDefinition definition) {
@@ -300,20 +315,13 @@ public abstract class ResourceObjectChange implements InitializableMixin {
 
     protected abstract void debugDumpExtra(StringBuilder sb, int indent);
 
-    protected void completeIdentifiers() throws SchemaException {
-        if (processingState.isError()) {
-            // We do not want to mess with identifiers if the state is not an error.
-            addFakePrimaryIdentifierIfNeeded();
-        }
+    protected void freezeIdentifiers() {
         identifiers = Collections.unmodifiableCollection(identifiers);
     }
 
-    private void addFakePrimaryIdentifierIfNeeded() throws SchemaException {
-        if (primaryIdentifierRealValue != null && hasObjectClassDefinition()) {
-            if (getPrimaryIdentifiers().isEmpty()) {
-                identifiers.add(createFakePrimaryIdentifier());
-            }
-        }
+    protected void addFakePrimaryIdentifierIfNeeded() throws SchemaException {
+        localBeans.fakeIdentifierGenerator.addFakePrimaryIdentifierIfNeeded(
+                identifiers, primaryIdentifierRealValue, getCurrentObjectClassDefinition());
     }
 
     /**
@@ -339,7 +347,7 @@ public abstract class ResourceObjectChange implements InitializableMixin {
         if (objectClassDefinition != null) {
             return selectPrimaryIdentifiers(identifiers, objectClassDefinition);
         } else {
-            return emptySet(); // Or should we throw an exception?
+            return emptySet(); // Or should we throw an exception right here?
         }
     }
 
@@ -347,17 +355,6 @@ public abstract class ResourceObjectChange implements InitializableMixin {
         return MiscUtil.extractSingletonRequired(getPrimaryIdentifiers(),
                 () -> new SchemaException("Multiple primary identifiers in " + this),
                 () -> new SchemaException("No primary identifier in " + this));
-    }
-
-    private ResourceAttribute<?> createFakePrimaryIdentifier() throws SchemaException {
-        Collection<? extends RefinedAttributeDefinition<?>> primaryIdDefs = refinedObjectClassDefinition.getPrimaryIdentifiers();
-        RefinedAttributeDefinition<?> primaryIdDef = MiscUtil.extractSingletonRequired(primaryIdDefs,
-                () -> new SchemaException("Multiple primary identifier definitions in " + refinedObjectClassDefinition),
-                () -> new SchemaException("No primary identifier definition in " + refinedObjectClassDefinition));
-        ResourceAttribute<?> primaryId = primaryIdDef.instantiate();
-        //noinspection unchecked
-        ((ResourceAttribute<Object>) primaryId).setRealValue(primaryIdentifierRealValue);
-        return primaryId;
     }
 
     @Override

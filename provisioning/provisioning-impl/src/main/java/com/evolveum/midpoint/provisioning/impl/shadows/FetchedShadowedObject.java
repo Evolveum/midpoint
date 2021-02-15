@@ -1,15 +1,15 @@
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
+import static com.evolveum.midpoint.util.MiscUtil.getClassWithMessage;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType.FETCH_RESULT;
 
 import java.util.Objects;
-
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
 
 import com.google.common.base.MoreObjects;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -62,7 +62,7 @@ public class FetchedShadowedObject implements InitializableMixin {
     /** Information used to initialize this object. */
     @NotNull private final InitializationContext ictx;
 
-    public FetchedShadowedObject(FetchedResourceObject fetchedResourceObject, LocalBeans localBeans, ProvisioningContext ctx) {
+    public FetchedShadowedObject(FetchedResourceObject fetchedResourceObject, ShadowsLocalBeans localBeans, ProvisioningContext ctx) {
         this.resourceObject = fetchedResourceObject.getResourceObject();
         this.primaryIdentifierValue = fetchedResourceObject.getPrimaryIdentifierValue();
         this.processingState = ProcessingState.fromLowerLevelState(fetchedResourceObject.getProcessingState());
@@ -108,37 +108,94 @@ public class FetchedShadowedObject implements InitializableMixin {
         // But at least locate the definition using object classes.
         ProvisioningContext estimatedShadowCtx = ictx.localBeans.shadowCaretaker.reapplyDefinitions(ictx.ctx, resourceObject);
 
-        shadowedObject = shadowResourceObject(estimatedShadowCtx, result);
+        PrismObject<ShadowType> repoShadow;
+        try {
+            repoShadow = ictx.localBeans.shadowAcquisitionHelper
+                    .acquireRepoShadow(estimatedShadowCtx, resourceObject, false, result);
+        } catch (Exception e) {
+            // No need to log stack trace now. It will be logged at the place where the exception is processed.
+            LOGGER.error("Couldn't acquire shadow for {}. Creating shadow in emergency mode. Error: {}", resourceObject, getClassWithMessage(e));
+            shadowedObject = shadowResourceObjectInEmergency(result);
+            throw e;
+        }
+
+        try {
+            // This determines the definitions exactly. Now the repo shadow should have proper kind/intent
+            ProvisioningContext shadowCtx = ictx.localBeans.shadowCaretaker.applyAttributesDefinition(ictx.ctx, repoShadow);
+
+            // TODO: shadowState
+            PrismObject<ShadowType> updatedRepoShadow = ictx.localBeans.shadowManager
+                    .updateShadow(shadowCtx, resourceObject, null, repoShadow, null, result);
+
+            // TODO do we want also to futurize the shadow like in getObject?
+
+            shadowedObject = ictx.localBeans.shadowedObjectConstructionHelper
+                    .constructShadowedObject(shadowCtx, updatedRepoShadow, resourceObject, result);
+
+        } catch (Exception e) {
+            // No need to log stack trace now. It will be logged at the place where the exception is processed.
+            LOGGER.error("Couldn't initialize {}. Continuing with previously acquired repo shadow: {}. Error: {}",
+                    resourceObject, repoShadow, getClassWithMessage(e));
+            shadowedObject = repoShadow;
+            throw e;
+        }
     }
 
     /**
      * The object is somehow flawed. However, we should try to create some shadow.
+     *
+     * To avoid any harm, we are minimalistic here: If a shadow can be found, it is used "as is". No updates here.
+     * If it cannot be found, it is created. We will skip kind/intent/tag determination. Most probably these would not be
+     * correct anyway.
      */
     @Override
     public void skipInitialization(Task task, OperationResult result) throws CommonException, SkipProcessingException,
             EncryptionException {
-        // TODO create the shadow!
+        shadowedObject = shadowResourceObjectInEmergency(result);
     }
 
     @NotNull
-    private PrismObject<ShadowType> shadowResourceObject(ProvisioningContext estimatedShadowCtx,
-            OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException,
+    private PrismObject<ShadowType> shadowResourceObjectInEmergency(OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException,
             CommunicationException, ExpressionEvaluationException, EncryptionException, SecurityViolationException {
+        LOGGER.trace("Acquiring repo shadow in emergency:\n{}", DebugUtil.debugDumpLazily(resourceObject, 1));
+        try {
+            return ictx.localBeans.shadowAcquisitionHelper
+                    .acquireRepoShadow(ictx.ctx, resourceObject, true, result);
+        } catch (Exception e) {
+            shadowedObject = shadowResourceObjectInUltraEmergency(result);
+            throw e;
+        }
+    }
 
-        ShadowAcquisitionHelper shadowAcquisitionHelper = ictx.localBeans.shadowAcquisitionHelper;
-        ShadowedObjectConstructionHelper shadowedObjectConstructionHelper = ictx.localBeans.shadowedObjectConstructionHelper;
-        ShadowManager shadowManager = ictx.localBeans.shadowManager;
+    /**
+     * Something prevents us from creating a shadow (most probably). Let us be minimalistic, and create
+     * a shadow having only the primary identifier.
+     */
+    private PrismObject<ShadowType> shadowResourceObjectInUltraEmergency(OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException,
+            CommunicationException, ExpressionEvaluationException, EncryptionException, SecurityViolationException {
+        PrismObject<ShadowType> minimalResourceObject = minimize(resourceObject);
+        LOGGER.trace("Minimal resource object to acquire a shadow for:\n{}",
+                DebugUtil.debugDumpLazily(minimalResourceObject, 1));
+        if (minimalResourceObject != null) {
+            return ictx.localBeans.shadowAcquisitionHelper
+                    .acquireRepoShadow(ictx.ctx, minimalResourceObject, true, result);
+        } else {
+            return null;
+        }
+    }
 
-        PrismObject<ShadowType> repoShadow = shadowAcquisitionHelper.acquireRepoShadow(estimatedShadowCtx, resourceObject, result);
-
-        // This determines the definitions exactly. Now the repo shadow should have proper kind/intent
-        ProvisioningContext shadowCtx = ictx.localBeans.shadowCaretaker.applyAttributesDefinition(ictx.ctx, repoShadow);
-        // TODO: shadowState
-        PrismObject<ShadowType> updatedRepoShadow = shadowManager.updateShadow(shadowCtx, resourceObject, null, repoShadow, null, result);
-
-        // TODO do we want also to futurize the shadow like in getObject?
-
-        return shadowedObjectConstructionHelper.constructShadowedObject(shadowCtx, updatedRepoShadow, resourceObject, result);
+    private PrismObject<ShadowType> minimize(PrismObject<ShadowType> resourceObject) throws SchemaException,
+            ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        PrismObject<ShadowType> minimized = resourceObject.clone();
+        RefinedObjectClassDefinition ocDef = ictx.ctx.getObjectClassDefinition();
+        ShadowUtil.removeAllAttributesExceptPrimaryIdentifier(minimized, ocDef);
+        if (ShadowUtil.hasPrimaryIdentifier(minimized, ocDef)) {
+            return minimized;
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -221,10 +278,10 @@ public class FetchedShadowedObject implements InitializableMixin {
 
     private static class InitializationContext {
 
-        private final LocalBeans localBeans;
+        private final ShadowsLocalBeans localBeans;
         private final ProvisioningContext ctx;
 
-        private InitializationContext(LocalBeans localBeans, ProvisioningContext ctx) {
+        private InitializationContext(ShadowsLocalBeans localBeans, ProvisioningContext ctx) {
             this.localBeans = localBeans;
             this.ctx = ctx;
         }

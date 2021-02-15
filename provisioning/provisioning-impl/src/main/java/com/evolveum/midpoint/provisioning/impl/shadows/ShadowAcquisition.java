@@ -29,6 +29,8 @@ import javax.xml.namespace.QName;
  * 1. Resource object is found during `searchObjects` call.
  * 2. Resource object appeared as part of live sync or async update process.
  * 3. Resource object was found during entitlement conversion (attribute -> association).
+ *
+ * This class also takes care of _object classification_. I am not sure if this is the right approach, though.
  */
 @Experimental
 class ShadowAcquisition {
@@ -60,16 +62,20 @@ class ShadowAcquisition {
      */
     private PrismObject<ShadowType> resourceObject;
 
+    /** Whether we want to skip the classification. It is used e.g. in emergency shadow creation. */
+    private final boolean skipClassification;
+
     private final CommonBeans beans;
-    private final LocalBeans localBeans;
+    private final ShadowsLocalBeans localBeans;
 
     public ShadowAcquisition(@NotNull ProvisioningContext ctx, @NotNull PrismProperty<?> primaryIdentifier,
             @NotNull QName objectClass, @NotNull ResourceObjectSupplier resourceObjectSupplier,
-            CommonBeans commonBeans) {
+            boolean skipClassification, CommonBeans commonBeans) {
         this.ctx = ctx;
         this.primaryIdentifier = primaryIdentifier;
         this.objectClass = objectClass;
         this.resourceObjectSupplier = resourceObjectSupplier;
+        this.skipClassification = skipClassification;
         this.beans = commonBeans;
         this.localBeans = commonBeans.shadowsFacade.getLocalBeans();
     }
@@ -82,13 +88,16 @@ class ShadowAcquisition {
 
         setOidAndResourceRefToResourceObject(repoShadow);
 
-        if (localBeans.classificationHelper.needsClassification(repoShadow)) {
+        if (skipClassification) {
+            LOGGER.trace("Acquired repo shadow (skipping classification as requested):\n{}", repoShadow.debugDumpLazily(1));
+            return repoShadow;
+        } else if (!localBeans.classificationHelper.needsClassification(repoShadow)) {
+            LOGGER.trace("Acquired repo shadow (already classified):\n{}", repoShadow.debugDumpLazily(1));
+            return repoShadow;
+        } else {
             PrismObject<ShadowType> fixedRepoShadow = classifyAndFixTheShadow(repoShadow, result);
             LOGGER.trace("Acquired repo shadow (after classification and re-reading):\n{}", fixedRepoShadow.debugDumpLazily(1));
             return fixedRepoShadow;
-        } else {
-            LOGGER.trace("Acquired repo shadow (already classified):\n{}", repoShadow.debugDumpLazily(1));
-            return repoShadow;
         }
     }
 

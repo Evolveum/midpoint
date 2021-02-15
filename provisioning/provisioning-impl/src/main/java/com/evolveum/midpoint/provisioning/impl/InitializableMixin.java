@@ -28,6 +28,8 @@ import com.evolveum.midpoint.util.logging.Trace;
  *
  * 1. tells if the item was (successfully) initialized or not,
  * 2. ...
+ *
+ * TODO TODO TODO Re-think the whole lifecycle! It is not consistent today.
  */
 @Experimental
 public interface InitializableMixin extends DebugDumpable {
@@ -84,5 +86,11 @@ public interface InitializableMixin extends DebugDumpable {
 
     ProcessingState getProcessingState();
 
+    /**
+     * NOTE: this is called only after successful initialization or initialization-skip.
+     *
+     * TODO that is quite misleading. This method should provide reasonable results even if the initialization/init-skip
+     *  processing failed!
+     */
     void checkConsistence() throws SchemaException;
 }

@@ -45,7 +45,7 @@ class ShadowAcquisitionHelper {
      * (e.g. change notification).
      */
     public @NotNull PrismObject<ShadowType> acquireRepoShadow(ProvisioningContext ctx,
-            PrismObject<ShadowType> resourceObject, OperationResult result)
+            PrismObject<ShadowType> resourceObject, boolean skipClassification, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
 
@@ -56,16 +56,16 @@ class ShadowAcquisitionHelper {
                 resourceObject.asObjectable().getObjectClass(),
                 () -> "No object class in " + ShadowUtil.shortDumpShadow(resourceObject));
 
-        return new ShadowAcquisition(ctx, primaryIdentifier, objectClass, () -> resourceObject, commonBeans)
+        return new ShadowAcquisition(ctx, primaryIdentifier, objectClass, () -> resourceObject, skipClassification, commonBeans)
                 .execute(result);
     }
 
     public @NotNull PrismObject<ShadowType> acquireRepoShadow(ProvisioningContext ctx, PrismProperty<?> primaryIdentifier,
-            QName objectClass, ResourceObjectSupplier resourceObjectSupplier, OperationResult result) throws SchemaException,
-            ConfigurationException, ObjectNotFoundException, CommunicationException, GenericConnectorException,
-            ExpressionEvaluationException, EncryptionException, SecurityViolationException {
+            QName objectClass, ResourceObjectSupplier resourceObjectSupplier, boolean skipClassification, OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+            GenericConnectorException, ExpressionEvaluationException, EncryptionException, SecurityViolationException {
 
-        return new ShadowAcquisition(ctx, primaryIdentifier, objectClass, resourceObjectSupplier, commonBeans)
+        return new ShadowAcquisition(ctx, primaryIdentifier, objectClass, resourceObjectSupplier, skipClassification, commonBeans)
                 .execute(result);
     }
 }

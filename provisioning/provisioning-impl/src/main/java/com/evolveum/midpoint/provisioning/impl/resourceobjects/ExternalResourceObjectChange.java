@@ -9,8 +9,6 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.util.exception.*;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -20,6 +18,7 @@ import com.evolveum.midpoint.provisioning.util.ProcessingState;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -34,12 +33,11 @@ public class ExternalResourceObjectChange extends ResourceObjectChange {
     private final ProvisioningContext ctx; // the only initialization parameter (TODO ok?)
 
     public ExternalResourceObjectChange(int localSequenceNumber,
-            @NotNull Object primaryIdentifierRealValue,
-            @NotNull Collection<ResourceAttribute<?>> identifiers,
-            PrismObject<ShadowType> resourceObject,
-            ObjectDelta<ShadowType> objectDelta, ProvisioningContext ctx) {
+            @NotNull Object primaryIdentifierRealValue, @NotNull Collection<ResourceAttribute<?>> identifiers,
+            PrismObject<ShadowType> resourceObject, ObjectDelta<ShadowType> objectDelta,
+            ProvisioningContext ctx, ResourceObjectConverter resourceObjectConverter) {
         super(localSequenceNumber, primaryIdentifierRealValue, identifiers, resourceObject, objectDelta,
-                ProcessingState.success());
+                ProcessingState.success(), resourceObjectConverter.getLocalBeans());
         this.ctx = ctx;
     }
 
@@ -57,7 +55,7 @@ public class ExternalResourceObjectChange extends ResourceObjectChange {
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
         this.context = this.ctx;
         updateRefinedObjectClass();
-        completeIdentifiers();
+        freezeIdentifiers();
     }
 
     @Override

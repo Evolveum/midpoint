@@ -14,7 +14,6 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -30,12 +29,12 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Methods that would belong to the ResourceObjectShadowType class but cannot go there
@@ -721,6 +720,15 @@ public class ShadowUtil {
                 path.rest().startsWithName(attributeName);
     }
 
+    public static boolean hasPrimaryIdentifier(PrismObject<ShadowType> shadow,
+            ObjectClassComplexTypeDefinition objectClassDefinition) {
+        ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
+        return attributesContainer != null &&
+                !attributesContainer
+                        .extractAttributesByDefinitions(objectClassDefinition.getPrimaryIdentifiers())
+                        .isEmpty();
+    }
+
     public static boolean hasPrimaryIdentifier(Collection<? extends ResourceAttribute<?>> identifiers,
             ObjectClassComplexTypeDefinition objectClassDefinition) {
         for (ResourceAttribute identifier: identifiers) {
@@ -874,5 +882,19 @@ public class ShadowUtil {
 
     public static boolean isNotKnown(String intent) {
         return !isKnown(intent);
+    }
+
+    public static void removeAllAttributesExceptPrimaryIdentifier(PrismObject<ShadowType> shadow,
+            ObjectClassComplexTypeDefinition ocDef) {
+        ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
+        if (attributesContainer != null) {
+            List<ItemName> attributesToDelete = attributesContainer.getAttributes().stream()
+                    .map(Item::getElementName)
+                    .filter(attrName -> !ocDef.isPrimaryIdentifier(attrName))
+                    .collect(Collectors.toList());
+            for (ItemName attrName : attributesToDelete) {
+                attributesContainer.getValue().removeProperty(attrName);
+            }
+        }
     }
 }

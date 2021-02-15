@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  */
 @Experimental
 @Component
-class LocalBeans {
+class ShadowsLocalBeans {
 
     @Autowired AccessChecker accessChecker;
     @Autowired ShadowedObjectConstructionHelper shadowedObjectConstructionHelper;

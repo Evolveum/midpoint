@@ -60,15 +60,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  *
  * Responsibilities:
- *     protected objects
- *     simulated activation
- *     script execution
- *     avoid duplicate values
- *     attributes returned by default/not returned by default
+ * 1. protected objects
+ * 2. simulated activation
+ * 3. script execution
+ * 4. avoid duplicate values
+ * 5. attributes returned by default/not returned by default
  *
  * Limitations:
- *     must NOT access repository (only indirectly via {@link ResourceObjectReferenceResolver})
- *     does not know about OIDs
+ * 1. must NOT access repository (only indirectly via {@link ResourceObjectReferenceResolver})
+ * 2. does not know about OIDs
  *
  * @author Katarina Valalikova
  * @author Radovan Semancik
@@ -94,6 +94,7 @@ public class ResourceObjectConverter {
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
     @Autowired private Tracer tracer;
     @Autowired private ExpressionFactory expressionFactory;
+    @Autowired private ResourceObjectsLocalBeans localBeans;
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectConverter.class);
 
@@ -2581,5 +2582,9 @@ public class ResourceObjectConverter {
 
     public ShadowCaretaker getShadowCaretaker() {
         return shadowCaretaker;
+    }
+
+    public ResourceObjectsLocalBeans getLocalBeans() {
+        return localBeans;
     }
 }

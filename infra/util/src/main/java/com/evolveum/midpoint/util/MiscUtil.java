@@ -989,4 +989,12 @@ public class MiscUtil {
             throw new IllegalArgumentException(Strings.lenientFormat(template, arguments));
         }
     }
+
+    public static String getClassWithMessage(Throwable e) {
+        if (e == null) {
+            return null;
+        } else {
+            return e.getClass().getSimpleName() + ": " + e.getMessage();
+        }
+    }
 }

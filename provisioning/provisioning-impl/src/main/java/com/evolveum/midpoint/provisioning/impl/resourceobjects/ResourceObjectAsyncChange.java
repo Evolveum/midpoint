@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfAsyncUpdateChange;
 import com.evolveum.midpoint.schema.AcknowledgementSink;
@@ -16,8 +18,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Asynchronous change represented at the level of resource object converter, i.e. completely processed except
@@ -32,25 +32,25 @@ public class ResourceObjectAsyncChange extends ResourceObjectChange implements A
     /** Where to send acknowledgements to. */
     @NotNull private final AcknowledgementSink acknowledgementSink;
 
-    @NotNull private final InitializationContext initializationContext;
+    @NotNull private final InitializationContext ictx;
 
     public ResourceObjectAsyncChange(@NotNull UcfAsyncUpdateChange ucfAsyncUpdateChange,
             @NotNull ResourceObjectConverter converter, @NotNull ProvisioningContext ctx) {
-        super(ucfAsyncUpdateChange);
+        super(ucfAsyncUpdateChange, converter.getLocalBeans());
         this.notificationOnly = ucfAsyncUpdateChange.isNotificationOnly();
         this.acknowledgementSink = ucfAsyncUpdateChange;
-        this.initializationContext = new InitializationContext(converter, ctx);
+        this.ictx = new InitializationContext(ctx);
     }
 
     @Override
     public void initializeInternal(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException, SecurityViolationException {
 
-        determineProvisioningContext(initializationContext.originalCtx, task);
+        determineProvisioningContext(ictx.originalCtx, task);
         updateRefinedObjectClass();
         setResourceRefIfMissing(context.getResourceOid()); // TODO why not in other kinds of changes (LS, EXT)?
-        postProcessResourceObjectIfPresent(initializationContext.converter, result);
-        completeIdentifiers();
+        postProcessResourceObjectIfPresent(localBeans.resourceObjectConverter, result);
+        freezeIdentifiers();
     }
 
     private void postProcessResourceObjectIfPresent(ResourceObjectConverter converter, OperationResult result)
@@ -98,11 +98,9 @@ public class ResourceObjectAsyncChange extends ResourceObjectChange implements A
 
     private static class InitializationContext {
 
-        private final ResourceObjectConverter converter;
         private final ProvisioningContext originalCtx;
 
-        private InitializationContext(ResourceObjectConverter converter, ProvisioningContext originalCtx) {
-            this.converter = converter;
+        private InitializationContext(ProvisioningContext originalCtx) {
             this.originalCtx = originalCtx;
         }
     }

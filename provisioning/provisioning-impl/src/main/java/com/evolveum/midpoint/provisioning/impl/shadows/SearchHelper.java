@@ -66,7 +66,7 @@ class SearchHelper {
     @Autowired private ProvisioningContextFactory ctxFactory;
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private DefinitionsHelper definitionsHelper;
-    @Autowired private LocalBeans localBeans;
+    @Autowired private ShadowsLocalBeans localBeans;
 
     public SearchResultMetadata searchObjectsIterative(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<ShadowType> handler,
@@ -128,9 +128,9 @@ class SearchHelper {
 
         ResourceObjectHandler resultHandler = (FetchedResourceObject fetchedObject, OperationResult objResult) -> {
 
-            FetchedShadowedObject adopted = new FetchedShadowedObject(fetchedObject, localBeans, ctx);
-            adopted.initialize(ctx.getTask(), objResult);
-            PrismObject<ShadowType> resultShadow = adopted.getResultingObject(ucfErrorReportingMethod);
+            FetchedShadowedObject fetchedShadowedObject = new FetchedShadowedObject(fetchedObject, localBeans, ctx);
+            fetchedShadowedObject.initialize(ctx.getTask(), objResult);
+            PrismObject<ShadowType> resultShadow = fetchedShadowedObject.getResultingObject(ucfErrorReportingMethod);
 
             try {
                 return handler.handle(resultShadow, objResult);

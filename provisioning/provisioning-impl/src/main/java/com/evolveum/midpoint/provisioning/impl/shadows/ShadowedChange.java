@@ -86,7 +86,7 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
 
     @NotNull protected final ChangeProcessingBeans beans;
 
-    @NotNull protected final LocalBeans localBeans;
+    @NotNull protected final ShadowsLocalBeans localBeans;
 
     // TODO ???
     protected final ObjectDelta<ShadowType> objectDelta;
@@ -284,7 +284,7 @@ public class ShadowedChange<ROC extends ResourceObjectChange> implements Initial
         QName objectClass = getObjectClassDefinition().getTypeName();
 
         repoShadow = localBeans.shadowAcquisitionHelper.acquireRepoShadow(context, primaryIdentifier, objectClass,
-                this::createResourceObjectFromChange, result);
+                this::createResourceObjectFromChange, false, result); // TODO skip classification if error
     }
 
     @NotNull
