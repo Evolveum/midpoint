@@ -15,7 +15,7 @@ import java.util.UUID;
 public class MLookupTableRow {
 
     public UUID ownerOid;
-    public int rowId;
+    public int cid;
     public String rowKey;
     public String labelNorm;
     public String labelOrig;

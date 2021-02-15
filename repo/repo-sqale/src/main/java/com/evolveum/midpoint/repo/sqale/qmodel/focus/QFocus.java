@@ -34,26 +34,6 @@ public class QFocus<T extends MFocus> extends QObject<T> {
     public static final ColumnMetadata ROLE_TYPE =
             ColumnMetadata.named("roleType").ofType(Types.VARCHAR).withSize(255);
 
-    public static final ColumnMetadata ADMINISTRATIVE_STATUS =
-            ColumnMetadata.named("administrativeStatus").ofType(Types.INTEGER);
-    public static final ColumnMetadata EFFECTIVE_STATUS =
-            ColumnMetadata.named("effectiveStatus").ofType(Types.INTEGER);
-    public static final ColumnMetadata ENABLE_TIMESTAMP =
-            ColumnMetadata.named("enableTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
-    public static final ColumnMetadata DISABLE_TIMESTAMP =
-            ColumnMetadata.named("disableTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
-    public static final ColumnMetadata DISABLE_REASON =
-            ColumnMetadata.named("disableReason").ofType(Types.VARCHAR).withSize(255);
-    public static final ColumnMetadata ARCHIVE_TIMESTAMP =
-            ColumnMetadata.named("archiveTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
-    public static final ColumnMetadata VALID_FROM =
-            ColumnMetadata.named("validFrom").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
-    public static final ColumnMetadata VALID_TO =
-            ColumnMetadata.named("validTo").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
-    public static final ColumnMetadata VALIDITY_CHANGE_TIMESTAMP =
-            ColumnMetadata.named("validityChangeTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
-    public static final ColumnMetadata VALIDITY_STATUS =
-            ColumnMetadata.named("validityStatus").ofType(Types.INTEGER);
     public static final ColumnMetadata COST_CENTER =
             ColumnMetadata.named("costCenter").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata EMAIL_ADDRESS =
@@ -72,28 +52,33 @@ public class QFocus<T extends MFocus> extends QObject<T> {
             ColumnMetadata.named("telephoneNumber").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata TIMEZONE =
             ColumnMetadata.named("timezone").ofType(Types.VARCHAR).withSize(255);
+    // credential columns
     public static final ColumnMetadata PASSWORD_CREATE_TIMESTAMP =
             ColumnMetadata.named("passwordCreateTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
     public static final ColumnMetadata PASSWORD_MODIFY_TIMESTAMP =
             ColumnMetadata.named("passwordModifyTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
+    // activation columns
+    public static final ColumnMetadata ADMINISTRATIVE_STATUS =
+            ColumnMetadata.named("administrativeStatus").ofType(Types.INTEGER);
+    public static final ColumnMetadata EFFECTIVE_STATUS =
+            ColumnMetadata.named("effectiveStatus").ofType(Types.INTEGER);
+    public static final ColumnMetadata ENABLE_TIMESTAMP =
+            ColumnMetadata.named("enableTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
+    public static final ColumnMetadata DISABLE_TIMESTAMP =
+            ColumnMetadata.named("disableTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
+    public static final ColumnMetadata DISABLE_REASON =
+            ColumnMetadata.named("disableReason").ofType(Types.VARCHAR).withSize(255);
+    public static final ColumnMetadata VALIDITY_STATUS =
+            ColumnMetadata.named("validityStatus").ofType(Types.INTEGER);
+    public static final ColumnMetadata VALID_FROM =
+            ColumnMetadata.named("validFrom").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
+    public static final ColumnMetadata VALID_TO =
+            ColumnMetadata.named("validTo").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
+    public static final ColumnMetadata VALIDITY_CHANGE_TIMESTAMP =
+            ColumnMetadata.named("validityChangeTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
+    public static final ColumnMetadata ARCHIVE_TIMESTAMP =
+            ColumnMetadata.named("archiveTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
 
-    public final NumberPath<Integer> administrativeStatus =
-            createInteger("administrativeStatus", ADMINISTRATIVE_STATUS);
-    public final NumberPath<Integer> effectiveStatus =
-            createInteger("effectiveStatus", EFFECTIVE_STATUS);
-    public final DateTimePath<Instant> enableTimestamp =
-            createInstant("enableTimestamp", ENABLE_TIMESTAMP);
-    public final DateTimePath<Instant> disableTimestamp =
-            createInstant("disableTimestamp", DISABLE_TIMESTAMP);
-    public final StringPath disableReason = createString("disableReason", DISABLE_REASON);
-    public final DateTimePath<Instant> archiveTimestamp =
-            createInstant("archiveTimestamp", ARCHIVE_TIMESTAMP);
-    public final DateTimePath<Instant> validFrom = createInstant("validFrom", VALID_FROM);
-    public final DateTimePath<Instant> validTo = createInstant("validTo", VALID_TO);
-    public final DateTimePath<Instant> validityChangeTimestamp =
-            createInstant("validityChangeTimestamp", VALIDITY_CHANGE_TIMESTAMP);
-    public final NumberPath<Integer> validityStatus =
-            createInteger("validityStatus", VALIDITY_STATUS);
     public final StringPath costCenter = createString("costCenter", COST_CENTER);
     public final StringPath emailAddress = createString("emailAddress", EMAIL_ADDRESS);
     public final ArrayPath<byte[], Byte> photo = createByteArray("photo", PHOTO);
@@ -104,10 +89,29 @@ public class QFocus<T extends MFocus> extends QObject<T> {
             createString("preferredLanguage", PREFERRED_LANGUAGE);
     public final StringPath telephoneNumber = createString("telephoneNumber", TELEPHONE_NUMBER);
     public final StringPath timezone = createString("timezone", TIMEZONE);
+    // credential attributes
     public final DateTimePath<Instant> passwordCreateTimestamp =
             createInstant("passwordCreateTimestamp", PASSWORD_CREATE_TIMESTAMP);
     public final DateTimePath<Instant> passwordModifyTimestamp =
             createInstant("passwordModifyTimestamp", PASSWORD_MODIFY_TIMESTAMP);
+    // activation attributes
+    public final NumberPath<Integer> administrativeStatus =
+            createInteger("administrativeStatus", ADMINISTRATIVE_STATUS);
+    public final NumberPath<Integer> effectiveStatus =
+            createInteger("effectiveStatus", EFFECTIVE_STATUS);
+    public final DateTimePath<Instant> enableTimestamp =
+            createInstant("enableTimestamp", ENABLE_TIMESTAMP);
+    public final DateTimePath<Instant> disableTimestamp =
+            createInstant("disableTimestamp", DISABLE_TIMESTAMP);
+    public final StringPath disableReason = createString("disableReason", DISABLE_REASON);
+    public final NumberPath<Integer> validityStatus =
+            createInteger("validityStatus", VALIDITY_STATUS);
+    public final DateTimePath<Instant> validFrom = createInstant("validFrom", VALID_FROM);
+    public final DateTimePath<Instant> validTo = createInstant("validTo", VALID_TO);
+    public final DateTimePath<Instant> validityChangeTimestamp =
+            createInstant("validityChangeTimestamp", VALIDITY_CHANGE_TIMESTAMP);
+    public final DateTimePath<Instant> archiveTimestamp =
+            createInstant("archiveTimestamp", ARCHIVE_TIMESTAMP);
 
     public QFocus(Class<? extends T> type, String variable) {
         this(type, variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

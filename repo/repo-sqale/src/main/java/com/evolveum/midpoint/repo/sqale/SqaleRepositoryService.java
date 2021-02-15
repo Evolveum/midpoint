@@ -538,6 +538,7 @@ public class SqaleRepositoryService implements RepositoryService {
             var queryContext = SqaleQueryContext.from(type, transformerContext, sqlRepoContext);
             SearchResultList<T> result =
                     sqlQueryExecutor.list(queryContext, query, options);
+            // TODO see the commented code from old repo lower, problems for each object must be caught
             //noinspection unchecked
             return result.map(
                     o -> (PrismObject<T>) o.asPrismObject());
