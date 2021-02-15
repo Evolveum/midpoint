@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.component.data.column;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
@@ -21,6 +22,7 @@ import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -56,20 +58,33 @@ public class ColumnResultPanel extends BasePanel<OperationResult> {
         LoadableModel<CompositedIcon> compositedIcon = new LoadableModel<CompositedIcon>() {
             @Override
             protected CompositedIcon load() {
-                OperationResult status = getModelObject();
-                if (status == null || status.getStatus() == null) {
+                OperationResult result = getModelObject();
+                if (result == null) {
                     return null;
                 }
-                OperationResultStatusPresentationProperties statusProperties = OperationResultStatusPresentationProperties.parseOperationalResultStatus(
-                        status.getStatus());
-                String basicIconCssClass = statusProperties.getIcon() + " fa-lg";
-                String title = getPageBase().createStringResource(statusProperties.getStatusLabelKey()).getString();
+
+                String basicIconCssClass;
+                String title;
+
+                if (result.isEmpty()) {
+                    DisplayType displayType = getDisplayForEmptyResult();
+                    if (displayType == null || displayType.getIcon() == null || displayType.getIcon().getCssClass() == null) {
+                        return null;
+                    }
+                    basicIconCssClass = displayType.getIcon().getCssClass();
+                    title = WebComponentUtil.getTranslatedPolyString(displayType.getTooltip());
+                } else {
+                    OperationResultStatusPresentationProperties statusProperties = OperationResultStatusPresentationProperties.parseOperationalResultStatus(
+                            result.getStatus());
+                    basicIconCssClass = statusProperties.getIcon() + " fa-lg";
+                    title = getPageBase().createStringResource(statusProperties.getStatusLabelKey()).getString();
+                }
 
                 CompositedIconBuilder builder = new CompositedIconBuilder();
                 String additionalCssClass = "";
 
                 Throwable cause = RepoCommonUtils.getResultExceptionIfExists(getModelObject());
-                if (status.getStatus().equals(OperationResultStatus.IN_PROGRESS) &&
+                if (OperationResultStatus.IN_PROGRESS.equals(result.getStatus()) &&
                         (cause instanceof CommunicationException) && isProjectionResult()){
                     IconType icon = new IconType();
                     icon.setCssClass("fa fa-info-circle " + GuiStyleConstants.BLUE_COLOR);
@@ -109,5 +124,9 @@ public class ColumnResultPanel extends BasePanel<OperationResult> {
 
     protected boolean isProjectionResult() {
         return false;
+    }
+
+    protected DisplayType getDisplayForEmptyResult(){
+        return null;
     }
 }

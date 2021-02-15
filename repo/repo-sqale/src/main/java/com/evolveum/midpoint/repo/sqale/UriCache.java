@@ -25,6 +25,14 @@ import com.evolveum.midpoint.util.QNameUtil;
  */
 public class UriCache {
 
+    /**
+     * Unknown id placeholder, not actually in DB but returned when URI is not in the cache
+     * and returning `null` or throwing exception would not make sense.
+     * Typical case is using it for query predicate when searching for unknown URI should result
+     * in a condition comparing URI ID attribute (e.g. relation_id) to id that will not be found.
+     */
+    public static final int UNKNOWN_ID = -1;
+
     private final Map<Integer, String> idToUri = new HashMap<>();
     private final Map<String, Integer> uriToId = new HashMap<>();
 
@@ -41,6 +49,10 @@ public class UriCache {
     }
 
     private void updateMaps(MUri row) {
+        if (row.id == UNKNOWN_ID) {
+            throw new AssertionError("URI with ID=" + UNKNOWN_ID + " MUST NOT be in the database!");
+        }
+
         idToUri.put(row.id, row.uri);
         uriToId.put(row.uri, row.id);
     }
@@ -50,9 +62,14 @@ public class UriCache {
         return getId(QNameUtil.qNameToUri(qName));
     }
 
+    /** Returns ID for QName, possibly {@link #UNKNOWN_ID} - does not work with underlying database. */
+    public @Nullable Integer searchId(@NotNull QName qName) {
+        return searchId(QNameUtil.qNameToUri(qName));
+    }
+
     /** Returns ID for QName or throws exception - does not work with underlying database. */
-    public @NotNull Integer getIdMandatory(@NotNull QName qName) {
-        return getIdMandatory(QNameUtil.qNameToUri(qName));
+    public @NotNull Integer resolveId(@NotNull QName qName) {
+        return resolveId(QNameUtil.qNameToUri(qName));
     }
 
     /** Returns ID for string, possibly {@code null} - does not work with underlying database. */
@@ -60,8 +77,13 @@ public class UriCache {
         return uriToId.get(uri);
     }
 
+    /** Returns ID for string or {@link #UNKNOWN_ID} - does not work with underlying database. */
+    public @NotNull Integer searchId(@NotNull String uri) {
+        return uriToId.getOrDefault(uri, UNKNOWN_ID);
+    }
+
     /** Returns ID for QName or throws exception - does not work with underlying database. */
-    public @NotNull Integer getIdMandatory(@NotNull String uri) {
+    public @NotNull Integer resolveId(@NotNull String uri) {
         return Objects.requireNonNull(getId(uri), () -> "URI not cached: " + uri);
     }
 

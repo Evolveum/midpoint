@@ -20,6 +20,7 @@ import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.sqale.qmodel.QDashboardMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.QObjectCollectionMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorHostMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
@@ -97,7 +98,8 @@ public class SqaleRepositoryBeanConfig {
                 // ordered alphabetically here
                 .register(AbstractRoleType.COMPLEX_TYPE, QAbstractRoleMapping.INSTANCE)
                 .register(ArchetypeType.COMPLEX_TYPE, QArchetypeMapping.INSTANCE)
-                .register(AssignmentHolderType.COMPLEX_TYPE, QObjectMapping.INSTANCE)
+                .register(AssignmentHolderType.COMPLEX_TYPE, QAssignmentHolderMapping.INSTANCE)
+                .register(AssignmentType.COMPLEX_TYPE, QAssignmentMapping.INSTANCE)
                 .register(DashboardType.COMPLEX_TYPE, QDashboardMapping.INSTANCE)
                 .register(FocusType.COMPLEX_TYPE, QFocusMapping.INSTANCE)
                 .register(ConnectorType.COMPLEX_TYPE, QConnectorMapping.INSTANCE)
@@ -105,7 +107,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(LookupTableType.COMPLEX_TYPE, QLookupTableMapping.INSTANCE)
                 .register(LookupTableRowType.COMPLEX_TYPE, QLookupTableRowMapping.INSTANCE)
                 .register(NodeType.COMPLEX_TYPE, QNodeMapping.INSTANCE)
-                .register(ObjectType.COMPLEX_TYPE, QAssignmentHolderMapping.INSTANCE)
+                .register(ObjectType.COMPLEX_TYPE, QObjectMapping.INSTANCE)
                 .register(ObjectCollectionType.COMPLEX_TYPE, QObjectCollectionMapping.INSTANCE)
                 .register(ReportType.COMPLEX_TYPE, QReportMapping.INSTANCE)
                 .register(ReportDataType.COMPLEX_TYPE, QReportOutputMapping.INSTANCE)

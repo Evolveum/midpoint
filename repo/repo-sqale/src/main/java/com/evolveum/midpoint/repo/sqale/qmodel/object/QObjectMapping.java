@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
 import static com.evolveum.midpoint.repo.sqlbase.mapping.item.SimpleItemFilterProcessor.uuidMapper;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_TENANT_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.*;
 
 import java.util.Collection;
 
@@ -21,6 +21,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignment;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.mapping.item.PolyStringItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.mapping.item.TableRelationResolver;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
@@ -46,25 +47,24 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         super(tableName, defaultAliasName, schemaType, queryType);
 
         addItemMapping(PrismConstants.T_ID, uuidMapper(path(q -> q.oid)));
-        addItemMapping(ObjectType.F_NAME,
+        addItemMapping(F_NAME,
                 PolyStringItemFilterProcessor.mapper(
                         path(q -> q.nameOrig), path(q -> q.nameNorm)));
 
-        /* TODO nested-mapping
-        addItemMapping(ObjectType.F_METADATA,
-                PolyStringItemFilterProcessor.mapper(
-                        path(q -> q.nameOrig), path(q -> q.nameNorm)));
-         */
         addItemMapping(F_TENANT_REF, RefItemFilterProcessor.mapper(
                 path(q -> q.tenantRefTargetOid),
                 path(q -> q.tenantRefTargetType),
                 path(q -> q.tenantRefRelationId)));
+        // version is not mapped for queries or deltas, it's managed by repo explicitly
 
         // TODO mappings
-        // TODO is version mapped for queries at all?
 
-        addRelationMapping(AssignmentHolderType.F_ASSIGNMENT,
-                QAssignment.class, joinOn((o, a) -> o.oid.eq(a.ownerOid)));
+        addRelationResolver(F_METADATA,
+                new TableRelationResolver<>(QAssignment.class,
+                        joinOn((o, a) -> o.oid.eq(a.ownerOid))));
+        addRelationResolver(AssignmentHolderType.F_ASSIGNMENT,
+                new TableRelationResolver<>(QAssignment.class,
+                        joinOn((o, a) -> o.oid.eq(a.ownerOid))));
     }
 
     @Override

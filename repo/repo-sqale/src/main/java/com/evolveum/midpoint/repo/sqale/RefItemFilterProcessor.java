@@ -85,14 +85,14 @@ public class RefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
         }
         if (ref.getRelation() == null) {
             Integer defaultRelationId = ((SqaleRepoContext) context.sqlRepoContext())
-                    .getCachedUriId(context.prismContext().getDefaultRelation());
+                    .searchCachedUriId(context.prismContext().getDefaultRelation());
             predicate = ExpressionUtils.and(predicate,
                     predicateWithNotTreated(relationIdPath, relationIdPath.eq(defaultRelationId)));
         } else if (ref.getRelation().equals(PrismConstants.Q_ANY)) {
             // no additional predicate needed
         } else {
             Integer relationId = ((SqaleRepoContext) context.sqlRepoContext())
-                    .getCachedUriId(ref.getRelation());
+                    .searchCachedUriId(ref.getRelation());
             predicate = ExpressionUtils.and(predicate,
                     predicateWithNotTreated(relationIdPath, relationIdPath.eq(relationId)));
         }

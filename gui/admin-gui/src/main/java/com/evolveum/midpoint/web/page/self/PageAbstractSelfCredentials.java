@@ -188,12 +188,13 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
     }
 
     protected boolean shouldLoadAccounts(MyPasswordsDto dto) {
-        return dto.getPropagation() == null || CredentialsPropagationUserControlType.USER_CHOICE == dto.getPropagation();
+        return dto.getPropagation() == null || CredentialsPropagationUserControlType.USER_CHOICE.equals(dto.getPropagation())
+                || CredentialsPropagationUserControlType.ONLY_MAPPING.equals(dto.getPropagation())
+                || CredentialsPropagationUserControlType.IDENTITY_MANAGER_MANDATORY.equals(dto.getPropagation());
     }
 
     private void addAccountsToMyPasswordsDto(MyPasswordsDto dto, List<PrismReferenceValue> linkReferences, Task task, OperationResult result) {
         final Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
-                .noFetch()
                 .item(ShadowType.F_RESOURCE_REF).resolve()
                 .item(ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE,
                         ResourceObjectTypeDefinitionType.F_SECURITY_POLICY_REF)).resolve()
@@ -302,6 +303,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         if (resource != null) {
             ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource.asPrismObject(), shadowType.getKind(), shadowType.getIntent());
             passwordAccountDto.setPasswordCapabilityEnabled(ResourceTypeUtil.isPasswordCapabilityEnabled(resource, resourceObjectTypeDefinitionType));
+            passwordAccountDto.setMaintenanceState(ResourceTypeUtil.isInMaintenance(resource));
             try {
                 RefinedObjectClassDefinition rOCDef = getModelInteractionService().getEditObjectClassDefinition(account,
                         resource.asPrismObject(), AuthorizationPhaseType.REQUEST, task, result);
@@ -469,10 +471,22 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                 && model.getObject().getPropagation().equals(CredentialsPropagationUserControlType.MAPPING)) {
             selectedAccountList.addAll(passwordAccountDtos);
         } else {
+            boolean midpointAccountSelected = false;
+            List<PasswordAccountDto> selectedWithOutbound = new ArrayList<>();
             for (PasswordAccountDto passwordAccountDto : passwordAccountDtos) {
-                if (passwordAccountDto.getCssClass().equals(ChangePasswordPanel.SELECTED_ACCOUNT_ICON_CSS)) {
-                    selectedAccountList.add(passwordAccountDto);
+                if (passwordAccountDto.isMidpoint()){
+                    midpointAccountSelected = passwordAccountDto.isSelected();
                 }
+                if (passwordAccountDto.isSelected()) {
+                    if(!passwordAccountDto.isPasswordOutbound()) {
+                        selectedAccountList.add(passwordAccountDto);
+                    } else {
+                        selectedWithOutbound.add(passwordAccountDto);
+                    }
+                }
+            }
+            if (!midpointAccountSelected) {
+                selectedAccountList.addAll(selectedWithOutbound);
             }
         }
         return selectedAccountList;
