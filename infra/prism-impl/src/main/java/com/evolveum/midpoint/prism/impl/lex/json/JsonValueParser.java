@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismNamespaceContext;
@@ -17,6 +18,7 @@ import com.evolveum.midpoint.prism.impl.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.impl.xnode.XNodeDefinition;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.ValueParser;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -63,7 +65,10 @@ public class JsonValueParser<T> implements ValueParser<T> , Serializable {
             return (T) parseItemPath();
         } if(QName.class.isAssignableFrom(clazz)) {
             return (T) XNodeDefinition.resolveQName(getStringValue(), context);
+        } if(XMLGregorianCalendar.class.isAssignableFrom(clazz)) {
+            return (T) XmlTypeConverter.createXMLGregorianCalendar(getStringValue());
         }
+
         ObjectReader r = mapper.readerFor(clazz);
 
         try {
