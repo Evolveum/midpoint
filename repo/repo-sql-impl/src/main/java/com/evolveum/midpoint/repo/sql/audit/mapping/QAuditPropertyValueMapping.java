@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,14 +10,14 @@ import static com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditPropertyValu
 
 import com.evolveum.midpoint.repo.sql.audit.beans.MAuditPropertyValue;
 import com.evolveum.midpoint.repo.sql.audit.querymodel.QAuditPropertyValue;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPropertyType;
 
 /**
  * Mapping for {@link QAuditPropertyValue}.
  */
 public class QAuditPropertyValueMapping
-        extends QueryModelMapping<AuditEventRecordPropertyType, QAuditPropertyValue, MAuditPropertyValue> {
+        extends QueryTableMapping<AuditEventRecordPropertyType, QAuditPropertyValue, MAuditPropertyValue> {
 
     public static final String DEFAULT_ALIAS_NAME = "apv";
 

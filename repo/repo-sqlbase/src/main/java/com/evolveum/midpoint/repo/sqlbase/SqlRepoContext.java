@@ -18,7 +18,7 @@ import com.querydsl.sql.dml.SQLDeleteClause;
 import com.querydsl.sql.dml.SQLInsertClause;
 import com.querydsl.sql.dml.SQLUpdateClause;
 
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.QuerydslUtils;
@@ -55,13 +55,13 @@ public class SqlRepoContext {
         return new SQLQuery<>(conn, querydslConfig);
     }
 
-    public <DR, DQ extends FlexibleRelationalPathBase<DR>> QueryModelMapping<?, DQ, DR>
+    public <DR, DQ extends FlexibleRelationalPathBase<DR>> QueryTableMapping<?, DQ, DR>
     getMappingByQueryType(Class<DQ> queryType) {
         return mappingRegistry.getByQueryType(queryType);
     }
 
     // QM is potentially narrowed expected subtype of QueryModelMapping
-    public <S, Q extends FlexibleRelationalPathBase<R>, R, QM extends QueryModelMapping<S, Q, R>>
+    public <S, Q extends FlexibleRelationalPathBase<R>, R, QM extends QueryTableMapping<S, Q, R>>
     QM getMappingBySchemaType(Class<S> schemaType) {
         return mappingRegistry.getBySchemaType(schemaType);
     }

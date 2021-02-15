@@ -6,28 +6,21 @@
  */
 package com.evolveum.midpoint.repo.sqale;
 
-import javax.xml.namespace.QName;
-
 import com.querydsl.sql.SQLQuery;
-import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.path.CanonicalItemPath;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.qmodel.SqaleModelMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.SqlTransformerContext;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 // TODO change the parametric bounds together with change for SqaleObjectMapping
-public class SqaleQueryContext<S, Q extends QObject<R>, R extends MObject>
+public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         extends SqlQueryContext<S, Q, R> {
 
-    public static <S, Q extends QObject<R>, R extends MObject> SqaleQueryContext<S, Q, R> from(
+    public static <S, Q extends FlexibleRelationalPathBase<R>, R> SqaleQueryContext<S, Q, R> from(
             Class<S> schemaType, SqlTransformerContext transformerContext, SqlRepoContext sqlRepoContext) {
 
         SqaleModelMapping<S, Q, R> rootMapping = sqlRepoContext.getMappingBySchemaType(schemaType);
@@ -51,17 +44,7 @@ public class SqaleQueryContext<S, Q extends QObject<R>, R extends MObject>
 
     @Override
     protected SqlTransformer<S, Q, R> createTransformer() {
-        return mapping.createTransformer(transformerContext);
-    }
-
-    @Override
-    public <T> Class<? extends T> qNameToSchemaClass(@NotNull QName qName) {
-        return transformerContext.qNameToSchemaClass(qName);
-    }
-
-    @Override
-    public CanonicalItemPath createCanonicalItemPath(@NotNull ItemPath itemPath) {
-        return null;
+        return entityPathMapping.createTransformer(transformerContext);
     }
 
     /**
@@ -71,9 +54,9 @@ public class SqaleQueryContext<S, Q extends QObject<R>, R extends MObject>
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     protected <DQ extends FlexibleRelationalPathBase<DR>, DR> SqlQueryContext<?, DQ, DR>
-    deriveNew(DQ newPath, QueryModelMapping<?, DQ, DR> newMapping) {
+    deriveNew(DQ newPath, QueryTableMapping<?, DQ, DR> newMapping) {
         return (SqlQueryContext<?, DQ, DR>) new SqaleQueryContext(
-                (QObject<?>) newPath, (SqaleModelMapping<?, ?, ?>) newMapping,
+                newPath, (SqaleModelMapping<?, ?, ?>) newMapping,
                 transformerContext, sqlRepoContext, sqlQuery);
     }
 }

@@ -23,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
@@ -31,7 +30,7 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.sqlbase.filtering.FilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.filtering.ObjectFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
+import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlDetailFetchMapper;
 import com.evolveum.midpoint.repo.sqlbase.mapping.SqlTransformer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
@@ -75,8 +74,8 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
 
     protected final SQLQuery<?> sqlQuery;
 
-    protected final Q path;
-    protected final QueryModelMapping<S, Q, R> mapping;
+    protected final Q entityPath;
+    protected final QueryTableMapping<S, Q, R> entityPathMapping;
     protected final SqlRepoContext sqlRepoContext;
     protected final SqlTransformerContext transformerContext;
 
@@ -87,12 +86,12 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
 
     protected SqlQueryContext(
             Q entityPath,
-            QueryModelMapping<S, Q, R> mapping,
+            QueryTableMapping<S, Q, R> mapping,
             SqlRepoContext sqlRepoContext,
             SqlTransformerContext transformerContext,
             SQLQuery<?> query) {
-        this.path = entityPath;
-        this.mapping = mapping;
+        this.entityPath = entityPath;
+        this.entityPathMapping = mapping;
         this.sqlRepoContext = sqlRepoContext;
         this.transformerContext = transformerContext;
         this.sqlQuery = query;
@@ -160,7 +159,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
 
     /**
      * Returns page of results with each row represented by a Tuple containing {@link R} and then
-     * individual paths for extension columns, see {@code extensionColumns} in {@link QueryModelMapping}.
+     * individual paths for extension columns, see {@code extensionColumns} in {@link QueryTableMapping}.
      */
     public PageOf<Tuple> executeQuery(Connection conn) throws QueryException {
         SQLQuery<?> query = this.sqlQuery.clone(conn);
@@ -199,23 +198,29 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
      *
      * @param <DQ> query type for the JOINed table
      * @param <DR> row type related to the {@link DQ}
-     * @param newPath entity path representing the JOIN (must be pre-created with unique alias)
+     * @param joinType entity path type for the JOIN
      * @param joinOnPredicateFunction bi-function producing ON predicate for the JOIN
      */
     public <DQ extends FlexibleRelationalPathBase<DR>, DR> SqlQueryContext<?, DQ, DR> leftJoin(
-            @NotNull DQ newPath,
+            @NotNull Class<DQ> joinType,
             @NotNull BiFunction<Q, DQ, Predicate> joinOnPredicateFunction) {
-        sqlQuery.leftJoin(newPath).on(joinOnPredicateFunction.apply(path(), newPath));
+        QueryTableMapping<?, DQ, DR> targetMapping =
+                sqlRepoContext.getMappingByQueryType(joinType);
+        String aliasName = uniqueAliasName(targetMapping.defaultAliasName());
+        DQ joinPath = targetMapping.newAlias(aliasName);
+        sqlQuery.leftJoin(joinPath).on(joinOnPredicateFunction.apply(path(), joinPath));
+        SqlQueryContext<?, DQ, DR> newQueryContext = deriveNew(joinPath, targetMapping);
 
-        // getClass returns Class<?> but it is really Class<DQ>, just suppressing the warning here
-        //noinspection unchecked
-        Class<DQ> aClass = (Class<DQ>) newPath.getClass();
-        QueryModelMapping<?, DQ, DR> mapping = sqlRepoContext.getMappingByQueryType(aClass);
-        return deriveNew(newPath, mapping);
+        // for JOINed context we want to preserve "NOT" status (unlike for subqueries)
+        if (notFilterUsed) {
+            newQueryContext.markNotFilterUsage();
+        }
+
+        return newQueryContext;
     }
 
     protected abstract <DQ extends FlexibleRelationalPathBase<DR>, DR> SqlQueryContext<?, DQ, DR>
-    deriveNew(DQ newPath, QueryModelMapping<?, DQ, DR> newMapping);
+    deriveNew(DQ newPath, QueryTableMapping<?, DQ, DR> newMapping);
 
     public String uniqueAliasName(String baseAliasName) {
         Set<String> joinAliasNames =
@@ -266,7 +271,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
     }
 
     /**
-     * Creates transformer for the {@link #mapping}.
+     * Creates transformer for the {@link #entityPathMapping}.
      * Made abstract, because the way how to create the transformer can differ on the type
      * of context that is needed to do it (typically providing various components).
      */
@@ -283,20 +288,15 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
      * Returns entity path of this context.
      */
     public Q path() {
-        return path;
+        return entityPath;
     }
 
     public <T extends FlexibleRelationalPathBase<?>> T path(Class<T> pathType) {
-        return pathType.cast(path);
+        return pathType.cast(entityPath);
     }
 
-    public QueryModelMapping<S, Q, R> mapping() {
-        return mapping;
-    }
-
-    public <T extends ObjectFilter> @NotNull FilterProcessor<T> createItemFilterProcessor(
-            ItemName itemName) throws QueryException {
-        return mapping.createItemFilterProcessor(itemName, this);
+    public QueryTableMapping<S, Q, R> mapping() {
+        return entityPathMapping;
     }
 
     public void markNotFilterUsage() {
@@ -315,7 +315,11 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         return transformerContext.prismContext();
     }
 
-    public abstract <T> Class<? extends T> qNameToSchemaClass(@NotNull QName qName);
+    public <T> Class<? extends T> qNameToSchemaClass(@NotNull QName qName) {
+        return transformerContext.qNameToSchemaClass(qName);
+    }
 
-    public abstract CanonicalItemPath createCanonicalItemPath(@NotNull ItemPath itemPath);
+    public CanonicalItemPath createCanonicalItemPath(@NotNull ItemPath itemPath) {
+        return transformerContext.prismContext().createCanonicalItemPath(itemPath);
+    }
 }
