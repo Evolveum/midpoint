@@ -57,8 +57,8 @@ public class AuditCustomColumnItemFilterProcessor extends ItemFilterProcessor<
             throws QueryException {
         // This is a tricky situation, if multi-value, each value can have different path (derived
         // from AuditEventRecordCustomColumnPropertyType.getName()), so we can't use this directly.
-        ValueFilterValues<AuditEventRecordCustomColumnPropertyType> values =
-                new ValueFilterValues<>(filter);
+        ValueFilterValues<AuditEventRecordCustomColumnPropertyType, ?> values =
+                ValueFilterValues.from(filter);
         if (values.isEmpty()) {
             throw new QueryException("Custom column null value is not supported,"
                     + " column can't be determined from filter: " + filter);

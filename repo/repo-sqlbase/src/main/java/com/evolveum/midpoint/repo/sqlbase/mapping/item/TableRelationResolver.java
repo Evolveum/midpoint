@@ -12,7 +12,6 @@ import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
-import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
@@ -24,7 +23,7 @@ import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
  */
 public class TableRelationResolver<
         Q extends FlexibleRelationalPathBase<?>, DQ extends FlexibleRelationalPathBase<DR>, DR>
-        implements ItemRelationResolver<Q> {
+        implements ItemRelationResolver {
 
     private final Class<DQ> targetQueryType;
     private final BiFunction<Q, DQ, Predicate> joinPredicate;
@@ -41,11 +40,10 @@ public class TableRelationResolver<
      * This does not use the mapping parameter as it is useless for JOIN creation.
      *
      * @param context query context used for JOIN creation
-     * @param unused provided mapping is not used at all
      * @return result with context for JOINed entity path and its mapping
      */
     @Override
-    public ResolutionResult resolve(SqlQueryContext<?, ?, ?> context, QueryModelMapping unused) {
+    public ResolutionResult resolve(SqlQueryContext<?, ?, ?> context) {
         //noinspection unchecked
         SqlQueryContext<?, DQ, DR> joinContext =
                 ((SqlQueryContext<?, Q, ?>) context).leftJoin(targetQueryType, joinPredicate);

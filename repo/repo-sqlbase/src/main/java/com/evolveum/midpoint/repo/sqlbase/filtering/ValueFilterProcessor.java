@@ -65,8 +65,8 @@ public class ValueFilterProcessor implements FilterProcessor<ValueFilter<?, ?>> 
             ItemName firstName = path.firstName();
             path = path.rest();
 
-            ItemRelationResolver<?> resolver = mapping.relationResolver(firstName);
-            ItemRelationResolver.ResolutionResult resolution = resolver.resolve(context, mapping);
+            ItemRelationResolver resolver = mapping.relationResolver(firstName);
+            ItemRelationResolver.ResolutionResult resolution = resolver.resolve(context);
             context = resolution.context;
             mapping = resolution.mapping;
         }

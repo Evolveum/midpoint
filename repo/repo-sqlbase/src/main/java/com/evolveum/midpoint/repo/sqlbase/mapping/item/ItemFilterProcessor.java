@@ -77,8 +77,8 @@ public abstract class ItemFilterProcessor<O extends ObjectFilter>
     }
 
     @NotNull
-    protected Predicate createBinaryCondition(
-            ValueFilter<?, ?> filter, Path<?> path, ValueFilterValues<?> values)
+    protected <T> Predicate createBinaryCondition(
+            ValueFilter<?, ?> filter, Path<T> path, ValueFilterValues<?, T> values)
             throws QueryException {
         Ops operator = operation(filter);
         if (values.isEmpty()) {
