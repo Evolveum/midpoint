@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.util.mock;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import com.evolveum.midpoint.util.exception.CommonException;
 
@@ -202,7 +199,7 @@ public class MockFactory {
 
             @Override
             public <T extends ObjectType> @NotNull String addObject(@NotNull PrismObject<T> object, RepoAddOptions options, @NotNull OperationResult parentResult) {
-                return null;
+                return UUID.randomUUID().toString();
             }
 
             @NotNull

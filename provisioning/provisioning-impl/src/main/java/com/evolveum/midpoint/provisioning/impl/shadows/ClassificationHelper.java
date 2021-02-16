@@ -68,12 +68,11 @@ class ClassificationHelper {
 
         argCheck(shadow.getOid() != null, "Shadow has no OID");
 
-        // The classifier code does not quite distinguish between resourceObject and the shadow.
-        // As an ugly hack let us create "combined" version of the two, and present that to the classifier.
+        // The classifier code works with the "combined" version of resource object and its shadow.
         // This is NOT a full shadowization. Just good enough for the classifier to work.
         PrismObject<ShadowType> combinedObject = combine(resourceObject, shadow);
 
-        Classification classification = classifier.classify(combinedObject, ctx.getResource().asPrismObject(), combinedObject,
+        Classification classification = classifier.classify(combinedObject, ctx.getResource().asPrismObject(),
                 ctx.getTask(), result);
 
         if (isDifferent(classification, shadow)) {
@@ -85,7 +84,7 @@ class ClassificationHelper {
     }
 
     /**
-     * The combination simply takes attributes and associations from the resource object, and the rest from the shadow.
+     * The combination simply takes attributes from the resource object, and the rest from the shadow.
      * It is much simplified version of what is done in {@link ShadowedObjectConstruction}. We hope if will suffice for now.
      * In particular, we hope that the object class is roughly OK, and things like entitlement, credentials, and so on
      * are not needed.

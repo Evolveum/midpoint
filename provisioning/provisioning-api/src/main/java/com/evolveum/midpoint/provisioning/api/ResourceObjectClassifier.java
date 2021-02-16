@@ -23,17 +23,18 @@ import org.jetbrains.annotations.NotNull;
 public interface ResourceObjectClassifier {
 
     /**
-     * Classifies the resource object. The object may or may not be adopted (i.e. connected to its repository shadow).
+     * Classifies the shadowed resource object.
      *
-     * TODO clarify resourceObject vs. repoShadow -- currently we send there "combined" resource object plus shadow
+     * @param combinedObject Resource object that we want to classify. It should be connected to the shadow,
+     * however, exact "shadowization" is not required. Currently it should contain all the information from the shadow,
+     * plus all the attributes from resource object. If needed, more elaborate processing (up to full shadowization)
+     * can be added later.
      *
-     * @param resourceObject Resource object that we want to classify
      * @param resource Resource on which the resource object was found
-     * @param repoShadow The current repository shadow associated with the resource object.
-     * It is needed e.g. to determine the tag value.
      */
-    @NotNull Classification classify(@NotNull PrismObject<ShadowType> resourceObject, @NotNull PrismObject<ResourceType> resource,
-            @NotNull PrismObject<ShadowType> repoShadow, @NotNull Task task, @NotNull OperationResult result)
+    @NotNull Classification classify(@NotNull PrismObject<ShadowType> combinedObject,
+            @NotNull PrismObject<ResourceType> resource,
+            @NotNull Task task, @NotNull OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException;
 
